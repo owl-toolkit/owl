@@ -82,7 +82,7 @@ public class OwlModuleRegistry {
     DEFAULT_REGISTRY = new OwlModuleRegistry();
 
     // I/O
-    DEFAULT_REGISTRY.register(InputReaders.LTL_CLI, InputReaders.HOA_CLI, InputReaders.TLSF_CLI,
+    DEFAULT_REGISTRY.register(InputReaders.LTL_CLI, InputReaders.HOA_CLI,
       OutputWriters.TO_STRING_CLI, OutputWriters.AUTOMATON_STATS_CLI, OutputWriters.NULL_CLI,
       OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI, RobustLtlInputReader.INSTANCE);
 

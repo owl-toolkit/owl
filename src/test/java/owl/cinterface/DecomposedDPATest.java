@@ -21,100 +21,63 @@ package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.cinterface.DecomposedDPA.of;
 import static owl.util.Assertions.assertThat;
 
 import com.google.common.primitives.ImmutableIntArray;
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.TlsfParser;
-import owl.ltl.tlsf.Tlsf;
 
 class DecomposedDPATest {
-  private static final String SIMPLE_ARBITER = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
-    + "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
-    + "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
-    + "(g_7)))))) || (((((! (g_0)) && (! (g_1))) && (((! (g_2)) && (true)) || ((true) && (! (g_3)"
-    + ")))) || ((((! (g_0)) && (true)) || ((true) && (! (g_1)))) && ((! (g_2)) && (! (g_3))))) &&"
-    + " ((((! (g_4)) && (! (g_5))) && (! (g_6))) && (! (g_7)))))) && (G ((r_0) -> (F (g_0))))) &&"
-    + " (G ((r_1) -> (F (g_1))))) && (G ((r_2) -> (F (g_2))))) && (G ((r_3) -> (F (g_3))))) && (G"
-    + " ((r_4) -> (F (g_4))))) && (G ((r_5) -> (F (g_5))))) && (G ((r_6) -> (F (g_6))))) && (G ("
-    + "(r_7) -> (F (g_7)))))";
+  private static final List<String> AMBE_ENCODE_LITERALS = List.of("hready", "hgrant_0", "hgrant_1",
+    "hgrant_2", "hgrant_3", "hgrant_4", "hgrant_5", "hgrant_6", "hmaster_0", "hmaster_1",
+    "hmaster_2");
 
-  private static final String CO_SAFETY = "(F (grant_1 && grant_2)) && (release_1 U grant_1) "
-    + "&& X (release_1 U grant_1) && (release_2 U grant_2) && (F (x -> X y)) && F x";
-
-  private static final String SAFETY = "(G (grant_1 || grant_2)) && (release_1 R grant_1) "
-    + "&& X (release_1 R grant_1) && (release_2 R grant_2) && (G (request_1 -> X grant_1)) "
-    + "&& G grant_1";
-
-  private static final String TIMEOUT_1
-    = "(((G F i1 -> G F o1) && (G F o1 -> G F o2)) <-> ((G F o1 -> G F o3) && (G F o3)))";
-
-  private static final String AMBA_ENCODE = "INFO {\n"
-    + "  TITLE:       \"Amba AHB - Decomposed - Encode\"\n"
-    + "  DESCRIPTION: \"Encode component of the decomposed Amba AHB Arbiter\"\n"
-    + "  SEMANTICS:   Mealy\n"
-    + "  TARGET:      Mealy\n"
-    + "}\n"
-    + "\n"
-    + "MAIN {\n"
-    + "  INPUTS {\n"
-    + "    HREADY;\n"
-    + "    HGRANT_0;\n"
-    + "    HGRANT_1;\n"
-    + "    HGRANT_2;\n"
-    + "    HGRANT_3;\n"
-    + "    HGRANT_4;\n"
-    + "    HGRANT_5;\n"
-    + "  }\n"
-    + "  OUTPUTS {\n"
-    + "    HMASTER_0;\n"
-    + "    HMASTER_1;\n"
-    + "    HMASTER_2;\n"
-    + "  }\n"
-    + "  ASSUME {\n"
-    + "    (G (((((! (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && ((((! (HGRANT_3)) && "
-    + "(! (HGRANT_4))) && (true)) || ((((! (HGRANT_3)) && (true)) || ((true) && (! (HGRANT_4)))"
-    + ") && (! (HGRANT_5))))) || (((((! (HGRANT_0)) && (! (HGRANT_1))) && (true)) || ((((! "
-    + "(HGRANT_0)) && (true)) || ((true) && (! (HGRANT_1)))) && (! (HGRANT_2)))) && (((! "
-    + "(HGRANT_3)) && (! (HGRANT_4))) && (! (HGRANT_5))))));\n"
-    + "    (G ((((((HGRANT_0) || (HGRANT_1)) || (HGRANT_2)) || (HGRANT_3)) || (HGRANT_4)) || "
-    + "(HGRANT_5)));\n"
-    + "  }\n"
-    + "  ASSERT {\n"
-    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (! (HMASTER_0)"
-    + "))) <-> (HGRANT_0)));\n"
-    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (! (HMASTER_1))) && (HMASTER_0))) "
-    + "<-> (HGRANT_1)));\n"
-    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (! (HMASTER_0)))) "
-    + "<-> (HGRANT_2)));\n"
-    + "    ((HREADY) -> ((X ((((true) && (! (HMASTER_2))) && (HMASTER_1)) && (HMASTER_0))) <-> "
-    + "(HGRANT_3)));\n"
-    + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (! (HMASTER_0)))) "
-    + "<-> (HGRANT_4)));\n"
-    + "    ((HREADY) -> ((X ((((true) && (HMASTER_2)) && (! (HMASTER_1))) && (HMASTER_0))) <-> "
-    + "(HGRANT_5)));\n"
-    + "    ((! (HREADY)) -> ((((X (HMASTER_0)) <-> (HMASTER_0)) && ((X (HMASTER_1)) <-> "
-    + "(HMASTER_1))) && ((X (HMASTER_2)) <-> (HMASTER_2))));\n"
-    + "  }\n"
-    + "}";
+  private static final String AMBA_ENCODE = "((F(((!hgrant_0) & (!hgrant_1) & (!hgrant_2) & "
+    + "(!hgrant_3) & (!hgrant_4) & (!hgrant_5)))) | (((G(((hready) | (((((X(hmaster_0)) <-> "
+    + "(hmaster_0))) & (((X(hmaster_1)) <-> (hmaster_1))) & (((X(hmaster_2)) <-> (hmaster_2))))))"
+    + ")) & (G(((!hready) | (((X(((hmaster_0) & (hmaster_1) & (!hmaster_2)))) <-> (hgrant_3))))))"
+    + " & (G(((!hready) | (((X(((hmaster_0) & (!hmaster_1) & (hmaster_2)))) <-> (hgrant_5)))))) &"
+    + " (G(((!hready) | (((X(((hmaster_0) & (!hmaster_1) & (!hmaster_2)))) <-> (hgrant_1)))))) & "
+    + "(G(((!hready) | (((X(((!hmaster_0) & (hmaster_1) & (!hmaster_2)))) <-> (hgrant_2)))))) & "
+    + "(G(((!hready) | (((X(((!hmaster_0) & (!hmaster_1) & (hmaster_2)))) <-> (hgrant_4)))))) & "
+    + "(G(((!hready) | (((X(((!hmaster_0) & (!hmaster_1) & (!hmaster_2)))) <-> (hgrant_0)))))))) "
+    + "| (F(((((hgrant_0) | (hgrant_1) | (hgrant_2) | (((((hgrant_3) | (hgrant_4))) & (("
+    + "(hgrant_5) | (((hgrant_3) & (hgrant_4))))))))) & (((hgrant_3) | (hgrant_4) | (hgrant_5) | "
+    + "(((((hgrant_0) | (hgrant_1))) & (((hgrant_2) | (((hgrant_0) & (hgrant_1)))))))))))))";
 
   @Test
   void splitSimpleArbiter() {
-    of(LtlParser.syntax(SIMPLE_ARBITER), true, false, 0);
+    String simpleArbiter = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
+      + "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
+      + "&& (! (g_7))))) || ((((! (g_4)) && (true)) || ((true) && (! (g_5)))) && ((! (g_6)) && (! "
+      + "(g_7)))))) || (((((! (g_0)) && (! (g_1))) && (((! (g_2)) && (true)) || ((true) && (! (g_3)"
+      + ")))) || ((((! (g_0)) && (true)) || ((true) && (! (g_1)))) && ((! (g_2)) && (! (g_3))))) &&"
+      + " ((((! (g_4)) && (! (g_5))) && (! (g_6))) && (! (g_7)))))) && (G ((r_0) -> (F (g_0))))) &&"
+      + " (G ((r_1) -> (F (g_1))))) && (G ((r_2) -> (F (g_2))))) && (G ((r_3) -> (F (g_3))))) && (G"
+      + " ((r_4) -> (F (g_4))))) && (G ((r_5) -> (F (g_5))))) && (G ((r_6) -> (F (g_6))))) && (G ("
+      + "(r_7) -> (F (g_7)))))";
+
+    of(LtlParser.syntax(simpleArbiter), true, false, 0);
   }
 
   @Test
   void splitSimpleArbiter2() {
-    of(LtlParser.syntax(TIMEOUT_1), true, false, 1);
+    var specification
+      = "(((G F i1 -> G F o1) && (G F o1 -> G F o2)) <-> ((G F o1 -> G F o3) && (G F o3)))";
+    of(LtlParser.syntax(specification), true, false, 1);
   }
 
   @Test
@@ -129,48 +92,33 @@ class DecomposedDPATest {
 
   @Test
   void testCoSafetySplitting() {
-    var tree2 = of(LtlParser.syntax(CO_SAFETY), false, false, 0).structure;
-    assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
+    var coSafetyFormula = LtlParser.syntax("(F (grant_1 && grant_2)) && (release_1 U grant_1) "
+      + "&& X (release_1 U grant_1) && (release_2 U grant_2) && (F (x -> X y)) && F x");
+    var automaton = of(coSafetyFormula, false, false, 0).structure;
+    assertEquals(5, ((Node<?, ?>) automaton).getChildren().size());
   }
 
   @Test
   void testSafetySplitting() {
-    var tree2 = of(LtlParser.syntax(SAFETY), false, false, 0).structure;
-    assertEquals(5, ((Node<?, ?>) tree2).getChildren().size());
+    var safetyFormula = LtlParser.syntax("(G (grant_1 || grant_2)) && (release_1 R grant_1) "
+      + "&& X (release_1 R grant_1) && (release_2 R grant_2) && (G (request_1 -> X grant_1)) "
+      + "&& G grant_1");
+    var automaton = of(safetyFormula, false, false, 0).structure;
+    assertEquals(5, ((Node<?, ?>) automaton).getChildren().size());
   }
 
   @Test
   void testAbsenceOfAssertionError() {
-    of(LtlParser.syntax("G (a | F a | F !b)"), false, false, 0);
-  }
-
-  @Test
-  void testAbsenceOfAssertionError2() {
-    of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, 0);
-  }
-
-  @Test
-  void testPerformance() {
-    var automaton = of(
-      TlsfParser.parse(AMBA_ENCODE).toFormula().formula(), true, false, 7);
-    automaton.automata.get(0).edges(0);
-  }
-
-  @Test
-  void testPerformance2() {
-    String ltl =
-      "(G(X!p12|X(!p6&!p13)|!p0|X(p13&p6))&G(X!p8|X(p2&p13)|X(!p13&!p2)|!p0)&G(X(p5&p13)|!p0"
-        + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
-        + "&G(X(p1&p13)|X(!p13&!p1)|X!p7|!p0)&G(X(p3&p13)|X(!p13&!p3)|!p0|X!p9))";
-
-    var automaton = of(LtlParser.parse(ltl).formula(), true, false, 0);
-    automaton.automata.get(0).edges(0);
+    assertDoesNotThrow(() -> {
+      of(LtlParser.syntax("G (a | F a | F !b)"), false, false, 0);
+      of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, 0);
+    });
   }
 
   @Test
   void testDeclareQuery() {
-    var automaton = of(
-      TlsfParser.parse(AMBA_ENCODE).toFormula().formula(), true, false, 7);
+    var ambaEncode = LtlParser.syntax(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
+    var automaton = of(ambaEncode, true, false, 7);
 
     var initial = ImmutableIntArray
       .copyOf(Collections.nCopies(3, 0));
@@ -209,214 +157,39 @@ class DecomposedDPATest {
   }
 
   @Test
-  void testThetaRegression() {
-    Tlsf specification = TlsfParser.parse("INFO {\n"
-      + "  TITLE:       \"LTL -> DBA  -  Formula Theta From LtlNfBa Paper\"\n"
-      + "  DESCRIPTION: \"Conversion of LTL to Deterministic Buchi Automaton\"\n"
-      + "  SEMANTICS:   Mealy\n"
-      + "  TARGET:      Mealy\n"
-      + "}\n"
-      + "\n"
-      + "MAIN {\n"
-      + "  INPUTS {\n"
-      + "    r;\n"
-      + "    q;\n"
-      + "    p_0;\n"
-      + "    p_1;\n"
-      + "    p_2;\n"
-      + "    p_3;\n"
-      + "  }\n"
-      + "  OUTPUTS {\n"
-      + "    acc;\n"
-      + "  }\n"
-      + "  GUARANTEE {\n"
-      + "    ((! (((((G (F (p_0))) && (G (F (p_1)))) && (G (F (p_2)))) && (G (F (p_3)))) -> (G ((q)"
-      + " -> (F (r)))))) <-> (G (F (acc))));\n"
-      + "  }\n"
-      + "}");
-
-    var automaton = of(specification.toFormula().formula(), true, false, 6);
-    assertEquals(3, automaton.automata.size());
-    assertEquals(4, automaton.automata.get(0).size());
-    assertEquals(2, automaton.automata.get(1).size());
-    assertEquals(1, automaton.automata.get(2).size());
-  }
-
-  @Test
-  // This should finish within 20 seconds.
-  void testAmbaDecLock12Leak() {
-    Tlsf specification = TlsfParser.parse("INFO {\n"
-      + "  TITLE:       \"Amba AHB - Decomposed - Lock\"\n"
-      + "  DESCRIPTION: \"Lock component of the decomposed Amba AHB Arbiter\"\n"
-      + "  SEMANTICS:   Mealy\n"
-      + "  TARGET:      Mealy\n"
-      + "}\n"
-      + "\n"
-      + "MAIN {\n"
-      + "  INPUTS {\n"
-      + "    DECIDE;\n"
-      + "    HLOCK_0;\n"
-      + "    HLOCK_1;\n"
-      + "    HLOCK_2;\n"
-      + "    HLOCK_3;\n"
-      + "    HLOCK_4;\n"
-      + "    HLOCK_5;\n"
-      + "    HLOCK_6;\n"
-      + "    HLOCK_7;\n"
-      + "    HLOCK_8;\n"
-      + "    HLOCK_9;\n"
-      + "    HLOCK_10;\n"
-      + "    HLOCK_11;\n"
-      + "    HGRANT_0;\n"
-      + "    HGRANT_1;\n"
-      + "    HGRANT_2;\n"
-      + "    HGRANT_3;\n"
-      + "    HGRANT_4;\n"
-      + "    HGRANT_5;\n"
-      + "    HGRANT_6;\n"
-      + "    HGRANT_7;\n"
-      + "    HGRANT_8;\n"
-      + "    HGRANT_9;\n"
-      + "    HGRANT_10;\n"
-      + "    HGRANT_11;\n"
-      + "  }\n"
-      + "  OUTPUTS {\n"
-      + "    LOCKED;\n"
-      + "  }\n"
-      + "  ASSUME {\n"
-      + "    (G ((((((((! (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && (! (HGRANT_3))) && "
-      + "(! (HGRANT_4))) && (! (HGRANT_5))) && (((((! (HGRANT_6)) && (! (HGRANT_7))) && (! "
-      + "(HGRANT_8))) && ((((! (HGRANT_9)) && (! (HGRANT_10))) && (true)) || ((((! (HGRANT_9)) && "
-      + "(true)) || ((true) && (! (HGRANT_10)))) && (! (HGRANT_11))))) || (((((! (HGRANT_6)) && (! "
-      + "(HGRANT_7))) && (true)) || ((((! (HGRANT_6)) && (true)) || ((true) && (! (HGRANT_7)))) && "
-      + "(! (HGRANT_8)))) && (((! (HGRANT_9)) && (! (HGRANT_10))) && (! (HGRANT_11)))))) || ((((((!"
-      + " (HGRANT_0)) && (! (HGRANT_1))) && (! (HGRANT_2))) && ((((! (HGRANT_3)) && (! (HGRANT_4)))"
-      + " && (true)) || ((((! (HGRANT_3)) && (true)) || ((true) && (! (HGRANT_4)))) && (! "
-      + "(HGRANT_5))))) || (((((! (HGRANT_0)) && (! (HGRANT_1))) && (true)) || ((((! (HGRANT_0)) &&"
-      + " (true)) || ((true) && (! (HGRANT_1)))) && (! (HGRANT_2)))) && (((! (HGRANT_3)) && (! "
-      + "(HGRANT_4))) && (! (HGRANT_5))))) && ((((((! (HGRANT_6)) && (! (HGRANT_7))) && (! "
-      + "(HGRANT_8))) && (! (HGRANT_9))) && (! (HGRANT_10))) && (! (HGRANT_11))))));\n"
-      + "    (G ((((((((((((HGRANT_0) || (HGRANT_1)) || (HGRANT_2)) || (HGRANT_3)) || (HGRANT_4)) "
-      + "|| (HGRANT_5)) || (HGRANT_6)) || (HGRANT_7)) || (HGRANT_8)) || (HGRANT_9)) || (HGRANT_10))"
-      + " || (HGRANT_11)));\n"
-      + "  }\n"
-      + "  ASSERT {\n"
-      + "    (((DECIDE) && (X (HGRANT_0))) -> ((X (LOCKED)) <-> (X (HLOCK_0))));\n"
-      + "    (((DECIDE) && (X (HGRANT_1))) -> ((X (LOCKED)) <-> (X (HLOCK_1))));\n"
-      + "    (((DECIDE) && (X (HGRANT_2))) -> ((X (LOCKED)) <-> (X (HLOCK_2))));\n"
-      + "    (((DECIDE) && (X (HGRANT_3))) -> ((X (LOCKED)) <-> (X (HLOCK_3))));\n"
-      + "    (((DECIDE) && (X (HGRANT_4))) -> ((X (LOCKED)) <-> (X (HLOCK_4))));\n"
-      + "    (((DECIDE) && (X (HGRANT_5))) -> ((X (LOCKED)) <-> (X (HLOCK_5))));\n"
-      + "    (((DECIDE) && (X (HGRANT_6))) -> ((X (LOCKED)) <-> (X (HLOCK_6))));\n"
-      + "    (((DECIDE) && (X (HGRANT_7))) -> ((X (LOCKED)) <-> (X (HLOCK_7))));\n"
-      + "    (((DECIDE) && (X (HGRANT_8))) -> ((X (LOCKED)) <-> (X (HLOCK_8))));\n"
-      + "    (((DECIDE) && (X (HGRANT_9))) -> ((X (LOCKED)) <-> (X (HLOCK_9))));\n"
-      + "    (((DECIDE) && (X (HGRANT_10))) -> ((X (LOCKED)) <-> (X (HLOCK_10))));\n"
-      + "    (((DECIDE) && (X (HGRANT_11))) -> ((X (LOCKED)) <-> (X (HLOCK_11))));\n"
-      + "    ((! (DECIDE)) -> ((X (LOCKED)) <-> (LOCKED)));\n"
-      + "  }\n"
-      + "}\n");
-
-    var automaton = of(specification.toFormula().formula(), true, false, 25);
-
-    assertEquals(3, automaton.automata.size());
-    assertEquals(4, automaton.automata.get(0).size());
-    assertEquals(2, automaton.automata.get(1).size());
-  }
-
-  @Test
   void testLoadBalancer() {
-    Tlsf specification = TlsfParser.parse("INFO {\n"
-      + "  TITLE:       \"Parameterized Load Balancer\"\n"
-      + "  DESCRIPTION: \"Parameterized Load Balancer (generalized version of the Acacia+ "
-      + "benchmark)\"\n"
-      + "  SEMANTICS:   Mealy\n"
-      + "  TARGET:      Mealy\n"
-      + "}\n"
-      + "\n"
-      + "MAIN {\n"
-      + "  INPUTS {\n"
-      + "    idle;\n"
-      + "    request_0;\n"
-      + "    request_1;\n"
-      + "    request_2;\n"
-      + "    request_3;\n"
-      + "    request_4;\n"
-      + "    request_5;\n"
-      + "    request_6;\n"
-      + "    request_7;\n"
-      + "    request_8;\n"
-      + "    request_9;\n"
-      + "  }\n"
-      + "  OUTPUTS {\n"
-      + "    grant_0;\n"
-      + "    grant_1;\n"
-      + "    grant_2;\n"
-      + "    grant_3;\n"
-      + "    grant_4;\n"
-      + "    grant_5;\n"
-      + "    grant_6;\n"
-      + "    grant_7;\n"
-      + "    grant_8;\n"
-      + "    grant_9;\n"
-      + "  }\n"
-      + "  ASSUME {\n"
-      + "    (G (F (idle)));\n"
-      + "    (G (((idle) && (X ((((((((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! "
-      + "(grant_3))) && (! (grant_4))) && (! (grant_5))) && (! (grant_6))) && (! (grant_7))) && "
-      + "(! (grant_8))) && (! (grant_9))))) -> (X (idle))));\n"
-      + "    (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && "
-      + "(idle))))));\n"
-      + "  }\n"
-      + "  ASSERT {\n"
-      + "    (X (((((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3))) && (! "
-      + "(grant_4))) && (((((! (grant_5)) && (! (grant_6))) && (! (grant_7))) && (((! (grant_8)) "
-      + "&& (true)) || ((true) && (! (grant_9))))) || (((((! (grant_5)) && (! (grant_6))) && "
-      + "(true)) || ((((! (grant_5)) && (true)) || ((true) && (! (grant_6)))) && (! (grant_7)))) "
-      + "&& ((! (grant_8)) && (! (grant_9)))))) || ((((((! (grant_0)) && (! (grant_1))) && (! "
-      + "(grant_2))) && (((! (grant_3)) && (true)) || ((true) && (! (grant_4))))) || (((((! "
-      + "(grant_0)) && (! (grant_1))) && (true)) || ((((! (grant_0)) && (true)) || ((true) && (! "
-      + "(grant_1)))) && (! (grant_2)))) && ((! (grant_3)) && (! (grant_4))))) && (((((! "
-      + "(grant_5)) && (! (grant_6))) && (! (grant_7))) && (! (grant_8))) && (! (grant_9))))));\n"
-      + "    ((X (grant_0)) -> (request_0));\n"
-      + "    ((X (grant_1)) -> (request_1));\n"
-      + "    ((X (grant_2)) -> (request_2));\n"
-      + "    ((X (grant_3)) -> (request_3));\n"
-      + "    ((X (grant_4)) -> (request_4));\n"
-      + "    ((X (grant_5)) -> (request_5));\n"
-      + "    ((X (grant_6)) -> (request_6));\n"
-      + "    ((X (grant_7)) -> (request_7));\n"
-      + "    ((X (grant_8)) -> (request_8));\n"
-      + "    ((X (grant_9)) -> (request_9));\n"
-      + "    ((request_0) -> (grant_1));\n"
-      + "    ((request_0) -> (grant_2));\n"
-      + "    ((request_0) -> (grant_3));\n"
-      + "    ((request_0) -> (grant_4));\n"
-      + "    ((request_0) -> (grant_5));\n"
-      + "    ((request_0) -> (grant_6));\n"
-      + "    ((request_0) -> (grant_7));\n"
-      + "    ((request_0) -> (grant_8));\n"
-      + "    ((request_0) -> (grant_9));\n"
-      + "    ((! (idle)) -> (X ((((((((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! "
-      + "(grant_3))) && (! (grant_4))) && (! (grant_5))) && (! (grant_6))) && (! (grant_7))) && "
-      + "(! (grant_8))) && (! (grant_9)))));\n"
-      + "  }\n"
-      + "  GUARANTEE {\n"
-      + "    (! (F (G ((request_0) && (X (! (grant_0)))))));\n"
-      + "    (! (F (G ((request_1) && (X (! (grant_1)))))));\n"
-      + "    (! (F (G ((request_2) && (X (! (grant_2)))))));\n"
-      + "    (! (F (G ((request_3) && (X (! (grant_3)))))));\n"
-      + "    (! (F (G ((request_4) && (X (! (grant_4)))))));\n"
-      + "    (! (F (G ((request_5) && (X (! (grant_5)))))));\n"
-      + "    (! (F (G ((request_6) && (X (! (grant_6)))))));\n"
-      + "    (! (F (G ((request_7) && (X (! (grant_7)))))));\n"
-      + "    (! (F (G ((request_8) && (X (! (grant_8)))))));\n"
-      + "    (! (F (G ((request_9) && (X (! (grant_9)))))));\n"
-      + "  }\n"
-      + "}\n"
-      + "\n");
+    var loadBalancerLiterals = new ArrayList<String>();
+    loadBalancerLiterals.add("idle");
+    IntStream.range(0, 10).mapToObj(x -> "request_" + x).forEach(loadBalancerLiterals::add);
+    IntStream.range(0, 10).mapToObj(x -> "grant_" + x).forEach(loadBalancerLiterals::add);
 
-    var automaton = of(specification.toFormula().formula(), true, false, 10);
+    var loadBalancer = LtlParser.syntax("((F(G(!idle))) | (F(((idle) & (X(!idle)) & (X(("
+      + "(!grant_0) & (!grant_1) & (!grant_2) & (!grant_3) & (!grant_4) & (!grant_5) & (!grant_6)"
+      + " & (!grant_7) & (!grant_8) & (!grant_9))))))) | (F(((X(grant_0)) & (X(((((idle) | "
+      + "(request_0))) R (((!idle) | (request_0))))))))) | (((G(((!request_0) | (grant_1)))) & (G"
+      + "(((!request_0) | (grant_2)))) & (G(((!request_0) | (grant_3)))) & (G(((!request_0) | "
+      + "(grant_4)))) & (G(((!request_0) | (grant_5)))) & (G(((!request_0) | (grant_6)))) & (G(("
+      + "(!request_0) | (grant_7)))) & (G(((!request_0) | (grant_8)))) & (G(((!request_0) | "
+      + "(grant_9)))) & (G(((request_0) | (X(!grant_0))))) & (G(((request_1) | (X(!grant_1))))) &"
+      + " (G(((request_2) | (X(!grant_2))))) & (G(((request_3) | (X(!grant_3))))) & (G(("
+      + "(request_4) | (X(!grant_4))))) & (G(((request_5) | (X(!grant_5))))) & (G(((request_6) | "
+      + "(X(!grant_6))))) & (G(((request_7) | (X(!grant_7))))) & (G(((request_8) | (X(!grant_8)))"
+      + ")) & (G(((request_9) | (X(!grant_9))))) & (G(((idle) | (X(((!grant_0) & (!grant_1) & "
+      + "(!grant_2) & (!grant_3) & (!grant_4) & (!grant_5) & (!grant_6) & (!grant_7) & (!grant_8)"
+      + " & (!grant_9))))))) & (G(((F(!request_0)) | (F(X(grant_0)))))) & (G(((F(!request_1)) | "
+      + "(F(X(grant_1)))))) & (G(((F(!request_2)) | (F(X(grant_2)))))) & (G(((F(!request_3)) | (F"
+      + "(X(grant_3)))))) & (G(((F(!request_4)) | (F(X(grant_4)))))) & (G(((F(!request_5)) | (F(X"
+      + "(grant_5)))))) & (G(((F(!request_6)) | (F(X(grant_6)))))) & (G(((F(!request_7)) | (F(X"
+      + "(grant_7)))))) & (G(((F(!request_8)) | (F(X(grant_8)))))) & (G(((F(!request_9)) | (F(X"
+      + "(grant_9)))))) & (G(X(((((!grant_0) & (!grant_1) & (!grant_2) & (!grant_3) & (!grant_4) "
+      + "& (((((!grant_5) & (!grant_6) & (!grant_7) & (((!grant_8) | (!grant_9))))) | (("
+      + "(!grant_8) & (!grant_9) & (((((!grant_5) & (!grant_6))) | (((!grant_7) & (((!grant_5) | "
+      + "(!grant_6))))))))))))) | (((!grant_5) & (!grant_6) & (!grant_7) & (!grant_8) & "
+      + "(!grant_9) & (((((!grant_0) & (!grant_1) & (!grant_2) & (((!grant_3) | (!grant_4))))) | "
+      + "(((!grant_3) & (!grant_4) & (((((!grant_0) & (!grant_1))) | (((!grant_2) & (((!grant_0) "
+      + "| (!grant_1))))))))))))))))))))", List.copyOf(loadBalancerLiterals));
+
+    var automaton = of(loadBalancer, true, false, 10);
 
     assertEquals(9, automaton.automata.size());
 
@@ -426,19 +199,79 @@ class DecomposedDPATest {
   }
 
   @Test
+  void testPerformance() {
+    assertTimeout(Duration.ofMillis(300), () -> {
+      var formula = LtlParser.syntax(
+        "(G(X!p12|X(!p6&!p13)|!p0|X(p13&p6))&G(X!p8|X(p2&p13)|X(!p13&!p2)|!p0)&G(X(p5&p13)|!p0"
+          + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
+          + "&G(X(p1&p13)|X(!p13&!p1)|X!p7|!p0)&G(X(p3&p13)|X(!p13&!p3)|!p0|X!p9))");
+      var automaton = of(formula, true, false, 0);
+
+      automaton.automata.get(0).edges(0);
+    });
+  }
+
+  @Test
+  void testPerformanceAmbaDecomposedLock12() {
+    assertTimeout(Duration.ofSeconds(5), () -> {
+      var ambaDecomposedLockLiterals = new ArrayList<String>();
+      ambaDecomposedLockLiterals.add("decide");
+      IntStream.range(0, 12).mapToObj(x -> "hlock_" + x).forEach(ambaDecomposedLockLiterals::add);
+      IntStream.range(0, 12).mapToObj(x -> "hgrant_" + x).forEach(ambaDecomposedLockLiterals::add);
+      ambaDecomposedLockLiterals.add("locked");
+
+      var ambaDecomposedLock = LtlParser.syntax("((F(((!hgrant_0) & (!hgrant_1) & (!hgrant_2) & "
+        + "(!hgrant_3) & (!hgrant_4) & (!hgrant_5) & (!hgrant_6) & (!hgrant_7) & (!hgrant_8) & "
+        + "(!hgrant_9) & (!hgrant_10) & (!hgrant_11)))) | (((G(((decide) | (((X(locked)) <-> "
+        + "(locked)))))) & (G(((!decide) | (X(!hgrant_0)) | (((X(locked)) <-> (X(hlock_0))))))) &"
+        + " (G(((!decide) | (X(!hgrant_1)) | (((X(locked)) <-> (X(hlock_1))))))) & (G(((!decide) "
+        + "| (X(!hgrant_2)) | (((X(locked)) <-> (X(hlock_2))))))) & (G(((!decide) | (X(!hgrant_3)"
+        + ") | (((X(locked)) <-> (X(hlock_3))))))) & (G(((!decide) | (X(!hgrant_4)) | (((X"
+        + "(locked)) <-> (X(hlock_4))))))) & (G(((!decide) | (X(!hgrant_5)) | (((X(locked)) <-> "
+        + "(X(hlock_5))))))) & (G(((!decide) | (X(!hgrant_6)) | (((X(locked)) <-> (X(hlock_6)))))"
+        + ")) & (G(((!decide) | (X(!hgrant_7)) | (((X(locked)) <-> (X(hlock_7))))))) & (G(("
+        + "(!decide) | (X(!hgrant_8)) | (((X(locked)) <-> (X(hlock_8))))))) & (G(((!decide) | (X"
+        + "(!hgrant_9)) | (((X(locked)) <-> (X(hlock_9))))))) & (G(((!decide) | (X(!hgrant_10)) |"
+        + " (((X(locked)) <-> (X(hlock_10))))))) & (G(((!decide) | (X(!hgrant_11)) | (((X(locked)"
+        + ") <-> (X(hlock_11))))))))) | (F(((((hgrant_0) | (hgrant_1) | (hgrant_2) | (hgrant_3) |"
+        + " (hgrant_4) | (hgrant_5) | (((((hgrant_6) | (hgrant_7) | (hgrant_8) | (((((hgrant_9) |"
+        + " (hgrant_10))) & (((hgrant_11) | (((hgrant_9) & (hgrant_10))))))))) & (((hgrant_9) | "
+        + "(hgrant_10) | (hgrant_11) | (((((hgrant_6) | (hgrant_7))) & (((hgrant_8) | (("
+        + "(hgrant_6) & (hgrant_7))))))))))))) & (((hgrant_6) | (hgrant_7) | (hgrant_8) | "
+        + "(hgrant_9) | (hgrant_10) | (hgrant_11) | (((((hgrant_0) | (hgrant_1) | (hgrant_2) | (("
+        + "(((hgrant_3) | (hgrant_4))) & (((hgrant_5) | (((hgrant_3) & (hgrant_4))))))))) & (("
+        + "(hgrant_3) | (hgrant_4) | (hgrant_5) | (((((hgrant_0) | (hgrant_1))) & (((hgrant_2) | "
+        + "(((hgrant_0) & (hgrant_1)))))))))))))))))", List.copyOf(ambaDecomposedLockLiterals));
+
+      var automaton = of(ambaDecomposedLock, true, false, 25);
+
+      assertEquals(3, automaton.automata.size());
+      assertEquals(4, automaton.automata.get(0).size());
+      assertEquals(2, automaton.automata.get(1).size());
+    });
+  }
+
+  @Test
+  void testPerformanceAmbaEncode() {
+    assertTimeout(Duration.ofSeconds(1), () -> {
+      var ambaEncode = LtlParser.syntax(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
+      var automaton = of(ambaEncode, true, false, 7);
+      automaton.automata.get(0).edges(0);
+    });
+  }
+
+  @Test
   void testRealizibilityRewriter() {
     Formula formula = LtlParser.syntax("G (req -> F gra)", List.of("req", "gra"));
 
-    var automaton1 = of(formula, true, false, 0)
-      .automata.get(0);
+    var automaton1 = of(formula, true, false, 0).automata.get(0);
 
     assertAll(
       () -> assertEquals(Acceptance.BUCHI.ordinal(), automaton1.acceptance()),
       () -> assertEquals(2, automaton1.size())
     );
 
-    var automaton2 = of(formula, true, false, 1)
-      .automata.get(0);
+    var automaton2 = of(formula, true, false, 1).automata.get(0);
 
     assertAll(
       () -> assertEquals(Acceptance.BUCHI.ordinal(), automaton2.acceptance()),
@@ -446,13 +279,26 @@ class DecomposedDPATest {
       () -> assertArrayEquals(new int[]{4, 0, 0, -2, 0, -1, 0, 0}, automaton2.edges(0))
     );
 
-    var automaton3 = of(formula, true, false, 2)
-      .automata.get(0);
+    var automaton3 = of(formula, true, false, 2).automata.get(0);
 
     assertAll(
       () -> assertEquals(Acceptance.SAFETY.ordinal(), automaton3.acceptance()),
       () -> assertEquals(1, automaton3.size()),
       () -> assertArrayEquals(new int[]{1, -1, -1}, automaton3.edges(0))
     );
+  }
+
+  @Test
+  void testThetaFormulaRegression() {
+    var literals = List.of("r", "q", "p_0", "p_1", "p_2", "p_3", "acc");
+    var formula = LtlParser.syntax(
+      "((((GF p_0) & (GF p_1) & (GF p_2) & (GF p_3) & (F((q & G !r))))) <-> (GF acc))",
+      literals);
+    var automaton = of(formula, true, false, 6);
+
+    assertEquals(3, automaton.automata.size());
+    assertEquals(4, automaton.automata.get(0).size());
+    assertEquals(2, automaton.automata.get(1).size());
+    assertEquals(1, automaton.automata.get(2).size());
   }
 }

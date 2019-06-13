@@ -31,8 +31,6 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.automaton.AutomatonReader;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.parser.TlsfParser;
-import owl.ltl.tlsf.Tlsf;
 import owl.run.PipelineException;
 import owl.run.modules.OwlModuleParser.ReaderParser;
 
@@ -52,17 +50,6 @@ public final class InputReaders {
     .description("Parses automata given in HOA format, converting them to transition based "
       + "acceptance if necessary")
     .parser(settings -> HOA).build();
-
-
-  public static final InputReader TLSF = (reader, env, callback) -> {
-    Tlsf tlsf = TlsfParser.parse(reader);
-    callback.accept(tlsf.toFormula());
-  };
-  public static final ReaderParser TLSF_CLI = ImmutableReaderParser.builder()
-    .key("tlsf")
-    .description("Parses a single TLSF instance and converts it to an LTL formula")
-    .parser(settings -> TLSF).build();
-
 
   public static final InputReader LTL = (reader, env, callback) ->
     CharStreams.readLines(reader, new LineProcessor<Void>() {

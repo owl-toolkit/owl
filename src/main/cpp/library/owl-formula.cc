@@ -39,7 +39,6 @@ namespace owl {
         bind_static(MOperator, "owl/ltl/MOperator", of, binarySignature);
 
         bind_static_method(env, "owl/ltl/parser/LtlParser", "syntax", "(Ljava/lang/String;Ljava/util/List;)Lowl/ltl/Formula;", ltlParser, ltlParseID);
-        bind_static_method(env, "owl/ltl/parser/TlsfParser", "parse", "(Ljava/lang/String;)Lowl/ltl/tlsf/Tlsf;", tlsfParser, tlsfParseID);
     }
 
     FormulaFactory::~FormulaFactory() {
@@ -123,19 +122,5 @@ namespace owl {
         Formula formula = copy_from_java(env, call_static_method<jobject, jstring, jobject>(env, ltlParser, ltlParseID, string, mapping));
         deref(env, string, mapping);
         return formula;
-    }
-
-    Formula FormulaFactory::parseTlsf(const std::string &tlsf_string, std::vector<std::string> &apMapping,
-                                      int &numberOfInputVariables) {
-        jstring string = copy_to_java(env, tlsf_string);
-        auto tlsf = call_static_method<jobject, jstring>(env, tlsfParser, tlsfParseID, string);
-        auto labelled_formula = call_method<jobject>(env, tlsf, "toFormula", "()Lowl/ltl/LabelledFormula;");
-        auto formula = get_object_field<jobject>(env, labelled_formula, "formula", "Lowl/ltl/Formula;");
-
-        apMapping = copy_from_java(env, get_object_field<jobject>(env, labelled_formula, "variables", "Lcom/google/common/collect/ImmutableList;"));
-        numberOfInputVariables = call_int_method<>(env, tlsf, "numberOfInputs", "()I");
-
-        deref(env, tlsf, labelled_formula);
-        return copy_from_java(env, formula);
     }
 }

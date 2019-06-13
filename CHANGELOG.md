@@ -1,10 +1,15 @@
 # 2019.06 (unreleased)
 
-Translations:
+Modules:
 
 * Implemented all LICS'18 translations for LTL fragments. Including a symbolic
   successor / edge computation. The translations can be found in the canonical
   package and are exposed via `ltl2da` and `ltl2na`.
+
+* Removed TLSF support. Ensuring the correct implementation of the TLSF
+  specification posed a too large maintenance burden. Users of the TLSF format
+  can use Syfco (https://github.com/reactive-systems/syfco) to translate it to
+  a basic LTL formula.
 
 API:
 
