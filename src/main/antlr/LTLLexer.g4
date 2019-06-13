@@ -34,8 +34,8 @@ SRELEASE   : 'M';
 // MISC
 LPAREN     : '(';
 RPAREN     : ')';
-LDQUOTE     : '"' -> mode(DOUBLE_QUOTED);
-LSQUOTE     : '\'' -> mode(SINGLE_QUOTED);
+LDQUOTE    : '"' -> mode(DOUBLE_QUOTED);
+LSQUOTE    : '\'' -> mode(SINGLE_QUOTED);
 
 LCPAREN    : '{' -> mode(FREQUENCY_SPEC);
 
