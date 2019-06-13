@@ -119,6 +119,7 @@ public final class TlsfParser {
         throw new ParseCancellationException("Duplicate variable definition: " + variableName);
       }
 
+
       outputs.set(variables.size());
       variables.add(variableName);
       lowercaseVariables.add(variableName.toLowerCase());

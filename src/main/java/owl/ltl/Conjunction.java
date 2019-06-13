@@ -25,6 +25,8 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
+
+import org.jetbrains.annotations.Contract;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -32,9 +34,18 @@ import owl.util.annotation.CEntryPoint;
 
 public final class Conjunction extends PropositionalFormula {
 
-  private Conjunction(Formula[] conjuncts) {
+  public Conjunction(Formula[] conjuncts) {
     super(Conjunction.class, Set.of(conjuncts));
   }
+
+  //Syntax retaining constructor:
+
+  public static Conjunction SyntaxConjunction(Stream<? extends Formula> stream){
+    Set<Formula> set = new HashSet<>();
+    stream.forEach(f -> set.add(f));
+   return new Conjunction(set.toArray(Formula[]::new));
+  }
+
 
   @CEntryPoint
   public static Formula of(Formula left, Formula right) {

@@ -25,7 +25,7 @@ import java.util.Set;
 public abstract class UnaryModalOperator extends Formula.ModalOperator {
   public final Formula operand;
 
-  UnaryModalOperator(Class<? extends UnaryModalOperator> clazz, Formula operand) {
+  public UnaryModalOperator(Class<? extends UnaryModalOperator> clazz, Formula operand) {
     super(Objects.hash(clazz, operand));
     this.operand = operand;
   }
