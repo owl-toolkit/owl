@@ -25,7 +25,6 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
-
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
