@@ -49,6 +49,8 @@ API:
 * Overhaul of the C++-API. Most notably there is an API for approximative realisability checks for a
   state in the decomposed DPA.
 
+* Add basic support for ultimately periodic words and add language membership tests.
+
 Bugfixes:
 
 * Throw an exception on malformed LTL input such as `FF`, `Fa!` and `F+`. Thanks 

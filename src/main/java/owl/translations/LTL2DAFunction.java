@@ -55,6 +55,10 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
   private final EnumSet<Constructions> allowedConstructions;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
+  public LTL2DAFunction(Environment environment) {
+    this(environment, false, EnumSet.allOf(Constructions.class));
+  }
+
   public LTL2DAFunction(Environment environment, boolean onTheFly,
     EnumSet<Constructions> allowedConstructions) {
     this.allowedConstructions = EnumSet.copyOf(allowedConstructions);

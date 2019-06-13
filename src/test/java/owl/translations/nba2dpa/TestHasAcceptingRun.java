@@ -29,7 +29,7 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.output.HoaPrinter;
 import owl.run.DefaultEnvironment;
 
@@ -106,10 +106,10 @@ class TestHasAcceptingRun {
     var dpa = new NBA2DPA().apply(nba);
 
     HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertEquals(EmptinessCheck.isEmpty(dpa), !hasAcceptingRun);
+    assertEquals(LanguageEmptiness.isEmpty(dpa), !hasAcceptingRun);
 
     var complement = Views.complement(AutomatonUtil.cast(dpa), new Object());
     HoaPrinter.feedTo(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    assertEquals(EmptinessCheck.isEmpty(complement), !complementHasAcceptingRun);
+    assertEquals(LanguageEmptiness.isEmpty(complement), !complementHasAcceptingRun);
   }
 }

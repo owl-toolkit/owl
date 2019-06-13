@@ -34,7 +34,7 @@ import java.util.function.IntConsumer;
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.algorithms.EmptinessCheck;
+import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -192,7 +192,7 @@ public final class AutomatonUtil {
         .stateFilter(scc::contains)
         .build();
 
-      if (!EmptinessCheck.isEmpty(Views.createView(automaton, viewSettings))) {
+      if (!LanguageEmptiness.isEmpty(Views.createView(automaton, viewSettings))) {
         acceptingSccs.addAll(scc);
       }
     }

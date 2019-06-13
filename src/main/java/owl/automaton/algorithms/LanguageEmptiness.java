@@ -38,8 +38,8 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.transformations.RabinDegeneralization;
 
-public final class EmptinessCheck {
-  private EmptinessCheck() {}
+public final class LanguageEmptiness {
+  private LanguageEmptiness() {}
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
     return automaton.initialStates().stream().allMatch(state -> isEmpty(automaton, state));
@@ -157,7 +157,7 @@ public final class EmptinessCheck {
 
       /* assert Parity.containsAcceptingLasso(casted, initialState)
         == Parity.containsAcceptingScc(casted, initialState); */
-      return !EmptinessCheck.Parity.containsAcceptingLasso(casted, initialState);
+      return !LanguageEmptiness.Parity.containsAcceptingLasso(casted, initialState);
     }
 
     if (acceptance instanceof RabinAcceptance) {
@@ -176,7 +176,7 @@ public final class EmptinessCheck {
     }
 
     throw new UnsupportedOperationException(
-      String.format("Emptiness check for %s not yet implemented.", acceptance.name()));
+      String.format("Emptiness check for %s not yet implemented.", acceptance.getClass()));
   }
 
   private static final class Buchi {
