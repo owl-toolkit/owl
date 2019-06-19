@@ -10,6 +10,10 @@ Modules:
   specification posed a too large maintenance burden. Users of the TLSF format
   can use Syfco (https://github.com/reactive-systems/syfco) to translate it to
   a basic LTL formula.
+  
+  _Warning_: There are several specifications from Syntcomp in the TLSF (basic)
+  format that have not been correctly parsed if they have not been properly
+  parenthesised before.
 
 API:
 
