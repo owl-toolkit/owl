@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -45,7 +45,7 @@ public final class LanguageAnalysis {
     }
 
     var labelledFormula = attachDummyAlphabet(formula);
-    var translation = new LTL2DAFunction(DefaultEnvironment.of(false, false), true,
+    var translation = new LTL2DAFunction(DefaultEnvironment.of(false), true,
       EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, GENERALIZED_RABIN));
     return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }

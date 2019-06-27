@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -31,8 +31,7 @@ import owl.run.PipelineExecutionContext;
  * <p>Implementation notes: It is strongly encouraged to design transformers in a stateless
  * fashion, since it allows for easy parallelism. As parallel processing is a central design
  * concept, the {@link Transformer.Instance#transform(Object, PipelineExecutionContext) transform}
- * method must support parallel calls, even if there is some state involved. Should synchronization
- * be costly, the implementation can enable it based on {@link Environment#parallel()}.</p>
+ * method must support parallel calls, even if there is some state involved.</p>
  */
 @FunctionalInterface
 public interface Transformer extends OwlModule {

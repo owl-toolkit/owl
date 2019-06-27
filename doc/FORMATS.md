@@ -67,9 +67,7 @@ Caveats:
 
 ## <a name="TLSF" /> Temporal Logic Synthesis Format (TLSF)
 
-For use in a synthesis toolchain, `Owl` supports the *basic format* of [TLSF](https://arxiv.org/abs/1604.02284).
-
-Use [syfco](https://github.com/reactive-systems/syfco) to transform other formats into TLSF or LTL. 
+Use [syfco](https://github.com/reactive-systems/syfco) to transform TLSF to LTL.
 
 
 ## <a name="pgsolver" /> PGSolver Format

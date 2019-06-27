@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -20,10 +20,8 @@
 package owl.run;
 
 import static owl.run.RunUtil.checkDefaultAnnotationOption;
-import static owl.run.RunUtil.checkDefaultParallelOption;
 import static owl.run.RunUtil.failWithMessage;
 import static owl.run.RunUtil.getDefaultAnnotationOption;
-import static owl.run.RunUtil.getDefaultParallelOption;
 
 import com.google.common.base.Strings;
 import java.util.concurrent.Callable;
@@ -42,8 +40,7 @@ public final class ServerCli {
 
     return new Options()
       .addOption(portOption)
-      .addOption(getDefaultAnnotationOption())
-      .addOption(getDefaultParallelOption());
+      .addOption(getDefaultAnnotationOption());
   }
 
   public static Callable<Void> build(CommandLine settings, Pipeline pipeline) {
@@ -60,8 +57,7 @@ public final class ServerCli {
     }
 
     boolean annotations = checkDefaultAnnotationOption(settings);
-    boolean parallel = checkDefaultParallelOption(settings);
-    return new ServerRunner(pipeline, () -> DefaultEnvironment.of(annotations, parallel), port);
+    return new ServerRunner(pipeline, () -> DefaultEnvironment.of(annotations), port);
   }
 
   public static void main(String... args) {

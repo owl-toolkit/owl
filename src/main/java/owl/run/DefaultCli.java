@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -68,7 +68,6 @@ public final class DefaultCli {
       .addOptionGroup(inputGroup)
       .addOption(fileOutput)
       .addOption(workerCount)
-      .addOption(RunUtil.getDefaultParallelOption())
       .addOption(RunUtil.getDefaultAnnotationOption());
   }
 
@@ -106,8 +105,7 @@ public final class DefaultCli {
         StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 
     boolean annotations = RunUtil.checkDefaultAnnotationOption(settings);
-    boolean parallel = RunUtil.checkDefaultParallelOption(settings);
-    DefaultEnvironment env = DefaultEnvironment.of(annotations, parallel);
+    DefaultEnvironment env = DefaultEnvironment.of(annotations);
     return () -> {
       PipelineRunner.run(pipeline, env, reader.call(), writer.call(), workers);
       return null;

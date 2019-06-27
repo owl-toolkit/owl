@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -56,7 +56,7 @@ apply plugin: 'idea'
 apply plugin: 'application'
 
 project.group = 'de.tum.in'
-project.version = '18.10-snapshot'
+project.version = '19.06'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'

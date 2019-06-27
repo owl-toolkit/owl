@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -38,14 +38,8 @@ abstract class AbstractDefaultEnvironment implements Environment {
   @Value.Derived
   @Override
   public FactorySupplier factorySupplier() {
-    /* TODO Factories not thread safe yet */
-    // return isParallel() ? JBddSupplier.sync() : JBddSupplier.async();
     return JBddSupplier.async(annotations());
   }
-
-  @Value.Parameter
-  @Override
-  public abstract boolean parallel();
 
   @Override
   public void shutdown() {
@@ -58,10 +52,10 @@ abstract class AbstractDefaultEnvironment implements Environment {
   }
 
   public static Environment annotated() {
-    return DefaultEnvironment.of(true, false);
+    return DefaultEnvironment.of(true);
   }
 
   public static Environment standard() {
-    return DefaultEnvironment.of(false, false);
+    return DefaultEnvironment.of(false);
   }
 }

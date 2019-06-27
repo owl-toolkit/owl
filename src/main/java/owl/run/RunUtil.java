@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -41,14 +41,6 @@ public final class RunUtil {
     boolean annotationsFromEnv = !Strings.isNullOrEmpty(annotationsEnv)
       && !"0".equals(annotationsEnv);
     return annotationsFromEnv || settings.hasOption("annotations");
-  }
-
-  public static Option getDefaultParallelOption() {
-    return new Option("p", "parallel", false, "Enable parallel processing (where supported)");
-  }
-
-  public static boolean checkDefaultParallelOption(CommandLine settings) {
-    return settings.hasOption("parallel");
   }
 
   /**

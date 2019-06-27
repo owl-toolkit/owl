@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Building the project from source requires an installed [JDK 10](http://jdk.java.net/10/) and an installed C++17 compiler. Furthermore to generate HTML documentation [pandoc](https://pandoc.org/) is needed.
+Building the project from source requires an installed [JDK 11](http://jdk.java.net/11/) and an installed C++17 compiler. Furthermore to generate HTML documentation [pandoc](https://pandoc.org/) is needed.
 
 Owl is built with [Gradle](http://gradle.org/), which is automatically bootstrapped. You can view the available tasks with:
 
@@ -38,7 +38,7 @@ In order to save space and reduce load time of the application a minimized `jar`
 $ ./gradlew minimizedDistZip
 ```
 
-The minimization uses [ProGuard](https://www.guardsquare.com/en/products/proguard), removes unused `class`-files from the jar and produces a single jar.
+The minimization removes unused `class`-files from the jar and produces a single jar.
 
 ## Documentation
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -214,7 +214,7 @@ class DecomposedDPATest {
   @Test
   void testPerformanceComplementConstructionHeuristic() {
     // Computing the automaton without COMPLEMENT_CONSTRUCTION_HEURISTIC takes minutes.
-    assertTimeout(Duration.ofSeconds(4), () -> {
+    assertTimeout(Duration.ofSeconds(6), () -> {
       var formula = LtlParser.syntax(
         "((FGp2|GFp1)&(FGp3|GFp2)&(FGp4|GFp3)&(FGp5|GFp4)&(FGp6|GFp5))");
       of(formula, true, false, 0);

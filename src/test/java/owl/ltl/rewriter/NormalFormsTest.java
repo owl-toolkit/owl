@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -107,7 +107,7 @@ class NormalFormsTest {
   @ParameterizedTest
   @MethodSource("labelledFormulaProvider")
   void testCorrectness(LabelledFormula formula) {
-    var factory = DefaultEnvironment.of(false, false)
+    var factory = DefaultEnvironment.of(false)
       .factorySupplier().getEquivalenceClassFactory(formula.variables());
 
     assertEquals(factory.of(formula.formula()),

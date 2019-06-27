@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2019  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -37,12 +37,7 @@ public interface Environment {
    */
   FactorySupplier factorySupplier();
 
-  /**
-   * Whether computations should be parallel.
-   */
-  boolean parallel();
-
-  // TODO Add shutdown hooks
+  // TODO: Add shutdown hooks
 
   /**
    * Called exactly one by the runner, indicating that the computation has ended due to, e.g.,
