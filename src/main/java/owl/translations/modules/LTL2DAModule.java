@@ -33,7 +33,7 @@ import owl.translations.LTL2DAFunction;
 public final class LTL2DAModule {
   public static final TransformerParser CLI = ImmutableTransformerParser.builder()
     .key("ltl2da")
-    .description("Translate LTL to some (heuristically chosen) small deterministic automaton.")
+    .description("Translate LTL to a (heuristically chosen) small deterministic automaton.")
     .parser(settings -> environment -> {
       LTL2DAFunction function = new LTL2DAFunction(environment, false,
         EnumSet.allOf(LTL2DAFunction.Constructions.class));
