@@ -123,7 +123,7 @@ public class LatexPrintVisitor implements Visitor<String> {
       .collect(Collectors.joining(" \\" + operator.operatorSymbol() + ' '));
   }
 
-  private String visit(PropositionalFormula propositionalFormula, String latexString) {
+  private String visit(PropositionalFormula propositionalFormula, String latexString) { // NOPMD
     return propositionalFormula.children.stream()
       .sorted(Comparator.naturalOrder())
       .map(x -> {

@@ -222,7 +222,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         .map(Fixpoints::simplified)
         .collect(Collectors.toSet());
 
-      var jumps = new ArrayList<SymmetricProductState>();
+      var jumps = new ArrayList<SymmetricProductState>(); // NOPMD
 
       evaluationMap.forEach((fixpoints, set) -> {
         if (!availableFixpoints.contains(fixpoints)) {

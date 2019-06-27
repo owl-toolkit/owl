@@ -696,7 +696,8 @@ class TranslationAutomatonSummaryTest {
 
       for (int row = 0; row < rows; row++) {
         if (row % 2 == 0 && !interestingRow.test(row)) {
-          row = row + 1;
+          //noinspection AssignmentToForLoopParameter
+          row += 1; // NOPMD
           continue;
         }
 

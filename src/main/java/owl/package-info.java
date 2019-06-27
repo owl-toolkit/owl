@@ -18,7 +18,7 @@
  */
 
 /**
- * This package and its subpackages contains various
+ * This package and its subpackages contains various things.
  */
 @EverythingIsNonnullByDefault
 package owl;

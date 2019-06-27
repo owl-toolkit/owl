@@ -44,17 +44,15 @@ repositories {
 }
 
 dependencies {
-    implementation 'net.ltgt.gradle:gradle-apt-plugin:0.18'
-    implementation 'net.ltgt.gradle:gradle-errorprone-plugin:0.6'
-    implementation 'com.github.jengelman.gradle.plugins:shadow:4.0.2'
+    implementation 'net.ltgt.gradle:gradle-errorprone-plugin:0.8.1'
+    implementation 'com.github.jengelman.gradle.plugins:shadow:5.0.0'
 }
 
 dependencyVerification {
     verify = [
-        'com.github.jengelman.gradle.plugins:shadow:4.0.2:shadow-4.0.2.jar:4967d962a93ab297207cd61619d5000e4b1f0c1f26c9e559add5213db0263773',
+        'com.github.jengelman.gradle.plugins:shadow:5.0.0:shadow-5.0.0.jar:73e8d677735e7fd5a63b9ab0c5d60b72fe784b118a9e546a20aee4712312e548',
         'commons-io:commons-io:2.6:commons-io-2.6.jar:f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
-        'net.ltgt.gradle:gradle-apt-plugin:0.18:gradle-apt-plugin-0.18.jar:d3a350a115bba6bdaa8230ce80ece6cef32c347ffd1b76c5514003f504424d0f',
-        'net.ltgt.gradle:gradle-errorprone-plugin:0.6:gradle-errorprone-plugin-0.6.jar:ef38e95e575d5fbc84d8b3dd2d6a44bd750d833cdfc18335cc3a633b83e15c6e',
+        'net.ltgt.gradle:gradle-errorprone-plugin:0.8.1:gradle-errorprone-plugin-0.8.1.jar:0524b841630b880b8aeb503e8aef7e47dbaef2d3707c9ce5445b903fd938e979',
         'org.apache.ant:ant-launcher:1.9.7:ant-launcher-1.9.7.jar:bc376f6d6cb586229f451ac459faf1443b144c26d6647618ec9cba60e54c2b79',
         'org.apache.ant:ant:1.9.7:ant-1.9.7.jar:9a5dbe3f5f2cb91854c8682cab80178afa412ab35a5ab718bf39ce01b3435d93',
         'org.apache.logging.log4j:log4j-api:2.11.0:log4j-api-2.11.0.jar:fa5828950269b0ae425c96d889f18f40b336e9fa886841ae06bb9225511f1217',

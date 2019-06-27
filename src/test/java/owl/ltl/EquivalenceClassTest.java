@@ -257,10 +257,11 @@ abstract class EquivalenceClassTest {
 
   @Test
   void testTruthness() {
-    assertEquals(1.0d, factory.getTrue().trueness(), 0.00000001d);
-    assertEquals(0.75d, factory.of(LtlParser.syntax("a | b")).trueness(), 0.00000001d);
-    assertEquals(0.5d, factory.of(LtlParser.syntax("a")).trueness(), 0.00000001d);
-    assertEquals(0.25d, factory.of(LtlParser.syntax("a & b")).trueness(), 0.00000001d);
-    assertEquals(0.0d, factory.getFalse().trueness(), 0.00000001d);
+    double precision = 0.000_000_01d;
+    assertEquals(1.0d, factory.getTrue().trueness(), precision);
+    assertEquals(0.75d, factory.of(LtlParser.syntax("a | b")).trueness(), precision);
+    assertEquals(0.5d, factory.of(LtlParser.syntax("a")).trueness(), precision);
+    assertEquals(0.25d, factory.of(LtlParser.syntax("a & b")).trueness(), precision);
+    assertEquals(0.0d, factory.getFalse().trueness(), precision);
   }
 }

@@ -163,8 +163,8 @@ public final class NonDeterministicConstructions {
           return Set.of();
         }
 
-        var finiteLtl = new HashSet<Formula>();
-        var nonFiniteLtl = new HashSet<Formula>();
+        var finiteLtl = new HashSet<Formula>(); // NOPMD
+        var nonFiniteLtl = new HashSet<Formula>(); // NOPMD
 
         x.children.forEach(y -> {
           if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
