@@ -74,7 +74,6 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
       return AutomatonUtil.cast(automaton, RabinAcceptance.class);
     }
 
-    // TODO parallel
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "De-generalising automaton with " + automaton.size() + " states");
     }

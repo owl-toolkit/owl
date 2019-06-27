@@ -1,4 +1,4 @@
-# 2019.06 (unreleased)
+# 2019.06
 
 Modules:
 
@@ -10,7 +10,7 @@ Modules:
   specification posed a too large maintenance burden. Users of the TLSF format
   can use Syfco (https://github.com/reactive-systems/syfco) to translate it to
   a basic LTL formula.
-  
+
   _Warning_: There are several specifications from Syntcomp in the TLSF (basic)
   format that have not been correctly parsed if they have not been properly
   parenthesised before.
@@ -18,19 +18,19 @@ Modules:
 API:
 
 * Overhaul of the symbolic successor computation
- 
-  In addition to providing a mapping from `Edge<S>` to `ValuationSet` (renamed 
+
+  In addition to providing a mapping from `Edge<S>` to `ValuationSet` (renamed
   from `labelledEdges(S state)` to `edgeMap(S state)`) some automata can provide
-  a direct computation of a decision tree mapping from valuations to sets of 
+  a direct computation of a decision tree mapping from valuations to sets of
   edges (`edgeTree(S state)`). This enable optimisation in the JNI-access.
-  
-  This feature is mostly used by the direct translation of the safety and 
+
+  This feature is mostly used by the direct translation of the safety and
   co-safety fragment of LTL to deterministic automata.
-  
-* EquivalenceClass offers a `trueness` value giving the percentage of satisfying 
-  assignments for an EquivalenceClass. This value is exposed via the JNI as the 
+
+* EquivalenceClass offers a `trueness` value giving the percentage of satisfying
+  assignments for an EquivalenceClass. This value is exposed via the JNI as the
   quality score.
-  
+
 * Redesigned Formula classes offering substitution as part of the API instead
   of a separate visitor.
 
@@ -57,12 +57,12 @@ API:
 
 Bugfixes:
 
-* Throw an exception on malformed LTL input such as `FF`, `Fa!` and `F+`. Thanks 
+* Throw an exception on malformed LTL input such as `FF`, `Fa!` and `F+`. Thanks
   to Alexandre Duret-Lutz for reporting this issue.
 
 # 2018.06
 
-TBD
+TBD (see gitlog)
 
 # 1.2-SNAPSHOT
 

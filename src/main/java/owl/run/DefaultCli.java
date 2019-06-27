@@ -68,7 +68,6 @@ public final class DefaultCli {
       .addOptionGroup(inputGroup)
       .addOption(fileOutput)
       .addOption(workerCount)
-      .addOption(RunUtil.getDefaultParallelOption())
       .addOption(RunUtil.getDefaultAnnotationOption());
   }
 
@@ -106,8 +105,7 @@ public final class DefaultCli {
         StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 
     boolean annotations = RunUtil.checkDefaultAnnotationOption(settings);
-    boolean parallel = RunUtil.checkDefaultParallelOption(settings);
-    DefaultEnvironment env = DefaultEnvironment.of(annotations, parallel);
+    DefaultEnvironment env = DefaultEnvironment.of(annotations);
     return () -> {
       PipelineRunner.run(pipeline, env, reader.call(), writer.call(), workers);
       return null;

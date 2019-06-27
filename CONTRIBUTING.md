@@ -19,7 +19,7 @@ Passing all these tests is mandatory for submitted code.
 
 # Coding Conventions
 
-In general, features of Java 8 / 9, like Lambdas, Streams, `Collections.of`, `forEach`-style, etc., can and should be used frequently.
+In general, features of Java 11, like Lambdas, Streams, `Collections.of`, `forEach`-style, etc., can and should be used frequently.
 Streams should only be used for prototypes or in non-performance critical code, since they do add noticeable overhead.
 Typical "best practises" like KISS and DRY should be adhered to, some performance can be sacrificed for clear and concise code.
 Nevertheless, performance must not be neglected.
@@ -70,7 +70,7 @@ For tuples (see above), the convention is the following: "fields", derived field
 
 ## Javadoc
 
-Javadoc isn't required everywhere, but strongly encouraged. 
+Javadoc isn't required everywhere, but strongly encouraged.
 Code without any documentation is not accepted.
 The [Oracle](http://www.oracle.com/technetwork/java/javase/tech/index-137868.html) and [Google](https://google.github.io/styleguide/javaguide.html#s7-javadoc) style guides apply.
 Specifically, block tags (like `@throws`, `@return`, etc.) should be continued by a lower-case sentence.

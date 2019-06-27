@@ -43,14 +43,6 @@ public final class RunUtil {
     return annotationsFromEnv || settings.hasOption("annotations");
   }
 
-  public static Option getDefaultParallelOption() {
-    return new Option("p", "parallel", false, "Enable parallel processing (where supported)");
-  }
-
-  public static boolean checkDefaultParallelOption(CommandLine settings) {
-    return settings.hasOption("parallel");
-  }
-
   /**
    * Prints given {@code message} on standard error and calls {@link System#exit(int)} with 1.
    * An exception is returned to allow for one-line statements like

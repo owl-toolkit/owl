@@ -2,20 +2,20 @@
 
 ## Dedicated Tools
 
-Owl comes with a variety of dedicated command-line tools originating from Rabinizer and Delag. The tools include usage instructions that can be accessed with the `--help` argument. The following tools (besides other) are included: 
+Owl comes with a variety of dedicated command-line tools originating from Rabinizer and Delag. The tools include usage instructions that can be accessed with the `--help` argument. The following tools are included:
 
-  * Rabinizer
-    * `ltl2dra`, `ltl2dgra`: LTL to D(G)RA translations, based on the Rabinizer construction
-    * `ltl2ldba`, `ltl2ldgba`: LTL to LD(G)BA translations
-    * `ltl2dpa`: LTL to DPA translation. The intermediate construction (DRA or LDBA) can be selected with `--mode`
-  * Delag
-    * `delag`: LTL to DELA translation, based on a dependency tree construction
-  * Miscellaneous
-    * `nba2ldba`: NBA to LDBA translation
-    * `nba2dpa`: NBA to DPA translation, based on the LDBA construction
-    * `dra2dpa`: DRA to DPA translation, based on the index appearance record construction
+  * `ltl2nba`, `ltl2ngba`: LTL to N(G)BA translations, based on [1].
+  * `ltl2ldba`, `ltl2ldgba`: LTL to LD(G)BA translations, based on [1] (symmetric) and on [2] (asymmetric).
+  * `ltl2dra`, `ltl2dgra`: LTL to D(G)RA translations, based on [1] (symmetric) and on [3] (asymmetric).
+  * `ltl2dpa`: LTL to DPA translation, based on [1], [2], [4]. The intermediate construction (symmetric, asymmetric) can be selected with `-a` or `-s`.
+  * `delag`: LTL to DELA translation, based on [5].
+  * `ltl2da`: Meta-translation that selects heuristically the deterministic automaton construction yielding the smallest states space.
+  * `ltl2na`: Meta-translation that selects heuristically the nondeterministic automaton construction yielding the smallest states space.
+  * `nba2ldba`: NBA to LDBA translation.
+  * `nba2dpa`: NBA to DPA translation, based on [4].
+  * `dra2dpa`: DRA to DPA translation, based on [6].
 
-The type abbreviations mean the following:
+__Abbreviations:__
 
   * LTL: Linear Temporal Logic
   * NBA: Non-deterministic Büchi Automaton
@@ -25,26 +25,39 @@ The type abbreviations mean the following:
   * DPA: Deterministic Parity Automaton
   * DELA: Deterministic Emerson-Lei Automaton
 
-See the [format descriptions](FORMATS.md) for further details on these types.
-For a more detailed explanation of each tool, refer to the javadoc of the respective package in `owl.translations`.
+__Literature:__
+
+[1]: Javier Esparza, Jan Kretínský, Salomon Sickert:
+     One Theorem to Rule Them All: A Unified Translation of LTL into ω-Automata. LICS 2018
+
+[2]: Salomon Sickert, Javier Esparza, Stefan Jaax, Jan Kretínský:
+     Limit-Deterministic Büchi Automata for Linear Temporal Logic. CAV 2016
+
+[3]: Javier Esparza, Jan Kretínský, Salomon Sickert:
+     From LTL to deterministic automata - A safraless compositional approach. Formal Methods in System Design
+
+[4]: Javier Esparza, Jan Kretínský, Jean-François Raskin, Salomon Sickert:
+     From LTL and Limit-Deterministic Büchi Automata to Deterministic Parity Automata. TACAS 2017
+
+[5]: David Müller, Salomon Sickert:
+     LTL to Deterministic Emerson-Lei Automata. GandALF 2017
+
+[6]: Jan Kretínský, Tobias Meggendorfer, Clara Waldmann, Maximilian Weininger:
+     Index Appearance Record for Transforming Rabin Automata into Parity Automata. TACAS 2017.
 
 ### Options
 
-Each tool accepts specific command line options, which can be listed via `--help`.
-Additionally, the following set of common options is understood by all tools.
-Due to implementation details, grouping of the options is necessary, i.e. all global options have to be specified first, followed by all input options, and finally tool-specific options can be given.
+Each tool accepts specific command line options, which can be listed via `--help`. Additionally, the following set of common options is understood by all tools. Due to implementation details, grouping of the options is necessary, i.e. all global options have to be specified first, followed by all input options, and finally tool-specific options can be given.
 
-Global options:
+__Global options:__
   * `-v` or `--version`: Print the name of the tool an the version.
   * `--annotations`: Gather additional, human-readable information where possible. For example, the `ltl2ldba` and `ltl2dgra` constructions will gather a readable representation of the semantic state labels created by the construction.
-  * `--parallel`: Enable parallel processing where supported. As of now, this only has very limited impact, since most of the time BDD operations need to be synchronized, which is tedious to implement both correct and efficiently.
   * `-i INPUT`: Pass `INPUT` as input to the tool
   * `-I FILE`: Pass the contents of `FILE` to the tool
   * `-O FILE`: Write the output to `FILE`
   * `-w count`: Use `count` workers to process multiple inputs in parallel. Specify `-1` to use all available processors and `0` for blocking, direct execution.
 
-Additionally, as soon as an unmatched argument is encountered, this and all following arguments will be interpreted as input.
-For example, `ltl2dpa "F G a"` is equivalent to `ltl2dpa -i "F G a"`.
+See the [format descriptions](FORMATS.md) for a description of accepted inputs. Additionally, as soon as an unmatched argument is encountered, this and all following arguments will be interpreted as input. For example, `ltl2dpa "F G a"` is equivalent to `ltl2dpa -i "F G a"`.
 
 ## Extended command line syntax
 
@@ -104,7 +117,7 @@ For example, translation can be delegated to Rabinizer 3.1 by
 % owl  ltl --- simplify-ltl --- ltl2aut-ext --tool "run-rabinizer.sh %f" --- minimize-aut --- hoa
 ```
 
-The real strength of this framework comes from its flexibility. 
+The real strength of this framework comes from its flexibility.
 The command-line parser is completely pluggable and written without explicitly referencing any implementation.
 In order to add a new algorithm, one simply has to provide a name (as, e.g., `ltl2nba`), an optional set of command line options and a way of obtaining the configured translator from the parsed options.
 For example, to add a new construction called `ltl2nba` with a `--fast` flag, the whole description necessary is as follows:
@@ -132,7 +145,7 @@ Some advanced features are:
 
   * Dedicated tools can easily be created by delegating to the generic framework.
     For example, `ltl2ldba` is created by the following snippet. This automatically sets up command line argument processing, input / output parsing, help printing, etc.
-   
+
 ```java
 public static void main(String... args) {
  PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2ldba")
