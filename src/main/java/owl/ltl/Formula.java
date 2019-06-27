@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+
+import owl.ltl.ltlf.NegOperator;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.PropositionalVisitor;
@@ -35,6 +37,7 @@ public abstract class Formula implements Comparable<Formula> {
   private static final List<Class<? extends Formula>> ORDER = List.of(
     BooleanConstant.class,
     Literal.class,
+    NegOperator.class,
     Conjunction.class,
     Disjunction.class,
     Biconditional.class,

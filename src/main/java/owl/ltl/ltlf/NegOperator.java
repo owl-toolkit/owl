@@ -7,7 +7,7 @@ import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
 import java.util.BitSet;
-import java.util.function.UnaryOperator;
+
 
 public class NegOperator extends UnaryModalOperator {// This Operator only exists so all LTLf Formulas can be represented, it does not contain any functionality
   public NegOperator(Formula operand) {
