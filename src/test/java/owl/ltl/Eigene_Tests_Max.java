@@ -1,6 +1,7 @@
 package owl.ltl;
 
 import org.junit.jupiter.api.Test;
+import owl.grammar.LTLParser;
 import owl.ltl.ltlf.LTLfToLTLVisitor;
 import owl.ltl.ltlf.Translator;
 import owl.ltl.parser.LtlParser;
@@ -8,12 +9,9 @@ import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.ltlf.LtlfParser;
 
 
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.io.*;
+import java.text.Normalizer;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -86,13 +84,13 @@ public class Eigene_Tests_Max {
     Formula F = LtlfParser.syntax("!X (!b) "); // == Xweak b
     Formula G = LtlfParser.syntax("!tt & (X c) ");
     Formula H = LtlfParser.syntax("G(p1 U !p1)");
-    Formula J = LtlParser.syntax("" );
+    Formula J = LtlParser.syntax(("(!p0 & !p1 & p2 & !p3 & !p4 & G(!p2 | !p5) & G(!p0 | Fp2) & G(!p1 | Fp5) & G(!p0 | p2 | Xp0) & G(!p1 | p5 | Xp1) & G(!p2 | p4 | X!p5) & G(!p4 | !p5 | X!p2) & G(p3 <-> X!p3) & G(p6 <-> (p0 | p1)) & G(!p2 | X(p2 | p5)) & G(!p5 | X(p2 | p5)) & G(!p2 | X!p2 | (p4 <-> Xp4)) & G(!p5 | X!p5 | (p4 <-> Xp4)) & G(p3 | ((p0 <-> Xp0) & (p1 <-> Xp1))) & G(!p3 | ((p2 <-> Xp2) & (p5 <-> Xp5))) & G(!p2 | p6 | ((p2) U (((p6) R ((!p4 & Fp2)))))) & G(!p5 | p6 | ((p5) U (((p6) R ((!p4 & Fp2)))))))"));
 
-
-    System.out.println(F);
-    System.out.println(G);
-    System.out.println(H);
-    System.out.println(J);
+    PrintVisitor P = new PrintVisitor(false,null);
+    System.out.println(P.apply(F));
+    System.out.println(P.apply(G));
+    System.out.println(P.apply(H));
+    System.out.println(P.apply(J));
   }
   @Test
   void test_LTLfToLTLVisitor(){
@@ -105,19 +103,72 @@ public class Eigene_Tests_Max {
 
   }
   @Test
+  void translate_SyftBenchmarkstoStrixInputs() throws Exception {
+    for (int i = 1;i< 102;i++){
+      File LTLffile = new File("/home/max/Dokumente/Bachelorarbeit/Syft_Benchmarks/basic/" + i + ".ltlf" );
+      File Partfile = new File("/home/max/Dokumente/Bachelorarbeit/Syft_Benchmarks/basic/" + i + ".part" );
+      BufferedReader brLTLf = new BufferedReader(new FileReader(LTLffile));
+      BufferedReader brPart = new BufferedReader(new FileReader(Partfile));
+      String LTLfformula = brLTLf.readLine();
+      String inputline = brPart.readLine();
+      String outputline = brPart.readLine();
+      inputline =inputline.substring(9);
+      outputline =outputline.substring(10);
+      List<String> Literals= new LinkedList<>();
+      Literals.addAll(Arrays.asList(inputline.split(" ")));
+      Literals.addAll(Arrays.asList(outputline.split(" ")));
+
+      Formula F = LtlfParser.syntax(LTLfformula,Literals);
+
+      Literal Tail =  Literal.of(F.atomicPropositions(true).length());
+      Formula F_ = Translator.translate(F,Tail);
+
+      Literals.add("tail");
+      PrintVisitor P = new PrintVisitor(false,Literals);
+      String output = "-f '";
+      output += P.apply(F_)+"' --ins=\"";
+      inputline =inputline.replace(" ",",");
+      output += inputline + "\" --outs=\"";
+      outputline =outputline.replace(" ",",");
+      output += outputline +",tail\"";
+      write(output,"/home/max/Dokumente/Bachelorarbeit/Tests/vsSyft/strixInputs/"+i +".strix");
+
+    }
+  }
+  @Test
+  void TestAutomataArk(){
+    List<String> Literals = List.of("a","b","c","tail");
+    Formula F = LtlfParser.syntax("(((a) && ( G(a -> ((X(!a)) && (X(X(a))))))) && ((!b) && (X(!b))) && (G ((a && (!b)) -> ((!c) && (X(X(b)))))) && (G ((a && b) -> (c && (X(X(!b)))))) && (G ( ((!c) && X(!a)) -> ( X(!c) && (X(b) -> (X(X(X(b))))) && (X(!b) -> (X(X(X(!b)))) ) ) )) && (G ( c -> ( ( X(!b) -> ( X(!c) && (X(X(X(b)))) ) ) && ( X(b) -> ( X(c) && (X(X(X(!b)))) ) ) ))))",List.of("a","b","c"));
+    Literal Tail =  Literal.of(F.atomicPropositions(true).length());
+    Formula F_ = Translator.translate(F,Tail);
+    List<String> input=  List.of("b");
+    List<String> output=  List.of("a","c");
+    PrintVisitor P = new PrintVisitor(false,Literals);
+    System.out.println(P.apply(F_));
+    try {
+      write(Translator.convToTLSF(input,output,Tail,F_,Literals),"/home/max/Dokumente/Bachelorarbeit/TLSFzwischenablage/test.tlsf");
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+  }
+  @Test
   void Radler(){
 
     Formula F = LtlfParser.syntax("(GF p0) & (GF !p0)");
-    Formula G = LtlfParser.syntax("(G(p0 -> X (F p1)))");
-    List<Literal> input=  List.of(Literal.of(0));
-    List<Literal> output=  List.of(Literal.of(1));
+    List<String> LiteralsG = List.of("rqt0","rqt1","rqt2","grt0","grt1","grt2");
+    Formula G = LtlfParser.syntax("(( true )->( (G (false  | (!(X(grt0))) | (rqt0)))  & (G (false  | (!(X(grt1))) | (rqt1)))  & (G (false  | (!(X(grt2))) | (rqt2)))  & (G (true  & (false  | (!(X(grt0))) | (!(X(grt1)))) & (false  | (!(X(grt0))) | (!(X(grt2)))) & (false  | (!(X(grt1))) | (!(X(grt0)))) & (false  | (!(X(grt1))) | (!(X(grt2)))) & (false  | (!(X(grt2))) | (!(X(grt0)))) & (false  | (!(X(grt2))) | (!(X(grt1))))))  & true ))",LiteralsG);
+    PrintVisitor P = new PrintVisitor(false,LiteralsG);
+    System.out.println(P.apply(G));
+    List<String> input=  List.of();
+    List<String> output=  List.of();
     Literal Tail =  Literal.of(G.atomicPropositions(true).length());
     Formula F_ = Translator.translate(F,Tail);
     Formula G_ = Translator.translate(G,Tail);
 
-    System.out.println(Translator.convToTLSF(input,output,Tail,G_));
+    System.out.println(Translator.convToTLSF(input,output,Tail,G_,LiteralsG));
     try {
-      write(Translator.convToTLSF(input,output,Tail,G_),"/home/max/Dokumente/Bachelorarbeit/TLSFzwischenablage/test.tlsf");
+      write(Translator.convToTLSF(input,output,Tail,G_,LiteralsG),"/home/max/Dokumente/Bachelorarbeit/TLSFzwischenablage/test.tlsf");
     } catch (IOException e) {
       e.printStackTrace();
     }

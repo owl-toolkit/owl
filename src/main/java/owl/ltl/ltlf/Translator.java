@@ -18,8 +18,9 @@ public class Translator {
     return Conjunction.of(Tail,Conjunction.of( UOperator.of(Tail,GOperator.of(Tail.not())),t.apply(in,Tail)));
 
   }
-  public static  String convToTLSF(List<Literal> inputs,List<Literal> outputs,Literal Tail,Formula F){
-    PrintVisitor P = new PrintVisitor(false,null);
+  public static  String convToTLSF(List<String> inputs,List<String> outputs,Literal Tail,Formula F, List<String> mapping){
+
+    PrintVisitor P = new PrintVisitor(false,mapping);
     String out = "INFO {\n" +
       "  TITLE:       \"Test\"\n" +
       "  DESCRIPTION: \"Test\"\n" +
@@ -28,13 +29,13 @@ public class Translator {
       "}\n" +
       "MAIN {\n" +
       "  INPUTS {\n";
-    for (Literal l :inputs){
-      out += l.toString() + ";\n";
+    for (String l :inputs){
+      out += l + ";\n";
     }
      out += "}\n" +
     "  OUTPUTS {\n";
-    for (Literal l :outputs){
-      out += l.toString() + ";\n";
+    for (String l :outputs){
+      out += l + ";\n";
     }
     out += Tail.toString()+ ";\n}\n" +
       "  GUARANTEE {\n" + P.apply(F) + ";\n}\n}";
