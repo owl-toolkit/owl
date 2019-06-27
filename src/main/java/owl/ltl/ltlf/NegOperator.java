@@ -1,18 +1,19 @@
 package owl.ltl.ltlf;
 
+import java.util.BitSet;
 import owl.ltl.Formula;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-import java.util.BitSet;
-
-
-public class NegOperator extends UnaryModalOperator {// This Operator only exists so all LTLf Formulas can be represented, it does not contain any functionality
+// This Operator only exists so all LTLf Formulas can be represented,
+// it does not contain any functionality
+public class NegOperator extends UnaryModalOperator {
   public NegOperator(Formula operand) {
     super(NegOperator.class, operand);
   }
+
   @Override
   public String operatorSymbol() {
     return "!";

@@ -32,8 +32,9 @@ import owl.grammar.LTLLexer;
 import owl.grammar.LTLParser;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.util.annotation.CEntryPoint;
 import owl.ltl.parser.TokenErrorListener;
+import owl.util.annotation.CEntryPoint;
+
 
 public final class LtlfParser {
   private LtlfParser() {}
