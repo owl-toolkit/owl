@@ -40,13 +40,14 @@ import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.ltlf.NegOperator;
 
 public final class PrintVisitor implements Visitor<String> {
   private final boolean parenthesize;
   @Nullable
   private final List<String> variableMapping;
 
-  private PrintVisitor(boolean parenthesize, @Nullable List<String> variableMapping) {
+  public PrintVisitor(boolean parenthesize, @Nullable List<String> variableMapping) {
     this.variableMapping = variableMapping;
     this.parenthesize = parenthesize;
   }
@@ -106,6 +107,11 @@ public final class PrintVisitor implements Visitor<String> {
   @Override
   public String visit(GOperator gOperator) {
     return visit((UnaryModalOperator) gOperator);
+  }
+
+  @Override
+  public String visit(NegOperator negOperator) {
+    return visit((UnaryModalOperator) negOperator);
   }
 
   @Override

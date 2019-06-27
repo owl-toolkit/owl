@@ -34,6 +34,7 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.ltlf.NegOperator;
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})
@@ -55,6 +56,7 @@ public interface Visitor<R> extends Function<Formula, R> {
   default R visit(UOperator uOperator)             { throw uoe(uOperator);       }
   default R visit(WOperator wOperator)             { throw uoe(wOperator);       }
   default R visit(XOperator xOperator)             { throw uoe(xOperator);       }
+  default R visit(NegOperator negOperator)             { throw uoe(negOperator);       }
 
   private static UnsupportedOperationException uoe(Formula formula) {
     return new UnsupportedOperationException("No action defined for " + formula.getClass());
