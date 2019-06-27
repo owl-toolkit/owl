@@ -81,8 +81,7 @@
  * These settings now only have to be added to the
  * {@link owl.run.modules.OwlModuleRegistry registry} to be usable with the extended command line
  * syntax. Also, a dedicated {@code main} method can be created by delegating to the
- * {@link owl.run.parser.PartialConfigurationParser partial configuration parser}. See, e.g., the
- * {@link owl.translations.modules.LTL2DGRAModule rabinizer main} for an example.
+ * {@link owl.run.parser.PartialConfigurationParser partial configuration parser}.
  */
 @EverythingIsNonnullByDefault
 package owl.run;
