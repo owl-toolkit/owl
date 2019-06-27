@@ -1,6 +1,7 @@
 package owl.ltl.ltlf;
 
 import java.util.HashSet;
+
 import java.util.Set;
 
 import owl.ltl.Biconditional;
@@ -13,6 +14,7 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
@@ -64,19 +66,17 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
   @Override
   public Formula visit(FOperator fOperator) {
     if (fOperator.operand instanceof GOperator) { //"Persistence" property --> "last"- optimization
-      // since we transform the formula to Co-Safety we always take the "last"-optimization:
-      // FG a --> F (tail & X !tail & a)
-      return FOperator.of(Conjunction.of(tail,XOperator.of(tail.not()),
-          (((GOperator) fOperator.operand).operand).accept(this)));
-
+      if (SyntacticFragment.SAFETY.contains(((GOperator) fOperator.operand).operand)) {
+        // if Safety then "last" version: t(FG a) ==> F(tail & X!tail & t(a))
+        return FOperator.of(Conjunction.of(tail,XOperator.of(tail.not()),
+          ((GOperator) fOperator.operand).operand.accept(this)));
+      } else if (SyntacticFragment.CO_SAFETY.contains(((GOperator) fOperator.operand).operand)) {
+        // if CoSafety then "last" version: t(FG a) ==> G((tail & X!tail )-> t(a))
+        return GOperator.of(Disjunction.of(tail.not(),XOperator.of(tail),
+          ((GOperator) fOperator.operand).operand.accept(this)));
+      }
     } else if (fOperator.operand instanceof FOperator) { // filter out cases of FF a
       return fOperator.operand.accept(this);
-      //  detect "hidden" last-optimizations e.g. F!F a  == FG !a
-    } else if (fOperator.operand instanceof NegOperator
-      && ((NegOperator) fOperator.operand).operand instanceof FOperator) {
-      return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
-        new NegOperator(((FOperator) ((NegOperator)
-          fOperator.operand).operand).operand).accept(this)));
     }
     return FOperator.of(Conjunction.of(fOperator.operand.accept(this),tail));
   }
@@ -85,22 +85,19 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
   @Override
   public Formula visit(GOperator gOperator) {
     if (gOperator.operand instanceof FOperator) { //"Response" property --> "last"- optimization
-      // since we transform the formula to Co-Safety we always take the "last"-optimization:
-      // GF a --> F (tail & X !tail & a)
-      return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
-          (((FOperator) gOperator.operand).operand).accept(this)));
-
+      if (SyntacticFragment.SAFETY.contains(((FOperator) gOperator.operand).operand)) {
+        // if Safety then "last" version: t(GF a) ==> F(tail & X!tail & t(a))
+        return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
+          ((FOperator) gOperator.operand).operand.accept(this)));
+      } else if (SyntacticFragment.CO_SAFETY.contains(((FOperator) gOperator.operand).operand)) {
+        // if CoSafety then "last" version: t(GF a) ==> G((tail & X!tail )-> t(a))
+        return GOperator.of(Disjunction.of(tail.not(), XOperator.of(tail),
+          ((FOperator) gOperator.operand).operand.accept(this)));
+      }
     } else if (gOperator.operand instanceof GOperator) { // filter out cases of GG a
-      return (gOperator.operand).accept(this);
-      //  detect "hidden" last-optimizations e.g. G!G a  == GF !a
-    } else if (gOperator.operand instanceof NegOperator
-      && ((NegOperator) gOperator.operand).operand instanceof GOperator) {
-      return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
-        new NegOperator(((GOperator) ((NegOperator)
-          gOperator.operand).operand).operand).accept(this)));
+      return gOperator.operand.accept(this);
     }
-    // G a --> a U !tail transformation to co-Safety
-    return UOperator.of((gOperator.operand).accept(this),tail.not());
+    return GOperator.of(Disjunction.of(tail.not(),gOperator.operand.accept(this)));
   }
 
   @Override
@@ -116,9 +113,8 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(ROperator rOperator) {
-    // t(a R b) --> (t(a)|!tail) M (t(b)) transformation to co-Safety
-    return MOperator.of(Disjunction.of(tail.not(),rOperator.left.accept(this)),
-      rOperator.right.accept(this));
+    return ROperator.of(rOperator.left.accept(this),
+      Disjunction.of(tail.not(),rOperator.right.accept(this)));
   }
 
   @Override
@@ -129,9 +125,8 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(WOperator wOperator) {
-    // t(a W b) --> (t(a)) U (t(b)|!tail) transformation to co-Safety
-    return UOperator.of(wOperator.left.accept(this),
-      Disjunction.of(tail.not(),wOperator.right.accept(this)));
+    return WOperator.of(Disjunction.of(tail.not(),wOperator.left.accept(this)),
+      wOperator.right.accept(this));
   }
 
   @Override
@@ -144,26 +139,7 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(NegOperator negOperator) {
-    // if operand is X, read it as weak next, so either operand is false or tail is not true.
-    // if operand is not X, we can propagate the negation before the translation.
-    if (negOperator.operand instanceof  XOperator) {
-      Formula operatorOfX = new NegOperator(((XOperator) negOperator.operand).operand);
-      /*
-      since the "carefull-negation propagation" misses X-tower optimizations,
-       they have to be added here
-       !X(X(X(a))) -> X(X(X(!tail | a)))
-       this works since !tail -> X(!tail)
-       if we encounter a case of !X(X(phi)) we just skip the addition of !tail
-       and wait for the latter X-Operand to add it
-      */
-      if (((XOperator) negOperator.operand).operand instanceof XOperator) {
-        return XOperator.of(operatorOfX.accept(this));
-      }
-      return XOperator.of(Disjunction.of(operatorOfX.accept(this),tail.not()));
-    }
-    //else handle the negation with visitor and go on with the translation
-    HandleNegVisitor n = new HandleNegVisitor();
-    return n.apply(negOperator.operand).accept(this);
+    return negOperator.operand.accept(this).not();
   }
 
 }
