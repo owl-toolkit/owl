@@ -26,7 +26,6 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 
-import org.jetbrains.annotations.Contract;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -40,10 +39,10 @@ public final class Conjunction extends PropositionalFormula {
 
   //Syntax retaining constructor:
 
-  public static Conjunction SyntaxConjunction(Stream<? extends Formula> stream){
+  public static Conjunction syntaxConjunction(Stream<? extends Formula> stream) {
     Set<Formula> set = new HashSet<>();
     stream.forEach(f -> set.add(f));
-   return new Conjunction(set.toArray(Formula[]::new));
+    return new Conjunction(set.toArray(Formula[]::new));
   }
 
 

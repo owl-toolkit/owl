@@ -19,7 +19,10 @@
 
 package owl.ltl;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Stream;
 import owl.ltl.visitors.BinaryVisitor;
@@ -32,9 +35,15 @@ public final class Disjunction extends PropositionalFormula {
     super(Disjunction.class, Set.of(disjuncts));
   }
 
-  public static Disjunction SyntaxDisjunction(Formula left, Formula right){
+  public static Disjunction syntaxDisjunction(Formula left, Formula right) {
     Formula[] temp = {left,right};
     return new Disjunction(temp);
+  }
+
+  public static Disjunction syntaxDisjunction(Stream<? extends Formula> stream) {
+    Set<Formula> set = new HashSet<>();
+    stream.forEach(f -> set.add(f));
+    return new Disjunction(set.toArray(Formula[]::new));
   }
 
   public static Formula of(Formula left, Formula right) {

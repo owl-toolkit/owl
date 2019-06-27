@@ -19,8 +19,6 @@ package owl.ltl.ltlf;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
@@ -96,7 +94,7 @@ final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitAndExpression(AndExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
 
-    return Conjunction.SyntaxConjunction(ctx.children.stream()
+    return Conjunction.syntaxConjunction(ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit));
   }
@@ -115,7 +113,7 @@ final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
     }
 
     if (binaryOp.IMP() != null) {
-      return Disjunction.SyntaxDisjunction(new NegOperator(left), right);
+      return Disjunction.syntaxDisjunction(new NegOperator(left), right);
     }
 
     if (binaryOp.XOR() != null) {
@@ -180,7 +178,7 @@ final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitOrExpression(OrExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
 
-    return Disjunction.of(ctx.children.stream()
+    return Disjunction.syntaxDisjunction(ctx.children.stream()
       .filter(child -> !(child instanceof TerminalNode))
       .map(this::visit));
   }
