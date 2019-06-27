@@ -78,8 +78,46 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
     var executor = Executors.newCachedThreadPool(
       new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
-    var automatonFuture = executor.submit(callable(formula, false));
-    var complementFuture = executor.submit(callable(formula, true));
+
+    Callable<Result<?>> automatonCallable;
+    Callable<Result<?>> complementCallable;
+
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
+      int fixpoints = configuration.contains(SYMMETRIC)
+        ? Selector.selectSymmetric(formula.formula(), false).size()
+        : Selector.selectAsymmetric(formula.formula(), false).size();
+
+      int negationFixpoints = configuration.contains(SYMMETRIC)
+        ? Selector.selectSymmetric(formula.formula().not(), false).size()
+        : Selector.selectAsymmetric(formula.formula().not(), false).size();
+
+      if (fixpoints <= negationFixpoints) {
+        automatonCallable = configuration.contains(SYMMETRIC)
+          ? () -> symmetricConstruction(formula)
+          : () -> asymmetricConstruction(formula);
+        complementCallable = () -> null;
+      } else {
+        automatonCallable = () -> null;
+        complementCallable = configuration.contains(SYMMETRIC)
+          ? () -> symmetricConstruction(formula.not())
+          : () -> asymmetricConstruction(formula.not());
+      }
+    } else {
+      automatonCallable = configuration.contains(SYMMETRIC)
+        ? () -> symmetricConstruction(formula)
+        : () -> asymmetricConstruction(formula);
+
+      if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
+        complementCallable = configuration.contains(SYMMETRIC)
+          ? () -> symmetricConstruction(formula.not())
+          : () -> asymmetricConstruction(formula.not());
+      } else {
+        complementCallable = () -> null;
+      }
+    }
+
+    Future<Result<?>> automatonFuture = executor.submit(automatonCallable);
+    Future<Result<?>> complementFuture = executor.submit(complementCallable);
 
     try {
       Automaton<?, ParityAcceptance> automaton = null;
@@ -151,43 +189,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     throws ExecutionException {
     var result = Uninterruptibles.getUninterruptibly(future);
     return result == null ? null : result.complement();
-  }
-
-  private Callable<Result<?>> callable(LabelledFormula formula, boolean complement) {
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
-      int fixpoints = configuration.contains(SYMMETRIC)
-        ? Selector.selectSymmetric(formula.formula(), false).size()
-        : Selector.selectAsymmetric(formula.formula(), false).size();
-
-      int negationFixpoints = configuration.contains(SYMMETRIC)
-        ? Selector.selectSymmetric(formula.formula().not(), false).size()
-        : Selector.selectAsymmetric(formula.formula().not(), false).size();
-
-      if (fixpoints <= negationFixpoints) {
-        if (complement) {
-          return () -> null;
-        }
-      } else {
-        if (!complement) {
-          return () -> null;
-        }
-      }
-    }
-
-    if (!complement) {
-      return configuration.contains(SYMMETRIC)
-        ? () -> symmetricConstruction(formula)
-        : () -> asymmetricConstruction(formula);
-    }
-
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
-      || configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
-      return configuration.contains(SYMMETRIC)
-        ? () -> symmetricConstruction(formula.not())
-        : () -> asymmetricConstruction(formula.not());
-    }
-
-    return () -> null;
   }
 
   private Result<?> asymmetricConstruction(LabelledFormula formula) {
