@@ -200,7 +200,7 @@ class DecomposedDPATest {
 
   @Test
   void testPerformance() {
-    assertTimeout(Duration.ofMillis(300), () -> {
+    assertTimeout(Duration.ofMillis(500), () -> {
       var formula = LtlParser.syntax(
         "(G(X!p12|X(!p6&!p13)|!p0|X(p13&p6))&G(X!p8|X(p2&p13)|X(!p13&!p2)|!p0)&G(X(p5&p13)|!p0"
           + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
@@ -223,7 +223,7 @@ class DecomposedDPATest {
 
   @Test
   void testPerformanceAmbaDecomposedLock12() {
-    assertTimeout(Duration.ofSeconds(6), () -> {
+    assertTimeout(Duration.ofSeconds(7), () -> {
       var ambaDecomposedLockLiterals = new ArrayList<String>();
       ambaDecomposedLockLiterals.add("decide");
       IntStream.range(0, 12).mapToObj(x -> "hlock_" + x).forEach(ambaDecomposedLockLiterals::add);
@@ -263,7 +263,7 @@ class DecomposedDPATest {
 
   @Test
   void testPerformanceAmbaEncode() {
-    assertTimeout(Duration.ofSeconds(1), () -> {
+    assertTimeout(Duration.ofSeconds(3), () -> {
       var ambaEncode = LtlParser.syntax(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
       var automaton = of(ambaEncode, true, false, 7);
       automaton.automata.get(0).edges(0);
