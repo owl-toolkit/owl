@@ -1,5 +1,5 @@
 package owl.ltl;
-
+/*
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedReader;
@@ -8,6 +8,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+
 import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
@@ -101,9 +102,9 @@ public class EigeneTestsMax {
         + "basic/" + i + ".ltlf");
       File partfile = new File("/home/max/Dokumente/Bachelorarbeit/Syft_Benchmarks/"
         + "basic/" + i + ".part");
-     BufferedReader brLtlf = new BufferedReader(new FileReader(ltlffile));
+      BufferedReader brLtlf = new BufferedReader(new FileReader(ltlffile));
       BufferedReader brPart = new BufferedReader(new FileReader(partfile));
-     String ltlfformula = brLtlf.readLine();
+      String ltlfformula = brLtlf.readLine();
       String inputline = brPart.readLine();
       String outputline = brPart.readLine();
       inputline = inputline.substring(9);
@@ -131,54 +132,10 @@ public class EigeneTestsMax {
     }
   }
 
-  @Test
-  void testAutomataArk() {
-    List<String> literals = List.of("a", "b", "c", "tail");
-    Formula f = LtlfParser.syntax("(((a) && ( G(a -> ((X(!a)) && (X(X(a))))))) &&"
-      + " ((!b) && (X(!b))) && (G ((a && (!b)) -> ((!c) && (X(X(b)))))) && (G ((a && b) -> (c"
-      + " && (X(X(!b)))))) && (G ( ((!c) && X(!a)) -> "
-      + "( X(!c) && (X(b) -> (X(X(X(b))))) && (X(!b) -> "
-      + "(X(X(X(!b)))) ) ) )) && (G ( c -> ( ( X(!b) "
-      + "-> ( X(!c) && (X(X(X(b)))) ) ) && ( X(b) -> ( X(c) && ("
-      + "X(X(X(!b)))) ) ) ))))", List.of("a", "b", "c"));
-    Literal tail = Literal.of(f.atomicPropositions(true).length());
-    Formula f1 = Translator.translate(f, tail);
-    List<String> input = List.of("b");
-    List<String> output = List.of("a", "c");
-
-    try {
-      write(Translator.convToTlsf(input, output, tail, f1, literals),
-        "/home/max/Dokumente/Bachelorarbeit/TLSFzwischenablage/test.tlsf");
-    } catch (IOException e) {
-      e.getCause();
-    }
-
-  }
-
-  @Test
-  void radler() {
-
-    Formula f = LtlfParser.syntax("(GF p0) & (GF !p0)");
-    List<String> literalsG = List.of("rqt0", "rqt1", "rqt2", "grt0", "grt1", "grt2");
-
-    List<String> input = List.of();
-    List<String> output = List.of();
-    Literal tail = Literal.of(f.atomicPropositions(true).length());
-    Formula f1 = Translator.translate(f, tail);
-    try {
-      write(Translator.convToTlsf(input, output, tail, f1, literalsG),
-        "/home/max/Dokumente/Bachelorarbeit/TLSFzwischenablage/test.tlsf");
-    } catch (IOException e) {
-      e.getCause();
-    }
-
-
-  }
-
   public static void write(String content, String path) throws IOException {
     BufferedWriter writer = new BufferedWriter(new FileWriter(path));
     writer.write(content);
     writer.close();
   }
 
-}
+}*/
