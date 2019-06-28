@@ -19,12 +19,6 @@
 
 package owl.automaton.transformations;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import java.util.BitSet;
-import java.util.List;
-import java.util.PrimitiveIterator;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
@@ -39,9 +33,6 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
-import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.edge.Edge;
-import owl.automaton.minimizations.GenericMinimizations;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 
@@ -53,7 +44,7 @@ public final class ParityUtil {
       Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
         ParityAcceptance.class);
       return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton),
-        MutableAutomatonUtil.Sink.INSTANCE);
+        new MutableAutomatonUtil.Sink());
     }).build();
 
   public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
@@ -88,18 +79,18 @@ public final class ParityUtil {
       }
 
       return environment -> (input, context) -> {
-        Automaton<Object, ParityAcceptance> automaton =
-          AutomatonUtil.cast(input, ParityAcceptance.class);
-        ParityAcceptance acceptance = automaton.acceptance();
-        Parity target = acceptance.parity();
+        var automaton = AutomatonUtil.cast(input, ParityAcceptance.class);
+        var target = automaton.acceptance().parity();
+
         if (toEven != null) {
           target = target.setEven(toEven);
         }
+
         if (toMax != null) {
           target = target.setMax(toMax);
         }
 
-        return ParityUtil.convert(automaton, target);
+        return ParityUtil.convert(automaton, target, new MutableAutomatonUtil.Sink());
       };
     }).build();
 
@@ -111,10 +102,12 @@ public final class ParityUtil {
     assert automaton.is(Automaton.Property.DETERMINISTIC);
     ParityAcceptance acceptance = automaton.acceptance();
 
+    // Automaton currently accepts nothing
     if (acceptance.acceptanceSets() == 0 && !acceptance.emptyIsAccepting()) {
-      // Automaton currently accepts nothing
-      return MutableAutomatonFactory.copy(AutomatonFactory
-        .singleton(automaton.factory(), sinkState, acceptance.complement(), new BitSet()));
+      var parityAcceptance = new ParityAcceptance(1, Parity.MIN_EVEN);
+      var universalAutomaton = AutomatonFactory.singleton(automaton.factory(),
+        sinkState, parityAcceptance, parityAcceptance.acceptingSet());
+      return MutableAutomatonFactory.copy(universalAutomaton);
     }
 
     if (acceptance.acceptanceSets() <= 1) {
@@ -127,99 +120,53 @@ public final class ParityUtil {
     return automaton;
   }
 
-  public static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
-    MutableAutomaton<S, ParityAcceptance> automaton) {
-    GenericMinimizations.removeTransientAcceptance(automaton);
-    return minimizePriorities(automaton, SccDecomposition.computeSccs(automaton, false));
-  }
-
-  private static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
-    MutableAutomaton<S, ParityAcceptance> automaton, List<Set<S>> sccs) {
-    /* This optimization simply determines all priorities used in each SCC and then tries to
-     * eliminate "gaps". For example, when [0, 2, 4, 5] are used, we actually only need to consider
-     * [0, 1]. Furthermore, edges between SCCs are set to an arbitrary priority. */
-
-    ParityAcceptance acceptance = automaton.acceptance();
-    int acceptanceSets = acceptance.acceptanceSets();
-    // Gather the priorities used _after_ the reduction - cheap and can be used for verification
-    BitSet globallyUsedPriorities = new BitSet(acceptanceSets);
-
-    // Construct the mapping for the priorities in this map
-    Int2IntMap reductionMapping = new Int2IntOpenHashMap();
-    reductionMapping.defaultReturnValue(-1);
-    // Priorities used in each SCC
-    BitSet usedPriorities = new BitSet(acceptanceSets);
-    int usedAcceptanceSets = 0;
-
-    for (Set<S> scc : sccs) {
-      reductionMapping.clear();
-      usedPriorities.clear();
-
-      // Determine the used priorities
-      for (S state : scc) {
-        for (Edge<S> edge : automaton.edges(state)) {
-          if (scc.contains(edge.successor())) {
-            PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
-            if (acceptanceSetIterator.hasNext()) {
-              usedPriorities.set(acceptanceSetIterator.nextInt());
-            }
-          }
-        }
-      }
-
-      // All priorities are used, can't collapse any
-      if (usedPriorities.cardinality() == acceptanceSets) {
-        usedAcceptanceSets = Math.max(usedAcceptanceSets, acceptanceSets);
-        continue;
-      }
-
-      // Construct the mapping
-      int currentPriority = usedPriorities.nextSetBit(0);
-      int currentTarget = currentPriority % 2;
-
-      while (currentPriority != -1) {
-        if (currentTarget % 2 != currentPriority % 2) {
-          currentTarget += 1;
-        }
-
-        reductionMapping.put(currentPriority, currentTarget);
-        globallyUsedPriorities.set(currentTarget);
-        usedAcceptanceSets = Math.max(usedAcceptanceSets, currentTarget + 1);
-        currentPriority = usedPriorities.nextSetBit(currentPriority + 1);
-      }
-
-      // This remaps _all_ outgoing edges of the states in the SCC - including transient edges.
-      // Since these are only taken finitely often by any run, their value does not matter.
-      automaton.updateEdges(scc, (state, edge) -> edge.withAcceptance(reductionMapping));
-      automaton.trim();
-    }
-
-    automaton.acceptance(acceptance.withAcceptanceSets(usedAcceptanceSets));
-    return automaton;
-  }
-
   public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
-    Parity toParity) {
-    // TODO Check for "colored" property
-    ParityAcceptance acceptance = automaton.acceptance();
+    Parity toParity, S sink) {
 
-    if (acceptance.parity().equals(toParity)) {
+    // TODO Check for "colored" property
+    if (automaton.acceptance().parity().equals(toParity)) {
       return automaton;
     }
 
-    IntUnaryOperator mapping = getEdgeMapping(acceptance, toParity);
+    var mutableAutomaton = MutableAutomatonUtil.asMutable(automaton);
+    // ensure that there is enough colours to have rejecting state.
+    mutableAutomaton.updateAcceptance(x -> x.withAcceptanceSets(Math.max(3, x.acceptanceSets())));
+    MutableAutomatonUtil.complete(mutableAutomaton, sink);
 
-    MutableAutomaton<S, ParityAcceptance> mutable = MutableAutomatonUtil.asMutable(automaton);
-    AtomicInteger maximalNewAcceptance = new AtomicInteger(0);
+    ParityAcceptance fromAcceptance = mutableAutomaton.acceptance();
+    IntUnaryOperator mapping;
 
-    mutable.updateEdges((state, edge) -> {
+    if (fromAcceptance.parity().max() == toParity.max()) {
+      assert fromAcceptance.parity().even() != toParity.even();
+      mapping = i -> i + 1;
+    } else {
+      int acceptanceSets = fromAcceptance.acceptanceSets();
+      int leastImportantColor = fromAcceptance.parity().max() ? 0 : acceptanceSets - 1;
+      int offset;
+
+      if (fromAcceptance.parity().even() == toParity.even()) {
+        offset = fromAcceptance.isAccepting(leastImportantColor) ? 0 : 1;
+      } else {
+        // Delete the least important color
+        offset = fromAcceptance.isAccepting(leastImportantColor) ? -1 : -2;
+      }
+
+      int newAcceptanceSets = acceptanceSets + offset;
+      mapping = i -> newAcceptanceSets - i;
+    }
+
+    var maximalNewAcceptance = new AtomicInteger(0);
+
+    mutableAutomaton.updateEdges((state, edge) -> {
       if (!edge.hasAcceptanceSets()) {
+        // TODO: should this throw?
         return edge;
       }
 
       int newAcceptance = mapping.applyAsInt(edge.smallestAcceptanceSet());
 
       if (newAcceptance == -1) {
+        // TODO: should this throw?
         return edge.withoutAcceptance();
       }
 
@@ -230,31 +177,9 @@ public final class ParityUtil {
       return edge.withAcceptance(newAcceptance);
     });
 
-    mutable.trim();
-    mutable.acceptance(new ParityAcceptance(maximalNewAcceptance.get() + 1, toParity));
-    return mutable;
+    mutableAutomaton.trim();
+    mutableAutomaton.acceptance(new ParityAcceptance(maximalNewAcceptance.get() + 1, toParity));
+    return mutableAutomaton;
   }
 
-  private static IntUnaryOperator getEdgeMapping(ParityAcceptance fromAcceptance, Parity toParity) {
-    Parity fromParity = fromAcceptance.parity();
-
-    if (fromParity.max() == toParity.max()) {
-      assert fromParity.even() != toParity.even();
-      return i -> i + 1;
-    } else {
-      int acceptanceSets = fromAcceptance.acceptanceSets();
-      int leastImportantColor = fromParity.max() ? 0 : acceptanceSets - 1;
-      int offset;
-
-      if (fromParity.even() == toParity.even()) {
-        offset = fromAcceptance.isAccepting(leastImportantColor) ? 0 : 1;
-      } else {
-        // Delete the least important color
-        offset = fromAcceptance.isAccepting(leastImportantColor) ? -1 : -2;
-      }
-
-      int newAcceptanceSets = acceptanceSets + offset;
-      return i -> newAcceptanceSets - i;
-    }
-  }
 }

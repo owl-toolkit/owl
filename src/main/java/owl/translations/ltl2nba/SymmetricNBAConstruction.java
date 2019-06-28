@@ -38,9 +38,9 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.Either;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
@@ -84,7 +84,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     var automaton = new SymmetricNBA(factories, formula);
     var mutableAutomaton = MutableAutomatonFactory.copy(automaton);
-    MinimizationUtil.removeDeadStates(mutableAutomaton);
+    AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
     return mutableAutomaton;
   }
 

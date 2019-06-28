@@ -148,7 +148,12 @@ public final class AutomatonFactory {
   }
 
   public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
-    return new EmptyAutomaton<>(factory);
+    return empty(factory, NoneAcceptance.INSTANCE);
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> empty(
+    ValuationSetFactory factory, A acceptance) {
+    return new EmptyAutomaton<>(factory, acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> singleton(
@@ -166,12 +171,12 @@ public final class AutomatonFactory {
     return new SingletonAutomaton<>(state, factory, acceptanceSet, acceptance);
   }
 
-  private static final class EmptyAutomaton<S>
-    extends AbstractImplicitAutomaton<S, NoneAcceptance>
-    implements EdgeMapAutomatonMixin<S, NoneAcceptance> {
+  private static final class EmptyAutomaton<S, A extends OmegaAcceptance>
+    extends AbstractImplicitAutomaton<S, A>
+    implements EdgeMapAutomatonMixin<S, A> {
 
-    private EmptyAutomaton(ValuationSetFactory factory) {
-      super(factory, Set.of(), NoneAcceptance.INSTANCE);
+    private EmptyAutomaton(ValuationSetFactory factory, A acceptance) {
+      super(factory, Set.of(), acceptance);
     }
 
     @Override

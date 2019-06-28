@@ -17,12 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.minimizations;
+@EverythingIsNonnullByDefault
+package owl.automaton.acceptance.optimizations;
 
-import owl.automaton.MutableAutomaton;
-import owl.automaton.acceptance.OmegaAcceptance;
-
-@FunctionalInterface
-public interface Minimization<S, A extends OmegaAcceptance> {
-  void minimize(MutableAutomaton<S, A> automaton);
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

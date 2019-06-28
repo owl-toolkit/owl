@@ -182,6 +182,38 @@ public final class AutomatonUtil {
     return set;
   }
 
+  /**
+   * Collect all acceptance sets occurring on transitions within the given state set.
+   *
+   * @param automaton the automaton
+   * @return a set containing all acceptance indices
+   */
+  public static <S> BitSet getAcceptanceSets(Automaton<S, ?> automaton) {
+    BitSet indices = new BitSet();
+
+    switch (automaton.preferredEdgeAccess().get(0)) {
+      case EDGES:
+        automaton.accept((state, valuation, edge) ->
+          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set));
+        break;
+
+      case EDGE_MAP:
+        automaton.accept((EdgeMapVisitor<S>) (state, edgeMap) -> edgeMap.forEach((edge, set) ->
+          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set)));
+        break;
+
+      case EDGE_TREE:
+        automaton.accept((Automaton.EdgeTreeVisitor<S>) (state, tree) -> tree.values().forEach(
+          edge -> edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set)));
+        break;
+
+      default:
+        throw new AssertionError("Unreable.");
+    }
+
+    return indices;
+  }
+
   public static <S, B extends GeneralizedBuchiAcceptance>
     Optional<Set<S>> ldbaSplit(Automaton<S, B> automaton) {
     Set<S> acceptingSccs = new HashSet<>();

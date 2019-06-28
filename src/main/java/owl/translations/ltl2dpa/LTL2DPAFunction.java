@@ -37,13 +37,14 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.optimizations.ParityAcceptanceOptimizations;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.util.AnnotatedStateOptimisation;
 import owl.ltl.LabelledFormula;
@@ -61,6 +62,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
   private final EnumSet<Configuration> configuration;
+  private final Environment environment;
   private final AsymmetricLDBAConstruction<BuchiAcceptance> asymmetricTranslator;
   private final SymmetricLDBAConstruction<BuchiAcceptance> symmetricTranslator;
 
@@ -70,6 +72,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
       "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");
 
+    this.environment = environment;
     symmetricTranslator = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
     asymmetricTranslator = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
   }
@@ -191,12 +194,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     return result == null ? null : result.complement();
   }
 
-  private Result<?> asymmetricConstruction(LabelledFormula formula) {
+  private Result<AsymmetricRankingState> asymmetricConstruction(LabelledFormula formula) {
     var ldba = asymmetricTranslator.apply(formula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
-      var dba = MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, ldba.factory());
-      return new Result<>(Views.viewAs(dba, ParityAcceptance.class), new Object(), true);
+      var factory = environment.factorySupplier().getEquivalenceClassFactory(formula.variables());
+      var dpa = AutomatonFactory.<AsymmetricRankingState, ParityAcceptance>
+        empty(ldba.factory(), new ParityAcceptance(3, ParityAcceptance.Parity.MIN_ODD));
+      return new Result<>(dpa,
+        AsymmetricRankingState.of(factory.getFalse()),
+        configuration.contains(COMPRESS_COLOURS));
     }
 
     var dpa = AsymmetricDPAConstruction.of(ldba);
@@ -209,12 +216,15 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       configuration.contains(COMPRESS_COLOURS));
   }
 
-  private Result<?> symmetricConstruction(LabelledFormula formula) {
+  private Result<SymmetricRankingState> symmetricConstruction(LabelledFormula formula) {
     var ldba = symmetricTranslator.apply(formula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
-      var dba = MutableAutomatonFactory.create(BuchiAcceptance.INSTANCE, ldba.factory());
-      return new Result<>(Views.viewAs(dba, ParityAcceptance.class), new Object(), true);
+      var dpa = AutomatonFactory.<SymmetricRankingState, ParityAcceptance>
+        empty(ldba.factory(), new ParityAcceptance(3, ParityAcceptance.Parity.MIN_ODD));
+      return new Result<>(dpa,
+        SymmetricRankingState.of(Map.of()),
+        configuration.contains(COMPRESS_COLOURS));
     }
 
     var dpa = SymmetricDPAConstruction.of(ldba);
@@ -248,7 +258,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       this.sinkState = sinkState;
 
       if (compressColours) {
-        this.automaton = ParityUtil.minimizePriorities(MutableAutomatonUtil.asMutable(automaton));
+        this.automaton = ParityAcceptanceOptimizations
+          .minimizePriorities(MutableAutomatonUtil.asMutable(automaton));
       } else {
         this.automaton = automaton;
       }

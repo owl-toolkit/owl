@@ -92,7 +92,7 @@ public class GameFactoryTest {
       DefaultEnvironment.annotated(), LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
     var complete = Views.complete(
       AutomatonUtil.cast(dpa, Object.class, ParityAcceptance.class),
-      MutableAutomatonUtil.Sink.INSTANCE);
+      new MutableAutomatonUtil.Sink());
     return AutomatonUtil.cast(complete, Object.class, ParityAcceptance.class);
   }
 }

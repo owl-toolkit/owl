@@ -37,7 +37,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.Views;
-import owl.automaton.minimizations.ImplicitMinimizeTransformer;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.game.GameUtil;
@@ -62,7 +62,6 @@ import owl.translations.modules.LTL2NBAModule;
 import owl.translations.modules.LTL2NGBAModule;
 import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
-import owl.translations.safra.SafraBuilder;
 
 /**
  * A registry holding all modules used to parse the command line. These can be dynamically
@@ -88,7 +87,7 @@ public class OwlModuleRegistry {
 
     // Transformer
     DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
-      ImplicitMinimizeTransformer.CLI, RabinDegeneralization.CLI, Views.COMPLETE_CLI);
+      AcceptanceOptimizations.CLI, RabinDegeneralization.CLI, Views.COMPLETE_CLI);
 
     // LTL translations
     DEFAULT_REGISTRY.register(
@@ -108,7 +107,7 @@ public class OwlModuleRegistry {
       ExternalTranslator.CLI);
 
     // Automaton translations
-    DEFAULT_REGISTRY.register(IARBuilder.CLI, NBA2LDBA.CLI, NBA2DPA.CLI, SafraBuilder.CLI,
+    DEFAULT_REGISTRY.register(IARBuilder.CLI, NBA2LDBA.CLI, NBA2DPA.CLI,
       ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI);
   }
 

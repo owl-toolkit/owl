@@ -33,9 +33,9 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.Either;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
@@ -97,7 +97,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     // Preprocess:
     // Remove dead states in the accepting component. Note that the .values() collection is backed
     // by the internal map of the epsilonJumps, hence removal is forwarded.
-    MinimizationUtil.removeDeadStates(acceptingComponent);
+    AcceptanceOptimizations.removeDeadStates(acceptingComponent);
     epsilonJumps.values().retainAll(acceptingComponent.states());
 
     for (Set<S> scc : SccDecomposition.computeSccs(initialComponent)) {
@@ -128,7 +128,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
   public MutableAutomaton<Either<S, T>, B> copyAsMutable() {
     var mutableAutomaton = MutableAutomatonFactory.copy(new AutomatonView());
-    MinimizationUtil.removeDeadStates(mutableAutomaton);
+    AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
     return mutableAutomaton;
   }
 

@@ -15,6 +15,11 @@ Modules:
   format that have not been correctly parsed if they have not been properly
   parenthesised before.
 
+* Renamed minimize-aut to optimize-aut to highlight that automata are not
+  necessarily _minimal_. Implemented optimizations for Büchi-like Rabin pairs.
+
+* Removed unmaintained and broken `safra` module.
+
 API:
 
 * Overhaul of the symbolic successor computation
