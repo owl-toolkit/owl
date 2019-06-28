@@ -58,11 +58,6 @@ public final class HoaPrinter {
     /**
      * Print annotations, e.g. state labels, if available
      */
-    ANNOTATIONS,
-    /**
-     * Create one transition for each element of the AP-power-set instead of complex expressions
-     * (which are not supported by all parsers).
-     */
-    SIMPLE_TRANSITION_LABELS
+    ANNOTATIONS
   }
 }

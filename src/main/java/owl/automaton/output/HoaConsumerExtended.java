@@ -20,7 +20,6 @@
 package owl.automaton.output;
 
 import static com.google.common.base.Preconditions.checkState;
-import static owl.automaton.output.HoaPrinter.HoaOption.SIMPLE_TRANSITION_LABELS;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -216,12 +215,7 @@ final class HoaConsumerExtended<S> {
 
         IntArrayList acceptanceSets = new IntArrayList();
         edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptanceSets::add);
-
-        if (options.contains(SIMPLE_TRANSITION_LABELS)) {
-          valuationSet.forEach(bitSet -> addEdgeBackend(bitSet, end, acceptanceSets));
-        } else {
-          addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
-        }
+        addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
       });
     }
   }

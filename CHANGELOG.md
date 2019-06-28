@@ -50,15 +50,20 @@ API:
   7. G a | a U b -> a W b
   8. G a | b M a -> b R a
 
-* Overhaul of the C++-API. Most notably there is an API for approximative realisability checks for a
-  state in the decomposed DPA.
+* Overhaul of the C++-API. Most notably there is an API for approximative
+  realisability checks for a state in the decomposed DPA.
 
-* Add basic support for ultimately periodic words and add language membership tests.
+* Add basic support for ultimately periodic words and add language membership
+  tests.
 
 Bugfixes:
 
 * Throw an exception on malformed LTL input such as `FF`, `Fa!` and `F+`. Thanks
   to Alexandre Duret-Lutz for reporting this issue.
+
+* The `hoa` module now correctly parsed the `-s` and `--state-acceptance`
+  options.
+
 
 # 2018.06
 
