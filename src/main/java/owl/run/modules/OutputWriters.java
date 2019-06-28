@@ -24,16 +24,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jhoafparser.consumer.HOAConsumer;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
-import jhoafparser.storage.StoredAutomatonManipulator;
 import jhoafparser.transformations.ToStateAcceptance;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -71,22 +67,14 @@ public final class OutputWriters {
   public static final WriterParser HOA_CLI = ImmutableWriterParser.builder()
     .key("hoa")
     .description("Writes the HOA format representation of an automaton or an game")
+    .optionsBuilder(() -> {
+      Option option = new Option("s", "state-acceptance", false,
+        "Output an automaton with state-acceptance instead of transition acceptance.");
+      return new Options().addOption(option);
+    })
     .parser(settings -> {
-
-      List<StoredAutomatonManipulator> manipulators;
-      if (settings.hasOption("state-acceptance")) {
-        manipulators = List.of(new ToStateAcceptance());
-      } else {
-        manipulators = List.of();
-      }
-
-      EnumSet<ToHoa.Setting> hoaSettings = EnumSet.noneOf(ToHoa.Setting.class);
-
-      if (settings.hasOption("simple-trans")) {
-        hoaSettings.add(ToHoa.Setting.SIMPLE_TRANSITION_LABELS);
-      }
-
-      return new ToHoa(hoaSettings, manipulators);
+      boolean stateAcceptance = settings.hasOption("state-acceptance");
+      return new ToHoa(stateAcceptance);
     }).build();
 
   public static final OutputWriter NULL = (writer, environment) -> object -> writer.flush();
@@ -184,38 +172,30 @@ public final class OutputWriters {
    * href="http://adl.github.io/hoaf/">HOA</a> representation.
    */
   public static class ToHoa implements OutputWriter {
-    public static final ToHoa DEFAULT = new ToHoa(EnumSet.noneOf(Setting.class), List.of());
+    public static final ToHoa DEFAULT = new ToHoa(false);
 
-    private final Set<Setting> hoaSettings;
-    private final List<StoredAutomatonManipulator> operations;
+    private final boolean stateAcceptance;
 
-    public ToHoa(EnumSet<Setting> hoaSettings, List<StoredAutomatonManipulator> operations) {
-      this.hoaSettings = Set.copyOf(hoaSettings);
-      this.operations = List.copyOf(operations);
+    public ToHoa(boolean stateAcceptance) {
+      this.stateAcceptance = stateAcceptance;
     }
 
     @Override
     public Binding bind(Writer writer, Environment environment) {
-      HOAConsumer consumer = operations.isEmpty()
-        ? new HOAConsumerPrint(writer)
-        : new HOAIntermediateStoreAndManipulate(
-          new HOAConsumerPrint(writer), operations.toArray(StoredAutomatonManipulator[]::new));
+      var printer = new HOAConsumerPrint(writer);
+      var wrappedPrinter = stateAcceptance
+        ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptance())
+        : printer;
 
-      EnumSet<HoaOption> options = EnumSet.noneOf(HoaOption.class);
+      EnumSet<HoaOption> options;
 
       if (environment.annotations()) {
-        options.add(HoaOption.ANNOTATIONS);
+        options = EnumSet.of(HoaOption.ANNOTATIONS);
+      } else {
+        options = EnumSet.noneOf(HoaOption.class);
       }
 
-      if (hoaSettings.contains(Setting.SIMPLE_TRANSITION_LABELS)) {
-        options.add(HoaOption.SIMPLE_TRANSITION_LABELS);
-      }
-
-      return input -> HoaPrinter.feedTo(AutomatonUtil.cast(input), consumer, options);
-    }
-
-    public enum Setting {
-      SIMPLE_TRANSITION_LABELS
+      return input -> HoaPrinter.feedTo(AutomatonUtil.cast(input), wrappedPrinter, options);
     }
   }
 }
