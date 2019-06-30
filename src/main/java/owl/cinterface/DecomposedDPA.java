@@ -275,18 +275,8 @@ public final class DecomposedDPA {
         children.add(createLeaf(merger.apply(x)));
       });
 
-      if (formula instanceof Disjunction && !fgSafety.isEmpty()) {
-        children.add(createLeaf(Disjunction.of(fgSafety)));
-      } else {
-        fgSafety.forEach(x -> children.add(createLeaf(x)));
-      }
-
-      if (formula instanceof Conjunction && !gfCoSafety.isEmpty()) {
-        children.add(createLeaf(Conjunction.of(gfCoSafety)));
-      } else {
-        gfCoSafety.forEach(x -> children.add(createLeaf(x)));
-      }
-
+      fgSafety.forEach(x -> children.add(createLeaf(x)));
+      gfCoSafety.forEach(x -> children.add(createLeaf(x)));
       fSafety.forEach(x -> children.add(createLeaf(x)));
       gCoSafety.forEach(x -> children.add(createLeaf(x)));
 
