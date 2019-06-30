@@ -306,9 +306,8 @@ class DecomposedDPATest {
       literals);
     var automaton = of(formula, true, false, 6);
 
-    assertEquals(3, automaton.automata.size());
-    assertEquals(4, automaton.automata.get(0).size());
+    assertEquals(2, automaton.automata.size());
+    assertEquals(1, automaton.automata.get(0).size());
     assertEquals(2, automaton.automata.get(1).size());
-    assertEquals(1, automaton.automata.get(2).size());
   }
 }
