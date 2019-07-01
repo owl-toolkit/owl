@@ -223,7 +223,7 @@ class DecomposedDPATest {
 
   @Test
   void testPerformanceAmbaDecomposedLock12() {
-    assertTimeout(Duration.ofSeconds(5), () -> {
+    assertTimeout(Duration.ofSeconds(6), () -> {
       var ambaDecomposedLockLiterals = new ArrayList<String>();
       ambaDecomposedLockLiterals.add("decide");
       IntStream.range(0, 12).mapToObj(x -> "hlock_" + x).forEach(ambaDecomposedLockLiterals::add);
