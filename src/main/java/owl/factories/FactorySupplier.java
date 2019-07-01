@@ -36,9 +36,4 @@ public interface FactorySupplier {
       getEquivalenceClassFactory(alphabet, keepRepresentatives),
       getValuationSetFactory(alphabet));
   }
-
-  default boolean isThreadSafe() {
-    return false;
-  }
-
 }

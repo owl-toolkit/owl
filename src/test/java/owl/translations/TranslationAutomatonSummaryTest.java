@@ -82,7 +82,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.minimizations.MinimizationUtil;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.output.HoaPrinter;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.Formula;
@@ -169,6 +169,17 @@ class TranslationAutomatonSummaryTest {
         EnumSet.complementOf(EnumSet.of(LIBEROUTER, PARAMETRISED_HARDNESS))),
       new Translator("dgra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+
+      new Translator("dra.symmetric.optimizations", environment -> x ->
+        AcceptanceOptimizations.optimize(
+          SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
+            .apply(x)),
+        EnumSet.complementOf(EnumSet.of(LIBEROUTER, PARAMETRISED_HARDNESS))),
+      new Translator("dgra.symmetric.optimizations", environment -> x ->
+        AcceptanceOptimizations.optimize(
+          SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
+            .apply(x)),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("nba.symmetric", environment ->
@@ -504,31 +515,31 @@ class TranslationAutomatonSummaryTest {
       .build();
 
     var draAsymmetric = new Translator("DRA (Rab. 4)", (env) -> (formula) ->
-      MinimizationUtil.minimizeDefault(
+      AcceptanceOptimizations.optimize(
         MutableAutomatonFactory.copy(
          RabinDegeneralization.degeneralize(
-           MinimizationUtil.minimizeDefault(
-             RabinizerBuilder.build(formula, env, configuration),
-             MinimizationUtil.MinimizationLevel.ALL))),
-        MinimizationUtil.MinimizationLevel.ALL));
+           AcceptanceOptimizations.optimize(
+             RabinizerBuilder.build(formula, env, configuration)
+           )))
+      ));
 
     var dgraAsymmetric = new Translator("DGRA (Rab. 4)", (env) -> (formula) ->
-      MinimizationUtil.minimizeDefault(
-        RabinizerBuilder.build(formula, env, configuration),
-        MinimizationUtil.MinimizationLevel.ALL));
+      AcceptanceOptimizations.optimize(
+        RabinizerBuilder.build(formula, env, configuration)
+      ));
 
     var draSymmetric = new Translator("DRA", environment -> formula ->
-      MinimizationUtil.minimizeDefault(
+      AcceptanceOptimizations.optimize(
         MutableAutomatonFactory.copy(
-          SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula)),
-        MinimizationUtil.MinimizationLevel.ALL));
+          SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula))
+      ));
 
     var dgraSymmetric = new Translator("DGRA", environment -> formula ->
-      MinimizationUtil.minimizeDefault(
+      AcceptanceOptimizations.optimize(
         MutableAutomatonFactory.copy(
           SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
-            .apply(formula)),
-        MinimizationUtil.MinimizationLevel.ALL));
+            .apply(formula))
+      ));
 
     List<List<Translator>> translators = new ArrayList<>();
     List<List<List<TestCase>>> results = new ArrayList<>();

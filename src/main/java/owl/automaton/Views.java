@@ -59,7 +59,7 @@ import owl.run.modules.Transformer;
 
 public final class Views {
   public static final Transformer COMPLETE = environment -> (input, context) ->
-    Views.complete(AutomatonUtil.cast(input), MutableAutomatonUtil.Sink.INSTANCE);
+    Views.complete(AutomatonUtil.cast(input), new MutableAutomatonUtil.Sink());
 
   public static final OwlModuleParser.TransformerParser COMPLETE_CLI = ImmutableTransformerParser
     .builder()

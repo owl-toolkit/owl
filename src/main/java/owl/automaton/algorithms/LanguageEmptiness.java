@@ -36,7 +36,6 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.transformations.RabinDegeneralization;
 
 public final class LanguageEmptiness {
   private LanguageEmptiness() {}
@@ -172,7 +171,7 @@ public final class LanguageEmptiness {
       Automaton<S, GeneralizedRabinAcceptance> casted = AutomatonUtil.cast(automaton,
         GeneralizedRabinAcceptance.class);
 
-      return isEmpty(RabinDegeneralization.degeneralize(casted));
+      return !Rabin.containsAcceptingScc(casted, initialState);
     }
 
     throw new UnsupportedOperationException(
@@ -269,7 +268,7 @@ public final class LanguageEmptiness {
     }
 
     private static <S> boolean containsAcceptingScc(
-      Automaton<S, RabinAcceptance> automaton, S initialState) {
+      Automaton<S, ? extends GeneralizedRabinAcceptance> automaton, S initialState) {
       for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
         for (RabinPair pair : automaton.acceptance().pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair
@@ -278,13 +277,19 @@ public final class LanguageEmptiness {
 
           if (SccDecomposition.computeSccs(successorFunction, scc).stream().anyMatch(subScc -> {
             // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
+            BitSet awaitedIndices = new BitSet();
+            pair.forEachInfSet(awaitedIndices::set);
+
             for (S state : subScc) {
               for (Edge<S> edge : automaton.edges(state)) {
                 if (!subScc.contains(edge.successor()) || edge.inSet(pair.finSet())) {
                   // This edge does not qualify for an accepting cycle
                   continue;
                 }
-                if (edge.inSet(pair.infSet())) {
+
+                edge.acceptanceSetIterator().forEachRemaining((IntConsumer) awaitedIndices::clear);
+
+                if (awaitedIndices.isEmpty()) {
                   // This edge yields an accepting cycle
                   return true;
                 }

@@ -22,7 +22,7 @@ package owl.translations.modules;
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.minimizations.MinimizationUtil;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
 import owl.run.modules.InputReaders;
@@ -65,7 +65,7 @@ public final class LTL2DRAModule extends AbstractLTL2DRAModule {
           var dgra = MutableAutomatonUtil
             .asMutable(RabinizerBuilder.build(formula, environment, configuration));
           return RabinDegeneralization.degeneralize(
-            MinimizationUtil.minimizeDefault(dgra, MinimizationUtil.MinimizationLevel.ALL));
+            AcceptanceOptimizations.optimize(dgra));
       });
     }
   }

@@ -87,7 +87,7 @@
                 "simplify-ltl"
             ],
             "post": [
-                "minimize-aut"
+                "optimize-aut"
             ]
         },
         "ltl2da": {
@@ -139,10 +139,10 @@
                 "simplify-ltl"
             ],
             "post": [
-                "minimize-aut",
+                "optimize-aut",
                 "dgra2dra",
                 "dra2dpa",
-                "minimize-aut"
+                "optimize-aut"
             ]
         },
         "spot-nba2ldba": {
@@ -173,11 +173,8 @@
                 ]
             ],
             "post": [
-                "minimize-aut"
-            ],
-            "flags": {
-                "nosafety": "--nosafety"
-            }
+                "optimize-aut"
+            ]
         },
         "ltl2tgba": {
             "type": "spot",
@@ -206,25 +203,8 @@
             ],
             "post": [
                 "complement-parity",
-                "minimize-aut",
+                "optimize-aut",
                 "complement-parity"
-            ]
-        },
-        "safra": {
-            "type": "owl",
-            "input": "ltl",
-            "output": "hoa",
-            "name": "safra",
-            "pre": [
-                "simplify-ltl",
-                [
-                    "ltl2aut-ext",
-                    "-t",
-                    "ltl2tgba -B"
-                ]
-            ],
-            "post": [
-                "minimize-aut"
             ]
         }
     },

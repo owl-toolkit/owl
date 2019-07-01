@@ -30,8 +30,7 @@ class SpotTool(Tool):
 
 
 class OwlTool(Tool):
-    def __init__(self, name, tool, flags, input_type, output_type, parallel=False, pre=None,
-                 post=None):
+    def __init__(self, name, tool, flags, input_type, output_type, pre=None, post=None):
         super().__init__(name)
         if post is None:
             post = []
@@ -43,7 +42,6 @@ class OwlTool(Tool):
         self.post = post
         self.input_type = input_type
         self.output_type = output_type
-        self.parallel = parallel
 
     def get_pipeline(self):
         pipeline = []
@@ -84,8 +82,6 @@ class OwlTool(Tool):
 
     def get_server_execution(self, port=None):
         tool_execution = ["build/bin/owl-server"]
-        if self.parallel:
-            tool_execution.append("--parallel")
         if port is not None:
             tool_execution.extend(["--port", str(port)])
 
@@ -158,7 +154,6 @@ def get_tool(tools_json, tool_description):
                 if other_flag != exclusive_flag:
                     exclusion_set.add(other_flag)
 
-    parallel = False
     flags = dict()
     for modifier in modifiers:
         if modifier in tool_json.get("flags", {}):
@@ -166,8 +161,6 @@ def get_tool(tools_json, tool_description):
                 for excluded_flag in exclusive_flags.get(modifier):
                     flags.pop(excluded_flag, None)
             flags[modifier] = tool_json["flags"][modifier]
-        elif modifier == "parallel":
-            parallel = True
         else:
             raise KeyError("Unknown modifier {}. Known flags for {} are: {}".format(
                 modifier, tool_name, ",".join(tool_json.get("flags", {}).keys())))
@@ -187,10 +180,8 @@ def get_tool(tools_json, tool_description):
             raise KeyError("No output type specified for {}".format(tool_name))
         output_type = tool_json["output"]
 
-        tool = OwlTool(tool_name, tool, flags, input_type, output_type, parallel, pre, post)
+        tool = OwlTool(tool_name, tool, flags, input_type, output_type, pre, post)
     elif tool_type == "spot":
-        if parallel:
-            raise KeyError("Can't specify parallel for external tools")
         tool_execution = [tool_json["executable"]]
         for flag in set(flags.values()):
             tool_execution.append(flag)

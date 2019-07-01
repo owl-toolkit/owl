@@ -50,7 +50,7 @@ public final class MutableAutomatonUtil {
   }
 
   public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton) {
-    return complete(automaton, Sink.INSTANCE);
+    return complete(automaton, new Sink());
   }
 
   /**
@@ -86,23 +86,9 @@ public final class MutableAutomatonUtil {
   }
 
   public static final class Sink {
-    public static final Sink INSTANCE = new Sink();
-
-    private Sink() {}
-
     @Override
     public String toString() {
-      return "SINK";
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      return obj == this;
-    }
-
-    @Override
-    public int hashCode() {
-      return Sink.class.hashCode();
+      return "Sink";
     }
   }
 }

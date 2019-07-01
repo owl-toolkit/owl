@@ -40,10 +40,10 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.automaton.minimizations.MinimizationUtil;
 import owl.collections.Either;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
@@ -94,7 +94,7 @@ public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, Bu
     }
 
     var ldba = MutableAutomatonUtil.asMutable(new BreakpointAutomaton<>(ngba));
-    MinimizationUtil.removeDeadStates(ldba);
+    AcceptanceOptimizations.removeDeadStates(ldba);
     return LDBA.of(ldba, ldba.states().stream().filter(Either::isLeft).collect(toSet()));
   }
 

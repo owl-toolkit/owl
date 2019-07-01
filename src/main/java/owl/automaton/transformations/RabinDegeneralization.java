@@ -245,6 +245,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     transientEdgesTable.rowMap().forEach((state, successors) ->
       successors.forEach((generalizedSuccessor, valuations) -> {
         DegeneralizedRabinState<S> successor = stateMap.get(generalizedSuccessor);
+        resultAutomaton.addState(state);
         resultAutomaton.addEdge(state, valuations, Edge.of(successor));
       }));
 

@@ -42,17 +42,13 @@ import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.edge.Edge;
-import owl.automaton.transformations.ParityUtil;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.ValuationTree;
 import owl.ltl.Conjunction;
@@ -228,38 +224,12 @@ public final class DeterministicAutomaton<S, T> {
     }
 
     var function = new LTL2DPAFunction(ENV, EnumSet.of(COMPLEMENT_CONSTRUCTION_HEURISTIC));
-    var automaton = function.apply(formula);
-
-    // The language is trivial
-    if (automaton instanceof MutableAutomaton) {
-      Acceptance acceptanceFlag;
-
-      if (automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD) {
-        acceptanceFlag = PARITY_MIN_ODD;
-      } else {
-        assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_EVEN;
-        acceptanceFlag = PARITY_MIN_EVEN;
-      }
-
-      if (LanguageEmptiness.isEmpty(automaton)) {
-        return new DeterministicAutomaton<>(automaton,
-          acceptanceFlag, ParityAcceptance.class, x -> false, x -> REJECTING, x -> 0d
-        );
-      } else {
-        assert LanguageEmptiness.isEmpty(
-          ParityUtil.complement((MutableAutomaton) automaton, MutableAutomatonUtil.Sink.INSTANCE));
-        return new DeterministicAutomaton<>(automaton,
-          acceptanceFlag, ParityAcceptance.class, x -> true, x -> ACCEPTING, x -> 1d
-        );
-      }
-    }
-
-    Automaton<AnnotatedState<EquivalenceClass>, ParityAcceptance> castedAutomaton =
-      (Automaton) automaton;
+    Automaton<AnnotatedState<EquivalenceClass>, ParityAcceptance> automaton =
+      (Automaton) function.apply(formula);
 
     if (automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD) {
       return new DeterministicAutomaton<>(
-        castedAutomaton,
+        automaton,
         PARITY_MIN_ODD, ParityAcceptance.class,
         x -> x.state().isTrue(),
         AnnotatedState::state,
@@ -268,7 +238,7 @@ public final class DeterministicAutomaton<S, T> {
     } else {
       assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_EVEN;
       return new DeterministicAutomaton<>(
-        castedAutomaton,
+        automaton,
         PARITY_MIN_EVEN, ParityAcceptance.class,
         x -> x.state().isFalse(),
         AnnotatedState::state,

@@ -98,6 +98,12 @@ public final class IARBuilder<R> {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
     logger.log(Level.FINEST, () -> "Input automaton is\n" + HoaPrinter.toString(rabinAutomaton));
 
+    if (rabinAutomaton.initialStates().isEmpty()) {
+      return AutomatonFactory.empty(
+        rabinAutomaton.factory(),
+        new ParityAcceptance(3, Parity.MIN_ODD));
+    }
+
     List<RabinPair> rabinPairs = List.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {
       IARState<R> state = IARState.trivial(rabinAutomaton.initialStates().iterator().next());

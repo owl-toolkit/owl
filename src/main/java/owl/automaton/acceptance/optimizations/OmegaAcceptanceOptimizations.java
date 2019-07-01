@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.minimizations;
+package owl.automaton.acceptance.optimizations;
 
 import de.tum.in.naturals.Indices;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
@@ -25,8 +25,8 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.algorithms.SccDecomposition;
 
-public final class GenericMinimizations {
-  private GenericMinimizations() {
+public final class OmegaAcceptanceOptimizations {
+  private OmegaAcceptanceOptimizations() {
   }
 
   public static <S> void removeTransientAcceptance(MutableAutomaton<S, ?> automaton) {

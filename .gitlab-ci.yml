@@ -201,12 +201,6 @@ NBA2DPA:
     TEST_NAME: "nba2dpa"
   <<: *ltlcross_template
 
-NBA2DRA:
-  stage: test
-  variables:
-    TEST_NAME: "safra"
-  <<: *ltlcross_template
-
 ## Conversions
 
 DPA Conversion:
