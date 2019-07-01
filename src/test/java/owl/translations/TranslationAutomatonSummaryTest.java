@@ -166,7 +166,7 @@ class TranslationAutomatonSummaryTest {
 
       new Translator("dra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true),
-        EnumSet.complementOf(EnumSet.of(LIBEROUTER, PARAMETRISED_HARDNESS))),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("dgra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
@@ -175,7 +175,7 @@ class TranslationAutomatonSummaryTest {
         AcceptanceOptimizations.optimize(
           SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
             .apply(x)),
-        EnumSet.complementOf(EnumSet.of(LIBEROUTER, PARAMETRISED_HARDNESS))),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("dgra.symmetric.optimizations", environment -> x ->
         AcceptanceOptimizations.optimize(
           SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)

@@ -1259,6 +1259,9 @@
     "formula": "(a \u0026 F(b \u0026 (a | Gb)))"
   },
   {
+    "formula": "(Fa \u0026 (FGb | (FGa \u0026 FGc)))"
+  },
+  {
     "formula": "(Fa \u0026 XF(b \u0026 Xc))"
   },
   {
@@ -1400,6 +1403,9 @@
   },
   {
     "formula": "(a | G(b | (a \u0026 Fb)))"
+  },
+  {
+    "formula": "(Ga | (GFb \u0026 (GFa | GFc)))"
   },
   {
     "formula": "(Ga | XG(b | Xc))"
@@ -1807,6 +1813,9 @@
     "formula": "F(a \u0026 G(b | c | X((c) R (d))))"
   },
   {
+    "formula": "F(a \u0026 G(b | Fc | (Fd \u0026 Ge)))"
+  },
+  {
     "formula": "F(a \u0026 X(b \u0026 XFc))"
   },
   {
@@ -1841,6 +1850,9 @@
   },
   {
     "formula": "G(a | F(b \u0026 c \u0026 X((c) U (d))))"
+  },
+  {
+    "formula": "G(a | F(b \u0026 Gc \u0026 (Fd | Ge)))"
   },
   {
     "formula": "G(a | G(b | (a \u0026 Fc)))"
