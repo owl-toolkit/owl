@@ -72,7 +72,22 @@ public final class RunUtil {
   @SuppressWarnings({"PMD.SystemPrintln"})
   public static void checkForVersion(String[] args) {
     if (Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version")) {
-      System.out.println("Name: " + RunUtil.class.getPackage().getImplementationTitle());
+      Class<?> moduleClass;
+
+      try {
+        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
+        StackTraceElement main = stack[stack.length - 1];
+        moduleClass = Class.forName(main.getClassName());
+      } catch (ClassNotFoundException e) {
+        moduleClass = null;
+      }
+
+      String moduleName = moduleClass == null
+        ? "unknown"
+        : moduleClass.getSimpleName().toLowerCase().replace("module", "");
+      String name = String.format("Name: %s (%s)",
+        moduleName, RunUtil.class.getPackage().getImplementationTitle());
+      System.out.println(name);
       System.out.println("Version: " + RunUtil.class.getPackage().getImplementationVersion());
       System.exit(0);
     }
