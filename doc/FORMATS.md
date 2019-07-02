@@ -67,7 +67,7 @@ Caveats:
 
 ## <a name="TLSF" /> Temporal Logic Synthesis Format (TLSF)
 
-Use [syfco](https://github.com/reactive-systems/syfco) to transform TLSF to LTL.
+Use [syfco](https://github.com/reactive-systems/syfco) to transform TLSF to LTL. For example: `syfco FILE -f ltlxba -m fully`.
 
 
 ## <a name="pgsolver" /> PGSolver Format
