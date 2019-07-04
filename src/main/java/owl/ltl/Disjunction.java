@@ -42,7 +42,7 @@ public final class Disjunction extends PropositionalFormula {
 
   public static Disjunction syntaxDisjunction(Stream<? extends Formula> stream) {
     Set<Formula> set = new HashSet<>();
-    stream.forEach(f -> set.add(f));
+    stream.forEach(set::add);
     return new Disjunction(set.toArray(Formula[]::new));
   }
 

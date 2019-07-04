@@ -42,7 +42,7 @@ public final class Conjunction extends PropositionalFormula {
 
   public static Conjunction syntaxConjunction(Stream<? extends Formula> stream) {
     Set<Formula> set = new HashSet<>();
-    stream.forEach(f -> set.add(f));
+    stream.forEach(set::add);
     return new Conjunction(set.toArray(Formula[]::new));
   }
 
