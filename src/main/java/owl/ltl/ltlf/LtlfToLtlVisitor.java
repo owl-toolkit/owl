@@ -14,7 +14,6 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
@@ -89,7 +88,8 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
     } else if (gOperator.operand instanceof GOperator) { // filter out cases of GG a
       return (gOperator.operand).accept(this);
     }
-    return GOperator.of(Disjunction.of(tail.not(),(gOperator.operand).accept(this)));
+    // G a --> a U !tail transformation to co-Safety
+    return UOperator.of((gOperator.operand).accept(this),tail.not());
   }
 
   @Override
@@ -105,8 +105,9 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(ROperator rOperator) {
-    return ROperator.of(rOperator.left.accept(this),
-      Disjunction.of(tail.not(),rOperator.right.accept(this)));
+    // t(a R b) --> (t(a)|!tail) M (t(b)) transformation to co-Safety
+    return MOperator.of(Disjunction.of(tail.not(),rOperator.left.accept(this)),
+      rOperator.right.accept(this));
   }
 
   @Override
@@ -117,8 +118,9 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(WOperator wOperator) {
-    return WOperator.of(Disjunction.of(tail.not(),wOperator.left.accept(this)),
-      wOperator.right.accept(this));
+    // t(a W b) --> (t(a)) U (t(b)|!tail) transformation to co-Safety
+    return UOperator.of(wOperator.left.accept(this),
+      Disjunction.of(tail.not(),wOperator.right.accept(this)));
   }
 
   @Override
