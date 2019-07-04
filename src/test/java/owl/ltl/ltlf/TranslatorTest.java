@@ -7,6 +7,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
+
 import owl.ltl.parser.LtlParser;
 
 public class TranslatorTest {
