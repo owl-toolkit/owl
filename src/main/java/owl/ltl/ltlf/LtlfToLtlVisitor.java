@@ -66,18 +66,11 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
   @Override
   public Formula visit(FOperator fOperator) {
     if (fOperator.operand instanceof GOperator) { //"Persistence" property --> "last"- optimization
-      if (SyntacticFragment.SAFETY.contains(((GOperator) fOperator.operand).operand)) {
-        // if Safety then "last" version: t(FG a) ==> F(tail & X!tail & t(a))
-        return FOperator.of(Conjunction.of(tail,XOperator.of(tail.not()),
+      // since we transform the formula to Co-Safety we always take the "last"-optimization:
+      // FG a --> F (tail & X !tail & a)
+      return FOperator.of(Conjunction.of(tail,XOperator.of(tail.not()),
           (((GOperator) fOperator.operand).operand).accept(this)));
-      } else if (SyntacticFragment.CO_SAFETY.contains(((GOperator) fOperator.operand).operand)) {
-        // if CoSafety then "last" version: t(FG a) ==> G((tail & X!tail )-> t(a))
-        return GOperator.of(Disjunction.of(tail.not(),XOperator.of(tail),
-          (((GOperator) fOperator.operand).operand).accept(this)));
-      } else {
-        return GOperator.of(Disjunction.of(tail.not(),XOperator.of(tail),
-          (((GOperator) fOperator.operand).operand).accept(this)));
-      }
+
     } else if (fOperator.operand instanceof FOperator) { // filter out cases of FF a
       return fOperator.operand.accept(this);
     }
@@ -88,18 +81,11 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
   @Override
   public Formula visit(GOperator gOperator) {
     if (gOperator.operand instanceof FOperator) { //"Response" property --> "last"- optimization
-      if (SyntacticFragment.SAFETY.contains(((FOperator) gOperator.operand).operand)) {
-        // if Safety then "last" version: t(GF a) ==> F(tail & X!tail & t(a))
-        return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
+      // since we transform the formula to Co-Safety we always take the "last"-optimization:
+      // GF a --> F (tail & X !tail & a)
+      return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
           (((FOperator) gOperator.operand).operand).accept(this)));
-      } else if (SyntacticFragment.CO_SAFETY.contains(((FOperator) gOperator.operand).operand)) {
-        // if CoSafety then "last" version: t(GF a) ==> G((tail & X!tail )-> t(a))
-        return GOperator.of(Disjunction.of(tail.not(), XOperator.of(tail),
-          (((FOperator) gOperator.operand).operand).accept(this)));
-      } else {
-        return GOperator.of(Disjunction.of(tail.not(), XOperator.of(tail),
-          (((FOperator) gOperator.operand).operand).accept(this)));
-      }
+
     } else if (gOperator.operand instanceof GOperator) { // filter out cases of GG a
       return (gOperator.operand).accept(this);
     }
