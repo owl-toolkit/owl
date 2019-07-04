@@ -1,26 +1,18 @@
 package owl.ltl;
 /*
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
-
 import owl.ltl.ltlf.LtlfParser;
 import owl.ltl.ltlf.LtlfToLtlVisitor;
 import owl.ltl.ltlf.Translator;
 import owl.ltl.parser.LtlParser;
-
 import owl.ltl.visitors.PrintVisitor;
+
+import java.io.*;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class EigeneTestsMax {
   private static final List<String> Literals = List.of("a", "b", "c", "d", "t");
@@ -84,6 +76,37 @@ public class EigeneTestsMax {
     LtlParser.syntax("G (!t | X (t & (a <-> b)))", Literals),
     LtlParser.syntax("G (!t | X (t & (a xor b)))", Literals));
 
+  public static void write(String content, String path) throws IOException {
+    BufferedWriter writer = new BufferedWriter(new FileWriter(path));
+    writer.write(content);
+    writer.close();
+  }
+
+  public static String convToTlsf(List<String> inputs, List<String> outputs,
+                                  Literal Tail, Formula F, List<String> mapping) {
+
+    PrintVisitor P = new PrintVisitor(false, mapping);
+    StringBuilder out = new StringBuilder("INFO {\n"
+      + "  TITLE:       \"Test\"\n"
+      + "  DESCRIPTION: \"Test\"\n"
+      + "  SEMANTICS:   Mealy\n"
+      + "  TARGET:      Mealy\n"
+      + "}\n"
+      + "MAIN {\n"
+      + "  INPUTS {\n");
+    for (String l : inputs) {
+      out.append(l).append(";\n");
+    }
+    out.append("}\n" + "  OUTPUTS {\n");
+    for (String l : outputs) {
+      out.append(l).append(";\n");
+    }
+    out.append("tail").append(";\n}\n").append(
+      "  GUARANTEE {\n").append(P.apply(F)).append(";\n}\n}");
+
+    return out.toString();
+  }
+
   @Test
   void testLtlfToLtlVisitor() {
     LtlfToLtlVisitor translator = new LtlfToLtlVisitor();
@@ -92,7 +115,6 @@ public class EigeneTestsMax {
       Formula is = translator.apply(LTLfFORMULAS.get(i), Literal.of(4));
       assertEquals(should, (is));
     }
-
   }
 
   @Test
@@ -120,7 +142,7 @@ public class EigeneTestsMax {
 
       literals.add("tail");
       PrintVisitor p = new PrintVisitor(false, literals);
-      StringBuilder output = new StringBuilder("-f '");
+      StringBuilder output = new StringBuilder("-r -f '");
       output.append(p.apply(f1)).append("' --ins=\"");
       inputline = inputline.replace(" ", ",");
       output.append(inputline).append("\" --outs=\"");
@@ -132,10 +154,34 @@ public class EigeneTestsMax {
     }
   }
 
-  public static void write(String content, String path) throws IOException {
-    BufferedWriter writer = new BufferedWriter(new FileWriter(path));
-    writer.write(content);
-    writer.close();
+  @Test
+  void translateSyftBenchmarkstoSynkitInputs() throws IOException {
+    for (int i = 1; i < 102; i++) {
+      File ltlffile = new File("/home/max/Dokumente/Bachelorarbeit/Syft_Benchmarks/"
+        + "basic/" + i + ".ltlf");
+      File partfile = new File("/home/max/Dokumente/Bachelorarbeit/Syft_Benchmarks/"
+        + "basic/" + i + ".part");
+      BufferedReader brLtlf = new BufferedReader(new FileReader(ltlffile));
+      BufferedReader brPart = new BufferedReader(new FileReader(partfile));
+      String ltlfformula = brLtlf.readLine();
+      String inputline = brPart.readLine();
+      String outputline = brPart.readLine();
+      inputline = inputline.substring(9);
+      outputline = outputline.substring(10);
+      List<String> literals = new LinkedList<>();
+      literals.addAll(Arrays.asList(inputline.split(" ")));
+      literals.addAll(Arrays.asList(outputline.split(" ")));
+
+      Formula f = LtlfParser.syntax(ltlfformula, literals);
+
+
+      Literal tail = Literal.of(f.atomicPropositions(true).length());
+      Formula f1 = Translator.translate(f, tail);
+      literals.add("tail");
+      write(convToTlsf(Arrays.asList(inputline.split(" ")),
+        Arrays.asList(outputline.split(" ")), tail, f1, literals),
+        "/home/max/Dokumente/Bachelorarbeit/Tests/vsSynKit/SynKitInputs/" + i + ".tlsf");
+    }
   }
 
 }*/
