@@ -47,6 +47,10 @@ public final class Conjunction extends PropositionalFormula {
     return new Conjunction(set.toArray(Formula[]::new));
   }
 
+  public static Conjunction syntaxConjunction(Formula left, Formula right) {
+    Formula[] temp = {left,right};
+    return new Conjunction(temp);
+  }
 
   @CEntryPoint
   public static Formula of(Formula left, Formula right) {
