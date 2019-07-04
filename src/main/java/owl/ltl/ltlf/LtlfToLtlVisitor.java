@@ -69,11 +69,14 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
       if (SyntacticFragment.SAFETY.contains(((GOperator) fOperator.operand).operand)) {
         // if Safety then "last" version: t(FG a) ==> F(tail & X!tail & t(a))
         return FOperator.of(Conjunction.of(tail,XOperator.of(tail.not()),
-          ((GOperator) fOperator.operand).operand.accept(this)));
+          (((GOperator) fOperator.operand).operand).accept(this)));
       } else if (SyntacticFragment.CO_SAFETY.contains(((GOperator) fOperator.operand).operand)) {
         // if CoSafety then "last" version: t(FG a) ==> G((tail & X!tail )-> t(a))
         return GOperator.of(Disjunction.of(tail.not(),XOperator.of(tail),
-          ((GOperator) fOperator.operand).operand.accept(this)));
+          (((GOperator) fOperator.operand).operand).accept(this)));
+      } else {
+        return GOperator.of(Disjunction.of(tail.not(),XOperator.of(tail),
+          (((GOperator) fOperator.operand).operand).accept(this)));
       }
     } else if (fOperator.operand instanceof FOperator) { // filter out cases of FF a
       return fOperator.operand.accept(this);
@@ -88,16 +91,19 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
       if (SyntacticFragment.SAFETY.contains(((FOperator) gOperator.operand).operand)) {
         // if Safety then "last" version: t(GF a) ==> F(tail & X!tail & t(a))
         return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
-          ((FOperator) gOperator.operand).operand.accept(this)));
+          (((FOperator) gOperator.operand).operand).accept(this)));
       } else if (SyntacticFragment.CO_SAFETY.contains(((FOperator) gOperator.operand).operand)) {
         // if CoSafety then "last" version: t(GF a) ==> G((tail & X!tail )-> t(a))
         return GOperator.of(Disjunction.of(tail.not(), XOperator.of(tail),
-          ((FOperator) gOperator.operand).operand.accept(this)));
+          (((FOperator) gOperator.operand).operand).accept(this)));
+      } else {
+        return GOperator.of(Disjunction.of(tail.not(), XOperator.of(tail),
+          (((FOperator) gOperator.operand).operand).accept(this)));
       }
     } else if (gOperator.operand instanceof GOperator) { // filter out cases of GG a
-      return gOperator.operand.accept(this);
+      return (gOperator.operand).accept(this);
     }
-    return GOperator.of(Disjunction.of(tail.not(),gOperator.operand.accept(this)));
+    return GOperator.of(Disjunction.of(tail.not(),(gOperator.operand).accept(this)));
   }
 
   @Override
