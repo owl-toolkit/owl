@@ -93,7 +93,7 @@ final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitAndExpression(AndExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
-    if (ctx.getChildCount() ==1) { //avoid Conjunctions with only one child
+    if (ctx.getChildCount() == 1) { //avoid Conjunctions with only one child
       return ctx.getChild(0).accept(this);
     }
     return Conjunction.syntaxConjunction(ctx.children.stream()
@@ -179,7 +179,7 @@ final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitOrExpression(OrExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
-    if (ctx.getChildCount() ==1) { //avoid Disjunctions with only one child
+    if (ctx.getChildCount() == 1) { //avoid Disjunctions with only one child
       return ctx.getChild(0).accept(this);
     }
     return Disjunction.syntaxDisjunction(ctx.children.stream()

@@ -1,13 +1,13 @@
 package owl.ltl.ltlf;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
-
-import java.util.List;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class TranslatorTest {
   private static final List<String> Literals = List.of("a", "b", "c", "d", "t");
