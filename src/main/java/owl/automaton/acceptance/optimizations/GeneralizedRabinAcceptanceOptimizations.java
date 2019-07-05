@@ -20,10 +20,11 @@
 package owl.automaton.acceptance.optimizations;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.collect.SortedSetMultimap;
+import com.google.common.collect.TreeMultimap;
 import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
@@ -37,12 +38,14 @@ import it.unimi.dsi.fastutil.ints.IntSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
-import java.util.Map;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.SortedSet;
+import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -194,7 +197,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       return;
     }
 
-    Map<RabinPair, IntSet> pairActiveSccs = new HashMap<>();
+    SortedMap<RabinPair, IntSet> pairActiveSccs = new TreeMap<>();
     Indices.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
       BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       pairs.forEach(pair -> {
@@ -342,7 +345,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     int acceptanceSets = acceptance.acceptanceSets();
     List<RabinPair> pairs = new ArrayList<>(acceptance.pairs());
     List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
-    List<Multimap<RabinPair, RabinPair>> sccImplicationList = new ArrayList<>(sccs.size());
+    List<SortedSetMultimap<RabinPair, RabinPair>> sccImplicationList = new ArrayList<>(sccs.size());
 
     StringBuilder logBuilder = logger.isLoggable(Level.FINEST)
       ? new StringBuilder(200 + sccs.size() * 50) : null;
@@ -372,8 +375,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
         }
       }
 
-      Multimap<RabinPair, RabinPair> sccImplications =
-        HashMultimap.create(pairs.size(), pairs.size() / 2 + 1);
+      SortedSetMultimap<RabinPair, RabinPair> sccImplications = TreeMultimap.create();
 
       // Search for pairs where one implies the other (in terms of acceptance)
       for (RabinPair antecedent : pairs) {
@@ -640,14 +642,15 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
   private static final class MergeClass {
     final IntSet activeSccIndices;
-    final Set<RabinPair> pairs;
+    final SortedSet<RabinPair> pairs;
 
     @Nonnegative
     final int representativeFin;
     final IntSet representativeInf;
 
     MergeClass(RabinPair pair, IntSet activeIndices) {
-      this.pairs = Sets.newHashSet(pair);
+      this.pairs = new TreeSet<>();
+      this.pairs.add(pair);
       this.activeSccIndices = new IntAVLTreeSet(activeIndices);
       representativeFin = pair.finSet();
       representativeInf = new IntAVLTreeSet();

@@ -29,8 +29,10 @@ import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import javax.annotation.Nonnegative;
@@ -201,7 +203,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     return new GeneralizedRabinAcceptance(newPairs);
   }
 
-  public static final class RabinPair {
+  public static final class RabinPair implements Comparable<RabinPair> {
     @Nonnegative
     final int finIndex;
 
@@ -308,6 +310,32 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     @Override
     public String toString() {
       return "(" + finIndex + ", " + infIndex + ')';
+    }
+
+    @Override
+    public int compareTo(RabinPair o) {
+      return Comparator.comparingInt((RabinPair x) -> x.finIndex)
+        .thenComparingInt((RabinPair x) -> x.infIndex)
+        .compare(this, o);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+
+      if (!(o instanceof RabinPair)) {
+        return false;
+      }
+
+      RabinPair rabinPair = (RabinPair) o;
+      return finIndex == rabinPair.finIndex && infIndex == rabinPair.infIndex;
+    }
+
+    @Override
+    public int hashCode() {
+      return Objects.hash(finIndex, infIndex);
     }
   }
 
