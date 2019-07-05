@@ -231,7 +231,7 @@ public final class SafetyAutomaton {
             .filter(s -> s.formula().equals(g))
             .findFirst().orElseThrow();
 
-          if (Iterables.any(monitor.finalStates(), t -> t.accept(violationVisitor))) {
+          if (monitor.finalStates().stream().anyMatch(t -> t.accept(violationVisitor))) {
             violation = true;
             break;
           }
@@ -272,7 +272,7 @@ public final class SafetyAutomaton {
                 Set<Formula> finalTokens = newMonitorsF.stream().filter(s ->
                   s.formula().equals(fFormula)).findFirst().orElseThrow().finalStates();
 
-                if (Iterables.any(finalTokens, t -> t.accept(satisfactionVisitor))) {
+                if (finalTokens.stream().anyMatch(t -> t.accept(satisfactionVisitor))) {
                   deque.addLast(fFormula);
                   if (deque.peekFirst().equals(promisedSet.firstF())) {
                     reset = true;
@@ -446,15 +446,15 @@ public final class SafetyAutomaton {
     @Override
     public Boolean visit(Conjunction conjunction) {
       return satisfaction
-        ? Iterables.all(conjunction.children, x -> x.accept(this))
-        : Iterables.any(conjunction.children, x -> x.accept(this));
+        ? conjunction.children.stream().allMatch(x -> x.accept(this))
+        : conjunction.children.stream().anyMatch(x -> x.accept(this));
     }
 
     @Override
     public Boolean visit(Disjunction disjunction) {
       return satisfaction
-        ? Iterables.any(disjunction.children, x -> x.accept(this))
-        : Iterables.all(disjunction.children, x -> x.accept(this));
+        ? disjunction.children.stream().anyMatch(x -> x.accept(this))
+        : disjunction.children.stream().allMatch(x -> x.accept(this));
     }
 
     @Override

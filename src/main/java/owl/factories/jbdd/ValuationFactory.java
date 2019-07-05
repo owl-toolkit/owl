@@ -26,7 +26,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -106,11 +105,6 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
   @Override
-  public boolean contains(ValuationSet set, ValuationSet other) {
-    return factory.implies(getBdd(set), getBdd(other));
-  }
-
-  @Override
   public void forEach(ValuationSet set, Consumer<? super BitSet> action) {
     int variables = factory.numberOfVariables();
 
@@ -158,39 +152,9 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
   @Override
-  public ValuationSet intersection(Iterator<ValuationSet> sets) {
-    int bdd = factory.getTrueNode();
-
-    while (sets.hasNext()) {
-      bdd = factory.and(bdd, getBdd(sets.next()));
-    }
-
-    return create(bdd);
-  }
-
-
-  @Override
   public ValuationSet union(ValuationSet set1, ValuationSet set2) {
     return create(factory.or(getBdd(set1), getBdd(set2)));
   }
-
-  @Override
-  public ValuationSet union(Iterator<ValuationSet> sets) {
-    int bdd = factory.getFalseNode();
-
-    while (sets.hasNext()) {
-      bdd = factory.or(bdd, getBdd(sets.next()));
-    }
-
-    return create(bdd);
-  }
-
-
-  @Override
-  public ValuationSet minus(ValuationSet set1, ValuationSet set2) {
-    return create(factory.notAnd(getBdd(set1), getBdd(set2)));
-  }
-
 
   @Override
   public BooleanExpression<AtomLabel> toExpression(ValuationSet set) {

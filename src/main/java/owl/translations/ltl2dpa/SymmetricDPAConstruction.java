@@ -38,7 +38,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.factories.EquivalenceClassFactory;
 import owl.ltl.EquivalenceClass;
 import owl.translations.SafetyCoreDetector;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
@@ -60,7 +59,6 @@ final class SymmetricDPAConstruction {
   static final class Builder {
     final ParityAcceptance acceptance;
     final SymmetricRankingState initialState;
-    final EquivalenceClassFactory factory;
     final List<Set<Map<Integer, EquivalenceClass>>> initialComponentSccs;
     final AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState, BuchiAcceptance,
           SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
@@ -75,7 +73,6 @@ final class SymmetricDPAConstruction {
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);
       Map<Integer, EquivalenceClass> ldbaInitialState = ldba.initialComponent().onlyInitialState();
-      factory = ldbaInitialState.entrySet().iterator().next().getValue().factory();
       initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
     }
 

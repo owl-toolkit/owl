@@ -460,6 +460,9 @@ class TranslationAutomatonSummaryTest {
       assertEquals(size, automaton.size(),
         () -> String.format("Expected %d states, got %d.\n%s",
         size, automaton.size(), HoaPrinter.toString(automaton)));
+      assertEquals(initialStatesSize, automaton.initialStates().size(),
+        () -> String.format("Expected %d intial states, got %d.\n%s",
+        initialStatesSize, automaton.initialStates().size(), HoaPrinter.toString(automaton)));
       assertEquals(acceptanceSets, automaton.acceptance().acceptanceSets(),
         () -> String.format("Expected %d acceptance sets, got %d.\n%s",
         acceptanceSets, automaton.acceptance().acceptanceSets(), HoaPrinter.toString(automaton)));

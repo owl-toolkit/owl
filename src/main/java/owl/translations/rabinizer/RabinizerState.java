@@ -36,10 +36,6 @@ public abstract class RabinizerState {
     return RabinizerStateTuple.create(masterState, List.of(monitorStates));
   }
 
-  static RabinizerState of(EquivalenceClass masterState, List<MonitorState> monitorStates) {
-    return RabinizerStateTuple.create(masterState, monitorStates);
-  }
-
   static RabinizerState empty(EquivalenceClass masterState) {
     return RabinizerStateTuple.create(masterState, List.of());
   }

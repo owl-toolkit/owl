@@ -87,7 +87,6 @@ import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
 import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
 import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
-import owl.util.IntBiConsumer;
 
 /**
  * Central class handling the Rabinizer construction.
@@ -894,22 +893,6 @@ public final class RabinizerBuilder {
       this.relevantFormulas = relevantFormulas;
     }
 
-    private void forEachRelevantAndActive(IntBiConsumer action) {
-      int relevantIndex = -1;
-      int activeIndex = -1;
-      for (int gIndex = 0; gIndex < activeFormulas.length; gIndex++) {
-        if (!relevantFormulas[gIndex]) {
-          continue;
-        }
-        relevantIndex += 1;
-        if (!activeFormulas[gIndex]) {
-          continue;
-        }
-        activeIndex += 1;
-        action.accept(relevantIndex, activeIndex);
-      }
-    }
-
     IntSet getAcceptance(BitSet valuation) {
       // TODO Pre-compute into a Map<IntSet, ValuationSet>
 
@@ -989,17 +972,27 @@ public final class RabinizerBuilder {
       // for the antecedent, since we will inject it anyway
 
       AtomicReference<EquivalenceClass> antecedent = new AtomicReference<>(eqFactory.getTrue());
-      forEachRelevantAndActive((relevantIndex, activeIndex) -> {
-        MonitorState monitorState = monitorStates.get(relevantIndex);
+      int relevantIndex2 = -1;
+      int activeIndex2 = -1;
+      for (int gIndex1 = 0; gIndex1 < activeFormulas.length; gIndex1++) {
+        if (!relevantFormulas[gIndex1]) {
+          continue;
+        }
+        relevantIndex2 += 1;
+        if (!activeFormulas[gIndex1]) {
+          continue;
+        }
+        activeIndex2 += 1;
+        MonitorState monitorState = monitorStates.get(relevantIndex2);
 
         List<EquivalenceClass> monitorStateRanking = monitorState.formulaRanking();
-        int rank = ranking[activeIndex];
+        int rank = ranking[activeIndex2];
         for (int stateIndex = rank; stateIndex < monitorStateRanking.size(); stateIndex++) {
           EquivalenceClass rankEntry = monitorStateRanking.get(stateIndex);
           EquivalenceClass state = eager ? rankEntry.temporalStep(valuation) : rankEntry;
           antecedent.updateAndGet(clazz -> clazz.and(state));
         }
-      });
+      }
 
       if (eager) {
         // In the eager construction, we need to add some more knowledge to the antecedent
@@ -1030,16 +1023,26 @@ public final class RabinizerBuilder {
       if (logger.isLoggable(Level.FINEST)) {
         List<EquivalenceClass> activeMonitorStates = new ArrayList<>(activeFormulaSet.size());
 
-        forEachRelevantAndActive((relevantIndex, activeIndex) -> {
+        int relevantIndex1 = -1;
+        int activeIndex1 = -1;
+        for (int gIndex = 0; gIndex < activeFormulas.length; gIndex++) {
+          if (!relevantFormulas[gIndex]) {
+            continue;
+          }
+          relevantIndex1 += 1;
+          if (!activeFormulas[gIndex]) {
+            continue;
+          }
+          activeIndex1 += 1;
           List<EquivalenceClass> monitorStateRanking =
-            monitorStates.get(relevantIndex).formulaRanking();
-          int rank = ranking[activeIndex];
+            monitorStates.get(relevantIndex1).formulaRanking();
+          int rank = ranking[activeIndex1];
 
           int size = monitorStateRanking.size();
           if (rank <= size) {
             activeMonitorStates.addAll(monitorStateRanking.subList(rank, size));
           }
-        });
+        }
         String rankingString = Arrays.toString(ranking);
         String log = String.format("Subset %s, ranking %s, and monitor states %s (strengthened: "
             + "%s), valuation %s; entails %s (weakened: %s): %s", activeFormulaSet, rankingString,

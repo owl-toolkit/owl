@@ -343,7 +343,7 @@ public final class Views {
 
       Map<Edge<S>, ValuationSet> edges = new HashMap<>(automaton.edgeMap(state));
       ValuationSet valuationSet = incompleteStates == null
-        ? factory.union(edges.values()).complement()
+        ? edges.values().stream().reduce(factory.empty(), ValuationSet::union).complement()
         : incompleteStates.get(state);
 
       if (!valuationSet.isEmpty()) {

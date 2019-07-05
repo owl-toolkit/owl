@@ -24,6 +24,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.common.collect.Maps;
+import de.tum.in.naturals.bitset.BitSets;
+import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +56,7 @@ class AutomatonFactoryTest {
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
 
-    automaton.factory().forEach(valuation -> {
+    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
       var edge = automaton.edge(initialState, valuation);
       var matchingEdges = Maps.filterValues(edgeMap, x -> x.contains(valuation)).keySet();
 
@@ -63,7 +65,7 @@ class AutomatonFactoryTest {
       } else {
         assertEquals(Set.of(edge), matchingEdges);
       }
-    });
+    }
   }
 
   @Test

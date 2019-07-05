@@ -19,8 +19,6 @@
 
 package owl.automaton;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -32,14 +30,6 @@ public final class MutableAutomatonUtil {
 
   private MutableAutomatonUtil() {}
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A>
-  castMutable(Object automaton, Class<S> stateClass, Class<A> acceptanceClass) {
-    Automaton<S, A> castedAutomaton = AutomatonUtil.cast(automaton, stateClass, acceptanceClass);
-    checkArgument(automaton instanceof MutableAutomaton<?, ?>, "Expected automaton, got %s",
-      automaton.getClass().getName());
-    return (MutableAutomaton<S, A>) castedAutomaton;
-  }
-
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> asMutable(
     Automaton<S, A> automaton) {
     if (automaton instanceof MutableAutomaton) {
@@ -47,10 +37,6 @@ public final class MutableAutomatonUtil {
     }
 
     return MutableAutomatonFactory.copy(automaton);
-  }
-
-  public static Optional<Object> complete(MutableAutomaton<Object, ?> automaton) {
-    return complete(automaton, new Sink());
   }
 
   /**
