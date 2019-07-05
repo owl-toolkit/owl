@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkState;
 
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.ints.IntLists;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
@@ -49,8 +48,6 @@ import owl.automaton.output.HoaPrinter.HoaOption;
 import owl.collections.ValuationSet;
 
 final class HoaConsumerExtended<S> {
-  // TODO If --annotations is there, try to print the complex edge expressions in toHOA
-
   private static final Logger log = Logger.getLogger(HoaConsumerExtended.class.getName());
 
   private final int alphabetSize;
@@ -114,46 +111,10 @@ final class HoaConsumerExtended<S> {
     return version == null ? "development" : version;
   }
 
-  void addEdge(ValuationSet label, S end) {
-    if (label.isEmpty()) {
-      return;
-    }
-
-    addEdgeBackend(label.toExpression(), end, IntLists.EMPTY_LIST);
-  }
-
-  private void addEdgeBackend(BitSet label, S end, IntList accSets) {
-    List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
-
-    for (int i = 0; i < alphabetSize; i++) {
-      BooleanExpression<AtomLabel> atom = new BooleanExpression<>(AtomLabel.createAPIndex(i));
-
-      if (label.get(i)) {
-        conjuncts.add(atom);
-      } else {
-        conjuncts.add(atom.not());
-      }
-    }
-
-    addEdgeBackend(BooleanExpressions.createConjunction(conjuncts), end, accSets);
-  }
-
   private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {
     try {
       consumer.addEdgeWithLabel(getStateId(currentState), label, List.of(getStateId(end)),
         accSets.isEmpty() ? null : accSets);
-    } catch (HOAConsumerException ex) {
-      log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
-    }
-  }
-
-  void addEpsilonEdge(S successor) {
-    log.log(Level.FINER, "HOA currently does not support epsilon-transitions. "
-      + "({0} -> {1})", new Object[] {currentState, successor});
-
-    try {
-      consumer.addEdgeWithLabel(getStateId(currentState), null,
-        List.of(getStateId(successor)), null);
     } catch (HOAConsumerException ex) {
       log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
     }
@@ -201,7 +162,19 @@ final class HoaConsumerExtended<S> {
     public void visit(S state, BitSet valuation, Edge<S> edge) {
       IntArrayList accSets = new IntArrayList();
       edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
-      addEdgeBackend(valuation, edge.successor(), accSets);
+      List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
+
+      for (int i = 0; i < alphabetSize; i++) {
+        BooleanExpression<AtomLabel> atom = new BooleanExpression<>(AtomLabel.createAPIndex(i));
+
+        if (valuation.get(i)) {
+          conjuncts.add(atom);
+        } else {
+          conjuncts.add(atom.not());
+        }
+      }
+
+      addEdgeBackend(BooleanExpressions.createConjunction(conjuncts), edge.successor(), accSets);
     }
 
     @Override

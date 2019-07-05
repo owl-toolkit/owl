@@ -2436,7 +2436,7 @@
       "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
-      "acceptanceSets": 9,
+      "acceptanceSets": 8,
       "complete": true,
       "deterministic": true
     }
