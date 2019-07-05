@@ -9,11 +9,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 
   <title>
-    Rabinizer 4 online demo
+    Owl (19.06) Online Demo
   </title>
 
   <!-- Scripts -->
-  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 
   <!-- Font -->
   <link href="https://fonts.googleapis.com/css?family=Roboto" rel="stylesheet">
@@ -27,11 +27,7 @@
 
   <script type="text/javascript">
     function bool_to_string(value) {
-       if (value) {
-         return "1";
-       } else {
-         return "0";
-       }
+       if (value) { return "1"; } else { return "0"; }
     }
 
     function create() {
@@ -41,8 +37,7 @@
         return;
       }
 
-      var cgi_url = 'https://www7.in.tum.de/~meggendo/projects/owl/cgi-bin/try.py?formula=';
-
+      var cgi_url = 'https://owl.model.in.tum.de/try/cgi-bin/try.py?formula=';
       cgi_url += encodeURIComponent(formula.trim());
 
       var format = $("input[name=format]:checked", "#input").val();
@@ -52,12 +47,10 @@
 
       cgi_url += "&format=" + encodeURIComponent(format);
       cgi_url += "&annotations=" + bool_to_string($("input[name=annotations]", "#input").is(":checked"));
-      cgi_url += "&state-acc=" + bool_to_string($("input[name=state-acc]", "#input").is(":checked"));
       cgi_url += "&show-scc=" + bool_to_string($("input[name=show-scc]", "#input").is(":checked"));
-      cgi_url += "&simple=" + bool_to_string($("input[name=simple]", "#input").is(":checked"));
 
       // Clear, then query new
-      $("#svg-container").text("Constructing automaton for " + formula + " - please wait a few moments");      
+      $("#svg-container").text("Constructing automaton for " + formula + " - please wait a few moments");
       $("#svg-container").load(cgi_url, function() {
         var imageWidth = $("#svg-container > svg").width();
         var outerWidth = $("#svg-container").width();
@@ -70,9 +63,7 @@
 <body>
   <div style="max-width: 960px; margin: auto">
     <div style="text-align: center; padding-bottom: 20px">
-      <h1>Rabinizer 4 online demo</h1>
-      Developed by Jan K&#345;et&iacute;nsk&yacute;, Tobias Meggendorfer, and Salomon Sickert.
-      See the <a href="https://www7.in.tum.de/~kretinsk/rabinizer4">Rabinizer 4 webpage</a> for further information.
+      <h1>Owl (19.06) Online Demo</h1>
     </div>
 
     <form id="input" onsubmit="create(); return false;">
@@ -88,27 +79,33 @@
         <ul>
           <li><tt>(G F a) -&gt; (G F b)</tt></li>
           <li><tt>F G a | G F b</tt></li>
-          <li><tt>a &amp; X G (a U XXb) | !a &amp; X G (a U XXc)</tt></li>
-          <li><tt>G (!a &amp; (b U (!c U (!d | e))))</tt></li>
-          <li><tt>G ((a1 &amp; F b1) | (a2 &amp; F b2))</tt></li>
+          <li><tt>a & X G (a U XXb) | !a & X G (a U XXc)</tt></li>
+          <li><tt>G (!a & (b U (!c U (!d | e))))</tt></li>
+          <li><tt>G ((a1 & F b1) | (a2 & F b2))</tt></li>
           <li><tt>(X a) W (b M c XOR G a) &lt;-&gt; a R c</tt></li>
-          <li><tt>F a &amp; F b &amp; F G c</tt></li>
+          <li><tt>F a & F b & F G c</tt></li>
         </ul>
       </p>
 
       <h4 style="margin-bottom: 5px">Format:</h4>
-      <input type="radio" name="format" value="dgra" checked="checked">DGRA (Rabinizer construction)<br>
-      <input type="radio" name="format" value="dra">DRA (Rabinizer + Degeneralization)<br>
-      <input type="radio" name="format" value="dpa-dgra">DPA (Rabinizer + Degeneralization + IAR construction)<br>
-      <input type="radio" name="format" value="dpa-ldba">DPA (LDBA construction)<br>
-      <input type="radio" name="format" value="dpa-ldba-guess-F">DPA (LDBA construction, Guessing F)<br>
-      <input type="radio" name="format" value="ldba">LDBA<br>
-      <input type="radio" name="format" value="ldba-guess-F">LDBA (Guessing F)<br>
+      <input type="radio" name="format" value="nba">NBA<br>
+      <input type="radio" name="format" value="ngba">NGBA<br>
+      <input type="radio" name="format" value="ldba-symmetric">LDBA (symmetric construction)<br>
+      <input type="radio" name="format" value="ldgba-symmetric">LDGBA (symmetric construction)<br>
+      <input type="radio" name="format" value="ldba-asymmetric">LDBA (asymmetric construction)<br>
+      <input type="radio" name="format" value="ldgba-asymmetric">LDGBA (asymmetric construction)<br>
+      <input type="radio" name="format" value="dra-symmetric">DRA (symmetric construction)<br>
+      <input type="radio" name="format" value="dgra-symmetric" checked="checked">DGRA (symmetric construction)<br>
+      <input type="radio" name="format" value="dra-asymmetric">DRA (asymmetric construction)<br>
+      <input type="radio" name="format" value="dgra-asymmetric">DGRA (asymmetric construction)<br>
+      <input type="radio" name="format" value="dpa-symmetric">DPA (intermediate symmetric LDBA construction)<br>
+      <input type="radio" name="format" value="dpa-asymmetric">DPA (intermediate asymmetric LDBA construction)<br>
+      <input type="radio" name="format" value="delag">DELA (deterministic Emerson-Lei)<br>
+      <input type="radio" name="format" value="na">N*A (portfolio translation to nondeterministic automata)<br>
+      <input type="radio" name="format" value="da">D*A (portfolio translation to deterministic automata)<br>
 
       <h4 style="margin-bottom: 5px">Options:</h4>
       <input type="checkbox" name="annotations">Show state annotations (Warning: Large pictures)<br>
-      <input type="checkbox" name="simple">Use a simple statespace construction<br>
-      <input type="checkbox" name="state-acc">State based acceptance<br>
       <input type="checkbox" name="show-scc" checked="checked">Highlight SCCs (green: contains acc cycle, red: contains no acc cycle, black: trivial, gray: useless)<br>
     </form>
     <p style="text-align: center">
@@ -118,12 +115,12 @@
     </p>
   </div>
 
-  <div id="svg-container" style="text-align: center; overflow-x: auto"></div>
+  <div id="svg-container" style="text-align: center; overflow-x: auto; overflow-y: hidden"></div>
 
-  <div style="max-width: 960px; margin: auto"> 
+  <div style="max-width: 960px; margin: auto">
     <hr>
     <p>
-      We use <a href="https://spot.lrde.epita.fr/">Spot</a>'s autfilt to convert the result into the <a href="http://www.graphviz.org/doc/info/lang.html">dot</a> format and render it to SVG using the equally named tool. 
+      We use <a href="https://spot.lrde.epita.fr/">Spot</a>'s autfilt to convert the result into the <a href="http://www.graphviz.org/doc/info/lang.html">dot</a> format and render it to SVG using the equally named tool.
     </p>
   </div>
 </body>

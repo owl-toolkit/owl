@@ -12,9 +12,8 @@ cgitb.enable()
 
 TIMEOUT=60
 DOT_PATH="dot"
-AUTFILT_PATH="bin/autfilt"
+AUTFILT_PATH="autfilt"
 OWL_PATH="bin/owl"
-RABINIZER_CHAIN = ["unabbreviate", "-w", "-r", "---", "ltl2dgra", "---", "minimize-aut", "---"]
 
 def fail_with_message(message):
   print("Content-Type: text/html; charset=utf-8")
@@ -38,10 +37,7 @@ def process():
   formula = form.getvalue("formula", default=None)
   annotations = get_bool("annotations", False)
   state_acc = get_bool("state-acc", False)
-  simple = get_bool("simple", False)
-  # simplify = get_bool("simplify", False)
   show_scc = get_bool("show-scc", False)
-  # highlight_word = form.getvalue("word", default=None)
 
   if not formula or formula.strip() == "":
     fail_with_message("No formula specified")
@@ -56,28 +52,50 @@ def process():
 
   args.extend(["-i", formula, "---", "ltl", "---", "simplify-ltl", "---"])
 
-  if format == "dgra":
-    args.extend(RABINIZER_CHAIN)
-  elif format == "dra":
-    args.extend(RABINIZER_CHAIN)
-    args.extend(["dgra2dra"])
-  elif format == "dpa-dgra":
-    args.extend(RABINIZER_CHAIN)
-    args.extend(["dgra2dra", "---", "dra2dpa"])
-  elif format == "dpa-ldba":
-    args.extend(["ltl2dpa"])
-  elif format == "dpa-ldba-guess-F":
-    args.extend(["ltl2dpa", "-f"])
-  elif format == "ldba":
-    args.extend(["ltl2ldba"])
-  elif format == "ldba-guess-F":
-    args.extend(["ltl2ldba", "-f"])
+  if format == "nba":
+    args.append("ltl2nba")
+  elif format == "ngba":
+    args.append("ltl2ngba")
+  elif format == "ldba-symmetric":
+    args.append("ltl2ldba")
+    args.append("--symmetric")
+  elif format == "ldgba-symmetric":
+    args.append("ltl2ldgba")
+    args.append("--symmetric")
+  elif format == "ldba-asymmetric":
+    args.append("ltl2ldba")
+    args.append("--asymmetric")
+  elif format == "ldgba-asymmetric":
+    args.append("ltl2ldgba")
+    args.append("--asymmetric")
+  elif format == "dra-symmetric":
+    args.append("ltl2dra")
+    args.append("--symmetric")
+  elif format == "dgra-symmetric":
+    args.append("ltl2dgra")
+    args.append("--symmetric")
+  elif format == "dra-asymmetric":
+    args.append("ltl2dra")
+    args.append("--asymmetric")
+  elif format == "dgra-asymmetric":
+    args.append("ltl2dgra")
+    args.append("--asymmetric")
+  elif format == "dpa-symmetric":
+    args.append("ltl2dpa")
+    args.append("--symmetric")
+  elif format == "dpa-asymmetric":
+    args.append("ltl2dpa")
+    args.append("--asymmetric")
+  elif format == "delag":
+    args.append("delag")
+  elif format == "na":
+    args.append("ltl2na")
+  elif format == "da":
+    args.append("ltl2da")
   else:
     fail_with_message("Unknown format {}".format(format))
 
-  if simple:
-    args.extend(["-s"])
-
+  args.extend(["---", "optimize-aut"])
   args.extend(["---", "hoa"])
 
   if state_acc:
