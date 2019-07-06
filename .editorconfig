@@ -6,8 +6,5 @@ insert_final_newline=false
 indent_style=space
 indent_size=4
 
-[*.py]
-indent_size=4
-
 [{*.g4,*.java,*.sh,*.yml,*.yaml}]
 indent_size=2

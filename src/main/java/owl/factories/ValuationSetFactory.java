@@ -20,7 +20,6 @@
 package owl.factories;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -84,16 +83,9 @@ public interface ValuationSetFactory {
 
   ValuationSet complement(ValuationSet set);
 
-  default void forEach(Consumer<BitSet> action) {
-    universe().forEach(action);
-  }
-
-
   BitSet any(ValuationSet set);
 
   boolean contains(ValuationSet set, BitSet valuation);
-
-  boolean contains(ValuationSet set, ValuationSet other);
 
   boolean intersects(ValuationSet set, ValuationSet other);
 
@@ -101,33 +93,11 @@ public interface ValuationSetFactory {
 
   void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action);
 
-
   ValuationSet intersection(ValuationSet set1, ValuationSet set2);
 
-  default ValuationSet intersection(Iterable<ValuationSet> sets) {
-    return intersection(sets.iterator());
-  }
-
-  ValuationSet intersection(Iterator<ValuationSet> sets);
-
-
   ValuationSet union(ValuationSet set1, ValuationSet set2);
-
-  default ValuationSet union(Iterable<ValuationSet> sets) {
-    return union(sets.iterator());
-  }
-
-  ValuationSet union(Iterator<ValuationSet> sets);
-
-
-  default ValuationSet minus(ValuationSet set1, ValuationSet set2) {
-    return set1.intersection(set2.complement());
-  }
-
 
   BooleanExpression<AtomLabel> toExpression(ValuationSet set);
 
   <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets);
-
-
 }

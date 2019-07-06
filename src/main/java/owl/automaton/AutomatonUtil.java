@@ -123,7 +123,7 @@ public final class AutomatonUtil {
 
       @Override
       public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        ValuationSet set = factory.union(edgeMap.values());
+        ValuationSet set = edgeMap.values().stream().reduce(factory.empty(), ValuationSet::union);
 
         if (!set.isUniverse()) {
           incompleteStates.put(state, set.complement());

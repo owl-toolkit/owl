@@ -27,10 +27,8 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.CommandLine;
@@ -166,11 +164,6 @@ public class OwlModuleRegistry {
     registeredModules.put(type, name, parser);
   }
 
-  public Set<OwlModuleParser<?>> remove(String name) {
-    // Column map isn't really efficient but we have very few row keys anyway
-    return new HashSet<>(registeredModules.columnMap().remove(name).values());
-  }
-
   public enum Type {
     READER(ReaderParser.class, "reader"), WRITER(WriterParser.class, "writer"),
     TRANSFORMER(TransformerParser.class, "transformer");
@@ -205,7 +198,7 @@ public class OwlModuleRegistry {
   private static class AsTransformer implements TransformerParser {
     private final WriterParser parser;
 
-    public AsTransformer(WriterParser parser) {
+    AsTransformer(WriterParser parser) {
       this.parser = parser;
     }
 

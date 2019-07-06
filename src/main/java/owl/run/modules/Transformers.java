@@ -29,7 +29,6 @@ import java.util.stream.Collectors;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.run.PipelineExecutionContext;
@@ -40,7 +39,6 @@ public final class Transformers {
     LabelledFormula.class, x -> apply(x, Mode.SYNTACTIC_FIXPOINT));
   public static final Transformer MINIMIZER =
     new AcceptanceOptimizations.AcceptanceOptimizationTransformer();
-  public static final Transformer RABIN_DEGENERALIZATION = new RabinDegeneralization();
   public static final Transformer RABIN_TO_PARITY = environment -> (input, context) ->
     new IARBuilder<>(AutomatonUtil.cast(input, RabinAcceptance.class)).build();
 

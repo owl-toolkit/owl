@@ -166,7 +166,7 @@ public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, Bu
       Optional<Set<S>> optionalScc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx()))
         .findAny();
 
-      if (!optionalScc.isPresent()) {
+      if (optionalScc.isEmpty()) {
         return Set.of();
       }
 

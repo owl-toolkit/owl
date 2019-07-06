@@ -54,10 +54,6 @@ public class ValuationSet {
     return factory.contains(this, valuation);
   }
 
-  public final boolean contains(ValuationSet other) {
-    return factory.contains(this, other);
-  }
-
   public final boolean intersects(ValuationSet other) {
     return factory.intersects(this, other);
   }
@@ -83,11 +79,9 @@ public class ValuationSet {
     return factory.intersection(this, other);
   }
 
-
   public final BooleanExpression<AtomLabel> toExpression() {
     return factory.toExpression(this);
   }
-
 
   @Override
   public String toString() {

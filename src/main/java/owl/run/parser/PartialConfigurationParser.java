@@ -23,7 +23,6 @@ import static owl.run.parser.ParseUtil.toArray;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
@@ -47,60 +46,12 @@ public final class PartialConfigurationParser {
   private PartialConfigurationParser() {
   }
 
-  static void printHelp(Wrapper wrapper) {
+  private static void printHelp(Wrapper wrapper) {
     wrapper.map(module -> null, settings -> {
       Options options = settings.getOptions();
       ParseUtil.printHelp(settings.getKey(), options);
       return null;
     });
-  }
-
-  public static void run(String[] args, Map<String, PartialModuleConfiguration> modes,
-    PartialModuleConfiguration defaultConfiguration) {
-    RunUtil.checkForVersion(args);
-
-    if (args.length == 0) {
-      run(args, defaultConfiguration);
-      return;
-    }
-
-    HelpFormatter formatter = new HelpFormatter();
-    formatter.setSyntaxPrefix("");
-    if (args.length == 1 && ParseUtil.isHelp(args)) {
-      ParseUtil.println("This is the specialized, multi-mode construction. To select a mode, "
-        + "give --mode=<mode> as first argument. Add --help after that to obtain specific help for "
-        + "the selected mode. Available modes are: " + String.join(" ", modes.keySet()));
-      return;
-    }
-
-    String[] trimmedArgs;
-    PartialModuleConfiguration configuration;
-    if (args[0].startsWith("--mode")) {
-      String modeName;
-      if (args[0].startsWith("--mode=")) {
-        modeName = args[0].substring("--mode=".length());
-        trimmedArgs = Arrays.copyOfRange(args, 1, args.length);
-      } else if (args.length == 1) {
-        ParseUtil.println("Missing mode name. Available modes: "
-          + String.join(" ", modes.keySet()));
-        System.exit(1);
-        return;
-      } else {
-        modeName = args[1];
-        trimmedArgs = Arrays.copyOfRange(args, 2, args.length);
-      }
-      configuration = modes.get(modeName);
-      if (configuration == null) {
-        ParseUtil.println("Unknown mode " + modeName + ". Available modes: "
-          + String.join(" ", modes.keySet()));
-        System.exit(1);
-        return;
-      }
-    } else {
-      trimmedArgs = args;
-      configuration = defaultConfiguration;
-    }
-    run(trimmedArgs, configuration);
   }
 
   public static void run(String[] args, PartialModuleConfiguration configuration) {

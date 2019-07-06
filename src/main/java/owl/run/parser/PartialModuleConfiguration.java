@@ -25,9 +25,7 @@ import java.util.List;
 import org.immutables.value.Value;
 import owl.run.modules.InputReader;
 import owl.run.modules.OutputWriter;
-import owl.run.modules.OwlModuleParser.ReaderParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.modules.Transformer;
 
 @Value.Immutable
@@ -57,11 +55,6 @@ public abstract class PartialModuleConfiguration {
       builder = new PartialModuleConfigurationBuilder().name(name);
     }
 
-    public Constructor reader(InputReader reader) {
-      builder.input(Wrapper.module(reader));
-      return this;
-    }
-
     public Constructor addTransformer(TransformerParser... settings) {
       checkNotNull(settings);
       for (TransformerParser setting : settings) {
@@ -78,18 +71,13 @@ public abstract class PartialModuleConfiguration {
       return this;
     }
 
-    public Constructor reader(ReaderParser settings) {
-      builder.input(Wrapper.settings(settings));
+    public Constructor reader(InputReader reader) {
+      builder.input(Wrapper.module(reader));
       return this;
     }
 
     public Constructor writer(OutputWriter writer) {
       builder.output(Wrapper.module(writer));
-      return this;
-    }
-
-    public Constructor writer(WriterParser settings) {
-      builder.output(Wrapper.settings(settings));
       return this;
     }
 

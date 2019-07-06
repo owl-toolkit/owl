@@ -19,7 +19,6 @@
 
 package owl.automaton.acceptance;
 
-import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -60,8 +59,8 @@ public abstract class OmegaAcceptance {
   public abstract boolean isWellFormedEdge(Edge<?> edge);
 
   public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
-    return Iterables.all(automaton.states(),
-      x -> Iterables.all(automaton.edges(x), this::isWellFormedEdge));
+    return automaton.states().stream().allMatch(
+      x -> automaton.edges(x).stream().allMatch(this::isWellFormedEdge));
   }
 
   @Override

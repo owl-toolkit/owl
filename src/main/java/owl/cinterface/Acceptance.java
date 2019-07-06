@@ -40,8 +40,6 @@ enum Acceptance {
         return (other == SAFETY || other == CO_SAFETY) ? this : other;
 
       case BUCHI:
-        return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
-
       case CO_BUCHI:
         return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
 

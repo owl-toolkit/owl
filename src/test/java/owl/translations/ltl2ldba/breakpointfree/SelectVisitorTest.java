@@ -127,7 +127,7 @@ class SelectVisitorTest {
       Sets.union(baseChoiceConj, choiceA),
       Sets.union(baseChoiceConj, choiceB),
       Sets.union(baseChoiceConj, choiceAandB)),
-      getToplevel(conjunction).stream().map(x -> x.leastFixpoints()).collect(Collectors.toSet()));
+      getToplevel(conjunction).stream().map(Fixpoints::leastFixpoints).collect(Collectors.toSet()));
 
     assertEquals(getToplevel(disjunction), Collections3.transformSet(disjunction.children,
       formula -> Sets.union(Set.of(formula), formula.subformulas(FOperator.class))));
