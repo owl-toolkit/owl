@@ -133,7 +133,12 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(NegOperator negOperator) {
-    return negOperator.operand.accept(this).not();
+    // if operand is X, read it as weak next, so either operand is true or tail is not true.
+    // if operand is not X, we can propagate the negation before the translation.
+    if(negOperator.operand instanceof  XOperator) {
+      return XOperator.of(Disjunction.of(negOperator.operand.not().accept(this),tail.not()));
+    }
+    return negOperator.operand.not().accept(this);
   }
 
 }
