@@ -1,3 +1,10 @@
+# 2019.06.01
+
+Modules:
+
+* Fixed a small soundness bug in the ltl2n{a,ba,gba} modules. Thanks to Alexandre Duret-Lutz for
+  reporting this issue.
+
 # 2019.06
 
 Modules:
