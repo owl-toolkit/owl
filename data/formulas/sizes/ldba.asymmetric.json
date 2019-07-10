@@ -5621,6 +5621,17 @@
     }
   },
   {
+    "formula": "(FGa \u0026 (Ga | G(Xb | (a \u0026 Xa) | (!a \u0026 X!a))))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "((FGa | GFb) \u0026 (GFc | FG(d | Xe)))",
     "properties": {
       "size": 8,
@@ -5793,6 +5804,17 @@
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(GF!a | (F!a \u0026 F(Xb \u0026 (a | Xa) \u0026 (!a | X!a))))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
       "deterministic": false
     }
   },
