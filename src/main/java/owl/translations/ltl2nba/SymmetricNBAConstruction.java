@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomatonFactory;
@@ -265,8 +266,17 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
       if (state instanceof Conjunction) {
         for (Formula x : state.children()) {
-          if (SyntacticFragment.CO_SAFETY.contains(x)
-            && allModalOperators.stream().noneMatch(y -> !x.equals(y) && y.anyMatch(x::equals))) {
+          if (!(x instanceof Formula.ModalOperator)) {
+            continue;
+          }
+
+          if (!(SyntacticFragment.CO_SAFETY.contains(x))) {
+            continue;
+          }
+
+          if (allModalOperators.stream()
+            .filter(Predicate.not(SyntacticFragment.CO_SAFETY::contains))
+            .noneMatch(y -> y.subformulas(Formula.ModalOperator.class).contains(x))) {
             return Set.of();
           }
         }
