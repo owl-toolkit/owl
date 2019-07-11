@@ -20,9 +20,7 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 
-import com.google.common.base.Strings;
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
@@ -38,7 +36,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerStore;
@@ -48,7 +45,6 @@ import jhoafparser.storage.StoredAutomaton;
 import jhoafparser.storage.StoredEdgeImplicit;
 import jhoafparser.storage.StoredEdgeWithLabel;
 import jhoafparser.storage.StoredHeader;
-import jhoafparser.storage.StoredHeader.NameAndExtra;
 import jhoafparser.storage.StoredState;
 import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.acceptance.AllAcceptance;
@@ -202,8 +198,7 @@ public final class AutomatonReader {
         }
       }
 
-      OmegaAcceptance acceptance = getAcceptance();
-      automaton = new HashMapAutomaton<>(this.vsFactory, acceptance);
+      automaton = new HashMapAutomaton<>(this.vsFactory, acceptance(storedHeader));
       String name = storedAutomaton.getStoredHeader().getName();
       if (name != null) {
         automaton.name(name);
@@ -211,26 +206,10 @@ public final class AutomatonReader {
       states = new Int2ObjectLinkedOpenHashMap<>(storedAutomaton.getNumberOfStates());
     }
 
-    static void check(boolean condition) throws HOAConsumerException {
-      check(condition, "", (Object[]) null);
-    }
-
-    static void check(boolean condition, String message) throws HOAConsumerException {
-      check(condition, message, (Object[]) null);
-    }
-
-    static void check(boolean condition, String formatString, @Nullable Object... args)
+    private static void check(boolean condition, String formatString, Object... args)
       throws HOAConsumerException {
       if (!condition) {
-        String message;
-
-        if (Strings.isNullOrEmpty(formatString) || args == null || args.length == 0) {
-          message = "";
-        } else {
-          message = String.format(formatString, args);
-        }
-
-        throw new HOAConsumerException(message);
+        throw new HOAConsumerException(String.format(formatString, args));
       }
     }
 
@@ -240,21 +219,19 @@ public final class AutomatonReader {
       Edge<HoaState> edge = storedEdgeAcceptance == null
         ? Edge.of(successor)
         : Edge.of(successor, BitSets.of(storedEdgeAcceptance));
-      check(automaton.acceptance().isWellFormedEdge(edge));
+      check(automaton.acceptance().isWellFormedEdge(edge),
+        "%s is not well-formed for %s", edge, automaton.acceptance());
       automaton.addEdge(source, valuationSet, edge);
     }
 
-    private OmegaAcceptance getAcceptance() throws HOAConsumerException {
-      BooleanExpression<AtomAcceptance> acceptanceExpression =
-        storedHeader.getAcceptanceCondition();
-      int numberOfAcceptanceSets = storedHeader.getNumberOfAcceptanceSets();
+    private static OmegaAcceptance acceptance(StoredHeader header) throws HOAConsumerException {
+      var name = Iterables.getOnlyElement(header.getAcceptanceNames(), null);
+      var expression = header.getAcceptanceCondition();
+      int sets = header.getNumberOfAcceptanceSets();
 
-      List<NameAndExtra<List<Object>>> acceptanceNames = storedHeader.getAcceptanceNames();
-      checkState(acceptanceNames.size() == 1);
-      NameAndExtra<List<Object>> acceptanceDescription = acceptanceNames.get(0);
-      List<Object> acceptanceExtra = acceptanceDescription.extra;
-
-      switch (acceptanceDescription.name.toLowerCase(Locale.ENGLISH)) {
+      switch (name == null
+        ? "default"
+        : name.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
           return AllAcceptance.INSTANCE;
 
@@ -265,9 +242,9 @@ public final class AutomatonReader {
           return BuchiAcceptance.INSTANCE;
 
         case "parity":
-          check(acceptanceExtra.size() == 3);
+          check(name.extra.size() == 3, "Malformed parity condition.");
 
-          String stringPriority = acceptanceExtra.get(0).toString();
+          String stringPriority = name.extra.get(0).toString();
           boolean max;
 
           switch (stringPriority) {
@@ -281,7 +258,7 @@ public final class AutomatonReader {
               throw new HOAConsumerException("Unknown priority " + stringPriority);
           }
 
-          String stringParity = acceptanceExtra.get(1).toString();
+          String stringParity = name.extra.get(1).toString();
           boolean even;
           switch (stringParity) {
             case "even":
@@ -294,7 +271,7 @@ public final class AutomatonReader {
               throw new HOAConsumerException("Unknown parity " + stringParity);
           }
 
-          String stringColours = acceptanceExtra.get(2).toString();
+          String stringColours = name.extra.get(2).toString();
           int colours;
           try {
             colours = Integer.valueOf(stringColours);
@@ -303,10 +280,10 @@ public final class AutomatonReader {
               "Failed to parse colours " + stringColours).initCause(e);
           }
           check(colours >= 0, "Negative colours");
-          check(colours == numberOfAcceptanceSets, "Mismatch between colours (%d) and acceptance"
-            + " set count (%d)", colours, numberOfAcceptanceSets);
+          check(colours == sets, "Mismatch between colours (%d) and acceptance"
+            + " set count (%d)", colours, sets);
 
-          return new ParityAcceptance(numberOfAcceptanceSets, Parity.of(max, even));
+          return new ParityAcceptance(sets, Parity.of(max, even));
 
         case "co-buchi":
           // acc-name: co-Buchi
@@ -316,31 +293,30 @@ public final class AutomatonReader {
         case "generalized-buchi":
           // acc-name: generalized-Buchi 3
           // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
-          int sets = Integer.parseInt(acceptanceExtra.get(0).toString());
-          return GeneralizedBuchiAcceptance.of(sets);
+          return GeneralizedBuchiAcceptance.of(Integer.parseInt(name.extra.get(0).toString()));
 
         case "generalized-co-buchi":
           // acc-name: generalized-co-Buchi 3
           // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
-          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(sets, expression);
 
         case "streett":
           // acc-name: Streett 3
           // Acceptance: 6 (Fin(0)|Inf(1))&(Fin(2)|Inf(3))&(Fin(4)|Inf(5))
-          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(sets, expression);
 
         case "rabin":
           // acc-name: Rabin 3
           // Acceptance: 6 (Fin(0)&Inf(1))|(Fin(2)&Inf(3))|(Fin(4)&Inf(5))
-          return RabinAcceptance.of(acceptanceExpression);
+          return RabinAcceptance.of(expression);
 
         case "generalized-rabin":
           // acc-name: generalized-Rabin 2 3 2
           // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
-          return GeneralizedRabinAcceptance.of(acceptanceExpression);
+          return GeneralizedRabinAcceptance.of(expression);
 
         default:
-          return new EmersonLeiAcceptance(numberOfAcceptanceSets, acceptanceExpression);
+          return new EmersonLeiAcceptance(sets, expression);
       }
     }
 
@@ -375,8 +351,9 @@ public final class AutomatonReader {
           assert edgesImplicit != null;
 
           long counter = 0;
+          long numberExpectedEdges = 1L << storedHeader.getAPs().size();
           for (StoredEdgeImplicit implicitEdge : edgesImplicit) {
-            check(counter < (1L << storedHeader.getAPs().size()));
+            assert counter < numberExpectedEdges;
 
             HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
 
@@ -387,7 +364,7 @@ public final class AutomatonReader {
             counter += 1;
           }
 
-          check(counter == (1L << storedHeader.getAPs().size()));
+          assert counter == numberExpectedEdges;
         } else if (storedAutomaton.hasEdgesWithLabel(stateId)) {
           IntUnaryOperator apMapping = remapping == null ? null : i -> remapping[i];
 
