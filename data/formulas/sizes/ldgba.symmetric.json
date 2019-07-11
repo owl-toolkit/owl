@@ -2310,6 +2310,17 @@
     }
   },
   {
+    "formula": "(!a \u0026 ((b) M ((!a \u0026 ((b) M (a))))))",
+    "properties": {
+      "size": 0,
+      "initialStatesSize": 0,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Fa \u0026 (a | GFb))",
     "properties": {
       "size": 5,
@@ -2802,6 +2813,17 @@
       "acceptanceSets": 4,
       "complete": false,
       "deterministic": false
+    }
+  },
+  {
+    "formula": "(a | ((b) W ((a | ((b) W (!a))))))",
+    "properties": {
+      "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
     }
   },
   {
@@ -5599,6 +5621,17 @@
     }
   },
   {
+    "formula": "(Fa \u0026 ((b) M ((G!a \u0026 ((XXb) M (!a))))))",
+    "properties": {
+      "size": 0,
+      "initialStatesSize": 0,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Fa \u0026 ((b) R ((!a \u0026 (b | c | X((b) R (d)))))))",
     "properties": {
       "size": 4,
@@ -5618,6 +5651,17 @@
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
+    }
+  },
+  {
+    "formula": "(FGa \u0026 (Ga | G(Xb | (a \u0026 Xa) | (!a \u0026 X!a))))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
     }
   },
   {
@@ -5793,6 +5837,28 @@
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(G!a | ((b) W ((Fa | ((XXb) W (a))))))",
+    "properties": {
+      "size": 11,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(GF!a | (F!a \u0026 F(Xb \u0026 (a | Xa) \u0026 (!a | X!a))))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
       "deterministic": false
     }
   },

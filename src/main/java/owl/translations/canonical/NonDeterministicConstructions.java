@@ -246,8 +246,8 @@ public final class NonDeterministicConstructions {
       private static final IsLiteralOrXVisitor INSTANCE = new IsLiteralOrXVisitor();
 
       @Override
-      protected Boolean visit(Formula.TemporalOperator formula) {
-        return formula instanceof XOperator || formula instanceof Literal;
+      public Boolean visit(BooleanConstant booleanConstant) {
+        return true;
       }
 
       @Override
@@ -270,6 +270,11 @@ public final class NonDeterministicConstructions {
         }
 
         return true;
+      }
+
+      @Override
+      protected Boolean visit(Formula.TemporalOperator formula) {
+        return formula instanceof XOperator || formula instanceof Literal;
       }
     }
 
