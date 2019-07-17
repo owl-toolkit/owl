@@ -1,17 +1,24 @@
+# 2019.06.03 (unreleased)
+
+Bugfixes:
+
+* Fixed a compilation issues in the native components. Thanks to Philipp Meyer
+  for reporting and fixing this issue.
+
 # 2019.06.02
 
 Bugfixes:
 
-* Fixed a pattern matching exhaustiveness bug in the ltl2n{ba,gba} modules. Thanks to Alexandre
-  Duret-Lutz for reporting this issue.
+* Fixed a pattern matching exhaustiveness bug in the ltl2n{ba,gba} modules.
+  Thanks to Alexandre Duret-Lutz for reporting this issue.
 * Correctly parse HOA-files without a well-known acceptance type.
 
 # 2019.06.01
 
 Bugfixes:
 
-* Fixed a small soundness bug in the ltl2n{a,ba,gba} modules. Thanks to Alexandre Duret-Lutz for
-  reporting this issue.
+* Fixed a small soundness bug in the ltl2n{a,ba,gba} modules. Thanks to
+  Alexandre Duret-Lutz for reporting this issue.
 
 # 2019.06.00
 
