@@ -65,7 +65,7 @@ namespace owl {
         }
 
         vm_args.nOptions = static_cast<jint>(args.size());
-        vm_args.version = JNI_VERSION_11;
+        vm_args.version = JNI_VERSION_10;
         vm_args.options = options;
         vm_args.ignoreUnrecognized = JNI_FALSE;
 
