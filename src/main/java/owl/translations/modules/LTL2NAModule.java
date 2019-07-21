@@ -24,6 +24,7 @@ import static owl.translations.LTL2NAFunction.Constructions.CO_SAFETY;
 import static owl.translations.LTL2NAFunction.Constructions.GENERALIZED_BUCHI;
 import static owl.translations.LTL2NAFunction.Constructions.SAFETY;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import owl.ltl.LabelledFormula;
 import owl.run.modules.ImmutableTransformerParser;
@@ -48,12 +49,12 @@ public final class LTL2NAModule {
 
   private LTL2NAModule() {}
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2na")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(CLI)
-      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
       .writer(OutputWriters.HOA)
       .build());
   }

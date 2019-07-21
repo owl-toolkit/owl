@@ -41,7 +41,6 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrinter;
-import owl.run.PipelineExecutionContext;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser;
 import owl.run.modules.Transformers;
@@ -205,7 +204,7 @@ public final class AcceptanceOptimizations {
 
   public static class AcceptanceOptimizationTransformer extends Transformers.SimpleTransformer {
     @Override
-    public Object transform(Object object, PipelineExecutionContext context) {
+    public Object transform(Object object) {
       checkArgument(object instanceof Automaton, "Expected automaton, got %s", object.getClass());
       var mutableAutomaton = MutableAutomatonUtil.asMutable((Automaton<?, ?>) object);
 

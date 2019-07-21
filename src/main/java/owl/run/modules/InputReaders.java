@@ -19,10 +19,8 @@
 
 package owl.run.modules;
 
-import com.google.common.base.Throwables;
 import com.google.common.io.CharStreams;
 import com.google.common.io.LineProcessor;
-import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import jhoafparser.parser.generated.ParseException;
@@ -35,7 +33,7 @@ import owl.run.PipelineException;
 import owl.run.modules.OwlModuleParser.ReaderParser;
 
 public final class InputReaders {
-  static final Logger logger = Logger.getLogger(InputReaders.class.getName());
+  private static final Logger logger = Logger.getLogger(InputReaders.class.getName());
 
   public static final InputReader HOA = (reader, env, callback) -> {
     try {
@@ -45,6 +43,7 @@ public final class InputReaders {
       throw new PipelineException("Failed to parse input automaton", e);
     }
   };
+
   public static final ReaderParser HOA_CLI = ImmutableReaderParser.builder()
     .key("hoa")
     .description("Parses automata given in HOA format, converting them to transition based "
@@ -81,30 +80,11 @@ public final class InputReaders {
         return null;
       }
     });
+
   public static final ReaderParser LTL_CLI = ImmutableReaderParser.builder()
     .key("ltl")
     .description("Parses LTL formulas and converts them into NNF")
     .parser(settings -> LTL).build();
 
-
-  @SuppressWarnings({"ProhibitedExceptionThrown", "PMD.AvoidCatchingGenericException",
-                      "PMD.AvoidThrowingRawExceptionTypes"})
-  public static Consumer<Object> checkedCallback(CheckedCallback consumer) {
-    return input -> {
-      try {
-        consumer.accept(input);
-      } catch (Exception e) {
-        Throwables.throwIfUnchecked(e);
-        throw new RuntimeException(e);
-      }
-    };
-  }
-
   private InputReaders() {}
-
-  @SuppressWarnings({"ProhibitedExceptionDeclared", "PMD.SignatureDeclareThrowsException"})
-  @FunctionalInterface
-  public interface CheckedCallback {
-    void accept(Object input) throws Exception;
-  }
 }

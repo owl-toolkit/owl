@@ -24,6 +24,7 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -60,10 +61,10 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
     .description("Converts a non-deterministic generalized Büchi automaton into a "
       + "deterministic parity automaton.")
     .parser(settings -> environment
-    -> (input, context) -> new NBA2DPA().apply(AutomatonUtil.cast(input)))
+    -> (input) -> new NBA2DPA().apply(AutomatonUtil.cast(input)))
     .build();
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
       .reader(InputReaders.HOA)
       .addTransformer(CLI)

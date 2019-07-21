@@ -31,9 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import owl.automaton.Views;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.transformations.ParityUtil;
@@ -116,10 +113,7 @@ public class OwlModuleRegistry {
     if (registeredModules.contains(Type.TRANSFORMER, name)) {
       return (TransformerParser) getWithType(Type.TRANSFORMER, name);
     }
-    if (registeredModules.contains(Type.WRITER, name)) {
-      WriterParser parser = (WriterParser) getWithType(Type.WRITER, name);
-      return new AsTransformer(parser);
-    }
+
     throw new OwlModuleNotFoundException(Type.TRANSFORMER, name);
   }
 
@@ -191,34 +185,6 @@ public class OwlModuleRegistry {
     OwlModuleNotFoundException(OwlModuleRegistry.Type type, String name) {
       this.type = type;
       this.name = name;
-    }
-  }
-
-  private static class AsTransformer implements TransformerParser {
-    private final WriterParser parser;
-
-    AsTransformer(WriterParser parser) {
-      this.parser = parser;
-    }
-
-    @Override
-    public String getKey() {
-      return parser.getKey();
-    }
-
-    @Override
-    public String getDescription() {
-      return parser.getDescription();
-    }
-
-    @Override
-    public Options getOptions() {
-      return parser.getOptions();
-    }
-
-    @Override
-    public Transformer parse(CommandLine commandLine) throws ParseException {
-      return Transformers.fromWriter(parser.parse(commandLine));
     }
   }
 }

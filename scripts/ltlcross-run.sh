@@ -171,7 +171,6 @@ while [ ${#} -gt 0 ]; do
         fi
 
         FORMULA_INVOCATION="${TESTED_TOOL_INVOCATION/\%f/\"${FORMULA}\"}"
-        export OWL_ANNOTATIONS=1
         if ! ERR_OUTPUT=$(eval timeout -s KILL -k 1s "${TIMEOUT_SEC}s" \
           ${FORMULA_INVOCATION} 2>&1 >"$DESTINATION_FILE"); then
           rm ${DESTINATION_FILE}

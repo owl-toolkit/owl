@@ -19,6 +19,7 @@
 
 package owl.run.modules;
 
+import java.io.IOException;
 import java.io.Writer;
 import owl.run.Environment;
 
@@ -38,7 +39,6 @@ public interface OutputWriter extends OwlModule {
 
   @FunctionalInterface
   interface Binding {
-    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "ProhibitedExceptionDeclared"})
-    void write(Object object) throws Exception;
+    void write(Object object) throws IOException;
   }
 }

@@ -55,8 +55,7 @@ __Global options:__
   * `-i INPUT`: Pass `INPUT` as input to the tool
   * `-I FILE`: Pass the contents of `FILE` to the tool
   * `-O FILE`: Write the output to `FILE`
-  * `-w count`: Use `count` workers to process multiple inputs in parallel. Specify `-1` to use all available processors and `0` for blocking, direct execution.
-
+   
 See the [format descriptions](FORMATS.md) for a description of accepted inputs. Additionally, as soon as an unmatched argument is encountered, this and all following arguments will be interpreted as input. For example, `ltl2dpa "F G a"` is equivalent to `ltl2dpa -i "F G a"`.
 
 ## Extended command line syntax

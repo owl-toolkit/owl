@@ -19,55 +19,130 @@
 
 package owl.run;
 
-import static owl.run.RunUtil.checkDefaultAnnotationOption;
 import static owl.run.RunUtil.failWithMessage;
 import static owl.run.RunUtil.getDefaultAnnotationOption;
 
 import com.google.common.base.Strings;
-import java.util.concurrent.Callable;
-import org.apache.commons.cli.CommandLine;
+import com.google.common.base.Throwables;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.parser.OwlParser;
+import owl.util.DaemonThreadFactory;
 
 public final class ServerCli {
+  private static final Logger logger = Logger.getLogger(ServerCli.class.getName());
+
   private ServerCli() {}
 
-  public static Options getOptions() {
-    Option portOption = new Option(null, "port", true, "Port to listen on (default 5050)");
-
-    return new Options()
-      .addOption(portOption)
-      .addOption(getDefaultAnnotationOption());
-  }
-
-  public static Callable<Void> build(CommandLine settings, Pipeline pipeline) {
-    int port;
-
-    if (Strings.isNullOrEmpty(settings.getOptionValue("port"))) {
-      port = 5050;
-    } else {
-      try {
-        port = Integer.parseInt(settings.getOptionValue("port"));
-      } catch (NumberFormatException e) {
-        throw failWithMessage("Invalid value for port", e);
-      }
-    }
-
-    boolean annotations = checkDefaultAnnotationOption(settings);
-    return new ServerRunner(pipeline, () -> DefaultEnvironment.of(annotations), port);
-  }
-
   public static void main(String... args) {
-    OwlParser parseResult =
-      OwlParser.parse(args, new DefaultParser(), getOptions(), OwlModuleRegistry.DEFAULT_REGISTRY);
+    Options options = new Options()
+      .addOption(new Option(null, "port", true, "Port to listen on (default: 5050)"))
+      .addOption(getDefaultAnnotationOption());
+
+    OwlParser parseResult = OwlParser.parse(args, new DefaultParser(), options,
+      OwlModuleRegistry.DEFAULT_REGISTRY);
+
     if (parseResult == null) {
       System.exit(1);
       return;
     }
 
-    RunUtil.execute(build(parseResult.globalSettings, parseResult.pipeline));
+    var pipeline = parseResult.pipeline;
+    var annotations = parseResult.globalSettings.hasOption(getDefaultAnnotationOption().getOpt());
+    var address = InetAddress.getLoopbackAddress();
+    int port;
+
+    if (Strings.isNullOrEmpty(parseResult.globalSettings.getOptionValue("port"))) {
+      port = 5050;
+    } else {
+      try {
+        port = Integer.parseInt(parseResult.globalSettings.getOptionValue("port"));
+      } catch (NumberFormatException e) {
+        throw failWithMessage("Invalid value for port", e);
+      }
+    }
+
+    logger.log(Level.INFO, "Starting server on {0}:{1}", new Object[] {address, port});
+    ExecutorService connectionExecutor = Executors.newCachedThreadPool(
+      new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
+
+    try (var socket = ServerSocketChannel.open().bind(new InetSocketAddress(address, port))) {
+      Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+        logger.log(Level.INFO, "Received shutdown signal, closing socket {0}", socket);
+        try {
+          socket.close();
+        } catch (IOException e) {
+          logger.log(Level.WARNING, e, () -> "Error while closing server socket " + socket);
+        }
+      }));
+
+      while (socket.isOpen()) {
+        //noinspection NestedTryStatement
+        try {
+          //noinspection resource
+          SocketChannel connection = socket.accept();
+          logger.log(Level.FINE, "New connection from {0}", socket);
+          Environment environment = DefaultEnvironment.of(annotations);
+          connectionExecutor.submit(new ConnectionHandler(connection, environment, pipeline));
+        } catch (IOException e) {
+          if (socket.isOpen()) {
+            logger.log(Level.SEVERE, "Unexpected IO exception while waiting for connections", e);
+          } else {
+            logger.log(Level.FINE, "Server socket {0} closed, awaiting termination", socket);
+          }
+        }
+      }
+
+      logger.log(Level.FINER, "Waiting for remaining tasks to finish");
+      connectionExecutor.shutdown();
+      while (!connectionExecutor.isTerminated()) {
+        //noinspection NestedTryStatement
+        try {
+          connectionExecutor.awaitTermination(1, TimeUnit.SECONDS);
+        } catch (InterruptedException ignored) {
+          // Nop.
+        }
+      }
+
+      logger.log(Level.FINE, "Finished all remaining tasks");
+    } catch (IOException e) {
+      logger.log(Level.SEVERE, "Unexpected IO exception while waiting for connections", e);
+      connectionExecutor.shutdownNow();
+    }
+  }
+
+  private static final class ConnectionHandler implements Runnable {
+    private final Environment environment;
+    private final Pipeline pipeline;
+    private final SocketChannel socket;
+
+    ConnectionHandler(SocketChannel socket, Environment environment, Pipeline pipeline) {
+      this.environment = environment;
+      this.pipeline = pipeline;
+      this.socket = socket;
+    }
+
+    @Override
+    @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingThrowable"})
+    public void run() {
+      try (socket) {
+        pipeline.run(environment, socket, socket);
+      } catch (@SuppressWarnings("OverlyBroadCatchBlock") Throwable t) {
+        logger.log(Level.WARNING, "Error while handling connection", t);
+        Throwables.throwIfUnchecked(t);
+      }
+    }
   }
 }

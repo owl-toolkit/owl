@@ -20,17 +20,15 @@
 package owl.run.modules;
 
 import owl.run.Environment;
-import owl.run.PipelineExecutionContext;
 
 /**
  * Transformers are the central pieces of the pipeline concept. They should be used for any
  * non-trivial mutation of objects. Typical instantiations are, for example, LTL to Automaton
- * translators, optimization steps, etc. Aside from these tasks, pseudo-transformers can be used to
- * provide insight into the progress of the pipeline by appending meta information to the context.
+ * translators, optimization steps, etc.
  *
  * <p>Implementation notes: It is strongly encouraged to design transformers in a stateless
  * fashion, since it allows for easy parallelism. As parallel processing is a central design
- * concept, the {@link Transformer.Instance#transform(Object, PipelineExecutionContext) transform}
+ * concept, the {@link Transformer.Instance#transform(Object) transform}
  * method must support parallel calls, even if there is some state involved.</p>
  */
 @FunctionalInterface
@@ -42,7 +40,6 @@ public interface Transformer extends OwlModule {
     /**
      * Applies the transformation represented by this transformer to the given object.
      */
-    @SuppressWarnings({"PMD.SignatureDeclareThrowsException", "ProhibitedExceptionDeclared"})
-    Object transform(Object object, PipelineExecutionContext context) throws Exception;
+    Object transform(Object object);
   }
 }

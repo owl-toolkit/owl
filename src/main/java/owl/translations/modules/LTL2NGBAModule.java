@@ -19,6 +19,7 @@
 
 package owl.translations.modules;
 
+import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.ltl.LabelledFormula;
@@ -53,7 +54,7 @@ public final class LTL2NGBAModule implements OwlModuleParser.TransformerParser {
       + "The construction is based on the symmetric approach from [EKS: LICS'18].";
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)

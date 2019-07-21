@@ -118,7 +118,7 @@ public final class GameViews {
 
         boolean wrapComplete = settings.hasOption("complete");
 
-        return environment -> (input, context) -> {
+        return environment -> (input) -> {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
           List<String> environmentAp = automaton.factory().alphabet().stream()

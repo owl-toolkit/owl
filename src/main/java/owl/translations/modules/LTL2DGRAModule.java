@@ -19,6 +19,7 @@
 
 package owl.translations.modules;
 
+import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.ltl.LabelledFormula;
@@ -62,12 +63,12 @@ public final class LTL2DGRAModule extends AbstractLTL2DRAModule {
     }
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2dgra")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(INSTANCE)
-      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
       .writer(OutputWriters.HOA)
       .build());
   }
