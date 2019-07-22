@@ -1,4 +1,4 @@
-# 2019.06.03 (unreleased)
+# 2019.06.03
 
 Bugfixes:
 
