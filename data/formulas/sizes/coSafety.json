@@ -2270,6 +2270,9 @@
     "formula": "(Fa \u0026 (((!a \u0026 b \u0026 X((!a) U ((!a \u0026 c))))) R ((!a \u0026 d))))"
   },
   {
+    "formula": "(FGa \u0026 (Ga | G(Xb | (a \u0026 Xa) | (!a \u0026 X!a))))"
+  },
+  {
     "formula": "((FGa | GFb) \u0026 (GFc | FG(d | Xe)))"
   },
   {

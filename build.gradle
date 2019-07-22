@@ -159,7 +159,6 @@ def scripts = [
 
     // LTL -> DPA
     'ltl2dpa'   : 'owl.translations.modules.LTL2DPAModule',
-    'fgx2dpa'   : 'owl.translations.fgx2dpa.FGX2DPA',
 
     // LTL -> DELA
     'delag'     : 'owl.translations.delag.DelagBuilder',

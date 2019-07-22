@@ -1,3 +1,10 @@
+# 2019.XX (unreleased)
+
+Modules:
+
+* Removed unmaintained `fgx2dpa` translation. `ltl2dpa` produces almost always (on the test sets) 
+  smaller automata compared to `fgx2dpa`. 
+
 # 2019.06.02
 
 Bugfixes:
