@@ -251,6 +251,9 @@
     "formula": "(G(a | b) \u0026 GFb)"
   },
   {
+    "formula": "(G(a | b) \u0026 GFc)"
+  },
+  {
     "formula": "(GFa \u0026 GF!a)",
     "properties": {
       "size": 1,
@@ -298,6 +301,9 @@
   },
   {
     "formula": "(FGa \u0026 GFb \u0026 GFc)"
+  },
+  {
+    "formula": "(G(a | b) \u0026 GFb \u0026 GFc)"
   },
   {
     "formula": "(GFa \u0026 GFb \u0026 GFc)",
@@ -431,6 +437,9 @@
     "formula": "(F(a \u0026 b) | FGb)"
   },
   {
+    "formula": "(F(a \u0026 b) | FGc)"
+  },
+  {
     "formula": "(FGa | FG!a)"
   },
   {
@@ -459,6 +468,9 @@
   },
   {
     "formula": "((Fa \u0026 Gb) | (Fc \u0026 Ga) | (Fd \u0026 Gc))"
+  },
+  {
+    "formula": "(F(a \u0026 b) | FGb | FGc)"
   },
   {
     "formula": "(FGa | FGb | FGc)"
@@ -539,6 +551,18 @@
     "formula": "F(a \u0026 ((b) W (c)))"
   },
   {
+    "formula": "F(Ga \u0026 ((b) M (c)))"
+  },
+  {
+    "formula": "F(Ga \u0026 ((b) R (c)))"
+  },
+  {
+    "formula": "F(Ga \u0026 ((b) U (c)))"
+  },
+  {
+    "formula": "F(Ga \u0026 ((b) W (c)))"
+  },
+  {
     "formula": "F(a \u0026 b \u0026 (c | d | e))"
   },
   {
@@ -597,6 +621,18 @@
   },
   {
     "formula": "G(!a | ((a) U (b)))"
+  },
+  {
+    "formula": "G(Fa | ((b) M (c)))"
+  },
+  {
+    "formula": "G(Fa | ((b) R (c)))"
+  },
+  {
+    "formula": "G(Fa | ((b) U (c)))"
+  },
+  {
+    "formula": "G(Fa | ((b) W (c)))"
   },
   {
     "formula": "G(a | b | (c \u0026 d \u0026 e))"
