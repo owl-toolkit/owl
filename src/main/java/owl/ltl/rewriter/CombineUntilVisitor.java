@@ -54,7 +54,8 @@ public class CombineUntilVisitor implements Visitor<Formula> {
           combinable.add(u.left.accept(this));
         }
       }
-      newCon.add(UOperator.of(Conjunction.of(combinable),common));
+      newCon.add(UOperator.of(Conjunction.of(combinable),common.accept(this)));
+      combinable.clear();
     }
 
 
