@@ -18,8 +18,7 @@
             "literature-parametrised",
             "literature-pelanek-patterns",
             "literature-sickertejk-patterns",
-            "literature-somenzib-patterns",
-            "random"
+            "literature-somenzib-patterns"
         ],
         "L": [
             {
@@ -38,8 +37,7 @@
             "literature-parametrised",
             "literature-pelanek-patterns",
             "literature-sickertejk-patterns",
-            "literature-somenzib-patterns",
-            "random"
+            "literature-somenzib-patterns"
         ],
         "M": [
             {
@@ -51,8 +49,7 @@
                 "determinize": true
             },
             "size",
-            "fgx",
-            "random"
+            "fgx"
         ],
         "S": [
             {
@@ -62,7 +59,9 @@
             {
                 "name": "regressions",
                 "determinize": true
-            },
+            }
+        ],
+        "RANDOM": [
             "random"
         ]
     },
@@ -85,6 +84,13 @@
                 "ltl2ngba"
             ]
         },
+        "ltl2nba-random": {
+            "tools": [
+                "ltl2nba",
+                "ltl2ngba"
+            ],
+            "data": "RANDOM"
+        },
         "ltl2ldba": {
             "tools": [
                 "ltl2ldba#asymmetric",
@@ -93,12 +99,28 @@
                 "ltl2ldgba#symmetric"
             ]
         },
+        "ltl2ldba-random": {
+            "tools": [
+                "ltl2ldba#asymmetric",
+                "ltl2ldba#symmetric",
+                "ltl2ldgba#asymmetric",
+                "ltl2ldgba#symmetric"
+            ],
+            "data": "RANDOM"
+        },
         "ltl2dra": {
             "tools": [
                 "ltl2dra#symmetric",
                 "ltl2dgra#symmetric"
             ],
             "data": "L"
+        },
+        "ltl2dra-random": {
+            "tools": [
+                "ltl2dra#symmetric",
+                "ltl2dgra#symmetric"
+            ],
+            "data": "RANDOM"
         },
         "ltl2dpa": {
             "tools": [
@@ -108,6 +130,15 @@
                 "ltl2dpa#symmetric,complement"
             ],
             "data": "L"
+        },
+        "ltl2dpa-random": {
+            "tools": [
+                "ltl2dpa#asymmetric",
+                "ltl2dpa#asymmetric,complement",
+                "ltl2dpa#symmetric",
+                "ltl2dpa#symmetric,complement"
+            ],
+            "data": "RANDOM"
         },
         "ltl2da": "ltl2da",
         "ltl2na": "ltl2na",

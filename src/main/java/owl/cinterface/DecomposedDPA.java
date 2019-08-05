@@ -22,8 +22,6 @@ package owl.cinterface;
 import static owl.ltl.SyntacticFragment.CO_SAFETY;
 import static owl.ltl.SyntacticFragment.SAFETY;
 import static owl.ltl.SyntacticFragment.SINGLE_STEP;
-import static owl.ltl.SyntacticFragments.isDetBuchiRecognisable;
-import static owl.ltl.SyntacticFragments.isDetCoBuchiRecognisable;
 
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
@@ -44,6 +42,7 @@ import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.PropositionalFormula;
@@ -133,6 +132,24 @@ public final class DecomposedDPA {
     }
 
     return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand);
+  }
+
+  private static boolean isDetBuchiRecognisable(Formula formula) {
+    if (formula instanceof XOperator) {
+      return isDetBuchiRecognisable(((XOperator) formula).operand);
+    }
+
+    return formula instanceof GOperator && CO_SAFETY
+      .contains(((GOperator) formula).operand);
+  }
+
+  private static boolean isDetCoBuchiRecognisable(Formula formula) {
+    if (formula instanceof XOperator) {
+      return isDetCoBuchiRecognisable(((XOperator) formula).operand);
+    }
+
+    return formula instanceof FOperator && SAFETY
+      .contains(((FOperator) formula).operand);
   }
 
   enum Status {

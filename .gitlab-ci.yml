@@ -7,7 +7,6 @@ stages:
   - build
   - test
   - deploy
-  - bench
 
 variables:
   GRADLE: ./.gradle
@@ -203,24 +202,32 @@ DPA Conversion:
     TEST_NAME: "ltl2dpa-convert"
   <<: *ltlcross_template
 
-## Benchmarks
+## Testing with random formulas
 
-LTL2LDBA Benchmark:
+LTL2NBA Random:
+  stage: test
+  when: manual
   variables:
-    BENCH_NAME: "ltl2ldba"
-  <<: *benchmark_template
+    TEST_NAME: "ltl2nba-random"
+  <<: *ltlcross_template
 
-DELAG Benchmark:
+LTL2LDBA Random:
+  stage: test
+  when: manual
   variables:
-    BENCH_NAME: "delag"
-  <<: *benchmark_template
+    TEST_NAME: "ltl2ldba-random"
+  <<: *ltlcross_template
 
-LTL2DPA Benchmark:
+LTL2DRA Random:
+  stage: test
+  when: manual
   variables:
-    BENCH_NAME: "ltl2dpa"
-  <<: *benchmark_template
+    TEST_NAME: "ltl2dra-random"
+  <<: *ltlcross_template
 
-LTL2DA Benchmark:
+LTL2DPA Random:
+  stage: test
+  when: manual
   variables:
-    BENCH_NAME: "ltl2da"
-  <<: *benchmark_template
+    TEST_NAME: "ltl2dpa-random"
+  <<: *ltlcross_template

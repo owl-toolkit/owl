@@ -2269,6 +2269,17 @@
     "formula": "F(a \u0026 F(b \u0026 XFc \u0026 XG(!c | Gd)))"
   },
   {
+    "formula": "F(a \u0026 ((!a) R (((b) R ((!a | ((!a) R ((c | ((c) R (!a)))))))))))",
+    "properties": {
+      "size": 8,
+      "initialStatesSize": 1,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "F(a \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d | X((b) R (e))))))) R (!b)))"
   },
   {
@@ -2287,6 +2298,9 @@
   },
   {
     "formula": "G(a | G(b | XG!c | XF(c \u0026 Fd)))"
+  },
+  {
+    "formula": "G(!a | ((a) U (((b) U ((a \u0026 ((a) U ((c \u0026 ((c) U (a)))))))))))"
   },
   {
     "formula": "G(a | G!b | (((c | ((!b) U ((!b \u0026 d \u0026 X((!b) U (e))))))) U (b)))"
