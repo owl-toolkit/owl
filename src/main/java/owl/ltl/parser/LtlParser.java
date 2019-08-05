@@ -37,16 +37,16 @@ import owl.util.annotation.CEntryPoint;
 public final class LtlParser {
   private LtlParser() {}
 
-  public static LabelledFormula parse(String input) {
-    return parse(input, null);
-  }
-
   public static LabelledFormula parse(InputStream input) throws IOException {
     return parse(CharStreams.fromStream(input), null);
   }
 
-  public static LabelledFormula parse(String input, @Nullable List<String> literals) {
-    return parse(CharStreams.fromString(input), literals);
+  public static LabelledFormula parse(String input) {
+    return parse(CharStreams.fromString(input), null);
+  }
+
+  public static LabelledFormula parse(String input, List<String> literals) {
+    return parse(CharStreams.fromString(input), List.copyOf(literals));
   }
 
   public static Formula syntax(String input) {
@@ -54,7 +54,7 @@ public final class LtlParser {
   }
 
   @CEntryPoint
-  public static Formula syntax(String input, @Nullable List<String> literals) {
+  public static Formula syntax(String input, List<String> literals) {
     return parse(input, literals).formula();
   }
 
@@ -73,7 +73,7 @@ public final class LtlParser {
     parser.setErrorHandler(new BailErrorStrategy());
 
     // Convert the AST into a proper object
-    LtlParseTreeVisitor treeVisitor = literals == null || literals.isEmpty()
+    LtlParseTreeVisitor treeVisitor = literals == null
       ? new LtlParseTreeVisitor()
       : new LtlParseTreeVisitor(literals);
     Formula syntax = treeVisitor.visit(parser.formula());
