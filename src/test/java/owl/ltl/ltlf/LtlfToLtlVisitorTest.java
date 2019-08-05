@@ -109,5 +109,45 @@ public class LtlfToLtlVisitorTest {
 
   }
 
+  @Test
+  void carefulNegationPropagationTest() {
+    LtlfToLtlVisitor transformer = new LtlfToLtlVisitor();
+    List<Formula> formulas = new LinkedList<>();
+    List<Formula> translatedFormulas = new LinkedList<>();
+    formulas.add(LtlfParser.syntax("!(!(a))",Literals));
+    formulas.add(LtlfParser.syntax("!(G a)",Literals));
+    formulas.add(LtlfParser.syntax("!(F a)",Literals));
+    formulas.add(LtlfParser.syntax("!(a U b)",Literals));
+    formulas.add(LtlfParser.syntax("!(a R b)",Literals));
+    formulas.add(LtlfParser.syntax("!(a W b)",Literals));
+    formulas.add(LtlfParser.syntax("!(a M b)",Literals));
+    formulas.add(LtlfParser.syntax("!F(G(a))",Literals));
+    formulas.add(LtlfParser.syntax("!G(F(a))",Literals));
+    formulas.add(LtlfParser.syntax("G(!G(a))",Literals));
+    formulas.add(LtlfParser.syntax("F(!F(a))",Literals));
+    formulas.add(LtlfParser.syntax("!X(X(X(a)))",Literals));
+    formulas.add(LtlfParser.syntax("X(!X(X(a)))",Literals));
+    formulas.add(LtlfParser.syntax("X(X(!X(a)))",Literals));
+
+    translatedFormulas.add(LtlParser.syntax("a",Literals));
+    translatedFormulas.add(LtlParser.syntax("F(!a & t)",Literals));
+    translatedFormulas.add(LtlParser.syntax("!a U !t",Literals));
+    translatedFormulas.add(LtlParser.syntax("(!a|!t) M !b",Literals));
+    translatedFormulas.add(LtlParser.syntax("!a U (!b & t)",Literals));
+    translatedFormulas.add(LtlParser.syntax("(!a &t)M !b",Literals));
+    translatedFormulas.add(LtlParser.syntax("!a U (!b| !t)",Literals));
+    translatedFormulas.add(LtlParser.syntax("F(t & X(!t) & !a)",Literals));
+    translatedFormulas.add(LtlParser.syntax("F(t & X(!t) & !a)",Literals));
+    translatedFormulas.add(LtlParser.syntax("F(t & X(!t) & !a)",Literals));
+    translatedFormulas.add(LtlParser.syntax("F(t & X(!t) & !a)",Literals));
+    translatedFormulas.add(LtlParser.syntax("X(X(X(!t |  !a)))",Literals));
+    translatedFormulas.add(LtlParser.syntax("X(t & X(X(!t |!a)))",Literals));
+    translatedFormulas.add(LtlParser.syntax("X(X(t& X(!t | !a)))",Literals));
+    for (int i = 0; i < formulas.size(); i++) {
+      assertEquals(translatedFormulas.get(i),transformer.apply(formulas.get(i),Literal.of(4)));
+    }
+
+  }
+
 
 }

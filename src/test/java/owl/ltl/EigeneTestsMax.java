@@ -126,7 +126,7 @@ public class EigeneTestsMax {
     CombineUntilVisitor C = new CombineUntilVisitor();
     System.out.println(p.apply(f));
     System.out.println(p.apply(f1));
-    System.out.println(p.apply(C.apply(g)));
+
   }
 
   @Test
