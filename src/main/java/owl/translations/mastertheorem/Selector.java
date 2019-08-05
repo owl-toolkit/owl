@@ -25,14 +25,18 @@ import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import owl.collections.UpwardClosedSet;
 import owl.ltl.BinaryModalOperator;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
@@ -47,6 +51,7 @@ import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
+import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.Visitor;
 
 public final class Selector {
@@ -124,9 +129,39 @@ public final class Selector {
       UpwardClosedSet set = element.accept(visitor);
       List<Formula.ModalOperator> mapping = List.copyOf(literalMapping.keySet());
 
+      ScopeVisitor scopeVisitor = new ScopeVisitor();
+      element.accept(scopeVisitor, null);
+
+      outer:
       for (BitSet mask : BitSets.powerSet(literalMapping.size())) {
         if (set.contains(mask)) {
-          fixpoints.add(mask.stream().mapToObj(mapping::get).collect(toSet()));
+          var computedFixpoints = mask.stream().mapToObj(mapping::get).collect(toSet());
+
+          for (Formula.ModalOperator fixpoint : computedFixpoints) {
+            if (scopeVisitor.roots.contains(fixpoint)) {
+              continue;
+            }
+
+            if (Predicates.IS_LEAST_FIXPOINT.test(fixpoint)) {
+              var scopes = scopeVisitor.leastFixpointScopes.get(fixpoint);
+              assert scopes != null : "Element should be marked as root.";
+
+              if (Collections.disjoint(scopes, computedFixpoints)) {
+                continue outer;
+              }
+            }
+
+            if (Predicates.IS_GREATEST_FIXPOINT.test(fixpoint)) {
+              var scopes = scopeVisitor.greatestFixpointScopes.get(fixpoint);
+              assert scopes != null : "Element should be marked as root.";
+
+              if (computedFixpoints.containsAll(scopes)) {
+                continue outer;
+              }
+            }
+          }
+
+          fixpoints.add(computedFixpoints);
         }
       }
 
@@ -251,7 +286,7 @@ public final class Selector {
   }
 
   private static class GScopedVisitor extends AbstractSymmetricVisitor {
-    ScopedVisitor scopedVisitor;
+    private final ScopedVisitor scopedVisitor;
 
     private GScopedVisitor(Map<Formula.ModalOperator, Integer> literals) {
       this.scopedVisitor = new ScopedVisitor(literals);
@@ -297,20 +332,22 @@ public final class Selector {
 
     @Override
     public UpwardClosedSet visit(FOperator fOperator) {
+      // Register and terminate recursion.
       if (SyntacticFragment.CO_SAFETY.contains(fOperator)) {
         return singleton(fOperator);
       }
 
-      return fOperator.operand.accept(this).intersection(singleton(fOperator));
+      return visit((UnaryModalOperator) fOperator);
     }
 
     @Override
     public UpwardClosedSet visit(GOperator gOperator) {
+      // Register and terminate recursion.
       if (SyntacticFragment.SAFETY.contains(gOperator)) {
         return singleton(gOperator);
       }
 
-      return gOperator.operand.accept(this).intersection(singleton(gOperator));
+      return visit((UnaryModalOperator) gOperator);
     }
 
     // Binary Modal Operators
@@ -335,6 +372,13 @@ public final class Selector {
       return visit((BinaryModalOperator) wOperator);
     }
 
+    private UpwardClosedSet visit(UnaryModalOperator unaryModalOperator) {
+      // We just explore for more literals, but actually we can't reason anymore...
+      singleton(unaryModalOperator);
+      unaryModalOperator.operand.accept(this);
+      return UpwardClosedSet.of(new BitSet());
+    }
+
     private UpwardClosedSet visit(BinaryModalOperator binaryModalOperator) {
       // We just explore for more literals, but actually we can't reason anymore...
       singleton(binaryModalOperator);
@@ -347,6 +391,112 @@ public final class Selector {
       BitSet bitSet = new BitSet();
       bitSet.set(literals.computeIfAbsent(modalOperator, x -> literals.size()));
       return UpwardClosedSet.of(bitSet);
+    }
+  }
+
+  private static class ScopeVisitor implements BinaryVisitor<Formula.ModalOperator, Void> {
+    private final Map<Formula.ModalOperator, Set<Formula.ModalOperator>> leastFixpointScopes
+      = new HashMap<>();
+    private final Map<Formula.ModalOperator, Set<Formula.ModalOperator>> greatestFixpointScopes
+      = new HashMap<>();
+    private final Set<Formula.ModalOperator> roots = new HashSet<>();
+
+    @Override
+    public Void visit(BooleanConstant booleanConstant, Formula.ModalOperator parameter) {
+      return null;
+    }
+
+    @Override
+    public Void visit(Conjunction conjunction, Formula.ModalOperator scope) {
+      conjunction.children.forEach(x -> x.accept(this, scope));
+      return null;
+    }
+
+    @Override
+    public Void visit(Disjunction disjunction, Formula.ModalOperator scope) {
+      disjunction.children.forEach(x -> x.accept(this, scope));
+      return null;
+    }
+
+    @Override
+    public Void visit(FOperator fOperator, Formula.ModalOperator scope) {
+      visitLeastFixpoint(fOperator, scope);
+      return null;
+    }
+
+    @Override
+    public Void visit(GOperator gOperator, Formula.ModalOperator scope) {
+      visitGreatestFixpoint(gOperator, scope);
+      return null;
+    }
+
+    @Override
+    public Void visit(Literal literal, Formula.ModalOperator scope) {
+      return null;
+    }
+
+    @Override
+    public Void visit(MOperator mOperator, Formula.ModalOperator scope) {
+      visitLeastFixpoint(mOperator, scope);
+      return null;
+    }
+
+    @Override
+    public Void visit(UOperator uOperator, Formula.ModalOperator scope) {
+      visitLeastFixpoint(uOperator, scope);
+      return null;
+    }
+
+    @Override
+    public Void visit(ROperator rOperator, Formula.ModalOperator scope) {
+      visitGreatestFixpoint(rOperator, scope);
+      return null;
+    }
+
+    @Override
+    public Void visit(WOperator wOperator, Formula.ModalOperator scope) {
+      visitGreatestFixpoint(wOperator, scope);
+      return null;
+    }
+
+    @Override
+    public Void visit(XOperator xOperator, Formula.ModalOperator scope) {
+      xOperator.operand.accept(this, scope);
+      return null;
+    }
+
+    private void visitLeastFixpoint(Formula.ModalOperator lfp,
+      @Nullable Formula.ModalOperator scope) {
+      assert Predicates.IS_LEAST_FIXPOINT.test(lfp);
+
+      // F is replaced by either tt or ff. Thus we do not need to track anything.
+      var nextScope = scope instanceof FOperator ? scope : lfp;
+      lfp.children().forEach(x -> x.accept(this, nextScope));
+
+      if (scope == null || Predicates.IS_GREATEST_FIXPOINT.test(scope)) {
+        roots.add(lfp);
+      } else if (Predicates.IS_LEAST_FIXPOINT.test(scope)) {
+        leastFixpointScopes.merge(lfp,
+          scope instanceof FOperator ? Set.of() : Set.of(scope),
+          Sets::union);
+      }
+    }
+
+    private void visitGreatestFixpoint(Formula.ModalOperator gfp,
+      @Nullable Formula.ModalOperator scope) {
+      assert Predicates.IS_GREATEST_FIXPOINT.test(gfp);
+
+      // G is replaced by either tt or ff. Thus we do not need to track anything.
+      var nextScope = scope instanceof GOperator ? scope : gfp;
+      gfp.children().forEach(x -> x.accept(this, nextScope));
+
+      if (scope == null || Predicates.IS_LEAST_FIXPOINT.test(scope)) {
+        roots.add(gfp);
+      } else if (Predicates.IS_GREATEST_FIXPOINT.test(scope)) {
+        greatestFixpointScopes.merge(gfp,
+          scope instanceof GOperator ? Set.of() : Set.of(scope),
+          Sets::union);
+      }
     }
   }
 }

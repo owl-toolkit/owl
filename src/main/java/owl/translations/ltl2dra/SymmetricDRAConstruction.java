@@ -31,6 +31,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
@@ -116,10 +117,10 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
         ? Map.<Integer, EquivalenceClass>of()
         : ldba.initialComponent().onlyInitialState();
 
-      List<SymmetricEvaluatedFixpoints> fixpoints = ldba.annotation().stream()
+      SortedSet<SymmetricEvaluatedFixpoints> fixpoints = ldba.annotation()
+        .stream()
         .filter(Predicate.not(SymmetricEvaluatedFixpoints::isEmpty))
-        .sorted(SymmetricEvaluatedFixpoints::compareTo)
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(TreeSet::new));
 
       if (acceptanceClass.equals(RabinAcceptance.class)) {
         RabinAcceptance.Builder builder = new RabinAcceptance.Builder();

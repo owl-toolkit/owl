@@ -2,6 +2,12 @@
 
 Modules:
 
+* De-duplicate fixed-point guesses in the "symmetric" constructions.
+  
+  Fixed-point guesses are removed from the candidate list when they contain two
+  fixed points where one "shadows" the other, i.e. replacing one by (tt) or 
+  (ff) makes the other one unreachable in the syntax tree.
+  
 * Removed unmaintained `fgx2dpa` translation. `ltl2dpa` produces almost always
   (on the test sets) smaller automata compared to `fgx2dpa`. 
 

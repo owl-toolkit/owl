@@ -30,7 +30,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.parser.LtlParser;
 
-public class RewriterTest {
+class RewriterTest {
   private static final List<String> ALPHABET = List.of("a", "b");
 
   @Disabled
@@ -56,18 +56,6 @@ public class RewriterTest {
   @Disabled
   @Test
   void testToSafety() {
-    assertEquals(BooleanConstant.FALSE, BooleanConstant.FALSE);
-  }
-
-  @Disabled
-  @Test
-  void testToCoSafetyCompatibility() {
-    assertEquals(BooleanConstant.FALSE, BooleanConstant.FALSE);
-  }
-
-  @Disabled
-  @Test
-  void testToSafetyCompatibility() {
     assertEquals(BooleanConstant.FALSE, BooleanConstant.FALSE);
   }
 }

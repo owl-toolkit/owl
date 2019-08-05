@@ -53,7 +53,10 @@
                 "asymmetric": "--asymmetric",
                 "complement": "--complement",
                 "symmetric": "--symmetric"
-            }
+            },
+            "pre": [
+                "simplify-ltl"
+            ]
         },
         "ltl2dra": {
             "type": "owl",
@@ -66,6 +69,9 @@
             },
             "pre": [
                 "simplify-ltl"
+            ],
+            "post": [
+                "optimize-aut"
             ]
         },
         "ltl2dgra": {
