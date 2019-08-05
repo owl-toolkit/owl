@@ -72,6 +72,12 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
     } else if (fOperator.operand instanceof FOperator) { // filter out cases of FF a
       return fOperator.operand.accept(this);
+      //  detect "hidden" last-optimizations e.g. F!F a  == FG !a
+    } else if (fOperator.operand instanceof NegOperator
+      && ((NegOperator) fOperator.operand).operand instanceof FOperator) {
+      return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
+        new NegOperator(((FOperator) ((NegOperator)
+          fOperator.operand).operand).operand).accept(this)));
     }
     return FOperator.of(Conjunction.of(fOperator.operand.accept(this),tail));
   }
@@ -87,6 +93,12 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
     } else if (gOperator.operand instanceof GOperator) { // filter out cases of GG a
       return (gOperator.operand).accept(this);
+      //  detect "hidden" last-optimizations e.g. G!G a  == GF !a
+    } else if (gOperator.operand instanceof NegOperator
+      && ((NegOperator) gOperator.operand).operand instanceof GOperator) {
+      return FOperator.of(Conjunction.of(tail, XOperator.of(tail.not()),
+        new NegOperator(((GOperator) ((NegOperator)
+          gOperator.operand).operand).operand).accept(this)));
     }
     // G a --> a U !tail transformation to co-Safety
     return UOperator.of((gOperator.operand).accept(this),tail.not());
@@ -133,10 +145,22 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(NegOperator negOperator) {
-    // if operand is X, read it as weak next, so either operand is true or tail is not true.
+    // if operand is X, read it as weak next, so either operand is false or tail is not true.
     // if operand is not X, we can propagate the negation before the translation.
     if (negOperator.operand instanceof  XOperator) {
       Formula operatorOfX = new NegOperator(((XOperator) negOperator.operand).operand);
+      /*
+      since the "carefull-negation propagation" misses X-tower optimizations,
+       they have to be added here
+       !X(X(X(a))) -> X(X(X(!tail | a)))
+       this works since !tail -> X(!tail)
+       if we encounter a case of !X(X(phi)) we just skip the addition of !tail
+       and wait for the latter X-Operand to add it
+      */
+      if (((XOperator) negOperator.operand).operand instanceof XOperator) {
+        return XOperator.of(operatorOfX.accept(this));
+      }
+
       return XOperator.of(Disjunction.of(operatorOfX.accept(this),tail.not()));
     }
     if (negOperator.operand instanceof BinaryModalOperator) {
