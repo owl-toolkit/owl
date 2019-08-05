@@ -49,7 +49,7 @@ public class ReplaceBiCondVisitor implements Visitor<Formula> {
   public Formula visit(Conjunction conjunction) {
     Set<Formula> A = new HashSet<>();
     conjunction.children.forEach(c -> A.add(c.accept(this)));
-    return Conjunction.syntaxConjunction(A.stream());
+    return syntaxConjunction(A.stream());
   }
 
   @Override
@@ -57,7 +57,7 @@ public class ReplaceBiCondVisitor implements Visitor<Formula> {
 
     Set<Formula> A = new HashSet<>();
     disjunction.children.forEach(c -> A.add(c.accept(this)));
-    return Disjunction.syntaxDisjunction(A.stream());
+    return syntaxDisjunction(A.stream());
   }
 
   @Override
