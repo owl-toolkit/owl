@@ -5,6 +5,7 @@ import owl.ltl.ltlf.LtlfParser;
 import owl.ltl.ltlf.LtlfToLtlVisitor;
 import owl.ltl.ltlf.Translator;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.rewriter.CombineUntilVisitor;
 import owl.ltl.visitors.PrintVisitor;
 
 import java.io.*;
@@ -118,6 +119,17 @@ public class EigeneTestsMax {
   }
 
   @Test
+  void Radler(){
+    Formula f =LtlfParser.syntax("!X(X(a)) & (!Xa)U(b)");
+    Formula f1 = Translator.translate(f);
+    PrintVisitor p = new PrintVisitor(false, null);
+    CombineUntilVisitor C = new CombineUntilVisitor();
+    System.out.println(p.apply(f));
+    System.out.println(p.apply(f1));
+    System.out.println(p.apply(C.apply(g)));
+  }
+
+  @Test
   void translateSyftBenchmarkstoStrixInputs() throws IOException {
     for (int i = 1; i < 102; i++) {
       File ltlffile = new File("/home/max/Dokumente/Bachelorarbeit/Syft_Benchmarks/"
@@ -139,7 +151,10 @@ public class EigeneTestsMax {
 
       Literal tail = Literal.of(f.atomicPropositions(true).length());
       Formula f1 = Translator.translate(f, tail);
-
+      if(i == 43) {
+        CombineUntilVisitor C = new CombineUntilVisitor();
+        f1 = C.apply(f1);
+      }
       literals.add("tail");
       PrintVisitor p = new PrintVisitor(false, literals);
       StringBuilder output = new StringBuilder("-r -f '");

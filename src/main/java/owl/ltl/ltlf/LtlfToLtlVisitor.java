@@ -1,10 +1,22 @@
 package owl.ltl.ltlf;
 
 import java.util.HashSet;
-
 import java.util.Set;
 
-import owl.ltl.*;
+import owl.ltl.Biconditional;
+import owl.ltl.BinaryModalOperator;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
+import owl.ltl.FOperator;
+import owl.ltl.Formula;
+import owl.ltl.GOperator;
+import owl.ltl.Literal;
+import owl.ltl.MOperator;
+import owl.ltl.ROperator;
+import owl.ltl.UOperator;
+import owl.ltl.WOperator;
+import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
 public class LtlfToLtlVisitor implements Visitor<Formula> {
@@ -123,43 +135,62 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
   public Formula visit(NegOperator negOperator) {
     // if operand is X, read it as weak next, so either operand is true or tail is not true.
     // if operand is not X, we can propagate the negation before the translation.
-    if(negOperator.operand instanceof  XOperator) {
+    if (negOperator.operand instanceof  XOperator) {
       Formula operatorOfX = new NegOperator(((XOperator) negOperator.operand).operand);
       return XOperator.of(Disjunction.of(operatorOfX.accept(this),tail.not()));
     }
-    if(negOperator.operand instanceof BinaryModalOperator) {
+    if (negOperator.operand instanceof BinaryModalOperator) {
       Formula negLeft = new NegOperator(((BinaryModalOperator) negOperator.operand).left);
       Formula negRight = new NegOperator(((BinaryModalOperator) negOperator.operand).right);
-      if(negOperator.operand instanceof UOperator) return new ROperator(negLeft,negRight).accept(this);
-      if(negOperator.operand instanceof ROperator) return new UOperator(negLeft,negRight).accept(this);
-      if(negOperator.operand instanceof WOperator) return new MOperator(negLeft,negRight).accept(this);
-      if(negOperator.operand instanceof MOperator) return new WOperator(negLeft,negRight).accept(this);
+      if (negOperator.operand instanceof UOperator) {
+        return new ROperator(negLeft,negRight).accept(this);
+      }
+      if (negOperator.operand instanceof ROperator) {
+        return new UOperator(negLeft,negRight).accept(this);
+      }
+      if (negOperator.operand instanceof WOperator) {
+        return new MOperator(negLeft,negRight).accept(this);
+      }
+      if (negOperator.operand instanceof MOperator) {
+        return new WOperator(negLeft,negRight).accept(this);
+      }
     }
-    if(negOperator.operand instanceof Literal | negOperator.operand instanceof BooleanConstant)
+    if (negOperator.operand instanceof Literal | negOperator.operand instanceof BooleanConstant) {
       return negOperator.operand.not();
-    if(negOperator.operand instanceof NegOperator) return ((NegOperator) negOperator.operand).operand.accept(this);
-    if(negOperator.operand instanceof FOperator) return new GOperator(
-      new NegOperator(((FOperator) negOperator.operand).operand)).accept(this);
-    if(negOperator.operand instanceof GOperator) return new FOperator(
-      new NegOperator(((GOperator) negOperator.operand).operand)).accept(this);
-    if(negOperator.operand instanceof Disjunction) {
+    }
+
+    if (negOperator.operand instanceof NegOperator) {
+      return ((NegOperator) negOperator.operand).operand.accept(this);
+    }
+    if (negOperator.operand instanceof FOperator) {
+      return new GOperator(
+        new NegOperator(((FOperator) negOperator.operand).operand)).accept(this);
+    }
+    if (negOperator.operand instanceof GOperator) {
+      return new FOperator(
+        new NegOperator(((GOperator) negOperator.operand).operand)).accept(this);
+    }
+    if (negOperator.operand instanceof Disjunction) {
       Set<Formula> A = new HashSet<>();
-      ((Disjunction)negOperator.operand).children.forEach(c -> A.add(new NegOperator(c).accept(this)));
+      ((Disjunction)negOperator.operand).children.forEach(
+        c -> A.add(new NegOperator(c).accept(this)));
       return Conjunction.syntaxConjunction(A.stream());
     }
-    if(negOperator.operand instanceof Conjunction) {
+    if (negOperator.operand instanceof Conjunction) {
       Set<Formula> A = new HashSet<>();
-      ((Conjunction)negOperator.operand).children.forEach(c -> A.add(new NegOperator(c).accept(this)));
+      ((Conjunction)negOperator.operand).children.forEach(
+        c -> A.add(new NegOperator(c).accept(this)));
       return Disjunction.syntaxDisjunction(A.stream());
     }
-    if(negOperator.operand instanceof Biconditional) {
-      //should never happen in my Translater but just in case you didn't remove your biconditionals beforehand
+    if (negOperator.operand instanceof Biconditional) {
+      //should never happen in the Translation but just in
+      // case you didn't remove your biconditionals beforehand
       Formula negLeft = new NegOperator(((Biconditional) negOperator.operand).left);
       Formula negRight = new NegOperator(((Biconditional) negOperator.operand).right);
       return new Biconditional(negLeft,negRight);
     }
     //all cases should be handled
-    assert(false);
+    assert false;
     return null;
   }
 

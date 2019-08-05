@@ -1,11 +1,7 @@
 package owl.ltl.rewriter;
 
-import static owl.ltl.Conjunction.syntaxConjunction;
-import static owl.ltl.Disjunction.syntaxDisjunction;
-
 import java.util.HashSet;
 import java.util.Set;
-
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -22,22 +18,15 @@ import owl.ltl.XOperator;
 import owl.ltl.ltlf.NegOperator;
 import owl.ltl.visitors.Visitor;
 
-public class ReplaceBiCondVisitor implements Visitor<Formula> {
-
+public class CombineUntilVisitor implements Visitor<Formula> {
   @Override
   public Formula apply(Formula formula) {
-    return formula.accept(this);
+    return  formula.accept(this);
   }
 
   @Override
   public Formula visit(Biconditional biconditional) {
-
-    return syntaxConjunction(
-      syntaxDisjunction(biconditional.left.not().accept(this),
-        biconditional.right.accept(this)),
-      syntaxDisjunction(biconditional.left.accept(this),
-        biconditional.right.not().accept(this)));
-
+    return Biconditional.of(biconditional.left.accept(this),biconditional.right.accept(this));
   }
 
   @Override
@@ -47,17 +36,37 @@ public class ReplaceBiCondVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    Set<Formula> A = new HashSet<>();
-    conjunction.children.forEach(c -> A.add(c.accept(this)));
-    return syntaxConjunction(A.stream());
+    Set<UOperator> candidates = new HashSet<>();
+    Set<Formula> combinable = new HashSet<>();
+    Set<Formula> newCon = new HashSet<>();
+    for (Formula f : conjunction.children) {
+      if (f instanceof UOperator) {
+        candidates.add((UOperator) f);
+      } else {
+        newCon.add(f.accept(this));
+      }
+
+    }
+    for (UOperator f : candidates) {
+      Formula common = f.right;
+      for (UOperator u : candidates) {
+        if (u.right.equals(common)) {
+          combinable.add(u.left.accept(this));
+        }
+      }
+      newCon.add(UOperator.of(Conjunction.of(combinable),common));
+    }
+
+
+
+    return Conjunction.of(newCon);
   }
 
   @Override
   public Formula visit(Disjunction disjunction) {
-
     Set<Formula> A = new HashSet<>();
     disjunction.children.forEach(c -> A.add(c.accept(this)));
-    return syntaxDisjunction(A.stream());
+    return Disjunction.of(A);
   }
 
   @Override
@@ -105,3 +114,4 @@ public class ReplaceBiCondVisitor implements Visitor<Formula> {
     return new NegOperator(negOperator.operand.accept(this));
   }
 }
+

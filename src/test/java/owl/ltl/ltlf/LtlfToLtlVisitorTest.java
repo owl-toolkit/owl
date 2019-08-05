@@ -5,8 +5,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
+import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.ReplaceBiCondVisitor;
+import owl.ltl.visitors.PrintVisitor;
 
 public class LtlfToLtlVisitorTest {
   private static final List<String> Literals = List.of("a", "b", "c", "d", "t");
@@ -38,7 +40,8 @@ public class LtlfToLtlVisitorTest {
     LtlfParser.syntax("G ((a M b) | c)", Literals),
     LtlfParser.syntax("G ((a U b) | c)", Literals),
     LtlfParser.syntax("G (X (a <-> b))", Literals),
-    LtlfParser.syntax("G (X (a xor b))", Literals));
+    LtlfParser.syntax("G (X (a xor b))", Literals),
+    LtlfParser.syntax("!(X(!(a U b) & ! G(a R c))| !(!(a M b)))", Literals));
 
   @Test
   void coSafetyTest() {
@@ -46,6 +49,15 @@ public class LtlfToLtlVisitorTest {
     ReplaceBiCondVisitor b = new ReplaceBiCondVisitor();
     LtlfFORMULAS.forEach(x -> assertTrue(SyntacticFragments
       .isCoSafety(List.of(transformer.apply(b.apply(x))))));
+  }
+
+  @Test
+  void manualFormulaTest() {
+    Formula f = LtlfParser.syntax("X(!X(!X(a))) ",Literals);
+    LtlfToLtlVisitor transformer = new LtlfToLtlVisitor();
+    ReplaceBiCondVisitor b = new ReplaceBiCondVisitor();
+    PrintVisitor p = new PrintVisitor(false,Literals);
+    p.apply(transformer.apply(b.apply(f), Literal.of(4)));
   }
 
 
