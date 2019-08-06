@@ -5,6 +5,15 @@ Modules:
 * Removed unmaintained `fgx2dpa` translation. `ltl2dpa` produces almost always
   (on the test sets) smaller automata compared to `fgx2dpa`. 
 
+Bugfixes:
+
+* Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions. 
+  The translations based on the LICS'18 Master theorem and its predecessors 
+  have been affected.
+
+* Fixed a bug in the `UpwardClosedSet` class: sets that were subsumed by other
+  sets have not been removed in all circumstances.
+  
 # 2019.06.03
 
 Bugfixes:

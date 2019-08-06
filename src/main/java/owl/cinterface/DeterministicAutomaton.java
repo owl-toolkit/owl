@@ -91,6 +91,7 @@ public final class DeterministicAutomaton<S, T> {
     Function<S, T> canonicalizer,
     ToDoubleFunction<Edge<S>> qualityScore) {
     checkArgument(automaton.initialStates().size() == 1);
+    checkArgument(acceptanceClassBound.isInstance(automaton.acceptance()));
 
     this.automaton = automaton;
     this.acceptance = acceptance;

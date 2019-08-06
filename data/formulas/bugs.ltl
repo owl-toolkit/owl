@@ -1,9 +1,14 @@
-// Spot timeout - Rabinizer solves it with a single state ...
-G (F (a & X F (b & X F c))) & G (F (a2 & X F (b2 & X F c2))) & G (F (a3 & X F (b3 & X F c3)))
+// ltl2ldba (asymmetric) - BDD assertion error
+
+((X(f)) U ((a) W (c))) R ((e) xor ((F((X(e)) R ((a) <-> (F(d))))) W ((a) & (c))))
+
+// ltl2dra (symmetric) - too large to debug
+
+F((G((X(e)) W (b))) | (!(X((!(c)) xor ((X((d) xor (e))) <-> (G((d) -> (((e) <-> ((a) W (c))) <-> (G((e) R (F(b))))))))))))
 
 // ltl2dpa (asymmetric)
 G((!(a)) | ((a) U ((b) & ((b) U ((c) & ((c) U ((d) & ((d) U (e)))))))))
 F(Ga | (b & X(!b | (b & c))) | (!b & X(b & (!b | !c))) | (!a U ((!a & !d & X(!d U (!c | G!d))) | G!a)))
 
 // general failure
-a & X(b | c | d) & G(!a | !d) & (!d U (d & X((b | c) & XXGa))) & F(a & X(!a & (((b & F(d & Fb)) | (c & F(d & Fc)) | (e & F(d & Fe)) | (f & F(d & Ff))) U a))) & G((!b & !c) | X(e | f)) & G((!b | !c) & (!e | !f)) 
+a & X(b | c | d) & G(!a | !d) & (!d U (d & X((b | c) & XXGa))) & F(a & X(!a & (((b & F(d & Fb)) | (c & F(d & Fc)) | (e & F(d & Fe)) | (f & F(d & Ff))) U a))) & G((!b & !c) | X(e | f)) & G((!b | !c) & (!e | !f))

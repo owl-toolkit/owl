@@ -46,11 +46,15 @@ import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
 import owl.factories.Factories;
+import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.visitors.PropositionalVisitor;
 import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.LegacyFactory;
@@ -440,5 +444,64 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
   private static boolean isProperSubformula(Formula formula, Collection<? extends Formula> set) {
     return set.stream().anyMatch(x -> !x.equals(formula) && x.anyMatch(formula::equals));
+  }
+
+  private static final class BlockingModalOperatorsVisitor
+    extends PropositionalVisitor<Set<Formula.ModalOperator>> {
+
+    private static final BlockingModalOperatorsVisitor INSTANCE
+      = new BlockingModalOperatorsVisitor();
+
+    private BlockingModalOperatorsVisitor() {}
+
+    @Override
+    protected Set<Formula.ModalOperator> visit(Formula.TemporalOperator formula) {
+      if (SyntacticFragment.FINITE.contains(formula)) {
+        return Set.of();
+      }
+
+      if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+        return Set.of((Formula.ModalOperator) formula);
+      }
+
+      return Set.of();
+    }
+
+    @Override
+    public Set<Formula.ModalOperator> visit(BooleanConstant booleanConstant) {
+      return Set.of();
+    }
+
+    @Override
+    public Set<Formula.ModalOperator> visit(Conjunction conjunction) {
+      Set<Formula.ModalOperator> blockingOperators = new HashSet<>();
+
+      for (Formula child : conjunction.children) {
+        // Only consider non-finite LTL formulas.
+        if (!SyntacticFragment.FINITE.contains(child)) {
+          blockingOperators.addAll(child.accept(this));
+        }
+      }
+
+      return blockingOperators;
+    }
+
+    @Override
+    public Set<Formula.ModalOperator> visit(Disjunction disjunction) {
+      Set<Formula.ModalOperator> blockingOperators = null;
+
+      for (Formula child : disjunction.children) {
+        // Only consider non-finite LTL formulas.
+        if (!SyntacticFragment.FINITE.contains(child)) {
+          if (blockingOperators == null) {
+            blockingOperators = new HashSet<>(child.accept(this));
+          } else {
+            blockingOperators.retainAll(child.accept(this));
+          }
+        }
+      }
+
+      return blockingOperators == null ? Set.of() : blockingOperators;
+    }
   }
 }

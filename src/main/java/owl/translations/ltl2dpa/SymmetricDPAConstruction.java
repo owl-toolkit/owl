@@ -39,30 +39,40 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
-import owl.translations.SafetyCoreDetector;
+import owl.ltl.LabelledFormula;
+import owl.ltl.SyntacticFragments;
+import owl.run.Environment;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
+import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 
 final class SymmetricDPAConstruction {
-  private SymmetricDPAConstruction() {}
+  private final SymmetricLDBAConstruction<BuchiAcceptance> ldbaTranslator;
 
-  static Automaton<SymmetricRankingState, ParityAcceptance> of(AnnotatedLDBA<
-    Map<Integer, EquivalenceClass>, SymmetricProductState, BuchiAcceptance,
-    SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
-    Set<SymmetricProductState>>> ldba) {
-    var builder = new Builder(ldba);
+  SymmetricDPAConstruction(Environment environment) {
+    ldbaTranslator = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+  }
+
+  Automaton<SymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {
+    var ldba = ldbaTranslator.apply(labelledFormula);
+
+    if (ldba.initialComponent().initialStates().isEmpty()) {
+      return AutomatonFactory.empty(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
+    }
+
+    var builder = new SymmetricDPAConstruction.Builder(ldba);
     return AutomatonFactory.create(builder.ldba.factory(),
       builder.initialState, builder.acceptance, builder::edge);
   }
 
-  static final class Builder {
-    final ParityAcceptance acceptance;
-    final SymmetricRankingState initialState;
-    final List<Set<Map<Integer, EquivalenceClass>>> initialComponentSccs;
-    final AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState, BuchiAcceptance,
-          SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
-          Set<SymmetricProductState>>> ldba;
+  private static final class Builder {
+    private final ParityAcceptance acceptance;
+    private final SymmetricRankingState initialState;
+    private final List<Set<Map<Integer, EquivalenceClass>>> initialComponentSccs;
+    private final AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState,
+      BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
+      Set<SymmetricProductState>>> ldba;
 
     private Builder(AnnotatedLDBA<Map<Integer, EquivalenceClass>,
           SymmetricProductState, BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>,
@@ -76,12 +86,12 @@ final class SymmetricDPAConstruction {
       initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
     }
 
-    Edge<SymmetricRankingState> edge(
+    private Edge<SymmetricRankingState> edge(
       Map<Integer, EquivalenceClass> successor, List<SymmetricProductState> previousRanking,
       int previousSafetyBucket, int previousSafetyBucketIndex, @Nullable BitSet valuation) {
 
-      for (EquivalenceClass clazz : successor.values()) {
-        if (SafetyCoreDetector.safetyCoreExists(clazz)) {
+      for (EquivalenceClass entry : successor.values()) {
+        if (SyntacticFragments.isSafety(entry.modalOperators())) {
           return Edge.of(SymmetricRankingState.of(successor), 1);
         }
       }

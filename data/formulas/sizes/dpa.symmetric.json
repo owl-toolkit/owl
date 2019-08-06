@@ -2200,6 +2200,17 @@
     }
   },
   {
+    "formula": "(Fa \u0026 (FGb | GFa))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 4,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Fa \u0026 G(!a | Gb))",
     "properties": {
       "size": 2,
@@ -2225,6 +2236,17 @@
     "formula": "(Fa \u0026 XXXb)",
     "properties": {
       "size": 9,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(Fa \u0026 ((Gb) M ((b | Xb))))",
+    "properties": {
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -2651,6 +2673,17 @@
     }
   },
   {
+    "formula": "(Ga | (FGa \u0026 GFb))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Ga | XXXb)",
     "properties": {
       "size": 9,
@@ -2658,6 +2691,17 @@
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
       "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(Ga | ((Fb) W ((b \u0026 Xb))))",
+    "properties": {
+      "size": 5,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
       "deterministic": true
     }
   },
@@ -3795,6 +3839,17 @@
     }
   },
   {
+    "formula": "(((!a) R (!b)) \u0026 (Gc | ((Fa) W ((b \u0026 Xa)))))",
+    "properties": {
+      "size": 11,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((Fa | Gb) \u0026 (Fa | G(Fa | Gb)))",
     "properties": {
       "size": 3,
@@ -4150,6 +4205,17 @@
     "formula": "(G!a | (((b | ((!a) U ((!a \u0026 c))))) U (a)))",
     "properties": {
       "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(((a) U (b)) | (Fc \u0026 ((G!a) M ((!b | X!a)))))",
+    "properties": {
+      "size": 11,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
