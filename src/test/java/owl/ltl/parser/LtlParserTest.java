@@ -93,6 +93,22 @@ class LtlParserTest {
   }
 
   @Test
+  void testUpperCaseLiteralParsing() {
+    Formula formula = LtlParser.syntax("\"A\" & X \"B\" & F \"C\"", List.of("A", "B", "C"));
+    assertEquals(
+      Conjunction.of(Literal.of(0), XOperator.of(Literal.of(1)), FOperator.of(Literal.of(2))),
+      formula);
+  }
+
+  @Test
+  void testUpperCaseLiteralOverlappingParsing() {
+    Formula formula = LtlParser.syntax("'A' & X 'AA' & F 'AAA'", List.of("A", "AA", "AAA"));
+    assertEquals(
+      Conjunction.of(Literal.of(0), XOperator.of(Literal.of(1)), FOperator.of(Literal.of(2))),
+      formula);
+  }
+
+  @Test
   void testParseRegression1() {
     assertThrows(ParseCancellationException.class, () -> LtlParser.parse("FF"));
   }
