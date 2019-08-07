@@ -57,10 +57,16 @@ public class LtlfToLtlVisitorTest {
   @Test
   void manualFormulaTest() {
     Formula f = LtlfParser.syntax("X(!X(!X(a))) ",Literals);
+    Formula f1 = LtlfParser.syntax("X(F a) ",Literals);
+
     LtlfToLtlVisitor transformer = new LtlfToLtlVisitor();
     ReplaceBiCondVisitor b = new ReplaceBiCondVisitor();
     PrintVisitor p = new PrintVisitor(false,Literals);
     p.apply(transformer.apply(b.apply(f), Literal.of(4)));
+    p.apply(transformer.apply(b.apply(f1), Literal.of(4)));
+    //System.out.println(p.apply(Translator.translate(f,Literal.of(4))));
+    //System.out.println(p.apply(Translator.translate(f1,Literal.of(4))));
+
   }
 
   @Test
