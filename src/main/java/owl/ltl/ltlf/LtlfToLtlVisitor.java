@@ -116,8 +116,8 @@ public class LtlfToLtlVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(ROperator rOperator) {
-    // t(a R b) --> (t(a)|!tail) M (t(b)) transformation to co-Safety
-    return MOperator.of(Disjunction.of(tail.not(),rOperator.left.accept(this)),
+    // t(a R b) --> (t(a)|X(!tail)) M (t(b)) transformation to co-Safety
+    return MOperator.of(Disjunction.of(XOperator.of(tail.not()),rOperator.left.accept(this)),
       rOperator.right.accept(this));
   }
 
