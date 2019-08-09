@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.Formula;
@@ -90,6 +91,7 @@ class DecomposedDPATest {
     of(LtlParser.syntax("G (a | X F a)"), true, true, 0);
   }
 
+  @Disabled
   @Test
   void testCoSafetySplitting() {
     var coSafetyFormula = LtlParser.syntax("(F (grant_1 && grant_2)) && (release_1 U grant_1) "
@@ -98,6 +100,7 @@ class DecomposedDPATest {
     assertEquals(5, ((Node<?, ?>) automaton).getChildren().size());
   }
 
+  @Disabled
   @Test
   void testSafetySplitting() {
     var safetyFormula = LtlParser.syntax("(G (grant_1 || grant_2)) && (release_1 R grant_1) "
