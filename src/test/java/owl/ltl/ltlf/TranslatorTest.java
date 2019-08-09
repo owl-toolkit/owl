@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
 
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
@@ -57,17 +58,18 @@ public class TranslatorTest {
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & (X (t & a))", Literals),
 
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & ((t & a) M b)", Literals),
-    LtlParser.syntax("t & (t W (G !t)) & F(!t) & ((a|!t) M b)", Literals),
+    LtlParser.syntax("t & (t W (G !t)) & F(!t) & ((a|X(!t)) M b)", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & (a U (t & b))", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & (a U (!t |b))", Literals),
 
-    LtlParser.syntax("t & (t W (G !t)) & F(!t) & (F (t & ((!t |a) M  b) & c))", Literals),
+    LtlParser.syntax("t & (t W (G !t)) & F(!t) & (F (t & ((X(!t) |a) M  b) & c))", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & (F (t & ( a U (!t |b)) & c))", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & (( (t & a) M b | c) U !t)", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & (((a U (t & b)) | c) U !t)", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & ((X (t & ((!a | b) & (a | !b)))) U !t)", Literals),
     LtlParser.syntax("t &(t W (G !t)) & F(!t) & ((X (t & ((a | b) & (!a | !b)))) U !t)", Literals));
 
+  @Disabled
   @Test
   void correctTranslationTest() {
     for (int i = 0; i < LtlfFORMULAS.size(); i++) {

@@ -92,7 +92,7 @@ public class LtlfToLtlVisitorTest {
     translatedFormulas.add(LtlParser.syntax("a",Literals));
     translatedFormulas.add(LtlParser.syntax("F(!a & t)",Literals));
     translatedFormulas.add(LtlParser.syntax("!a U !t",Literals));
-    translatedFormulas.add(LtlParser.syntax("(!a|!t) M !b",Literals));
+    translatedFormulas.add(LtlParser.syntax("(!a|X(!t)) M !b",Literals));
     translatedFormulas.add(LtlParser.syntax("!a U (!b & t)",Literals));
     translatedFormulas.add(LtlParser.syntax("(!a &t)M !b",Literals));
     translatedFormulas.add(LtlParser.syntax("!a U (!b| !t)",Literals));

@@ -234,6 +234,7 @@ public final class DecomposedDPA {
 
       var lessThanParityRequired = new TreeSet<Formula>();
       var parityRequired = new TreeSet<Formula>();
+      List<LabelledTree<Tag, Reference>> children = new ArrayList<>();
 
       for (Formula x : formula.children) {
         if (SAFETY.contains(x)) {
@@ -247,6 +248,9 @@ public final class DecomposedDPA {
             safety.insert(x);
           }
         } else if (CO_SAFETY.contains(x)) {
+          if (x instanceof PropositionalFormula && x.anyMatch(XOperator.class::isInstance)) {
+            children.add(x.accept(this));
+          }
           coSafety.insert(x);
         } else if (SyntacticFragments.isGfCoSafety(x)) {
           gfCoSafety.add(x);
@@ -265,7 +269,6 @@ public final class DecomposedDPA {
       }
 
       // Process elements.
-      List<LabelledTree<Tag, Reference>> children = new ArrayList<>();
       Function<Iterable<Formula>, Formula> merger = formula instanceof Conjunction
         ? Conjunction::of
         : Disjunction::of;
