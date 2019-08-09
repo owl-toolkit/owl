@@ -50,8 +50,8 @@ import owl.automaton.util.AnnotatedStateOptimisation;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
+import owl.ltl.SyntacticFragments;
 import owl.run.Environment;
-import owl.translations.SafetyCoreDetector;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricProductState;
@@ -94,14 +94,14 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
       : automaton;
   }
 
-  class Builder {
-    final R acceptance;
-    final Map<SymmetricEvaluatedFixpoints, RabinPair> pairs;
-    final RabinPair safetyRabinPair;
+  private class Builder {
+    private final R acceptance;
+    private final Map<SymmetricEvaluatedFixpoints, RabinPair> pairs;
+    private final RabinPair safetyRabinPair;
     @Nullable
-    final SymmetricRankingState initialState;
-    final List<Set<Map<Integer, EquivalenceClass>>> initialComponentSccs;
-    final AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState, ?,
+    private final SymmetricRankingState initialState;
+    private final List<Set<Map<Integer, EquivalenceClass>>> initialComponentSccs;
+    private final AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState, ?,
           SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
           Set<SymmetricProductState>>> ldba;
 
@@ -140,12 +140,12 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
         : edge(ldbaInitialState, ImmutableTable.of(), 0, -1, null).successor();
     }
 
-    Edge<SymmetricRankingState> edge(Map<Integer, EquivalenceClass> successor,
+    private Edge<SymmetricRankingState> edge(Map<Integer, EquivalenceClass> successor,
       Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> previousTable,
       int safetyBucket, int safetyBucketIndex, @Nullable BitSet valuation) {
 
       for (EquivalenceClass clazz : successor.values()) {
-        if (SafetyCoreDetector.safetyCoreExists(clazz)) {
+        if (SyntacticFragments.isSafety(clazz.modalOperators())) {
           if (safetyRabinPair.hasInfSet()) {
             BitSet acceptanceSets = new BitSet();
             safetyRabinPair.infSetIterator().forEachRemaining((IntConsumer) acceptanceSets::set);
@@ -260,7 +260,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
     }
 
     @Nullable
-    Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
+    private Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
       // We obtain the successor of the state in the initial component.
       var successor = ldba.initialComponent().successor(state.state(), valuation);
 
@@ -279,5 +279,4 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
         valuation);
     }
   }
-
 }

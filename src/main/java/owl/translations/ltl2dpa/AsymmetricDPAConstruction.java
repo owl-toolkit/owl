@@ -40,36 +40,50 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
-import owl.translations.SafetyCoreDetector;
+import owl.run.Environment;
+import owl.translations.BlockingElements;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
+import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.AsymmetricProductState;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 
 final class AsymmetricDPAConstruction {
-  private AsymmetricDPAConstruction() {}
+  private final AsymmetricLDBAConstruction<BuchiAcceptance> ldbaTranslator;
 
-  static Automaton<AsymmetricRankingState, ParityAcceptance>
-  of(AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, BuchiAcceptance, SortedSet
-    <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>> ldba) {
-    var builder = new Builder(ldba);
+  AsymmetricDPAConstruction(Environment environment) {
+    ldbaTranslator = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+  }
+
+  Automaton<AsymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {
+    var ldba = ldbaTranslator.apply(labelledFormula);
+
+    if (ldba.initialComponent().initialStates().isEmpty()) {
+      return AutomatonFactory.empty(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
+    }
+
+    var builder = new Builder(labelledFormula.formula(), ldba);
     return AutomatonFactory.create(builder.ldba.factory(),
       builder.initialState, builder.acceptance, builder::edge);
   }
 
-  static final class Builder {
-    final ParityAcceptance acceptance;
-    final AsymmetricRankingState initialState;
-    final EquivalenceClassFactory factory;
-    final List<Set<EquivalenceClass>> initialComponentSccs;
-    final AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, BuchiAcceptance, SortedSet
+  private static final class Builder {
+    private final ParityAcceptance acceptance;
+    private final AsymmetricRankingState initialState;
+    private final EquivalenceClassFactory factory;
+    private final List<Set<EquivalenceClass>> initialComponentSccs;
+    private final AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, BuchiAcceptance, SortedSet
       <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>> ldba;
+    private final BlockingElements blockingElements;
 
-    private Builder(AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, BuchiAcceptance,
-      SortedSet<AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass,
+    private Builder(Formula formula, AnnotatedLDBA<EquivalenceClass, AsymmetricProductState,
+      BuchiAcceptance, SortedSet<AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass,
       Set<AsymmetricProductState>>> ldba) {
       this.ldba = ldba;
       this.initialComponentSccs = SccDecomposition.computeSccs(ldba.initialComponent());
+      blockingElements = new BlockingElements(formula);
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);
       EquivalenceClass ldbaInitialState = ldba.initialComponent().onlyInitialState();
@@ -77,12 +91,12 @@ final class AsymmetricDPAConstruction {
       initialState = edge(ldbaInitialState, List.of(), -1, null).successor();
     }
 
-    Edge<AsymmetricRankingState> edge(EquivalenceClass successor,
+    private Edge<AsymmetricRankingState> edge(EquivalenceClass successor,
       List<AsymmetricProductState> previousRanking, int previousSafetyProgress,
       @Nullable BitSet valuation) {
 
       // Short-circuit, if the language includes a non-empty safety language.
-      if (SafetyCoreDetector.safetyCoreExists(successor)) {
+      if (blockingElements.isBlockedBySafety(successor)) {
         return Edge.of(AsymmetricRankingState.of(successor), 1);
       }
 
@@ -216,7 +230,7 @@ final class AsymmetricDPAConstruction {
     }
 
     @Nullable
-    Edge<AsymmetricRankingState> edge(AsymmetricRankingState macroState, BitSet valuation) {
+    private Edge<AsymmetricRankingState> edge(AsymmetricRankingState macroState, BitSet valuation) {
       // We obtain the successor of the state in the initial component.
       var successor = ldba.initialComponent().successor(macroState.state(), valuation);
 

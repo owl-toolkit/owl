@@ -37,25 +37,22 @@ import java.util.concurrent.Future;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
-import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimizations.ParityAcceptanceOptimizations;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.util.AnnotatedStateOptimisation;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
-import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
-import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.mastertheorem.Selector;
 import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
-  public static final Set<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
+
+  public static final Set<LTL2DPAFunction.Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
     OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
   public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(SYMMETRIC,
@@ -63,18 +60,20 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   private final EnumSet<Configuration> configuration;
   private final Environment environment;
-  private final AsymmetricLDBAConstruction<BuchiAcceptance> asymmetricTranslator;
-  private final SymmetricLDBAConstruction<BuchiAcceptance> symmetricTranslator;
+
+  private final AsymmetricDPAConstruction asymmetricDPAConstruction;
+  private final SymmetricDPAConstruction symmetricDPAConstruction;
 
   public LTL2DPAFunction(Environment environment, Set<Configuration> configuration) {
-    this.configuration = EnumSet.copyOf(configuration);
     checkArgument(!configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
       || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
       "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");
 
+    this.configuration = EnumSet.copyOf(configuration);
     this.environment = environment;
-    symmetricTranslator = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
-    asymmetricTranslator = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+
+    asymmetricDPAConstruction = new AsymmetricDPAConstruction(environment);
+    symmetricDPAConstruction = new SymmetricDPAConstruction(environment);
   }
 
   @Override
@@ -195,43 +194,28 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   }
 
   private Result<AsymmetricRankingState> asymmetricConstruction(LabelledFormula formula) {
-    var ldba = asymmetricTranslator.apply(formula);
+    var dpa = asymmetricDPAConstruction.of(formula);
+    var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
+      ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
+      : dpa;
 
-    if (ldba.initialComponent().initialStates().isEmpty()) {
+    if (optimisedDpa.initialStates().isEmpty()) {
       var factory = environment.factorySupplier().getEquivalenceClassFactory(formula.variables());
-      var dpa = AutomatonFactory.<AsymmetricRankingState, ParityAcceptance>
-        empty(ldba.factory(), new ParityAcceptance(3, ParityAcceptance.Parity.MIN_ODD));
-      return new Result<>(dpa,
+      return new Result<>(optimisedDpa,
         AsymmetricRankingState.of(factory.getFalse()),
         configuration.contains(COMPRESS_COLOURS));
     }
 
-    var dpa = AsymmetricDPAConstruction.of(ldba);
-    var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
-      ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
-      : dpa;
-
     return new Result<>(optimisedDpa,
-      AsymmetricRankingState.of(ldba.initialComponent().onlyInitialState().factory().getFalse()),
+      AsymmetricRankingState.of(dpa.onlyInitialState().state().factory().getFalse()),
       configuration.contains(COMPRESS_COLOURS));
   }
 
   private Result<SymmetricRankingState> symmetricConstruction(LabelledFormula formula) {
-    var ldba = symmetricTranslator.apply(formula);
-
-    if (ldba.initialComponent().initialStates().isEmpty()) {
-      var dpa = AutomatonFactory.<SymmetricRankingState, ParityAcceptance>
-        empty(ldba.factory(), new ParityAcceptance(3, ParityAcceptance.Parity.MIN_ODD));
-      return new Result<>(dpa,
-        SymmetricRankingState.of(Map.of()),
-        configuration.contains(COMPRESS_COLOURS));
-    }
-
-    var dpa = SymmetricDPAConstruction.of(ldba);
+    var dpa = symmetricDPAConstruction.of(formula);
     var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
       ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
       : dpa;
-
     return new Result<>(optimisedDpa,
       SymmetricRankingState.of(Map.of()),
       configuration.contains(COMPRESS_COLOURS));

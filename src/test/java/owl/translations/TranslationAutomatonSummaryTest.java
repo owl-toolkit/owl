@@ -149,10 +149,10 @@ class TranslationAutomatonSummaryTest {
 
       new Translator("ldba.symmetric", environment ->
         SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable)),
+          ::applyWithShortcuts),
       new Translator("ldgba.symmetric", environment ->
         SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable)),
+          ::applyWithShortcuts),
 
       new Translator("dpa.asymmetric", environment ->
         new LTL2DPAFunction(environment,

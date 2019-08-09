@@ -85,6 +85,7 @@ public final class LTL2DPAModule implements TransformerParser {
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(INSTANCE)
+      .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build());
   }

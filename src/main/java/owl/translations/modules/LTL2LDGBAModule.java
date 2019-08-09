@@ -37,21 +37,12 @@ public final class LTL2LDGBAModule extends AbstractLTL2LDBAModule {
 
   private LTL2LDGBAModule() {}
 
-  public static void main(String... args) {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(INSTANCE)
-      .writer(OutputWriters.HOA)
-      .build());
-  }
-
   @Override
   public Transformer parse(CommandLine commandLine) {
     if (commandLine.hasOption(symmetric().getOpt())) {
       return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
         SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable));
+          ::applyWithShortcuts);
     } else {
       return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
         AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
@@ -67,5 +58,15 @@ public final class LTL2LDGBAModule extends AbstractLTL2LDBAModule {
   @Override
   public String getDescription() {
     return "Translate LTL to limit-deterministic generalized Büchi automata.";
+  }
+
+  public static void main(String... args) {
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
+      .addTransformer(INSTANCE)
+      .addTransformer(Transformers.MINIMIZER)
+      .writer(OutputWriters.HOA)
+      .build());
   }
 }

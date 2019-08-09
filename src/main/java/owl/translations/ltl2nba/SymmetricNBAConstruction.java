@@ -270,7 +270,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
             continue;
           }
 
-          if (!(SyntacticFragment.CO_SAFETY.contains(x))) {
+          if (!SyntacticFragment.CO_SAFETY.contains(x)) {
             continue;
           }
 

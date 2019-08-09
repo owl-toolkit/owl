@@ -52,6 +52,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
+import owl.collections.Either;
 import owl.collections.ValuationTree;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
@@ -65,6 +66,7 @@ import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
 import owl.run.Environment;
+import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.mastertheorem.Fixpoints;
 import owl.translations.mastertheorem.Predicates;
@@ -109,7 +111,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       = new HashMap<>();
     int acceptanceSets = 1;
 
-    var knownFixpoints = new HashSet<Fixpoints>();
+    var knownFixpoints = new ArrayList<Set<Fixpoints>>(List.of(Set.of())); // Include padding.
     var evaluationMap = new HashMap<Fixpoints, Set<SymmetricEvaluatedFixpoints>>();
     var automataMap = new HashMap<SymmetricEvaluatedFixpoints, DeterministicAutomata>();
 
@@ -126,32 +128,34 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       initialFormulas.sort(Formula::compareTo);
 
       for (Formula initialFormula : initialFormulas) {
-        knownFixpoints.addAll(Selector.selectSymmetric(initialFormula, false));
+        knownFixpoints.add(Selector.selectSymmetric(initialFormula, false));
         blockingElements.add(new BlockingElements(initialFormula));
       }
 
-      for (Fixpoints fixpoints : knownFixpoints) {
-        var simplified = fixpoints.simplified();
+      for (Set<Fixpoints> sets : knownFixpoints) {
+        for (Fixpoints fixpoints : sets) {
+          var simplified = fixpoints.simplified();
 
-        if (evaluationMap.containsKey(simplified)) {
-          continue;
-        }
-
-        var evaluatedSet = SymmetricEvaluatedFixpoints.build(simplified, factories);
-        evaluationMap.put(simplified, evaluatedSet);
-
-        for (var evaluated : evaluatedSet) {
-          if (automataMap.containsKey(evaluated)) {
+          if (evaluationMap.containsKey(simplified)) {
             continue;
           }
 
-          var deterministicAutomata = evaluated.deterministicAutomata(factories, true,
-            acceptanceClass.equals(GeneralizedBuchiAcceptance.class));
-          automataMap.put(evaluated, deterministicAutomata);
+          var evaluatedSet = SymmetricEvaluatedFixpoints.build(simplified, factories);
+          evaluationMap.put(simplified, evaluatedSet);
 
-          if (deterministicAutomata.gfCoSafetyAutomaton != null) {
-            acceptanceSets = Math.max(acceptanceSets,
-              deterministicAutomata.gfCoSafetyAutomaton.acceptance().acceptanceSets());
+          for (var evaluated : evaluatedSet) {
+            if (automataMap.containsKey(evaluated)) {
+              continue;
+            }
+
+            var deterministicAutomata = evaluated.deterministicAutomata(factories, true,
+              acceptanceClass.equals(GeneralizedBuchiAcceptance.class));
+            automataMap.put(evaluated, deterministicAutomata);
+
+            if (deterministicAutomata.gfCoSafetyAutomaton != null) {
+              acceptanceSets = Math.max(acceptanceSets,
+                deterministicAutomata.gfCoSafetyAutomaton.acceptance().acceptanceSets());
+            }
           }
         }
       }
@@ -208,7 +212,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         || SyntacticFragments.isCoSafety(modalOperators)
         || SyntacticFragments.isSafety(modalOperators);
 
-      if (blockingElements.get(entry.getKey()).isBlocked(clazz)) {
+      if (blockingElements.get(entry.getKey()).isBlockedByCoSafety(clazz)) {
         epsilonJumps.put(entry, Set.of());
         return;
       }
@@ -217,7 +221,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         .flatMap(x -> x.subformulas(Formula.ModalOperator.class).stream())
         .collect(Collectors.toUnmodifiableSet());
 
-      var availableFixpoints = knownFixpoints.stream()
+      var availableFixpoints = knownFixpoints.get(entry.getKey()).stream()
         .filter(x -> x.allFixpointsPresent(allModalOperators))
         .map(Fixpoints::simplified)
         .collect(Collectors.toSet());
@@ -233,6 +237,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
           var remainder = clazz.substitute(new Rewriter.ToSafety(fixpoints)).unfold();
           var xRemovedRemainder = remainder;
 
+          // Iteratively remove all X(\psi) that are not within the scope of a fixpoint.
           do {
             remainder = xRemovedRemainder;
 
@@ -241,6 +246,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
                 if (x instanceof XOperator) {
                   return Stream.empty();
                 } else {
+                  assert Predicates.IS_FIXPOINT.test(x);
                   return x.subformulas(XOperator.class).stream();
                 }
               })
@@ -300,6 +306,56 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         .collect(Collectors.toCollection(TreeSet::new)),
       (x, y) -> epsilonJumps.get(Map.entry(x, y))
     );
+  }
+
+  /**
+   * Construct and LDBA and remove states from initial component accepting a safety languages that
+   * have a corresponding state in the accepting component.
+   *
+   * @param formula the LTL formula for which the LDBA is constructed.
+   * @return An LDBA with deduplicated states recognising safety languages.
+   */
+  public MutableAutomaton<Either<Map<Integer, EquivalenceClass>, SymmetricProductState>, B>
+  applyWithShortcuts(LabelledFormula formula) {
+    var ldba = apply(formula).copyAsMutable();
+    var shortCuts = new HashMap<EquivalenceClass, SymmetricProductState>();
+
+    ldba.states().forEach((state) -> {
+      var right = state.fromRight();
+
+      if (right.isEmpty()) {
+        return;
+      }
+
+      var productState = right.get();
+
+      if (productState.liveness == null) {
+        shortCuts.put(productState.safety, productState);
+      }
+    });
+
+    ldba.updateEdges((state, edge) -> {
+      if (state.isRight() || edge.successor().isRight()) {
+        return edge;
+      }
+
+      var successor = edge.successor().fromLeft().orElseThrow();
+
+      if (successor.size() != 1 || !successor.containsKey(0)) {
+        return edge;
+      }
+
+      var shortCut = shortCuts.get(successor.get(0));
+
+      if (shortCut == null) {
+        return edge;
+      }
+
+      return Edge.of(Either.right(shortCut));
+    });
+
+    ldba.trim();
+    return ldba;
   }
 
   private static boolean containsUnresolvedFinite(Map<?, EquivalenceClass> state) {
@@ -410,7 +466,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     state.forEach((index, clazz) -> {
       if (SyntacticFragments.isCoSafety(clazz.modalOperators())) {
         coSafety.add(clazz);
-      } else if (!canonicalState.values().contains(clazz)) {
+      } else if (!canonicalState.containsValue(clazz)) {
         canonicalState.put(index, clazz);
       }
     });
@@ -451,37 +507,5 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
   private static boolean isAccepting(Map<Integer, EquivalenceClass> state) {
     return state.values().stream().allMatch(x -> SyntacticFragments.isSafety(x.modalOperators()));
-  }
-
-  private static class BlockingElements {
-    private final BitSet atomicPropositions;
-    private final Set<Formula.ModalOperator> modalOperators;
-
-    private BlockingElements(Formula formula) {
-      this.atomicPropositions = formula.atomicPropositions(true);
-      formula.subformulas(Predicates.IS_FIXPOINT)
-        .forEach(x -> atomicPropositions.andNot(x.atomicPropositions(true)));
-      this.modalOperators = Set.of(BlockingModalOperatorsVisitor.INSTANCE.apply(formula)
-        .toArray(Formula.ModalOperator[]::new));
-      assert SyntacticFragments.isCoSafety(modalOperators);
-    }
-
-    private boolean isBlocked(EquivalenceClass clazz) {
-      var clazzModalOperators = clazz.modalOperators();
-
-      if (SyntacticFragments.isCoSafety(clazzModalOperators)) {
-        return true;
-      }
-
-      if (clazz.atomicPropositions(true).intersects(atomicPropositions)) {
-        return true;
-      }
-
-      if (this.modalOperators.isEmpty()) {
-        return false;
-      }
-
-      return !Collections.disjoint(this.modalOperators, clazzModalOperators);
-    }
   }
 }

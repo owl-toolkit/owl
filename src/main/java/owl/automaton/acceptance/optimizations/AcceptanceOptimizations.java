@@ -114,6 +114,7 @@ public final class AcceptanceOptimizations {
       var dpa = (MutableAutomaton<Object, ParityAcceptance>) mutableAutomaton;
       apply(dpa, parityDefaultList);
     } else {
+      apply(mutableAutomaton, List.of(OmegaAcceptanceOptimizations::removeTransientAcceptance));
       logger.log(Level.FINE, "Received unsupported acceptance type {0}", acceptance.getClass());
     }
 

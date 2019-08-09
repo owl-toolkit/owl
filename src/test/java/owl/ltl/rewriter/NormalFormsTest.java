@@ -31,7 +31,10 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -85,6 +88,30 @@ class NormalFormsTest {
 
     var expectedCnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
     assertEquals(expectedCnf, NormalForms.toCnf(formula2));
+  }
+
+  @Test
+  void testMinimalDnf() {
+    var alphabet = List.of("a", "b", "c");
+    var formula = LtlParser.syntax("(Ga | Gb | ((Ga | GFc) & (Gb | GF!c)))", alphabet);
+    var clause1 = LtlParser.syntax("G a", alphabet);
+    var clause2 = LtlParser.syntax("G b", alphabet);
+    var clause3 = LtlParser.syntax("G F c & G F !c", alphabet);
+    var dnf = Collections3.transformSet(NormalForms.toDnf(formula), Conjunction::of);
+
+    assertEquals(Set.of(clause1, clause2, clause3), dnf);
+  }
+
+  @Test
+  void testMinimalCnf() {
+    var alphabet = List.of("a", "b", "c");
+    var formula = LtlParser.syntax("(Ga & Gb & ((Ga & GFc) | (Gb & GF!c)))", alphabet);
+    var clause1 = LtlParser.syntax("G a", alphabet);
+    var clause2 = LtlParser.syntax("G b", alphabet);
+    var clause3 = LtlParser.syntax("G F c | G F !c", alphabet);
+    var cnf = Collections3.transformSet(NormalForms.toCnf(formula), Disjunction::of);
+
+    assertEquals(Set.of(clause1, clause2, clause3), cnf);
   }
 
   @RepeatedTest(5)

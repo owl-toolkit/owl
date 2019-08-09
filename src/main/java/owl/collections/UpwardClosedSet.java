@@ -171,7 +171,7 @@ public final class UpwardClosedSet {
         for (PrimitiveIterator.OfLong iterator = bucket.iterator(); iterator.hasNext(); ) {
           long oldElement = iterator.nextLong();
 
-          if ((~oldElement & newElement) == 0) {
+          if ((oldElement & newElement) == oldElement) {
             return;
           }
         }
@@ -185,7 +185,7 @@ public final class UpwardClosedSet {
         for (PrimitiveIterator.OfLong iterator = bucket.iterator(); iterator.hasNext(); ) {
           long oldElement = iterator.nextLong();
 
-          if ((oldElement & ~newElement) == 0) {
+          if ((oldElement & newElement) == newElement) {
             iterator.remove();
           }
         }

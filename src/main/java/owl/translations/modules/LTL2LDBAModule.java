@@ -41,8 +41,7 @@ public final class LTL2LDBAModule extends AbstractLTL2LDBAModule {
   public Transformer parse(CommandLine commandLine) {
     if (commandLine.hasOption(symmetric().getOpt())) {
       return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable));
+        SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)::applyWithShortcuts);
     } else {
       return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
         AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
@@ -65,6 +64,7 @@ public final class LTL2LDBAModule extends AbstractLTL2LDBAModule {
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(INSTANCE)
+      .addTransformer(Transformers.MINIMIZER)
       .writer(OutputWriters.HOA)
       .build());
   }
