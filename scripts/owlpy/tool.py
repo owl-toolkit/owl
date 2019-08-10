@@ -90,13 +90,15 @@ class OwlTool(Tool):
 
     def get_file_execution(self, file):
         tool_execution = ["build/bin/owl"]
-        tool_execution.extend(["-I", file, "--worker", "0"])
+        # TODO Fix --worker flag
+        tool_execution.extend(["-I", file]) # , "--worker", "0"])
         tool_execution.extend(self.get_pipeline())
         return tool_execution
 
     def get_input_execution(self, static_input):
         tool_execution = ["build/bin/owl"]
-        tool_execution.extend(["-i", static_input, "--worker", "0"])
+        # TODO Fix --worker flag
+        tool_execution.extend(["-i", static_input]) # , "--worker", "0"])
         tool_execution.extend(self.get_pipeline())
         return tool_execution
 

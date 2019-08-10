@@ -19,7 +19,9 @@
 
 package owl.factories;
 
+import java.math.BigInteger;
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -30,6 +32,7 @@ import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
+@Deprecated(since = "19.06.03")
 public interface ValuationSetFactory {
   List<String> alphabet();
 
@@ -87,6 +90,8 @@ public interface ValuationSetFactory {
 
   boolean contains(ValuationSet set, BitSet valuation);
 
+  boolean implies(ValuationSet one, ValuationSet other);
+
   boolean intersects(ValuationSet set, ValuationSet other);
 
   void forEach(ValuationSet set, Consumer<? super BitSet> action);
@@ -100,4 +105,8 @@ public interface ValuationSetFactory {
   BooleanExpression<AtomLabel> toExpression(ValuationSet set);
 
   <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets);
+
+  Iterator<BitSet> iterator(ValuationSet set);
+
+  BigInteger size(ValuationSet set);
 }

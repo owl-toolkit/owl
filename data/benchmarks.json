@@ -5,7 +5,14 @@
             "regressions",
             "size",
             "fgx",
-            "check"
+            "check",
+            "literature-dwyerac-patterns",
+            "literature-etessamih-patterns",
+            "literature-liberouter-patterns",
+            "literature-parametrised",
+            "literature-pelanek-patterns",
+            "literature-sickertejk-patterns",
+            "literature-somenzib-patterns"
         ],
         "small": [
             "base",
@@ -15,13 +22,15 @@
     "defaults": {
         "data": "full",
         "repeat": 3,
-        "perf": false,
+        "perf": true,
         "update": false
     },
     "benchmark": {
-        "ltl2ldba": "ltl2ldba",
-        "ltl2ldba-genb": "ltl2ldba#gen-buchi",
-        "ltl2ldba-nondet": "ltl2ldba#nondet-init",
+        "ltl2ldba": "ltl2ldba#symmetric",
+        "ltl2ldba-asym": "ltl2ldba#asymmetric",
+        "ltl2ldgba": "ltl2ldgba#symmetric",
+        "ltl2ldgba-asym": "ltl2ldgba#asymmetric",
+        "ltl2na": "ltl2na",
         "delag": "delag",
         "ltl2dpa": "ltl2dpa",
         "ltl2da": "ltl2da",

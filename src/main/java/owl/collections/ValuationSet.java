@@ -25,6 +25,7 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.factories.ValuationSetFactory;
 
+@Deprecated(since = "19.06.03")
 public class ValuationSet {
   private final ValuationSetFactory factory;
 

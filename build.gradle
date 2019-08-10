@@ -90,7 +90,7 @@ dependencies {
     // https://commons.apache.org/proper/commons-cli/
     implementation 'commons-cli:commons-cli:1.4'
     // https://github.com/incaseoftrouble/jbdd
-    implementation 'de.tum.in:jbdd:0.4.0'
+    implementation 'de.tum.in:jbdd:0.5.2'
     // https://github.com/incaseoftrouble/naturals-util
     implementation 'de.tum.in:naturals-util:0.10.0'
     // https://github.com/vigna/fastutil
@@ -141,6 +141,10 @@ task sizeReport(type: Test) {
     useJUnitPlatform {
         includeTags 'size-report'
     }
+}
+
+tasks.withType(Test) {
+    maxHeapSize = "16G"
 }
 
 // ---------------- Startup Scripts ----------------
@@ -355,35 +359,19 @@ if (buildNatives) {
 apply from: 'gradle/idea.gradle'
 
 // Generate update with `./gradlew -q calculateChecksums`
-
 dependencyVerification {
     verify = [
         'antlr:antlr:2.7.7:antlr-2.7.7.jar:88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c',
         'com.beust:jcommander:1.72:jcommander-1.72.jar:e0de160b129b2414087e01fe845609cd55caec6820cfd4d0c90fabcc7bdb8c1e',
-        //'com.github.kevinstern:software-and-algorithms:1.0:software-and-algorithms-1.0.jar:61ab82439cef37343b14f53154c461619375373a56b9338e895709fb54e0864c',
-        //'com.github.stephenc.jcip:jcip-annotations:1.0-1:jcip-annotations-1.0-1.jar:4fccff8382aafc589962c4edb262f6aa595e34f1e11e61057d1c6a96e8fc7323',
         'com.google.auto.value:auto-value-annotations:1.6.6:auto-value-annotations-1.6.6.jar:3bf4b9e74a6bf0f38ac70af571e0f8a9d85ccba4c0693a72fea9ea46def0d5a0',
         'com.google.auto.value:auto-value:1.6.6:auto-value-1.6.6.jar:3734a543e9f367fd6f9929d724125e2d573926ec9eef430d2fc12e2eb29dbad2',
-        //'com.google.auto:auto-common:0.10:auto-common-0.10.jar:b876b5fddaceeba7d359667f6c4fb8c6f8658da1ab902ffb79ec9a415deede5f',
-        //'com.google.code.findbugs:jFormatString:3.0.0:jFormatString-3.0.0.jar:4c0c5bbe29cf76fb59b23e821178e3e22c72380b2453cc952dc67324baad7f53',
-        //'com.google.code.findbugs:jsr305:3.0.2:jsr305-3.0.2.jar:766ad2a0783f2687962c8ad74ceecc38a28b9f72a2d085ee438b7813e928d0c7',
         'com.google.code.gson:gson:2.8.5:gson-2.8.5.jar:233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81',
-        //'com.google.errorprone:error_prone_annotation:2.3.3:error_prone_annotation-2.3.3.jar:467c3469e7d1d388c340d31c3cfdd9bef4d620e9d5069216462aea85796aa2e8',
-        //'com.google.errorprone:error_prone_annotations:2.2.0:error_prone_annotations-2.2.0.jar:6ebd22ca1b9d8ec06d41de8d64e0596981d9607b42035f9ed374f9de271a481a',
-        //'com.google.errorprone:error_prone_annotations:2.3.2:error_prone_annotations-2.3.2.jar:357cd6cfb067c969226c442451502aee13800a24e950fdfde77bcdb4565a668d',
-        //'com.google.errorprone:error_prone_annotations:2.3.3:error_prone_annotations-2.3.3.jar:ec59f1b702d9afc09e8c3929f5c42777dec623a6ea2731ac694332c7d7680f5a',
-        //'com.google.errorprone:error_prone_check_api:2.3.3:error_prone_check_api-2.3.3.jar:ddd8d8875127944489178093ef7f79828a80af03ed1603fe58aba6e7ef782f4c',
-        //'com.google.errorprone:error_prone_core:2.3.3:error_prone_core-2.3.3.jar:8bba8574e381b27625e4c0d7965c9e5e7b8b073e3e939fa00ae1e22a552e1aa1',
-        //'com.google.errorprone:error_prone_type_annotations:2.3.3:error_prone_type_annotations-2.3.3.jar:b6e8266ba15b0ce938f5a71434d6e0275155deb563ebacef7a947f8356473406',
         'com.google.guava:failureaccess:1.0.1:failureaccess-1.0.1.jar:a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26',
-        //'com.google.guava:guava:27.0.1-jre:guava-27.0.1-jre.jar:e1c814fd04492a27c38e0317eabeaa1b3e950ec8010239e400fe90ad6c9107b4',
         'com.google.guava:guava:27.1-jre:guava-27.1-jre.jar:4a5aa70cc968a4d137e599ad37553e5cfeed2265e8c193476d7119036c536fe7',
         'com.google.guava:guava:28.0-jre:guava-28.0-jre.jar:73e4d6ae5f0e8f9d292a4db83a2479b5468f83d972ac1ff36d6d0b43943b4f91',
         'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava:listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99',
         'com.google.j2objc:j2objc-annotations:1.1:j2objc-annotations-1.1.jar:2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6',
         'com.google.j2objc:j2objc-annotations:1.3:j2objc-annotations-1.3.jar:21af30c92267bd6122c0e0b4d20cccb6641a37eaf956c6540ec471d584e64a7b',
-        //'com.google.protobuf:protobuf-java:3.4.0:protobuf-java-3.4.0.jar:dce7e66b32456a1b1198da0caff3a8acb71548658391e798c79369241e6490a4',
-        //'com.googlecode.java-diff-utils:diffutils:1.3.0:diffutils-1.3.0.jar:61ba4dc49adca95243beaa0569adc2a23aedb5292ae78aa01186fa782ebdc5c2',
         'com.ibm.icu:icu4j:61.1:icu4j-61.1.jar:55c98eb1838b2a4bb9a07dc36bd378532d64d0cdcb7ceee914236866a7de4464',
         'com.puppycrawl.tools:checkstyle:8.21:checkstyle-8.21.jar:2bb1ff142ea0e2b4a86af1826a4eff21831df7536fd57d0715db1c7bec96f3d3',
         'com.zaxxer:SparseBitSet:1.1:SparseBitSet-1.1.jar:3f35d376d9bc4f705ff362f8b89125d58dcd2e7bd498b87aa2b92cfb5694ed8e',
@@ -391,7 +379,7 @@ dependencyVerification {
         'commons-cli:commons-cli:1.4:commons-cli-1.4.jar:fd3c7c9545a9cdb2051d1f9155c4f76b1e4ac5a57304404a6eedb578ffba7328',
         'commons-collections:commons-collections:3.2.2:commons-collections-3.2.2.jar:eeeae917917144a68a741d4c0dff66aa5c5c5fd85593ff217bced3fc8ca783b8',
         'commons-io:commons-io:2.6:commons-io-2.6.jar:f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
-        'de.tum.in:jbdd:0.4.0:jbdd-0.4.0.jar:07345f6a0e54dafa5a9d204128150be677a31a85920fc24c0780f484415c5a0b',
+        'de.tum.in:jbdd:0.5.2:jbdd-0.5.2.jar:d89af013ca4e228af27361c7444eb3d2c1484f697553d879f6ffb818db0167e7',
         'de.tum.in:naturals-util:0.10.0:naturals-util-0.10.0.jar:6e717bf6fa0b94fd3f2dd71ee65441e64a3c7f5af158db192eae656888f98d7f',
         'info.picocli:picocli:3.9.6:picocli-3.9.6.jar:9442a6a18d869354a0d922ba37b40032aa1b0a172f414a7a644de39d1972f1f4',
         'it.unimi.dsi:fastutil:8.2.1:fastutil-8.2.1.jar:7d336e2b61ddf6e4193a55627b7e606bf42b7e2f652df2fb836fc343dd51ba4a',
@@ -410,10 +398,7 @@ dependencyVerification {
         'org.apache.commons:commons-lang3:3.8.1:commons-lang3-3.8.1.jar:dac807f65b07698ff39b1b07bfef3d87ae3fd46d91bbf8a2bc02b2a831616f68',
         'org.apiguardian:apiguardian-api:1.0.0:apiguardian-api-1.0.0.jar:1f58b77470d8d147a0538d515347dd322f49a83b9e884b8970051160464b65b3',
         'org.checkerframework:checker-qual:2.5.2:checker-qual-2.5.2.jar:64b02691c8b9d4e7700f8ee2e742dce7ea2c6e81e662b7522c9ee3bf568c040a',
-        //'org.checkerframework:checker-qual:2.5.3:checker-qual-2.5.3.jar:7be622bd25208ccfbb9b634af8bd37aef54368403a1fdce84d908078330a189d',
         'org.checkerframework:checker-qual:2.8.1:checker-qual-2.8.1.jar:9103499008bcecd4e948da29b17864abb64304e15706444ae209d17ebe0575df',
-        //'org.checkerframework:dataflow:2.5.3:dataflow-2.5.3.jar:7c2cd62c7e00af8346d476f478fef55122230a5251ffc9c22930f5c27e49325f',
-        //'org.checkerframework:javacutil:2.5.3:javacutil-2.5.3.jar:8df14d46faaeaa3cca0b148e5a25f7c2e39b502a6b735793999f4f37d52e1617',
         'org.codehaus.mojo:animal-sniffer-annotations:1.17:animal-sniffer-annotations-1.17.jar:92654f493ecfec52082e76354f0ebf87648dc3d5cec2e3c3cdb947c016747a53',
         'org.glassfish:javax.json:1.0.4:javax.json-1.0.4.jar:0e1dec40a1ede965941251eda968aeee052cc4f50378bc316cc48e8159bdbeb4',
         'org.junit.jupiter:junit-jupiter-api:5.4.2:junit-jupiter-api-5.4.2.jar:cdfb355fee661633f15f2763b8c2029c2e1958585b97b9162d38a36b1754dc3e',
@@ -423,6 +408,5 @@ dependencyVerification {
         'org.junit.platform:junit-platform-engine:1.4.2:junit-platform-engine-1.4.2.jar:7edb2ad879a338a84dbb09202b1399640ec0cacc5a95168539a9a74b5a2302e1',
         'org.opentest4j:opentest4j:1.1.1:opentest4j-1.1.1.jar:f106351abd941110226745ed103c85863b3f04e9fa82ddea1084639ae0c5336c',
         'org.ow2.asm:asm:7.1:asm-7.1.jar:4ab2fa2b6d2cc9ccb1eaa05ea329c407b47b13ed2915f62f8c4b8cc96258d4de',
-        //'org.pcollections:pcollections:2.1.2:pcollections-2.1.2.jar:29c8ffcc5c6a97f059941148593ad00fe2cdf78af1d88d46bcf0d1bb703606c2',
     ]
 }

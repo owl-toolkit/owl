@@ -24,8 +24,10 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.HashCommon;
+import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -36,6 +38,7 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
+@Deprecated(since = "19.06.03")
 final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuationSet>
   implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
@@ -53,8 +56,8 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
     factory.createVariables(this.alphabet.size());
     assert factory.numberOfVariables() == this.alphabet.size();
 
-    universe = create(factory.getTrueNode());
-    empty = create(factory.getFalseNode());
+    universe = create(factory.trueNode());
+    empty = create(factory.falseNode());
   }
 
   @Override
@@ -70,7 +73,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
   @Override
   public ValuationSet of(int literal) {
-    return create(factory.getVariableNode(literal));
+    return create(bdd.variableNode(literal));
   }
 
   @Override
@@ -90,45 +93,40 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
   @Override
   public ValuationSet complement(ValuationSet set) {
-    return create(factory.not(getBdd(set)));
+    return create(bdd.not(getNode(set)));
   }
 
 
   @Override
   public BitSet any(ValuationSet set) {
-    return factory.getSatisfyingAssignment(getBdd(set));
+    return bdd.getSatisfyingAssignment(getNode(set));
   }
 
   @Override
   public boolean contains(ValuationSet set, BitSet valuation) {
-    return factory.evaluate(getBdd(set), valuation);
+    return bdd.evaluate(getNode(set), valuation);
+  }
+
+  @Override
+  public boolean implies(ValuationSet one, ValuationSet other) {
+    return bdd.implies(getNode(one), getNode(other));
   }
 
   @Override
   public void forEach(ValuationSet set, Consumer<? super BitSet> action) {
-    int variables = factory.numberOfVariables();
-
-    factory.forEachMinimalSolution(getBdd(set), (solution, solutionSupport) -> {
-      solutionSupport.flip(0, variables);
-      BitSets.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
-        nonRelevantValuation.or(solution);
-        action.accept(nonRelevantValuation);
-        nonRelevantValuation.and(solutionSupport);
-      });
-      solutionSupport.flip(0, variables);
-    });
+    bdd.forEachSolution(getNode(set), action);
   }
 
   @Override
   public void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action) {
-    // TODO Make this native to the factory?
-    int variables = factory.numberOfVariables();
+    // TODO Make this native to the bdd?
+    int variables = bdd.numberOfVariables();
 
     BitSet restrictedVariables = BitSets.copyOf(restriction);
     restrictedVariables.flip(0, variables);
 
-    int restrict = factory.restrict(getBdd(set), restrictedVariables, EMPTY);
-    factory.forEachMinimalSolution(restrict, (solution, solutionSupport) -> {
+    int restrict = bdd.restrict(getNode(set), restrictedVariables, EMPTY);
+    bdd.forEachPath(restrict, (solution, solutionSupport) -> {
       assert !solution.intersects(restrictedVariables);
       solutionSupport.xor(restriction);
       BitSets.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
@@ -142,23 +140,23 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
   @Override
   public boolean intersects(ValuationSet set, ValuationSet other) {
-    return !factory.implies(getBdd(set), factory.not(getBdd(other)));
+    return !bdd.implies(getNode(set), bdd.not(getNode(other)));
   }
 
 
   @Override
   public ValuationSet intersection(ValuationSet set1, ValuationSet set2) {
-    return create(factory.and(getBdd(set1), getBdd(set2)));
+    return create(bdd.and(getNode(set1), getNode(set2)));
   }
 
   @Override
   public ValuationSet union(ValuationSet set1, ValuationSet set2) {
-    return create(factory.or(getBdd(set1), getBdd(set2)));
+    return create(bdd.or(getNode(set1), getNode(set2)));
   }
 
   @Override
   public BooleanExpression<AtomLabel> toExpression(ValuationSet set) {
-    return toExpression(getBdd(set));
+    return toExpression(getNode(set));
   }
 
   @Override
@@ -168,80 +166,90 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
     }
 
     int offset = alphabet.size();
-    int requiredVariables = sets.size() - (factory.numberOfVariables() - offset);
+    int requiredVariables = sets.size() - (bdd.numberOfVariables() - offset);
 
     if (requiredVariables > 0) {
-      factory.createVariables(requiredVariables);
+      bdd.createVariables(requiredVariables);
     }
 
     // Build BDD describing the tree:
-    int bdd = factory.getTrueNode();
+    int node = bdd.trueNode();
     var list = List.copyOf(sets.entrySet());
 
     for (int i = 0; i < list.size(); i++) {
       var entry = list.get(i);
-      int relation = factory.reference(factory.equivalence(
-        factory.getVariableNode(offset + i), getBdd(entry.getValue())));
-      bdd = factory.consume(factory.and(bdd, relation), bdd, relation);
+      int relation = bdd.reference(bdd.equivalence(
+        bdd.variableNode(offset + i), getNode(entry.getValue())));
+      node = bdd.consume(bdd.and(node, relation), node, relation);
     }
 
-    ValuationTree<S> result = inverseMemoized(bdd, new HashMap<>(),
+    ValuationTree<S> result = inverseMemoized(node, new HashMap<>(),
       i -> list.get(i - offset).getKey(), offset + list.size());
-    factory.dereference(bdd);
+    bdd.dereference(node);
     return result;
   }
 
-  private <S> ValuationTree<S> inverseMemoized(int bdd, Map<Integer, ValuationTree<S>> cache,
-    IntFunction<S> mapper, int maxSize) {
-    assert bdd != factory.getTrueNode();
-    assert bdd != factory.getFalseNode();
+  @Override
+  public Iterator<BitSet> iterator(ValuationSet set) {
+    return bdd.solutionIterator(getNode(set));
+  }
 
-    var tree = cache.get(Integer.valueOf(bdd));
+  @Override
+  public BigInteger size(ValuationSet set) {
+    return bdd.countSatisfyingAssignments(getNode(set));
+  }
+
+  private <S> ValuationTree<S> inverseMemoized(int node, Map<Integer, ValuationTree<S>> cache,
+    IntFunction<S> mapper, int maxSize) {
+    assert node != bdd.trueNode();
+    assert node != bdd.falseNode();
+
+    var tree = cache.get(Integer.valueOf(node));
 
     if (tree != null) {
       return tree;
     }
 
-    int variable = factory.getVariable(bdd);
+    int variable = bdd.variable(node);
 
     if (variable < alphabetSize()) {
       tree = ValuationTree.of(variable,
-        inverseMemoized(factory.getHigh(bdd), cache, mapper, maxSize),
-        inverseMemoized(factory.getLow(bdd), cache, mapper, maxSize));
+        inverseMemoized(bdd.high(node), cache, mapper, maxSize),
+        inverseMemoized(bdd.low(node), cache, mapper, maxSize));
     } else {
-      tree = ValuationTree.of(getOnlySatisfyingAssignment(bdd, maxSize - 1)
+      tree = ValuationTree.of(getOnlySatisfyingAssignment(node, maxSize - 1)
         .stream().mapToObj(mapper).collect(toUnmodifiableSet()));
     }
 
-    cache.put(Integer.valueOf(bdd), tree);
+    cache.put(Integer.valueOf(node), tree);
     return tree;
   }
 
-  private BitSet getOnlySatisfyingAssignment(int bdd, int largestVariable) {
-    assert bdd != factory.getTrueNode();
-    assert bdd != factory.getFalseNode();
-    int variable = factory.getVariable(bdd);
+  private BitSet getOnlySatisfyingAssignment(int node, int largestVariable) {
+    assert node != bdd.trueNode();
+    assert node != bdd.falseNode();
+    int variable = bdd.variable(node);
 
     if (variable < largestVariable) {
-      int high = factory.getHigh(bdd);
+      int high = bdd.high(node);
 
-      if (high == factory.getFalseNode()) {
-        return getOnlySatisfyingAssignment(factory.getLow(bdd), largestVariable);
+      if (high == bdd.falseNode()) {
+        return getOnlySatisfyingAssignment(bdd.low(node), largestVariable);
       } else {
-        assert factory.getLow(bdd) == factory.getFalseNode();
-        assert high != factory.getTrueNode();
+        assert bdd.low(node) == bdd.falseNode();
+        assert high != bdd.trueNode();
         var assignment = getOnlySatisfyingAssignment(high, largestVariable);
         assignment.set(variable);
         return assignment;
       }
     } else {
       assert variable == largestVariable;
-      assert factory.getTrueNode() == factory.getLow(bdd)
-        || factory.getFalseNode() == factory.getLow(bdd);
-      assert factory.getTrueNode() == factory.getHigh(bdd)
-        || factory.getFalseNode() == factory.getHigh(bdd);
+      assert bdd.trueNode() == bdd.low(node)
+        || bdd.falseNode() == bdd.low(node);
+      assert bdd.trueNode() == bdd.high(node)
+        || bdd.falseNode() == bdd.high(node);
 
-      if (factory.getHigh(bdd) == factory.getTrueNode()) {
+      if (bdd.high(node) == bdd.trueNode()) {
         var set = new BitSet();
         set.set(variable);
         return set;
@@ -251,19 +259,19 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
     }
   }
 
-  private BooleanExpression<AtomLabel> toExpression(int bdd) {
-    if (bdd == factory.getFalseNode()) {
+  private BooleanExpression<AtomLabel> toExpression(int node) {
+    if (node == bdd.falseNode()) {
       return FALSE;
     }
 
-    if (bdd == factory.getTrueNode()) {
+    if (node == bdd.trueNode()) {
       return TRUE;
     }
 
     BooleanExpression<AtomLabel> letter = new BooleanExpression<>(
-      AtomLabel.createAPIndex(factory.getVariable(bdd)));
-    BooleanExpression<AtomLabel> pos = toExpression(factory.getHigh(bdd));
-    BooleanExpression<AtomLabel> neg = toExpression(factory.getLow(bdd));
+      AtomLabel.createAPIndex(bdd.variable(node)));
+    BooleanExpression<AtomLabel> pos = toExpression(bdd.high(node));
+    BooleanExpression<AtomLabel> neg = toExpression(bdd.low(node));
 
     if (pos.isTRUE()) {
       pos = letter;
@@ -288,60 +296,50 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   }
 
 
-  private BddValuationSet create(int bdd) {
-    return canonicalize(new BddValuationSet(this, bdd));
+  private BddValuationSet create(int node) {
+    return canonicalize(new BddValuationSet(this, node));
   }
 
   private int createBdd(BitSet set, BitSet base) {
     assert base.length() <= alphabet.size();
-    int bdd = factory.getTrueNode();
+    int node = bdd.trueNode();
 
     for (int i = base.nextSetBit(0); i != -1; i = base.nextSetBit(i + 1)) {
-      bdd = createBddUpdateHelper(set, i, bdd);
+      node = createBddUpdateHelper(set, i, node);
     }
 
-    return bdd;
+    return node;
   }
 
   private int createBdd(BitSet set) {
-    int bdd = factory.getTrueNode();
+    int node = bdd.trueNode();
 
     for (int i = 0; i < alphabet.size(); i++) {
-      bdd = createBddUpdateHelper(set, i, bdd);
+      node = createBddUpdateHelper(set, i, node);
     }
 
-    return bdd;
+    return node;
   }
 
-  private int createBddUpdateHelper(BitSet set, int var, int bdd) {
-    int variableNode = factory.getVariableNode(var);
-    assert factory.isVariable(variableNode);
-    return factory.and(bdd, set.get(var) ? variableNode : factory.not(variableNode));
+  private int createBddUpdateHelper(BitSet set, int var, int node) {
+    int variableNode = bdd.variableNode(var);
+    assert bdd.isVariable(variableNode);
+    return bdd.and(node, set.get(var) ? variableNode : bdd.not(variableNode));
   }
 
-  private int getBdd(ValuationSet vs) {
+  private int getNode(ValuationSet vs) {
     assert this.equals(vs.getFactory());
-    int bdd = ((BddValuationSet) vs).bdd;
-    assert factory.getReferenceCount(bdd) > 0 || factory.getReferenceCount(bdd) == -1;
-    return bdd;
+    int node = ((BddValuationSet) vs).node;
+    assert bdd.getReferenceCount(node) > 0 || bdd.getReferenceCount(node) == -1;
+    return node;
   }
 
-  static final class BddValuationSet extends ValuationSet implements BddWrapper {
-    final int bdd;
+  static final class BddValuationSet extends ValuationSet implements BddNode {
+    private final int node;
 
-    BddValuationSet(ValuationFactory factory, int bdd) {
-      super(factory);
-      this.bdd = bdd;
-    }
-
-    @Override
-    public int bdd() {
-      return bdd;
-    }
-
-    @Override
-    public int hashCode() {
-      return HashCommon.mix(bdd);
+    private BddValuationSet(ValuationFactory bdd, int node) {
+      super(bdd);
+      this.node = node;
     }
 
     @Override
@@ -356,7 +354,17 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
 
       BddValuationSet other = (BddValuationSet) o;
       assert getFactory().equals(other.getFactory());
-      return bdd == other.bdd;
+      return node == other.node;
+    }
+
+    @Override
+    public int hashCode() {
+      return HashCommon.mix(node);
+    }
+
+    @Override
+    public int node() {
+      return node;
     }
   }
 }
