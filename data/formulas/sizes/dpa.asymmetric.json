@@ -5434,6 +5434,17 @@
     }
   },
   {
+    "formula": "F(((a) W (Gb)) \u0026 (!a | F(!a \u0026 !b) | FG!b) \u0026 (a | (G(a | b) \u0026 GFb)))",
+    "properties": {
+      "size": 7,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "F(a \u0026 !b \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d))))) R (!b)))",
     "properties": {
       "size": 6,
@@ -5561,6 +5572,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 5,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "G(((!a) M (F!b)) | (a \u0026 G(a | b) \u0026 GFb) | (!a \u0026 (F(!a \u0026 !b) | FG!b)))",
+    "properties": {
+      "size": 8,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 7,
       "complete": true,
       "deterministic": true
     }

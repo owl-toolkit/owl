@@ -1999,6 +1999,9 @@
     }
   },
   {
+    "formula": "F(((a) W (Gb)) \u0026 (!a | F(!a \u0026 !b) | FG!b) \u0026 (a | (G(a | b) \u0026 GFb)))"
+  },
+  {
     "formula": "F(a \u0026 !b \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d))))) R (!b)))"
   },
   {
@@ -2039,6 +2042,9 @@
   },
   {
     "formula": "G(a | XG!b | XF(b \u0026 Fc))"
+  },
+  {
+    "formula": "G(((!a) M (F!b)) | (a \u0026 G(a | b) \u0026 GFb) | (!a \u0026 (F(!a \u0026 !b) | FG!b)))"
   },
   {
     "formula": "G(a | b | G!b | (((c | ((!b) U ((!b \u0026 d))))) U (b)))"
