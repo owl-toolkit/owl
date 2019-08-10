@@ -156,7 +156,7 @@ public final class AcceptanceOptimizations {
       }
 
       // There are no accepting runs.
-      if (LanguageEmptiness.isEmpty(automaton, scc.iterator().next())) {
+      if (LanguageEmptiness.isEmpty(automaton, Set.of(scc.iterator().next()))) {
         logger.log(Level.FINER, "Removing scc {0}", scc);
         automaton.removeStateIf(scc::contains);
         // Ensure readable automaton.
