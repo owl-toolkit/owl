@@ -23,6 +23,7 @@ import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.io.IOException;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -90,7 +91,7 @@ public class DelagBuilder
     this.fallback = fallback;
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)

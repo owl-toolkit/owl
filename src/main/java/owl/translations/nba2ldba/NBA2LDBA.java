@@ -24,6 +24,7 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
+import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
@@ -63,7 +64,7 @@ public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, Bu
     .description("Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
       + "automaton")
     .parser(settings -> environment
-    -> (input, context) -> new NBA2LDBA().apply(AutomatonUtil.cast(input)))
+    -> (input) -> new NBA2LDBA().apply(AutomatonUtil.cast(input)))
     .build();
 
   @Override
@@ -98,7 +99,7 @@ public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, Bu
     return LDBA.of(ldba, ldba.states().stream().filter(Either::isLeft).collect(toSet()));
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2ldba")
       .reader(InputReaders.HOA)
       .addTransformer(CLI)

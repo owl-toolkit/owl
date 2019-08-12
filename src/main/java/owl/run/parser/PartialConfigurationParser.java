@@ -21,6 +21,7 @@ package owl.run.parser;
 
 import static owl.run.parser.ParseUtil.toArray;
 
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
@@ -54,7 +55,8 @@ public final class PartialConfigurationParser {
     });
   }
 
-  public static void run(String[] args, PartialModuleConfiguration configuration) {
+  public static void run(String[] args, PartialModuleConfiguration configuration)
+    throws IOException {
     RunUtil.checkForVersion(args);
 
     HelpFormatter formatter = new HelpFormatter();
@@ -108,7 +110,7 @@ public final class PartialConfigurationParser {
     streamSettings.getArgList().clear();
     streamSettings.getArgList().addAll(remainingArgs);
 
-    RunUtil.execute(DefaultCli.build(streamSettings, builder.build()));
+    DefaultCli.run(streamSettings, builder.build());
   }
 
   private static final class ParseHelper {

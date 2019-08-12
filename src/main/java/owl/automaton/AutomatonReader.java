@@ -274,7 +274,7 @@ public final class AutomatonReader {
           String stringColours = name.extra.get(2).toString();
           int colours;
           try {
-            colours = Integer.valueOf(stringColours);
+            colours = Integer.parseInt(stringColours);
           } catch (NumberFormatException e) {
             throw (HOAConsumerException) new HOAConsumerException(
               "Failed to parse colours " + stringColours).initCause(e);

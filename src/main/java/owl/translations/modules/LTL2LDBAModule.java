@@ -19,6 +19,7 @@
 
 package owl.translations.modules;
 
+import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.LabelledFormula;
@@ -59,12 +60,12 @@ public final class LTL2LDBAModule extends AbstractLTL2LDBAModule {
     return "Translate LTL to limit-deterministic Büchi automata.";
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(INSTANCE)
-      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
       .writer(OutputWriters.HOA)
       .build());
   }

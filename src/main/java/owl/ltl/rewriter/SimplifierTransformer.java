@@ -28,7 +28,6 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
-import owl.run.PipelineExecutionContext;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
@@ -80,7 +79,7 @@ public final class SimplifierTransformer extends Transformers.SimpleTransformer 
   }
 
   @Override
-  public Object transform(Object object, PipelineExecutionContext context) {
+  public Object transform(Object object) {
     checkArgument(object instanceof LabelledFormula);
     LabelledFormula result = (LabelledFormula) object;
     for (Mode rewrite : rewrites) {

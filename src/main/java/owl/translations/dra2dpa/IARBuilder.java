@@ -27,6 +27,7 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -85,11 +86,11 @@ public final class IARBuilder<R> {
     resultAutomaton = MutableAutomatonFactory.create(acceptance, vsFactory);
   }
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("dra2dpa")
       .reader(InputReaders.HOA)
       .addTransformer(CLI)
-      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
       .writer(OutputWriters.ToHoa.DEFAULT)
       .build());
   }

@@ -19,12 +19,9 @@
 
 package owl.run;
 
-import com.google.common.base.Strings;
 import java.util.Arrays;
-import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 
 public final class RunUtil {
@@ -34,13 +31,6 @@ public final class RunUtil {
 
   public static Option getDefaultAnnotationOption() {
     return new Option("a", "annotations", false, "Gather additional labels etc. (where supported)");
-  }
-
-  public static boolean checkDefaultAnnotationOption(CommandLine settings) {
-    String annotationsEnv = System.getenv("OWL_ANNOTATIONS");
-    boolean annotationsFromEnv = !Strings.isNullOrEmpty(annotationsEnv)
-      && !"0".equals(annotationsEnv);
-    return annotationsFromEnv || settings.hasOption("annotations");
   }
 
   /**
@@ -90,30 +80,6 @@ public final class RunUtil {
       System.out.println(name);
       System.out.println("Version: " + RunUtil.class.getPackage().getImplementationVersion());
       System.exit(0);
-    }
-  }
-
-  /**
-   * Executes the given given runner and logs any occurring error to the console.
-   */
-  @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.SystemPrintln"})
-  public static void execute(Callable<Void> runner) {
-    try {
-      runner.call();
-    } catch (PipelineException e) {
-      logger.log(Level.FINE, "Error during execution", e);
-      System.err.println(e.getMessage());
-    } catch (Exception e) {
-      // Only FINE since we explicitly log to System.err
-      logger.log(Level.FINE, "Error during execution", e);
-      if (e.getMessage() == null) {
-        System.err.printf("An unexpected error of type %s occurred during execution%n",
-          e.getClass().getSimpleName());
-      } else {
-        System.err.printf("An unexpected error occurred during execution: %s%n", e.getMessage());
-      }
-
-      e.printStackTrace(System.err);
     }
   }
 }

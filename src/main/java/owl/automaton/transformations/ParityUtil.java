@@ -40,7 +40,7 @@ public final class ParityUtil {
   public static final TransformerParser COMPLEMENT_CLI = ImmutableTransformerParser.builder()
     .key("complement-parity")
     .description("Complements a parity automaton")
-    .parser(settings -> environment -> (input, context) -> {
+    .parser(settings -> environment -> (input) -> {
       Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
         ParityAcceptance.class);
       return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton),
@@ -78,7 +78,7 @@ public final class ParityUtil {
         toEven = null;
       }
 
-      return environment -> (input, context) -> {
+      return environment -> (input) -> {
         var automaton = AutomatonUtil.cast(input, ParityAcceptance.class);
         var target = automaton.acceptance().parity();
 

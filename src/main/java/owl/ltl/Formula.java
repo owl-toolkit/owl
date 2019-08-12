@@ -62,42 +62,7 @@ public abstract class Formula implements Comparable<Formula> {
   public final BitSet atomicPropositions(boolean includeNested) {
     BitSet atomicPropositions = new BitSet();
 
-    accept(new PropositionalVisitor<Void>() {
-      @Override
-      public Void visit(Biconditional biconditional) {
-        biconditional.left.accept(this);
-        biconditional.right.accept(this);
-        return null;
-      }
-
-      @Override
-      public Void visit(BooleanConstant booleanConstant) {
-        return null;
-      }
-
-      @Override
-      public Void visit(Conjunction conjunction) {
-        conjunction.children.forEach(x -> x.accept(this));
-        return null;
-      }
-
-      @Override
-      public Void visit(Disjunction disjunction) {
-        disjunction.children.forEach(x -> x.accept(this));
-        return null;
-      }
-
-      @Override
-      protected Void visit(TemporalOperator formula) {
-        if (formula instanceof Literal) {
-          atomicPropositions.set(((Literal) formula).getAtom());
-        } else if (includeNested) {
-          formula.children().forEach(x -> x.accept(this));
-        }
-
-        return null;
-      }
-    });
+    accept(new AtomicPropositionsVisitor(atomicPropositions, includeNested));
 
     return atomicPropositions;
   }
@@ -365,6 +330,51 @@ public abstract class Formula implements Comparable<Formula> {
     @Override
     public final Formula temporalStepUnfold(BitSet valuation) {
       return temporalStep(valuation).unfold();
+    }
+  }
+
+  private static class AtomicPropositionsVisitor extends PropositionalVisitor<Void> {
+    private final BitSet atomicPropositions;
+    private final boolean includeNested;
+
+    public AtomicPropositionsVisitor(BitSet atomicPropositions, boolean includeNested) {
+      this.atomicPropositions = atomicPropositions;
+      this.includeNested = includeNested;
+    }
+
+    @Override
+    public Void visit(Biconditional biconditional) {
+      biconditional.left.accept(this);
+      biconditional.right.accept(this);
+      return null;
+    }
+
+    @Override
+    public Void visit(BooleanConstant booleanConstant) {
+      return null;
+    }
+
+    @Override
+    public Void visit(Conjunction conjunction) {
+      conjunction.children.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @Override
+    public Void visit(Disjunction disjunction) {
+      disjunction.children.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @Override
+    protected Void visit(TemporalOperator formula) {
+      if (formula instanceof Literal) {
+        atomicPropositions.set(((Literal) formula).getAtom());
+      } else if (includeNested) {
+        formula.children().forEach(x -> x.accept(this));
+      }
+
+      return null;
     }
   }
 }

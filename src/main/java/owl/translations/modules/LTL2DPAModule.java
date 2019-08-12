@@ -25,6 +25,7 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_CO
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
+import java.io.IOException;
 import java.util.EnumSet;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
@@ -80,12 +81,12 @@ public final class LTL2DPAModule implements TransformerParser {
   }
 
   // TODO: add Rabinizer based constructions here.
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(INSTANCE)
-      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
       .writer(OutputWriters.HOA)
       .build());
   }

@@ -51,7 +51,6 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.ValuationSet;
-import owl.run.PipelineExecutionContext;
 import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.OwlModuleParser.TransformerParser;
 import owl.run.modules.Transformers;
@@ -259,7 +258,7 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
   }
 
   @Override
-  public Object transform(Object object, PipelineExecutionContext context) {
+  public Object transform(Object object) {
     return degeneralize(AutomatonUtil.cast(object, GeneralizedRabinAcceptance.class));
   }
 

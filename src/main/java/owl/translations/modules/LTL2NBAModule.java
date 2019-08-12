@@ -19,6 +19,7 @@
 
 package owl.translations.modules;
 
+import java.io.IOException;
 import org.apache.commons.cli.CommandLine;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.LabelledFormula;
@@ -36,15 +37,6 @@ public final class LTL2NBAModule implements OwlModuleParser.TransformerParser {
 
   private LTL2NBAModule() {}
 
-  public static void main(String... args) {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(INSTANCE)
-      .writer(OutputWriters.HOA)
-      .build());
-  }
-
   @Override
   public Transformer parse(CommandLine commandLine) {
     return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
@@ -60,5 +52,14 @@ public final class LTL2NBAModule implements OwlModuleParser.TransformerParser {
   public String getDescription() {
     return "Translate LTL to non-deterministic generalized-Büchi automata. "
       + "The construction is based on the symmetric approach from [EKS: LICS'18].";
+  }
+
+  public static void main(String... args) throws IOException {
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
+      .reader(InputReaders.LTL)
+      .addTransformer(Transformers.LTL_SIMPLIFIER)
+      .addTransformer(INSTANCE)
+      .writer(OutputWriters.HOA)
+      .build());
   }
 }

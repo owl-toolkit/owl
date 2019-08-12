@@ -2,6 +2,9 @@
 
 Modules:
 
+* Removed unused `--worker` flag and `OWL_{ANNOTATIONS,INPUT}` environment 
+  variables.
+
 * De-duplicate fixed-point guesses in the "symmetric" constructions.
   
   Fixed-point guesses are removed from the candidate list when they contain two

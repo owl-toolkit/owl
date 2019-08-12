@@ -19,6 +19,7 @@
 
 package owl.translations;
 
+import java.io.IOException;
 import owl.game.GameViews;
 import owl.game.algorithms.ParityGameSolver;
 import owl.run.modules.InputReaders;
@@ -31,13 +32,13 @@ import owl.translations.modules.LTL2DPAModule;
 public final class Synthesis {
   private Synthesis() {}
 
-  public static void main(String... args) {
+  public static void main(String... args) throws IOException {
     @SuppressWarnings("SpellCheckingInspection")
     PartialModuleConfiguration builder = PartialModuleConfiguration.builder("synth")
       .reader(InputReaders.LTL)
       .addTransformer(Transformers.LTL_SIMPLIFIER)
       .addTransformer(LTL2DPAModule.INSTANCE)
-      .addTransformer(Transformers.MINIMIZER)
+      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
       .addTransformer(GameViews.AUTOMATON_TO_GAME_CLI)
       .addTransformer(ParityGameSolver.ZIELONKA_SOLVER)
       .writer(OutputWriters.TO_STRING) // we need an AIG writer here
