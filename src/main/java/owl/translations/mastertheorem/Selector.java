@@ -475,7 +475,8 @@ public final class Selector {
 
       if (scope == null || Predicates.IS_GREATEST_FIXPOINT.test(scope)) {
         roots.add(lfp);
-      } else if (Predicates.IS_LEAST_FIXPOINT.test(scope)) {
+      } else {
+        assert Predicates.IS_LEAST_FIXPOINT.test(scope);
         leastFixpointScopes.merge(lfp,
           scope instanceof FOperator ? Set.of() : Set.of(scope),
           Sets::union);
@@ -492,7 +493,8 @@ public final class Selector {
 
       if (scope == null || Predicates.IS_LEAST_FIXPOINT.test(scope)) {
         roots.add(gfp);
-      } else if (Predicates.IS_GREATEST_FIXPOINT.test(scope)) {
+      } else {
+        assert Predicates.IS_GREATEST_FIXPOINT.test(scope);
         greatestFixpointScopes.merge(gfp,
           scope instanceof GOperator ? Set.of() : Set.of(scope),
           Sets::union);
