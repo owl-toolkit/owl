@@ -2,7 +2,7 @@ package owl.ltl;
 /*
 import org.junit.jupiter.api.Test;
 import owl.ltl.ltlf.LtlfParser;
-import owl.ltl.ltlf.LtlfToLtlVisitor;
+import owl.ltl.ltlf.LtlfToLtlTranslator.LtlfToLtlVisitor;
 import owl.ltl.ltlf.Translator;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.CombineUntilVisitor;
