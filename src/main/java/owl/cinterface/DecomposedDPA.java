@@ -240,8 +240,9 @@ public final class DecomposedDPA {
         } else if (CO_SAFETY.contains(x)) {
           if (x instanceof PropositionalFormula && x.anyMatch(XOperator.class::isInstance)) {
             children.add(x.accept(this));
+          } else {
+            coSafety.insert(x);
           }
-          coSafety.insert(x);
         } else if (SyntacticFragments.isGfCoSafety(x)) {
           gfCoSafety.add(x);
         } else if (isDetBuchiRecognisable(x)) {
