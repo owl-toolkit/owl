@@ -8,7 +8,9 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.rewriter.CleanRedundancyLtlfVisitor;
 import owl.ltl.rewriter.ReplaceBiCondVisitor;
+import owl.ltl.rewriter.SimplifierFactory;
 
 public final class Translator {
 
@@ -19,26 +21,33 @@ public final class Translator {
   public static Formula translate(Formula in) {
     LtlfToLtlVisitor t = new LtlfToLtlVisitor();
     ReplaceBiCondVisitor r = new ReplaceBiCondVisitor();
+    CleanRedundancyLtlfVisitor c = new CleanRedundancyLtlfVisitor();
     Literal Tail = Literal.of(in.atomicPropositions(true).length());
     // tail & (tail W (G !tail)) & (F !tail) & t(in)
     // |______Safety____________|  |____Co-Safety__|
-    return Conjunction.of(Tail,Conjunction.of(
+    Formula output = Conjunction.of(Tail,Conjunction.of(
       WOperator.of(Tail, GOperator.of(Tail.not())),
-      Conjunction.of(FOperator.of(Tail.not()),t.apply(r.apply(in),Tail))));
+      Conjunction.of(FOperator.of(Tail.not()),
+        t.apply(c.apply(r.apply(in)),Tail))));
+    //simplify the output
+    return SimplifierFactory.apply(output,
+      SimplifierFactory.Mode.PUSH_DOWN_X, SimplifierFactory.Mode.SYNTACTIC);
   }
 
   public static Formula translate(Formula in, Literal Tail) {
     LtlfToLtlVisitor t = new LtlfToLtlVisitor();
     ReplaceBiCondVisitor r = new ReplaceBiCondVisitor();
-    return Conjunction.of(Tail,Conjunction.of(
-      GOperator.of(Disjunction.of(Tail,XOperator.of(Tail.not()))),
-      Conjunction.of(FOperator.of(Tail.not()),t.apply(r.apply(in),Tail))));
-    /*
+    CleanRedundancyLtlfVisitor c = new CleanRedundancyLtlfVisitor();
     // tail & (tail W (G !tail)) & (F !tail) & t(in)
     // |______Safety____________|  |____Co-Safety__|
-    return Conjunction.of(Tail,Conjunction.of(
-      WOperator.of(Tail, GOperator.of(Tail.not())),
-      Conjunction.of(FOperator.of(Tail.not()),t.apply(r.apply(in),Tail))));
-    */
+    return Conjunction.of(
+      Tail,
+      Conjunction.of(
+        WOperator.of(
+          Tail,
+          GOperator.of(Tail.not())),
+        Conjunction.of(
+          FOperator.of(Tail.not()),
+          t.apply(c.apply(r.apply(in)), Tail))));
   }
 }
