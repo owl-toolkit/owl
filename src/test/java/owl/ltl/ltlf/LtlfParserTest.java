@@ -1,11 +1,7 @@
 package owl.ltl.ltlf;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.List;
-
-import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.junit.jupiter.api.Test;
 
 import owl.ltl.BooleanConstant;
@@ -14,14 +10,13 @@ import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
-import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.NegOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.parser.LtlParser;
 
 public class LtlfParserTest {
   private static final String[] INPUT = {
@@ -62,32 +57,4 @@ public class LtlfParserTest {
     }
   }
 
-  @Test
-  void testSingleQuotedLiteralParsing() {
-    LabelledFormula formula = LtlParser.parse("'a b c'");
-    assertEquals(List.of("a b c"), formula.variables());
-    assertEquals(Literal.of(0), formula.formula());
-  }
-
-  @Test
-  void testDoubleQuotedLiteralParsing() {
-    LabelledFormula formula = LtlParser.parse("\"a b c\"");
-    assertEquals(List.of("a b c"), formula.variables());
-    assertEquals(Literal.of(0), formula.formula());
-  }
-
-  @Test
-  void testParseRegression1() {
-    assertThrows(ParseCancellationException.class, () -> LtlParser.parse("FF"));
-  }
-
-  @Test
-  void testParseRegression2() {
-    assertThrows(ParseCancellationException.class, () -> LtlParser.parse("Fa!"));
-  }
-
-  @Test
-  void testParseRegression3() {
-    assertThrows(ParseCancellationException.class, () -> LtlParser.parse("F+"));
-  }
 }

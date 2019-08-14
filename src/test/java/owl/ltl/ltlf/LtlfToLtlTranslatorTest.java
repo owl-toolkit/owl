@@ -11,7 +11,7 @@ import owl.ltl.Literal;
 
 import owl.ltl.parser.LtlParser;
 
-public class TranslatorTest {
+public class LtlfToLtlTranslatorTest {
   private static final List<String> Literals = List.of("a", "b", "c", "d", "t");
   private static final List<Formula> LtlfFORMULAS = List.of(
     //whole set of operators
@@ -117,17 +117,18 @@ public class TranslatorTest {
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & X(X(X(a & t)))", Literals),
     LtlParser.syntax("t & (t W (G !t)) & F(!t) & X(X(X(!a | !t)))", Literals),
     //dealing with biconditionals
-    LtlParser.syntax("t & (t W (G !t)) & F(!t) &((((!a) U (!t)) |" +
-      " ((b) U (!t))) & (F(a & t) | F(!b & t)))",Literals),
-    LtlParser.syntax("t & (t W (G !t)) & F(!t) &((((b) U ((a & t))) |" +
-      " ((!c) U ((!b & t)))) & ((((!b | X!t)) M (!a)) | (((c | X!t)) M (b))))",Literals));
+    LtlParser.syntax("t & (t W (G !t)) & F(!t) &((((!a) U (!t)) |"
+      + " ((b) U (!t))) & (F(a & t) | F(!b & t)))",Literals),
+    LtlParser.syntax("t & (t W (G !t)) & F(!t) &((((b) U ((a & t))) |"
+      + " ((!c) U ((!b & t)))) & ((((!b | X!t)) M (!a)) | (((c | X!t)) M (b))))",Literals));
 
 
   @Disabled
   @Test
   void correctTranslationTest() {
     for (int i = 0; i < LtlfFORMULAS.size(); i++) {
-      assertEquals(LtlFORMULAS.get(i),Translator.translate(LtlfFORMULAS.get(i), Literal.of(4)));
+      assertEquals(LtlFORMULAS.get(i), LtlfToLtlTranslator.translate(
+        LtlfFORMULAS.get(i), Literal.of(4)));
     }
   }
 }
