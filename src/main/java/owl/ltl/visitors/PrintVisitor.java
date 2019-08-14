@@ -35,12 +35,12 @@ import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.NegOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.ltlf.NegOperator;
 
 public final class PrintVisitor implements Visitor<String> {
   private final boolean parenthesize;
@@ -111,7 +111,7 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(NegOperator negOperator) {
-    return visit((UnaryModalOperator) negOperator);
+    return negOperator.operatorSymbol() + visitParenthesized(negOperator.operand);
   }
 
   @Override
