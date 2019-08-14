@@ -1,13 +1,8 @@
-package owl.ltl.ltlf;
+package owl.ltl;
 
-import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
-import owl.ltl.Formula;
-import owl.ltl.PropositionalFormula;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -15,34 +10,16 @@ import owl.ltl.visitors.Visitor;
 // This Operator only exists so all LTLf Formulas can be represented,
 // it does not contain any functionality
 public class NegOperator extends PropositionalFormula {
-  @Override
-  public Set<Formula> children() {
-    return super.children();
+  public final Formula operand;
+
+  public NegOperator(Formula operand) {
+    super(NegOperator.class,Set.of(operand));
+    this.operand = operand;
   }
 
   @Override
-  public boolean isPureEventual() {
-    return super.isPureEventual();
-  }
-
-  @Override
-  public boolean isPureUniversal() {
-    return super.isPureUniversal();
-  }
-
-  @Override
-  public <T> Stream<T> map(Function<? super Formula, ? extends T> mapper) {
-    return super.map(mapper);
-  }
-
-  @Override
-  public String toString() {
-    return super.toString();
-  }
-
-  @Override
-  protected String operatorSymbol() {
-    return null;
+  public String operatorSymbol() {
+    return "!";
   }
 
   @Override
@@ -52,30 +29,28 @@ public class NegOperator extends PropositionalFormula {
 
   @Override
   public <R> R accept(Visitor<R> visitor) {
-    return null;
+    return visitor.visit(this);
   }
 
   @Override
   public <R, P> R accept(BinaryVisitor<P, R> visitor, P parameter) {
-    return null;
+    return visitor.visit(this,parameter);
   }
 
   @Override
   public Formula nnf() {
-    return null;
+    return operand.not().nnf();
   }
 
   @Override
   public Formula not() {
-    return null;
+    return operand;
   }
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return null;
+    throw new UnsupportedOperationException("substitute not implemented for Negoperator");
   }
 
-  public NegOperator(Formula operand) {
 
-  }
 }

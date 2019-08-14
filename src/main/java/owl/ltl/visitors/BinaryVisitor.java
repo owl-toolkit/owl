@@ -29,10 +29,12 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.NegOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})
@@ -53,8 +55,10 @@ public interface BinaryVisitor<P, R> extends BiFunction<Formula, P, R> {
   default R visit(ROperator rOperator, P parameter)             { throw uoe(rOperator);       }
   default R visit(WOperator wOperator, P parameter)             { throw uoe(wOperator);       }
   default R visit(XOperator xOperator, P parameter)             { throw uoe(xOperator);       }
-
+  default R visit(NegOperator negOperator, P parameter)         { throw uoe(negOperator);     }
   private static UnsupportedOperationException uoe(Formula formula) {
     return new UnsupportedOperationException("No action defined for " + formula.getClass());
   }
+
+
 }

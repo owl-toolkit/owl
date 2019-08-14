@@ -30,11 +30,12 @@ import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.NegOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.ltlf.NegOperator;
+
 
 @SuppressWarnings({"checkstyle:LeftCurly", "checkstyle:RightCurly",
                     "checkstyle:EmptyLineSeparator"})

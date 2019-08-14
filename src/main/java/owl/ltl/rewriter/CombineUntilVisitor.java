@@ -11,11 +11,12 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.NegOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.ltlf.NegOperator;
+
 import owl.ltl.visitors.Visitor;
 
 public class CombineUntilVisitor implements Visitor<Formula> {

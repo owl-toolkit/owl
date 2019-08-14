@@ -29,7 +29,6 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.ltlf.NegOperator;
 
 /**
  * Visitor skeleton implementation that views the formula as propositional formula. For this reason
@@ -84,9 +83,5 @@ public abstract class PropositionalVisitor<T> implements Visitor<T> {
     return this.visit((Formula.TemporalOperator) xOperator);
   }
 
-  @Override
-  public final T visit(NegOperator negOperator) {
-    return this.visit((Formula.TemporalOperator) negOperator);
-  }
 
 }
