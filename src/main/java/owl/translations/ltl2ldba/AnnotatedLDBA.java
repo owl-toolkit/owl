@@ -43,6 +43,18 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LtlLanguageExpressible;
 import owl.ltl.SyntacticFragments;
 
+/**
+ * Translation-specific internal representation of LDBAs. Due to visibility constraints
+ * implementation-private methods are public. However, there are not intended to be used outside of
+ * the ltl2dpa and ltl2dra packages. The only allowed method for external code is the
+ * {@link AnnotatedLDBA#copyAsMutable()} method.
+ *
+ * @param <S> initial component states
+ * @param <T> accepting component states
+ * @param <B> acceptance condition
+ * @param <X> internal annotation
+ * @param <Y> internal annotation
+ */
 public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
   B extends GeneralizedBuchiAcceptance, X, Y> {
 

@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
 
@@ -37,24 +38,26 @@ import owl.automaton.SuccessorFunction;
  * Finds the SCCs of a given graph / transition system using Tarjan's algorithm.
  */
 public final class SccDecomposition<S> {
-  // TODO Parallel tarjan?
-
   // Initial value for the low link - since we update the low-link whenever we find a link to a
   // state we can use this to detect trivial SCCs. MAX_VALUE is important for "<" comparisons
-  static final int NO_LINK = Integer.MAX_VALUE;
+  private static final int NO_LINK = Integer.MAX_VALUE;
 
   private final Deque<S> explorationStack = new ArrayDeque<>();
   private final boolean includeTransient;
+  private final Set<S> initialStates;
+  private final Predicate<? super Set<S>> earlyTermination;
   private final Deque<TarjanState<S>> path = new ArrayDeque<>();
   private final Set<S> processedNodes = new HashSet<>();
-  private final List<Set<S>> sccs = new ArrayList<>();
   private final Map<S, TarjanState<S>> stateMap = new HashMap<>();
   private final SuccessorFunction<S> successorFunction;
   private int index = 0;
 
-  private SccDecomposition(SuccessorFunction<S> successorFunction, boolean includeTransient) {
+  private  SccDecomposition(SuccessorFunction<S> successorFunction, boolean includeTransient,
+    Set<S> initialStates, Predicate<? super Set<S>> earlyTermination) {
     this.successorFunction = successorFunction;
     this.includeTransient = includeTransient;
+    this.initialStates = initialStates;
+    this.earlyTermination = earlyTermination;
   }
 
   /**
@@ -71,47 +74,54 @@ public final class SccDecomposition<S> {
    * @return A list of set of states, where each set corresponds to an SCC, in topological order
    */
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton) {
-    return computeSccs(automaton, true);
+    return computeSccs(automaton::successors, automaton.initialStates());
   }
 
   public static <S> List<Set<S>> computeSccs(Automaton<S, ?> automaton, boolean includeTransient) {
-    return computeSccs((SuccessorFunction<S>) automaton::successors, automaton.initialStates(),
-      includeTransient);
+    return computeSccs(automaton::successors, automaton.initialStates(), includeTransient);
   }
 
-  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, S initialState) {
-    return computeSccs(function, Set.of(initialState), true);
+  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> successorFunction,
+    Set<S> initialStates) {
+    return computeSccs(successorFunction, initialStates, true);
   }
 
-  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, Set<S> initialStates) {
-    return computeSccs(function, initialStates, true);
+  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> successorFunction,
+    Set<S> initialStates, boolean includeTransient) {
+    List<Set<S>> sccs = new ArrayList<>();
+
+    computeSccsInternal(successorFunction, initialStates, includeTransient, x -> {
+      sccs.add(Set.copyOf(x));
+      // We never want to terminate early.
+      return false;
+    });
+
+    assert includeTransient || sccs.stream().noneMatch(scc -> isTransient(successorFunction, scc));
+    return sccs;
   }
 
-  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, S initialState,
-    boolean includeTransient) {
-    return computeSccs(function, Set.of(initialState), includeTransient);
+  public static <S> boolean anySccMatches(SuccessorFunction<S> successorFunction,
+    Set<S> initialStates, boolean includeTransient, Predicate<? super Set<S>> predicate) {
+    return computeSccsInternal(successorFunction, initialStates, includeTransient, predicate);
   }
 
-  public static <S> List<Set<S>> computeSccs(SuccessorFunction<S> function, Set<S> initialStates,
-    boolean includeTransient) {
-    // No need to initialize all the data-structures
-    if (initialStates.isEmpty()) {
-      return List.of();
-    }
+  private static <S> boolean computeSccsInternal(SuccessorFunction<S> successorFunction,
+    Set<S> initialStates, boolean includeTransient, Predicate<? super Set<S>> earlyTermination) {
+    var sccDecomposition = new SccDecomposition<>(successorFunction, includeTransient,
+      initialStates, earlyTermination);
 
-    SccDecomposition<S> decomposition = new SccDecomposition<>(function, includeTransient);
+    for (S initialState : sccDecomposition.initialStates) {
+      if (sccDecomposition.stateMap.containsKey(initialState)
+        || sccDecomposition.processedNodes.contains(initialState)) {
+        continue;
+      }
 
-    for (S initialState : initialStates) {
-      if (!decomposition.stateMap.containsKey(initialState)
-        && !decomposition.processedNodes.contains(initialState)) {
-        decomposition.run(initialState);
+      if (sccDecomposition.run(initialState)) {
+        return true;
       }
     }
 
-    assert includeTransient
-      || decomposition.sccs.stream().noneMatch(scc -> isTransient(function, scc));
-
-    return decomposition.sccs;
+    return false;
   }
 
   public static <S> boolean isTransient(SuccessorFunction<S> successorFunction, Set<S> scc) {
@@ -146,7 +156,7 @@ public final class SccDecomposition<S> {
   }
 
   @SuppressWarnings("ObjectEquality")
-  private void run(S initial) {
+  private boolean run(S initial) {
     assert path.isEmpty();
     TarjanState<S> state = create(initial);
 
@@ -207,8 +217,8 @@ public final class SccDecomposition<S> {
         assert Objects.equals(explorationStack.peek(), node);
         assert isTransient(successorFunction, Set.of(node));
 
-        if (this.includeTransient) {
-          sccs.add(Set.of(node));
+        if (this.includeTransient && earlyTermination.test(Set.of(node))) {
+          return true;
         }
 
         explorationStack.pop();
@@ -235,12 +245,15 @@ public final class SccDecomposition<S> {
             scc.add(stackNode);
           } while (stackNode != node); // NOPMD
         }
-        sccs.add(Set.copyOf(scc));
 
         // Remove all information about the popped states - retain the indices information since
         // we need to know which states have been processed.
         stateMap.keySet().removeAll(scc);
         processedNodes.addAll(scc);
+
+        if (earlyTermination.test(scc)) {
+          return true;
+        }
       } else {
         // If this state is not a root, update the predecessor (which has to exist)
         assert !path.isEmpty() && lowLink < nodeIndex;
@@ -266,22 +279,23 @@ public final class SccDecomposition<S> {
     }
 
     assert path.isEmpty();
+    return false;
   }
 
   private static final class TarjanState<S> {
-    final S node;
-    final int nodeIndex;
-    final Iterator<S> successorIterator;
-    int lowLink;
+    private final S node;
+    private final int nodeIndex;
+    private final Iterator<S> successorIterator;
+    private int lowLink;
 
-    TarjanState(S node, int nodeIndex, Iterator<S> successorIterator) {
+    private TarjanState(S node, int nodeIndex, Iterator<S> successorIterator) {
       this.node = node;
       this.nodeIndex = nodeIndex;
       this.successorIterator = successorIterator;
-      lowLink = NO_LINK;
+      this.lowLink = NO_LINK;
     }
 
-    int getLowLink() {
+    private int getLowLink() {
       // In standard Tarjan, all "NO_LINK"-states would have their own index as low-link.
       return lowLink == NO_LINK ? nodeIndex : lowLink;
     }

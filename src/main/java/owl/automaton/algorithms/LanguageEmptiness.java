@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.IntConsumer;
+import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.SuccessorFunction;
@@ -41,7 +42,49 @@ public final class LanguageEmptiness {
   private LanguageEmptiness() {}
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
-    return automaton.initialStates().stream().allMatch(state -> isEmpty(automaton, state));
+    return isEmpty(automaton, automaton.initialStates());
+  }
+
+  public static <S> boolean isEmpty(Automaton<S, ?> automaton, Set<S> initialStates) {
+    OmegaAcceptance acceptance = automaton.acceptance();
+    assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
+
+    if (acceptance instanceof AllAcceptance) {
+      return initialStates.stream().noneMatch(
+        x -> hasAcceptingLasso(automaton, x, -1, -1, false));
+    }
+
+    if (acceptance instanceof BuchiAcceptance) {
+      var casted = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
+      return initialStates.stream().noneMatch(x -> Buchi.containsAcceptingLasso(casted, x));
+    }
+
+    if (acceptance instanceof GeneralizedBuchiAcceptance) {
+      var casted = AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class);
+      return !Buchi.containsAcceptingScc(casted, initialStates);
+    }
+
+    if (acceptance instanceof NoneAcceptance) {
+      return true;
+    }
+
+    if (acceptance instanceof ParityAcceptance) {
+      var casted = AutomatonUtil.cast(automaton, ParityAcceptance.class);
+      return initialStates.stream().noneMatch(x -> Parity.containsAcceptingLasso(casted, x));
+    }
+
+    if (acceptance instanceof RabinAcceptance) {
+      var casted = AutomatonUtil.cast(automaton, RabinAcceptance.class);
+      return initialStates.stream().noneMatch(x -> Rabin.containsAcceptingLasso(casted, x));
+    }
+
+    if (acceptance instanceof GeneralizedRabinAcceptance) {
+      var casted = AutomatonUtil.cast(automaton, GeneralizedRabinAcceptance.class);
+      return !Rabin.containsAcceptingScc(casted, initialStates);
+    }
+
+    throw new UnsupportedOperationException(
+      String.format("Emptiness check for %s not yet implemented.", acceptance.getClass()));
   }
 
   private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
@@ -124,60 +167,6 @@ public final class LanguageEmptiness {
     return index >= 0 && edge.inSet(index);
   }
 
-  public static <S> boolean isEmpty(Automaton<S, ?> automaton, S initialState) {
-    OmegaAcceptance acceptance = automaton.acceptance();
-    assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
-
-    if (acceptance instanceof AllAcceptance) {
-      return !hasAcceptingLasso(automaton, initialState, -1, -1, false);
-    }
-
-    if (acceptance instanceof BuchiAcceptance) {
-      Automaton<S, BuchiAcceptance> casted = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
-
-      /* assert Buchi.containsAcceptingLasso(casted, initialState)
-        == Buchi.containsAcceptingScc(casted, initialState); */
-      return !Buchi.containsAcceptingLasso(casted, initialState);
-    }
-
-    if (acceptance instanceof GeneralizedBuchiAcceptance) {
-      Automaton<S, GeneralizedBuchiAcceptance> casted = AutomatonUtil.cast(automaton,
-        GeneralizedBuchiAcceptance.class);
-
-      return !Buchi.containsAcceptingScc(casted, initialState);
-    }
-
-    if (acceptance instanceof NoneAcceptance) {
-      return true;
-    }
-
-    if (acceptance instanceof ParityAcceptance) {
-      Automaton<S, ParityAcceptance> casted = AutomatonUtil.cast(automaton, ParityAcceptance.class);
-
-      /* assert Parity.containsAcceptingLasso(casted, initialState)
-        == Parity.containsAcceptingScc(casted, initialState); */
-      return !LanguageEmptiness.Parity.containsAcceptingLasso(casted, initialState);
-    }
-
-    if (acceptance instanceof RabinAcceptance) {
-      Automaton<S, RabinAcceptance> casted = AutomatonUtil.cast(automaton, RabinAcceptance.class);
-
-      /* assert Rabin.containsAcceptingLasso(casted, initialState)
-        == Rabin.containsAcceptingScc(casted, initialState); */
-      return !Rabin.containsAcceptingLasso(casted, initialState);
-    }
-
-    if (acceptance instanceof GeneralizedRabinAcceptance) {
-      Automaton<S, GeneralizedRabinAcceptance> casted = AutomatonUtil.cast(automaton,
-        GeneralizedRabinAcceptance.class);
-
-      return !Rabin.containsAcceptingScc(casted, initialState);
-    }
-
-    throw new UnsupportedOperationException(
-      String.format("Emptiness check for %s not yet implemented.", acceptance.getClass()));
-  }
-
   private static final class Buchi {
     private Buchi() {}
 
@@ -187,8 +176,8 @@ public final class LanguageEmptiness {
     }
 
     private static <S> boolean containsAcceptingScc(
-      Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, S initialState) {
-      for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
+      Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, Set<S> initialStates) {
+      Predicate<Set<S>> acceptingScc = scc -> {
         BitSet remaining = new BitSet(automaton.acceptance().size);
         remaining.set(0, automaton.acceptance().size);
 
@@ -205,9 +194,12 @@ public final class LanguageEmptiness {
             }
           }
         }
-      }
 
-      return false;
+        return false;
+      };
+
+      return SccDecomposition.anySccMatches(
+        automaton::successors, initialStates, false, acceptingScc);
     }
   }
 
@@ -268,14 +260,15 @@ public final class LanguageEmptiness {
     }
 
     private static <S> boolean containsAcceptingScc(
-      Automaton<S, ? extends GeneralizedRabinAcceptance> automaton, S initialState) {
-      for (Set<S> scc : SccDecomposition.computeSccs(automaton::successors, initialState)) {
+      Automaton<S, ? extends GeneralizedRabinAcceptance> automaton, Set<S> initialStates) {
+
+      Predicate<Set<S>> acceptingScc = scc -> {
         for (RabinPair pair : automaton.acceptance().pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair
           SuccessorFunction<S> successorFunction = SuccessorFunction.filter(automaton, scc,
             edge -> !edge.inSet(pair.finSet()));
 
-          if (SccDecomposition.computeSccs(successorFunction, scc).stream().anyMatch(subScc -> {
+          if (SccDecomposition.anySccMatches(successorFunction, scc, false, subScc -> {
             // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
             BitSet awaitedIndices = new BitSet();
             pair.forEachInfSet(awaitedIndices::set);
@@ -301,9 +294,11 @@ public final class LanguageEmptiness {
             return true;
           }
         }
-      }
+        return false;
+      };
 
-      return false;
+      return SccDecomposition.anySccMatches(
+        automaton::successors, initialStates, false, acceptingScc);
     }
   }
 }
