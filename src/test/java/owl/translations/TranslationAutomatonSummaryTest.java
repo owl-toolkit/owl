@@ -183,11 +183,9 @@ class TranslationAutomatonSummaryTest {
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("nba.symmetric", environment ->
-        SymmetricNBAConstruction.of(environment, BuchiAcceptance.class),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+        SymmetricNBAConstruction.of(environment, BuchiAcceptance.class)),
       new Translator("ngba.symmetric", environment ->
-        SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+        SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)),
 
       new Translator("delag", DelagBuilder::new,
         EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
