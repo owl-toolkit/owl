@@ -99,6 +99,12 @@ public abstract class Formula implements Comparable<Formula> {
 
         return null;
       }
+
+      @Override
+      public Void visit(NegOperator negOperator) {
+        negOperator.operand.accept(this);
+        return null;
+      }
     });
 
     return atomicPropositions;

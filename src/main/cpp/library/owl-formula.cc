@@ -39,6 +39,7 @@ namespace owl {
         bind_static(MOperator, "owl/ltl/MOperator", of, binarySignature);
 
         bind_static_method(env, "owl/ltl/parser/LtlParser", "syntax", "(Ljava/lang/String;Ljava/util/List;)Lowl/ltl/Formula;", ltlParser, ltlParseID);
+        bind_static_method(env, "owl/ltl/ltlf/LtlfParser", "syntaxToLtl", "(Ljava/lang/String;Ljava/util/List;)Lowl/ltl/Formula;", ltlfParser, ltlfParseID);
     }
 
     FormulaFactory::~FormulaFactory() {
@@ -118,8 +119,15 @@ namespace owl {
 
     Formula FormulaFactory::parse(const std::string &formula_string, const std::vector<std::string>& apMapping) {
         jstring string = copy_to_java(env, formula_string);
+            jobject mapping = copy_to_java(env, apMapping);
+            Formula formula = copy_from_java(env, call_static_method<jobject, jstring, jobject>(env, ltlParser, ltlParseID, string, mapping));
+            deref(env, string, mapping);
+            return formula;
+        }
+    Formula FormulaFactory::parseFinite(const std::string &formula_string, const std::vector<std::string>& apMapping) {
+        jstring string = copy_to_java(env, formula_string);
         jobject mapping = copy_to_java(env, apMapping);
-        Formula formula = copy_from_java(env, call_static_method<jobject, jstring, jobject>(env, ltlParser, ltlParseID, string, mapping));
+        Formula formula = copy_from_java(env, call_static_method<jobject, jstring, jobject>(env, ltlfParser, ltlfParseID, string, mapping));
         deref(env, string, mapping);
         return formula;
     }
