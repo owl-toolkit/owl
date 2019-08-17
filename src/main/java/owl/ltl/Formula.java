@@ -64,7 +64,48 @@ public abstract class Formula implements Comparable<Formula> {
   public final BitSet atomicPropositions(boolean includeNested) {
     BitSet atomicPropositions = new BitSet();
 
-    accept(new AtomicPropositionsVisitor(atomicPropositions, includeNested));
+    accept(new PropositionalVisitor<Void>() {
+      @Override
+      public Void visit(Biconditional biconditional) {
+        biconditional.left.accept(this);
+        biconditional.right.accept(this);
+        return null;
+      }
+
+      @Override
+      public Void visit(BooleanConstant booleanConstant) {
+        return null;
+      }
+
+      @Override
+      public Void visit(Conjunction conjunction) {
+        conjunction.children.forEach(x -> x.accept(this));
+        return null;
+      }
+
+      @Override
+      public Void visit(Disjunction disjunction) {
+        disjunction.children.forEach(x -> x.accept(this));
+        return null;
+      }
+
+      @Override
+      protected Void visit(TemporalOperator formula) {
+        if (formula instanceof Literal) {
+          atomicPropositions.set(((Literal) formula).getAtom());
+        } else if (includeNested) {
+          formula.children().forEach(x -> x.accept(this));
+        }
+
+        return null;
+      }
+
+      @Override
+      public Void visit(NegOperator negOperator) {
+        negOperator.operand.accept(this);
+        return null;
+      }
+    });
 
     return atomicPropositions;
   }

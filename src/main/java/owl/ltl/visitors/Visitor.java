@@ -57,7 +57,7 @@ public interface Visitor<R> extends Function<Formula, R> {
   default R visit(UOperator uOperator)             { throw uoe(uOperator);       }
   default R visit(WOperator wOperator)             { throw uoe(wOperator);       }
   default R visit(XOperator xOperator)             { throw uoe(xOperator);       }
-  default R visit(NegOperator negOperator)             { throw uoe(negOperator);       }
+  default R visit(NegOperator negOperator)         { throw uoe(negOperator);     }
 
   private static UnsupportedOperationException uoe(Formula formula) {
     return new UnsupportedOperationException("No action defined for " + formula.getClass());
