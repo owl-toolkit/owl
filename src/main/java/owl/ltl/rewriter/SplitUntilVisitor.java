@@ -2,7 +2,7 @@ package owl.ltl.rewriter;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
+// import java.util.stream.Collectors;
 
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
@@ -92,7 +92,8 @@ public class SplitUntilVisitor implements Visitor<Formula> {
       }
       return Conjunction.of(newConjuncts);
     } /*else if (uOperator.left instanceof Disjunction
-      && ((Disjunction) uOperator.left).children.stream().anyMatch(x -> x instanceof Conjunction)) {
+      && ((Disjunction) uOperator.left).children.stream().anyMatch(
+      x -> x instanceof Conjunction)) {
       Disjunction disjunction = (Disjunction) uOperator.left;
       Set<Formula> conjunctions = disjunction.children.stream().filter(
         x -> x instanceof Conjunction).collect(Collectors.toSet());
