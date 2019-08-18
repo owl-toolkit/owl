@@ -33,10 +33,10 @@ public class ReplaceBiCondVisitor implements Visitor<Formula> {
   public Formula visit(Biconditional biconditional) {
 
     return syntaxConjunction(
-      syntaxDisjunction(biconditional.left.not().accept(this),
+      syntaxDisjunction(new NegOperator(biconditional.left).accept(this),
         biconditional.right.accept(this)),
       syntaxDisjunction(biconditional.left.accept(this),
-        biconditional.right.not().accept(this)));
+        new NegOperator(biconditional.right).accept(this)));
 
   }
 
