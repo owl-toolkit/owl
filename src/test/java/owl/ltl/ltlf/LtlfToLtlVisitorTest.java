@@ -90,17 +90,18 @@ public class LtlfToLtlVisitorTest {
 
   @Test
   void manualFormulaTest() {
-    Formula f = LtlfParser.syntax("X!X!X(a)", Literals);
-    Formula f1 = LtlfParser.syntax("G((X a))", Literals);
-
-    LtlfToLtlTranslator.LtlfToLtlVisitor transformer =
-      new LtlfToLtlTranslator.LtlfToLtlVisitor(Literal.of(4));
-    ReplaceBiCondVisitor b = new ReplaceBiCondVisitor();
-    PrintVisitor p = new PrintVisitor(false, Literals);
-    p.apply(transformer.apply(b.apply(f)));
-    p.apply(transformer.apply(b.apply(f1)));
+    List<String> literale = List.of("decide","hlock_0","hlock_1",
+      "hgrant_0","hgrant_1","locked","tail");
+    Formula f1 = LtlfParser.syntax("(((G (((! (hgrant_0)) && (true)) ||"
+      + " ((true) && (! (hgrant_1))))) && (G ((hgrant_0) || (hgrant_1)))) -> "
+      + "(G (((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && "
+      + "(((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && ((! (decide)) "
+      + "-> ((X (locked)) <-> (locked))))))", literale);
+    PrintVisitor p1 = new PrintVisitor(false, literale);
+    ReplaceBiCondVisitor r = new ReplaceBiCondVisitor();
+    p1.apply(r.apply(f1));
     //System.out.println(p.apply(LtlfToLtlTranslator.translate(f,Literal.of(4))));
-    //System.out.println(p.apply(Translator.translate(f1,Literal.of(4))));
+    //System.out.println(p1.apply(LtlfToLtlTranslator.translate(f1,Literal.of(6))));
     //System.out.println(p.apply(SimplifierFactory.apply(Translator.translate(f1,Literal.of(4)),
     //  SimplifierFactory.Mode.PUSH_DOWN_X, SimplifierFactory.Mode.SYNTACTIC)));
 

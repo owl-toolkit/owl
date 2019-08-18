@@ -20,8 +20,7 @@ public class ReplaceBiCondVisitorTest {
     LtlfParser.syntax("(!a | b) & (a|!b)",literals),
     LtlfParser.syntax("G((!a | b) & (a|!b))",literals),
     LtlfParser.syntax("(F !a | F b) & (G a | G !b)",literals),
-    LtlfParser.syntax("(!a | ((!b | c)&(b | !c)))&(a | ((!b | !c)&(b | c)))",literals)
-  );
+    LtlfParser.syntax("(!a|((!b|c)&(!c|b))) & (a | !((!b|c)&(!c|b)))",literals));
 
   @Test
   void removeBicondTest() {
