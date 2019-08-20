@@ -261,9 +261,10 @@ public final class IARBuilder<R> {
 
     // TODO This might access the factory in parallel... Maybe we can return a lazy-explore type
     // of automaton that can be evaluated by the main thread?
-    var subAutomaton = new SccIARBuilder<>(Views.filter(
-      Views.replaceInitialState(rabinAutomaton, Set.of(scc.iterator().next())), scc, e -> true),
-      activeRabinPairs).build();
+    R newInitialState = scc.iterator().next();
+    var replaceInitialState = Views.replaceInitialState(rabinAutomaton, Set.of(newInitialState));
+    var restricted = Views.filter(replaceInitialState, scc::contains, e -> true);
+    var subAutomaton = new SccIARBuilder<>(restricted, activeRabinPairs).build();
     return new SccProcessingResult<>(interSccConnections, subAutomaton);
   }
 

@@ -44,14 +44,17 @@ public final class LanguageMembership {
 
   @AutoValue
   abstract static class IndexedState<S> implements AnnotatedState<S> {
-    abstract int index();
+    public abstract int index();
+
+    @Override
+    public abstract S state();
 
     static <S> IndexedState<S> of(int index, S state) {
-      return new AutoValue_LanguageMembership_IndexedState<>(state, index);
+      return new AutoValue_LanguageMembership_IndexedState<>(index, state);
     }
   }
 
-  private static class IndexedAutomaton<S, A extends OmegaAcceptance>
+  private static final class IndexedAutomaton<S, A extends OmegaAcceptance>
     extends AbstractCachedStatesAutomaton<IndexedState<S>, A>
     implements EdgesAutomatonMixin<IndexedState<S>, A> {
     private final Automaton<S, A> automaton;

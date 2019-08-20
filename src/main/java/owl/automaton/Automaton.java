@@ -221,7 +221,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    * Returns some state if there is a non-deterministic choice in this state for the specified
    * valuation.
    *
-   * <p>If you want to check if this is the unique edge use the getSuccessors() method.</p>
+   * <p>If you want to check if this is the unique edge use the successors() method.</p>
    *
    * @param state
    *     The starting state of the transition.

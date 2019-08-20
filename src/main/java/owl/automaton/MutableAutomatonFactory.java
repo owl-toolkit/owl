@@ -117,7 +117,7 @@ public final class MutableAutomatonFactory {
     return automaton;
   }
 
-  private static class CopyVisitor<S> implements EdgeVisitor<S>, EdgeMapVisitor<S> {
+  private static final class CopyVisitor<S> implements EdgeVisitor<S>, EdgeMapVisitor<S> {
     private final MutableAutomaton<S, ?> target;
 
     private CopyVisitor(MutableAutomaton<S, ?> target) {

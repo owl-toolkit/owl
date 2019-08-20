@@ -110,7 +110,8 @@ abstract class DependencyTree<T> {
   }
 
   @Nullable
-  abstract Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder);
+  abstract Boolean buildSuccessor(State<T> state, BitSet valuation,
+    ProductState.Builder<T> builder);
 
   abstract BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean acceptance);
 
