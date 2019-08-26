@@ -23,11 +23,12 @@
  * This package (and it's sub-packages) contains a flexible infrastructure for executing various
  * translation chains and obtaining these translation chains from the command line. Executions are
  * modeled as a pipeline, starting with an input parser (e.g., an
- * {@link owl.run.modules.InputReaders#LTL LTL parser}), followed by multiple transformers (e.g., an
+ * {@link owl.run.modules.InputReaders#LTL_INPUT_MODULE LTL parser}), followed by multiple
+ * transformers (e.g., an
  * {@link owl.translations.ltl2dpa.LTL2DPAFunction LTL to DPA translation}), and an output writer
- * at the end (e.g., a {@link owl.run.modules.OutputWriters#HOA HOA printer}). To allow for high
- * flexibility, various other concepts accompany this central model. In general, the structure is
- * as follows:
+ * at the end (e.g., a {@link owl.run.modules.OutputWriters#HOA_OUTPUT_MODULE HOA printer}).
+ * To allow for high flexibility, various other concepts accompany this central model. In general,
+ * the structure is as follows:
  *
  * <ul>
  * <li>A central coordinator (e.g., {@link owl.run.DefaultCli stream}) takes care of orchestrating
@@ -45,16 +46,18 @@
  * variable, these accesses have to be synchronized or the coordinators have to take care of only
  * running one process in total.</p>
  * </li>
- * <li>To obtain input, the coordinator is given a {@link owl.run.modules.InputReader reader} which
+ * <li>To obtain input, the coordinator is given a {@link owl.run.modules.OwlModule.InputReader
+ * reader} which
  * will submit all parsed inputs to a callback.
  * </li>
- * <li>For each received input, all {@link owl.run.modules.Transformer transformers} are called in
+ * <li>For each received input, all {@link owl.run.modules.OwlModule.Transformer transformers}
+ * are called in
  * order, mutating the input to the desired output. This is usually done by translation or
  * optimization constructions, but another possible instances are debugging objects which return
  * the given object untouched and just output various statistics.</li>
  * <li>Eventually, once all transformers have been called for a particular input, the resulting
- * object is given to the {@link owl.run.modules.OutputWriter output writer}. This object takes
- * care of serializing the final result on the provided output stream.</li>
+ * object is given to the {@link owl.run.modules.OwlModule.OutputWriter output writer}. This object
+ * takes care of serializing the final result on the provided output stream.</li>
  * </ul>
  * For convenience, several default implementations are also provided. These should be suitable for
  * most cases and may serve as starting point for custom implementations. Note that the provided
@@ -67,16 +70,16 @@
  * {@literal ltl2nba} with a {@literal --fast} flag can be specified as follows
  * <pre>
  * {@code
- * TransformerSettings settings = ImmutableTransformerSettings.builder()
- *   .key("ltl2nba")
- *   .optionsDirect(new Options()
- *   .addOption("f", "fast", false, "Turn on ludicrous speed!"))
- *   .transformerSettingsParser(settings -> {
+ * OwlModule<OwlModule.Transformer> settings = OwlModule.of(
+ *   "ltl2nba",
+ *   "LTL to NBA translation",
+ *   new Options()
+ *   .addOption("f", "fast", false, "Turn on ludicrous speed!")),
+ *   (commandLine, environment) -> {
  *     boolean fast = settings.hasOption("fast");
  *     return environment -> (input, context) ->
  *       LTL2NBA.apply((LabelledFormula) input, fast, environment);
- *   })
- *   .build();
+ *   });
  * }</pre>
  * These settings now only have to be added to the
  * {@link owl.run.modules.OwlModuleRegistry registry} to be usable with the extended command line

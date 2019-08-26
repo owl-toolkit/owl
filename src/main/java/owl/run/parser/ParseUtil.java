@@ -19,6 +19,7 @@
 
 package owl.run.parser;
 
+import static owl.run.modules.OwlModuleRegistry.DEFAULT_REGISTRY;
 import static owl.run.modules.OwlModuleRegistry.Type;
 
 import com.google.common.base.Strings;
@@ -31,13 +32,11 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
-import owl.run.modules.OwlModuleParser;
+import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModuleRegistry;
 import owl.util.GuardedStream;
 
 final class ParseUtil {
-  public static final Comparator<OwlModuleParser<?>> MODULE_COMPARATOR =
-    Comparator.comparing(OwlModuleParser::getKey);
   private static final HelpFormatter formatter;
 
   static {
@@ -60,34 +59,36 @@ final class ParseUtil {
     return null;
   }
 
-  static Collection<OwlModuleParser<?>> getSortedSettings(OwlModuleRegistry registry, Type type) {
-    return registry.getAllOfType(type).stream()
-      .sorted(MODULE_COMPARATOR)
+  static List<OwlModule<?>> getSortedSettings(OwlModuleRegistry registry, Type type) {
+    return registry.get(type).stream()
+      .sorted(Comparator.comparing(OwlModule::key))
       .collect(Collectors.toList());
   }
 
-  static void printList(Collection<OwlModuleParser<?>> settingsCollection,
+  static void printList(Collection<OwlModule<?>> settingsCollection,
     @Nullable Type type, @Nullable String invalidName) {
     printGuarded(writer -> {
       if (invalidName == null) {
         if (type == null) {
           formatter.printWrapped(writer, formatter.getWidth(), "All modules: ");
         } else {
-          formatter.printWrapped(writer, formatter.getWidth(), "All " + type.name + "s: ");
+          formatter.printWrapped(writer, formatter.getWidth(),
+            "All " + type.toString().toLowerCase() + "s: ");
         }
       } else {
         if (type == null) {
           formatter.printWrapped(writer, formatter.getWidth(), "No module with name "
             + invalidName + " found. Available:");
         } else {
-          formatter.printWrapped(writer, formatter.getWidth(), "No " + type.name + " with name "
+          formatter.printWrapped(writer, formatter.getWidth(),
+            "No " + type.toString().toLowerCase() + " with name "
             + invalidName + " found. Available:");
         }
       }
 
-      for (OwlModuleParser<?> settings : settingsCollection) {
-        String name = settings.getKey();
-        String description = settings.getDescription();
+      for (OwlModule<?> settings : settingsCollection) {
+        String name = settings.key();
+        String description = settings.description();
         if (Strings.isNullOrEmpty(description)) {
           formatter.printWrapped(writer, formatter.getWidth(), name);
         } else {
@@ -97,24 +98,26 @@ final class ParseUtil {
     });
   }
 
-  static void printModuleHelp(OwlModuleParser<?> settings, @Nullable String reason) {
-    Type type = Type.of(settings);
+  static void printModuleHelp(OwlModule<?> settings, @Nullable String reason) {
+    Type type = DEFAULT_REGISTRY.type(settings);
     printGuarded(writer -> {
-      String moduleName = settings.getKey();
+      String moduleName = settings.key();
       if (reason != null) {
         formatter.printWrapped(writer, formatter.getWidth(), "Failed to parse settings for the "
-          + type.name + ' ' + moduleName + ". Reason: " + reason);
+          + type.toString().toLowerCase() + ' ' + moduleName + ". Reason: " + reason);
       }
 
-      Options options = settings.getOptions();
+      Options options = settings.options();
       if (options.getOptions().isEmpty()) {
-        formatter.printWrapped(writer, formatter.getWidth(), "The " + type.name + ' ' + moduleName
+        formatter.printWrapped(writer, formatter.getWidth(),
+          "The " + type.toString().toLowerCase() + ' ' + moduleName
           + " has no settings.");
       } else {
         formatter.printWrapped(writer, formatter.getWidth(),
-          "Available settings for the " + type.name + ' ' + moduleName + " are:");
+          "Available settings for the " + type.toString().toLowerCase() + ' ' + moduleName
+            + " are:");
         formatter.printHelp(writer, formatter.getWidth(), moduleName, "    "
-          + settings.getDescription(), options, 4, 2, null, true);
+          + settings.description(), options, 4, 2, null, true);
       }
     });
   }
@@ -152,9 +155,5 @@ final class ParseUtil {
     try (PrintWriter pw = new PrintWriter(GuardedStream.syserr)) {
       print.accept(pw);
     }
-  }
-
-  static String[] toArray(List<String> list) {
-    return list.toArray(String[]::new);
   }
 }

@@ -47,8 +47,7 @@ import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.modules.OwlModule;
 import owl.run.modules.Transformers;
 
 public class ExternalTranslator
@@ -56,10 +55,10 @@ public class ExternalTranslator
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
 
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("ltl2aut-ext")
-    .description("Runs an external tool for LTL to automaton translation")
-    .optionsBuilder(() -> {
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "ltl2aut-ext",
+    "Runs an external tool for LTL to automaton translation",
+    () -> {
       Option toolOption = new Option("t", "tool", true, "The tool invocation");
       toolOption.setRequired(true);
 
@@ -69,8 +68,9 @@ public class ExternalTranslator
       return new Options()
         .addOption(toolOption)
         .addOption(inputType);
-    }).parser(settings -> {
-      String inputType = settings.getOptionValue("inputType");
+    },
+    (commandLine, environment) -> {
+      String inputType = commandLine.getOptionValue("inputType");
       InputMode inputMode;
       if (inputType == null || "stdin".equals(inputType)) {
         inputMode = InputMode.STDIN;
@@ -80,14 +80,12 @@ public class ExternalTranslator
         throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
       }
 
-      String toolPath = settings.getOptionValue("tool");
+      String toolPath = commandLine.getOptionValue("tool");
       String[] tool = splitPattern.split(toolPath);
 
-      return environment -> {
-        ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
-        return Transformers.instanceFromFunction(LabelledFormula.class, translator);
-      };
-    }).build();
+      ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
+      return Transformers.fromFunction(LabelledFormula.class, translator);
+    });
 
   private final Environment env;
   private final InputMode inputMode;

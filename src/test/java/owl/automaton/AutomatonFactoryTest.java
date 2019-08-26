@@ -37,19 +37,19 @@ import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 
 class AutomatonFactoryTest {
 
-  private static final ValuationSetFactory factory = DefaultEnvironment.annotated()
+  private static final ValuationSetFactory factory = Environment.annotated()
     .factorySupplier().getValuationSetFactory(List.of("a"));
 
   @Test
   void testCopy() {
     var automaton =
       MutableAutomatonFactory.copy(AutomatonUtil.cast(
-        (new LTL2DAFunction(DefaultEnvironment.annotated(), true, EnumSet.of(
+        (new LTL2DAFunction(Environment.annotated(), true, EnumSet.of(
           LTL2DAFunction.Constructions.SAFETY))).apply(LtlParser.parse("G a | b R c")),
         EquivalenceClass.class, AllAcceptance.class));
 

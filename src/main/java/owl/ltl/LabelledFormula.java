@@ -21,53 +21,25 @@ package owl.ltl;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import de.tum.in.naturals.bitset.BitSets;
-import java.util.BitSet;
-import java.util.HashSet;
+import com.google.auto.value.AutoValue;
 import java.util.List;
-import java.util.Set;
-import org.immutables.value.Value;
 import owl.collections.Collections3;
 import owl.ltl.visitors.PrintVisitor;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class LabelledFormula {
   public abstract Formula formula();
 
   public abstract List<String> variables();
 
-  public abstract Set<String> player1Variables();
-
-  @Value.Check
-  void check() {
-    checkState(Collections3.isDistinct(variables()));
-    checkState(variables().containsAll(player1Variables()));
-  }
-
-
   public static LabelledFormula of(Formula formula, List<String> variables) {
-    return LabelledFormulaTuple.create(formula, variables, variables);
+    var copiedVariables = List.copyOf(variables);
+    checkState(Collections3.isDistinct(copiedVariables));
+    return new AutoValue_LabelledFormula(formula, copiedVariables);
   }
-
-  public static LabelledFormula of(Formula formula, List<String> variables, Set<String> player1) {
-    return LabelledFormulaTuple.create(formula, variables, player1);
-  }
-
-  public static LabelledFormula of(Formula formula, List<String> variables, BitSet player1) {
-    Set<String> player1Variables = new HashSet<>();
-    BitSets.forEach(player1, i -> player1Variables.add(variables.get(i)));
-    return LabelledFormulaTuple.create(formula, variables, Set.copyOf(player1Variables));
-  }
-
 
   public LabelledFormula wrap(Formula formula) {
-    return of(formula, variables(), player1Variables());
-  }
-
-  public LabelledFormula split(Set<String> player1) {
-    return of(formula(), variables(), player1);
+    return of(formula, variables());
   }
 
   public LabelledFormula not() {

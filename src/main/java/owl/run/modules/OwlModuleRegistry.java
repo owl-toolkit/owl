@@ -19,17 +19,10 @@
 
 package owl.run.modules;
 
-import static com.google.common.base.Preconditions.checkArgument;
-import static owl.run.modules.OwlModuleParser.TransformerParser;
-
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Iterables;
-import com.google.common.collect.Table;
-import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Views;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
@@ -37,10 +30,9 @@ import owl.automaton.transformations.ParityUtil;
 import owl.automaton.transformations.RabinDegeneralization;
 import owl.game.GameUtil;
 import owl.game.GameViews;
+import owl.game.algorithms.ParityGameSolver;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.ltl.robust.RobustLtlInputReader;
-import owl.run.modules.OwlModuleParser.ReaderParser;
-import owl.run.modules.OwlModuleParser.WriterParser;
 import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.delag.DelagBuilder;
@@ -69,113 +61,169 @@ public class OwlModuleRegistry {
    */
   public static final OwlModuleRegistry DEFAULT_REGISTRY;
 
-  private final Table<Type, String, OwlModuleParser<?>> registeredModules = HashBasedTable.create();
+  private final Map<String, OwlModule<OwlModule.InputReader>> readers = new HashMap<>();
+  private final Map<String, OwlModule<OwlModule.Transformer>> transformers = new HashMap<>();
+  private final Map<String, OwlModule<OwlModule.OutputWriter>> writers = new HashMap<>();
 
   static {
     DEFAULT_REGISTRY = new OwlModuleRegistry();
 
-    // I/O
-    DEFAULT_REGISTRY.register(InputReaders.LTL_CLI, InputReaders.HOA_CLI,
-      OutputWriters.TO_STRING_CLI, OutputWriters.AUTOMATON_STATS_CLI, OutputWriters.NULL_CLI,
-      OutputWriters.HOA_CLI, GameUtil.PG_SOLVER_CLI, RobustLtlInputReader.INSTANCE);
+    // Input Modules
+    DEFAULT_REGISTRY.putReaders(List.of(
+      InputReaders.LTL_INPUT_MODULE,
+      InputReaders.HOA_INPUT_MODULE,
+      RobustLtlInputReader.RLTL_INPUT_MODULE));
 
-    // Transformer
-    DEFAULT_REGISTRY.register(SimplifierTransformer.CLI, GameViews.AUTOMATON_TO_GAME_CLI,
-      AcceptanceOptimizations.CLI, RabinDegeneralization.CLI, Views.COMPLETE_CLI);
+    // Output Modules
+    DEFAULT_REGISTRY.registerWriter(List.of(
+      OutputWriters.TO_STRING_MODULE,
+      OutputWriters.AUTOMATON_STATS_MODULE,
+      OutputWriters.NULL_MODULE,
+      OutputWriters.HOA_OUTPUT_MODULE,
+      GameUtil.PG_SOLVER_OUTPUT_MODULE));
+
+    // Transformers
+    DEFAULT_REGISTRY.putTransformers(List.of(
+      SimplifierTransformer.MODULE,
+      GameViews.AUTOMATON_TO_GAME_MODULE,
+      AcceptanceOptimizations.MODULE,
+      RabinDegeneralization.MODULE,
+      Views.COMPLETE_MODULE));
 
     // LTL translations
-    DEFAULT_REGISTRY.register(
+    DEFAULT_REGISTRY.putTransformers(List.of(
       // -> N(G)BA
-      LTL2NBAModule.INSTANCE, LTL2NGBAModule.INSTANCE,
+      LTL2NBAModule.MODULE, LTL2NGBAModule.MODULE,
       // -> LD(G)BA
-      LTL2LDBAModule.INSTANCE, LTL2LDGBAModule.INSTANCE,
+      LTL2LDBAModule.MODULE, LTL2LDGBAModule.MODULE,
       // -> D(G)RA
-      LTL2DRAModule.INSTANCE, LTL2DGRAModule.INSTANCE,
+      LTL2DRAModule.MODULE, LTL2DGRAModule.MODULE,
       // -> DPA
-      LTL2DPAModule.INSTANCE,
+      LTL2DPAModule.MODULE,
       // -> DELA
-      LTL2DAModule.CLI, DelagBuilder.CLI,
+      LTL2DAModule.MODULE, DelagBuilder.MODULE,
       // -> NELA
-      LTL2NAModule.CLI,
+      LTL2NAModule.MODULE,
       // external
-      ExternalTranslator.CLI);
+      ExternalTranslator.MODULE));
 
     // Automaton translations
-    DEFAULT_REGISTRY.register(IARBuilder.CLI, NBA2LDBA.CLI, NBA2DPA.CLI,
-      ParityUtil.COMPLEMENT_CLI, ParityUtil.CONVERSION_CLI);
+    DEFAULT_REGISTRY.putTransformers(List.of(
+      IARBuilder.MODULE,
+      NBA2LDBA.MODULE,
+      NBA2DPA.MODULE,
+      ParityUtil.COMPLEMENT_MODULE,
+      ParityUtil.CONVERSION_MODULE,
+      ParityGameSolver.ZIELONKA_SOLVER));
   }
 
-  public ReaderParser reader(String name) throws OwlModuleNotFoundException {
-    return (ReaderParser) getWithType(Type.READER, name);
-  }
-
-  public TransformerParser transformer(String name) throws OwlModuleNotFoundException {
-    if (registeredModules.contains(Type.TRANSFORMER, name)) {
-      return (TransformerParser) getWithType(Type.TRANSFORMER, name);
-    }
-
-    throw new OwlModuleNotFoundException(Type.TRANSFORMER, name);
-  }
-
-  public WriterParser writer(String name) throws OwlModuleNotFoundException {
-    return (WriterParser) getWithType(Type.WRITER, name);
-  }
-
-  public Collection<OwlModuleParser<?>> getAllOfType(Type type) {
-    return registeredModules.row(type).values();
-  }
-
-  public Map<Type, OwlModuleParser<?>> getAllWithName(String name) {
-    return registeredModules.columnMap().get(name);
-  }
-
-  private OwlModuleParser<?> getWithType(Type type, String name) throws OwlModuleNotFoundException {
+  public OwlModule<OwlModule.InputReader> getReader(String name)
+    throws OwlModuleNotFoundException {
     @Nullable
-    OwlModuleParser<?> owlModuleParser = registeredModules.get(type, name);
-    if (owlModuleParser == null) {
-      throw new OwlModuleNotFoundException(type, name);
+    var module = readers.get(name);
+
+    if (module == null) {
+      throw new OwlModuleNotFoundException(Type.READER, name);
     }
-    assert type.typeClass.isInstance(owlModuleParser);
-    return owlModuleParser;
+
+    return module;
   }
 
-  public void register(OwlModuleParser<?>... parser) {
-    for (OwlModuleParser<?> owlModuleParser : parser) {
-      register(owlModuleParser);
+  public OwlModule<OwlModule.Transformer> getTransformer(String name)
+    throws OwlModuleNotFoundException {
+    @Nullable
+    var module = transformers.get(name);
+
+    if (module == null) {
+      throw new OwlModuleNotFoundException(Type.TRANSFORMER, name);
+    }
+
+    return module;
+  }
+
+  public OwlModule<OwlModule.OutputWriter> getWriter(String name)
+    throws OwlModuleNotFoundException {
+    @Nullable
+    var module = writers.get(name);
+
+    if (module == null) {
+      throw new OwlModuleNotFoundException(Type.WRITER, name);
+    }
+
+    return module;
+  }
+
+  public Collection<OwlModule<?>> get(Type type) {
+    switch (type) {
+      case READER:
+        return (Collection) readers.values();
+
+      case WRITER:
+        return (Collection) writers.values();
+
+      case TRANSFORMER:
+        return (Collection) transformers.values();
+
+      default:
+        throw new AssertionError("Unreachable.");
     }
   }
 
-  public void register(OwlModuleParser<?> parser) {
-    Type type = Type.of(parser);
-    String name = parser.getKey();
+  public Map<Type, OwlModule<?>> get(String name) {
+    Map<Type, OwlModule<?>> types = new HashMap<>();
 
-    if (registeredModules.contains(type, name)) {
+    var reader = readers.get(name);
+
+    if (reader != null) {
+      types.put(Type.READER, reader);
+    }
+
+    var transformer = transformers.get(name);
+
+    if (transformer != null) {
+      types.put(Type.TRANSFORMER, reader);
+    }
+
+    var writer = transformers.get(name);
+
+    if (writer != null) {
+      types.put(Type.WRITER, reader);
+    }
+
+    return types;
+  }
+
+  public Type type(OwlModule<?> object) {
+    var typeMap = get(object.key());
+    return typeMap.keySet().iterator().next();
+  }
+
+  public void putReaders(List<OwlModule<OwlModule.InputReader>> modules) {
+    modules.forEach(module -> put(readers, module));
+  }
+
+  public void putTransformers(List<OwlModule<OwlModule.Transformer>> modules) {
+    modules.forEach(module -> put(transformers, module));
+  }
+
+  public void registerWriter(List<OwlModule<OwlModule.OutputWriter>> modules) {
+    modules.forEach(module -> put(writers, module));
+  }
+
+  private <M extends OwlModule.Instance> void put(
+    Map<String, OwlModule<M>> map, OwlModule<M> module) {
+    String key = module.key();
+
+    if (map.containsKey(key)) {
       throw new IllegalArgumentException(
-        String.format("Some module with name %s and type %s is already registered", name, type));
+        String.format("Module with name %s already registered", module.key()));
     }
 
-    registeredModules.put(type, name, parser);
+    map.put(key, module);
   }
 
   public enum Type {
-    READER(ReaderParser.class, "reader"), WRITER(WriterParser.class, "writer"),
-    TRANSFORMER(TransformerParser.class, "transformer");
-
-    public final Class<?> typeClass;
-    public final String name;
-
-    Type(Class<?> typeClass, String name) {
-      this.typeClass = typeClass;
-      this.name = name;
-    }
-
-    public static Type of(OwlModuleParser<?> object) {
-      List<Type> types = Arrays.stream(Type.values())
-        .filter(type -> type.typeClass.isInstance(object))
-        .collect(Collectors.toList());
-      checkArgument(types.size() == 1);
-      return Iterables.getOnlyElement(types);
-    }
+    READER, TRANSFORMER, WRITER;
   }
 
   public static class OwlModuleNotFoundException extends Exception {

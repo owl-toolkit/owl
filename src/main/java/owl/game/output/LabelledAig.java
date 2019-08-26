@@ -19,11 +19,9 @@
 
 package owl.game.output;
 
-import org.immutables.value.Value;
-import owl.util.annotation.HashedTuple;
+import com.google.auto.value.AutoValue;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class LabelledAig {
   public abstract Aig aig();
 
@@ -31,11 +29,11 @@ public abstract class LabelledAig {
 
 
   public static LabelledAig of(Aig aig) {
-    return LabelledAigTuple.create(aig, false);
+    return of(aig, false);
   }
 
   public static LabelledAig of(Aig aig, boolean negated) {
-    return LabelledAigTuple.create(aig, negated);
+    return new AutoValue_LabelledAig(aig, negated);
   }
 
 

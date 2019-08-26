@@ -20,10 +20,6 @@
 package owl.run.parser;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.run.modules.OwlModuleParser.ReaderParser;
-import static owl.run.modules.OwlModuleParser.TransformerParser;
-import static owl.run.modules.OwlModuleParser.WriterParser;
-import static owl.run.parser.ParseUtil.toArray;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,15 +28,11 @@ import java.util.function.Predicate;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.ParseException;
-import owl.run.ImmutablePipeline;
+import owl.run.Environment;
 import owl.run.Pipeline;
-import owl.run.modules.InputReader;
-import owl.run.modules.OutputWriter;
 import owl.run.modules.OwlModule;
-import owl.run.modules.OwlModuleParser;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.modules.OwlModuleRegistry.OwlModuleNotFoundException;
-import owl.run.modules.Transformer;
 
 /**
  * Utility class used to parse a {@link Pipeline pipeline} description based on a
@@ -53,17 +45,14 @@ public final class PipelineParser {
    * Parses the given command line with the given {@code registry}.
    */
   public static Pipeline parse(List<ModuleDescription> arguments, CommandLineParser parser,
-    OwlModuleRegistry registry) throws OwlModuleNotFoundException,
+    OwlModuleRegistry registry, Environment environment) throws OwlModuleNotFoundException,
     ModuleParseException {
     Iterator<ModuleDescription> iterator = arguments.iterator();
 
-    ImmutablePipeline.Builder pipelineSpecificationBuilder = ImmutablePipeline.builder();
-
     // Input specification
     ModuleDescription readerDescription = iterator.next();
-    ReaderParser readerParser = registry.reader(readerDescription.name);
-    InputReader reader = parseModule(parser, readerParser, readerDescription);
-    pipelineSpecificationBuilder.input(reader);
+    OwlModule.InputReader reader = parseModule(
+      parser, registry.getReader(readerDescription.name), readerDescription, environment);
 
     if (!iterator.hasNext()) {
       // Special case: Maybe we can add aliases or default paths, so that writing, e.g.,
@@ -73,20 +62,21 @@ public final class PipelineParser {
 
     // Now parse the remaining arguments
     ModuleDescription currentDescription = iterator.next();
+
+    List<OwlModule.Transformer> transformers = new ArrayList<>();
+
     while (iterator.hasNext()) {
-      TransformerParser transformerParser = registry.transformer(currentDescription.name);
-      Transformer transformer = parseModule(parser, transformerParser, currentDescription);
-      pipelineSpecificationBuilder.addTransformers(transformer);
+      transformers.add(parseModule(
+        parser, registry.getTransformer(currentDescription.name), currentDescription, environment));
       currentDescription = iterator.next();
     }
 
     // Finally, get the output
     ModuleDescription output = currentDescription;
-    WriterParser writerParser = registry.writer(output.name);
-    OutputWriter writer = parseModule(parser, writerParser, currentDescription);
-    pipelineSpecificationBuilder.output(writer);
+    OwlModule.OutputWriter writer = parseModule(
+      parser, registry.getWriter(output.name), currentDescription, environment);
 
-    return pipelineSpecificationBuilder.build();
+    return Pipeline.of(reader, transformers, writer);
   }
 
   static List<ModuleDescription> split(List<String> arguments, Predicate<String> separator) {
@@ -113,19 +103,20 @@ public final class PipelineParser {
         moduleArguments.add(next);
       }
 
-      result.add(new ModuleDescription(moduleName, toArray(moduleArguments)));
+      result.add(new ModuleDescription(moduleName, moduleArguments.toArray(String[]::new)));
     }
 
     return result;
   }
 
-  static <T extends OwlModule> T parseModule(CommandLineParser parser, OwlModuleParser<T> settings,
-    ModuleDescription description)
+  private static <T extends OwlModule.Instance> T parseModule(CommandLineParser parser,
+    OwlModule<T> settings,
+    ModuleDescription description, Environment environment)
     throws ModuleParseException {
     T result;
     try {
-      CommandLine commandLine = parser.parse(settings.getOptions(), description.arguments);
-      result = settings.parse(commandLine);
+      CommandLine commandLine = parser.parse(settings.options(), description.arguments);
+      result = settings.constructor().newInstance(commandLine, environment);
 
       List<String> argList = commandLine.getArgList();
       if (!argList.isEmpty()) {
@@ -142,16 +133,16 @@ public final class PipelineParser {
     public final String name;
     public final String[] arguments;
 
-    public ModuleDescription(String name, String[] arguments) {
+    ModuleDescription(String name, String[] arguments) {
       this.name = name;
       this.arguments = arguments.clone();
     }
   }
 
   public static class ModuleParseException extends Exception {
-    public final OwlModuleParser<?> settings;
+    public final OwlModule<?> settings;
 
-    public ModuleParseException(ParseException cause, OwlModuleParser<?> settings) {
+    ModuleParseException(ParseException cause, OwlModule<?> settings) {
       super(cause.getMessage(), cause);
       this.settings = settings;
     }

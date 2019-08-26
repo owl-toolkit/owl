@@ -19,16 +19,15 @@
 
 package owl.translations.ltl2dpa;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.List;
-import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.AsymmetricProductState;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 abstract class AsymmetricRankingState implements AnnotatedState<EquivalenceClass> {
   @Override
   public abstract EquivalenceClass state();
@@ -43,9 +42,17 @@ abstract class AsymmetricRankingState implements AnnotatedState<EquivalenceClass
 
   static AsymmetricRankingState of(EquivalenceClass state, List<AsymmetricProductState> ranking,
     int safetyProgress) {
-    assert Collections3.isDistinct(ranking) : "The following list is not distinct: " + ranking;
-    return AsymmetricRankingStateTuple.create(state, ranking, safetyProgress);
+    var rankingCopy = List.copyOf(ranking);
+    assert Collections3.isDistinct(rankingCopy) : "The ranking is not distinct: " + rankingCopy;
+    return new AutoValue_AsymmetricRankingState(state, rankingCopy, safetyProgress);
   }
+
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

@@ -21,11 +21,12 @@ package owl.translations.mastertheorem;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import org.immutables.value.Value;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.Formulas;
@@ -34,10 +35,8 @@ import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class Fixpoints implements Comparable<Fixpoints> {
 
   public abstract Set<Formula.ModalOperator> leastFixpoints();
@@ -46,7 +45,13 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
 
   public static Fixpoints of(Collection<? extends Formula.ModalOperator> leastFixpoints,
                              Collection<? extends Formula.ModalOperator> greatestFixpoints) {
-    return FixpointsTuple.create(leastFixpoints, greatestFixpoints);
+    Set<Formula.ModalOperator> leastFixpointsCopy = Set.copyOf(leastFixpoints);
+    Set<Formula.ModalOperator> greatestFixpointsCopy = Set.copyOf(greatestFixpoints);
+
+    checkArgument(leastFixpointsCopy.stream().allMatch(Predicates.IS_LEAST_FIXPOINT));
+    checkArgument(greatestFixpointsCopy.stream().allMatch(Predicates.IS_GREATEST_FIXPOINT));
+
+    return new AutoValue_Fixpoints(leastFixpointsCopy, greatestFixpointsCopy);
   }
 
   public static Fixpoints of(Collection<? extends Formula.ModalOperator> fixpoints) {
@@ -62,7 +67,8 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
       }
     }
 
-    return of(leastFixpoints, greatestFixpoints);
+    return of(Set.of(leastFixpoints.toArray(Formula.ModalOperator[]::new)),
+      Set.of(greatestFixpoints.toArray(Formula.ModalOperator[]::new)));
   }
 
   public boolean allFixpointsPresent(
@@ -73,14 +79,6 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
     return waitingFixpoints.isEmpty();
   }
 
-  @Value.Check
-  protected void check() {
-    checkArgument(
-      greatestFixpoints().stream().allMatch(Predicates.IS_GREATEST_FIXPOINT));
-    checkArgument(
-      leastFixpoints().stream().allMatch(Predicates.IS_LEAST_FIXPOINT));
-  }
-
   @Override
   public int compareTo(Fixpoints that) {
     return Formulas.compare(this.fixpoints(), that.fixpoints());
@@ -89,15 +87,16 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
   @Override
   public abstract boolean equals(Object o);
 
-  @Value.Lazy
+  @Memoized
   public Set<Formula.ModalOperator> fixpoints() {
     return Set.copyOf(Sets.union(leastFixpoints(), greatestFixpoints()));
   }
 
+  @Memoized
   @Override
   public abstract int hashCode();
 
-  @Value.Lazy
+  @Memoized
   public Fixpoints simplified() {
     Set<FOperator> fOperators = new HashSet<>();
     Set<GOperator> gOperators = new HashSet<>();

@@ -19,14 +19,13 @@
 
 package owl.translations.nba2ldba;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.base.Preconditions;
 import java.util.Set;
 import javax.annotation.Nonnegative;
-import org.immutables.value.Value;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class BreakpointState<S> {
 
   @Nonnegative
@@ -38,8 +37,15 @@ public abstract class BreakpointState<S> {
 
   static <S> BreakpointState<S> of(@Nonnegative int i, Set<S> m, Set<S> n) {
     Preconditions.checkArgument(i >= 0, "Index needs to be non-negative.");
-    return BreakpointStateTuple.create(i, m, n);
+    return new AutoValue_BreakpointState<>(i, Set.copyOf(m), Set.copyOf(n));
   }
+
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

@@ -96,7 +96,6 @@ import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.LatexPrintVisitor;
-import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
@@ -105,8 +104,8 @@ import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.ltl2nba.SymmetricNBAConstruction;
-import owl.translations.rabinizer.ImmutableRabinizerConfiguration;
 import owl.translations.rabinizer.RabinizerBuilder;
+import owl.translations.rabinizer.RabinizerConfiguration;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 class TranslationAutomatonSummaryTest {
@@ -269,7 +268,7 @@ class TranslationAutomatonSummaryTest {
     var gson = new Gson();
 
     for (Translator translator : TRANSLATORS) {
-      var translatorFunction = translator.constructor.apply(DefaultEnvironment.standard());
+      var translatorFunction = translator.constructor.apply(Environment.standard());
 
       try (Reader sizesFile = Files.newBufferedReader(translator.referenceFile())) {
         var testCases = Arrays
@@ -312,7 +311,7 @@ class TranslationAutomatonSummaryTest {
       }
     }
 
-    var translatorFunction = translator.constructor.apply(DefaultEnvironment.standard());
+    var translatorFunction = translator.constructor.apply(Environment.standard());
     var testCases = formulaSet.stream().map(x -> TestCase.of(x, translatorFunction)).toArray();
 
     try (BufferedWriter writer = Files.newBufferedWriter(translator.referenceFile())) {
@@ -509,11 +508,7 @@ class TranslationAutomatonSummaryTest {
       fail(exception);
     }
 
-    var configuration = ImmutableRabinizerConfiguration.builder()
-      .eager(true)
-      .supportBasedRelevantFormulaAnalysis(true)
-      .suspendableFormulaDetection(true)
-      .build();
+    var configuration = RabinizerConfiguration.of(true, true, true);
 
     var draAsymmetric = new Translator("DRA (Rab. 4)", (env) -> (formula) ->
       AcceptanceOptimizations.optimize(
@@ -604,7 +599,7 @@ class TranslationAutomatonSummaryTest {
     List<List<TestCase>> results = new ArrayList<>();
 
     for (Translator translator : translators) {
-      var translatorFunction = translator.constructor.apply(DefaultEnvironment.standard());
+      var translatorFunction = translator.constructor.apply(Environment.standard());
       var testCases = formulaSet.stream()
         .flatMap(x -> Stream.of(
           TestCase.of(x, translatorFunction), TestCase.of(x.not(), translatorFunction)))

@@ -22,6 +22,7 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
@@ -34,7 +35,6 @@ import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import org.immutables.value.Value;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -53,20 +53,14 @@ import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser;
-import owl.run.modules.Transformer;
+import owl.run.modules.OwlModule;
 
 public final class Views {
-  public static final Transformer COMPLETE = environment -> (input) ->
-    Views.complete(AutomatonUtil.cast(input), new MutableAutomatonUtil.Sink());
-
-  public static final OwlModuleParser.TransformerParser COMPLETE_CLI = ImmutableTransformerParser
-    .builder()
-    .key("complete")
-    .description("Make the transition relation of an automaton complet by adding a sink-state.")
-    .parser(settings -> COMPLETE)
-    .build();
+  public static final OwlModule<OwlModule.Transformer> COMPLETE_MODULE = OwlModule.of(
+    "complete",
+    "Make the transition relation of an automaton complete by adding a sink-state.",
+    (commandLine, environment) -> (input) -> Views
+      .complete(AutomatonUtil.cast(input), new MutableAutomatonUtil.Sink()));
 
   private Views() {}
 
@@ -86,18 +80,18 @@ public final class Views {
     var acceptance = completeAutomaton.acceptance();
 
     if (acceptance instanceof BuchiAcceptance) {
-      return createView(completeAutomaton, Views.<S, OmegaAcceptance>builder()
+      return createView(completeAutomaton, ViewSettings.<S, OmegaAcceptance>builder()
         .acceptance(CoBuchiAcceptance.INSTANCE).build());
     }
 
     if (acceptance instanceof CoBuchiAcceptance) {
-      return createView(completeAutomaton, Views.<S, OmegaAcceptance>builder()
+      return createView(completeAutomaton, ViewSettings.<S, OmegaAcceptance>builder()
         .acceptance(BuchiAcceptance.INSTANCE).build());
     }
 
     if (acceptance instanceof ParityAcceptance) {
       var parityAcceptance = (ParityAcceptance) automaton.acceptance();
-      return createView(completeAutomaton, Views.<S, OmegaAcceptance>builder()
+      return createView(completeAutomaton, ViewSettings.<S, OmegaAcceptance>builder()
         .acceptance(parityAcceptance.complement()).build());
     }
 
@@ -128,14 +122,14 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Set<S> states) {
-    return createView(automaton, Views.<S, A>builder()
+    return createView(automaton, ViewSettings.<S, A>builder()
       .stateFilter(states::contains)
       .build());
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
-    return createView(automaton, Views.<S, A>builder()
+    return createView(automaton, ViewSettings.<S, A>builder()
       .edgeFilter(edgeFilter)
       .stateFilter(states::contains)
       .build());
@@ -143,23 +137,21 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
     IntUnaryOperator remappingOperator) {
-    return createView(automaton, Views.<S, A>builder()
+    return createView(automaton, ViewSettings.<S, A>builder()
       .edgeRewriter(edge -> edge.withAcceptance(remappingOperator))
       .build());
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(
     Automaton<S, A> automaton, Set<S> initialStates) {
-    return createView(automaton, Views.<S, A>builder().initialStates(initialStates).build());
+    return createView(automaton, ViewSettings.<S, A>builder()
+      .initialStates(Set.copyOf(initialStates))
+      .build());
   }
 
   static <S, A extends OmegaAcceptance> Automaton<S, A> createView(
     Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
     return new AutomatonView<>(automaton, settings);
-  }
-
-  static <S, A extends OmegaAcceptance> ImmutableViewSettings.Builder<S, A> builder() {
-    return ImmutableViewSettings.builder();
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> viewAs(Automaton<S, ?> automaton,
@@ -171,7 +163,7 @@ public final class Views {
     if (ParityAcceptance.class.equals(acceptanceClazz)) {
       checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
 
-      var remapping = Views.<S, ParityAcceptance>builder()
+      var remapping = ViewSettings.<S, ParityAcceptance>builder()
         .acceptance(new ParityAcceptance(2, Parity.MIN_EVEN))
         .edgeRewriter(edge -> edge.inSet(0) ? edge : Edge.of(edge.successor(), 1))
         .build();
@@ -182,7 +174,7 @@ public final class Views {
     if (RabinAcceptance.class.equals(acceptanceClazz)) {
       checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
 
-      var remapping = Views.<S, RabinAcceptance>builder()
+      var remapping = ViewSettings.<S, RabinAcceptance>builder()
         .acceptance(RabinAcceptance.of(RabinPair.of(0)))
         .edgeRewriter(edge -> edge.withAcceptance(x -> x + 1))
         .build();
@@ -194,7 +186,7 @@ public final class Views {
       checkArgument(automaton.acceptance() instanceof GeneralizedBuchiAcceptance);
 
       int sets = automaton.acceptance().acceptanceSets();
-      var remapping = Views.<S, GeneralizedRabinAcceptance>builder()
+      var remapping = ViewSettings.<S, GeneralizedRabinAcceptance>builder()
         .acceptance(GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, sets)))
         .edgeRewriter(edge -> edge.withAcceptance(x -> x + 1))
         .build();
@@ -206,7 +198,7 @@ public final class Views {
       || GeneralizedBuchiAcceptance.class.equals(acceptanceClazz)) {
       checkArgument(automaton.acceptance() instanceof AllAcceptance);
 
-      var remapping = Views.<S, BuchiAcceptance>builder()
+      var remapping = ViewSettings.<S, BuchiAcceptance>builder()
         .acceptance(BuchiAcceptance.INSTANCE)
         .edgeRewriter(edge -> edge.withAcceptance(0))
         .build();
@@ -216,7 +208,7 @@ public final class Views {
 
     if (EmersonLeiAcceptance.class.equals(acceptanceClazz)) {
       var acceptance = automaton.acceptance();
-      var remapping = Views.<S, EmersonLeiAcceptance>builder()
+      var remapping = ViewSettings.<S, EmersonLeiAcceptance>builder()
         .acceptance(
           new EmersonLeiAcceptance(acceptance.acceptanceSets(), acceptance.booleanExpression()))
         .build();
@@ -228,7 +220,7 @@ public final class Views {
   }
 
   public static <S> Automaton<S, NoneAcceptance> viewAsLts(Automaton<S, ?> automaton) {
-    var remapping = Views.<S, NoneAcceptance>builder()
+    var remapping = ViewSettings.<S, NoneAcceptance>builder()
       .acceptance(NoneAcceptance.INSTANCE)
       .edgeRewriter(Edge::withoutAcceptance)
       .build();
@@ -374,7 +366,7 @@ public final class Views {
     }
   }
 
-  @Value.Immutable
+  @AutoValue
   abstract static class ViewSettings<S, A extends OmegaAcceptance> {
     @Nullable
     abstract A acceptance();
@@ -391,9 +383,27 @@ public final class Views {
     @Nullable
     abstract Function<Edge<S>, Edge<S>> edgeRewriter();
 
-    @Value.Default
-    Map<Automaton.Property, Boolean> properties() {
-      return Map.of();
+    abstract Map<Automaton.Property, Boolean> properties();
+
+    static <S, A extends OmegaAcceptance> Builder<S, A> builder() {
+      return (new AutoValue_Views_ViewSettings.Builder<S, A>()).properties(Map.of());
+    }
+
+    @AutoValue.Builder
+    abstract static class Builder<S, A extends OmegaAcceptance> {
+      abstract Builder<S, A> acceptance(A acceptance);
+
+      abstract Builder<S, A> initialStates(Set<S> initialStates);
+
+      abstract Builder<S, A> stateFilter(Predicate<S> filter);
+
+      abstract Builder<S, A> edgeFilter(Predicate<Edge<S>> filter);
+
+      abstract Builder<S, A> edgeRewriter(Function<Edge<S>, Edge<S>> rewriter);
+
+      abstract Builder<S, A> properties(Map<Automaton.Property, Boolean> properties);
+
+      abstract ViewSettings<S, A> build();
     }
   }
 

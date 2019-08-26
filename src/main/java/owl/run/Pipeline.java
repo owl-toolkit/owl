@@ -19,6 +19,7 @@
 
 package owl.run;
 
+import com.google.auto.value.AutoValue;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -28,45 +29,44 @@ import java.nio.channels.WritableByteChannel;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
-import org.immutables.value.Value;
-import owl.run.modules.InputReader;
-import owl.run.modules.OutputWriter;
-import owl.run.modules.Transformer;
+import owl.run.modules.OwlModule;
 
-@Value.Immutable
+@AutoValue
 public abstract class Pipeline {
   private static final Logger logger = Logger.getLogger(Pipeline.class.getName());
 
-  @Value.Parameter
-  public abstract InputReader input();
+  public abstract OwlModule.InputReader input();
 
-  @Value.Parameter
-  public abstract OutputWriter output();
+  public abstract List<OwlModule.Transformer> transformers();
 
-  @Value.Parameter
-  public abstract List<Transformer> transformers();
+  public abstract OwlModule.OutputWriter output();
 
-  public void run(Environment environment, ReadableByteChannel inputChannel,
-    WritableByteChannel outputChannel) throws IOException {
-    List<Transformer.Instance> transformers = transformers().stream()
-      .map(x -> x.create(environment))
-      .collect(Collectors.toUnmodifiableList());
+  public static Pipeline of(OwlModule.InputReader reader,
+    List<OwlModule.Transformer> transformers,
+    OwlModule.OutputWriter writer) {
+    return new AutoValue_Pipeline(reader, List.copyOf(transformers), writer);
+  }
+
+  public void run(ReadableByteChannel inputChannel, WritableByteChannel outputChannel)
+    throws IOException {
+
+    AtomicBoolean shutdownSignal = new AtomicBoolean(false);
 
     try (Reader reader = Channels.newReader(inputChannel, StandardCharsets.UTF_8.name());
          Writer writer = Channels.newWriter(outputChannel, StandardCharsets.UTF_8.name())) {
-      OutputWriter.Binding binding = output().bind(writer, environment);
       // Read from the input stream until it is exhausted or some error occurs.
 
-      input().run(reader, environment, input -> {
+      input().read(reader, input -> {
         try {
           logger.log(Level.FINEST, "Handling input {0}", input);
           long startTime = System.nanoTime();
 
           Object output = input;
-          for (Transformer.Instance transformer : transformers) {
+
+          for (OwlModule.Transformer transformer : transformers()) {
             output = transformer.transform(output);
           }
 
@@ -74,13 +74,14 @@ public abstract class Pipeline {
           logger.log(Level.FINE, () -> String.format(
             "Execution of transformers for %s took %.2f sec", input,
             (double) executionTime / TimeUnit.SECONDS.toNanos(1L)));
-          binding.write(output);
+          output().write(writer, output);
+          writer.flush();
         } catch (IOException exception) {
           throw new PipelineException("Error writing result", exception);
         }
-      });
+      }, shutdownSignal::get);
     } finally {
-      environment.shutdown();
+      shutdownSignal.set(true);
     }
   }
 }

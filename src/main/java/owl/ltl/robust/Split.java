@@ -19,16 +19,14 @@
 
 package owl.ltl.robust;
 
+import com.google.auto.value.AutoValue;
 import java.util.List;
 import java.util.function.BinaryOperator;
 import java.util.function.UnaryOperator;
-import org.immutables.value.Value;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
-import owl.util.annotation.Tuple;
 
-@Tuple
-@Value.Immutable
+@AutoValue
 public abstract class Split {
 
   public static final Split TRUE = of(BooleanConstant.TRUE, true);
@@ -44,17 +42,15 @@ public abstract class Split {
 
   public abstract Formula eventually();
 
-  @Value.Auxiliary
   abstract boolean grFree();
 
-
   static Split of(Formula formula, boolean grFree) {
-    return SplitTuple.create(formula, formula, formula, formula, grFree);
+    return new AutoValue_Split(formula, formula, formula, formula, grFree);
   }
 
   static Split of(Formula first, Formula second, Formula third, Formula fourth,
     boolean grFree) {
-    return SplitTuple.create(first, second, third, fourth, grFree);
+    return new AutoValue_Split(first, second, third, fourth, grFree);
   }
 
   public static BinaryOperator<Split> combiner(BinaryOperator<Formula> formulaCombiner) {

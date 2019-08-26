@@ -33,7 +33,7 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrinter;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class NBA2DPATest {
@@ -293,7 +293,7 @@ class NBA2DPATest {
   @ParameterizedTest
   @MethodSource("testCases")
   void runTest(String input, int size) throws ParseException {
-    var nba = AutomatonReader.readHoa(input, DefaultEnvironment.annotated()
+    var nba = AutomatonReader.readHoa(input, Environment.annotated()
       .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 

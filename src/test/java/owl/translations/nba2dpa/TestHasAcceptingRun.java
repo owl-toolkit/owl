@@ -31,7 +31,7 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.output.HoaPrinter;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 
 class TestHasAcceptingRun {
 
@@ -101,7 +101,7 @@ class TestHasAcceptingRun {
 
   private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
-    var nba = AutomatonReader.readHoa(input, DefaultEnvironment.annotated()
+    var nba = AutomatonReader.readHoa(input, Environment.annotated()
       .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 

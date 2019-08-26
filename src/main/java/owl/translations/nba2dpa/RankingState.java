@@ -19,14 +19,13 @@
 
 package owl.translations.nba2dpa;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.List;
 import java.util.Set;
-import org.immutables.value.Value;
 import owl.collections.Collections3;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class RankingState<S> {
 
   abstract Set<S> initialComponentStates();
@@ -34,10 +33,19 @@ public abstract class RankingState<S> {
   abstract List<S> acceptingComponentStates();
 
   static <S> RankingState<S> of(Set<S> initialComponentStates, List<S> acceptingComponentStates) {
-    assert Collections3.isDistinct(acceptingComponentStates)
-      : "The ranking is not distinct: " + acceptingComponentStates;
-    return RankingStateTuple.create(initialComponentStates, acceptingComponentStates);
+    var initialComponentStatesCopy = Set.copyOf(initialComponentStates);
+    var acceptingComponentStatesCopy = List.copyOf(acceptingComponentStates);
+    assert Collections3.isDistinct(acceptingComponentStatesCopy)
+      : "The ranking is not distinct: " + acceptingComponentStatesCopy;
+    return new AutoValue_RankingState<>(initialComponentStatesCopy, acceptingComponentStatesCopy);
   }
+
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

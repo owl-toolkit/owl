@@ -25,6 +25,7 @@ import com.google.common.cache.LoadingCache;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -43,11 +44,11 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.Environment;
-import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.modules.OwlModule;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
@@ -57,23 +58,23 @@ import owl.translations.ltl2dra.SymmetricDRAConstruction;
 public class DelagBuilder
   implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
 
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("delag")
-    .description("Translates LTL to deterministic Emerson-Lei automata")
-    .optionsDirect(new Options().addOption("f", "fallback", true,
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "delag",
+    "Translates LTL to deterministic Emerson-Lei automata",
+    new Options().addOption("f", "fallback", true,
       "Fallback tool for input outside the fragment. "
-        + "If no tool is specified an internal LTL to DGRA translation is used."))
-    .parser(settings -> environment -> {
-      String fallbackTool = settings.getOptionValue("fallback");
+        + "If no tool is specified an internal LTL to DGRA translation is used."),
+    (commandLine, environment) -> {
+      String fallbackTool = commandLine.getOptionValue("fallback");
 
       if (fallbackTool == null) {
-        return Transformers.instanceFromFunction(LabelledFormula.class,
+        return Transformers.fromFunction(LabelledFormula.class,
           new DelagBuilder(environment));
       }
 
-      return Transformers.instanceFromFunction(LabelledFormula.class,
+      return Transformers.fromFunction(LabelledFormula.class,
         new DelagBuilder(environment, new ExternalTranslator(environment, fallbackTool)));
-    }).build();
+    });
 
   private final Environment environment;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
@@ -92,12 +93,12 @@ public class DelagBuilder
   }
 
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("delag")
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(CLI)
-      .writer(OutputWriters.ToHoa.DEFAULT)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.LTL_INPUT_MODULE,
+      List.of(SimplifierTransformer.MODULE),
+      MODULE,
+      List.of(),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   @Override

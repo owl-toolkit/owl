@@ -493,13 +493,13 @@ public final class RabinizerBuilder {
      */
 
     logger.log(Level.FINE, "Connecting the SCCs");
-    masterSccPartition.transientStates.forEach(state ->
-      statesPerClass.put(state, RabinizerState.empty(state)));
+    masterSccPartition.transientStates.forEach(
+      state -> statesPerClass.put(state, RabinizerState.of(state, List.of())));
 
     // CSOFF: Indentation
     Function<EquivalenceClass, RabinizerState> getAnyState =
       masterState -> masterSccPartition.transientStates.contains(masterState)
-        ? RabinizerState.empty(masterState)
+        ? RabinizerState.of(masterState, List.of())
         : statesPerClass.get(masterState).iterator().next();
     // CSON: Indentation
 
@@ -527,7 +527,7 @@ public final class RabinizerBuilder {
 
     // Handle the |G| = {} case
     // TODO: Piggyback on an existing RabinPair.
-    RabinizerState trueState = RabinizerState.empty(eqFactory.getTrue());
+    RabinizerState trueState = RabinizerState.of(eqFactory.getTrue(), List.of());
     if (rabinizerAutomaton.states().contains(trueState)) {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.successors(trueState)),
         trueState);
@@ -710,7 +710,7 @@ public final class RabinizerBuilder {
           }
         }
       } else {
-        // Approach 2: Use the partition of the monitors to avoid computation if 
+        // Approach 2: Use the partition of the monitors to avoid computation if
         // monitors aren't too "fragmented".
         masterAutomaton.edgeMap(masterState).forEach((edge, valuationSet) -> {
           // The successor is not part of this partition

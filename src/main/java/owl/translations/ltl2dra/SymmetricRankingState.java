@@ -21,18 +21,17 @@ package owl.translations.ltl2dra;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import java.util.Map;
-import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, EquivalenceClass>> {
 
   @Override
@@ -52,15 +51,23 @@ abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, Equi
     Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> ranking,
     int safetyBucket,
     int safetyBucketIndex) {
-    return SymmetricRankingStateTuple.create(state, ranking, safetyBucket, safetyBucketIndex);
+    var copiedState = Map.copyOf(state);
+    var copiedRanking = ImmutableTable.copyOf(ranking);
+
+    checkState((safetyBucket == 0 && safetyBucketIndex == -1)
+      || (safetyBucket > 0 && safetyBucketIndex >= 0));
+    checkState(safetyBucket == 0 || copiedState.containsKey(safetyBucket));
+
+    return new AutoValue_SymmetricRankingState(
+      copiedState, copiedRanking, safetyBucket, safetyBucketIndex);
   }
 
-  @Value.Check
-  protected void check() {
-    checkState((safetyBucket() == 0 && safetyBucketIndex() == -1)
-      || (safetyBucket() > 0 && safetyBucketIndex() >= 0));
-    checkState(safetyBucket() == 0 || state().containsKey(safetyBucket()));
-  }
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

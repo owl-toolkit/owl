@@ -19,10 +19,10 @@
 
 package owl.automaton.algorithms;
 
+import com.google.auto.value.AutoValue;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.immutables.value.Value;
 import owl.automaton.AbstractCachedStatesAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EdgesAutomatonMixin;
@@ -31,7 +31,6 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
 import owl.factories.ValuationSetFactory;
-import owl.util.annotation.HashedTuple;
 
 public final class LanguageMembership {
 
@@ -43,13 +42,12 @@ public final class LanguageMembership {
     return !LanguageEmptiness.isEmpty(new IndexedAutomaton<>(automaton, word));
   }
 
-  @Value.Immutable
-  @HashedTuple
+  @AutoValue
   abstract static class IndexedState<S> implements AnnotatedState<S> {
     abstract int index();
 
     static <S> IndexedState<S> of(int index, S state) {
-      return IndexedStateTuple.create(index, state);
+      return new AutoValue_LanguageMembership_IndexedState<>(state, index);
     }
   }
 
@@ -78,7 +76,7 @@ public final class LanguageMembership {
     @Override
     public Set<IndexedState<S>> initialStates() {
       return automaton.initialStates().stream()
-        .map(x -> IndexedStateTuple.create(-word.prefix.size(), x))
+        .map(x -> IndexedState.of(-word.prefix.size(), x))
         .collect(Collectors.toUnmodifiableSet());
     }
 

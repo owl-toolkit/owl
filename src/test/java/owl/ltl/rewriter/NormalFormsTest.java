@@ -39,7 +39,7 @@ import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class NormalFormsTest {
@@ -134,7 +134,7 @@ class NormalFormsTest {
   @ParameterizedTest
   @MethodSource("labelledFormulaProvider")
   void testCorrectness(LabelledFormula formula) {
-    var factory = DefaultEnvironment.of(false)
+    var factory = Environment.of(false)
       .factorySupplier().getEquivalenceClassFactory(formula.variables());
 
     assertEquals(factory.of(formula.formula()),

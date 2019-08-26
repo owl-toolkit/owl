@@ -33,13 +33,13 @@ import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 
 class LTL2DAModuleFunctionTest {
   private static final String LARGE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)"
       + "& X G (x1 | x2 | x3)";
 
-  private static final LTL2DAFunction translator = new LTL2DAFunction(DefaultEnvironment.standard(),
+  private static final LTL2DAFunction translator = new LTL2DAFunction(Environment.standard(),
     true, EnumSet.of(
       LTL2DAFunction.Constructions.SAFETY,
       LTL2DAFunction.Constructions.CO_SAFETY,

@@ -26,36 +26,34 @@ import static owl.translations.LTL2NAFunction.Constructions.SAFETY;
 
 import java.io.IOException;
 import java.util.EnumSet;
+import java.util.List;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
-import owl.run.modules.ImmutableTransformerParser;
+import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.modules.OwlModule;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.LTL2NAFunction;
 
 public final class LTL2NAModule {
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("ltl2na")
-    .description("Translate LTL to a (heuristically chosen) small non-deterministic automaton.")
-    .parser(settings -> environment -> {
-      LTL2NAFunction function = new LTL2NAFunction(environment,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI));
-      return Transformers.instanceFromFunction(LabelledFormula.class, function::apply);
-    })
-    .build();
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "ltl2na",
+    "Translate LTL to a (heuristically chosen) small non-deterministic automaton.",
+    (commandLine, environment) -> Transformers.fromFunction(
+      LabelledFormula.class,
+      new LTL2NAFunction(environment, EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI))));
 
   private LTL2NAModule() {}
 
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2na")
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(CLI)
-      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
-      .writer(OutputWriters.HOA)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.LTL_INPUT_MODULE,
+      List.of(SimplifierTransformer.MODULE),
+      MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 }

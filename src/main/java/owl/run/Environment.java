@@ -19,34 +19,32 @@
 
 package owl.run;
 
+import com.google.auto.value.AutoValue;
 import owl.factories.FactorySupplier;
+import owl.factories.jbdd.JBddSupplier;
 
 /**
  * The environment makes global configuration available to all parts of the pipeline. For example,
  * it provides an {@link FactorySupplier factory supplier} that is supposed to be used by all
  * implementations.
  */
-public interface Environment {
-  /**
-   * Whether additional information (like semantic state labels) should be included.
-   */
-  boolean annotations();
+@AutoValue
+public abstract class Environment {
+  public abstract boolean annotations();
 
-  /**
-   * Returns the configured {@link FactorySupplier}.
-   */
-  FactorySupplier factorySupplier();
+  public FactorySupplier factorySupplier() {
+    return JBddSupplier.async(annotations());
+  }
 
-  // TODO: Add shutdown hooks
+  public static Environment of(boolean annotated) {
+    return new AutoValue_Environment(annotated);
+  }
 
-  /**
-   * Called exactly one by the runner, indicating that the computation has ended due to, e.g.,
-   * input exhaustion or an error.
-   */
-  void shutdown();
+  public static Environment annotated() {
+    return of(true);
+  }
 
-  /**
-   * Whether the computation has finished.
-   */
-  boolean isShutdown();
+  public static Environment standard() {
+    return of(false);
+  }
 }

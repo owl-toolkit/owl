@@ -41,9 +41,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrinter;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser;
-import owl.run.modules.Transformers;
+import owl.run.modules.OwlModule;
 
 public final class AcceptanceOptimizations {
   private static final Logger logger = Logger.getLogger(AcceptanceOptimizations.class.getName());
@@ -91,10 +89,10 @@ public final class AcceptanceOptimizations {
     ParityAcceptanceOptimizations::minimizePriorities
   );
 
-  public static final OwlModuleParser.TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("optimize-aut")
-    .description("Heuristically removes states and acceptance sets from the given automaton.")
-    .parser(settings -> environment -> new AcceptanceOptimizationTransformer()).build();
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "optimize-aut",
+    "Heuristically removes states and acceptance sets from the given automaton.",
+    (commandLine, environment) -> new AcceptanceOptimizationTransformer());
 
   private AcceptanceOptimizations() {}
 
@@ -202,7 +200,7 @@ public final class AcceptanceOptimizations {
     automaton.trim();
   }
 
-  public static class AcceptanceOptimizationTransformer extends Transformers.SimpleTransformer {
+  public static class AcceptanceOptimizationTransformer implements OwlModule.Transformer {
     @Override
     public Object transform(Object object) {
       checkArgument(object instanceof Automaton, "Expected automaton, got %s", object.getClass());

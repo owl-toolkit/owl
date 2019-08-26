@@ -58,7 +58,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
-import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 import owl.translations.canonical.GenericConstructions;
@@ -72,7 +71,7 @@ public final class DeterministicAutomaton<S, T> {
   public static final int REJECTING = -1;
   private static final int UNKNOWN = Integer.MIN_VALUE;
 
-  private static final Environment ENV = DefaultEnvironment.standard();
+  private static final Environment ENV = Environment.standard();
 
   private final Acceptance acceptance;
   private final Predicate<S> acceptingSink;

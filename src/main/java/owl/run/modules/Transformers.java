@@ -20,46 +20,19 @@
 package owl.run.modules;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.ltl.rewriter.SimplifierFactory.Mode;
-import static owl.ltl.rewriter.SimplifierFactory.apply;
 
 import java.util.function.Function;
-import owl.automaton.AutomatonUtil;
-import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.ltl.LabelledFormula;
-import owl.run.Environment;
-import owl.translations.dra2dpa.IARBuilder;
 
 public final class Transformers {
-  public static final Transformer LTL_SIMPLIFIER = Transformers.fromFunction(
-    LabelledFormula.class, x -> apply(x, Mode.SYNTACTIC_FIXPOINT));
-  public static final Transformer ACCEPTANCE_OPTIMIZATION_TRANSFORMER =
-    new AcceptanceOptimizations.AcceptanceOptimizationTransformer();
-  public static final Transformer RABIN_TO_PARITY = environment -> (input) ->
-    new IARBuilder<>(AutomatonUtil.cast(input, RabinAcceptance.class)).build();
-
   private Transformers() {
   }
 
-  public static <K, V> Transformer fromFunction(Class<K> inputClass, Function<K, V> function) {
-    return environment -> instanceFromFunction(inputClass, function);
-  }
-
-  public static <K, V> Transformer.Instance instanceFromFunction(Class<K> inputClass,
+  public static <K, V> OwlModule.Transformer fromFunction(Class<K> inputClass,
     Function<K, V> function) {
-    return (object) -> {
-      //noinspection ConstantConditions
-      checkArgument(inputClass.isInstance(object), "Expected type %s, got type %s", inputClass,
-        object == null ? null : object.getClass());
+    return object -> {
+      checkArgument(inputClass.isInstance(object),
+        "Expected type %s, got type %s", inputClass, object.getClass());
       return function.apply(inputClass.cast(object));
     };
-  }
-
-  public abstract static class SimpleTransformer implements Transformer.Instance, Transformer {
-    @Override
-    public Instance create(Environment environment) {
-      return this;
-    }
   }
 }

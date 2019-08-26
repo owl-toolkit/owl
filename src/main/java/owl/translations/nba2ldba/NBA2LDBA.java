@@ -22,6 +22,7 @@ package owl.translations.nba2ldba;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.io.IOException;
@@ -32,7 +33,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomatonUtil;
@@ -49,23 +49,19 @@ import owl.collections.Either;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
-import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.util.annotation.HashedTuple;
 
 public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, BuchiAcceptance>> {
 
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("nba2ldba")
-    .description("Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
-      + "automaton")
-    .parser(settings -> environment
-    -> (input) -> new NBA2LDBA().apply(AutomatonUtil.cast(input)))
-    .build();
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "nba2ldba",
+    "Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
+      + "automaton",
+    (commandLine, environment) -> (input) -> new NBA2LDBA().apply(AutomatonUtil.cast(input)));
 
   @Override
   public Automaton<?, BuchiAcceptance> apply(Automaton<?, ?> automaton) {
@@ -100,22 +96,22 @@ public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, Bu
   }
 
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2ldba")
-      .reader(InputReaders.HOA)
-      .addTransformer(CLI)
-      .writer(OutputWriters.HOA)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.HOA_INPUT_MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
-  @Value.Immutable
-  @HashedTuple
+  @AutoValue
   public abstract static class LDBA<S> {
     public abstract Automaton<S, BuchiAcceptance> automaton();
 
     public abstract Set<S> initialComponent();
 
     static <S> LDBA<S> of(Automaton<S, BuchiAcceptance> automaton, Set<S> initialComponent) {
-      return LDBATuple.create(automaton, initialComponent);
+      return new AutoValue_NBA2LDBA_LDBA<>(automaton, Set.copyOf(initialComponent));
     }
   }
 

@@ -39,14 +39,12 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrinter;
 import owl.automaton.output.HoaPrinter.HoaOption;
-import owl.run.Environment;
-import owl.run.modules.OwlModuleParser.WriterParser;
 
 public final class OutputWriters {
-  public static final WriterParser AUTOMATON_STATS_CLI = ImmutableWriterParser.builder()
-    .key("aut-stat")
-    .description("Writes several stats of a given automaton to the given format string")
-    .optionsBuilder(() -> {
+  public static final OwlModule<OwlModule.OutputWriter> AUTOMATON_STATS_MODULE = OwlModule.of(
+    "aut-stat",
+    "Writes several stats of a given automaton to the given format string",
+    () -> {
       Option format = new Option("f", "format", true,
         "The format string. Uses a reduced set of the spot syntax\n"
           + "%A, %a   Number of acceptance sets\n"
@@ -60,50 +58,36 @@ public final class OutputWriters {
           + "%X, %x   Number of atomic propositions");
       format.setRequired(true);
       return new Options().addOption(format);
-    })
-    .parser(settings -> automatonStats(settings.getOptionValue("format")))
-    .build();
+    },
+    (commandLine, environment) -> new AutomatonStats(commandLine.getOptionValue("format"))::write);
 
-  public static final WriterParser HOA_CLI = ImmutableWriterParser.builder()
-    .key("hoa")
-    .description("Writes the HOA format representation of an automaton or an game")
-    .optionsBuilder(() -> {
+  public static final OwlModule<OwlModule.OutputWriter> HOA_OUTPUT_MODULE = OwlModule.of(
+    "hoa",
+    "Writes the HOA format representation of an automaton.",
+    () -> {
       Option option = new Option("s", "state-acceptance", false,
         "Output an automaton with state-acceptance instead of transition acceptance.");
       return new Options().addOption(option);
-    })
-    .parser(settings -> {
-      boolean stateAcceptance = settings.hasOption("state-acceptance");
-      return new ToHoa(stateAcceptance);
-    }).build();
+    },
+    (commandLine, environment) -> {
+      return new ToHoa(environment.annotations(), commandLine.hasOption("state-acceptance"));
+    });
 
-  public static final OutputWriter NULL = (writer, environment) -> object -> writer.flush();
-  public static final WriterParser NULL_CLI = ImmutableWriterParser.builder()
-    .key("null")
-    .description("Discards the output - useful for performance testing")
-    .parser(settings -> NULL)
-    .build();
+  public static final OwlModule<OwlModule.OutputWriter> NULL_MODULE = OwlModule.of(
+    "null",
+    "Discards the output - useful for performance testing",
+    (commandLine, environment) -> (writer, object) -> writer.flush());
 
-  public static final OutputWriter TO_STRING = (writer, environment) -> object -> {
-    writer.write(object.toString());
-    writer.write(System.lineSeparator());
-  };
-  public static final WriterParser TO_STRING_CLI = ImmutableWriterParser.builder()
-    .key("string")
-    .description("Prints the toString() representation of all passed objects")
-    .parser(settings -> TO_STRING)
-    .build();
+  public static final OwlModule<OwlModule.OutputWriter> TO_STRING_MODULE = OwlModule.of(
+    "string",
+    "Prints the toString() representation of all passed objects",
+    (commandLine, environment) -> (writer, object) -> {
+      writer.write(object.toString());
+      writer.write(System.lineSeparator());
+    });
 
-  public static final OutputWriter HOA = ToHoa.DEFAULT;
 
-  private OutputWriters() {
-  }
-
-  public static OutputWriter automatonStats(String format) {
-    return (writer, environment) -> new AutomatonStats(format, writer)::write;
-  }
-
-  public static class AutomatonStats {
+  public static class AutomatonStats implements OwlModule.OutputWriter {
     private static final Map<Pattern, Function<Automaton<?, ?>, String>> patterns = Map.of(
       // Acceptance condition
       Pattern.compile("%G", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
@@ -141,14 +125,13 @@ public final class OutputWriters {
       automaton -> "\n");
 
     private final String formatString;
-    private final Writer writer;
 
-    public AutomatonStats(String formatString, Writer writer) {
+    public AutomatonStats(String formatString) {
       this.formatString = formatString;
-      this.writer = writer;
     }
 
-    void write(Object object) throws IOException {
+    @Override
+    public void write(Writer writer, Object object) throws IOException {
       checkArgument(object instanceof Automaton);
       Automaton<?, ?> automaton = (Automaton<?, ?>) object;
 
@@ -171,17 +154,19 @@ public final class OutputWriters {
    * Converts any {@link HoaPrinter HOA printable} object to its corresponding <a
    * href="http://adl.github.io/hoaf/">HOA</a> representation.
    */
-  public static class ToHoa implements OutputWriter {
-    public static final ToHoa DEFAULT = new ToHoa(false);
+  public static class ToHoa implements OwlModule.OutputWriter {
+    public static final ToHoa DEFAULT = new ToHoa(false, false);
 
+    private final boolean annotations;
     private final boolean stateAcceptance;
 
-    public ToHoa(boolean stateAcceptance) {
+    public ToHoa(boolean annotations, boolean stateAcceptance) {
+      this.annotations = annotations;
       this.stateAcceptance = stateAcceptance;
     }
 
     @Override
-    public Binding bind(Writer writer, Environment environment) {
+    public void write(Writer writer, Object object) {
       var printer = new HOAConsumerPrint(writer);
       var wrappedPrinter = stateAcceptance
         ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptance())
@@ -189,13 +174,15 @@ public final class OutputWriters {
 
       EnumSet<HoaOption> options;
 
-      if (environment.annotations()) {
+      if (annotations) {
         options = EnumSet.of(HoaOption.ANNOTATIONS);
       } else {
         options = EnumSet.noneOf(HoaOption.class);
       }
 
-      return input -> HoaPrinter.feedTo(AutomatonUtil.cast(input), wrappedPrinter, options);
+      HoaPrinter.feedTo(AutomatonUtil.cast(object), wrappedPrinter, options);
     }
   }
+
+  private OutputWriters() {}
 }

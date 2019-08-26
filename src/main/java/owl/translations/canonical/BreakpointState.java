@@ -19,17 +19,15 @@
 
 package owl.translations.canonical;
 
-import org.immutables.value.Value;
-import owl.util.annotation.Tuple;
+import com.google.auto.value.AutoValue;
 
-@Value.Immutable
-@Tuple
+@AutoValue
 public abstract class BreakpointState<E> {
   public abstract E current();
 
   public abstract E next();
 
   public static <E> BreakpointState<E> of(E current, E next) {
-    return BreakpointStateTuple.create(current, next);
+    return new AutoValue_BreakpointState<>(current, next);
   }
 }

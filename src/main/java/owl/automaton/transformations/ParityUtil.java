@@ -22,6 +22,7 @@ package owl.automaton.transformations;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
+import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
@@ -33,36 +34,33 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.Environment;
+import owl.run.modules.OwlModule;
 
 public final class ParityUtil {
-  public static final TransformerParser COMPLEMENT_CLI = ImmutableTransformerParser.builder()
-    .key("complement-parity")
-    .description("Complements a parity automaton")
-    .parser(settings -> environment -> (input) -> {
-      Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(input,
-        ParityAcceptance.class);
-      return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton),
-        new MutableAutomatonUtil.Sink());
-    }).build();
+  public static final OwlModule<OwlModule.Transformer> COMPLEMENT_MODULE = OwlModule.of(
+    "complement-parity",
+    "Complements a parity automaton",
+    (commandLine, environment) -> input -> ParityUtil.complement(
+      MutableAutomatonUtil.asMutable(AutomatonUtil.cast(input, ParityAcceptance.class)),
+      new MutableAutomatonUtil.Sink()));
 
-  public static final TransformerParser CONVERSION_CLI = ImmutableTransformerParser.builder()
-    .key("convert-parity")
-    .optionsDirect(new Options()
+  public static final OwlModule<OwlModule.Transformer> CONVERSION_MODULE = OwlModule.of(
+    "convert-parity",
+    "Converts a parity automaton into the desired type",
+    new Options()
       .addOptionGroup(new OptionGroup()
         .addOption(new Option(null, "max", false, null))
         .addOption(new Option(null, "min", false, null)))
       .addOptionGroup(new OptionGroup()
         .addOption(new Option(null, "even", false, null))
-        .addOption(new Option(null, "odd", false, null))))
-    .description("Converts a parity automaton into the desired type")
-    .parser(settings -> {
+        .addOption(new Option(null, "odd", false, null))),
+    ((CommandLine commandLine, Environment environment) -> {
       @Nullable
       Boolean toMax;
-      if (settings.hasOption("max")) {
+      if (commandLine.hasOption("max")) {
         toMax = Boolean.TRUE;
-      } else if (settings.hasOption("min")) {
+      } else if (commandLine.hasOption("min")) {
         toMax = Boolean.FALSE;
       } else {
         toMax = null;
@@ -70,15 +68,15 @@ public final class ParityUtil {
 
       @Nullable
       Boolean toEven;
-      if (settings.hasOption("even")) {
+      if (commandLine.hasOption("even")) {
         toEven = Boolean.TRUE;
-      } else if (settings.hasOption("odd")) {
+      } else if (commandLine.hasOption("odd")) {
         toEven = Boolean.FALSE;
       } else {
         toEven = null;
       }
 
-      return environment -> (input) -> {
+      return (Object input) -> {
         var automaton = AutomatonUtil.cast(input, ParityAcceptance.class);
         var target = automaton.acceptance().parity();
 
@@ -92,7 +90,8 @@ public final class ParityUtil {
 
         return ParityUtil.convert(automaton, target, new MutableAutomatonUtil.Sink());
       };
-    }).build();
+    })
+  );
 
   private ParityUtil() {
   }

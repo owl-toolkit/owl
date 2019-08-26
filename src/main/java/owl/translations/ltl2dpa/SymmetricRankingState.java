@@ -21,19 +21,17 @@ package owl.translations.ltl2dpa;
 
 import static com.google.common.base.Preconditions.checkState;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.List;
 import java.util.Map;
-import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.SymmetricProductState;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
-abstract class SymmetricRankingState
-  implements AnnotatedState<Map<Integer, EquivalenceClass>> {
+@AutoValue
+abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, EquivalenceClass>> {
 
   @Override
   public abstract Map<Integer, EquivalenceClass> state();
@@ -49,19 +47,24 @@ abstract class SymmetricRankingState
   }
 
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
-    List<SymmetricProductState> ranking,
-    int safetyBucket,
-    int safetyBucketIndex) {
-    assert Collections3.isDistinct(ranking) : "The following list is not distinct: " + ranking;
-    return SymmetricRankingStateTuple.create(state, ranking, safetyBucket, safetyBucketIndex);
+    List<SymmetricProductState> ranking, int safetyBucket, int safetyBucketIndex) {
+    var copiedState = Map.copyOf(state);
+    var copiedRanking = List.copyOf(ranking);
+
+    checkState((safetyBucket == 0 && safetyBucketIndex == -1)
+      || (safetyBucket > 0 && safetyBucketIndex >= 0));
+    checkState(safetyBucket == 0 || copiedState.containsKey(safetyBucket));
+    assert Collections3.isDistinct(copiedRanking) : "The ranking is not distinct: " + copiedRanking;
+    return new AutoValue_SymmetricRankingState(
+      copiedState, copiedRanking, safetyBucket, safetyBucketIndex);
   }
 
-  @Value.Check
-  protected void check() {
-    checkState((safetyBucket() == 0 && safetyBucketIndex() == -1)
-      || (safetyBucket() > 0 && safetyBucketIndex() >= 0));
-    checkState(safetyBucket() == 0 || state().containsKey(safetyBucket()));
-  }
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

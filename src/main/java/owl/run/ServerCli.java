@@ -60,7 +60,6 @@ public final class ServerCli {
     }
 
     var pipeline = parseResult.pipeline;
-    var annotations = parseResult.globalSettings.hasOption(getDefaultAnnotationOption().getOpt());
     var address = InetAddress.getLoopbackAddress();
     int port;
 
@@ -94,8 +93,17 @@ public final class ServerCli {
           //noinspection resource
           SocketChannel connection = socket.accept();
           logger.log(Level.FINE, "New connection from {0}", socket);
-          Environment environment = DefaultEnvironment.of(annotations);
-          connectionExecutor.submit(new ConnectionHandler(connection, environment, pipeline));
+
+          connectionExecutor.submit(() -> {
+            try (connection) {
+              pipeline.run(connection, connection);
+            } catch (@SuppressWarnings({"OverlyBroadCatchBlock", "PMD.AvoidCatchingThrowable"})
+              Throwable t) {
+              logger.log(Level.WARNING, "Error while handling connection", t);
+              Throwables.throwIfUnchecked(t);
+            }
+          });
+
         } catch (IOException e) {
           if (socket.isOpen()) {
             logger.log(Level.SEVERE, "Unexpected IO exception while waiting for connections", e);
@@ -120,29 +128,6 @@ public final class ServerCli {
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Unexpected IO exception while waiting for connections", e);
       connectionExecutor.shutdownNow();
-    }
-  }
-
-  private static final class ConnectionHandler implements Runnable {
-    private final Environment environment;
-    private final Pipeline pipeline;
-    private final SocketChannel socket;
-
-    ConnectionHandler(SocketChannel socket, Environment environment, Pipeline pipeline) {
-      this.environment = environment;
-      this.pipeline = pipeline;
-      this.socket = socket;
-    }
-
-    @Override
-    @SuppressWarnings({"PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingThrowable"})
-    public void run() {
-      try (socket) {
-        pipeline.run(environment, socket, socket);
-      } catch (@SuppressWarnings("OverlyBroadCatchBlock") Throwable t) {
-        logger.log(Level.WARNING, "Error while handling connection", t);
-        Throwables.throwIfUnchecked(t);
-      }
     }
   }
 }

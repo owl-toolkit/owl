@@ -19,15 +19,14 @@
 
 package owl.translations.delag;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.HashMap;
 import java.util.Map;
-import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 abstract class ProductState<T> {
   abstract Map<Formula, T> fallback();
 
@@ -35,11 +34,16 @@ abstract class ProductState<T> {
 
   abstract Map<Formula, EquivalenceClass> safety();
 
-
   static <T> Builder<T> builder() {
     return new Builder<>();
   }
 
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   static final class Builder<T> {
     private final Map<Formula, T> fallback;
@@ -53,7 +57,8 @@ abstract class ProductState<T> {
     }
 
     ProductState<T> build() {
-      return ProductStateTuple.create(fallback, finished, safety);
+      return new AutoValue_ProductState<>(
+        Map.copyOf(fallback), Map.copyOf(finished), Map.copyOf(safety));
     }
 
     void merge(Builder<T> other) {

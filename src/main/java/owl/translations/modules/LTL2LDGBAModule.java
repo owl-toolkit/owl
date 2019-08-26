@@ -20,12 +20,14 @@
 package owl.translations.modules;
 
 import java.io.IOException;
-import org.apache.commons.cli.CommandLine;
+import java.util.List;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
+import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.Transformer;
+import owl.run.modules.OwlModule;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
@@ -33,41 +35,32 @@ import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 
-public final class LTL2LDGBAModule extends AbstractLTL2LDBAModule {
-  public static final LTL2LDGBAModule INSTANCE = new LTL2LDGBAModule();
+public final class LTL2LDGBAModule {
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "ltl2ldgba",
+    "Translate LTL to limit-deterministic generalized Büchi automata.",
+    AbstractLTL2LDBAModule.options(),
+    (commandLine, environment) -> {
+      if (commandLine.hasOption(AbstractLTL2LDBAModule.symmetric().getOpt())) {
+        return Transformers.fromFunction(LabelledFormula.class,
+          SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+            ::applyWithShortcuts);
+      } else {
+        return Transformers.fromFunction(LabelledFormula.class,
+          AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+            .andThen(AnnotatedLDBA::copyAsMutable));
+      }
+    }
+  );
 
   private LTL2LDGBAModule() {}
 
-  @Override
-  public Transformer parse(CommandLine commandLine) {
-    if (commandLine.hasOption(symmetric().getOpt())) {
-      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          ::applyWithShortcuts);
-    } else {
-      return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-        AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable));
-    }
-  }
-
-  @Override
-  public String getKey() {
-    return "ltl2ldgba";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Translate LTL to limit-deterministic generalized Büchi automata.";
-  }
-
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(INSTANCE)
-      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
-      .writer(OutputWriters.HOA)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.LTL_INPUT_MODULE,
+      List.of(SimplifierTransformer.MODULE),
+      MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 }

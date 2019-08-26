@@ -39,12 +39,11 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.output.HoaPrinter;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
 import owl.run.Environment;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class LTL2DAFunctionTest {
-  private static final Environment environment = DefaultEnvironment.standard();
+  private static final Environment environment = Environment.standard();
 
   @TestInstance(PER_CLASS)
   @Nested

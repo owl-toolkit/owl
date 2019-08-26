@@ -21,6 +21,7 @@ package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.auto.value.AutoValue;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
@@ -34,39 +35,30 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.ToIntFunction;
-import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
-import owl.run.modules.ImmutableWriterParser;
-import owl.run.modules.OutputWriter.Binding;
-import owl.run.modules.OwlModuleParser.WriterParser;
-import owl.util.annotation.Tuple;
+import owl.run.modules.OwlModule;
 
 public final class GameUtil {
-  @SuppressWarnings("unchecked")
-  public static final WriterParser PG_SOLVER_CLI = ImmutableWriterParser.builder()
-    .key("pg-solver")
-    .description("Writes the given max even parity game in PG Solver format")
-    .parser(settings -> (writer, env) -> {
+
+  public static final OwlModule<OwlModule.OutputWriter> PG_SOLVER_OUTPUT_MODULE = OwlModule.of(
+    "pg-solver",
+    "Writes the given max even parity game in PG Solver format",
+    (commandLine, environment) -> (writer, input) -> {
       //noinspection resource,IOResourceOpenedButNotSafelyClosed
       PrintWriter printStream = writer instanceof PrintWriter
         ? (PrintWriter) writer
         : new PrintWriter(writer, true);
-
-      boolean names = env.annotations();
-
-      return (Binding) input -> {
-        checkArgument(input instanceof Game);
-        Game<?, ?> game = (Game<?, ?>) input;
-        checkArgument(game.acceptance() instanceof ParityAcceptance);
-        ParityAcceptance acceptance = (ParityAcceptance) game.acceptance();
-        checkArgument(acceptance.parity() == Parity.MAX_EVEN);
-        GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, names);
-      };
-    }).build();
+      checkArgument(input instanceof Game);
+      Game<?, ?> game = (Game<?, ?>) input;
+      checkArgument(game.acceptance() instanceof ParityAcceptance);
+      ParityAcceptance acceptance = (ParityAcceptance) game.acceptance();
+      checkArgument(acceptance.parity() == Parity.MAX_EVEN);
+      GameUtil.toPgSolver((Game<?, ParityAcceptance>) game, printStream, environment.annotations());
+    });
 
   private GameUtil() {}
 
@@ -164,17 +156,15 @@ public final class GameUtil {
     output.flush();
   }
 
-  @Value.Immutable
-  @Tuple
+  @AutoValue
   abstract static class PriorityState<S> implements AnnotatedState<S> {
     @Override
     public abstract S state();
 
     abstract int acceptance();
 
-
     static <S> PriorityState<S> of(S state, int acceptance) {
-      return PriorityStateTuple.create(state, acceptance);
+      return new AutoValue_GameUtil_PriorityState<>(state, acceptance);
     }
   }
 }
