@@ -19,111 +19,57 @@
 
 package owl.collections;
 
-import java.util.Objects;
-import java.util.Optional;
+import com.google.auto.value.AutoOneOf;
 import java.util.function.Function;
 
+@AutoOneOf(Either.Type.class)
 public abstract class Either<A, B> {
-  private Either() {}
+  Either() {
+    // Constructor should only be visible to package.
+  }
 
-  public abstract <C> C either(Function<? super A, ? extends C> left,
-    Function<? super B, ? extends C> right);
+  public enum Type {
+    LEFT, RIGHT
+  }
+
+  public abstract Type type();
+
+  public abstract A left();
+
+  public abstract B right();
 
   public static <A, B> Either<A, B> left(A value) {
-    return new EitherA<>(value);
+    return AutoOneOf_Either.left(value);
   }
 
   public static <A, B> Either<A, B> right(B value) {
-    return new EitherB<>(value);
+    return AutoOneOf_Either.right(value);
   }
 
-  public Optional<A> fromLeft() {
-    return this.either(Optional::of, value -> Optional.empty());
+  public final boolean isLeft() {
+    return type() == Type.LEFT;
   }
 
-  public Optional<B> fromRight() {
-    return this.either(value -> Optional.empty(), Optional::of);
+  public final boolean isRight() {
+    return type() == Type.RIGHT;
   }
 
-  public boolean isLeft() {
-    return fromLeft().isPresent();
-  }
+  public final <C> C map(Function<? super A, ? extends C> left,
+    Function<? super B, ? extends C> right) {
+    switch (type()) {
+      case LEFT:
+        return left.apply(left());
 
-  public boolean isRight() {
-    return fromRight().isPresent();
-  }
+      case RIGHT:
+        return right.apply(right());
 
-  private static final class EitherA<A, B> extends Either<A, B> {
-    private final A value;
-
-    private EitherA(A value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @Override
-    public <C> C either(Function<? super A, ? extends C> left,
-      Function<? super B, ? extends C> right) {
-      return left.apply(value);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof EitherA)) {
-        return false;
-      }
-
-      return value.equals(((EitherA<?, ?>) o).value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "A[" + value + ']';
+      default:
+        throw new AssertionError("Unreachable.");
     }
   }
 
-  private static final class EitherB<A, B> extends Either<A, B> {
-    private final B value;
-
-    private EitherB(B value) {
-      this.value = Objects.requireNonNull(value);
-    }
-
-    @Override
-    public <C> C either(Function<? super A, ? extends C> left,
-      Function<? super B, ? extends C> right) {
-      return right.apply(value);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof EitherB)) {
-        return false;
-      }
-
-      return value.equals(((EitherB<?, ?>) o).value);
-    }
-
-    @Override
-    public int hashCode() {
-      return value.hashCode();
-    }
-
-    @Override
-    public String toString() {
-      return "B[" + value + ']';
-    }
+  @Override
+  public final String toString() {
+    return map(a -> "A[" + a + ']', b -> "B[" + b + ']');
   }
 }

@@ -43,7 +43,7 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
 
   @Override
   public final Set<Edge<Either<A, B>>> edges(Either<A, B> state, BitSet valuation) {
-    return state.either(a -> {
+    return state.map(a -> {
       var edges = moveAtoB(a).stream()
         .flatMap(b -> liftB(edgesB(b, valuation)).stream())
         .collect(Collectors.toSet());
@@ -54,7 +54,7 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
 
   @Override
   public final ValuationTree<Edge<Either<A, B>>> edgeTree(Either<A, B> state) {
-    return state.either(a -> {
+    return state.map(a -> {
       var trees = moveAtoB(a).stream()
         .map(x -> edgeTreeB(x).map(this::liftB))
         .collect(Collectors.toSet());
