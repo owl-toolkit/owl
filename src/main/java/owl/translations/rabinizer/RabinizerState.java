@@ -19,27 +19,31 @@
 
 package owl.translations.rabinizer;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.List;
-import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class RabinizerState {
   public abstract EquivalenceClass masterState();
 
   public abstract List<MonitorState> monitorStates();
 
-
   static RabinizerState of(EquivalenceClass masterState, MonitorState[] monitorStates) {
-    return RabinizerStateTuple.create(masterState, List.of(monitorStates));
+    return of(masterState, List.of(monitorStates));
   }
 
-  static RabinizerState empty(EquivalenceClass masterState) {
-    return RabinizerStateTuple.create(masterState, List.of());
+  static RabinizerState of(EquivalenceClass masterState, List<MonitorState> monitorStates) {
+    return new AutoValue_RabinizerState(masterState, List.copyOf(monitorStates));
   }
 
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

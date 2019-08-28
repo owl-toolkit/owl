@@ -19,6 +19,8 @@
 
 package owl.run.parser;
 
+import static owl.run.RunUtil.getDefaultAnnotationOption;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -29,15 +31,17 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import owl.run.Environment;
 import owl.run.Pipeline;
 import owl.run.RunUtil;
-import owl.run.modules.OwlModuleParser;
+import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.modules.OwlModuleRegistry.OwlModuleNotFoundException;
 import owl.run.modules.OwlModuleRegistry.Type;
 
 public final class OwlParser {
   private static final Logger logger = Logger.getLogger(PipelineParser.class.getName());
+
   public final Pipeline pipeline;
   public final CommandLine globalSettings;
 
@@ -78,7 +82,7 @@ public final class OwlParser {
     @Nullable
     String specificHelp = ParseUtil.isSpecificHelp(arguments);
     if (specificHelp != null) {
-      Map<Type, OwlModuleParser<?>> modules = registry.getAllWithName(specificHelp);
+      Map<Type, OwlModule<?>> modules = registry.get(specificHelp);
       if (modules.isEmpty()) {
         throw RunUtil.failWithMessage("No module found for name " + specificHelp);
       }
@@ -97,14 +101,16 @@ public final class OwlParser {
       return null;
     }
 
+    Environment environment = getEnvironment(globalSettings);
+
     List<PipelineParser.ModuleDescription> split =
       PipelineParser.split(globalSettings.getArgList(), "---"::equals);
 
     Pipeline pipeline;
     try {
-      pipeline = PipelineParser.parse(split, cliParser, registry);
+      pipeline = PipelineParser.parse(split, cliParser, registry, environment);
     } catch (OwlModuleNotFoundException e) {
-      ParseUtil.printList(registry.getAllOfType(e.type), e.type, e.name);
+      ParseUtil.printList(registry.get(e.type), e.type, e.name);
       return null;
     } catch (PipelineParser.ModuleParseException e) {
       ParseUtil.printModuleHelp(e.settings, e.getMessage());
@@ -116,5 +122,9 @@ public final class OwlParser {
     globalSettings.getArgList().clear();
 
     return new OwlParser(pipeline, globalSettings);
+  }
+
+  public static Environment getEnvironment(CommandLine globalSettings) {
+    return Environment.of(globalSettings.hasOption(getDefaultAnnotationOption().getOpt()));
   }
 }

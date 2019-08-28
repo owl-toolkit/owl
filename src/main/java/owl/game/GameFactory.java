@@ -19,6 +19,7 @@
 
 package owl.game;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.graph.ImmutableValueGraph;
 import com.google.common.graph.MutableValueGraph;
 import com.google.common.graph.ValueGraphBuilder;
@@ -29,14 +30,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import org.immutables.value.Value;
 import owl.automaton.Automaton.Property;
 import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.util.annotation.Tuple;
 
 public final class GameFactory {
   private GameFactory() {}
@@ -68,8 +67,9 @@ public final class GameFactory {
         }
 
         game.edgeMap(state).forEach((edge, valuations) ->
-              graph.putEdgeValue(state, edge.successor(),
-                ValueEdgeTuple.create(edge.smallestAcceptanceSet(), valuations)));
+          graph.putEdgeValue(state, edge.successor(),
+            new AutoValue_GameFactory_ImmutableGame_ValueEdge(
+              edge.smallestAcceptanceSet(), valuations)));
       }
 
       this.acceptance = game.acceptance();
@@ -143,8 +143,7 @@ public final class GameFactory {
       return owner == Owner.PLAYER_1 ? variablesPlayer1 : variablesPlayer2;
     }
 
-    @Value.Immutable
-    @Tuple
+    @AutoValue
     abstract static class ValueEdge {
       abstract int colour();
 

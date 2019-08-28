@@ -21,15 +21,13 @@ package owl.game.output;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import com.google.auto.value.AutoValue;
 import javax.annotation.Nullable;
-import org.immutables.value.Value;
-import owl.util.annotation.Tuple;
 
-@Value.Immutable
-@Tuple
+@AutoValue
 public abstract class Aig {
   @SuppressWarnings("StaticInitializerReferencesSubClass")
-  public static final Aig FALSE = AigTuple.create(0, null, false, null, false);
+  public static final Aig FALSE = new AutoValue_Aig(0, null, false, null, false);
 
   public abstract int variable();
 
@@ -46,17 +44,16 @@ public abstract class Aig {
 
   public static Aig leaf(int variable) {
     checkArgument(variable > 0, "Variables need to have positive indices");
-    return AigTuple.create(variable, null, false, null, false);
+    return new AutoValue_Aig(variable, null, false, null, false);
   }
 
   public static Aig node(Aig left, Aig right) {
-    return AigTuple.create(0, left, false, right, false);
+    return new AutoValue_Aig(0, left, false, right, false);
   }
 
   public static Aig node(Aig left, boolean leftNegated, Aig right, boolean rightNegated) {
-    return AigTuple.create(0, left, leftNegated, right, rightNegated);
+    return new AutoValue_Aig(0, left, leftNegated, right, rightNegated);
   }
-
 
   public boolean isLeaf() {
     return left() == null && right() == null;

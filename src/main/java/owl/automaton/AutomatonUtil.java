@@ -219,7 +219,7 @@ public final class AutomatonUtil {
     Set<S> acceptingSccs = new HashSet<>();
 
     for (Set<S> scc : SccDecomposition.computeSccs(automaton)) {
-      var viewSettings = Views.<S, B>builder()
+      var viewSettings = Views.ViewSettings.<S, B>builder()
         .initialStates(Set.of(scc.iterator().next()))
         .stateFilter(scc::contains)
         .build();

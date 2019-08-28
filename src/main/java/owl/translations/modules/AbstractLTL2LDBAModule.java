@@ -22,9 +22,9 @@ package owl.translations.modules;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import owl.run.modules.OwlModuleParser;
 
-abstract class AbstractLTL2LDBAModule implements OwlModuleParser.TransformerParser {
+final class AbstractLTL2LDBAModule {
+  private AbstractLTL2LDBAModule() {}
 
   static Option asymmetric() {
     return new Option("a", "asymmetric", false, "Guess only greatest "
@@ -45,8 +45,7 @@ abstract class AbstractLTL2LDBAModule implements OwlModuleParser.TransformerPars
     return group;
   }
 
-  @Override
-  public Options getOptions() {
+  static Options options() {
     return new Options().addOptionGroup(getOptionGroup());
   }
 }

@@ -98,11 +98,8 @@ public final class DefaultCli {
       : Files.newByteChannel(Paths.get(destination),
         StandardOpenOption.APPEND, StandardOpenOption.CREATE);
 
-    var environment = DefaultEnvironment.of(
-      settings.hasOption(RunUtil.getDefaultAnnotationOption().getOpt()));
-
     try (reader; writer) {
-      pipeline.run(environment, reader, writer);
+      pipeline.run(reader, writer);
     }
   }
 

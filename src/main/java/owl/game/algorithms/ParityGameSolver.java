@@ -31,19 +31,20 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.game.Game;
 import owl.game.GameViews;
-import owl.run.modules.Transformer;
+import owl.run.modules.OwlModule;
 import owl.run.modules.Transformers;
 
 public final class ParityGameSolver {
   // TODO: should be returning a winning region or strategy
-  public static final Transformer ZIELONKA_SOLVER =
-    Transformers.fromFunction(Game.class, x -> {
+  public static final OwlModule<OwlModule.Transformer> ZIELONKA_SOLVER = OwlModule.of(
+    "zielonka",
+    "???",
+    (commandLine, environment) -> Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
-
       return winning.player2.contains(x.onlyInitialState())
         ? "The specification is REALISABLE"
         : "The specification is UNREALISABLE";
-    });
+    }));
 
   private ParityGameSolver() {}
 

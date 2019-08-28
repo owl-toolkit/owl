@@ -30,61 +30,56 @@ import owl.automaton.AutomatonReader;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.PipelineException;
-import owl.run.modules.OwlModuleParser.ReaderParser;
 
 public final class InputReaders {
   private static final Logger logger = Logger.getLogger(InputReaders.class.getName());
 
-  public static final InputReader HOA = (reader, env, callback) -> {
-    try {
-      AutomatonReader
-        .readHoaStream(reader, env.factorySupplier()::getValuationSetFactory, callback::accept);
-    } catch (ParseException e) {
-      throw new PipelineException("Failed to parse input automaton", e);
-    }
-  };
-
-  public static final ReaderParser HOA_CLI = ImmutableReaderParser.builder()
-    .key("hoa")
-    .description("Parses automata given in HOA format, converting them to transition based "
-      + "acceptance if necessary")
-    .parser(settings -> HOA).build();
-
-  public static final InputReader LTL = (reader, env, callback) ->
-    CharStreams.readLines(reader, new LineProcessor<Void>() {
-      @Override
-      public boolean processLine(String line) {
-        if (env.isShutdown()) {
-          return false;
-        }
-
-        if (line.isEmpty()) {
-          return true;
-        }
-
-        logger.log(Level.FINEST, "Parsing formula {0}", line);
-
-        LabelledFormula formula;
-        try {
-          formula = LtlParser.parse(line);
-        } catch (RecognitionException | ParseCancellationException e) {
-          throw new PipelineException("Failed to parse LTL formula " + line, e);
-        }
-        logger.log(Level.FINE, "Read formula {0} from line {1}", new Object[] {formula, line});
-        callback.accept(formula);
-        return true;
-      }
-
-      @Override
-      public Void getResult() {
-        return null;
+  public static final OwlModule<OwlModule.InputReader> HOA_INPUT_MODULE = OwlModule.of(
+    "hoa",
+    "Parses automata given in HOA format, converting them to transition based acceptance if "
+      + "necessary",
+    (commandline, environment) -> (reader, callback, stopSignal) -> {
+      try {
+        AutomatonReader.readHoaStream(
+          reader, environment.factorySupplier()::getValuationSetFactory, callback::accept);
+      } catch (ParseException e) {
+        throw new PipelineException("Failed to parse input automaton", e);
       }
     });
 
-  public static final ReaderParser LTL_CLI = ImmutableReaderParser.builder()
-    .key("ltl")
-    .description("Parses LTL formulas and converts them into NNF")
-    .parser(settings -> LTL).build();
+  public static final OwlModule<OwlModule.InputReader> LTL_INPUT_MODULE = OwlModule.of(
+    "ltl",
+    "Parses LTL formulas and converts them into NNF",
+    (commandLine, environment) -> (reader, callback, stopSignal) ->
+      CharStreams.readLines(reader, new LineProcessor<>() {
+        @Override
+        public boolean processLine(String line) {
+          if (stopSignal.get()) {
+            return false;
+          }
+
+          if (line.isEmpty()) {
+            return true;
+          }
+
+          logger.log(Level.FINEST, "Parsing formula {0}", line);
+
+          LabelledFormula formula;
+          try {
+            formula = LtlParser.parse(line);
+          } catch (RecognitionException | ParseCancellationException e) {
+            throw new PipelineException("Failed to parse LTL formula " + line, e);
+          }
+          logger.log(Level.FINE, "Read formula {0} from line {1}", new Object[] {formula, line});
+          callback.accept(formula);
+          return true;
+        }
+
+        @Override
+        public Void getResult() {
+          return null;
+        }
+      }));
 
   private InputReaders() {}
 }

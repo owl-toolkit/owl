@@ -19,25 +19,30 @@
 
 package owl.translations.rabinizer;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Iterables;
 import java.util.List;
-import org.immutables.value.Value;
 import owl.ltl.EquivalenceClass;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 abstract class MonitorState {
   abstract List<EquivalenceClass> formulaRanking();
 
   static MonitorState of(EquivalenceClass initialClass) {
-    return MonitorStateTuple.create(List.of(initialClass));
+    return of(List.of(initialClass));
   }
 
   static MonitorState of(List<EquivalenceClass> ranking) {
-    return MonitorStateTuple.create(ranking);
+    return new AutoValue_MonitorState(List.copyOf(ranking));
   }
 
+  @Override
+  public abstract boolean equals(Object object);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public String toString() {

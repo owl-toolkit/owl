@@ -22,6 +22,8 @@ package owl.game;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.Indices;
@@ -44,7 +46,6 @@ import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonUtil;
@@ -58,19 +59,17 @@ import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.util.annotation.HashedTuple;
+import owl.run.modules.OwlModule;
 
 public final class GameViews {
   private static final Logger logger = Logger.getLogger(GameViews.class.getName());
 
   @SuppressWarnings("SpellCheckingInspection")
-  public static final TransformerParser AUTOMATON_TO_GAME_CLI =
-    ImmutableTransformerParser.builder()
-      .key("aut2game")
-      .description("Converts an automaton into a game by splitting the transitions")
-      .optionsBuilder(() -> {
+  public static final OwlModule<OwlModule.Transformer> AUTOMATON_TO_GAME_MODULE =
+    OwlModule.<OwlModule.Transformer>of(
+      "aut2game",
+      "Converts an automaton into a game by splitting the transitions",
+      () -> {
         Option environmentPropositions = new Option("e", "environment", true,
           "List of atomic propositions controlled by the environment");
         Option systemPropositions = new Option("s", "system", true,
@@ -93,13 +92,13 @@ public final class GameViews {
         return new Options()
           .addOptionGroup(apGroup)
           .addOption(complete);
-      })
-      .parser(settings -> {
+      },
+      (commandLine, environment) -> {
         // At most one of those is non-null
-        String[] environmentPropositions = settings.getOptionValues("environment");
-        String[] systemPropositions = settings.getOptionValues("system");
-        String[] environmentPrefixes = settings.getOptionValues("envprefix");
-        String[] systemPrefixes = settings.getOptionValues("sysprefix");
+        String[] environmentPropositions = commandLine.getOptionValues("environment");
+        String[] systemPropositions = commandLine.getOptionValues("system");
+        String[] environmentPrefixes = commandLine.getOptionValues("envprefix");
+        String[] systemPrefixes = commandLine.getOptionValues("sysprefix");
 
         Predicate<String> isEnvironmentAp;
         if (environmentPropositions != null) {
@@ -116,9 +115,9 @@ public final class GameViews {
           isEnvironmentAp = ap -> ap.charAt(0) == 'i';
         }
 
-        boolean wrapComplete = settings.hasOption("complete");
+        boolean wrapComplete = commandLine.hasOption("complete");
 
-        return environment -> (input) -> {
+        return (Object input) -> {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
           List<String> environmentAp = automaton.factory().alphabet().stream()
@@ -135,7 +134,7 @@ public final class GameViews {
 
           return GameViews.split(parityAutomaton, environmentAp);
         };
-      }).build();
+      });
 
 
   private GameViews() {}
@@ -447,8 +446,7 @@ public final class GameViews {
   /**
    * A state of the split game.
    */
-  @Value.Immutable
-  @HashedTuple
+  @AutoValue
   public abstract static class Node<S> implements AnnotatedState<S> {
     @Override
     public abstract S state();
@@ -458,13 +456,19 @@ public final class GameViews {
 
 
     static <S> Node<S> of(S state) {
-      return NodeTuple.create(state, null);
+      return new AutoValue_GameViews_Node<>(state, null);
     }
 
     static <S> Node<S> of(S state, BitSet choice) {
-      return NodeTuple.create(state, BitSets.copyOf(choice));
+      return new AutoValue_GameViews_Node<>(state, BitSets.copyOf(choice));
     }
 
+    @Override
+    public abstract boolean equals(Object object);
+
+    @Memoized
+    @Override
+    public abstract int hashCode();
 
     @Override
     public String toString() {

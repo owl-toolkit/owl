@@ -27,7 +27,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import owl.automaton.AutomatonReader;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.output.HoaPrinter;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 
 class NBA2LDBATest {
 
@@ -104,7 +104,7 @@ class NBA2LDBATest {
   @ParameterizedTest
   @ValueSource(strings = {ALL_ACCEPTANCE, BUCHI_1, BUCHI_2, BUCHI_3, BUCHI_4})
   void runTest(String hoa) throws ParseException {
-    var supplier = DefaultEnvironment.annotated().factorySupplier();
+    var supplier = Environment.annotated().factorySupplier();
     var nba = AutomatonReader.readHoa(hoa, supplier::getValuationSetFactory, OmegaAcceptance.class);
     var ldba = new NBA2LDBA().apply(nba);
     HoaPrinter.feedTo(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));

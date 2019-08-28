@@ -19,28 +19,24 @@
 
 package owl.translations.dra2dpa;
 
+import com.google.auto.value.AutoValue;
 import de.tum.in.naturals.IntPreOrder;
-import org.immutables.value.Value;
 import owl.automaton.util.AnnotatedState;
-import owl.util.annotation.HashedTuple;
 
-@Value.Immutable
-@HashedTuple
+@AutoValue
 public abstract class IARState<R> implements AnnotatedState<R> {
   @Override
   public abstract R state();
 
   public abstract IntPreOrder record();
 
-
-  public static <R> IARState<R> active(R originalState, IntPreOrder record) {
-    return IARStateTuple.create(originalState, record);
+  public static <R> IARState<R> of(R originalState) {
+    return of(originalState, IntPreOrder.empty());
   }
 
-  public static <R> IARState<R> trivial(R originalState) {
-    return IARStateTuple.create(originalState, IntPreOrder.empty());
+  public static <R> IARState<R> of(R originalState, IntPreOrder record) {
+    return new AutoValue_IARState<>(originalState, record);
   }
-
 
   @Override
   public String toString() {

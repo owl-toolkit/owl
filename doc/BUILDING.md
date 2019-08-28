@@ -2,7 +2,7 @@
 
 ## Prerequisites
 
-Building the project from source requires an installed [JDK 11](http://jdk.java.net/11/) and an installed C++17 compiler. Furthermore to generate HTML documentation [pandoc](https://pandoc.org/) is needed.
+Building the project from source requires an installed [JDK 12](http://jdk.java.net/12/) and an installed C++17 compiler. Furthermore to generate HTML documentation [pandoc](https://pandoc.org/) is needed.
 
 Owl is built with [Gradle](http://gradle.org/), which is automatically bootstrapped. You can view the available tasks with:
 

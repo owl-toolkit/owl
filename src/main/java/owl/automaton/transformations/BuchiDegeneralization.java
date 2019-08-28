@@ -21,7 +21,7 @@ package owl.automaton.transformations;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import org.immutables.value.Value;
+import com.google.auto.value.AutoValue;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonFactory;
@@ -29,7 +29,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
-import owl.util.annotation.Tuple;
 
 public final class BuchiDegeneralization {
   private BuchiDegeneralization() {
@@ -63,21 +62,19 @@ public final class BuchiDegeneralization {
       });
   }
 
-  @Value.Immutable
-  @Tuple
+  @AutoValue
   abstract static class DegeneralizedBuchiState<S> implements AnnotatedState<S> {
     @Override
     public abstract S state();
 
     abstract int set();
 
-
     public static <S> DegeneralizedBuchiState<S> of(S state) {
       return of(state, 0);
     }
 
     public static <S> DegeneralizedBuchiState<S> of(S state, int set) {
-      return DegeneralizedBuchiStateTuple.create(state, set);
+      return new AutoValue_BuchiDegeneralization_DegeneralizedBuchiState<>(state, set);
     }
   }
 }

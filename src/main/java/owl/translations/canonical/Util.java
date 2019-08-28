@@ -19,18 +19,17 @@
 
 package owl.translations.canonical;
 
+import com.google.auto.value.AutoValue;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.immutables.value.Value;
 import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
 import owl.ltl.UnaryModalOperator;
-import owl.util.annotation.Tuple;
 
 class Util {
 
@@ -90,15 +89,14 @@ class Util {
     return ((UnaryModalOperator) formula).operand;
   }
 
-  @Value.Immutable
-  @Tuple
+  @AutoValue
   abstract static class Pair<A, B> {
-    public abstract A a();
+    abstract A a();
 
-    public abstract B b();
+    abstract B b();
 
-    public static <A, B> Pair<A, B> of(A a, B b) {
-      return PairTuple.create(a, b);
+    static <A, B> Pair<A, B> of(A a, B b) {
+      return new AutoValue_Util_Pair<>(a, b);
     }
   }
 }

@@ -19,13 +19,11 @@
 
 package owl.translations.canonical;
 
+import com.google.auto.value.AutoValue;
 import java.util.Objects;
 import javax.annotation.Nonnegative;
-import org.immutables.value.Value;
-import owl.util.annotation.Tuple;
 
-@Value.Immutable
-@Tuple
+@AutoValue
 public abstract class RoundRobinState<E> {
   @Nonnegative
   public abstract int index();
@@ -34,6 +32,6 @@ public abstract class RoundRobinState<E> {
 
   public static <E> RoundRobinState<E> of(int index, E state) {
     Objects.checkIndex(index, Integer.MAX_VALUE);
-    return RoundRobinStateTuple.create(index, state);
+    return new AutoValue_RoundRobinState<>(index, state);
   }
 }

@@ -32,14 +32,14 @@ import owl.automaton.Automaton;
 import owl.automaton.UltimatelyPeriodicWord;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 import owl.translations.LTL2NAFunction;
 
 class LanguageMembershipTest {
 
   private static final Function<LabelledFormula, Automaton<?, ?>> deterministicTranslation
-    = new LTL2DAFunction(DefaultEnvironment.standard(), false, EnumSet.of(
+    = new LTL2DAFunction(Environment.standard(), false, EnumSet.of(
     LTL2DAFunction.Constructions.SAFETY,
     LTL2DAFunction.Constructions.CO_SAFETY,
     LTL2DAFunction.Constructions.BUCHI,
@@ -48,7 +48,7 @@ class LanguageMembershipTest {
     LTL2DAFunction.Constructions.RABIN));
 
   private static final Function<LabelledFormula, Automaton<?, ?>> nondeterministicTranslation
-    = new LTL2NAFunction(DefaultEnvironment.standard());
+    = new LTL2NAFunction(Environment.standard());
 
   @Test
   void containsDeterministic() {

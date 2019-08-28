@@ -24,11 +24,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
-import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.translations.rabinizer.ImmutableRabinizerConfiguration;
 import owl.translations.rabinizer.RabinizerConfiguration;
 
-abstract class AbstractLTL2DRAModule implements TransformerParser {
+final class AbstractLTL2DRAModule {
+  private AbstractLTL2DRAModule() {}
 
   private static Option asymmetric() {
     return new Option("a", "asymmetric", false, "Guess only greatest "
@@ -60,8 +59,7 @@ abstract class AbstractLTL2DRAModule implements TransformerParser {
         "Disable support based relevant formula analysis. Only affects asymmetric construction.");
   }
 
-  @Override
-  public Options getOptions() {
+  static Options options() {
     return getAsymmetricOptions().addOptionGroup(getOptionGroup());
   }
 
@@ -76,10 +74,6 @@ abstract class AbstractLTL2DRAModule implements TransformerParser {
     boolean support = !commandLine.hasOption("nosupport");
     boolean suspend = !commandLine.hasOption("nosuspend");
 
-    return ImmutableRabinizerConfiguration.builder()
-      .eager(eager)
-      .supportBasedRelevantFormulaAnalysis(support)
-      .suspendableFormulaDetection(suspend)
-      .build();
+    return RabinizerConfiguration.of(eager, support, suspend);
   }
 }

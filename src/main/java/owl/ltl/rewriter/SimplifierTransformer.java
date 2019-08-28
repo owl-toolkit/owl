@@ -28,15 +28,13 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.run.modules.Transformers;
+import owl.run.modules.OwlModule;
 
-public final class SimplifierTransformer extends Transformers.SimpleTransformer {
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("simplify-ltl")
-    .description("Rewrites / simplifies LTL formulas")
-    .optionsBuilder(() -> {
+public final class SimplifierTransformer implements OwlModule.Transformer {
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "simplify-ltl",
+    "Rewrites / simplifies LTL formulas",
+    () -> {
       Option modeOption = new Option("m", "mode", true, "Specify the rewrites to be applied by a "
         + "comma separated list. Possible values are: simple, fairness, fixpoint. By default, "
         + "the \"fixpoint\" mode is chosen.");
@@ -44,12 +42,13 @@ public final class SimplifierTransformer extends Transformers.SimpleTransformer 
       modeOption.setArgs(Option.UNLIMITED_VALUES);
       modeOption.setValueSeparator(',');
       return new Options().addOption(modeOption);
-    }).parser(settings -> {
-      if (!settings.hasOption("mode")) {
+    },
+    (commandLine, environment) -> {
+      if (!commandLine.hasOption("mode")) {
         return new SimplifierTransformer(List.of(Mode.SYNTACTIC_FIXPOINT));
       }
 
-      String[] modes = settings.getOptionValues("mode");
+      String[] modes = commandLine.getOptionValues("mode");
       List<Mode> rewrites = new ArrayList<>(modes.length);
 
       for (String mode : modes) {
@@ -57,7 +56,7 @@ public final class SimplifierTransformer extends Transformers.SimpleTransformer 
       }
 
       return new SimplifierTransformer(rewrites);
-    }).build();
+    });
 
   private final List<Mode> rewrites;
 

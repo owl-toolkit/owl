@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.ExternalTranslator;
 
 class ExternalTranslatorTest {
@@ -44,7 +44,7 @@ class ExternalTranslatorTest {
   void testApply() {
     // Check if the tool is installed and available.
     try {
-      ExternalTranslator tool = new ExternalTranslator(DefaultEnvironment.annotated(), TOOL[0]);
+      ExternalTranslator tool = new ExternalTranslator(Environment.annotated(), TOOL[0]);
       tool.apply(LtlParser.parse(FORMULA[0]));
     } catch (IllegalStateException ex) {
       // Assumption is always violated now.
@@ -52,7 +52,7 @@ class ExternalTranslatorTest {
     }
 
     for (int i = 1; i < FORMULA.length; i++) {
-      ExternalTranslator tool = new ExternalTranslator(DefaultEnvironment.annotated(), TOOL[i]);
+      ExternalTranslator tool = new ExternalTranslator(Environment.annotated(), TOOL[i]);
       tool.apply(LtlParser.parse(FORMULA[i]));
     }
   }

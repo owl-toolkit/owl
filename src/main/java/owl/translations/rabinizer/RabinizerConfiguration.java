@@ -19,22 +19,23 @@
 
 package owl.translations.rabinizer;
 
-import org.immutables.value.Value;
+import com.google.auto.value.AutoValue;
 
-@Value.Immutable
-public class RabinizerConfiguration { // NOPMD
-  @Value.Default
-  public boolean eager() {
-    return true;
-  }
+@AutoValue
+public abstract class RabinizerConfiguration {
+  public abstract boolean eager();
 
-  @Value.Default
-  public boolean supportBasedRelevantFormulaAnalysis() {
-    return true;
-  }
+  public abstract boolean supportBasedRelevantFormulaAnalysis();
 
-  @Value.Default
-  public boolean suspendableFormulaDetection() {
-    return true;
+  public abstract boolean suspendableFormulaDetection();
+
+  public static RabinizerConfiguration of(
+    boolean eager,
+    boolean supportBasedRelevantFormulaAnalysis,
+    boolean suspendableFormulaDetection) {
+    return new AutoValue_RabinizerConfiguration(
+      eager,
+      supportBasedRelevantFormulaAnalysis,
+      suspendableFormulaDetection);
   }
 }

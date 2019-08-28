@@ -19,6 +19,8 @@
 
 package owl.automaton.transformations;
 
+import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -37,7 +39,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import org.immutables.value.Value;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
 import owl.automaton.AutomatonUtil;
@@ -51,19 +52,15 @@ import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
 import owl.collections.ValuationSet;
-import owl.run.modules.ImmutableTransformerParser;
-import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.run.modules.Transformers;
-import owl.util.annotation.HashedTuple;
+import owl.run.modules.OwlModule;
 
-public final class RabinDegeneralization extends Transformers.SimpleTransformer {
-  public static final RabinDegeneralization INSTANCE = new RabinDegeneralization();
+public final class RabinDegeneralization implements OwlModule.Transformer {
 
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("dgra2dra")
-    .description("Converts a generalized Rabin automaton into a regular one")
-    .parser(settings -> environment -> INSTANCE)
-    .build();
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "dgra2dra",
+    "Converts a generalized Rabin automaton into a Rabin automaton.",
+    (commandLine, environment) -> new RabinDegeneralization()
+  );
 
   private static final Logger logger = Logger.getLogger(RabinDegeneralization.class.getName());
 
@@ -262,27 +259,33 @@ public final class RabinDegeneralization extends Transformers.SimpleTransformer 
     return degeneralize(AutomatonUtil.cast(object, GeneralizedRabinAcceptance.class));
   }
 
-  @Value.Immutable
-  @HashedTuple
+  @AutoValue
   abstract static class DegeneralizedRabinState<S> implements AnnotatedState<S> {
     @Override
     public abstract S state();
 
-    public abstract ImmutableIntArray awaitedSets();
-
+    abstract ImmutableIntArray awaitedSets();
 
     static <S> DegeneralizedRabinState<S> of(S state) {
-      return DegeneralizedRabinStateTuple.create(state, ImmutableIntArray.of());
+      return new AutoValue_RabinDegeneralization_DegeneralizedRabinState<>(
+        state, ImmutableIntArray.of());
     }
 
     static <S> DegeneralizedRabinState<S> of(S state, int[] awaitedSets) {
-      return DegeneralizedRabinStateTuple.create(state, ImmutableIntArray.copyOf(awaitedSets));
+      return new AutoValue_RabinDegeneralization_DegeneralizedRabinState<>(
+        state, ImmutableIntArray.copyOf(awaitedSets));
     }
-
 
     int awaitedInfSet(int generalizedPairIndex) {
       return awaitedSets().get(generalizedPairIndex);
     }
+
+    @Override
+    public abstract boolean equals(Object object);
+
+    @Memoized
+    @Override
+    public abstract int hashCode();
 
     @Override
     public String toString() {

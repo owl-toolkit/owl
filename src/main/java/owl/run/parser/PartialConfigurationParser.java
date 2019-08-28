@@ -19,9 +19,8 @@
 
 package owl.run.parser;
 
-import static owl.run.parser.ParseUtil.toArray;
-
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
@@ -31,12 +30,10 @@ import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.run.DefaultCli;
-import owl.run.ImmutablePipeline;
+import owl.run.Environment;
+import owl.run.Pipeline;
 import owl.run.RunUtil;
-import owl.run.modules.InputReader;
-import owl.run.modules.OutputWriter;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformer;
 
 /**
  * Utility class used to parse a simplified command line (single exposed module with rest of the
@@ -47,12 +44,9 @@ public final class PartialConfigurationParser {
   private PartialConfigurationParser() {
   }
 
-  private static void printHelp(Wrapper wrapper) {
-    wrapper.map(module -> null, settings -> {
-      Options options = settings.getOptions();
-      ParseUtil.printHelp(settings.getKey(), options);
-      return null;
-    });
+  private static void printHelp(OwlModule<?> settings) {
+    Options options = settings.options();
+    ParseUtil.printHelp(settings.key(), options);
   }
 
   public static void run(String[] args, PartialModuleConfiguration configuration)
@@ -63,44 +57,64 @@ public final class PartialConfigurationParser {
     formatter.setSyntaxPrefix("");
 
     Options globalOptions = DefaultCli.getOptions();
-    String name = configuration.name();
+    String name = configuration.configurableTransformer().key();
 
     if (ParseUtil.isHelp(args)) {
       ParseUtil.println("This is the specialized construction " + name + ". Available options "
         + "are listed below. Specify them in the given order. To specify input, either write a "
         + "single argument at the _end_ or use the corresponding flags.");
-
       ParseUtil.printHelp("Global options: ", globalOptions);
-      printHelp(configuration.input());
-      for (Wrapper transformerWrapper : configuration.transformers()) {
-        printHelp(transformerWrapper);
-      }
-      printHelp(configuration.output());
+      printHelp(configuration.configurableTransformer());
       return;
     }
 
     CommandLineParser parser = new DefaultParser();
     CommandLine streamSettings;
+    CommandLine emptyCommandLine;
+
     try {
       streamSettings = parser.parse(globalOptions, args, true);
+      emptyCommandLine = parser.parse(new Options(), new String[0], true);
     } catch (ParseException e) {
       ParseUtil.printHelp(name, globalOptions, e.getMessage());
       System.exit(1);
       return;
     }
 
-    ParseHelper helper = new ParseHelper(streamSettings.getArgList(), parser);
+    Environment environment = OwlParser.getEnvironment(streamSettings);
 
-    ImmutablePipeline.Builder builder = ImmutablePipeline.builder();
-    builder.input(helper.parse(configuration.input(), InputReader.class));
-    for (Wrapper wrapper : configuration.transformers()) {
-      builder.addTransformers(helper.parse(wrapper, Transformer.class));
+    var reader = parse(configuration.input(), emptyCommandLine, environment);
+
+    List<OwlModule.Transformer> transformers = new ArrayList<>();
+
+    for (var module : configuration.preprocessing()) {
+      transformers.add(parse(module, emptyCommandLine, environment));
     }
-    builder.output(helper.parse(configuration.output(), OutputWriter.class));
 
-    List<String> remainingArgs = helper.getRemainingArgs();
-    if (remainingArgs.size() > 1) {
-      ParseUtil.println("Multiple unmatched arguments: " + remainingArgs + ". To specify multiple "
+    var mainModule = configuration.configurableTransformer();
+    String[] remainingArgs;
+
+    try {
+      CommandLine commandLine = parser
+        .parse(mainModule.options(), streamSettings.getArgList().toArray(String[]::new), true);
+      remainingArgs = commandLine.getArgList().toArray(String[]::new);
+      commandLine.getArgList().clear();
+      transformers.add(mainModule.constructor().newInstance(commandLine, environment));
+    } catch (ParseException e) {
+      ParseUtil.printHelp(mainModule.key(), mainModule.options(), e.getMessage());
+      System.exit(1);
+      throw new AssertionError(e); // Keep control flow happy
+    }
+
+    for (var module : configuration.postprocessing()) {
+      transformers.add(parse(module, emptyCommandLine, environment));
+    }
+
+    var writer = parse(configuration.output(), emptyCommandLine, environment);
+
+    if (remainingArgs.length > 1) {
+      ParseUtil.println("Multiple unmatched arguments: " + Arrays.toString(remainingArgs)
+        + ". To specify multiple "
         + "inputs, use the corresponding flags (see --help).");
       System.exit(1);
       return;
@@ -108,37 +122,22 @@ public final class PartialConfigurationParser {
 
     // Pass remaining argument to the stream settings,
     streamSettings.getArgList().clear();
-    streamSettings.getArgList().addAll(remainingArgs);
 
-    DefaultCli.run(streamSettings, builder.build());
+    if (remainingArgs.length == 1) {
+      streamSettings.getArgList().add(remainingArgs[0]);
+    }
+
+    DefaultCli.run(streamSettings, Pipeline.of(reader, transformers, writer));
   }
 
-  private static final class ParseHelper {
-    private String[] remainingArgs;
-    private final CommandLineParser parser;
-
-    ParseHelper(List<String> remainingArgs, CommandLineParser parser) {
-      this.remainingArgs = toArray(remainingArgs);
-      this.parser = parser;
-    }
-
-    <M extends OwlModule> M parse(Wrapper wrapper, Class<M> moduleClass) {
-      return wrapper.map(moduleClass::cast, settings -> {
-        try {
-          CommandLine commandLine = parser.parse(settings.getOptions(), remainingArgs, true);
-          remainingArgs = toArray(commandLine.getArgList());
-          commandLine.getArgList().clear();
-          return moduleClass.cast(settings.parse(commandLine));
-        } catch (ParseException e) {
-          ParseUtil.printHelp(settings.getKey(), settings.getOptions(), e.getMessage());
-          System.exit(1);
-          throw new AssertionError(e); // Keep control flow happy
-        }
-      });
-    }
-
-    List<String> getRemainingArgs() {
-      return Arrays.asList(remainingArgs);
+  private static <M extends OwlModule.Instance> M parse(OwlModule<M> module,
+    CommandLine commandLine, Environment environment) {
+    try {
+      return module.constructor().newInstance(commandLine, environment);
+    } catch (ParseException e) {
+      ParseUtil.printHelp(module.key(), module.options(), e.getMessage());
+      System.exit(1);
+      throw new AssertionError(e); // Keep control flow happy
     }
   }
 }

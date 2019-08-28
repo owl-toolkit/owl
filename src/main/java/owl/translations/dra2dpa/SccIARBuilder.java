@@ -149,14 +149,14 @@ final class SccIARBuilder<R> {
 
     IntPreOrder successorRecord = currentRecord.generation(visitedFinSetIndices);
     IARState<R> iarSuccessor = iarStates.row(rabinSuccessor)
-      .computeIfAbsent(successorRecord, record -> IARState.active(rabinSuccessor, record));
+      .computeIfAbsent(successorRecord, record -> IARState.of(rabinSuccessor, record));
     return Edge.of(iarSuccessor, priority);
   }
 
   private Set<IARState<R>> getInitialStates() {
     IntPreOrder initialRecord = IntPreOrder.coarsest(numberOfTrackedPairs());
     return rabinAutomaton.initialStates().stream()
-      .map(initialRabinState -> IARState.active(initialRabinState, initialRecord))
+      .map(initialRabinState -> IARState.of(initialRabinState, initialRecord))
       .collect(Collectors.toUnmodifiableSet());
   }
 

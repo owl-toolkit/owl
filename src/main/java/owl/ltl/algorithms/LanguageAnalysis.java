@@ -32,7 +32,7 @@ import owl.automaton.algorithms.LanguageEmptiness;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 
 public final class LanguageAnalysis {
@@ -45,7 +45,7 @@ public final class LanguageAnalysis {
     }
 
     var labelledFormula = attachDummyAlphabet(formula);
-    var translation = new LTL2DAFunction(DefaultEnvironment.of(false), true,
+    var translation = new LTL2DAFunction(Environment.of(false), true,
       EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, GENERALIZED_RABIN));
     return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }

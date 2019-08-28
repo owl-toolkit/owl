@@ -28,7 +28,7 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 
 class LanguageContainmentTest {
@@ -39,7 +39,7 @@ class LanguageContainmentTest {
     LabelledFormula formula2 = LtlParser.parse("G F a");
     LabelledFormula formula3 = LtlParser.parse("G F (X a & (a U X b))");
 
-    var translation = new LTL2DAFunction(DefaultEnvironment.annotated(), false,
+    var translation = new LTL2DAFunction(Environment.annotated(), false,
       EnumSet.allOf(LTL2DAFunction.Constructions.class));
     var infOftAandB
       = AutomatonUtil.cast(translation.apply(formula1), Object.class, BuchiAcceptance.class);

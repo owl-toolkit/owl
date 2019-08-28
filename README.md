@@ -2,7 +2,7 @@
 
 A Java tool collection and library  for **O**mega-**w**ords, ω-automata and **L**inear Temporal Logic (LTL). Batteries included.
 
-Major functionality (e.g., translations, simplifiers) is available through command-line tools and for fine-grained access there exists a Java and C++ API. Details on how to use Owl are given in the [usage instructions](doc/USAGE.md) and [build instructions](doc/BUILDING.md). Owl requires at least [Java 11](http://jdk.java.net/11/) or newer.
+Major functionality (e.g., translations, simplifiers) is available through command-line tools and for fine-grained access there exists a Java and C++ API. Details on how to use Owl are given in the [usage instructions](doc/USAGE.md) and [build instructions](doc/BUILDING.md). Owl requires at least [JDK 12](http://jdk.java.net/12/).
 
 Note that the distribution only contains compiled code and the necessary sources to build Owl can be found in the [repository](https://gitlab.lrz.de/i7/owl).
 

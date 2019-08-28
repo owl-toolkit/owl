@@ -43,33 +43,32 @@ import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.LanguageContainment;
 import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
-import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModuleParser.TransformerParser;
+import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.nba2ldba.NBA2LDBA;
 
 public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {
 
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("nba2dpa")
-    .description("Converts a non-deterministic generalized Büchi automaton into a "
-      + "deterministic parity automaton.")
-    .parser(settings -> environment
-    -> (input) -> new NBA2DPA().apply(AutomatonUtil.cast(input)))
-    .build();
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "nba2dpa",
+    "Converts a non-deterministic generalized Büchi automaton "
+      + "into a deterministic parity automaton",
+    (commandLine, environment) -> (input) -> new NBA2DPA().apply(AutomatonUtil.cast(input)));
 
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("nba2dpa")
-      .reader(InputReaders.HOA)
-      .addTransformer(CLI)
-      .writer(OutputWriters.HOA)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.HOA_INPUT_MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   @SuppressWarnings("unchecked")

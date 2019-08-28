@@ -19,71 +19,30 @@
 
 package owl.run.parser;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-
+import com.google.auto.value.AutoValue;
 import java.util.List;
-import org.immutables.value.Value;
-import owl.run.modules.InputReader;
-import owl.run.modules.OutputWriter;
-import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.run.modules.Transformer;
+import owl.run.modules.OwlModule;
 
-@Value.Immutable
-@Value.Style(visibility = Value.Style.ImplementationVisibility.PRIVATE,
-             builderVisibility = Value.Style.BuilderVisibility.PACKAGE)
+@AutoValue
 public abstract class PartialModuleConfiguration {
-  // Fields are package-visible by choice so that the Wrapper is not exposed
+  abstract OwlModule<OwlModule.InputReader> input();
 
-  public static Constructor builder(String name) {
-    return new Constructor(name);
-  }
+  abstract List<OwlModule<OwlModule.Transformer>> preprocessing();
 
-  abstract Wrapper input();
+  abstract OwlModule<OwlModule.Transformer> configurableTransformer();
 
-  abstract List<Wrapper> transformers();
+  abstract List<OwlModule<OwlModule.Transformer>> postprocessing();
 
-  abstract Wrapper output();
+  abstract OwlModule<OwlModule.OutputWriter> output();
 
-  abstract String name();
-
-  // Delegating builder which wraps the modules into container objects. If this object is named
-  // "Builder", the Immutable framework will emit a warning.
-  public static final class Constructor {
-    private final PartialModuleConfigurationBuilder builder;
-
-    Constructor(String name) {
-      builder = new PartialModuleConfigurationBuilder().name(name);
-    }
-
-    public Constructor addTransformer(TransformerParser... settings) {
-      checkNotNull(settings);
-      for (TransformerParser setting : settings) {
-        builder.addTransformers(Wrapper.settings(setting));
-      }
-      return this;
-    }
-
-    public Constructor addTransformer(Transformer... transformers) {
-      checkNotNull(transformers);
-      for (Transformer transformer : transformers) {
-        builder.addTransformers(Wrapper.module(transformer));
-      }
-      return this;
-    }
-
-    public Constructor reader(InputReader reader) {
-      builder.input(Wrapper.module(reader));
-      return this;
-    }
-
-    public Constructor writer(OutputWriter writer) {
-      builder.output(Wrapper.module(writer));
-      return this;
-    }
-
-    public PartialModuleConfiguration build() {
-      return builder.build();
-    }
+  public static PartialModuleConfiguration of(
+    OwlModule<OwlModule.InputReader> input,
+    List<OwlModule<OwlModule.Transformer>> preprocessing,
+    OwlModule<OwlModule.Transformer> configurableTransformer,
+    List<OwlModule<OwlModule.Transformer>> postprocessing,
+    OwlModule<OwlModule.OutputWriter> output) {
+    return new AutoValue_PartialModuleConfiguration(input, List.copyOf(preprocessing),
+      configurableTransformer, List.copyOf(postprocessing), output);
   }
 }
 

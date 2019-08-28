@@ -44,6 +44,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.Views;
@@ -53,26 +54,25 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.output.HoaPrinter;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.PipelineException;
-import owl.run.modules.ImmutableTransformerParser;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModuleParser.TransformerParser;
-import owl.run.modules.Transformers;
+import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class IARBuilder<R> {
-  public static final TransformerParser CLI = ImmutableTransformerParser.builder()
-    .key("dra2dpa")
-    .description("Converts a Rabin automaton into a parity automaton")
-    .parser(settings -> Transformers.RABIN_TO_PARITY)
-    .build();
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "dra2dpa",
+    "Converts a Rabin automaton into a parity automaton",
+    (commandLine, environment) -> input -> new IARBuilder<>(
+      AutomatonUtil.cast(input, RabinAcceptance.class)).build());
 
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
@@ -87,12 +87,12 @@ public final class IARBuilder<R> {
   }
 
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("dra2dpa")
-      .reader(InputReaders.HOA)
-      .addTransformer(CLI)
-      .addTransformer(Transformers.ACCEPTANCE_OPTIMIZATION_TRANSFORMER)
-      .writer(OutputWriters.ToHoa.DEFAULT)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.HOA_INPUT_MODULE,
+      List.of(),
+      MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   public Automaton<IARState<R>, ParityAcceptance> build() {
@@ -107,7 +107,7 @@ public final class IARBuilder<R> {
 
     List<RabinPair> rabinPairs = List.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {
-      IARState<R> state = IARState.trivial(rabinAutomaton.initialStates().iterator().next());
+      IARState<R> state = IARState.of(rabinAutomaton.initialStates().iterator().next());
       return AutomatonFactory.singleton(rabinAutomaton.factory(), state,
         new ParityAcceptance(1, Parity.MIN_ODD), Set.of(0));
     }
@@ -198,13 +198,13 @@ public final class IARBuilder<R> {
       MutableAutomatonFactory.create(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
 
     for (R state : simpleScc) {
-      IARState<R> iarState = IARState.trivial(state);
+      IARState<R> iarState = IARState.of(state);
       // We ensure that the state is reachable and not removed from the automaton. We're not
       // interested in the language, only in the transition system!
       resultTransitionSystem.addInitialState(iarState);
       rabinAutomaton.edgeMap(state).forEach((edge, valuations) -> {
         if (simpleScc.contains(edge.successor())) {
-          Edge<IARState<R>> iarEdge = Edge.of(IARState.trivial(edge.successor()), 0);
+          Edge<IARState<R>> iarEdge = Edge.of(IARState.of(edge.successor()), 0);
           resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
         }
       });
@@ -245,7 +245,7 @@ public final class IARBuilder<R> {
       // SCC has no transition inside, it's a transient one
       checkState(scc.size() == 1);
       R transientSccState = scc.iterator().next();
-      IARState<R> iarState = IARState.trivial(transientSccState);
+      IARState<R> iarState = IARState.of(transientSccState);
       return new SccProcessingResult<>(interSccConnections,
         AutomatonFactory.singleton(vsFactory, iarState, NoneAcceptance.INSTANCE));
     }

@@ -36,13 +36,13 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.DefaultEnvironment;
+import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class AutomatonTest {
 
-  private static LTL2DAFunction translator = new LTL2DAFunction(DefaultEnvironment.standard(),
+  private static LTL2DAFunction translator = new LTL2DAFunction(Environment.standard(),
     true, EnumSet.allOf(LTL2DAFunction.Constructions.class));
 
   private static final List<LabelledFormula> FORMULAS = List.of(
@@ -80,7 +80,7 @@ class AutomatonTest {
   }
 
   private static Stream<Arguments> automatonProvider() {
-    ValuationSetFactory factory = DefaultEnvironment.standard().factorySupplier()
+    ValuationSetFactory factory = Environment.standard().factorySupplier()
       .getValuationSetFactory(List.of("a", "b"));
 
     return Stream.of(Arguments.of(AutomatonFactory.create(factory, "x", NoneAcceptance.INSTANCE,

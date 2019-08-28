@@ -20,46 +20,37 @@
 package owl.translations.modules;
 
 import java.io.IOException;
-import org.apache.commons.cli.CommandLine;
+import java.util.List;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
+import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModuleParser;
-import owl.run.modules.Transformer;
+import owl.run.modules.OwlModule;
 import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
-public final class LTL2NGBAModule implements OwlModuleParser.TransformerParser {
-  public static final LTL2NGBAModule INSTANCE = new LTL2NGBAModule();
+public final class LTL2NGBAModule {
+  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+    "ltl2ngba",
+    "Translate LTL to non-deterministic generalized-Büchi automata. "
+      + "The construction is based on the symmetric approach from [EKS: LICS'18].",
+    (commandLine, environment) -> Transformers.fromFunction(
+      LabelledFormula.class,
+      SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class))
+  );
 
   private LTL2NGBAModule() {}
 
-  @Override
-  public Transformer parse(CommandLine commandLine) {
-    return environment -> Transformers.instanceFromFunction(LabelledFormula.class,
-      SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class));
-  }
-
-  @Override
-  public String getKey() {
-    return "ltl2ngba";
-  }
-
-  @Override
-  public String getDescription() {
-    return "Translate LTL to non-deterministic generalized-Büchi automata. "
-      + "The construction is based on the symmetric approach from [EKS: LICS'18].";
-  }
-
   public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.builder(INSTANCE.getKey())
-      .reader(InputReaders.LTL)
-      .addTransformer(Transformers.LTL_SIMPLIFIER)
-      .addTransformer(INSTANCE)
-      .writer(OutputWriters.HOA)
-      .build());
+    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
+      InputReaders.LTL_INPUT_MODULE,
+      List.of(SimplifierTransformer.MODULE),
+      MODULE,
+      List.of(AcceptanceOptimizations.MODULE),
+      OutputWriters.HOA_OUTPUT_MODULE));
   }
 }
