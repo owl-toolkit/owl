@@ -321,13 +321,11 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     var shortCuts = new HashMap<EquivalenceClass, SymmetricProductState>();
 
     ldba.states().forEach((state) -> {
-      var right = state.fromRight();
-
-      if (right.isEmpty()) {
+      if (!state.isRight()) {
         return;
       }
 
-      var productState = right.get();
+      var productState = state.right();
 
       if (productState.liveness == null) {
         shortCuts.put(productState.safety, productState);
@@ -339,7 +337,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         return edge;
       }
 
-      var successor = edge.successor().fromLeft().orElseThrow();
+      var successor = edge.successor().left();
 
       if (successor.size() != 1 || !successor.containsKey(0)) {
         return edge;

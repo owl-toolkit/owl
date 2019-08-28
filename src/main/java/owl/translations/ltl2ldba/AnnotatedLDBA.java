@@ -216,11 +216,11 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
       }
 
       var initialComponentLanguage = languageFunction
-        .apply(initialComponentEdge.successor().fromLeft().orElseThrow());
+        .apply(initialComponentEdge.successor().left());
 
       if (SyntacticFragments.isSafety(initialComponentLanguage.modalOperators())) {
         acceptingComponentEdges.removeIf(x ->
-          initialComponentLanguage.equals(x.successor().fromRight().orElseThrow().language()));
+          initialComponentLanguage.equals(x.successor().right().language()));
       }
 
       if (acceptingComponentEdges.size() == edges.size() - 1) {

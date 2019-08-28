@@ -74,22 +74,22 @@ public final class GenericConstructions {
 
       @Override
       public Set<Edge<Either<Integer, S>>> edges(Either<Integer, S> state, BitSet valuation) {
-        return state.either(this::next, s -> lift(automaton.edges(s, valuation)));
+        return state.map(this::next, s -> lift(automaton.edges(s, valuation)));
       }
 
       @Override
       public Set<Edge<Either<Integer, S>>> edges(Either<Integer, S> state) {
-        return state.either(this::next, s -> lift(automaton.edges(s)));
+        return state.map(this::next, s -> lift(automaton.edges(s)));
       }
 
       @Override
       public Map<Edge<Either<Integer, S>>, ValuationSet> edgeMap(Either<Integer, S> state) {
-        return state.either(this::nextMap, y -> lift(automaton.edgeMap(y)));
+        return state.map(this::nextMap, y -> lift(automaton.edgeMap(y)));
       }
 
       @Override
       public ValuationTree<Edge<Either<Integer, S>>> edgeTree(Either<Integer, S> state) {
-        return state.either(this::nextTree, s -> lift(automaton.edgeTree(s)));
+        return state.map(this::nextTree, s -> lift(automaton.edgeTree(s)));
       }
 
       private Set<Edge<Either<Integer, S>>> next(int index) {

@@ -171,7 +171,7 @@ public final class DeterministicAutomaton<S, T> {
             xCount),
           BUCHI, BuchiAcceptance.class,
           x -> false,
-          x -> x.either(i -> i, j -> j.current().and(j.next())) ,
+          x -> x.map(i -> i, j -> j.current().and(j.next())) ,
           x -> x.inSet(0) ? 1.0d : 0.5d
         );
       }
@@ -217,7 +217,7 @@ public final class DeterministicAutomaton<S, T> {
             xCount),
           CO_BUCHI, CoBuchiAcceptance.class,
           x -> false,
-          x -> x.either(i -> i, j -> j.current().and(j.next())),
+          x -> x.map(i -> i, j -> j.current().and(j.next())),
           x -> x.inSet(0) ? 0.0d : 0.5d
         );
       }

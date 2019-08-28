@@ -325,7 +325,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
         if (edge.successor().isLeft()) {
           initialComponentEdges.add(edge);
 
-          var formula = edge.successor().fromLeft().orElseThrow();
+          var formula = edge.successor().left();
 
           if (SyntacticFragment.SAFETY.contains(formula)) {
             initialComponentSafetyLanguage
@@ -344,7 +344,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
 
       acceptingComponentEdges.removeIf(x -> {
-        var productState = x.successor().fromRight().orElseThrow();
+        var productState = x.successor().right();
 
         if (productState.liveness != null) {
           return false;
