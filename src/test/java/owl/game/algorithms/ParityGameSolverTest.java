@@ -53,14 +53,12 @@ class ParityGameSolverTest {
   void ltl2zielonkaTest2() {
     LabelledFormula formula =
       LtlParser.parse("((((G (F (r_0))) && (G (F (r_1)))) <-> "
-                      + "(G (F (g)))) && (G ((((r_0) && (r_1)) -> "
-                      + "(G (! (g)))) && (true))))");
+        + "(G (F (g)))) && (G ((((r_0) && (r_1)) -> "
+        + "(G (! (g)))) && (true))))");
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       GameFactoryTest.translate(formula), Object.class, ParityAcceptance.class);
-
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("r_0", "r_1"));
-
     assertFalse(ParityGameSolver.zielonkaRealizability(game));
   }
 
@@ -86,10 +84,8 @@ class ParityGameSolverTest {
       LtlParser.parse("(((G (F (r_0))) && (G (F (r_1)))) <-> (G (F (g))))");
     Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
       GameFactoryTest.translate(formula), Object.class, ParityAcceptance.class);
-
     Game<Node<Object>, ParityAcceptance> game =
       GameViews.split(automaton, List.of("r_0", "r_1"));
-
     assertTrue(ParityGameSolver.zielonkaRealizability(game));
   }
 }

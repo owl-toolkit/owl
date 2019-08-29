@@ -164,12 +164,10 @@ final class AsymmetricDPAConstruction {
 
           if (rankingEdge.inSet(0)) {
             rankingColor = Math.min(2 * ranking.size() + 1, rankingColor);
-            rankingLanguage = rankingLanguage.or(fixpoints.language());
-          } else {
-            rankingLanguage = rankingLanguage.or(successorLanguage);
           }
 
           ranking.add(rankingSuccessor);
+          rankingLanguage = rankingLanguage.or(successorLanguage);
 
           // Check last element of ranking (could be safety)
           if (!iterator.hasNext()
@@ -234,7 +232,7 @@ final class AsymmetricDPAConstruction {
       // We obtain the successor of the state in the initial component.
       var successor = ldba.initialComponent().successor(macroState.state(), valuation);
 
-      // The of the leading state is empty.
+      // The successor of the leading state is empty.
       if (successor == null) {
         return null;
       }

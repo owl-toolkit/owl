@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-
 class FormulaSet(object):
     def get_formulas(self):
         raise NotImplementedError()
@@ -35,26 +34,20 @@ class FileFormulaSet(FormulaSet):
 
 
 class RandomFormulaSet(FormulaSet):
-    def __init__(self):
+    def __init__(self, count, seed, size):
         self._formulas = None
+        self._count = count
+        self._seed = seed
+        self._size = size
 
     def get_formulas(self):
         if self._formulas is None:
-            args = ["randltl", "--seed=12345", "-n 19", "a", "b", "c", "d", "e", "f",
-                    "--tree-size=5..25"]
+            args = ["randltl", "--seed=" + str(self._seed), "--formulas=" + str(self._count), "a", "b", "c", "d", "e", "f",
+                    "--tree-size=5.." + str(self._size)]
             import subprocess
             formulas = subprocess.check_output(args).decode("utf-8")
             self._formulas = str.splitlines(formulas)
         return self._formulas
-
-
-class ListFormulaSet(FormulaSet):
-    def __init__(self, formula_list):
-        self.formula_list = formula_list
-
-    def get_formulas(self):
-        return self.formula_list
-
 
 def read_formula_sets(data_json):
     formula_sets = dict()
@@ -69,11 +62,8 @@ def read_formula_sets(data_json):
                 raise KeyError("No path for file set {0!s}".format(name))
             formula_sets[name] = FileFormulaSet(path=data["path"])
         elif set_type == "random":
-            formula_sets[name] = RandomFormulaSet()
-        elif set_type == "list":
-            if "list" not in data:
-                raise KeyError("No list given for list set {0!s}".format(name))
-            formula_sets[name] = ListFormulaSet(data["list"])
+            import random
+            formula_sets[name] = RandomFormulaSet(200, random.randint(0, 32000), 30)
         else:
             raise KeyError("Unknown type {0!s}".format(set_type))
 

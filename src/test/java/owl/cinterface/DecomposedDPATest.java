@@ -36,6 +36,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
+import owl.collections.LabelledTree;
 import owl.collections.LabelledTree.Node;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
@@ -154,6 +155,13 @@ class DecomposedDPATest {
       DecomposedDPA.Status.REALIZABLE.ordinal(), realizable.toArray()));
     assertFalse(automaton.declare(
       DecomposedDPA.Status.UNREALIZABLE.ordinal(), unrealizable.toArray()));
+  }
+
+  @Test
+  void testDecompositionError() {
+    var formula = LtlParser.syntax("((F G a) & (G F b)) | ((F G c) & X (G (!d | F e)))");
+    var automaton = of(formula, false, false, 0);
+    assertThat(automaton.structure, LabelledTree.Leaf.class::isInstance);
   }
 
   @Test

@@ -72,7 +72,7 @@ class DeterministicAutomatonTest {
       automaton6.edges(1));
     assertThat(automaton7.edges(0), x ->
       Arrays.equals(x, new int[]{7, 0, 4, -4, 1, 0, -2, 0, 4, 0, 3, 0, 1})
-      || Arrays.equals(x, new int[]{10, 0, 4, 7, 1, 0, -2, 1, -4, -2, 0, 4, 0, 1, 0, 3}));
+        || Arrays.equals(x, new int[]{10, 0, 4, 7, 1, 0, -2, 1, -4, -2, 0, 4, 0, 1, 0, 3}));
   }
 
   @Test

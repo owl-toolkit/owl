@@ -7205,6 +7205,17 @@
     }
   },
   {
+    "formula": "F(a \u0026 ((!a) R (((b) R ((!a | ((!a) R ((c | ((c) R (!a)))))))))))",
+    "properties": {
+      "size": 13,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "F(a \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d | X((b) R (e))))))) R (!b)))",
     "properties": {
       "size": 5,
@@ -7241,6 +7252,17 @@
     "formula": "G(a | G(b | XG!c | XF(c \u0026 Fd)))",
     "properties": {
       "size": 9,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "G(!a | ((a) U (((b) U ((a \u0026 ((a) U ((c \u0026 ((c) U (a)))))))))))",
+    "properties": {
+      "size": 42,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
