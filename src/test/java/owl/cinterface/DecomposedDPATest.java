@@ -20,13 +20,16 @@
 package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.cinterface.DecomposedDPA.of;
+import static owl.cinterface.FormulaPreprocessor.VariableStatus.CONSTANT_FALSE;
+import static owl.cinterface.FormulaPreprocessor.VariableStatus.CONSTANT_TRUE;
+import static owl.cinterface.FormulaPreprocessor.VariableStatus.UNUSED;
+import static owl.cinterface.FormulaPreprocessor.VariableStatus.USED;
 import static owl.util.Assertions.assertThat;
 
 import com.google.common.primitives.ImmutableIntArray;
@@ -279,34 +282,6 @@ class DecomposedDPATest {
   }
 
   @Test
-  void testRealizibilityRewriter() {
-    Formula formula = LtlParser.syntax("G (req -> F gra)", List.of("req", "gra"));
-
-    var automaton1 = of(formula, true, false, 0).automata.get(0);
-
-    assertAll(
-      () -> assertEquals(Acceptance.BUCHI.ordinal(), automaton1.acceptance()),
-      () -> assertEquals(2, automaton1.size())
-    );
-
-    var automaton2 = of(formula, true, false, 1).automata.get(0);
-
-    assertAll(
-      () -> assertEquals(Acceptance.BUCHI.ordinal(), automaton2.acceptance()),
-      () -> assertEquals(1, automaton2.size()),
-      () -> assertArrayEquals(new int[]{4, 0, 0, -2, 0, -1, 0, 0}, automaton2.edges(0))
-    );
-
-    var automaton3 = of(formula, true, false, 2).automata.get(0);
-
-    assertAll(
-      () -> assertEquals(Acceptance.SAFETY.ordinal(), automaton3.acceptance()),
-      () -> assertEquals(1, automaton3.size()),
-      () -> assertArrayEquals(new int[]{1, -1, -1}, automaton3.edges(0))
-    );
-  }
-
-  @Test
   void testThetaFormulaRegression() {
     var literals = List.of("r", "q", "p_0", "p_1", "p_2", "p_3", "acc");
     var formula = LtlParser.syntax(
@@ -317,5 +292,36 @@ class DecomposedDPATest {
     assertEquals(2, automaton.automata.size());
     assertEquals(1, automaton.automata.get(0).size());
     assertEquals(2, automaton.automata.get(1).size());
+  }
+
+  @Test
+  void testVariableStatusesModal() {
+    Formula formula = LtlParser.syntax("G (req | F gra)", List.of("req", "gra"));
+
+    var automaton1 = of(formula, true, false, 0);
+    var automaton2 = of(formula, true, false, 1);
+    var automaton3 = of(formula, true, false, 2);
+
+    assertAll(
+      () -> assertTrue(automaton1.variableStatuses.contains(CONSTANT_TRUE)),
+      () -> assertTrue(automaton2.variableStatuses.contains(CONSTANT_TRUE)),
+      () -> assertEquals(List.of(CONSTANT_FALSE, CONSTANT_FALSE), automaton3.variableStatuses)
+    );
+  }
+
+  @Test
+  void testVariableStatusesPropositional() {
+    Formula formula = LtlParser.syntax(
+      "i1 | !i2 | (o1 & !o2 & (i4 <-> o4))",
+      List.of("i1", "i2", "i3", "i4", "o1", "o2", "o3", "o4"));
+
+    var automaton = of(formula, true, false, 4);
+
+    assertEquals(List.of(
+      // Inputs:
+      CONSTANT_FALSE, CONSTANT_TRUE, UNUSED, USED,
+      // Outputs:
+      CONSTANT_TRUE, CONSTANT_FALSE, UNUSED, USED),
+      automaton.variableStatuses);
   }
 }

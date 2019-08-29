@@ -445,5 +445,13 @@ namespace owl {
             deref(env, clazz);
             return owl::RealizabilityStatus(result);
         }
+
+        operator VariableStatus() const {
+            jclass clazz = lookup_class(env, "java/lang/Enum");
+            jmethodID methodID = get_methodID(env, clazz, "ordinal", "()I");
+            int result = call_int_method(env, value, methodID);
+            deref(env, clazz);
+            return owl::VariableStatus(result);
+        }
     };
 }
