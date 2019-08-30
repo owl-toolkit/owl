@@ -161,6 +161,10 @@ namespace owl {
         REALIZABLE, UNREALIZABLE, UNKNOWN
     };
 
+    enum VariableStatus {
+        CONSTANT_TRUE, CONSTANT_FALSE, USED, UNUSED
+    };
+
     class DecomposedDPA : public owl::ManagedJObject {
     private:
         DecomposedDPA(JNIEnv *env, jobject handle) : ManagedJObject(env, "owl/cinterface/DecomposedDPA", handle) {}
@@ -172,6 +176,7 @@ namespace owl {
 
         std::vector<Automaton> automata();
         std::unique_ptr<LabelledTree<Tag, Reference>> structure();
+        std::vector<VariableStatus> variable_statuses() const;
 
         bool declare(RealizabilityStatus status, const std::vector<jint> &states);
         RealizabilityStatus query(const std::vector<jint> &states);

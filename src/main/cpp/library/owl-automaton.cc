@@ -44,6 +44,10 @@ namespace owl {
         return copy_from_java(env, get_object_field<jobject>(env, clazz, handle, "automata", "Ljava/util/List;"));
     }
 
+    std::vector<VariableStatus> DecomposedDPA::variable_statuses() const {
+        return copy_from_java(env, get_object_field<jobject>(env, clazz, handle, "variableStatuses", "Ljava/util/List;"));
+    }
+
     std::unique_ptr<LabelledTree<Tag, Reference>> DecomposedDPA::structure() {
         return copy_from_java(env, get_object_field<jobject>(env, clazz, handle, "structure", "Lowl/collections/LabelledTree;"));
     }

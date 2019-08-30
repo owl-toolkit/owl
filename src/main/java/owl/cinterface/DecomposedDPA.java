@@ -26,7 +26,6 @@ import static owl.ltl.SyntacticFragment.SINGLE_STEP;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -52,7 +51,6 @@ import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.PullUpXVisitor;
-import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.util.annotation.CEntryPoint;
@@ -61,14 +59,17 @@ import owl.util.annotation.CEntryPoint;
 public final class DecomposedDPA {
 
   public final LabelledTree<Tag, Reference> structure;
-  private final List<Reference> leaves;
+  public final List<FormulaPreprocessor.VariableStatus> variableStatuses;
   public final List<DeterministicAutomaton<?, ?>> automata;
 
+  private final List<Reference> leaves;
   private final Map<ImmutableIntArray, Status> profiles = new HashMap<>();
 
   private DecomposedDPA(LabelledTree<Tag, Reference> structure,
+    List<FormulaPreprocessor.VariableStatus> variableStatuses,
     List<DeterministicAutomaton<?, ?>> automata) {
     this.automata = automata;
+    this.variableStatuses = List.copyOf(variableStatuses);
     this.leaves = structure.leavesStream().collect(Collectors.toUnmodifiableList());
     this.structure = structure;
   }
@@ -76,26 +77,18 @@ public final class DecomposedDPA {
   @CEntryPoint
   public static DecomposedDPA of(Formula formula, boolean simplify, boolean monolithic,
     int firstOutputVariable) {
-    Formula nnfLight = formula.substitute(Formula::nnf);
-
-    BitSet inputVariables = new BitSet();
-    inputVariables.set(0, firstOutputVariable);
-
-    Formula processedFormula = simplify
-      ? SimplifierFactory.apply(
-        RealizabilityRewriter.removeSingleValuedInputLiterals(inputVariables,
-        SimplifierFactory.apply(nnfLight, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)),
-        SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
-      : nnfLight;
+    var preprocessedFormula = FormulaPreprocessor.apply(formula, firstOutputVariable, simplify);
 
     // Push X in front of
-    Builder builder = new Builder(processedFormula.accept(Annotator.INSTANCE));
+    Builder builder = new Builder(preprocessedFormula.formula.accept(Annotator.INSTANCE));
 
-    LabelledTree<Tag, Reference> structure1 = monolithic
-      ? builder.createLeaf(processedFormula)
-      : processedFormula.accept(builder);
+    LabelledTree<Tag, Reference> structure = monolithic
+      ? builder.createLeaf(preprocessedFormula.formula)
+      : preprocessedFormula.formula.accept(builder);
 
-    return new DecomposedDPA(structure1, List.copyOf(builder.automata));
+    return new DecomposedDPA(structure,
+      preprocessedFormula.variableStatuses,
+      List.copyOf(builder.automata));
   }
 
   @CEntryPoint
