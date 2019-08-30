@@ -25,10 +25,10 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import com.google.common.collect.Maps;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
@@ -40,12 +40,7 @@ class LTL2DAModuleFunctionTest {
       + "& X G (x1 | x2 | x3)";
 
   private static final LTL2DAFunction translator = new LTL2DAFunction(Environment.standard(),
-    true, EnumSet.of(
-      LTL2DAFunction.Constructions.SAFETY,
-      LTL2DAFunction.Constructions.CO_SAFETY,
-      LTL2DAFunction.Constructions.BUCHI,
-      LTL2DAFunction.Constructions.CO_BUCHI,
-      LTL2DAFunction.Constructions.PARITY));
+    ParityAcceptance.class);
 
   @Test
   void construct() {

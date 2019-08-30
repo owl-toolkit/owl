@@ -23,11 +23,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
-import static owl.translations.LTL2DAFunction.Constructions.BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
-import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.FGGF;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBEROUTER;
@@ -186,13 +181,14 @@ class TranslationAutomatonSummaryTest {
       new Translator("ngba.symmetric", environment ->
         SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)),
 
-      new Translator("delag", DelagBuilder::new,
+      new Translator("delag",
+        DelagBuilder::new,
         EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
-      new Translator("ltl2da", environment -> new LTL2DAFunction(environment, true,
-        EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI, CO_BUCHI)),
+      new Translator("ltl2da",
+        LTL2DAFunction::new,
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("ltl2na",
-        (Function<Environment, Function<LabelledFormula, Automaton<?, ?>>>) LTL2NAFunction::new,
+        LTL2NAFunction::new,
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF))
     );
   }

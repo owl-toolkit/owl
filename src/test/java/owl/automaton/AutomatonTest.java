@@ -22,7 +22,6 @@ package owl.automaton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import de.tum.in.naturals.bitset.BitSets;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +29,7 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -43,7 +43,7 @@ import owl.translations.LTL2DAFunction;
 class AutomatonTest {
 
   private static LTL2DAFunction translator = new LTL2DAFunction(Environment.standard(),
-    true, EnumSet.allOf(LTL2DAFunction.Constructions.class));
+    EmersonLeiAcceptance.class);
 
   private static final List<LabelledFormula> FORMULAS = List.of(
     LtlParser.parse("true"),

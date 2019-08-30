@@ -19,9 +19,9 @@
 
 package owl.translations;
 
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG;
 
+import com.google.common.base.Preconditions;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.function.Function;
@@ -31,8 +31,11 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -51,49 +54,45 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 
 public final class LTL2DAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
+  private static final Set<Class<? extends OmegaAcceptance>> SUPPORTED_ACCEPTANCE_CONDITIONS =
+    Set.of(EmersonLeiAcceptance.class, GeneralizedRabinAcceptance.class,
+      RabinAcceptance.class, ParityAcceptance.class);
+
+  private final Class<? extends OmegaAcceptance> acceptance;
   private final Environment environment;
-  private final EnumSet<Constructions> allowedConstructions;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
   public LTL2DAFunction(Environment environment) {
-    this(environment, false, EnumSet.allOf(Constructions.class));
+    this(environment, EmersonLeiAcceptance.class);
   }
 
-  public LTL2DAFunction(Environment environment, boolean onTheFly,
-    EnumSet<Constructions> allowedConstructions) {
-    this.allowedConstructions = EnumSet.copyOf(allowedConstructions);
+  public LTL2DAFunction(Environment environment, Class<? extends OmegaAcceptance> acceptance) {
+    Preconditions.checkArgument(SUPPORTED_ACCEPTANCE_CONDITIONS.contains(acceptance),
+      "%s is not in the set %s of supported acceptance conditions.",
+      acceptance, SUPPORTED_ACCEPTANCE_CONDITIONS);
+
+    this.acceptance = acceptance;
     this.environment = environment;
 
-    if (this.allowedConstructions.contains(Constructions.EMERSON_LEI)) {
+    if (EmersonLeiAcceptance.class.equals(acceptance)) {
       fallback = new DelagBuilder(environment);
-    } else if (this.allowedConstructions.contains(Constructions.GENERALIZED_RABIN)) {
-      fallback
-        = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, !onTheFly);
-    } else if (this.allowedConstructions.contains(Constructions.RABIN)) {
-      fallback
-        = SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, !onTheFly);
-    } else if (this.allowedConstructions.contains(Constructions.PARITY)) {
-      var configuration = onTheFly
-        ? EnumSet.of(COMPLEMENT_CONSTRUCTION_HEURISTIC)
-        : EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG);
-
-      fallback = new LTL2DPAFunction(environment, configuration);
+    } else if (GeneralizedRabinAcceptance.class.equals(acceptance)) {
+      fallback = SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true);
+    } else if (RabinAcceptance.class.equals(acceptance)) {
+      fallback = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true);
     } else {
-      fallback = x -> {
-        throw new IllegalArgumentException("All allowed constructions exhausted.");
-      };
+      assert ParityAcceptance.class.equals(acceptance);
+      fallback = new LTL2DPAFunction(environment, EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG));
     }
   }
 
   @Override
   public Automaton<?, ?> apply(LabelledFormula formula) {
-    if (allowedConstructions.contains(Constructions.SAFETY)
-      && SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragment.SAFETY.contains(formula)) {
       return safety(environment, formula);
     }
 
-    if (allowedConstructions.contains(Constructions.CO_SAFETY)
-      && SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
       return coSafety(environment, formula);
     }
 
@@ -109,39 +108,34 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
       return GenericConstructions.delay(apply(formula.wrap(unwrappedFormula)), xCount);
     }
 
-    if (allowedConstructions.contains(Constructions.BUCHI)
-      || allowedConstructions.contains(Constructions.GENERALIZED_BUCHI)) {
+    var formulas = formula.formula() instanceof Conjunction
+      ? formula.formula().children()
+      : Set.of(formula.formula());
 
-      var formulas = formula.formula() instanceof Conjunction
-        ? formula.formula().children()
-        : Set.of(formula.formula());
-
-      if (formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
-        return gfCoSafety(environment, formula,
-          allowedConstructions.contains(Constructions.GENERALIZED_BUCHI));
-      }
-
-      if (SyntacticFragments.isGCoSafety(formula.formula())) {
-        return gCoSafety(environment, formula);
-      }
+    if (formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
+      return gfCoSafety(environment, formula,
+        EmersonLeiAcceptance.class.equals(acceptance)
+          || GeneralizedRabinAcceptance.class.equals(acceptance));
     }
 
-    if (allowedConstructions.contains(Constructions.CO_BUCHI)) {
-      var formulas = formula.formula() instanceof Disjunction
-        ? formula.formula().children()
-        : Set.of(formula.formula());
+    if (SyntacticFragments.isGCoSafety(formula.formula())) {
+      return gCoSafety(environment, formula);
+    }
 
-      if (formulas.size() > 1 && formulas.stream().allMatch(SyntacticFragments::isFgSafety)) {
-        return fgSafetyInterleaved(environment, formula);
-      }
+    formulas = formula.formula() instanceof Disjunction
+      ? formula.formula().children()
+      : Set.of(formula.formula());
 
-      if (SyntacticFragments.isFgSafety(formula.formula())) {
-        return fgSafety(environment, formula);
-      }
+    if (formulas.size() > 1 && formulas.stream().allMatch(SyntacticFragments::isFgSafety)) {
+      return fgSafetyInterleaved(environment, formula);
+    }
 
-      if (SyntacticFragments.isFSafety(formula.formula())) {
-        return fSafety(environment, formula);
-      }
+    if (SyntacticFragments.isFgSafety(formula.formula())) {
+      return fgSafety(environment, formula);
+    }
+
+    if (SyntacticFragments.isFSafety(formula.formula())) {
+      return fSafety(environment, formula);
     }
 
     return fallback.apply(formula);
@@ -196,13 +190,5 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     var complementAutomaton = Views.complement(automaton,
       BreakpointState.of(factory.getFalse(), factory.getFalse()));
     return AutomatonUtil.cast(complementAutomaton, CoBuchiAcceptance.class);
-  }
-
-  public enum Constructions {
-    SAFETY, CO_SAFETY,
-    BUCHI, GENERALIZED_BUCHI, CO_BUCHI,
-    PARITY,
-    RABIN, GENERALIZED_RABIN,
-    EMERSON_LEI
   }
 }

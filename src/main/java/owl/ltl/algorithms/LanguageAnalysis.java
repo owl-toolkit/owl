@@ -19,21 +19,15 @@
 
 package owl.ltl.algorithms;
 
-import static owl.translations.LTL2DAFunction.Constructions.BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.CO_BUCHI;
-import static owl.translations.LTL2DAFunction.Constructions.CO_SAFETY;
-import static owl.translations.LTL2DAFunction.Constructions.GENERALIZED_RABIN;
-import static owl.translations.LTL2DAFunction.Constructions.SAFETY;
-
-import java.util.EnumSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
-import owl.translations.LTL2DAFunction;
+import owl.translations.LTL2NAFunction;
 
 public final class LanguageAnalysis {
 
@@ -45,8 +39,7 @@ public final class LanguageAnalysis {
     }
 
     var labelledFormula = attachDummyAlphabet(formula);
-    var translation = new LTL2DAFunction(Environment.of(false), true,
-      EnumSet.of(SAFETY, CO_SAFETY, BUCHI, CO_BUCHI, GENERALIZED_RABIN));
+    var translation = new LTL2NAFunction(Environment.of(false), GeneralizedBuchiAcceptance.class);
     return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }
 

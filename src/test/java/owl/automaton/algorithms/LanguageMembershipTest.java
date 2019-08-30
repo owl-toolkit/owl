@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.UltimatelyPeriodicWord;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
@@ -39,13 +39,7 @@ import owl.translations.LTL2NAFunction;
 class LanguageMembershipTest {
 
   private static final Function<LabelledFormula, Automaton<?, ?>> deterministicTranslation
-    = new LTL2DAFunction(Environment.standard(), false, EnumSet.of(
-    LTL2DAFunction.Constructions.SAFETY,
-    LTL2DAFunction.Constructions.CO_SAFETY,
-    LTL2DAFunction.Constructions.BUCHI,
-    LTL2DAFunction.Constructions.CO_BUCHI,
-    LTL2DAFunction.Constructions.PARITY,
-    LTL2DAFunction.Constructions.RABIN));
+    = new LTL2DAFunction(Environment.standard(), RabinAcceptance.class);
 
   private static final Function<LabelledFormula, Automaton<?, ?>> nondeterministicTranslation
     = new LTL2NAFunction(Environment.standard());

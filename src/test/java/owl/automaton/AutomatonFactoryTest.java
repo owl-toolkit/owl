@@ -26,7 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import com.google.common.collect.Maps;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
-import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,11 +46,9 @@ class AutomatonFactoryTest {
 
   @Test
   void testCopy() {
-    var automaton =
-      MutableAutomatonFactory.copy(AutomatonUtil.cast(
-        (new LTL2DAFunction(Environment.annotated(), true, EnumSet.of(
-          LTL2DAFunction.Constructions.SAFETY))).apply(LtlParser.parse("G a | b R c")),
-        EquivalenceClass.class, AllAcceptance.class));
+    var automaton = MutableAutomatonFactory.copy(AutomatonUtil.cast(
+      LTL2DAFunction.safety(Environment.annotated(), LtlParser.parse("G a | b R c")),
+      EquivalenceClass.class, AllAcceptance.class));
 
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());

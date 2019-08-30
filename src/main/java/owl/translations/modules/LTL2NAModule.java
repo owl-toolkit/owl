@@ -19,13 +19,7 @@
 
 package owl.translations.modules;
 
-import static owl.translations.LTL2NAFunction.Constructions.BUCHI;
-import static owl.translations.LTL2NAFunction.Constructions.CO_SAFETY;
-import static owl.translations.LTL2NAFunction.Constructions.GENERALIZED_BUCHI;
-import static owl.translations.LTL2NAFunction.Constructions.SAFETY;
-
 import java.io.IOException;
-import java.util.EnumSet;
 import java.util.List;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
@@ -44,7 +38,7 @@ public final class LTL2NAModule {
     "Translate LTL to a (heuristically chosen) small non-deterministic automaton.",
     (commandLine, environment) -> Transformers.fromFunction(
       LabelledFormula.class,
-      new LTL2NAFunction(environment, EnumSet.of(SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI))));
+      new LTL2NAFunction(environment)));
 
   private LTL2NAModule() {}
 
