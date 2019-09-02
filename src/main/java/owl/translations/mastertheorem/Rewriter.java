@@ -78,7 +78,7 @@ public class Rewriter {
       this(fixpoints.greatestFixpoints());
     }
 
-    public ToCoSafety(Iterable<? extends Formula.ModalOperator> y) {
+    public ToCoSafety(Iterable<? extends Formula.TemporalOperator> y) {
       Set<GOperator> gOperators = new HashSet<>();
       Set<ROperator> rOperators = new HashSet<>();
       Set<WOperator> wOperators = new HashSet<>();
@@ -198,7 +198,7 @@ public class Rewriter {
       this(fixpoints.leastFixpoints());
     }
 
-    public ToSafety(Iterable<? extends Formula.ModalOperator> x) {
+    public ToSafety(Iterable<? extends Formula.TemporalOperator> x) {
       Set<FOperator> fOperators = new HashSet<>();
       Set<MOperator> mOperators = new HashSet<>();
       Set<UOperator> uOperators = new HashSet<>();

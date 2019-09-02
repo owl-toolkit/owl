@@ -19,38 +19,36 @@
 
 package owl.ltl;
 
+import com.google.common.collect.Comparators;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
-import owl.ltl.visitors.PropositionalVisitor;
 import owl.ltl.visitors.Visitor;
 
 public abstract class Formula implements Comparable<Formula> {
 
-  private static final List<Class<? extends Formula>> ORDER = List.of(
-    BooleanConstant.class,
-    Literal.class,
-    Negation.class,
-    Conjunction.class,
-    Disjunction.class,
-    Biconditional.class,
-    FOperator.class,
-    GOperator.class,
-    XOperator.class,
-    MOperator.class,
-    ROperator.class,
-    UOperator.class,
-    WOperator.class);
+  private static final Comparator<Iterable<Formula>> LIST_COMPARATOR
+    = Comparators.lexicographical(Formula::compareTo);
 
   private final int hashCode;
+  private final int height;
 
-  Formula(int hashCode) {
+  Formula(int hashCode, int height) {
     this.hashCode = hashCode;
+    this.height = height;
   }
 
   public abstract int accept(IntVisitor visitor);
@@ -61,8 +59,18 @@ public abstract class Formula implements Comparable<Formula> {
 
   public final BitSet atomicPropositions(boolean includeNested) {
     BitSet atomicPropositions = new BitSet();
+    Deque<Formula> workQueue = new ArrayDeque<>(List.of(this));
 
-    accept(new AtomicPropositionsVisitor(atomicPropositions, includeNested));
+    while (!workQueue.isEmpty()) {
+      var formula = workQueue.removeLast();
+
+      if (formula instanceof Literal) {
+        atomicPropositions.set(((Literal) formula).getAtom());
+      } else if (formula instanceof PropositionalOperator
+        || (includeNested && formula instanceof TemporalOperator)) {
+        workQueue.addAll(formula.children());
+      }
+    }
 
     return atomicPropositions;
   }
@@ -95,11 +103,11 @@ public abstract class Formula implements Comparable<Formula> {
     return false;
   }
 
-  public abstract Set<Formula> children();
+  public abstract List<Formula> children();
 
   @Override
   public final int compareTo(Formula o) {
-    int heightComparison = Integer.compare(height(), o.height());
+    int heightComparison = Integer.compare(height, o.height);
 
     if (heightComparison != 0) {
       return heightComparison;
@@ -111,7 +119,29 @@ public abstract class Formula implements Comparable<Formula> {
       return classComparison;
     }
 
-    return compareToImpl(o);
+    assert getClass().equals(o.getClass());
+
+    int valueComparison = compareValue(o);
+
+    if (valueComparison != 0) {
+      return valueComparison;
+    }
+
+    var thisChildren = this.children();
+    var thatChildren = o.children();
+
+    int lengthComparison = Integer.compare(thisChildren.size(), thatChildren.size());
+
+    if (lengthComparison != 0) {
+      return lengthComparison;
+    }
+
+    return LIST_COMPARATOR.compare(thisChildren, thatChildren);
+  }
+
+  @SuppressWarnings("PMD")
+  protected int compareValue(Formula o) {
+    return 0;
   }
 
   @Override
@@ -120,12 +150,20 @@ public abstract class Formula implements Comparable<Formula> {
       return true;
     }
 
-    if (o == null || !getClass().equals(o.getClass())) {
+    if (!(o instanceof Formula)) {
       return false;
     }
 
     Formula other = (Formula) o;
-    return other.hashCode == hashCode && equalsImpl(other);
+    return hashCode == other.hashCode
+      && height == other.height
+      && getClass().equals(other.getClass())
+      && equalsValue(other)
+      && children().equals(other.children());
+  }
+
+  protected boolean equalsValue(Formula o) {
+    return true;
   }
 
   @Override
@@ -134,7 +172,7 @@ public abstract class Formula implements Comparable<Formula> {
   }
 
   public final int height() {
-    return Formulas.height(children()) + 1;
+    return height;
   }
 
   // Temporal Properties of an LTL Formula
@@ -157,65 +195,34 @@ public abstract class Formula implements Comparable<Formula> {
    */
   public abstract Formula not();
 
-  public final <E extends TemporalOperator> Set<E> subformulas(Class<E> clazz) {
+  public final <E extends Formula> Set<E> subformulas(Class<E> clazz) {
     return subformulas(clazz::isInstance, clazz::cast);
   }
 
-  public final Set<TemporalOperator> subformulas(Predicate<? super TemporalOperator> predicate) {
+  public final Set<Formula> subformulas(Predicate<? super Formula> predicate) {
     return subformulas(predicate, x -> x);
   }
 
-  public final <E extends TemporalOperator> Set<E> subformulas(
-    Predicate<? super TemporalOperator> predicate,
-    Function<? super TemporalOperator, E> cast) {
+  public final <E extends Formula> Set<E> subformulas(
+    Predicate<? super Formula> predicate, Function<? super Formula, E> cast) {
     Set<E> subformulas = new HashSet<>();
+    Deque<Formula> workQueue = new ArrayDeque<>(List.of(this));
 
-    accept(new PropositionalVisitor<Void>() {
-      @Override
-      public Void visit(Biconditional biconditional) {
-        biconditional.left.accept(this);
-        biconditional.right.accept(this);
-        return null;
+    while (!workQueue.isEmpty()) {
+      var formula = workQueue.removeLast();
+
+      if (predicate.test(formula)) {
+        subformulas.add(cast.apply(formula));
       }
 
-      @Override
-      public Void visit(BooleanConstant booleanConstant) {
-        return null;
-      }
-
-      @Override
-      public Void visit(Conjunction conjunction) {
-        conjunction.children.forEach(c -> c.accept(this));
-        return null;
-      }
-
-      @Override
-      public Void visit(Disjunction disjunction) {
-        disjunction.children.forEach(c -> c.accept(this));
-        return null;
-      }
-
-      @Override
-      protected Void visit(TemporalOperator formula) {
-        if (predicate.test(formula)) {
-          subformulas.add(cast.apply(formula));
-        }
-
-        formula.children().forEach(x -> x.accept(this));
-        return null;
-      }
-    });
+      workQueue.addAll(formula.children());
+    }
 
     return subformulas;
   }
 
-  // temporal formulas
   public abstract Formula substitute(
     Function<? super TemporalOperator, ? extends Formula> substitution);
-
-  public abstract Formula temporalStep();
-
-  public abstract Formula temporalStep(int atom, boolean valuation);
 
   /**
    * Do a single temporal step. This means that one layer of X-operators is removed and literals are
@@ -223,75 +230,25 @@ public abstract class Formula implements Comparable<Formula> {
    */
   public abstract Formula temporalStep(BitSet valuation);
 
-  /**
-   * Short-cut operation to avoid intermediate construction of formula ASTs.
-   */
-  public abstract Formula temporalStepUnfold(BitSet valuation);
-
   public abstract Formula unfold();
 
-  /**
-   * Short-cut operation to avoid intermediate construction of formula ASTs.
-   */
-  public abstract Formula unfoldTemporalStep(BitSet valuation);
-
-  protected abstract int compareToImpl(Formula o);
-
-  protected abstract boolean equalsImpl(Formula o);
-
-  private static int classIndex(Formula formula) {
-    int index = ORDER.indexOf(formula.getClass());
-    assert index >= 0;
-    return index;
-  }
-
-  public abstract static class ModalOperator extends TemporalOperator {
-    ModalOperator(int hashCode) {
-      super(hashCode);
-    }
-  }
-
-  public abstract static class LogicalOperator extends Formula {
-    LogicalOperator(int hashCode) {
-      super(hashCode);
-    }
-
-    @Override
-    public final Formula temporalStep() {
-      return substitute(Formula::temporalStep);
-    }
-
-    @Override
-    public final Formula temporalStep(int atom, boolean valuation) {
-      return substitute(x -> x.temporalStep(atom, valuation));
-    }
-
-    @Override
-    public final Formula temporalStep(BitSet valuation) {
-      return substitute(x -> x.temporalStep(valuation));
-    }
-
-    @Override
-    public final Formula temporalStepUnfold(BitSet valuation) {
-      return substitute(x -> x.temporalStepUnfold(valuation));
+  public abstract static class PropositionalOperator extends Formula {
+    PropositionalOperator(int hashCode, int height) {
+      super(hashCode, height);
     }
 
     @Override
     public final Formula unfold() {
       return substitute(Formula::unfold);
     }
-
-    @Override
-    public final Formula unfoldTemporalStep(BitSet valuation) {
-      return substitute(x -> x.unfoldTemporalStep(valuation));
-    }
   }
 
-  // TODO: Fix hierarchy naming.
   public abstract static class TemporalOperator extends Formula {
-    TemporalOperator(int hashCode) {
-      super(hashCode);
+    TemporalOperator(int hashCode, int height) {
+      super(hashCode, height);
     }
+
+    public abstract String operatorSymbol();
 
     @Override
     public final Formula substitute(
@@ -300,87 +257,182 @@ public abstract class Formula implements Comparable<Formula> {
     }
 
     @Override
-    public final Formula temporalStep() {
-      return this instanceof XOperator ? ((XOperator) this).operand : this;
-    }
-
-    @Override
-    public final Formula temporalStep(int atom, boolean valuation) {
-      if (this instanceof Literal) {
-        Literal literal = (Literal) this;
-
-        if (literal.getAtom() == atom) {
-          return BooleanConstant.of(valuation ^ literal.isNegated());
-        }
+    public final Formula temporalStep(BitSet valuation) {
+      if (this instanceof XOperator) {
+        return ((XOperator) this).operand;
       }
 
       return this;
     }
 
+    @SuppressWarnings("PMD")
     @Override
-    public final Formula temporalStep(BitSet valuation) {
-      if (this instanceof Literal) {
-        Literal literal = (Literal) this;
-        return BooleanConstant.of(valuation.get(literal.getAtom()) ^ literal.isNegated());
-      }
-
-      return temporalStep();
+    protected final int compareValue(Formula o) {
+      return 0;
     }
 
     @Override
-    public final Formula temporalStepUnfold(BitSet valuation) {
-      return temporalStep(valuation).unfold();
+    protected final boolean equalsValue(Formula o) {
+      return true;
     }
   }
 
-  private static class AtomicPropositionsVisitor extends PropositionalVisitor<Void> {
-    private final BitSet atomicPropositions;
-    private final boolean includeNested;
+  public abstract static class UnaryTemporalOperator extends TemporalOperator {
+    public final Formula operand;
 
-    public AtomicPropositionsVisitor(BitSet atomicPropositions, boolean includeNested) {
-      this.atomicPropositions = atomicPropositions;
-      this.includeNested = includeNested;
+    UnaryTemporalOperator(Class<? extends UnaryTemporalOperator> clazz, Formula operand) {
+      super(Objects.hash(clazz, operand), operand.height() + 1);
+      this.operand = operand;
     }
 
     @Override
-    public Void visit(Biconditional biconditional) {
-      biconditional.left.accept(this);
-      biconditional.right.accept(this);
-      return null;
+    public List<Formula> children() {
+      return List.of(operand);
     }
 
     @Override
-    public Void visit(BooleanConstant booleanConstant) {
-      return null;
+    public String toString() {
+      return operatorSymbol() + operand;
+    }
+  }
+
+  public abstract static class BinaryTemporalOperator extends TemporalOperator {
+    public final Formula left;
+    public final Formula right;
+
+    BinaryTemporalOperator(Class<? extends BinaryTemporalOperator> clazz,
+      Formula leftOperand, Formula rightOperand) {
+      super(Objects.hash(clazz, leftOperand, rightOperand),
+        Formulas.height(leftOperand, rightOperand) + 1);
+      this.left = leftOperand;
+      this.right = rightOperand;
     }
 
     @Override
-    public Void visit(Conjunction conjunction) {
-      conjunction.children.forEach(x -> x.accept(this));
-      return null;
+    public List<Formula> children() {
+      return List.of(left, right);
     }
 
     @Override
-    public Void visit(Disjunction disjunction) {
-      disjunction.children.forEach(x -> x.accept(this));
-      return null;
+    public final boolean isPureEventual() {
+      return false;
     }
 
     @Override
-    protected Void visit(TemporalOperator formula) {
-      if (formula instanceof Literal) {
-        atomicPropositions.set(((Literal) formula).getAtom());
-      } else if (includeNested) {
-        formula.children().forEach(x -> x.accept(this));
-      }
-
-      return null;
+    public final boolean isPureUniversal() {
+      return false;
     }
 
     @Override
-    public Void visit(Negation negation) {
-      negation.operand.accept(this);
-      return null;
+    public final String toString() {
+      return String.format("(%s%s%s)", left, operatorSymbol(), right);
     }
+  }
+
+  public abstract static class NaryPropositionalOperator extends PropositionalOperator {
+    public final List<Formula> children;
+
+    NaryPropositionalOperator(Class<? extends NaryPropositionalOperator> clazz,
+      List<? extends Formula> children) {
+      super(Objects.hash(clazz, children), Formulas.height(children) + 1);
+      this.children = List.copyOf(children);
+    }
+
+    @Override
+    public final List<Formula> children() {
+      return children;
+    }
+
+    @Override
+    public final boolean isPureEventual() {
+      return children.stream().allMatch(Formula::isPureEventual);
+    }
+
+    @Override
+    public final boolean isPureUniversal() {
+      return children.stream().allMatch(Formula::isPureUniversal);
+    }
+
+    public final List<Formula> map(UnaryOperator<Formula> mapper) {
+      return mapInternal(mapper);
+    }
+
+    @Override
+    public final String toString() {
+      return children.stream()
+        .map(Formula::toString)
+        .collect(Collectors.joining(operatorSymbol(), "(", ")"));
+    }
+
+    protected static List<? extends Formula> sortedList(Set<? extends Formula> children) {
+      Formula[] list = children.toArray(Formula[]::new);
+      Arrays.sort(list);
+      return List.of(list);
+    }
+
+    @SuppressWarnings("PMD.LooseCoupling")
+    protected final ArrayList<Formula> mapInternal(UnaryOperator<Formula> mapper) {
+      var mappedChildren = new ArrayList<>(children);
+      mappedChildren.replaceAll(mapper);
+      return mappedChildren;
+    }
+
+    protected abstract String operatorSymbol();
+  }
+
+  private static int classIndex(Formula formula) {
+    if (formula instanceof BooleanConstant) {
+      return 0;
+    }
+
+    if (formula instanceof Literal) {
+      return 1;
+    }
+
+    if (formula instanceof Negation) {
+      return 2;
+    }
+
+    if (formula instanceof Conjunction) {
+      return 3;
+    }
+
+    if (formula instanceof Disjunction) {
+      return 4;
+    }
+
+    if (formula instanceof Biconditional) {
+      return 5;
+    }
+
+    if (formula instanceof FOperator) {
+      return 6;
+    }
+
+    if (formula instanceof GOperator) {
+      return 7;
+    }
+
+    if (formula instanceof XOperator) {
+      return 8;
+    }
+
+    if (formula instanceof MOperator) {
+      return 9;
+    }
+
+    if (formula instanceof ROperator) {
+      return 10;
+    }
+
+    if (formula instanceof UOperator) {
+      return 11;
+    }
+
+    if (formula instanceof WOperator) {
+      return 12;
+    }
+
+    throw new AssertionError();
   }
 }

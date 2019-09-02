@@ -19,19 +19,19 @@
 
 package owl.ltl;
 
+import java.util.BitSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
-
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public class Negation extends Formula.LogicalOperator {
+public class Negation extends Formula.PropositionalOperator {
   public final Formula operand;
 
   public Negation(Formula operand) {
-    super(Objects.hash(Negation.class, operand));
+    super(Objects.hash(Negation.class, operand), operand.height() + 1);
     this.operand = operand;
   }
 
@@ -51,20 +51,8 @@ public class Negation extends Formula.LogicalOperator {
   }
 
   @Override
-  public Set<Formula> children() {
-    return Set.of(operand);
-  }
-
-  @Override
-  protected int compareToImpl(Formula o) {
-    Negation that = (Negation) o;
-    return operand.compareTo(that.operand);
-  }
-
-  @Override
-  protected boolean equalsImpl(Formula o) {
-    Negation that = (Negation) o;
-    return operand.equals(that.operand);
+  public List<Formula> children() {
+    return List.of(operand);
   }
 
   @Override
@@ -85,6 +73,11 @@ public class Negation extends Formula.LogicalOperator {
   @Override
   public Formula not() {
     return operand;
+  }
+
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return new Negation(operand.temporalStep(valuation));
   }
 
   @Override

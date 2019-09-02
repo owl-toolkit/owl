@@ -118,8 +118,8 @@ public final class DeterministicConstructions {
 
     EquivalenceClass successorInternal(EquivalenceClass clazz, BitSet valuation) {
       return eagerUnfold
-        ? clazz.temporalStepUnfold(valuation)
-        : clazz.unfoldTemporalStep(valuation);
+        ? clazz.temporalStep(valuation).unfold()
+        : clazz.unfold().temporalStep(valuation);
     }
 
     ValuationTree<EquivalenceClass> successorTreeInternal(EquivalenceClass clazz) {
@@ -140,6 +140,9 @@ public final class DeterministicConstructions {
     extends Base<EquivalenceClass, A> {
     private final EquivalenceClass initialState;
 
+    private final Function<EquivalenceClass, Set<Edge<EquivalenceClass>>>
+      edgeMapper = x -> Collections3.ofNullable(this.buildEdge(x.unfold()));
+
     private Terminal(Factories factories, boolean eagerUnfold, Formula formula) {
       super(factories, eagerUnfold);
       this.initialState = initialStateInternal(factory.of(formula));
@@ -158,7 +161,9 @@ public final class DeterministicConstructions {
 
     @Override
     public final ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
-      return super.successorTreeInternal(clazz, x -> Collections3.ofNullable(this.buildEdge(x)));
+      return eagerUnfold
+        ? clazz.temporalStepTree(edgeMapper)
+        : clazz.unfold().temporalStepTree(x -> Collections3.ofNullable(this.buildEdge(x)));
     }
 
     @Nullable
@@ -394,7 +399,7 @@ public final class DeterministicConstructions {
 
     @Override
     public BreakpointState<EquivalenceClass> onlyInitialState() {
-      return BreakpointState.of(initialState, factory.getTrue());
+      return BreakpointState.of(initialState, factory.of(BooleanConstant.TRUE));
     }
 
     @Override
@@ -422,12 +427,12 @@ public final class DeterministicConstructions {
       EquivalenceClass newNext = next;
 
       if (current.implies(next)) {
-        newNext = factory.getTrue();
-      } else if (next.modalOperators().stream().allMatch(SyntacticFragment.FINITE::contains)) {
+        newNext = factory.of(BooleanConstant.TRUE);
+      } else if (SyntacticFragments.isFinite(next)) {
         newCurrent = current.and(next);
-        newNext = factory.getTrue();
+        newNext = factory.of(BooleanConstant.TRUE);
 
-        if (current.modalOperators().stream().allMatch(SyntacticFragment.FINITE::contains)) {
+        if (SyntacticFragments.isFinite(current)) {
           accepting = true;
         }
       }
@@ -475,7 +480,7 @@ public final class DeterministicConstructions {
         && !SyntacticFragments.isCoSafety(formula)
         && !SyntacticFragments.isSafety(formula)
         && (!(formula instanceof Disjunction)
-          || !((Disjunction) formula).children.stream().allMatch(SyntacticFragments::isFgSafety)));
+          || !formula.children().stream().allMatch(SyntacticFragments::isFgSafety)));
       this.initialState = initialStateInternal(factory.of(formula));
     }
 
@@ -487,7 +492,7 @@ public final class DeterministicConstructions {
       do {
         remainder = xRemovedRemainder;
 
-        var protectedXOperators = remainder.modalOperators().stream()
+        var protectedXOperators = remainder.temporalOperators().stream()
           .flatMap(x -> {
             if (x instanceof XOperator) {
               return Stream.empty();
@@ -525,12 +530,12 @@ public final class DeterministicConstructions {
         return null;
       }
 
-      if (language.isTrue() || SyntacticFragments.isSafety(language.modalOperators())) {
-        return Edge.of(BreakpointState.of(language, factory.getTrue()));
+      if (language.isTrue() || SyntacticFragments.isSafety(language)) {
+        return Edge.of(BreakpointState.of(language, factory.of(BooleanConstant.TRUE)));
       }
 
-      if (SyntacticFragments.isCoSafety(language.modalOperators())) {
-        return Edge.of(BreakpointState.of(language, factory.getTrue()), 0);
+      if (SyntacticFragments.isCoSafety(language)) {
+        return Edge.of(BreakpointState.of(language, factory.of(BooleanConstant.TRUE)), 0);
       }
 
       if (safety.isFalse()) {
@@ -538,7 +543,8 @@ public final class DeterministicConstructions {
       }
 
       if (safety.isTrue()) {
-        return Edge.of(BreakpointState.of(factory.getTrue(), factory.getTrue()));
+        return Edge.of(BreakpointState.of(factory.of(BooleanConstant.TRUE),
+          factory.of(BooleanConstant.TRUE)));
       }
 
       return Edge.of(BreakpointState.of(language, safety));

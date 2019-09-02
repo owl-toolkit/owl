@@ -37,6 +37,8 @@ public abstract class PropositionalVisitor<T> implements Visitor<T> {
 
   protected abstract T visit(Formula.TemporalOperator formula);
 
+  public abstract T visit(Literal literal);
+
   @Override
   public final T visit(FOperator fOperator) {
     return this.visit((Formula.TemporalOperator) fOperator);
@@ -45,11 +47,6 @@ public abstract class PropositionalVisitor<T> implements Visitor<T> {
   @Override
   public final T visit(GOperator gOperator) {
     return this.visit((Formula.TemporalOperator) gOperator);
-  }
-
-  @Override
-  public final T visit(Literal literal) {
-    return this.visit((Formula.TemporalOperator) literal);
   }
 
   @Override

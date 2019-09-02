@@ -28,20 +28,20 @@ import owl.ltl.visitors.PrintVisitor;
 
 @AutoValue
 public abstract class LabelledFormula {
+  public abstract List<String> atomicPropositions();
+
   public abstract Formula formula();
 
-  public abstract List<String> variables();
-
-  public static LabelledFormula of(Formula formula, List<String> variables) {
+  public static LabelledFormula of(Formula formula, List<String> atomicProposition) {
     int atomicPropositionsSize = formula.atomicPropositions(true).length();
-    checkArgument(Collections3.isDistinct(variables));
-    checkArgument(atomicPropositionsSize <= variables.size());
-    return new AutoValue_LabelledFormula(formula,
-      List.copyOf(variables.subList(0, atomicPropositionsSize)));
+    checkArgument(Collections3.isDistinct(atomicProposition));
+    checkArgument(atomicPropositionsSize <= atomicProposition.size());
+    return new AutoValue_LabelledFormula(
+      List.copyOf(atomicProposition.subList(0, atomicPropositionsSize)), formula);
   }
 
   public LabelledFormula wrap(Formula formula) {
-    return of(formula, variables());
+    return of(formula, atomicPropositions());
   }
 
   public LabelledFormula not() {

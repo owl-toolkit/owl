@@ -31,18 +31,29 @@ import static owl.util.Assertions.assertThat;
 
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.output.HoaPrinter;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.GOperator;
+import owl.ltl.LabelledFormula;
+import owl.ltl.Literal;
+import owl.ltl.UOperator;
+import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
 
@@ -233,5 +244,62 @@ class DeterministicConstructionsPortfolioTest {
         assertEquals(expectedEdges.get(valuation), automaton.edges(state, valuation));
       }
     }
+  }
+
+  @Disabled
+  @ParameterizedTest
+  @ValueSource(
+    ints = {8, 10, 12, 14, 16})
+  void coSafetyDeepNesting(int k) {
+    var formula = LabelledFormula.of(
+      leftNestedU(k),
+      IntStream.range(0, k + 1).mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
+    var automaton = coSafety(Environment.annotated(), formula);
+    automaton.states();
+  }
+
+  @Disabled
+  @ParameterizedTest
+  @ValueSource(
+    ints = {8, 16, 32, 64})
+  void safetyLargeAlphabet(int k) {
+    var automaton = safety(Environment.standard(), largeAlphabetSafety(k));
+    automaton.edgeTree(automaton.onlyInitialState());
+  }
+
+  @Disabled
+  @ParameterizedTest
+  @ValueSource(
+    ints = {8, 10, 12, 14, 16})
+  void safetyLargeStateSpace(int k) {
+    var automaton = safety(Environment.standard(), largeStateSpaceSafety(k));
+    automaton.states();
+  }
+
+  LabelledFormula largeAlphabetSafety(int k) {
+    var conjunction = Conjunction.of(
+      IntStream.range(0, k)
+        .mapToObj(x -> Disjunction.of(Literal.of(2 * x), Literal.of(2 * x + 1))));
+    return LabelledFormula.of(
+      GOperator.of(conjunction),
+      IntStream.range(0, 2 * k).mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
+  }
+
+  LabelledFormula largeStateSpaceSafety(int k) {
+    var disjunction = Disjunction.of(
+      IntStream.range(0, k)
+        .mapToObj(x -> Conjunction.of(Literal.of(2 * x), XOperator.of(Literal.of(2 * x + 1)))));
+    return LabelledFormula.of(
+      new GOperator(disjunction),
+      IntStream.range(0, 2 * k)
+        .mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
+  }
+
+  UOperator leftNestedU(int i) {
+    if (i <= 1) {
+      return new UOperator(Literal.of(0), Literal.of(1));
+    }
+
+    return new UOperator(leftNestedU(i - 1), Literal.of(i));
   }
 }

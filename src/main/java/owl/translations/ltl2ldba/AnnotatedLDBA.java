@@ -114,7 +114,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
     for (Set<S> scc : SccDecomposition.computeSccs(initialComponent)) {
       if (scc.stream().noneMatch(x -> epsilonJumps.keySet().contains(x)
-        || SyntacticFragments.isSafety(languageFunction.apply(x).modalOperators()))
+        || SyntacticFragments.isSafety(languageFunction.apply(x)))
         && SccDecomposition.isTrap(initialComponent, scc)) {
         // The is a BSCC without protected states. Safe to remove.
         initialComponent.removeStateIf(scc::contains);
@@ -218,7 +218,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
       var initialComponentLanguage = languageFunction
         .apply(initialComponentEdge.successor().left());
 
-      if (SyntacticFragments.isSafety(initialComponentLanguage.modalOperators())) {
+      if (SyntacticFragments.isSafety(initialComponentLanguage)) {
         acceptingComponentEdges.removeIf(x ->
           initialComponentLanguage.equals(x.successor().right().language()));
       }

@@ -135,7 +135,7 @@ class NormalFormsTest {
   @MethodSource("labelledFormulaProvider")
   void testCorrectness(LabelledFormula formula) {
     var factory = Environment.of(false)
-      .factorySupplier().getEquivalenceClassFactory(formula.variables());
+      .factorySupplier().getEquivalenceClassFactory(formula.atomicPropositions());
 
     assertEquals(factory.of(formula.formula()),
       factory.of(NormalForms.toDnfFormula(formula.formula())));
@@ -153,8 +153,8 @@ class NormalFormsTest {
   @Test
   void testSyntheticLiteralFeature() {
     var labelledFormula = LtlParser.parse("(a | b | X c)", List.of("a", "b", "c"));
-    var clause1 = Set.of(LtlParser.syntax("a | b", labelledFormula.variables()));
-    var clause2 = Set.of(LtlParser.syntax("X c", labelledFormula.variables()));
+    var clause1 = Set.of(LtlParser.syntax("a | b", labelledFormula.atomicPropositions()));
+    var clause2 = Set.of(LtlParser.syntax("X c", labelledFormula.atomicPropositions()));
 
     assertEquals(Set.of(clause1, clause2), NormalForms.toDnf(labelledFormula.formula(),
       x -> x.children().stream().filter(Literal.class::isInstance).collect(Collectors.toSet())));

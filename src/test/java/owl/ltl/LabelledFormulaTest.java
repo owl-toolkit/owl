@@ -11,7 +11,7 @@ class LabelledFormulaTest {
   @Test
   void ofReduced() {
     var formula = LabelledFormula.of(LtlParser.syntax("a"), List.of("a", "b", "c"));
-    assertEquals(List.of("a"), formula.variables());
+    assertEquals(List.of("a"), formula.atomicPropositions());
   }
 
   @Test

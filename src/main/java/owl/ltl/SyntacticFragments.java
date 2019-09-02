@@ -36,13 +36,27 @@ public final class SyntacticFragments {
 
   // Safety-, CoSafety-, and derived LTL fragments
 
+  public static boolean isFinite(Formula formula) {
+    return SyntacticFragment.FINITE.contains(formula);
+  }
+
+  public static boolean isFinite(EquivalenceClass clazz) {
+    for (var temporalOperator : clazz.temporalOperators()) {
+      if (!isFinite(temporalOperator)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   public static boolean isCoSafety(Formula formula) {
     return SyntacticFragment.CO_SAFETY.contains(formula);
   }
 
-  public static boolean isCoSafety(Iterable<? extends Formula> iterable) {
-    for (var formula : iterable) {
-      if (!isCoSafety(formula)) {
+  public static boolean isCoSafety(EquivalenceClass clazz) {
+    for (var temporalOperator : clazz.temporalOperators()) {
+      if (!isCoSafety(temporalOperator)) {
         return false;
       }
     }
@@ -54,9 +68,9 @@ public final class SyntacticFragments {
     return SyntacticFragment.SAFETY.contains(formula);
   }
 
-  public static boolean isSafety(Iterable<? extends Formula> iterable) {
-    for (var formula : iterable) {
-      if (!isSafety(formula)) {
+  public static boolean isSafety(EquivalenceClass clazz) {
+    for (var temporalOperator : clazz.temporalOperators()) {
+      if (!isSafety(temporalOperator)) {
         return false;
       }
     }

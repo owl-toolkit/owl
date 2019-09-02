@@ -29,7 +29,6 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.XOperator;
 
 public class XDepthVisitor implements IntVisitor {
@@ -67,13 +66,13 @@ public class XDepthVisitor implements IntVisitor {
   @Nonnegative
   @Override
   public int visit(Conjunction conjunction) {
-    return visit((PropositionalFormula) conjunction);
+    return visit((Formula.NaryPropositionalOperator) conjunction);
   }
 
   @Nonnegative
   @Override
   public int visit(Disjunction disjunction) {
-    return visit((PropositionalFormula) disjunction);
+    return visit((Formula.NaryPropositionalOperator) disjunction);
   }
 
   @Nonnegative
@@ -89,7 +88,7 @@ public class XDepthVisitor implements IntVisitor {
   }
 
   @Nonnegative
-  private int visit(PropositionalFormula formula) {
+  private int visit(Formula.NaryPropositionalOperator formula) {
     int max = 0;
 
     for (Formula child : formula.children) {

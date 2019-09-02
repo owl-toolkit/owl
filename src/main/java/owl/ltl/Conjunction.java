@@ -19,77 +19,103 @@
 
 package owl.ltl;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.util.annotation.CEntryPoint;
 
-public final class Conjunction extends PropositionalFormula {
-
-  public Conjunction(Collection<? extends Formula> conjuncts) {
-    super(Conjunction.class, Set.copyOf(conjuncts));
-  }
+public final class Conjunction extends Formula.NaryPropositionalOperator {
 
   public Conjunction(Formula... conjuncts) {
-    super(Conjunction.class, Set.of(conjuncts));
+    this(sortedList(Set.of(conjuncts)), null);
+  }
+
+  public Conjunction(Collection<? extends Formula> conjuncts) {
+    this(sortedList(new HashSet<>(conjuncts)), null);
+  }
+
+  // Internal constructor.
+  @SuppressWarnings("PMD.UnusedFormalParameter")
+  private Conjunction(List<? extends Formula> conjuncts, @Nullable Void internal) {
+    super(Conjunction.class, List.copyOf(conjuncts));
   }
 
   @CEntryPoint
-  public static Formula of(Formula left, Formula right) {
-    return of(Arrays.asList(left, right));
+  public static Formula of(Formula e1, Formula e2) {
+    ArrayList<Formula> list = new ArrayList<>();
+    list.add(e1);
+    list.add(e2);
+    return ofInternal(list);
   }
 
   public static Formula of(Formula... formulas) {
-    return of(Arrays.asList(formulas));
+    ArrayList<Formula> list = new ArrayList<>(formulas.length);
+    Collections.addAll(list, formulas);
+    return ofInternal(list);
   }
 
-  public static Formula of(Iterable<? extends Formula> iterable) {
-    return of(iterable.iterator());
+  public static Formula of(Collection<? extends Formula> collection) {
+    return ofInternal(new ArrayList<>(collection));
   }
 
   public static Formula of(Stream<? extends Formula> stream) {
-    return of(stream.iterator());
+    return ofInternal(stream.collect(Collectors.toCollection(ArrayList::new)));
   }
 
-  public static Formula of(Iterator<? extends Formula> iterator) {
-    Set<Formula> set = new HashSet<>();
+  @SuppressWarnings("PMD.LooseCoupling")
+  static Formula ofInternal(ArrayList<Formula> list) {
+    boolean sorted = false;
 
-    while (iterator.hasNext()) {
-      Formula child = iterator.next();
-      assert child != null;
+    while (!sorted) {
+      list.sort(null);
+      sorted = true;
 
-      if (BooleanConstant.FALSE.equals(child)) {
-        return BooleanConstant.FALSE;
-      }
+      for (int i = list.size() - 1; i >= 0; i--) {
+        Formula child = list.get(i);
 
-      if (BooleanConstant.TRUE.equals(child)) {
-        continue;
-      }
+        if (BooleanConstant.FALSE.equals(child)) {
+          return BooleanConstant.FALSE;
+        }
 
-      if (child instanceof Conjunction) {
-        set.addAll(((Conjunction) child).children);
-      } else {
-        set.add(child);
+        if (BooleanConstant.TRUE.equals(child)) {
+          list.remove(i);
+          continue;
+        }
+
+        if (i > 0 && list.get(i - 1).equals(child)) {
+          list.remove(i);
+          continue;
+        }
+
+        if (child instanceof Conjunction) {
+          list.remove(i);
+          list.addAll(child.children());
+          sorted = false;
+        }
       }
     }
 
-    if (set.isEmpty()) {
-      return BooleanConstant.TRUE;
-    }
+    switch (list.size()) {
+      case 0:
+        return BooleanConstant.TRUE;
 
-    if (set.size() == 1) {
-      return set.iterator().next();
-    }
+      case 1:
+        return list.get(0);
 
-    // Set.copyOf is stupid if given a Set<>, hence this hack
-    return new Conjunction(set.toArray(Formula[]::new));
+      default:
+        return new Conjunction(list, null);
+    }
   }
 
   @Override
@@ -109,17 +135,34 @@ public final class Conjunction extends PropositionalFormula {
 
   @Override
   public Formula nnf() {
-    return Conjunction.of(map(Formula::nnf));
+    return Conjunction.ofInternal(mapInternal(Formula::nnf));
   }
 
   @Override
   public Formula not() {
-    return Disjunction.of(map(Formula::not));
+    return Disjunction.ofInternal(mapInternal(Formula::not));
   }
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return Conjunction.of(map(c -> c.substitute(substitution)));
+    var conjunction = Conjunction.ofInternal(mapInternal(c -> c.substitute(substitution)));
+
+    if (this.equals(conjunction)) {
+      return this;
+    }
+
+    return conjunction;
+  }
+
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    var conjunction = Conjunction.ofInternal(mapInternal(c -> c.temporalStep(valuation)));
+
+    if (this.equals(conjunction)) {
+      return this;
+    }
+
+    return conjunction;
   }
 
   @Override

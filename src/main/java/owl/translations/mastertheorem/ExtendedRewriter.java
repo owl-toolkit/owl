@@ -19,10 +19,11 @@
 
 package owl.translations.mastertheorem;
 
+import com.google.common.collect.Comparators;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.Spliterator;
 import java.util.function.Consumer;
 import javax.annotation.Nullable;
 import owl.ltl.BooleanConstant;
@@ -53,7 +54,7 @@ class ExtendedRewriter {
   // variables are created. We only propagate constants and try to minimise the context-dependent
   // creation of new variables.
   private static class AdviceFunction
-    implements BinaryVisitor<Optional<Formula.ModalOperator>, Formula> {
+    implements BinaryVisitor<Optional<Formula.TemporalOperator>, Formula> {
 
     // Least Fixed-Points
     private final Set<FOperator> fOperators;
@@ -70,13 +71,13 @@ class ExtendedRewriter {
     private final boolean insideAlmostAll;
 
     // Usage Detector
-    private final Consumer<? super Formula.ModalOperator> consumer;
+    private final Consumer<? super Formula.TemporalOperator> consumer;
     private final @Nullable AdviceFunction prerunAdviceFunction;
 
     private AdviceFunction(Mode mode,
-      Iterable<? extends Formula.ModalOperator> x,
-      Iterable<? extends Formula.ModalOperator> y,
-      Consumer<? super Formula.ModalOperator> consumer,
+      Iterable<? extends Formula.TemporalOperator> x,
+      Iterable<? extends Formula.TemporalOperator> y,
+      Consumer<? super Formula.TemporalOperator> consumer,
       boolean insideAlmostAll) {
       this.insideAlmostAll = insideAlmostAll;
 
@@ -138,7 +139,7 @@ class ExtendedRewriter {
       Set<FOperator> fOperators,
       Set<MOperator> mOperators,
       Set<UOperator> uOperators,
-      Consumer<? super Formula.ModalOperator> consumer,
+      Consumer<? super Formula.TemporalOperator> consumer,
       Set<GOperator> gOperators,
       Set<ROperator> rOperators,
       Set<WOperator> wOperators,
@@ -155,12 +156,12 @@ class ExtendedRewriter {
       this.prerunAdviceFunction = null;
     }
 
-    public Formula apply(Formula.ModalOperator formula) {
+    public Formula apply(Formula.TemporalOperator formula) {
       return apply(formula, Optional.of(formula));
     }
 
     @Override
-    public Formula apply(Formula formula, Optional<Formula.ModalOperator> scope) {
+    public Formula apply(Formula formula, Optional<Formula.TemporalOperator> scope) {
       // Avoid marking elements falsely as used by pre-running the advice-function and checking for
       // trivial results.
       if (prerunAdviceFunction != null
@@ -178,33 +179,60 @@ class ExtendedRewriter {
     // Simple Cases
 
     @Override
-    public Formula visit(BooleanConstant booleanConstant, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(BooleanConstant booleanConstant,
+      Optional<Formula.TemporalOperator> scope) {
       return booleanConstant;
     }
 
     @Override
-    public Formula visit(Literal literal, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(Literal literal, Optional<Formula.TemporalOperator> scope) {
       return literal;
     }
 
     @Override
-    public Formula visit(Conjunction conjunction, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(Conjunction conjunction, Optional<Formula.TemporalOperator> scope) {
+      Set<Formula> children = new HashSet<>();
+
       // Stable iteration order to ensure deterministic results.
-      assert conjunction.children.spliterator().hasCharacteristics(Spliterator.SORTED);
-      return Conjunction.of(
-        conjunction.children.stream().map(x -> x.accept(this, Optional.empty())));
+      assert Comparators.isInStrictOrder(conjunction.children(), Comparator.naturalOrder());
+
+      for (Formula child : conjunction.children()) {
+        var visitedChild = child.accept(this, Optional.empty());
+
+        // Short-circuit to ensure correct update of "unused operators"
+        if (visitedChild.equals(BooleanConstant.FALSE)) {
+          return BooleanConstant.FALSE;
+        }
+
+        children.add(visitedChild);
+      }
+
+      return Conjunction.of(children);
     }
 
     @Override
-    public Formula visit(Disjunction disjunction, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(Disjunction disjunction, Optional<Formula.TemporalOperator> scope) {
+      Set<Formula> children = new HashSet<>();
+
       // Stable iteration order to ensure deterministic results.
-      assert disjunction.children.spliterator().hasCharacteristics(Spliterator.SORTED);
-      return Disjunction.of(
-        disjunction.children.stream().map(x -> x.accept(this, Optional.empty())));
+      assert Comparators.isInStrictOrder(disjunction.children(), Comparator.naturalOrder());
+
+      for (Formula child : disjunction.children()) {
+        var visitedChild = child.accept(this, Optional.empty());
+
+        // Short-circuit to ensure correct update of "unused operators"
+        if (visitedChild.equals(BooleanConstant.TRUE)) {
+          return BooleanConstant.TRUE;
+        }
+
+        children.add(visitedChild);
+      }
+
+      return Disjunction.of(children);
     }
 
     @Override
-    public Formula visit(XOperator xOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(XOperator xOperator, Optional<Formula.TemporalOperator> scope) {
       var operand = xOperator.operand.accept(this, Optional.empty());
       return operand instanceof BooleanConstant ? operand : new XOperator(operand);
     }
@@ -212,7 +240,7 @@ class ExtendedRewriter {
     // Least Fixed-points
 
     @Override
-    public Formula visit(FOperator fOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(FOperator fOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && fOperator.equals(scope.get())) {
         assert mode == Mode.STRONG;
         return fOperator(fOperator.operand.accept(this, Optional.empty()));
@@ -223,7 +251,7 @@ class ExtendedRewriter {
     }
 
     @Override
-    public Formula visit(MOperator mOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(MOperator mOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && mOperator.equals(scope.get())) {
         assert mode == Mode.STRONG;
         return mOperator(
@@ -246,7 +274,7 @@ class ExtendedRewriter {
     }
 
     @Override
-    public Formula visit(UOperator uOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(UOperator uOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && uOperator.equals(scope.get())) {
         assert mode == Mode.STRONG;
         return uOperator(
@@ -271,7 +299,7 @@ class ExtendedRewriter {
     // Greatest Fixed-points
 
     @Override
-    public Formula visit(GOperator gOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(GOperator gOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && gOperator.equals(scope.get())) {
         assert mode == Mode.WEAK;
         return gOperator(gOperator.operand.accept(this, Optional.empty()));
@@ -288,7 +316,7 @@ class ExtendedRewriter {
     }
 
     @Override
-    public Formula visit(ROperator rOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(ROperator rOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && rOperator.equals(scope.get())) {
         assert mode == Mode.WEAK;
         return rOperator(
@@ -312,7 +340,7 @@ class ExtendedRewriter {
     }
 
     @Override
-    public Formula visit(WOperator wOperator, Optional<Formula.ModalOperator> scope) {
+    public Formula visit(WOperator wOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && wOperator.equals(scope.get())) {
         assert mode == Mode.WEAK;
         return wOperator(
@@ -423,18 +451,18 @@ class ExtendedRewriter {
   }
 
   static final class ToSafety extends AdviceFunction {
-    ToSafety(Fixpoints fixpoints, Consumer<? super Formula.ModalOperator> consumer) {
+    ToSafety(Fixpoints fixpoints, Consumer<? super Formula.TemporalOperator> consumer) {
       super(Mode.WEAK, fixpoints.leastFixpoints(), fixpoints.greatestFixpoints(), consumer, true);
     }
 
-    ToSafety(Iterable<? extends Formula.ModalOperator> x,
-      Consumer<? super Formula.ModalOperator> consumer) {
+    ToSafety(Iterable<? extends Formula.TemporalOperator> x,
+      Consumer<? super Formula.TemporalOperator> consumer) {
       super(Mode.WEAK, x, Set.of(), consumer, false);
     }
   }
 
   static final class ToCoSafety extends AdviceFunction {
-    ToCoSafety(Fixpoints fixpoints, Consumer<? super Formula.ModalOperator> consumer) {
+    ToCoSafety(Fixpoints fixpoints, Consumer<? super Formula.TemporalOperator> consumer) {
       super(Mode.STRONG, fixpoints.leastFixpoints(), fixpoints.greatestFixpoints(), consumer, true);
     }
   }

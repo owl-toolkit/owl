@@ -43,6 +43,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimizations.ParityAcceptanceOptimizations;
 import owl.automaton.transformations.ParityUtil;
 import owl.automaton.util.AnnotatedStateOptimisation;
+import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.translations.mastertheorem.Selector;
@@ -198,14 +199,15 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       : dpa;
 
     if (optimisedDpa.initialStates().isEmpty()) {
-      var factory = environment.factorySupplier().getEquivalenceClassFactory(formula.variables());
+      var factory = environment.factorySupplier()
+        .getEquivalenceClassFactory(formula.atomicPropositions());
       return new Result<>(optimisedDpa,
-        AsymmetricRankingState.of(factory.getFalse()),
+        AsymmetricRankingState.of(factory.of(BooleanConstant.FALSE)),
         configuration.contains(COMPRESS_COLOURS));
     }
 
     return new Result<>(optimisedDpa,
-      AsymmetricRankingState.of(dpa.onlyInitialState().state().factory().getFalse()),
+      AsymmetricRankingState.of(dpa.onlyInitialState().state().factory().of(BooleanConstant.FALSE)),
       configuration.contains(COMPRESS_COLOURS));
   }
 

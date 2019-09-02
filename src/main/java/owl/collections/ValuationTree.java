@@ -22,8 +22,10 @@ package owl.collections;
 import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -54,7 +56,15 @@ public abstract class ValuationTree<E> {
 
   public abstract Set<E> get(BitSet valuation);
 
-  public abstract Set<E> values();
+  public final Set<E> values() {
+    return values(Function.identity());
+  }
+
+  public final <T> Set<T> values(Function<E, T> mapper) {
+    Set<T> values = new HashSet<>();
+    memoizedValues(values, Collections.newSetFromMap(new IdentityHashMap<>()), mapper);
+    return values;
+  }
 
   public final Map<E, ValuationSet> inverse(ValuationSetFactory factory) {
     return memoizedInverse(factory, new HashMap<>());
@@ -73,6 +83,9 @@ public abstract class ValuationTree<E> {
     ValuationSetFactory factory,
     Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls);
 
+  protected abstract <T> void memoizedValues(
+    Set<T> values, Set<ValuationTree<E>> seenNodes, Function<E, T> mapper);
+
   public static final class Leaf<E> extends ValuationTree<E> {
     private static final ValuationTree<Object> EMPTY = new Leaf<>(Set.of());
 
@@ -89,8 +102,11 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    public Set<E> values() {
-      return new HashSet<>(value);
+    protected <T> void memoizedValues(Set<T> values,
+      Set<ValuationTree<E>> seenNodes, Function<E, T> mapper) {
+      for (E x : value) {
+        values.add(mapper.apply(x));
+      }
     }
 
     @Override
@@ -153,10 +169,14 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    public Set<E> values() {
-      Set<E> values = trueChild.values();
-      values.addAll(falseChild.values());
-      return values;
+    protected <T> void memoizedValues(Set<T> values, Set<ValuationTree<E>> seenNodes,
+      Function<E, T> mapper) {
+      if (!seenNodes.add(this)) {
+        return;
+      }
+
+      trueChild.memoizedValues(values, seenNodes, mapper);
+      falseChild.memoizedValues(values, seenNodes, mapper);
     }
 
     // Perfect for fork/join-parallesism

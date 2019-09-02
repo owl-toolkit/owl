@@ -27,7 +27,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
@@ -38,7 +37,6 @@ import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
@@ -79,7 +77,7 @@ public final class Selector {
   }
 
   private static Stream<Fixpoints> selectAsymmetricFromClause(Set<Formula> clause) {
-    List<Set<Set<Formula.ModalOperator>>> elementSets = new ArrayList<>();
+    List<Set<Set<Formula.TemporalOperator>>> elementSets = new ArrayList<>();
 
     for (Formula element : clause) {
       assert isClauseElement(element);
@@ -93,8 +91,8 @@ public final class Selector {
 
     List<Fixpoints> fixpointsList = new ArrayList<>();
 
-    for (List<Set<Formula.ModalOperator>> combination : Sets.cartesianProduct(elementSets)) {
-      Set<Formula.ModalOperator> union = new HashSet<>();
+    for (List<Set<Formula.TemporalOperator>> combination : Sets.cartesianProduct(elementSets)) {
+      Set<Formula.TemporalOperator> union = new HashSet<>();
       combination.forEach(union::addAll);
       fixpointsList.add(Fixpoints.of(Set.of(), union));
     }
@@ -104,7 +102,7 @@ public final class Selector {
 
   private static Stream<Fixpoints> selectSymmetricFromClause(Set<Formula> clause) {
     List<Fixpoints> fixpointsList = new ArrayList<>();
-    List<Set<Set<Formula.ModalOperator>>> elementSets = new ArrayList<>();
+    List<Set<Set<Formula.TemporalOperator>>> elementSets = new ArrayList<>();
 
     for (Formula element : clause) {
       assert isClauseElement(element);
@@ -113,14 +111,14 @@ public final class Selector {
         continue;
       }
 
-      Set<Formula.ModalOperator> fixpoints = new HashSet<>();
+      Set<Formula.TemporalOperator> fixpoints = new HashSet<>();
       UnscopedVisitor visitor = new UnscopedVisitor(fixpoints);
       element.accept(visitor);
       elementSets.add(Sets.powerSet(fixpoints));
     }
 
-    for (List<Set<Formula.ModalOperator>> combination : Sets.cartesianProduct(elementSets)) {
-      Set<Formula.ModalOperator> union = new HashSet<>();
+    for (List<Set<Formula.TemporalOperator>> combination : Sets.cartesianProduct(elementSets)) {
+      Set<Formula.TemporalOperator> union = new HashSet<>();
       combination.forEach(union::addAll);
       fixpointsList.add(Fixpoints.of(union));
     }
@@ -130,21 +128,19 @@ public final class Selector {
 
   private static boolean isClauseElement(Formula formula) {
     return SyntacticFragments.isCoSafety(formula)
-      || formula instanceof Literal
-      || formula instanceof UnaryModalOperator
-      || formula instanceof BinaryModalOperator;
+      || formula instanceof Formula.TemporalOperator;
   }
 
-  private static Set<Formula.ModalOperator> selectAllFixpoints(
+  private static Set<Formula.TemporalOperator> selectAllFixpoints(
     Formula formula) {
     return formula.subformulas(Predicates.IS_FIXPOINT,
-      Formula.ModalOperator.class::cast);
+      Formula.TemporalOperator.class::cast);
   }
 
-  private static Set<Formula.ModalOperator> selectGreatestFixpoints(
+  private static Set<Formula.TemporalOperator> selectGreatestFixpoints(
     Formula formula) {
     return formula.subformulas(Predicates.IS_GREATEST_FIXPOINT,
-      Formula.ModalOperator.class::cast);
+      Formula.TemporalOperator.class::cast);
   }
 
   private abstract static class AbstractSymmetricVisitor implements Visitor<Void> {
@@ -175,7 +171,7 @@ public final class Selector {
   private static final class UnscopedVisitor extends AbstractSymmetricVisitor {
     private final GScopedVisitor gScopedVisitor;
 
-    private UnscopedVisitor(Set<Formula.ModalOperator> fixpoints) {
+    private UnscopedVisitor(Set<Formula.TemporalOperator> fixpoints) {
       gScopedVisitor = new GScopedVisitor(fixpoints);
     }
 
@@ -219,9 +215,9 @@ public final class Selector {
   }
 
   private static class GScopedVisitor extends AbstractSymmetricVisitor {
-    private final Set<Formula.ModalOperator> fixpoints;
+    private final Set<Formula.TemporalOperator> fixpoints;
 
-    private GScopedVisitor(Set<Formula.ModalOperator> fixpoints) {
+    private GScopedVisitor(Set<Formula.TemporalOperator> fixpoints) {
       this.fixpoints = fixpoints;
     }
 

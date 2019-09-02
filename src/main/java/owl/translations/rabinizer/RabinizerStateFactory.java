@@ -87,10 +87,10 @@ class RabinizerStateFactory {
         if (fairnessFragment) {
           successor = state;
         } else {
-          successor = state.temporalStepUnfold(valuation);
+          successor = state.temporalStep(valuation).unfold();
         }
       } else {
-        successor = state.unfoldTemporalStep(valuation);
+        successor = state.unfold().temporalStep(valuation);
       }
 
       // If the master moves into false, there is no way of accepting, since the finite prefix
@@ -119,7 +119,7 @@ class RabinizerStateFactory {
       // is tt or ff, this also returns true, since the support is empty (hence the "for all"
       // trivially holds).
       return equivalenceClass.atomicPropositions().isEmpty()
-        && equivalenceClass.modalOperators().stream().allMatch(GOperator.class::isInstance);
+        && equivalenceClass.temporalOperators().stream().allMatch(GOperator.class::isInstance);
     }
 
     EquivalenceClass getInitialState(EquivalenceClass formula) {
@@ -129,8 +129,8 @@ class RabinizerStateFactory {
     EquivalenceClass getRankSuccessor(EquivalenceClass equivalenceClass, BitSet valuation) {
       if (noSubFormula) {
         return eager
-          ? equivalenceClass.temporalStepUnfold(valuation)
-          : equivalenceClass.unfoldTemporalStep(valuation);
+          ? equivalenceClass.temporalStep(valuation).unfold()
+          : equivalenceClass.unfold().temporalStep(valuation);
       }
 
       return eager

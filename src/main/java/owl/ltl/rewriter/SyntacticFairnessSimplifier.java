@@ -19,10 +19,9 @@
 
 package owl.ltl.rewriter;
 
-import com.google.common.collect.Sets;
+import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import javax.annotation.Nullable;
@@ -34,7 +33,6 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
@@ -130,6 +128,26 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     throw new AssertionError("Unreachable");
   }
 
+  private static Formula shortCircuit(Formula formula) {
+    if (formula instanceof Conjunction) {
+      Conjunction conjunction = (Conjunction) formula;
+
+      if (conjunction.children.stream().anyMatch(x -> conjunction.children.contains(x.not()))) {
+        return BooleanConstant.FALSE;
+      }
+    }
+
+    if (formula instanceof Disjunction) {
+      Disjunction disjunction = (Disjunction) formula;
+
+      if (disjunction.children.stream().anyMatch(x -> disjunction.children.contains(x.not()))) {
+        return BooleanConstant.TRUE;
+      }
+    }
+
+    return formula;
+  }
+
   private static final class AlmostAllVisitor implements Visitor<Formula> {
 
     private static Formula wrap(Formula formula) {
@@ -148,22 +166,22 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     @Override
     public Formula visit(Conjunction conjunction) {
       if (SyntacticFragment.FINITE.contains(conjunction)) {
-        return wrap(PropositionalFormula.shortCircuit(conjunction));
+        return wrap(shortCircuit(conjunction));
       }
 
-      return PropositionalFormula.shortCircuit(
+      return shortCircuit(
         Conjunction.of(conjunction.map(x -> x.accept(this))));
     }
 
     @Override
     public Formula visit(Disjunction disjunction) {
       if (SyntacticFragment.FINITE.contains(disjunction)) {
-        return wrap(PropositionalFormula.shortCircuit(disjunction));
+        return wrap(shortCircuit(disjunction));
       }
 
       List<Formula> disjuncts = new ArrayList<>();
       List<Formula> xFragment = new ArrayList<>();
-      List<Set<Formula>> conjuncts = new ArrayList<>();
+      List<List<Formula>> conjuncts = new ArrayList<>();
 
       disjunction.children.forEach(child -> {
         if (child instanceof FOperator) {
@@ -174,16 +192,16 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
           xFragment.add(child);
         } else {
           assert child instanceof Conjunction;
-          conjuncts.add(((PropositionalFormula) child).children);
+          conjuncts.add(child.children());
         }
       });
 
-      conjuncts.add(Set.of(Disjunction.of(xFragment)));
-      Formula conjunction = Conjunction.of(Sets.cartesianProduct(conjuncts).stream()
+      conjuncts.add(List.of(Disjunction.of(xFragment)));
+      Formula conjunction = Conjunction.of(Lists.cartesianProduct(conjuncts).stream()
         .map(Disjunction::of));
 
       disjuncts.add(conjunction.accept(this));
-      return PropositionalFormula.shortCircuit(Disjunction.of(disjuncts));
+      return shortCircuit(Disjunction.of(disjuncts));
     }
 
     @Override
@@ -225,12 +243,12 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     @Override
     public Formula visit(Conjunction conjunction) {
       if (SyntacticFragment.FINITE.contains(conjunction)) {
-        return wrap(PropositionalFormula.shortCircuit(conjunction));
+        return wrap(shortCircuit(conjunction));
       }
 
       List<Formula> conjuncts = new ArrayList<>();
       List<Formula> xFragment = new ArrayList<>();
-      List<Set<Formula>> disjuncts = new ArrayList<>();
+      List<List<Formula>> disjuncts = new ArrayList<>();
 
       conjunction.children.forEach(child -> {
         if (child instanceof FOperator) {
@@ -241,25 +259,25 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
           xFragment.add(child);
         } else {
           assert child instanceof Disjunction;
-          disjuncts.add(((PropositionalFormula) child).children);
+          disjuncts.add(child.children());
         }
       });
 
-      disjuncts.add(Set.of(Conjunction.of(xFragment)));
+      disjuncts.add(List.of(Conjunction.of(xFragment)));
       Formula disjunction = Disjunction.of(
-        Sets.cartesianProduct(disjuncts).stream().map(Conjunction::of));
+        Lists.cartesianProduct(disjuncts).stream().map(Conjunction::of));
 
       conjuncts.add(disjunction.accept(this));
-      return PropositionalFormula.shortCircuit(Conjunction.of(conjuncts));
+      return shortCircuit(Conjunction.of(conjuncts));
     }
 
     @Override
     public Formula visit(Disjunction disjunction) {
       if (SyntacticFragment.FINITE.contains(disjunction)) {
-        return wrap(PropositionalFormula.shortCircuit(disjunction));
+        return wrap(shortCircuit(disjunction));
       }
 
-      return PropositionalFormula.shortCircuit(
+      return shortCircuit(
         Disjunction.of(disjunction.map(x -> x.accept(this))));
     }
 

@@ -51,9 +51,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
-import owl.ltl.Formula;
 import owl.ltl.GOperator;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 
 final class MonitorBuilder {
@@ -72,12 +70,11 @@ final class MonitorBuilder {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
-    Set<Formula.ModalOperator> modalOperators = operand.modalOperators();
-    boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragments::isCoSafety);
+    boolean isCoSafety = SyntacticFragments.isCoSafety(operand);
 
     if (isCoSafety && gOperator.operand instanceof FOperator) {
       fragment = Fragment.EVENTUAL;
-    } else if (modalOperators.stream().allMatch(SyntacticFragment.FINITE::contains)) {
+    } else if (SyntacticFragments.isFinite(operand)) {
       fragment = Fragment.FINITE;
     } else {
       fragment = Fragment.FULL;
@@ -91,7 +88,7 @@ final class MonitorBuilder {
     this.relevantSets = relevantSets.toArray(GSet[]::new);
     assert !isCoSafety || this.relevantSets.length == 1;
 
-    //noinspection unchecked,rawtypes
+    //noinspection unchecked
     this.monitorAutomata = new MutableAutomaton[this.relevantSets.length];
     initialClass = stateFactory.getInitialState(operand);
   }

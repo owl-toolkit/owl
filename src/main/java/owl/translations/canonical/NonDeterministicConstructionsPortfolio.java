@@ -90,28 +90,28 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
 
   public static Automaton<Formula, BuchiAcceptance> coSafety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new NonDeterministicConstructions.CoSafety(factories, formula.formula());
   }
 
   public static Automaton<Formula, AllAcceptance> safety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new NonDeterministicConstructions.Safety(factories, formula.formula());
   }
 
   public static Automaton<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> gfCoSafety(
     Environment environment, LabelledFormula formula, boolean generalized) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     var formulas = formula.formula() instanceof Conjunction
-      ? formula.formula().children()
+      ? Set.copyOf(formula.formula().children())
       : Set.of(formula.formula());
     return new NonDeterministicConstructions.GfCoSafety(factories, formulas, generalized);
   }
 
   public static Automaton<Formula, BuchiAcceptance> fgSafety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new NonDeterministicConstructions.FgSafety(factories, formula.formula());
   }
 }

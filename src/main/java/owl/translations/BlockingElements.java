@@ -1,5 +1,6 @@
 package owl.translations;
 
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Set;
@@ -14,8 +15,8 @@ import owl.translations.mastertheorem.Predicates;
 public class BlockingElements {
   private final BitSet atomicPropositions;
 
-  private final Set<Formula.ModalOperator> blockingCoSafety;
-  private final Set<Formula.ModalOperator> blockingSafety;
+  private final Set<Formula.TemporalOperator> blockingCoSafety;
+  private final Set<Formula.TemporalOperator> blockingSafety;
 
   public BlockingElements(Formula formula) {
     this.atomicPropositions = formula.atomicPropositions(true);
@@ -23,14 +24,20 @@ public class BlockingElements {
       .forEach(x -> atomicPropositions.andNot(x.atomicPropositions(true)));
 
     if (formula instanceof Conjunction) {
-      var greatestFixpoints = formula.subformulas(Predicates.IS_GREATEST_FIXPOINT);
-      blockingCoSafety = formula.children()
-        .stream()
-        .filter(x -> x instanceof Formula.ModalOperator
-          && SyntacticFragments.isCoSafety(x)
-          && greatestFixpoints.stream().noneMatch(y -> y.anyMatch(x::equals)))
-        .map(Formula.ModalOperator.class::cast)
-        .collect(Collectors.toUnmodifiableSet());
+      var coSafetyTemporalChildren = new ArrayList<Formula.TemporalOperator>();
+      var otherChildren = new ArrayList<Formula>();
+
+      for (Formula child : formula.children()) {
+        if (child instanceof Formula.TemporalOperator && SyntacticFragments.isCoSafety(child)) {
+          coSafetyTemporalChildren.add((Formula.TemporalOperator) child);
+        } else {
+          otherChildren.add(child);
+        }
+      }
+
+      coSafetyTemporalChildren
+        .removeIf(x -> otherChildren.stream().anyMatch(y -> y.anyMatch(x::equals)));
+      blockingCoSafety = Set.of(coSafetyTemporalChildren.toArray(Formula.TemporalOperator[]::new));
     } else {
       blockingCoSafety = Set.of();
     }
@@ -45,10 +52,10 @@ public class BlockingElements {
 
       blockingSafety = formula.children()
         .stream()
-        .filter(x -> x instanceof Formula.ModalOperator
+        .filter(x -> x instanceof Formula.TemporalOperator
           && SyntacticFragments.isSafety(x)
           && fixpoints.stream().noneMatch(y -> y.anyMatch(x::equals)))
-        .map(Formula.ModalOperator.class::cast)
+        .map(Formula.TemporalOperator.class::cast)
         .collect(Collectors.toUnmodifiableSet());
     } else {
       blockingSafety = Set.of();
@@ -56,17 +63,13 @@ public class BlockingElements {
   }
 
   public boolean isBlockedByCoSafety(EquivalenceClass clazz) {
-    var modalOperators = clazz.modalOperators();
-
-    return SyntacticFragments.isCoSafety(modalOperators)
+    return SyntacticFragments.isCoSafety(clazz)
       || clazz.atomicPropositions(true).intersects(atomicPropositions)
-      || !Collections.disjoint(blockingCoSafety, modalOperators);
+      || !Collections.disjoint(blockingCoSafety, clazz.temporalOperators());
   }
 
   public boolean isBlockedBySafety(EquivalenceClass clazz) {
-    var modalOperators = clazz.modalOperators();
-
-    return SyntacticFragments.isSafety(modalOperators)
-      || !Collections.disjoint(blockingSafety, modalOperators);
+    return SyntacticFragments.isSafety(clazz)
+      || !Collections.disjoint(blockingSafety, clazz.temporalOperators());
   }
 }

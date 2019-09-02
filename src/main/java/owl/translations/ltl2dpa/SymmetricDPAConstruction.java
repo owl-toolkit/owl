@@ -94,8 +94,8 @@ final class SymmetricDPAConstruction {
       List<Entry<Integer, SymmetricProductState>> previousRanking,
       int previousSafetyBucket, int previousSafetyBucketIndex, @Nullable BitSet valuation) {
 
-      for (EquivalenceClass entry : successor.values()) {
-        if (SyntacticFragments.isSafety(entry.modalOperators())) {
+      for (EquivalenceClass clazz : successor.values()) {
+        if (SyntacticFragments.isSafety(clazz)) {
           return Edge.of(SymmetricRankingState.of(successor), 1);
         }
       }

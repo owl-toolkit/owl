@@ -39,14 +39,14 @@ import owl.ltl.WOperator;
 @AutoValue
 public abstract class Fixpoints implements Comparable<Fixpoints> {
 
-  public abstract Set<Formula.ModalOperator> leastFixpoints();
+  public abstract Set<Formula.TemporalOperator> leastFixpoints();
 
-  public abstract Set<Formula.ModalOperator> greatestFixpoints();
+  public abstract Set<Formula.TemporalOperator> greatestFixpoints();
 
-  public static Fixpoints of(Collection<? extends Formula.ModalOperator> leastFixpoints,
-                             Collection<? extends Formula.ModalOperator> greatestFixpoints) {
-    Set<Formula.ModalOperator> leastFixpointsCopy = Set.copyOf(leastFixpoints);
-    Set<Formula.ModalOperator> greatestFixpointsCopy = Set.copyOf(greatestFixpoints);
+  public static Fixpoints of(Collection<? extends Formula.TemporalOperator> leastFixpoints,
+    Collection<? extends Formula.TemporalOperator> greatestFixpoints) {
+    Set<Formula.TemporalOperator> leastFixpointsCopy = Set.copyOf(leastFixpoints);
+    Set<Formula.TemporalOperator> greatestFixpointsCopy = Set.copyOf(greatestFixpoints);
 
     checkArgument(leastFixpointsCopy.stream().allMatch(Predicates.IS_LEAST_FIXPOINT));
     checkArgument(greatestFixpointsCopy.stream().allMatch(Predicates.IS_GREATEST_FIXPOINT));
@@ -54,11 +54,11 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
     return new AutoValue_Fixpoints(leastFixpointsCopy, greatestFixpointsCopy);
   }
 
-  public static Fixpoints of(Collection<? extends Formula.ModalOperator> fixpoints) {
-    Set<Formula.ModalOperator> leastFixpoints = new HashSet<>();
-    Set<Formula.ModalOperator> greatestFixpoints = new HashSet<>();
+  public static Fixpoints of(Collection<? extends Formula.TemporalOperator> fixpoints) {
+    Set<Formula.TemporalOperator> leastFixpoints = new HashSet<>();
+    Set<Formula.TemporalOperator> greatestFixpoints = new HashSet<>();
 
-    for (Formula.ModalOperator fixpoint : fixpoints) {
+    for (Formula.TemporalOperator fixpoint : fixpoints) {
       if (Predicates.IS_LEAST_FIXPOINT.test(fixpoint)) {
         leastFixpoints.add(fixpoint);
       } else {
@@ -67,12 +67,12 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
       }
     }
 
-    return of(Set.of(leastFixpoints.toArray(Formula.ModalOperator[]::new)),
-      Set.of(greatestFixpoints.toArray(Formula.ModalOperator[]::new)));
+    return of(Set.of(leastFixpoints.toArray(Formula.TemporalOperator[]::new)),
+      Set.of(greatestFixpoints.toArray(Formula.TemporalOperator[]::new)));
   }
 
   public boolean allFixpointsPresent(
-    Collection<? extends Formula.ModalOperator> formulas) {
+    Collection<? extends Formula.TemporalOperator> formulas) {
     Set<Formula> waitingFixpoints = new HashSet<>(leastFixpoints());
     waitingFixpoints.addAll(greatestFixpoints());
     waitingFixpoints.removeAll(formulas);
@@ -88,7 +88,7 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
   public abstract boolean equals(Object o);
 
   @Memoized
-  public Set<Formula.ModalOperator> fixpoints() {
+  public Set<Formula.TemporalOperator> fixpoints() {
     return Set.copyOf(Sets.union(leastFixpoints(), greatestFixpoints()));
   }
 

@@ -85,7 +85,7 @@ class FormulaIsomorphismTest {
       + "&& (((r_2) && (X (r_5))) -> (X ((g_2) && (g_5))))\n"
       + "&& (((r_3) && (X (r_4))) -> (X ((g_3) && (g_4))))\n"
       + "&& (((r_3) && (X (r_5))) -> (X ((g_3) && (g_5))))\n"
-      + "&& (((r_4) && (X (r_5))) -> (X ((g_4) && (g_5))))", formula1.variables());
+      + "&& (((r_4) && (X (r_5))) -> (X ((g_4) && (g_5))))", formula1.atomicPropositions());
 
     assertTimeout(Duration.ofMillis(500),
       () -> assertNull(FormulaIsomorphism.compute(formula1.formula(), formula2.formula())));

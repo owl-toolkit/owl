@@ -28,8 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
+import owl.ltl.Disjunction;
 import owl.ltl.Formula;
-import owl.ltl.UnaryModalOperator;
+import owl.ltl.Literal;
 
 class Util {
 
@@ -72,8 +74,10 @@ class Util {
       Formula[] trueSingleSteps = new Formula[singleSteps.size()];
       Formula[] falseSingleSteps = new Formula[singleSteps.size()];
 
-      Arrays.setAll(trueSingleSteps, i -> singleSteps.get(i).temporalStep(variable, true));
-      Arrays.setAll(falseSingleSteps, i -> singleSteps.get(i).temporalStep(variable, false));
+      Arrays.setAll(trueSingleSteps,
+        i -> temporalStep(singleSteps.get(i), variable, true));
+      Arrays.setAll(falseSingleSteps,
+        i -> temporalStep(singleSteps.get(i), variable, false));
 
       var trueChild = singleStepTreeRecursive(Arrays.asList(trueSingleSteps), cache);
       var falseChild = singleStepTreeRecursive(Arrays.asList(falseSingleSteps), cache);
@@ -86,7 +90,30 @@ class Util {
   }
 
   static Formula unwrap(Formula formula) {
-    return ((UnaryModalOperator) formula).operand;
+    return ((Formula.UnaryTemporalOperator) formula).operand;
+  }
+
+  private static Formula temporalStep(Formula formula, int atom, boolean valuation) {
+    if (formula instanceof Literal) {
+      Literal literal = (Literal) formula;
+
+      if (literal.getAtom() == atom) {
+        return BooleanConstant.of(valuation ^ literal.isNegated());
+      }
+
+      return literal;
+    }
+
+    if (formula instanceof Conjunction) {
+      return Conjunction.of(((Conjunction) formula).map(x -> temporalStep(x, atom, valuation)));
+    }
+
+    if (formula instanceof Disjunction) {
+      return Disjunction.of(((Disjunction) formula).map(x -> temporalStep(x, atom, valuation)));
+    }
+
+    assert formula instanceof BooleanConstant;
+    return formula;
   }
 
   @AutoValue

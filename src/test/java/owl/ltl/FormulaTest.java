@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Lists;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -36,7 +35,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.parser.LtlParser;
 
-@SuppressWarnings("PMD.UnusedPrivateMethod")
 public class FormulaTest {
 
   private static final List<Formula> FORMULAS = List.of(
@@ -69,21 +67,6 @@ public class FormulaTest {
     LtlParser.syntax("G (X (a <-> b))"),
     LtlParser.syntax("G (X (a xor b))"));
 
-
-  private static final BitSet ONE = new BitSet();
-
-  private static final BitSet THREE = new BitSet();
-
-  private static final BitSet TWO = new BitSet();
-
-  private static final BitSet ZERO = new BitSet();
-
-  static {
-    ONE.set(0);
-    TWO.set(1);
-    THREE.set(0, 2);
-  }
-
   public static List<Formula> formulaProvider() {
     return FORMULAS;
   }
@@ -93,17 +76,12 @@ public class FormulaTest {
       .stream().map(x -> Arguments.of(x.get(0), x.get(1)));
   }
 
-  private static Stream<Arguments> temporalStepCartesianProductProvider() {
-    return Lists.cartesianProduct(FORMULAS, List.of(ZERO, ONE, TWO, THREE))
-      .stream().map(x -> Arguments.of(x.toArray()));
-  }
-
   @ParameterizedTest
   @MethodSource("formulaProvider")
   void allMatch(Formula formula) {
     Set<Formula.TemporalOperator> subformulas = formula.subformulas(Formula.TemporalOperator.class);
     assertTrue(formula.allMatch(
-      x -> x instanceof Formula.LogicalOperator || subformulas.contains(x)));
+      x -> x instanceof Formula.PropositionalOperator || subformulas.contains(x)));
   }
 
   @ParameterizedTest
@@ -157,17 +135,5 @@ public class FormulaTest {
   void not(Formula formula) {
     assertEquals(formula, formula.not().not());
     assertEquals(formula.not(), formula.not().not().not());
-  }
-
-  @ParameterizedTest
-  @MethodSource("temporalStepCartesianProductProvider")
-  void temporalStepUnfold(Formula formula, BitSet bitSet) {
-    assertEquals(formula.temporalStep(bitSet).unfold(), formula.temporalStepUnfold(bitSet));
-  }
-
-  @ParameterizedTest
-  @MethodSource("temporalStepCartesianProductProvider")
-  void unfoldTemporalStep(Formula formula, BitSet bitSet) {
-    assertEquals(formula.unfold().temporalStep(bitSet), formula.unfoldTemporalStep(bitSet));
   }
 }

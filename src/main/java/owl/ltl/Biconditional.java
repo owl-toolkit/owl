@@ -19,8 +19,9 @@
 
 package owl.ltl;
 
+import java.util.BitSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -29,12 +30,14 @@ import owl.ltl.visitors.Visitor;
 /**
  * Biconditional.
  */
-public final class Biconditional extends Formula.LogicalOperator {
+public final class Biconditional extends Formula.PropositionalOperator {
   public final Formula left;
   public final Formula right;
 
   public Biconditional(Formula leftOperand, Formula rightOperand) {
-    super(Objects.hash(Biconditional.class, leftOperand, rightOperand));
+    super(
+      Objects.hash(Biconditional.class, leftOperand, rightOperand),
+      Formulas.height(leftOperand, rightOperand) + 1);
     this.left = leftOperand;
     this.right = rightOperand;
   }
@@ -94,8 +97,8 @@ public final class Biconditional extends Formula.LogicalOperator {
   }
 
   @Override
-  public Set<Formula> children() {
-    return Set.of(left, right);
+  public List<Formula> children() {
+    return List.of(left, right);
   }
 
   @Override
@@ -129,20 +132,12 @@ public final class Biconditional extends Formula.LogicalOperator {
   }
 
   @Override
+  public Formula temporalStep(BitSet valuation) {
+    return Biconditional.of(left.temporalStep(valuation), right.temporalStep(valuation));
+  }
+
+  @Override
   public String toString() {
     return "(" + left + " <-> " + right + ')';
-  }
-
-  @Override
-  protected int compareToImpl(Formula o) {
-    Biconditional that = (Biconditional) o;
-    int comparison = left.compareTo(that.left);
-    return comparison == 0 ? right.compareTo(that.right) : comparison;
-  }
-
-  @Override
-  protected boolean equalsImpl(Formula o) {
-    Biconditional that = (Biconditional) o;
-    return left.equals(that.left) && right.equals(that.right);
   }
 }

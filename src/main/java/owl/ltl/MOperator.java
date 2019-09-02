@@ -19,7 +19,6 @@
 
 package owl.ltl;
 
-import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -28,7 +27,7 @@ import owl.util.annotation.CEntryPoint;
 /**
  * Strong Release.
  */
-public final class MOperator extends BinaryModalOperator {
+public final class MOperator extends Formula.BinaryTemporalOperator {
 
   public MOperator(Formula leftOperand, Formula rightOperand) {
     super(MOperator.class, leftOperand, rightOperand);
@@ -99,11 +98,5 @@ public final class MOperator extends BinaryModalOperator {
   @Override
   public Formula unfold() {
     return Conjunction.of(right.unfold(), Disjunction.of(left.unfold(), this));
-  }
-
-  @Override
-  public Formula unfoldTemporalStep(BitSet valuation) {
-    return Conjunction.of(right.unfoldTemporalStep(valuation),
-      Disjunction.of(left.unfoldTemporalStep(valuation), this));
   }
 }

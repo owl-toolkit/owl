@@ -22,6 +22,7 @@ package owl.ltl.rewriter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -37,7 +38,7 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
-public final class DeduplicationRewriter implements Visitor<Formula> {
+public final class DeduplicationRewriter implements Visitor<Formula>, UnaryOperator<Formula> {
   // TODO Static + Concurrent / Cache?
   private final Map<Formula, Formula> map = new HashMap<>();
 

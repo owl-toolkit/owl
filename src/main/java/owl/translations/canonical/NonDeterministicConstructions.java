@@ -26,7 +26,6 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +54,6 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
@@ -109,27 +107,13 @@ public final class NonDeterministicConstructions {
 
     <T> ValuationTree<T> successorTreeInternal(Formula state,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      return successorTreeInternalRecursive(unfoldWithSuspension(state), mapper);
-    }
-
-    private <T> ValuationTree<T> successorTreeInternalRecursive(Formula clause,
-      Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      int nextVariable = clause.atomicPropositions(false).nextSetBit(0);
-
-      if (nextVariable == -1) {
-        return ValuationTree.of(mapper.apply(toCompactDnf(clause.temporalStep())));
-      } else {
-        var trueChild = successorTreeInternalRecursive(
-          clause.temporalStep(nextVariable, true), mapper);
-        var falseChild = successorTreeInternalRecursive(
-          clause.temporalStep(nextVariable, false), mapper);
-        return ValuationTree.of(nextVariable, trueChild, falseChild);
-      }
+      var clazz = factory.of(unfoldWithSuspension(state));
+      return clazz.temporalStepTree(x -> mapper.apply(toCompactDnf(x.representative())));
     }
 
     Set<Formula> toCompactDnf(Formula formula) {
       if (formula instanceof Disjunction) {
-        var dnf = ((Disjunction) formula).children.stream()
+        var dnf = formula.children().stream()
           .flatMap(x -> toCompactDnf(x).stream()).collect(Collectors.toSet());
 
         var finiteLtl = new HashSet<Formula>();
@@ -157,7 +141,7 @@ public final class NonDeterministicConstructions {
         return dnf;
       }
 
-      Function<PropositionalFormula, Set<Formula>> syntheticLiteralFactory = x -> {
+      Function<Formula.NaryPropositionalOperator, Set<Formula>> syntheticLiteralFactory = x -> {
         if (x instanceof Conjunction) {
           return Set.of();
         }
@@ -165,7 +149,7 @@ public final class NonDeterministicConstructions {
         var finiteLtl = new HashSet<Formula>(); // NOPMD
         var nonFiniteLtl = new HashSet<Formula>(); // NOPMD
 
-        x.children.forEach(y -> {
+        x.children().forEach(y -> {
           if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
             finiteLtl.add(y);
           } else {
@@ -175,7 +159,7 @@ public final class NonDeterministicConstructions {
 
         for (Formula finiteFormula : finiteLtl) {
           if (nonFiniteLtl.stream().noneMatch(z -> z.anyMatch(finiteFormula::equals))) {
-            return x.children;
+            return Set.copyOf(x.children());
           }
         }
 
@@ -260,8 +244,13 @@ public final class NonDeterministicConstructions {
       }
 
       @Override
+      public Boolean visit(Literal literal) {
+        return true;
+      }
+
+      @Override
       protected Boolean visit(Formula.TemporalOperator formula) {
-        return formula instanceof XOperator || formula instanceof Literal;
+        return formula instanceof XOperator;
       }
     }
 
@@ -492,13 +481,13 @@ public final class NonDeterministicConstructions {
         }
       }
 
-      singletonAutomata.sort(Comparator.naturalOrder());
+      singletonAutomata.sort(null);
 
       // Ensure that there is at least one automaton.
       if (automata.isEmpty()) {
         automata.add(new FOperator(singletonAutomata.remove(0)));
       } else {
-        automata.sort(Comparator.naturalOrder());
+        automata.sort(null);
       }
 
       // Iteratively build common edge-tree.

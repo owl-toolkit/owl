@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import owl.factories.EquivalenceClassFactory;
 import owl.ltl.parser.LtlParser;
+import owl.run.Environment;
 
 class SyntacticFragmentsTest {
   private static final List<String> FINITE_EXAMPLES = List.of(
@@ -46,6 +48,9 @@ class SyntacticFragmentsTest {
     "a U (X G ((a R b) | c U (G d)))"
   );
 
+  private static final EquivalenceClassFactory FACTORY = Environment.standard()
+    .factorySupplier().getEquivalenceClassFactory(List.of("a", "b", "c", "d"));
+
   private static List<Formula> parse(List<List<String>> formulas) {
     List<Formula> parsedFormulas = new ArrayList<>();
 
@@ -63,19 +68,14 @@ class SyntacticFragmentsTest {
     var outside = parse(List.of(
       CO_SAFETY_SAFETY_EXAMPLES, SAFETY_EXAMPLES, SAFETY_CO_SAFETY_EXAMPLES, OUTSIDE_EXAMPLES));
 
+    var insideClass = FACTORY.of(Disjunction.of(inside));
+    var outsideClass = FACTORY.of(Disjunction.of(outside));
+
     inside.forEach(x -> assertTrue(SyntacticFragments.isCoSafety(x), x.toString()));
     outside.forEach(x -> assertFalse(SyntacticFragments.isCoSafety(x), x.toString()));
-  }
 
-  @Test
-  void testIsCoSafety() {
-    var inside = parse(List.of(
-      FINITE_EXAMPLES, CO_SAFETY_EXAMPLES));
-    var outside = parse(List.of(
-      CO_SAFETY_SAFETY_EXAMPLES, SAFETY_EXAMPLES, SAFETY_CO_SAFETY_EXAMPLES, OUTSIDE_EXAMPLES));
-
-    assertTrue(SyntacticFragments.isCoSafety(inside));
-    assertFalse(SyntacticFragments.isCoSafety(outside));
+    assertTrue(SyntacticFragments.isCoSafety(insideClass));
+    assertFalse(SyntacticFragments.isCoSafety(outsideClass));
   }
 
   @Test
@@ -85,19 +85,14 @@ class SyntacticFragmentsTest {
     var outside = parse(List.of(
       CO_SAFETY_EXAMPLES, CO_SAFETY_SAFETY_EXAMPLES, SAFETY_CO_SAFETY_EXAMPLES, OUTSIDE_EXAMPLES));
 
+    var insideClass = FACTORY.of(Disjunction.of(inside));
+    var outsideClass = FACTORY.of(Disjunction.of(outside));
+
     inside.forEach(x -> assertTrue(SyntacticFragments.isSafety(x), x.toString()));
     outside.forEach(x -> assertFalse(SyntacticFragments.isSafety(x), x.toString()));
-  }
 
-  @Test
-  void testIsSafety() {
-    var inside = parse(List.of(
-      FINITE_EXAMPLES, SAFETY_EXAMPLES));
-    var outside = parse(List.of(
-      CO_SAFETY_EXAMPLES, CO_SAFETY_SAFETY_EXAMPLES, SAFETY_CO_SAFETY_EXAMPLES, OUTSIDE_EXAMPLES));
-
-    assertTrue(SyntacticFragments.isSafety(inside));
-    assertFalse(SyntacticFragments.isSafety(outside));
+    assertTrue(SyntacticFragments.isSafety(insideClass));
+    assertFalse(SyntacticFragments.isSafety(outsideClass));
   }
 
   @Test

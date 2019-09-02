@@ -76,7 +76,7 @@ class DeterministicAutomatonTest {
     assertTimeout(Duration.ofMillis(100), () -> {
       var formula = LtlParser.parse("(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v)"
         + "& X G (w | x | y)");
-      assertEquals(25, formula.variables().size());
+      assertEquals(25, formula.atomicPropositions().size());
 
       var instance1 = DeterministicAutomaton.of(formula);
       var instance2 = DeterministicAutomaton.of(formula.not());

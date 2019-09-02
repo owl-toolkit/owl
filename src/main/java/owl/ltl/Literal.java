@@ -23,14 +23,16 @@ import static java.util.Objects.checkIndex;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Objects;
-import java.util.Set;
+import java.util.function.Function;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public final class Literal extends Formula.TemporalOperator {
+// TODO: fix naming.
+public final class Literal extends Formula.PropositionalOperator {
   private static final int CACHE_SIZE = 128;
   private static final Literal[] cache = new Literal[CACHE_SIZE];
   private final int index;
@@ -41,21 +43,21 @@ public final class Literal extends Formula.TemporalOperator {
   }
 
   private Literal(Literal other) {
-    super(Objects.hash(Literal.class, Integer.hashCode(-other.index)));
+    super(Objects.hash(Literal.class, Integer.hashCode(-other.index)), 0);
     this.index = -other.index;
     this.negation = other;
     assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
   }
 
   private Literal(@Nonnegative int index) {
-    super(Objects.hash(Literal.class, Integer.hashCode(index + 1)));
+    super(Objects.hash(Literal.class, Integer.hashCode(index + 1)), 0);
     checkIndex(index, Integer.MAX_VALUE);
     this.index = index + 1;
     this.negation = new Literal(this);
     assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
   }
 
-  
+
   public static Literal of(@Nonnegative int index) {
     return of(index, false);
   }
@@ -70,6 +72,15 @@ public final class Literal extends Formula.TemporalOperator {
     return negate ? literal.negation : literal;
   }
 
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    return BooleanConstant.of(valuation.get(getAtom()) ^ isNegated());
+  }
+
+  @Override
+  public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
+    return this;
+  }
 
   @Override
   public int accept(IntVisitor v) {
@@ -87,8 +98,8 @@ public final class Literal extends Formula.TemporalOperator {
   }
 
   @Override
-  public Set<Formula> children() {
-    return Set.of();
+  public List<Formula> children() {
+    return List.of();
   }
 
   public int getAtom() {
@@ -125,17 +136,7 @@ public final class Literal extends Formula.TemporalOperator {
   }
 
   @Override
-  public Formula unfold() {
-    return this;
-  }
-
-  @Override
-  public Formula unfoldTemporalStep(BitSet valuation) {
-    return temporalStep(valuation);
-  }
-
-  @Override
-  protected int compareToImpl(Formula o) {
+  protected int compareValue(Formula o) {
     Literal that = (Literal) o;
     int comparison = Integer.compare(getAtom(), that.getAtom());
 
@@ -147,7 +148,7 @@ public final class Literal extends Formula.TemporalOperator {
   }
 
   @Override
-  protected boolean equalsImpl(Formula o) {
+  protected boolean equalsValue(Formula o) {
     Literal that = (Literal) o;
     return index == that.index;
   }
