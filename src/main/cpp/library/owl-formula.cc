@@ -48,6 +48,7 @@ namespace owl {
         }
 
         deref(env, ltlParser);
+
     }
 
     template<typename... Args>
