@@ -3,9 +3,10 @@ package owl.ltl;
 import org.junit.jupiter.api.Test;
 import owl.ltl.ltlf.LtlfParser;
 import owl.ltl.ltlf.LtlfToLtlTranslator.LtlfToLtlVisitor;
-import owl.ltl.ltlf.Translator;
+import owl.ltl.ltlf.LtlfToLtlTranslator;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.CombineUntilVisitor;
+import owl.ltl.visitors.PrintTreeVisitor;
 import owl.ltl.visitors.PrintVisitor;
 
 import java.io.*;
@@ -108,20 +109,14 @@ public class EigeneTestsMax {
     return out.toString();
   }
 
-  @Test
-  void testLtlfToLtlVisitor() {
-    LtlfToLtlVisitor translator = new LtlfToLtlVisitor();
-    for (int i = 0; i < LTLfFORMULAS.size(); i++) {
-      Formula should = LTLFORMULAS.get(i);
-      Formula is = translator.apply(LTLfFORMULAS.get(i), Literal.of(4));
-      assertEquals(should, (is));
-    }
-  }
+
+
 
   @Test
   void Radler(){
-    Formula f =LtlfParser.syntax("!X(X(a)) & (!Xa)U(b)");
-    Formula f1 = Translator.translate(f);
+    Formula f1 = LtlfToLtlTranslator.translate(f);
+    PrintTreeVisitor T = new PrintTreeVisitor(L);
+    System.out.println(T.apply(f,0));
     PrintVisitor p = new PrintVisitor(false, null);
     CombineUntilVisitor C = new CombineUntilVisitor();
     System.out.println(p.apply(f));
@@ -150,7 +145,7 @@ public class EigeneTestsMax {
       Formula f = LtlfParser.syntax(ltlfformula, literals);
 
       Literal tail = Literal.of(f.atomicPropositions(true).length());
-      Formula f1 = Translator.translate(f, tail);
+      Formula f1 = LtlfToLtlTranslator.translate(f, tail);
       if(i == 43) {
         CombineUntilVisitor C = new CombineUntilVisitor();
         f1 = C.apply(f1);
@@ -191,7 +186,7 @@ public class EigeneTestsMax {
 
 
       Literal tail = Literal.of(f.atomicPropositions(true).length());
-      Formula f1 = Translator.translate(f, tail);
+      Formula f1 = LtlfToLtlTranslator.translate(f, tail);
       literals.add("tail");
       write(convToTlsf(Arrays.asList(inputline.split(" ")),
         Arrays.asList(outputline.split(" ")), tail, f1, literals),

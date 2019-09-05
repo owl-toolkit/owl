@@ -33,6 +33,7 @@ import owl.grammar.LTLParser;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.TokenErrorListener;
+//import owl.ltl.rewriter.CombineUntilVisitor;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SplitUntilVisitor;
 import owl.util.annotation.CEntryPoint;
@@ -65,11 +66,11 @@ public final class LtlfParser {
   public static Formula syntaxToLtl(String input, @Nullable List<String> literals) {
     Formula ltlf = parse(input, literals).formula();
     Formula ltl = LtlfToLtlTranslator.translate(ltlf);
+    //CombineUntilVisitor v = new CombineUntilVisitor();
     SplitUntilVisitor v = new SplitUntilVisitor();
     ltl = v.apply(ltl);
     return SimplifierFactory.apply(ltl,
-      SimplifierFactory.Mode.PULL_UP_X,
-      SimplifierFactory.Mode.SYNTACTIC);
+      SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
   }
 
   private static LabelledFormula parse(CharStream input, @Nullable List<String> literals) {
