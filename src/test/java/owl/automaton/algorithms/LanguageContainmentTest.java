@@ -22,10 +22,10 @@ package owl.automaton.algorithms;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.EnumSet;
 import org.junit.jupiter.api.Test;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
@@ -39,8 +39,7 @@ class LanguageContainmentTest {
     LabelledFormula formula2 = LtlParser.parse("G F a");
     LabelledFormula formula3 = LtlParser.parse("G F (X a & (a U X b))");
 
-    var translation = new LTL2DAFunction(Environment.annotated(), false,
-      EnumSet.allOf(LTL2DAFunction.Constructions.class));
+    var translation = new LTL2DAFunction(Environment.annotated(), EmersonLeiAcceptance.class);
     var infOftAandB
       = AutomatonUtil.cast(translation.apply(formula1), Object.class, BuchiAcceptance.class);
     var infOftA

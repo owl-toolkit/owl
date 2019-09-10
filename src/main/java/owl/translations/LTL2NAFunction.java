@@ -19,13 +19,14 @@
 
 package owl.translations;
 
-import java.util.EnumSet;
+import com.google.common.base.Preconditions;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -39,40 +40,36 @@ import owl.translations.canonical.RoundRobinState;
 import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
 public final class LTL2NAFunction implements Function<LabelledFormula, Automaton<?, ?>> {
+  private static final Set<Class<? extends OmegaAcceptance>> SUPPORTED_ACCEPTANCE_CONDITIONS =
+    Set.of(BuchiAcceptance.class, GeneralizedBuchiAcceptance.class);
+
+  private final Class<? extends GeneralizedBuchiAcceptance> acceptance;
   private final Environment environment;
-  private final EnumSet<Constructions> allowedConstructions;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
   public LTL2NAFunction(Environment environment) {
-    this(environment, EnumSet.allOf(Constructions.class));
+    this(environment, GeneralizedBuchiAcceptance.class);
   }
 
-  public LTL2NAFunction(Environment environment, EnumSet<Constructions> allowedConstructions) {
-    this.allowedConstructions = EnumSet.copyOf(allowedConstructions);
-    this.environment = environment;
+  public LTL2NAFunction(Environment environment, Class<? extends OmegaAcceptance> acceptance) {
+    Preconditions.checkArgument(SUPPORTED_ACCEPTANCE_CONDITIONS.contains(acceptance),
+      "%s is not in the set %s of supported acceptance conditions.",
+      acceptance, SUPPORTED_ACCEPTANCE_CONDITIONS);
 
-    if (this.allowedConstructions.contains(Constructions.GENERALIZED_BUCHI)) {
-      fallback = SymmetricNBAConstruction
-        .of(environment, GeneralizedBuchiAcceptance.class);
-    } else if (this.allowedConstructions.contains(Constructions.BUCHI)) {
-      fallback = SymmetricNBAConstruction
-        .of(environment, BuchiAcceptance.class);
-    } else {
-      fallback = x -> {
-        throw new IllegalArgumentException("All allowed constructions exhausted.");
-      };
-    }
+    this.acceptance = BuchiAcceptance.class.equals(acceptance)
+      ? BuchiAcceptance.class
+      : GeneralizedBuchiAcceptance.class;
+    this.environment = environment;
+    this.fallback = SymmetricNBAConstruction.of(environment, this.acceptance);
   }
 
   @Override
   public Automaton<?, ?> apply(LabelledFormula formula) {
-    if (allowedConstructions.contains(Constructions.SAFETY)
-      && SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragment.SAFETY.contains(formula)) {
       return safety(environment, formula);
     }
 
-    if (allowedConstructions.contains(Constructions.CO_SAFETY)
-      && SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
       return coSafety(environment, formula);
     }
 
@@ -88,21 +85,16 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
       return GenericConstructions.delay(apply(formula.wrap(unwrappedFormula)), xCount);
     }
 
-    if (allowedConstructions.contains(Constructions.BUCHI)
-      || allowedConstructions.contains(Constructions.GENERALIZED_BUCHI)) {
+    var formulas = formula.formula() instanceof Conjunction
+      ? formula.formula().children()
+      : Set.of(formula.formula());
 
-      var formulas = formula.formula() instanceof Conjunction
-        ? formula.formula().children()
-        : Set.of(formula.formula());
+    if (formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
+      return gfCoSafety(environment, formula, acceptance.equals(GeneralizedBuchiAcceptance.class));
+    }
 
-      if (formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
-        return gfCoSafety(environment, formula,
-          allowedConstructions.contains(Constructions.GENERALIZED_BUCHI));
-      }
-
-      if (SyntacticFragments.isFgSafety(formula.formula())) {
-        return fgSafety(environment, formula);
-      }
+    if (SyntacticFragments.isFgSafety(formula.formula())) {
+      return fgSafety(environment, formula);
     }
 
     return fallback.apply(formula);
@@ -133,9 +125,5 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
     Environment environment, LabelledFormula formula) {
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     return new NonDeterministicConstructions.FgSafety(factories, formula.formula());
-  }
-
-  public enum Constructions {
-    SAFETY, CO_SAFETY, BUCHI, GENERALIZED_BUCHI
   }
 }

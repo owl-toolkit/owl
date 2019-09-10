@@ -20,8 +20,8 @@
 package owl.translations.modules;
 
 import java.io.IOException;
-import java.util.EnumSet;
 import java.util.List;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
@@ -38,8 +38,7 @@ public final class LTL2DAModule {
     "ltl2da",
     "Translate LTL to a (heuristically chosen) small deterministic automaton.",
     (commandLine, environment) -> {
-      LTL2DAFunction function = new LTL2DAFunction(environment, false,
-        EnumSet.allOf(LTL2DAFunction.Constructions.class));
+      LTL2DAFunction function = new LTL2DAFunction(environment, EmersonLeiAcceptance.class);
       return Transformers.fromFunction(LabelledFormula.class, function::apply);
     });
 
