@@ -21,22 +21,16 @@ package owl.translations.ltl2dra;
 
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.ImmutableTable;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
 import java.util.BitSet;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
@@ -97,7 +91,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
 
   private class Builder {
     private final R acceptance;
-    private final Map<SymmetricEvaluatedFixpoints, RabinPair> pairs;
+    private final Table<Integer, SymmetricEvaluatedFixpoints, RabinPair> pairs;
     private final RabinPair safetyRabinPair;
     @Nullable
     private final SymmetricRankingState initialState;
@@ -111,39 +105,44 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
           BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba) {
       this.initialComponentSccs = SccDecomposition.computeSccs(ldba.initialComponent());
       this.ldba = ldba;
-      this.pairs = new HashMap<>();
+      this.pairs = HashBasedTable.create();
 
       var ldbaInitialState = ldba.initialComponent().initialStates().isEmpty()
         ? Map.<Integer, EquivalenceClass>of()
         : ldba.initialComponent().onlyInitialState();
 
-      SortedSet<SymmetricEvaluatedFixpoints> fixpoints = ldba.annotation()
-        .stream()
-        .filter(Predicate.not(SymmetricEvaluatedFixpoints::isEmpty))
-        .collect(Collectors.toCollection(TreeSet::new));
+      SortedSet<SymmetricEvaluatedFixpoints> fixpoints = new TreeSet<>(ldba.annotation());
 
       if (acceptanceClass.equals(RabinAcceptance.class)) {
         RabinAcceptance.Builder builder = new RabinAcceptance.Builder();
-        fixpoints.forEach(x -> pairs.put(x, builder.add()));
+        fixpoints.forEach(
+          x -> ldbaInitialState.keySet()
+            .stream()
+            .sorted()
+            .forEach(y -> pairs.put(y, x, builder.add())));
         safetyRabinPair = builder.add();
         acceptance = acceptanceClass.cast(builder.build());
       } else {
         assert acceptanceClass.equals(GeneralizedRabinAcceptance.class);
         GeneralizedRabinAcceptance.Builder builder = new GeneralizedRabinAcceptance.Builder();
         int infSets = ldba.acceptance().acceptanceSets();
-        fixpoints.forEach(x -> pairs.put(x, builder.add(infSets)));
+        fixpoints.forEach(
+          x -> ldbaInitialState.keySet()
+            .stream()
+            .sorted()
+            .forEach(y -> pairs.put(y, x, builder.add(infSets))));
         safetyRabinPair = builder.add(infSets);
         acceptance = acceptanceClass.cast(builder.build());
       }
 
       initialState = ldbaInitialState.isEmpty()
         ? null
-        : edge(ldbaInitialState, ImmutableTable.of(), 0, -1, null).successor();
+        : edge(ldbaInitialState, ImmutableTable.of(), null).successor();
     }
 
     private Edge<SymmetricRankingState> edge(Map<Integer, EquivalenceClass> successor,
       Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> previousTable,
-      int safetyBucket, int safetyBucketIndex, @Nullable BitSet valuation) {
+      @Nullable BitSet valuation) {
 
       for (EquivalenceClass clazz : successor.values()) {
         if (SyntacticFragments.isSafety(clazz.modalOperators())) {
@@ -157,9 +156,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
         }
       }
 
-      var safetySuccessorMap
-        = new TreeMap<Integer, TreeMap<SymmetricEvaluatedFixpoints, SymmetricProductState>>();
-      var successorMap
+      var successorTable
         = HashBasedTable.<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState>create();
 
       successor.forEach((index, clazz) -> {
@@ -168,96 +165,33 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
             continue;
           }
 
-          if (x.evaluatedFixpoints.isSafety()) {
-            safetySuccessorMap.putIfAbsent(index, new TreeMap<>());
-            var oldCell = safetySuccessorMap.get(index).put(x.evaluatedFixpoints, x);
-            assert oldCell == null;
-          } else {
-            var oldCell = successorMap.put(index, x.evaluatedFixpoints, x);
-            assert oldCell == null;
-          }
+          var oldCell = successorTable.put(index, x.evaluatedFixpoints, x);
+          assert oldCell == null;
         }
       });
 
       var acceptance = new BitSet();
-      boolean activeSafetyComponent = false;
-
-      Set<SymmetricEvaluatedFixpoints> seenEvaluatedFixpoints = new HashSet<>();
 
       for (var entry : previousTable.cellSet()) {
-        var fixpoints = entry.getColumnKey();
-        var state = entry.getValue();
         var index = entry.getRowKey();
+        var state = entry.getValue();
+        var fixpoints = entry.getColumnKey();
 
         assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
-        assert fixpoints != null && state != null && index != null
-          : "Malformed internal data-structure";
+        assert fixpoints != null && state != null && index != null : "Malformed data-structure";
 
         var edge = ldba.acceptingComponent().edge(state, valuation);
-        RabinPair pair = fixpoints.isEmpty() ? safetyRabinPair : pairs.get(fixpoints);
+        var pair = pairs.get(index, fixpoints);
 
-        assert fixpoints.isSafety() || seenEvaluatedFixpoints.add(fixpoints)
-          : "Non-safety fixpoint already encountered: " + fixpoints;
-
-        if (edge == null || (!fixpoints.isSafety() && !successorMap.contains(index, fixpoints))) {
+        if (edge == null || !successorTable.contains(index, fixpoints)) {
           acceptance.set(pair.finSet());
         } else {
-          successorMap.put(index, fixpoints, edge.successor());
+          successorTable.put(index, fixpoints, edge.successor());
           edge.acceptanceSetIterator().forEachRemaining((int i) -> acceptance.set(pair.infSet(i)));
-
-          if (fixpoints.isSafety()) {
-            activeSafetyComponent = true;
-            assert safetyBucket > 0 && safetyBucketIndex >= 0;
-          }
         }
       }
 
-      // Find next safety-like component.
-      int successorSafetyBucket = 0;
-      int successorSafetyBucketIndex = -1;
-
-      if (activeSafetyComponent) {
-        successorSafetyBucket = safetyBucket;
-        successorSafetyBucketIndex = safetyBucketIndex;
-      } else {
-        acceptance.set(safetyRabinPair.finSet());
-
-        var bucket = safetySuccessorMap.get(safetyBucket);
-
-        // Bucket is present.
-        if (bucket != null) {
-          var evaluatedFixpoints = Iterables.get(ldba.annotation(), safetyBucketIndex);
-          var safetyStateEntry = bucket.tailMap(evaluatedFixpoints, false).firstEntry();
-
-          if (safetyStateEntry == null) {
-            bucket = null;
-          } else {
-            // There exits a safety component in the bucket.
-            successorSafetyBucket = safetyBucket;
-            successorSafetyBucketIndex = ldba.annotation()
-              .headSet(safetyStateEntry.getKey()).size();
-            successorMap.put(0, safetyStateEntry.getKey(), safetyStateEntry.getValue());
-          }
-        }
-
-        // Find a new bucket.
-        if (bucket == null) {
-          var bucketEntry = Iterables.getFirst(Iterables.concat(
-            safetySuccessorMap.tailMap(safetyBucket, false).entrySet(),
-            safetySuccessorMap.headMap(safetyBucket, true).entrySet()), null);
-
-          if (bucketEntry != null) {
-            var safetyStateEntry = bucketEntry.getValue().firstEntry();
-            successorSafetyBucket = bucketEntry.getKey();
-            successorSafetyBucketIndex = ldba.annotation()
-              .headSet(safetyStateEntry.getKey()).size();
-            successorMap.put(0, safetyStateEntry.getKey(), safetyStateEntry.getValue());
-          }
-        }
-      }
-
-      return Edge.of(SymmetricRankingState.of(successor, successorMap, successorSafetyBucket,
-        successorSafetyBucketIndex), acceptance);
+      return Edge.of(SymmetricRankingState.of(successor, successorTable), acceptance);
     }
 
     @Nullable
@@ -273,11 +207,10 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
       // If a SCC switch occurs, the componentMap and the safety progress is reset.
       if (initialComponentSccs.stream()
         .anyMatch(x -> x.contains(state.state()) && !x.contains(successor))) {
-        return edge(successor, ImmutableTable.of(), 0, -1, valuation).withoutAcceptance();
+        return edge(successor, ImmutableTable.of(), valuation).withoutAcceptance();
       }
 
-      return edge(successor, state.table(), state.safetyBucket(), state.safetyBucketIndex(),
-        valuation);
+      return edge(successor, state.table(), valuation);
     }
   }
 }
