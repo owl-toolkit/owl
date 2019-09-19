@@ -159,22 +159,18 @@ class TranslationAutomatonSummaryTest {
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("dra.symmetric", environment ->
-        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)),
       new Translator("dgra.symmetric", environment ->
-        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)),
 
       new Translator("dra.symmetric.optimizations", environment -> x ->
         AcceptanceOptimizations.optimize(
           SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
-            .apply(x)),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+            .apply(x))),
       new Translator("dgra.symmetric.optimizations", environment -> x ->
         AcceptanceOptimizations.optimize(
           SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
-            .apply(x)),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+            .apply(x))),
 
       new Translator("nba.symmetric", environment ->
         SymmetricNBAConstruction.of(environment, BuchiAcceptance.class)),
@@ -186,10 +182,10 @@ class TranslationAutomatonSummaryTest {
         EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
       new Translator("ltl2da",
         LTL2DAFunction::new,
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+        EnumSet.of(LIBEROUTER)),
       new Translator("ltl2na",
         LTL2NAFunction::new,
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF))
+        EnumSet.of(LIBEROUTER))
     );
   }
 

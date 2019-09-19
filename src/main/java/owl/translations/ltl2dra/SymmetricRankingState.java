@@ -19,8 +19,6 @@
 
 package owl.translations.ltl2dra;
 
-import static com.google.common.base.Preconditions.checkState;
-
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ImmutableTable;
@@ -39,27 +37,15 @@ abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, Equi
 
   abstract Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> table();
 
-  abstract int safetyBucket();
-
-  abstract int safetyBucketIndex();
-
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
-    return of(state, ImmutableTable.of(), 0, -1);
+    return of(state, ImmutableTable.of());
   }
 
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
-    Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> ranking,
-    int safetyBucket,
-    int safetyBucketIndex) {
+    Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> ranking) {
     var copiedState = Map.copyOf(state);
     var copiedRanking = ImmutableTable.copyOf(ranking);
-
-    checkState((safetyBucket == 0 && safetyBucketIndex == -1)
-      || (safetyBucket > 0 && safetyBucketIndex >= 0));
-    checkState(safetyBucket == 0 || copiedState.containsKey(safetyBucket));
-
-    return new AutoValue_SymmetricRankingState(
-      copiedState, copiedRanking, safetyBucket, safetyBucketIndex);
+    return new AutoValue_SymmetricRankingState(copiedState, copiedRanking);
   }
 
   @Override
@@ -71,11 +57,6 @@ abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, Equi
 
   @Override
   public String toString() {
-    if (safetyBucket() == 0) {
-      return String.format("|%s :: %s|", state(), table());
-    }
-
-    return String
-      .format("|%s :: %s :: %d (%d)|", state(), table(), safetyBucket(), safetyBucketIndex());
+    return String.format("|%s :: %s|", state(), table());
   }
 }
