@@ -26,7 +26,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -47,7 +46,6 @@ public interface IntVisitor extends ToIntFunction<Formula> {
   default int visit(Conjunction conjunction)         { throw uoe(conjunction);     }
   default int visit(Disjunction disjunction)         { throw uoe(disjunction);     }
   default int visit(FOperator fOperator)             { throw uoe(fOperator);       }
-  default int visit(FrequencyG freq)                 { throw uoe(freq);            }
   default int visit(GOperator gOperator)             { throw uoe(gOperator);       }
   default int visit(Literal literal)                 { throw uoe(literal);         }
   default int visit(MOperator mOperator)             { throw uoe(mOperator);       }

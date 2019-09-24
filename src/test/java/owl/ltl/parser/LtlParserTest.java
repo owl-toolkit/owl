@@ -29,7 +29,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -47,8 +46,6 @@ class LtlParserTest {
     "(a -> b) U c",
     "tt U b",
     "a M b",
-    "G {sup < 0.5} F a",
-    "G { >= 0.5} F a",
     "a R b",
     "!(a R b)",
     "a W b U c R a",
@@ -61,10 +58,6 @@ class LtlParserTest {
     new UOperator(Disjunction.of(Literal.of(0, true), Literal.of(1)), Literal.of(2)),
     new FOperator(Literal.of(0)),
     new MOperator(Literal.of(0), Literal.of(1)),
-    new FrequencyG(new GOperator(Literal.of(0, true)), 0.5, FrequencyG.Comparison.GEQ,
-      FrequencyG.Limes.SUP),
-    new FrequencyG(new FOperator(Literal.of(0)), 0.5, FrequencyG.Comparison.GEQ,
-      FrequencyG.Limes.INF),
     new ROperator(Literal.of(0), Literal.of(1)),
     new UOperator(Literal.of(0, true), Literal.of(1, true)),
     new WOperator(Literal.of(0), new UOperator(Literal.of(1),

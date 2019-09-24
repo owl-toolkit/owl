@@ -19,8 +19,6 @@
 
 package owl.cinterface;
 
-import static owl.ltl.SyntacticFragment.CO_SAFETY;
-import static owl.ltl.SyntacticFragment.SAFETY;
 import static owl.ltl.SyntacticFragment.SINGLE_STEP;
 
 import com.google.common.primitives.ImmutableIntArray;
@@ -41,7 +39,6 @@ import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
-import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.PropositionalFormula;
@@ -127,24 +124,6 @@ public final class DecomposedDPA {
     return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand);
   }
 
-  private static boolean isDetBuchiRecognisable(Formula formula) {
-    if (formula instanceof XOperator) {
-      return isDetBuchiRecognisable(((XOperator) formula).operand);
-    }
-
-    return formula instanceof GOperator && CO_SAFETY
-      .contains(((GOperator) formula).operand);
-  }
-
-  private static boolean isDetCoBuchiRecognisable(Formula formula) {
-    if (formula instanceof XOperator) {
-      return isDetCoBuchiRecognisable(((XOperator) formula).operand);
-    }
-
-    return formula instanceof FOperator && SAFETY
-      .contains(((FOperator) formula).operand);
-  }
-
   enum Status {
     REALIZABLE, UNREALIZABLE, UNKNOWN
   }
@@ -226,41 +205,36 @@ public final class DecomposedDPA {
       var safetySingleStep = new HashMap<Integer, Clusters>();
       var coSafety = new Clusters();
 
-      var fgSafety = new TreeSet<Formula>();
-      var gfCoSafety = new TreeSet<Formula>();
-
-      var fSafety = new TreeSet<Formula>();
-      var gCoSafety = new TreeSet<Formula>();
-
-      var lessThanParityRequired = new TreeSet<Formula>();
-      var parityRequired = new TreeSet<Formula>();
+      var weakOrBuchiOrCoBuchi = new TreeSet<Formula>();
+      var parity = new TreeSet<Formula>();
 
       for (Formula x : formula.children) {
-        if (SAFETY.contains(x)) {
-          PullUpXVisitor.XFormula rewrittenX = x.accept(PullUpXVisitor.INSTANCE);
+        switch (annotatedTree.get(x)) {
+          case SAFETY:
+            PullUpXVisitor.XFormula rewrittenX = x.accept(PullUpXVisitor.INSTANCE);
 
-          if (isSingleStep(rewrittenX.rawFormula())) {
-            safetySingleStep
-              .computeIfAbsent(rewrittenX.depth(), ignore -> new Clusters())
-              .insert(XOperator.of(rewrittenX.rawFormula(), rewrittenX.depth()));
-          } else {
-            safety.insert(x);
-          }
-        } else if (CO_SAFETY.contains(x)) {
-          coSafety.insert(x);
-        } else if (SyntacticFragments.isGfCoSafety(x)) {
-          gfCoSafety.add(x);
-        } else if (isDetBuchiRecognisable(x)) {
-          gCoSafety.add(x);
-        } else if (SyntacticFragments.isFgSafety(x)) {
-          fgSafety.add(x);
-        } else if (isDetCoBuchiRecognisable(x)) {
-          fSafety.add(x);
-        } else if (annotatedTree.get(x) == Acceptance.PARITY) {
-          parityRequired.add(x);
-        } else {
-          assert annotatedTree.get(x).isLessThanParity();
-          lessThanParityRequired.add(x);
+            if (isSingleStep(rewrittenX.rawFormula())) {
+              safetySingleStep
+                .computeIfAbsent(rewrittenX.depth(), ignore -> new Clusters())
+                .insert(XOperator.of(rewrittenX.rawFormula(), rewrittenX.depth()));
+            } else {
+              safety.insert(x);
+            }
+
+            break;
+
+          case CO_SAFETY:
+            coSafety.insert(x);
+            break;
+
+          case PARITY:
+            parity.add(x);
+            break;
+
+          default:
+            assert annotatedTree.get(x).isLessThanParity();
+            weakOrBuchiOrCoBuchi.add(x);
+            break;
         }
       }
 
@@ -285,19 +259,14 @@ public final class DecomposedDPA {
         children.add(createLeaf(merger.apply(x)));
       });
 
-      fgSafety.forEach(x -> children.add(createLeaf(x)));
-      gfCoSafety.forEach(x -> children.add(createLeaf(x)));
-      fSafety.forEach(x -> children.add(createLeaf(x)));
-      gCoSafety.forEach(x -> children.add(createLeaf(x)));
-
-      for (Formula child : lessThanParityRequired) {
+      for (Formula child : weakOrBuchiOrCoBuchi) {
         children.add(child.accept(this));
       }
 
-      if (parityRequired.size() == 1) {
-        children.add(parityRequired.first().accept(this));
-      } else if (parityRequired.size() > 1) {
-        var mergedFormula = merger.apply(parityRequired).nnf();
+      if (parity.size() == 1) {
+        children.add(parity.first().accept(this));
+      } else if (parity.size() > 1) {
+        var mergedFormula = merger.apply(parity).nnf();
         children.add(createLeaf(mergedFormula));
       }
 
@@ -356,7 +325,6 @@ public final class DecomposedDPA {
           return new LabelledTree.Node<>(Tag.BICONDITIONAL,
             List.of(biconditional.left.accept(this), biconditional.right.accept(this)));
         }
-
 
         var nnf = biconditional.nnf();
         annotatedTree.putAll(nnf.accept(Annotator.INSTANCE));
@@ -417,19 +385,21 @@ public final class DecomposedDPA {
 
     @Override
     protected Map<Formula, Acceptance> visit(Formula.TemporalOperator formula) {
-      if (SAFETY.contains(formula)) {
+      if (SyntacticFragments.isSafety(formula)) {
         return Map.of(formula, Acceptance.SAFETY);
       }
 
-      if (CO_SAFETY.contains(formula)) {
+      if (SyntacticFragments.isCoSafety(formula)) {
         return Map.of(formula, Acceptance.CO_SAFETY);
       }
 
-      if (isDetBuchiRecognisable(formula)) {
+      // GF(coSafety), G(coSafety), and arbitrary X-prefixes are also contained in the fragment.
+      if (SyntacticFragments.isSafetyCoSafety(formula)) {
         return Map.of(formula, Acceptance.BUCHI);
       }
 
-      if (isDetCoBuchiRecognisable(formula)) {
+      // FG(Safety), F(Safety), and arbitrary X-prefixes are also contained in the fragment.
+      if (SyntacticFragments.isCoSafetySafety(formula)) {
         return Map.of(formula, Acceptance.CO_BUCHI);
       }
 

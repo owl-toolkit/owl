@@ -72,7 +72,7 @@ public class EquivalenceClass implements LtlLanguageExpressible {
     return factory.atomicPropositions(this, includeNested);
   }
 
-
+  // TODO: cache this field.
   /**
    * See {@link EquivalenceClassFactory#modalOperators(EquivalenceClass)}.
    */

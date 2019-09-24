@@ -61,7 +61,6 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
@@ -98,7 +97,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
   public AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState, B,
       SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
       Set<SymmetricProductState>>> apply(LabelledFormula input) {
-    var formula = SyntacticFragments.normalize(input, SyntacticFragment.NNF);
+    var formula = input.nnf();
     var factories = environment.factorySupplier().getFactories(formula.variables(), true);
 
     // Declare components of LDBA
@@ -234,6 +233,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         }
 
         for (SymmetricEvaluatedFixpoints symmetricEvaluatedFixpoints : set) {
+          // This operation is fine, since clazz is already unfolded.
           var remainder = clazz.substitute(new Rewriter.ToSafety(fixpoints)).unfold();
           var xRemovedRemainder = remainder;
 
@@ -442,7 +442,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
   }
 
   private static boolean groupInDnf(Formula x, Formula y) {
-    if (SyntacticFragment.CO_SAFETY.contains(x) && SyntacticFragment.CO_SAFETY.contains(y)) {
+    if (SyntacticFragments.isCoSafety(x) && SyntacticFragments.isCoSafety(y)) {
       return true;
     }
 

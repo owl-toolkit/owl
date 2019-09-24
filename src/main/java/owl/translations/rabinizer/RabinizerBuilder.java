@@ -77,13 +77,16 @@ import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
+import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PrintVisitor;
+import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.run.Environment;
 import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
 import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
@@ -204,17 +207,16 @@ public final class RabinizerBuilder {
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> build(
     LabelledFormula formula, Environment environment, RabinizerConfiguration configuration) {
     Factories factories = environment.factorySupplier().getFactories(formula.variables());
-    Formula phiNormalized = SyntacticFragments.normalize(formula.formula(), SyntacticFragment.FGMU);
-
+    Formula phiNormalized = formula.formula().nnf().accept(
+      new UnabbreviateVisitor(WOperator.class, ROperator.class));
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
     String formulaString = PrintVisitor.toString(phiNormalized, factories.eqFactory.variables());
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
-    MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      new RabinizerBuilder(configuration, factories, phiNormalized).build();
-    rabinizerAutomaton.name("Rabinizer automaton for " + formulaString);
-    rabinizerAutomaton.trim();
-    return rabinizerAutomaton;
+    var automaton = new RabinizerBuilder(configuration, factories, phiNormalized).build();
+    automaton.name("Rabinizer automaton for " + formulaString);
+    automaton.trim();
+    return automaton;
   }
 
   private MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> build() {

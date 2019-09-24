@@ -30,7 +30,6 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
@@ -65,11 +64,11 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
 
   @Override
   public Automaton<?, ?> apply(LabelledFormula formula) {
-    if (SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragments.isSafety(formula.formula())) {
       return safety(environment, formula);
     }
 
-    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragments.isCoSafety(formula.formula())) {
       return coSafety(environment, formula);
     }
 

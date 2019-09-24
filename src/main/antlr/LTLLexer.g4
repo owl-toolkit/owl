@@ -37,8 +37,6 @@ RPAREN     : ')';
 LDQUOTE    : '"' -> mode(DOUBLE_QUOTED);
 LSQUOTE    : '\'' -> mode(SINGLE_QUOTED);
 
-LCPAREN    : '{' -> mode(FREQUENCY_SPEC);
-
 // Need to be at the bottom because of precedence rules
 // Include capital L for PRISM
 VARIABLE   : [a-zL_][a-zA-Z_0-9]*;
@@ -56,31 +54,5 @@ mode SINGLE_QUOTED;
 RSQUOTE : '\'' -> mode(DEFAULT_MODE);
 SINGLE_QUOTED_VARIABLE : ~[']+;
 
-
-mode FREQUENCY_SPEC;
-
-// NUMBERS
-// Constants
-PROBABILITY   : '0' | '0'? '.' [0-9]+;
-POS_NUMBER    : [0-9]+ | [0-9]* '.' [0-9]+;
-
-// Binary
-DIVISION   : '/';
-
-GT         : '>' | 'GT';
-GE         : '>=' | 'GE';
-LT         : '<' | 'LT';
-LE         : '<=' | 'LE';
-EQ         : '=' | 'EQ';
-
-// Limes
-SUP        : 'sup' | 'SUP';
-INF        : 'inf' | 'INF';
-
-RCPAREN    : '}' -> mode(DEFAULT_MODE);
-
-SKIP_FREQ  : WHITESPACE -> skip;
-
 mode DEFAULT_MODE;
-
 ERROR : . ;

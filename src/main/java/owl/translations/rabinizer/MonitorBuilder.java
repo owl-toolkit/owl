@@ -54,6 +54,7 @@ import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 
 final class MonitorBuilder {
   private static final Logger logger = Logger.getLogger(MonitorBuilder.class.getName());
@@ -72,7 +73,7 @@ final class MonitorBuilder {
     this.vsFactory = vsFactory;
 
     Set<Formula.ModalOperator> modalOperators = operand.modalOperators();
-    boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragment.CO_SAFETY::contains);
+    boolean isCoSafety = modalOperators.stream().allMatch(SyntacticFragments::isCoSafety);
 
     if (isCoSafety && gOperator.operand instanceof FOperator) {
       fragment = Fragment.EVENTUAL;

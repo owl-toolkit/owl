@@ -28,7 +28,7 @@ import owl.util.annotation.CEntryPoint;
 /**
  * Globally.
  */
-public class GOperator extends UnaryModalOperator {
+public final class GOperator extends UnaryModalOperator {
 
   public GOperator(Formula operand) {
     super(GOperator.class, operand);

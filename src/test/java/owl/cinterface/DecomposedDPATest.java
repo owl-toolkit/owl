@@ -168,6 +168,16 @@ class DecomposedDPATest {
   }
 
   @Test
+  void testExtendedDecomposition() {
+    var formula = LtlParser.syntax("a U (b R c) | (a U b) R c");
+    var automaton = of(formula, false, false, 0);
+    assertThat(automaton.structure, LabelledTree.Node.class::isInstance);
+    assertThat(automaton.structure, x ->
+      ((LabelledTree.Node) x).getLabel() == DecomposedDPA.Tag.DISJUNCTION);
+    assertEquals(automaton.automata.size(), 2);
+  }
+
+  @Test
   void testLoadBalancer() {
     var loadBalancerLiterals = new ArrayList<String>();
     loadBalancerLiterals.add("idle");
@@ -234,7 +244,7 @@ class DecomposedDPATest {
 
   @Test
   void testPerformanceAmbaDecomposedLock12() {
-    assertTimeout(Duration.ofSeconds(6), () -> {
+    assertTimeout(Duration.ofSeconds(10), () -> {
       var ambaDecomposedLockLiterals = new ArrayList<String>();
       ambaDecomposedLockLiterals.add("decide");
       IntStream.range(0, 12).mapToObj(x -> "hlock_" + x).forEach(ambaDecomposedLockLiterals::add);

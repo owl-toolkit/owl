@@ -27,7 +27,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -82,12 +81,6 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   public Formula visit(FOperator fOperator) {
     checkSupportedCase(FOperator.class);
     return FOperator.of(fOperator.operand.accept(this));
-  }
-
-  @Override
-  public Formula visit(FrequencyG freq) {
-    checkSupportedCase(FrequencyG.class);
-    return new FrequencyG(freq.operand.accept(this), freq.bound, freq.cmp, freq.limes);
   }
 
   @Override

@@ -44,7 +44,7 @@ atomExpression
   ;
 
 unaryOp
-  : NOT | FINALLY | GLOBALLY | NEXT | frequencyOp
+  : NOT | FINALLY | GLOBALLY | NEXT
   ;
 
 binaryOp
@@ -53,17 +53,4 @@ binaryOp
 
 bool
   : TRUE | FALSE
-  ;
-
-frequencyOp
-  : op=(GLOBALLY | FINALLY) LCPAREN limes=(SUP | INF)? comp=comparison prob=frequencySpec RCPAREN
-  ;
-
-frequencySpec
-  : numerator=POS_NUMBER DIVISION denominator=POS_NUMBER # fraction
-  | value=PROBABILITY # probability
-  ;
-
-comparison
-  : GT | GE | LT | LE
   ;

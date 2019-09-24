@@ -26,7 +26,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -47,7 +46,6 @@ public interface Visitor<R> extends Function<Formula, R> {
   default R visit(Conjunction conjunction)         { throw uoe(conjunction);     }
   default R visit(Disjunction disjunction)         { throw uoe(disjunction);     }
   default R visit(FOperator fOperator)             { throw uoe(fOperator);       }
-  default R visit(FrequencyG freq)                 { throw uoe(freq);            }
   default R visit(GOperator gOperator)             { throw uoe(gOperator);       }
   default R visit(Literal literal)                 { throw uoe(literal);         }
   default R visit(MOperator mOperator)             { throw uoe(mOperator);       }

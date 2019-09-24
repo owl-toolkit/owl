@@ -30,7 +30,7 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
-import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
@@ -104,7 +104,7 @@ public class Rewriter {
     @Override
     public Formula apply(Formula formula) {
       var coSafety = formula.accept(this);
-      assert SyntacticFragment.CO_SAFETY.contains(coSafety) : formula + " -> " + coSafety;
+      assert SyntacticFragments.isCoSafety(coSafety) : formula + " -> " + coSafety;
       return coSafety;
     }
 
@@ -223,7 +223,7 @@ public class Rewriter {
     @Override
     public Formula apply(Formula formula) {
       var safety = formula.accept(this);
-      assert SyntacticFragment.SAFETY.contains(safety) : formula + " -> " + safety;
+      assert SyntacticFragments.isSafety(safety) : formula + " -> " + safety;
       return safety;
     }
 

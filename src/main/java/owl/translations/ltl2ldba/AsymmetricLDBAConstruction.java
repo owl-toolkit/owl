@@ -87,7 +87,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
   public AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, B, SortedSet
     <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>>
     apply(LabelledFormula input) {
-    LabelledFormula formula = SyntacticFragments.normalize(input, SyntacticFragment.NNF);
+    LabelledFormula formula = input.nnf();
 
     var factories = environment.factorySupplier().getFactories(formula.variables(), true);
     var modalOperators = factories.eqFactory.of(formula.formula()).modalOperators();
@@ -245,12 +245,12 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     AsymmetricProductState createState(EquivalenceClass remainder,
       AsymmetricEvaluatedFixpoints evaluatedFixpoints,
       AsymmetricEvaluatedFixpoints.DeterministicAutomata automata) {
-      assert remainder.modalOperators().stream().allMatch(SyntacticFragment.CO_SAFETY::contains);
+      assert remainder.modalOperators().stream().allMatch(SyntacticFragments::isCoSafety);
 
       EquivalenceClass safety = automata.safetyAutomaton.onlyInitialState();
       EquivalenceClass current = remainder;
 
-      if (remainder.modalOperators().stream().allMatch(SyntacticFragment.SAFETY::contains)) {
+      if (remainder.modalOperators().stream().allMatch(SyntacticFragments::isSafety)) {
         safety = current.and(safety);
         current = factories.eqFactory.getTrue();
       } else {
@@ -460,7 +460,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
         return Set.of();
       }
 
-      if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+      if (SyntacticFragments.isCoSafety(formula)) {
         return Set.of((Formula.ModalOperator) formula);
       }
 

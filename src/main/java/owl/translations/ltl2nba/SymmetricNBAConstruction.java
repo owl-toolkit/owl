@@ -52,7 +52,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.run.Environment;
 import owl.translations.canonical.NonDeterministicConstructions;
@@ -81,7 +80,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
   @Override
   public Automaton<Either<Formula, ProductState>, B> apply(LabelledFormula input) {
-    var formula = SyntacticFragments.normalize(input, SyntacticFragment.NNF);
+    var formula = input.nnf();
     var factories = environment.factorySupplier().getFactories(formula.variables(), false);
     var automaton = new SymmetricNBA(factories, formula);
     var mutableAutomaton = MutableAutomatonFactory.copy(automaton);
@@ -206,7 +205,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
       for (var successor : successors) {
         assert !BooleanConstant.FALSE.equals(successor);
 
-        if (SyntacticFragment.SAFETY.contains(successor)) {
+        if (SyntacticFragments.isSafety(successor)) {
           edges.add(Edge.of(successor, acceptance));
         } else {
           edges.add(Edge.of(successor));
@@ -251,8 +250,8 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
     @Override
     protected Set<ProductState> moveAtoB(Formula state) {
-      if (SyntacticFragment.CO_SAFETY.contains(state)
-        || SyntacticFragment.SAFETY.contains(state)
+      if (SyntacticFragments.isCoSafety(state)
+        || SyntacticFragments.isSafety(state)
         || (SyntacticFragments.isFSafety(state) && !state.isSuspendable())) {
         return Set.of();
       }
@@ -270,12 +269,12 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
             continue;
           }
 
-          if (!SyntacticFragment.CO_SAFETY.contains(x)) {
+          if (!SyntacticFragments.isCoSafety(x)) {
             continue;
           }
 
           if (allModalOperators.stream()
-            .filter(Predicate.not(SyntacticFragment.CO_SAFETY::contains))
+            .filter(Predicate.not(SyntacticFragments::isCoSafety))
             .noneMatch(y -> y.subformulas(Formula.ModalOperator.class).contains(x))) {
             return Set.of();
           }
@@ -327,7 +326,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
           var formula = edge.successor().left();
 
-          if (SyntacticFragment.SAFETY.contains(formula)) {
+          if (SyntacticFragments.isSafety(formula)) {
             initialComponentSafetyLanguage
               = Disjunction.of(initialComponentSafetyLanguage, formula);
           }

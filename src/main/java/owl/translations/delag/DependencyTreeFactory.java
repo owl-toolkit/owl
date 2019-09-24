@@ -38,6 +38,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.translations.delag.DependencyTree.FallbackLeaf;
 import owl.translations.delag.DependencyTree.Leaf;
@@ -120,12 +121,12 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
         return;
       }
 
-      if (SyntacticFragment.CO_SAFETY.contains(x)) {
+      if (SyntacticFragments.isCoSafety(x)) {
         coSafety.add(x);
         return;
       }
 
-      if (SyntacticFragment.SAFETY.contains(x)) {
+      if (SyntacticFragments.isSafety(x)) {
         safety.add(x);
         return;
       }

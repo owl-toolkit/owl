@@ -45,7 +45,7 @@ import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
-import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
@@ -119,7 +119,7 @@ public final class Selector {
     for (Formula element : clause) {
       assert isClauseElement(element);
 
-      if (SyntacticFragment.CO_SAFETY.contains(element)) {
+      if (SyntacticFragments.isCoSafety(element)) {
         continue;
       }
 
@@ -178,7 +178,7 @@ public final class Selector {
   }
 
   private static boolean isClauseElement(Formula formula) {
-    return SyntacticFragment.CO_SAFETY.contains(formula)
+    return SyntacticFragments.isCoSafety(formula)
       || formula instanceof Literal
       || formula instanceof UnaryModalOperator
       || formula instanceof BinaryModalOperator;
@@ -250,7 +250,7 @@ public final class Selector {
 
     @Override
     public UpwardClosedSet visit(MOperator mOperator) {
-      if (SyntacticFragment.CO_SAFETY.contains(mOperator)) {
+      if (SyntacticFragments.isCoSafety(mOperator)) {
         return UpwardClosedSet.of(new BitSet());
       }
 
@@ -259,7 +259,7 @@ public final class Selector {
 
     @Override
     public UpwardClosedSet visit(ROperator rOperator) {
-      if (SyntacticFragment.SAFETY.contains(rOperator)) {
+      if (SyntacticFragments.isSafety(rOperator)) {
         return UpwardClosedSet.of(new BitSet());
       }
 
@@ -268,7 +268,7 @@ public final class Selector {
 
     @Override
     public UpwardClosedSet visit(UOperator uOperator) {
-      if (SyntacticFragment.CO_SAFETY.contains(uOperator)) {
+      if (SyntacticFragments.isCoSafety(uOperator)) {
         return UpwardClosedSet.of(new BitSet());
       }
 
@@ -277,7 +277,7 @@ public final class Selector {
 
     @Override
     public UpwardClosedSet visit(WOperator wOperator) {
-      if (SyntacticFragment.SAFETY.contains(wOperator)) {
+      if (SyntacticFragments.isSafety(wOperator)) {
         return UpwardClosedSet.of(new BitSet());
       }
 
@@ -333,7 +333,7 @@ public final class Selector {
     @Override
     public UpwardClosedSet visit(FOperator fOperator) {
       // Register and terminate recursion.
-      if (SyntacticFragment.CO_SAFETY.contains(fOperator)) {
+      if (SyntacticFragments.isCoSafety(fOperator)) {
         return singleton(fOperator);
       }
 
@@ -343,7 +343,7 @@ public final class Selector {
     @Override
     public UpwardClosedSet visit(GOperator gOperator) {
       // Register and terminate recursion.
-      if (SyntacticFragment.SAFETY.contains(gOperator)) {
+      if (SyntacticFragments.isSafety(gOperator.operand)) {
         return singleton(gOperator);
       }
 

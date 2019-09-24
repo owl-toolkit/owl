@@ -22,14 +22,11 @@ package owl.cinterface;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
-import static owl.util.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
-
 
 class DeterministicAutomatonTest {
   @Test
@@ -70,9 +67,8 @@ class DeterministicAutomatonTest {
       automaton6.edges(0));
     assertArrayEquals(new int[]{4, 1, 0, -2, 1, -1, 0, 0},
       automaton6.edges(1));
-    assertThat(automaton7.edges(0), x ->
-      Arrays.equals(x, new int[]{7, 0, 4, -4, 1, 0, -2, 0, 4, 0, 3, 0, 1})
-        || Arrays.equals(x, new int[]{10, 0, 4, 7, 1, 0, -2, 1, -4, -2, 0, 4, 0, 1, 0, 3}));
+    assertArrayEquals(new int[]{7, 0, 4, -2, 1, 0, -2, 0, -1, 0, 0},
+      automaton7.edges(0));
   }
 
   @Test

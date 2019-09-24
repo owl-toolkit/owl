@@ -2,27 +2,35 @@
 
 Modules:
 
-* Removed unused `--worker` flag and `OWL_{ANNOTATIONS,INPUT}` environment 
+* Removed unused `--worker` flag and `OWL_{ANNOTATIONS,INPUT}` environment
   variables.
 
 * De-duplicate fixed-point guesses in the "symmetric" constructions.
-  
+
   Fixed-point guesses are removed from the candidate list when they contain two
-  fixed points where one "shadows" the other, i.e. replacing one by (tt) or 
+  fixed points where one "shadows" the other, i.e. replacing one by (tt) or
   (ff) makes the other one unreachable in the syntax tree.
-  
+
 * Removed unmaintained `fgx2dpa` translation. `ltl2dpa` produces almost always
-  (on the test sets) smaller automata compared to `fgx2dpa`. 
+  (on the test sets) smaller automata compared to `fgx2dpa`.
+
+* `ltl2da` uses for the "safety-cosafety" and "cosafety-safety" fragment a
+   optimised construction without invoking a fallback solution. 
+
+API:
+
+* Removed unused and unmaintained `FrequencyG` class and forbid subclassing
+  of `GOperator`.
 
 Bugfixes:
 
-* Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions. 
-  The translations based on the LICS'18 Master theorem and its predecessors 
+* Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions.
+  The translations based on the LICS'18 Master theorem and its predecessors
   have been affected.
 
 * Fixed a bug in the `UpwardClosedSet` class: sets that were subsumed by other
   sets have not been removed in all circumstances.
-  
+
 # 2019.06.03
 
 Bugfixes:

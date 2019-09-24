@@ -40,8 +40,8 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
@@ -88,11 +88,11 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
 
   @Override
   public Automaton<?, ?> apply(LabelledFormula formula) {
-    if (SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragments.isSafety(formula.formula())) {
       return safety(environment, formula);
     }
 
-    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragments.isCoSafety(formula.formula())) {
       return coSafety(environment, formula);
     }
 
@@ -136,6 +136,16 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
 
     if (SyntacticFragments.isFSafety(formula.formula())) {
       return fSafety(environment, formula);
+    }
+
+    if (formula.formula() instanceof Formula.ModalOperator
+      && SyntacticFragments.isCoSafetySafety(formula.formula())) {
+      return coSafetySafety(environment, formula);
+    }
+
+    if (formula.formula() instanceof Formula.ModalOperator
+      && SyntacticFragments.isSafetyCoSafety(formula.formula())) {
+      return safetyCoSafety(environment, formula);
     }
 
     return fallback.apply(formula);
@@ -190,5 +200,22 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
     var complementAutomaton = Views.complement(automaton,
       BreakpointState.of(factory.getFalse(), factory.getFalse()));
     return AutomatonUtil.cast(complementAutomaton, CoBuchiAcceptance.class);
+  }
+
+  public static Automaton<BreakpointState<EquivalenceClass>, CoBuchiAcceptance> coSafetySafety(
+    Environment environment, LabelledFormula formula) {
+    var factories = environment.factorySupplier().getFactories(formula.variables(), true);
+    return new DeterministicConstructions.CoSafetySafety(factories, formula.formula());
+  }
+
+  public static Automaton<BreakpointState<EquivalenceClass>, BuchiAcceptance> safetyCoSafety(
+    Environment environment, LabelledFormula formula) {
+    var automaton = coSafetySafety(environment, formula.not());
+    var factory = automaton.onlyInitialState().current().factory();
+    var complementAutomaton = Views.complement(automaton,
+      BreakpointState.of(factory.getFalse(), factory.getFalse()));
+    var filteredAutomaton = Views.filter(complementAutomaton,
+      x -> !x.current().isTrue() || !x.next().isTrue());
+    return AutomatonUtil.cast(filteredAutomaton, BuchiAcceptance.class);
   }
 }

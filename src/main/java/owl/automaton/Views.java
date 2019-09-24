@@ -128,6 +128,13 @@ public final class Views {
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
+    Predicate<S> statePredicate) {
+    return createView(automaton, ViewSettings.<S, A>builder()
+      .stateFilter(statePredicate)
+      .build());
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
     return createView(automaton, ViewSettings.<S, A>builder()
       .edgeFilter(edgeFilter)

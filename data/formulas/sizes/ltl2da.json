@@ -499,8 +499,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -543,7 +543,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1248,7 +1248,7 @@
       "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
@@ -1709,7 +1709,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1731,7 +1731,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1764,8 +1764,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1786,8 +1786,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1918,8 +1918,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1940,8 +1940,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1973,8 +1973,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -1984,8 +1984,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -2059,10 +2059,10 @@
   {
     "formula": "((a) R ((b | Fc)))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -2103,10 +2103,10 @@
   {
     "formula": "(((F!a | Xb)) R ((Fc \u0026 Xa)))",
     "properties": {
-      "size": 14,
+      "size": 11,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -2138,7 +2138,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -2160,7 +2160,7 @@
     "properties": {
       "size": 11,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -2249,7 +2249,7 @@
       "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
@@ -2777,7 +2777,7 @@
       "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -2821,7 +2821,7 @@
       "size": 11,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 3,
       "complete": false,
       "deterministic": true
     }
@@ -3324,9 +3324,9 @@
   {
     "formula": "F(((a) U (b)) \u0026 (Fc | Ga))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -3357,9 +3357,9 @@
   {
     "formula": "F((a | ((b) M (!c))) \u0026 (!a | ((!b) W (c))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -3368,9 +3368,9 @@
   {
     "formula": "F((Fa | Gb) \u0026 (((b) M (c)) | ((c) M (d))))",
     "properties": {
-      "size": 8,
+      "size": 7,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -3469,8 +3469,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -3601,8 +3601,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -3632,10 +3632,10 @@
   {
     "formula": "G((a \u0026 ((b) M (!c))) | (!a \u0026 ((!b) W (c))))",
     "properties": {
-      "size": 3,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -3645,8 +3645,8 @@
     "properties": {
       "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -3742,10 +3742,10 @@
   {
     "formula": "G(a | b | G!b | ((c) U ((b | d))))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -3810,7 +3810,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -3852,10 +3852,10 @@
   {
     "formula": "((((F!a \u0026 X!b) | (Ga \u0026 Xb))) R ((Fc \u0026 Xa)))",
     "properties": {
-      "size": 24,
+      "size": 17,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -3920,7 +3920,7 @@
     "properties": {
       "size": 17,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -3951,9 +3951,9 @@
   {
     "formula": "((a) W ((a \u0026 b \u0026 X((a) U (c)))))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -4020,7 +4020,7 @@
       "size": 12,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 3,
       "complete": false,
       "deterministic": true
     }
@@ -4031,7 +4031,7 @@
       "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceSets": 4,
       "complete": true,
       "deterministic": true
     }
@@ -4086,7 +4086,7 @@
       "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -4174,7 +4174,7 @@
       "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 5,
+      "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
     }
@@ -4273,7 +4273,7 @@
       "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceSets": 4,
       "complete": false,
       "deterministic": true
     }
@@ -4303,10 +4303,10 @@
   {
     "formula": "(GFa \u0026 GF!a \u0026 G(a | XFb))",
     "properties": {
-      "size": 2,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 5,
+      "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
     }
@@ -4358,10 +4358,10 @@
   {
     "formula": "(a | G(b | (a \u0026 Fb)))",
     "properties": {
-      "size": 3,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
@@ -4677,10 +4677,10 @@
   {
     "formula": "(FGa | FG!a | F(!a \u0026 XGb))",
     "properties": {
-      "size": 2,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
     }
@@ -4778,7 +4778,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -4875,9 +4875,9 @@
   {
     "formula": "F(Fa \u0026 (Gb | F(b \u0026 c)))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -4998,8 +4998,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -5086,8 +5086,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -5230,7 +5230,7 @@
       "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
@@ -5249,10 +5249,10 @@
   {
     "formula": "(Fa \u0026 (((!a \u0026 b \u0026 X((!a) U ((!a \u0026 c))))) R ((!a \u0026 d))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
     }
@@ -5329,7 +5329,7 @@
       "size": 7,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 10,
+      "acceptanceSets": 6,
       "complete": true,
       "deterministic": true
     }
@@ -5348,10 +5348,10 @@
   {
     "formula": "(G(F(a \u0026 b) | (Ga \u0026 XGc)) \u0026 G(F(d \u0026 e) | (Gd \u0026 XGf)))",
     "properties": {
-      "size": 25,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -5447,10 +5447,10 @@
   {
     "formula": "(G!a | ((b) W ((Fa | ((XXb) W (a))))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -5614,7 +5614,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -5680,7 +5680,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -5691,8 +5691,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -5713,8 +5713,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -5790,8 +5790,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -5823,8 +5823,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -5832,10 +5832,10 @@
   {
     "formula": "G(a | XG!b | XF(b \u0026 Fc))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -5856,8 +5856,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -5922,7 +5922,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -5933,8 +5933,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -5964,9 +5964,9 @@
   {
     "formula": "((a) W ((a | ((b) W ((b \u0026 c \u0026 X((b) U (d))))))))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -5977,8 +5977,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6011,7 +6011,7 @@
       "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceSets": 4,
       "complete": true,
       "deterministic": true
     }
@@ -6077,7 +6077,7 @@
       "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -6088,7 +6088,7 @@
       "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 5,
+      "acceptanceSets": 4,
       "complete": true,
       "deterministic": true
     }
@@ -6153,7 +6153,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -6164,7 +6164,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -6175,7 +6175,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -6208,8 +6208,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -6230,7 +6230,7 @@
     "properties": {
       "size": 7,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -6261,10 +6261,10 @@
   {
     "formula": "G(a | G(b | (c \u0026 XFd)))",
     "properties": {
-      "size": 3,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6272,10 +6272,10 @@
   {
     "formula": "G(a | G(b | (c \u0026 d \u0026 X((d) U (e)))))",
     "properties": {
-      "size": 3,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6294,10 +6294,10 @@
   {
     "formula": "G(a | ((b) W ((c | (b \u0026 d \u0026 X((b) U (e)))))))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6327,10 +6327,10 @@
   {
     "formula": "G(a | Gb | ((!b) U ((c | (!b \u0026 d \u0026 X((!b) U (e)))))))",
     "properties": {
-      "size": 9,
+      "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6338,10 +6338,10 @@
   {
     "formula": "G(a | G!b | ((c) U ((b | (c \u0026 d \u0026 X((c) U (e)))))))",
     "properties": {
-      "size": 14,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6384,8 +6384,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6426,9 +6426,9 @@
   {
     "formula": "((!a) W ((a \u0026 (((b) U (c)) | G(b | XGd)))))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -6516,8 +6516,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -6538,8 +6538,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -6558,10 +6558,10 @@
   {
     "formula": "G(a | G(b | XG!c | XF(c \u0026 Fd)))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -6580,10 +6580,10 @@
   {
     "formula": "G(a | G!b | (((c | ((!b) U ((!b \u0026 d \u0026 X((!b) U (e))))))) U (b)))",
     "properties": {
-      "size": 7,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6648,8 +6648,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -6701,10 +6701,10 @@
   {
     "formula": "G(a | G!b | (((c | ((!b) U ((!b \u0026 d \u0026 e \u0026 X(((!b \u0026 e)) U (f))))))) U (b)))",
     "properties": {
-      "size": 7,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 6,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -6791,8 +6791,8 @@
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -6835,8 +6835,8 @@
     "properties": {
       "size": 7,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }

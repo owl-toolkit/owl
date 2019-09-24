@@ -40,7 +40,6 @@ class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, NoneAccept
   private final GSet base;
   private final GOperator formula;
 
-  @SuppressWarnings("AssignmentToCollectionOrArrayFieldFromParameter")
   MonitorAutomaton(GOperator formula,
     Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
     this.automata = Map.copyOf(automata);

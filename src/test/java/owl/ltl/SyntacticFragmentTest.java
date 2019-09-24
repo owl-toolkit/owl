@@ -46,7 +46,7 @@ class SyntacticFragmentTest {
 
   @Test
   void isCoSafety() {
-    assertTrue(SyntacticFragment.CO_SAFETY.contains(FORMULAS.get(0)));
+    assertTrue(SyntacticFragments.isCoSafety(FORMULAS.get(0)));
   }
 
   @Test

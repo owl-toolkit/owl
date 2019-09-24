@@ -29,6 +29,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractCachedStatesAutomaton;
@@ -45,12 +47,16 @@ import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.XOperator;
 import owl.translations.canonical.Util.Pair;
+import owl.translations.mastertheorem.Predicates;
+import owl.translations.mastertheorem.Rewriter;
 
 public final class DeterministicConstructions {
 
@@ -163,7 +169,7 @@ public final class DeterministicConstructions {
   public static final class CoSafety extends Terminal<BuchiAcceptance> {
     public CoSafety(Factories factories, boolean eagerUnfold, Formula formula) {
       super(factories, eagerUnfold, formula);
-      Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula), formula);
+      Preconditions.checkArgument(SyntacticFragments.isCoSafety(formula), formula);
     }
 
     @Override
@@ -185,7 +191,7 @@ public final class DeterministicConstructions {
   public static final class Safety extends Terminal<AllAcceptance> {
     public Safety(Factories factories, boolean unfold, Formula formula) {
       super(factories, unfold, formula);
-      Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula), formula);
+      Preconditions.checkArgument(SyntacticFragments.isSafety(formula), formula);
     }
 
     @Override
@@ -532,6 +538,103 @@ public final class DeterministicConstructions {
       var currentSuccessorTree = super.successorTreeInternal(breakpointState.current());
       var nextSuccessorTree = super.successorTreeInternal(breakpointState.next());
       return cartesianProduct(currentSuccessorTree, nextSuccessorTree, this::buildEdge);
+    }
+  }
+
+  public static final class CoSafetySafety
+    extends Base<BreakpointState<EquivalenceClass>, CoBuchiAcceptance> {
+
+    private final EquivalenceClass initialState;
+
+    public CoSafetySafety(Factories factories, Formula formula) {
+      super(factories, true);
+      Preconditions.checkArgument(SyntacticFragments.isCoSafetySafety(formula)
+        && !SyntacticFragments.isFSafety(formula));
+      this.initialState = initialStateInternal(factory.of(formula));
+    }
+
+    private EquivalenceClass jump(EquivalenceClass clazz) {
+      var remainder = clazz.substitute(new Rewriter.ToSafety(Set.of())).unfold();
+      var xRemovedRemainder = remainder;
+
+      // Iteratively remove all X(\psi) that are not within the scope of a fixpoint.
+      do {
+        remainder = xRemovedRemainder;
+
+        var protectedXOperators = remainder.modalOperators().stream()
+          .flatMap(x -> {
+            if (x instanceof XOperator) {
+              return Stream.empty();
+            } else {
+              assert Predicates.IS_FIXPOINT.test(x);
+              return x.subformulas(XOperator.class).stream();
+            }
+          })
+          .collect(Collectors.toSet());
+
+        xRemovedRemainder = remainder.substitute(x ->
+          x instanceof XOperator && !protectedXOperators.contains(x)
+            ? BooleanConstant.FALSE
+            : x);
+      } while (!remainder.equals(xRemovedRemainder));
+
+      return remainder;
+    }
+
+    @Override
+    public BreakpointState<EquivalenceClass> onlyInitialState() {
+      return BreakpointState.of(initialState, jump(initialState));
+    }
+
+    @Override
+    public CoBuchiAcceptance acceptance() {
+      return CoBuchiAcceptance.INSTANCE;
+    }
+
+    @Nullable
+    private Edge<BreakpointState<EquivalenceClass>> buildEdge(
+      EquivalenceClass language, EquivalenceClass safety) {
+
+      if (language.isFalse()) {
+        return null;
+      }
+
+      if (language.isTrue() || SyntacticFragments.isSafety(language.modalOperators())) {
+        return Edge.of(BreakpointState.of(language, factory.getTrue()));
+      }
+
+      if (SyntacticFragments.isCoSafety(language.modalOperators())) {
+        return Edge.of(BreakpointState.of(language, factory.getTrue()), 0);
+      }
+
+      if (safety.isFalse()) {
+        return Edge.of(BreakpointState.of(language, jump(language)), 0);
+      }
+
+      if (safety.isTrue()) {
+        return Edge.of(BreakpointState.of(factory.getTrue(), factory.getTrue()));
+      }
+
+      return Edge.of(BreakpointState.of(language, safety));
+    }
+
+    @Nullable
+    @Override
+    public Edge<BreakpointState<EquivalenceClass>> edge(
+      BreakpointState<EquivalenceClass> state, BitSet valuation) {
+
+      var languageSuccessor = successorInternal(state.current(), valuation);
+      var safetySuccessor = successorInternal(state.next(), valuation);
+      return buildEdge(languageSuccessor, safetySuccessor);
+    }
+
+    @Override
+    public ValuationTree<Edge<BreakpointState<EquivalenceClass>>> edgeTree(
+      BreakpointState<EquivalenceClass> state) {
+
+      var languageSuccessorTree = successorTreeInternal(state.current());
+      var safetySuccessorTree = successorTreeInternal(state.next());
+      return cartesianProduct(languageSuccessorTree, safetySuccessorTree, this::buildEdge);
     }
   }
 }
