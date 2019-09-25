@@ -23,6 +23,8 @@ import de.tum.in.jbdd.Bdd;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -307,8 +309,9 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @Override
   public double trueness(EquivalenceClass clazz) {
-    return bdd.countSatisfyingAssignments(getNode(clazz)).longValueExact()
-      / StrictMath.pow(2.0d, bdd.numberOfVariables());
+    var satisfyingAssignments = new BigDecimal(bdd.countSatisfyingAssignments(getNode(clazz)));
+    var assignments = BigDecimal.valueOf(2).pow(bdd.numberOfVariables());
+    return satisfyingAssignments.divide(assignments, 24, RoundingMode.HALF_DOWN).doubleValue();
   }
 
   private <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
