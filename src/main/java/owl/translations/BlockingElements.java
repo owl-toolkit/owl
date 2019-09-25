@@ -8,7 +8,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.translations.mastertheorem.Predicates;
 
@@ -28,7 +27,7 @@ public class BlockingElements {
       blockingCoSafety = formula.children()
         .stream()
         .filter(x -> x instanceof Formula.ModalOperator
-          && SyntacticFragment.CO_SAFETY.contains(x)
+          && SyntacticFragments.isCoSafety(x)
           && greatestFixpoints.stream().noneMatch(y -> y.anyMatch(x::equals)))
         .map(Formula.ModalOperator.class::cast)
         .collect(Collectors.toUnmodifiableSet());
@@ -41,13 +40,13 @@ public class BlockingElements {
         .subformulas(Predicates.IS_FIXPOINT)
         .stream()
         .filter(
-          x -> !SyntacticFragment.CO_SAFETY.contains(x) && !SyntacticFragment.SAFETY.contains(x))
+          x -> !SyntacticFragments.isCoSafety(x) && !SyntacticFragments.isSafety(x))
         .collect(Collectors.toSet());
 
       blockingSafety = formula.children()
         .stream()
         .filter(x -> x instanceof Formula.ModalOperator
-          && SyntacticFragment.SAFETY.contains(x)
+          && SyntacticFragments.isSafety(x)
           && fixpoints.stream().noneMatch(y -> y.anyMatch(x::equals)))
         .map(Formula.ModalOperator.class::cast)
         .collect(Collectors.toUnmodifiableSet());

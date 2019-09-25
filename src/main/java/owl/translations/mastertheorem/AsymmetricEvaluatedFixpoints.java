@@ -64,7 +64,7 @@ public final class AsymmetricEvaluatedFixpoints
 
     this.language = language;
 
-    assert this.gSafety.stream().allMatch(SyntacticFragment.SAFETY::contains);
+    assert this.gSafety.stream().allMatch(SyntacticFragments::isSafety);
     assert this.gCoSafety.stream().allMatch(SyntacticFragments::isGCoSafety);
     assert this.gfCoSafety.stream().allMatch(SyntacticFragments::isGfCoSafety);
   }
@@ -107,7 +107,7 @@ public final class AsymmetricEvaluatedFixpoints
     Set<GOperator> gfCoSafety = new HashSet<>();
 
     for (GOperator gOperator : gOperatorsRewritten) {
-      if (SyntacticFragment.SAFETY.contains(gOperator)) {
+      if (SyntacticFragments.isSafety(gOperator)) {
         gSafety.add(gOperator);
       } else if (gOperator.operand instanceof FOperator) {
         gfCoSafety.add(gOperator);

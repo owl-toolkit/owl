@@ -42,8 +42,6 @@ import owl.automaton.edge.Edge;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
-import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.Environment;
 import owl.run.modules.InputReaders;
@@ -53,7 +51,7 @@ import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
-import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.LTL2DAFunction;
 
 public class DelagBuilder
   implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
@@ -83,8 +81,7 @@ public class DelagBuilder
 
   public DelagBuilder(Environment environment) {
     this.environment = environment;
-    this.fallback =
-      SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true);
+    this.fallback = new LTL2DAFunction(environment, GeneralizedRabinAcceptance.class);
   }
 
   private DelagBuilder(Environment environment, ExternalTranslator fallback) {
@@ -103,7 +100,7 @@ public class DelagBuilder
 
   @Override
   public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
-    LabelledFormula formula = SyntacticFragments.normalize(inputFormula, SyntacticFragment.NNF);
+    LabelledFormula formula = inputFormula.nnf();
     Factories factories = environment.factorySupplier().getFactories(formula.variables());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {

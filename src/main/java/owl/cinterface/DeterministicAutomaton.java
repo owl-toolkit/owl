@@ -55,11 +55,11 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
+import owl.translations.canonical.BreakpointState;
 import owl.translations.canonical.GenericConstructions;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.util.annotation.CEntryPoint;
@@ -111,7 +111,7 @@ public final class DeterministicAutomaton<S, T> {
   }
 
   public static DeterministicAutomaton<?, ?> of(LabelledFormula formula) {
-    if (SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragments.isSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
         LTL2DAFunction.safety(ENV, formula),
         SAFETY, AllAcceptance.class,
@@ -121,7 +121,7 @@ public final class DeterministicAutomaton<S, T> {
       );
     }
 
-    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragments.isCoSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
         LTL2DAFunction.coSafety(ENV, formula),
         Acceptance.CO_SAFETY, BuchiAcceptance.class,
@@ -177,6 +177,16 @@ public final class DeterministicAutomaton<S, T> {
       }
     }
 
+    if (SyntacticFragments.isSafetyCoSafety(formula.formula())) {
+      return new DeterministicAutomaton<>(
+        LTL2DAFunction.safetyCoSafety(ENV, formula),
+        BUCHI, BuchiAcceptance.class,
+        x -> x.current().isFalse() && x.next().isFalse(),
+        BreakpointState::current,
+        x -> x.inSet(0) ? 1.0d : 1 - x.successor().next().trueness()
+      );
+    }
+
     var formulasDisj = formula.formula() instanceof Disjunction
       ? formula.formula().children()
       : Set.of(formula.formula());
@@ -221,6 +231,16 @@ public final class DeterministicAutomaton<S, T> {
           x -> x.inSet(0) ? 0.0d : 0.5d
         );
       }
+    }
+
+    if (SyntacticFragments.isCoSafetySafety(formula.formula())) {
+      return new DeterministicAutomaton<>(
+        LTL2DAFunction.coSafetySafety(ENV, formula),
+        CO_BUCHI, CoBuchiAcceptance.class,
+        x -> x.current().isTrue() && x.next().isTrue(),
+        BreakpointState::current,
+        x -> x.inSet(0) ? 0.0d : x.successor().next().trueness()
+      );
     }
 
     var function = new LTL2DPAFunction(ENV, EnumSet.of(COMPLEMENT_CONSTRUCTION_HEURISTIC));

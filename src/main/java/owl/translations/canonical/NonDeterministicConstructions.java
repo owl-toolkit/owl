@@ -372,7 +372,7 @@ public final class NonDeterministicConstructions {
   public static final class CoSafety extends NonLooping<BuchiAcceptance> {
     public CoSafety(Factories factories, Formula formula) {
       super(factories, formula);
-      Preconditions.checkArgument(SyntacticFragment.CO_SAFETY.contains(formula));
+      Preconditions.checkArgument(SyntacticFragments.isCoSafety(formula));
     }
 
     @Override
@@ -391,7 +391,7 @@ public final class NonDeterministicConstructions {
   public static final class Safety extends NonLooping<AllAcceptance> {
     public Safety(Factories factories, Formula formula) {
       super(factories, formula);
-      Preconditions.checkArgument(SyntacticFragment.SAFETY.contains(formula));
+      Preconditions.checkArgument(SyntacticFragments.isSafety(formula));
     }
 
     @Override

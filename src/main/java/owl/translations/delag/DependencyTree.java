@@ -54,7 +54,7 @@ abstract class DependencyTree<T> {
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
     Supplier<Automaton<T, ?>> fallback,
     @Nullable AtomAcceptance piggyback) {
-    if (SyntacticFragment.CO_SAFETY.contains(formula)) {
+    if (SyntacticFragments.isCoSafety(formula)) {
       if (piggyback == null) {
         return new Leaf<>(formula, Type.CO_SAFETY, acceptanceSet);
       } else {
@@ -62,7 +62,7 @@ abstract class DependencyTree<T> {
       }
     }
 
-    if (SyntacticFragment.SAFETY.contains(formula)) {
+    if (SyntacticFragments.isSafety(formula)) {
       if (piggyback == null) {
         return new Leaf<>(formula, Type.SAFETY, acceptanceSet);
       } else {

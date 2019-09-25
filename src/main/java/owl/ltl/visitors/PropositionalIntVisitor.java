@@ -21,7 +21,6 @@ package owl.ltl.visitors;
 
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -41,11 +40,6 @@ public abstract class PropositionalIntVisitor implements IntVisitor {
   @Override
   public final int visit(FOperator fOperator) {
     return this.visit((Formula.TemporalOperator) fOperator);
-  }
-
-  @Override
-  public final int visit(FrequencyG freq) {
-    return this.visit((Formula.TemporalOperator) freq);
   }
 
   @Override

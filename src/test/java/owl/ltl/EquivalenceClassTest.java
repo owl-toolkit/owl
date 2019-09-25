@@ -21,7 +21,6 @@ package owl.ltl;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.util.Assertions.assertThat;
@@ -83,14 +82,6 @@ abstract class EquivalenceClassTest {
     assertEquals(equivalenceClass, equivalenceClass);
     assertEquals(equivalenceClass, factory.of(SimplifierFactory
       .apply(Conjunction.of(Literal.of(0), Literal.of(0, true)), Mode.SYNTACTIC_FIXPOINT)));
-  }
-
-  @Test
-  void testFrequencyGNotFalse() {
-    LabelledFormula formula = LtlParser.parse("G { >= 0.4} a");
-    EquivalenceClassFactory factory = obtainFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula());
-    assertNotEquals(factory.getFalse(), clazz.unfold().temporalStep(new BitSet(0)));
   }
 
   @Test

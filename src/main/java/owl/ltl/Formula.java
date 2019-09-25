@@ -39,7 +39,6 @@ public abstract class Formula implements Comparable<Formula> {
     Disjunction.class,
     Biconditional.class,
     FOperator.class,
-    FrequencyG.class,
     GOperator.class,
     XOperator.class,
     MOperator.class,

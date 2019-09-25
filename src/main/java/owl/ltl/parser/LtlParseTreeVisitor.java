@@ -32,11 +32,8 @@ import owl.grammar.LTLParser.BooleanContext;
 import owl.grammar.LTLParser.DoubleQuotedVariableContext;
 import owl.grammar.LTLParser.ExpressionContext;
 import owl.grammar.LTLParser.FormulaContext;
-import owl.grammar.LTLParser.FractionContext;
-import owl.grammar.LTLParser.FrequencyOpContext;
 import owl.grammar.LTLParser.NestedContext;
 import owl.grammar.LTLParser.OrExpressionContext;
-import owl.grammar.LTLParser.ProbabilityContext;
 import owl.grammar.LTLParser.SingleQuotedVariableContext;
 import owl.grammar.LTLParser.UnaryOpContext;
 import owl.grammar.LTLParser.UnaryOperationContext;
@@ -48,8 +45,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
-import owl.ltl.FrequencyG.Limes;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
@@ -204,82 +199,6 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
 
     if (unaryOp.NEXT() != null) {
       return XOperator.of(operand);
-    }
-
-    if (unaryOp.frequencyOp() != null) {
-      FrequencyOpContext freqCtx = unaryOp.frequencyOp();
-      assert freqCtx.op != null && freqCtx.comp != null && freqCtx.prob != null;
-      FrequencyG.Comparison comparison;
-      boolean negateComparison;
-      if (freqCtx.comp.GE() != null) {
-        comparison = FrequencyG.Comparison.GEQ;
-        negateComparison = false;
-      } else if (freqCtx.comp.GT() != null) {
-        comparison = FrequencyG.Comparison.GT;
-        negateComparison = false;
-      } else if (freqCtx.comp.LE() != null) {
-        comparison = FrequencyG.Comparison.GT;
-        negateComparison = true;
-      } else if (freqCtx.comp.LT() != null) {
-        comparison = FrequencyG.Comparison.GEQ;
-        negateComparison = true;
-      } else {
-        throw new ParseCancellationException("Unknown comparison");
-      }
-
-      boolean negateOperator;
-      //noinspection StatementWithEmptyBody
-      if (freqCtx.GLOBALLY() != null) {
-        negateOperator = false;
-      } else if (freqCtx.FINALLY() != null) {
-        negateOperator = true;
-      } else {
-        throw new ParseCancellationException("Unknown operator");
-      }
-
-      double value;
-      if (freqCtx.prob instanceof FractionContext) {
-        FractionContext fraction = (FractionContext) freqCtx.prob;
-        String numeratorString = fraction.numerator.getText();
-        String denominatorString = fraction.denominator.getText();
-        double numerator;
-        double denominator;
-        try {
-          numerator = Double.parseDouble(numeratorString);
-          denominator = Double.parseDouble(denominatorString);
-        } catch (NumberFormatException e) {
-          throw new ParseCancellationException("Invalid numbers", e);
-        }
-        value = numerator / denominator;
-        if (value < 0d || 1d < value) {
-          throw new ParseCancellationException("Invalid numbers");
-        }
-      } else if (freqCtx.prob instanceof ProbabilityContext) {
-        ProbabilityContext probability = (ProbabilityContext) freqCtx.prob;
-        String valueString = probability.value.getText();
-        value = Double.parseDouble(valueString);
-      } else {
-        throw new ParseCancellationException("Unknown frequency spec");
-      }
-
-      Limes limes;
-      if (freqCtx.SUP() != null) {
-        limes = Limes.SUP;
-      } else {
-        limes = Limes.INF;
-      }
-
-      Formula finalFormula;
-      double finalValue;
-      if (negateComparison == negateOperator) {
-        finalFormula = operand;
-        finalValue = value;
-      } else {
-        finalFormula = operand.not();
-        finalValue = 1 - value;
-      }
-
-      return new FrequencyG(finalFormula, finalValue, comparison, limes);
     }
 
     throw new AssertionError("Unreachable Code");

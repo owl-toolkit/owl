@@ -30,7 +30,6 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
-import owl.ltl.FrequencyG;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -96,11 +95,6 @@ public final class PrintVisitor implements Visitor<String> {
   @Override
   public String visit(FOperator fOperator) {
     return visit((UnaryModalOperator) fOperator);
-  }
-
-  @Override
-  public String visit(FrequencyG freq) {
-    return "G {" + freq.limes + freq.cmp + freq.bound + "} " + freq.operand.accept(this);
   }
 
   @Override
