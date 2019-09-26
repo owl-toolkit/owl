@@ -19,6 +19,8 @@
 
 package owl.translations.delag;
 
+import static owl.run.modules.OwlModule.Transformer;
+
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -53,22 +55,21 @@ import owl.translations.LTL2DAFunction;
 public class DelagBuilder
   implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
 
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+  public static final OwlModule<Transformer> MODULE = OwlModule.of(
     "delag",
     "Translates LTL to deterministic Emerson-Lei automata",
     new Options().addOption("f", "fallback", true,
       "Fallback tool for input outside the fragment. "
         + "If no tool is specified an internal LTL to DGRA translation is used."),
     (commandLine, environment) -> {
-      String fallbackTool = commandLine.getOptionValue("fallback");
+      String command = commandLine.getOptionValue("fallback");
 
-      if (fallbackTool == null) {
-        return OwlModule.Transformer.of(LabelledFormula.class,
-          new DelagBuilder(environment));
+      if (command == null) {
+        return Transformer.of(LabelledFormula.class, new DelagBuilder(environment));
       }
 
-      return OwlModule.Transformer.of(LabelledFormula.class,
-        new DelagBuilder(environment, new ExternalTranslator(environment, fallbackTool)));
+      return Transformer.of(LabelledFormula.class, new DelagBuilder(environment,
+        new ExternalTranslator(command, ExternalTranslator.InputMode.STDIN, environment)));
     });
 
   private final Environment environment;

@@ -44,7 +44,8 @@ class ExternalTranslatorTest {
   void testApply() {
     // Check if the tool is installed and available.
     try {
-      ExternalTranslator tool = new ExternalTranslator(Environment.annotated(), TOOL[0]);
+      ExternalTranslator tool = new ExternalTranslator(
+        TOOL[0], ExternalTranslator.InputMode.STDIN, Environment.annotated());
       tool.apply(LtlParser.parse(FORMULA[0]));
     } catch (IllegalStateException ex) {
       // Assumption is always violated now.
@@ -52,7 +53,8 @@ class ExternalTranslatorTest {
     }
 
     for (int i = 1; i < FORMULA.length; i++) {
-      ExternalTranslator tool = new ExternalTranslator(Environment.annotated(), TOOL[i]);
+      ExternalTranslator tool = new ExternalTranslator(
+        TOOL[i], ExternalTranslator.InputMode.STDIN, Environment.annotated());
       tool.apply(LtlParser.parse(FORMULA[i]));
     }
   }

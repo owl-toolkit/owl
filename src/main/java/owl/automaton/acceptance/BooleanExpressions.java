@@ -20,8 +20,10 @@
 package owl.automaton.acceptance;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
@@ -145,5 +147,71 @@ public final class BooleanExpressions {
   public static BooleanExpression<AtomAcceptance> mkInf(int number) {
     return new BooleanExpression<>(
       new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
+  }
+
+  // Copied from jhoafparser and fixed.
+  private static boolean isConjunctive(BooleanExpression<AtomAcceptance> acc) {
+    {
+      switch (acc.getType()) {
+        case EXP_FALSE:
+          // fall-through
+        case EXP_TRUE:
+          // fall-through
+        case EXP_ATOM:
+          return true;
+
+        case EXP_AND:
+          return isConjunctive(acc.getLeft()) && isConjunctive(acc.getRight());
+
+        case EXP_OR:
+          return false;
+
+        default:
+          throw new UnsupportedOperationException(
+            "Unsupported operator in acceptance condition " + acc);
+      }
+    }
+  }
+
+  private static List<BooleanExpression<AtomAcceptance>> toDnf(
+    BooleanExpression<AtomAcceptance> acc,
+    Map<BooleanExpression<AtomAcceptance>, BooleanExpression<AtomAcceptance>> uniqueTable) {
+
+    if (isConjunctive(acc)) {
+      return List.of(uniqueTable.computeIfAbsent(acc, x -> acc));
+    } else {
+      List<BooleanExpression<AtomAcceptance>> dnf = new ArrayList<>();
+      List<BooleanExpression<AtomAcceptance>> left;
+      List<BooleanExpression<AtomAcceptance>> right;
+
+      {
+        switch(acc.getType()) {
+          case EXP_AND:
+            left = toDnf(acc.getLeft(), uniqueTable);
+            right = toDnf(acc.getRight(), uniqueTable);
+            for (BooleanExpression<AtomAcceptance> l : left) {
+              for (BooleanExpression<AtomAcceptance> r : right) {
+                var conjunction = l.and(r);
+                dnf.add(uniqueTable.computeIfAbsent(conjunction, x -> conjunction));
+              }
+            }
+            return dnf;
+
+          case EXP_OR:
+            dnf.addAll(toDnf(acc.getLeft(), uniqueTable));
+            dnf.addAll(toDnf(acc.getRight(), uniqueTable));
+            return dnf;
+
+          default:
+            throw new UnsupportedOperationException(
+              "Unsupported operator in acceptance condition: " + acc);
+        }
+      }
+    }
+  }
+
+  public static List<BooleanExpression<AtomAcceptance>> toDnf(
+    BooleanExpression<AtomAcceptance> acc) {
+    return toDnf(acc, new HashMap<>());
   }
 }

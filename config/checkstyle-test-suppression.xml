@@ -7,6 +7,9 @@
 <suppressions>
     <suppress files="Size.*|LTL2.*|NBA2.*|LD.*|.*DPA.*" checks="AbbreviationAsWordInName"/>
 
+    <!-- Suppress broken file -->
+    <suppress files="owl[\\/]translations[\\/]TranslationReport" checks=".*"/>
+    
     <!-- We avoid final modifier -->
     <suppress checks="VariableDeclarationUsageDistanceCheck" files=".*" />
 

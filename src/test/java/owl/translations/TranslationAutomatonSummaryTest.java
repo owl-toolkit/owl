@@ -46,35 +46,28 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.IntPredicate;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.DynamicContainer;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.output.HoaPrinter;
-import owl.automaton.transformations.RabinDegeneralization;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -85,7 +78,6 @@ import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
-import owl.ltl.visitors.LatexPrintVisitor;
 import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
@@ -98,19 +90,16 @@ import owl.translations.modules.LTL2LDBAModule;
 import owl.translations.modules.LTL2LDGBAModule;
 import owl.translations.modules.LTL2NBAModule;
 import owl.translations.modules.LTL2NGBAModule;
-import owl.translations.rabinizer.RabinizerBuilder;
-import owl.translations.rabinizer.RabinizerConfiguration;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 class TranslationAutomatonSummaryTest {
 
   private static final String BASE_PATH = "data/formulas";
-  private static final List<String> COMMON_ALPHABET = List.of("a", "b", "c", "d", "e", "f", "g",
-    "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
-  private static final List<Translator> TRANSLATORS;
 
-  static {
-    TRANSLATORS = List.of(
+  static final List<String> COMMON_ALPHABET = List.of("a", "b", "c", "d", "e", "f", "g",
+    "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
+
+  static final List<Translator> TRANSLATORS = List.of(
       new Translator("safety",
         DeterministicConstructionsPortfolio::safety),
       new Translator("safety.nondeterministic",
@@ -210,7 +199,6 @@ class TranslationAutomatonSummaryTest {
         LTL2NAFunction::new,
         EnumSet.of(LIBEROUTER))
     );
-  }
 
   private static boolean containsIsomorphic(Collection<Formula> formulas, Formula formula) {
     for (Formula existingFormula : formulas) {
@@ -249,9 +237,7 @@ class TranslationAutomatonSummaryTest {
 
       // Close literal gaps.
       var shiftedFormula = LiteralMapper.shiftLiterals(literalNormalizedFormula);
-      int variables = (int) Arrays.stream(shiftedFormula.mapping).filter(x -> x != -1).count();
-      var restrictedAlphabet = COMMON_ALPHABET.subList(0, variables);
-      var labelledFormula = LabelledFormula.of(shiftedFormula.formula, restrictedAlphabet);
+      var labelledFormula = LabelledFormula.of(shiftedFormula.formula, COMMON_ALPHABET);
 
       if (containsIsomorphic(
         Collections2.transform(testCases, LabelledFormula::formula), labelledFormula.formula())) {
@@ -265,7 +251,7 @@ class TranslationAutomatonSummaryTest {
       do {
         oldLabelledFormula = newLabelledFormula;
         newLabelledFormula = LabelledFormula.of(
-          LtlParser.syntax(oldLabelledFormula.toString()), restrictedAlphabet);
+          LtlParser.syntax(oldLabelledFormula.toString()), COMMON_ALPHABET);
       } while (!newLabelledFormula.equals(oldLabelledFormula));
 
       testCases.add(newLabelledFormula);
@@ -298,7 +284,7 @@ class TranslationAutomatonSummaryTest {
     return containers;
   }
 
-  @Tag("size-regression-train")
+  // @Tag("size-regression-train")
   @ParameterizedTest
   @MethodSource("translatorProvider")
   void train(Translator translator) {
@@ -356,14 +342,49 @@ class TranslationAutomatonSummaryTest {
     SICKERT("literature/SickertEJK16"),
     SOMENZI("literature/SomenziB00");
 
-    private final String name;
+    final String path;
 
-    FormulaSet(String name) {
-      this.name = name;
+    FormulaSet(String path) {
+      this.path = path;
     }
 
     Path file() {
-      return Paths.get(String.format("%s/%s.ltl", BASE_PATH, name));
+      return Paths.get(String.format("%s/%s.ltl", BASE_PATH, path));
+    }
+
+    @SuppressWarnings("PMD.LooseCoupling")
+    LinkedHashSet<LabelledFormula> loadAndDeduplicateFormulaSet() throws IOException {
+      var formulaSet = new LinkedHashSet<LabelledFormula>();
+
+      try (BufferedReader reader = Files.newBufferedReader(file())) {
+        reader.lines().forEach(line -> {
+          var formulaString = line.trim();
+
+          if (formulaString.isEmpty()) {
+            return;
+          }
+
+          var formula = SimplifierFactory.apply(
+            LtlParser.syntax(formulaString).nnf(), Mode.SYNTACTIC_FIXPOINT);
+          var negatedFormula = formula.not();
+          var invertedFormula = negatedFormula.accept(new Converter(SyntacticFragment.NNF) {
+            @Override
+            public Formula visit(Literal literal) {
+              return literal.not();
+            }
+          });
+
+          var transformedSet = Collections2.transform(formulaSet, LabelledFormula::formula);
+
+          if (!containsIsomorphic(transformedSet, formula)
+            && !containsIsomorphic(transformedSet, negatedFormula)
+            && !containsIsomorphic(transformedSet, invertedFormula)) {
+            addNormalized(formulaSet, formula);
+          }
+        });
+      }
+
+      return formulaSet;
     }
   }
 
@@ -439,13 +460,15 @@ class TranslationAutomatonSummaryTest {
   static class AutomatonSummary {
     final int size;
     final int initialStatesSize;
+    final transient OmegaAcceptance acceptance;
     final String acceptanceName;
     final int acceptanceSets;
     final boolean complete;
     final boolean deterministic;
 
-    private AutomatonSummary(int size, int initialStatesSize, OmegaAcceptance acceptance,
+    AutomatonSummary(int size, int initialStatesSize, OmegaAcceptance acceptance,
       boolean deterministic, boolean complete) {
+      this.acceptance = acceptance;
       this.acceptanceSets = acceptance.acceptanceSets();
       this.acceptanceName = acceptance.getClass().getSimpleName();
       this.complete = complete;
@@ -457,13 +480,13 @@ class TranslationAutomatonSummaryTest {
     @Nullable
     static AutomatonSummary of(Supplier<Automaton<?, ?>> supplier) {
       try {
-        var automaton = supplier.get();
+        var automaton = Objects.requireNonNull(supplier.get());
         return new AutomatonSummary(automaton.size(),
           automaton.initialStates().size(),
           automaton.acceptance(),
           automaton.is(Automaton.Property.DETERMINISTIC),
           automaton.is(Automaton.Property.COMPLETE));
-      } catch (IllegalArgumentException | UnsupportedOperationException ex) {
+      } catch (IllegalArgumentException | UnsupportedOperationException | CompletionException ex) {
         return null;
       }
     }
@@ -481,382 +504,6 @@ class TranslationAutomatonSummaryTest {
       assertEquals(acceptanceName, automaton.acceptance().getClass().getSimpleName());
       assertEquals(deterministic, automaton.is(Automaton.Property.DETERMINISTIC));
       assertEquals(complete, automaton.is(Automaton.Property.COMPLETE));
-    }
-  }
-
-  @Tag("size-report")
-  @ParameterizedTest
-  @SuppressWarnings("PMD.SystemPrintln")
-  @EnumSource(
-    value = FormulaSet.class,
-    names = {"DWYER", "PELANEK", "PARAMETRISED", "ETESSAMI", "SOMENZI"})
-  void generateLatexReport(FormulaSet set) {
-    var formulaSet = new LinkedHashSet<LabelledFormula>();
-
-    try (BufferedReader reader = Files.newBufferedReader(set.file())) {
-      reader.lines().forEach(line -> {
-        var formulaString = line.trim();
-
-        if (formulaString.isEmpty()) {
-          return;
-        }
-
-        var formula = SimplifierFactory.apply(
-          LtlParser.syntax(formulaString).nnf(), Mode.SYNTACTIC_FIXPOINT);
-        var negatedFormula = formula.not();
-        var invertedFormula = negatedFormula.accept(new Converter(SyntacticFragment.NNF) {
-          @Override
-          public Formula visit(Literal literal) {
-            return literal.not();
-          }
-        });
-
-        var transformedSet = Collections2.transform(formulaSet, LabelledFormula::formula);
-
-        if (!containsIsomorphic(transformedSet, formula)
-          && !containsIsomorphic(transformedSet, negatedFormula)
-          && !containsIsomorphic(transformedSet, invertedFormula)) {
-          addNormalized(formulaSet, formula);
-        }
-      });
-    } catch (IOException exception) {
-      fail(exception);
-    }
-
-    var configuration = RabinizerConfiguration.of(true, true, true);
-
-    var draAsymmetric = new Translator("DRA (Rab. 4)", (env) -> (formula) ->
-      AcceptanceOptimizations.optimize(
-        MutableAutomatonFactory.copy(
-         RabinDegeneralization.degeneralize(
-           AcceptanceOptimizations.optimize(
-             RabinizerBuilder.build(formula, env, configuration)
-           )))
-      ));
-
-    var dgraAsymmetric = new Translator("DGRA (Rab. 4)", (env) -> (formula) ->
-      AcceptanceOptimizations.optimize(
-        RabinizerBuilder.build(formula, env, configuration)
-      ));
-
-    var draSymmetric = new Translator("DRA", environment -> formula ->
-      AcceptanceOptimizations.optimize(
-        MutableAutomatonFactory.copy(
-          SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula))
-      ));
-
-    var dgraSymmetric = new Translator("DGRA", environment -> formula ->
-      AcceptanceOptimizations.optimize(
-        MutableAutomatonFactory.copy(
-          SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
-            .apply(formula))
-      ));
-
-    List<List<Translator>> translators = new ArrayList<>();
-    List<List<List<TestCase>>> results = new ArrayList<>();
-
-    var nbaGroup = TRANSLATORS.stream()
-      .filter(x -> x.name.contains("nba"))
-      .collect(Collectors.toList());
-
-    var ngbaGroup = List.of(
-      new Translator("NGBA (Spot)", environment -> formula
-      -> new ExternalTranslator(environment, "ltl2tgba --any --low -H").apply(formula)),
-      TRANSLATORS.stream().filter(x -> x.name.contains("ngba")).findFirst().orElseThrow()
-    );
-
-    var ldbaGroup = TRANSLATORS.stream()
-      .filter(x -> x.name.contains("ldba"))
-      .collect(Collectors.toList());
-
-    var ldgbaGroup = TRANSLATORS.stream()
-      .filter(x -> x.name.contains("ldgba"))
-      .collect(Collectors.toList());
-
-    var draGroup = List.of(draAsymmetric, draSymmetric);
-    var dgraGroup = List.of(dgraAsymmetric, dgraSymmetric);
-
-    translators.add(nbaGroup);
-    results.add(computeResults(nbaGroup, formulaSet));
-
-    translators.add(ngbaGroup);
-    results.add(computeResults(ngbaGroup, formulaSet));
-
-    translators.add(ldbaGroup);
-    results.add(computeResults(ldbaGroup, formulaSet));
-
-    translators.add(ldgbaGroup);
-    results.add(computeResults(ldgbaGroup, formulaSet));
-
-    translators.add(draGroup);
-    results.add(computeResults(draGroup, formulaSet));
-
-    translators.add(dgraGroup);
-    results.add(computeResults(dgraGroup, formulaSet));
-
-    Map<String, String> readableNames = Map.of(
-      "nba.symmetric",   "NBA",
-      "ngba.symmetric",  "NGBA",
-      "ldba.symmetric",  "LDBA",
-      "ldgba.symmetric", "LDGBA",
-      "ldba.asymmetric", "LDBA (Rab. 4)",
-      "ldgba.asymmetric", "LDGBA (Rab. 4)"
-    );
-
-    System.out.print(new LatexReport(set, translators, readableNames,
-      Set.of(translators.get(1), translators.get(3), translators.get(4), translators.get(5)),
-      results
-    ).report());
-  }
-
-  private static List<List<TestCase>> computeResults(List<Translator> translators,
-    Set<LabelledFormula> formulaSet) {
-    List<List<TestCase>> results = new ArrayList<>();
-
-    for (Translator translator : translators) {
-      var translatorFunction = translator.constructor.apply(Environment.standard());
-      var testCases = formulaSet.stream()
-        .flatMap(x -> Stream.of(
-          TestCase.of(x, translatorFunction), TestCase.of(x.not(), translatorFunction)))
-        .collect(Collectors.toUnmodifiableList());
-      results.add(testCases);
-    }
-
-    return results;
-  }
-
-  @SuppressWarnings("PMD.ConsecutiveAppendsShouldReuse")
-  private static class LatexReport {
-
-    private static final LatexPrintVisitor PRINT_VISITOR = new LatexPrintVisitor(COMMON_ALPHABET);
-
-    private final List<List<Translator>> groupedTranslators;
-    private final List<List<List<TestCase>>> groupedResults;
-    private final Map<String, String> translatorNames;
-    private final Set<List<Translator>> twoColumnGroup;
-    private final Map<Formula, Integer> formulaEnumeration;
-    private final FormulaSet formulaSet;
-    private int tableCounter = 0;
-
-    private LatexReport(
-      FormulaSet formulaSet, List<List<Translator>> groupedTranslators,
-      Map<String, String> translatorNames, Set<List<Translator>> twoColumnGroup,
-      List<List<List<TestCase>>> groupedResults) {
-      assert groupedTranslators.size() == groupedResults.size();
-
-      this.groupedTranslators = groupedTranslators;
-      this.groupedResults = groupedResults;
-      this.translatorNames = translatorNames;
-      this.twoColumnGroup = twoColumnGroup;
-
-      this.formulaEnumeration = new HashMap<>();
-
-      for (var results : this.groupedResults.get(0).get(0)) {
-        var formula = LtlParser.syntax(results.formula, COMMON_ALPHABET);
-
-        if (!formulaEnumeration.containsKey(formula.not())) {
-          assert !formulaEnumeration.containsKey(formula);
-          formulaEnumeration.put(formula, formulaEnumeration.size() + 1);
-        }
-      }
-
-      this.formulaSet = formulaSet;
-    }
-
-    private String report() {
-      IntPredicate interestingRow = row -> {
-        for (List<List<TestCase>> groupResults : this.groupedResults) {
-          int lowerBound = -1;
-          int upperBound = -1;
-
-          for (List<TestCase> toolResults : groupResults) {
-            var toolResult = toolResults.get(row).properties;
-
-            if (toolResult == null) {
-              return true;
-            }
-
-            if (lowerBound == -1) {
-              assert upperBound == -1;
-              lowerBound = toolResult.size;
-              upperBound = toolResult.size;
-            } else {
-              lowerBound = Math.min(lowerBound, toolResult.size);
-              upperBound = Math.max(upperBound, toolResult.size);
-            }
-
-            if (upperBound - lowerBound > 3) {
-              return true;
-            }
-          }
-        }
-
-        return false;
-      };
-
-      IntPredicate moveToAppendix = firstRow -> {
-        assert firstRow % 2 == 0;
-        return !interestingRow.test(firstRow) && !interestingRow.test(firstRow + 1);
-      };
-
-      return String.format("%s\n\\newcommand{\\%sAppendix}{%s}",
-        renderLatexReport(moveToAppendix.negate()),
-        formulaSet.name().toLowerCase(),
-        renderLatexReport(moveToAppendix));
-    }
-
-    private String renderLatexReport(IntPredicate interestingRow) {
-      int groups = groupedTranslators.size();
-      int rows = groupedResults.get(0).get(0).size();
-      int columns = 1 + groupedTranslators.stream()
-        .mapToInt(x -> (twoColumnGroup.contains(x) ? 2 : 1) *  x.size()).sum();
-
-      StringBuilder report = new StringBuilder(tableHeader());
-      StringBuilder formulaRows = new StringBuilder(report.capacity());
-
-      int printedRows = 0;
-
-      for (int row = 0; row < rows; row++) {
-        if (row % 2 == 0 && !interestingRow.test(row)) {
-          //noinspection AssignmentToForLoopParameter
-          row += 1; // NOPMD
-          continue;
-        }
-
-        String formula = groupedResults.get(0).get(0).get(row).formula;
-        // String latexFormula = renderLatexFormula(formula);
-
-        Formula labelledFormula = LtlParser.syntax(formula, COMMON_ALPHABET);
-        String latexFormula = labelledFormula.accept(PRINT_VISITOR);
-
-        if (formulaEnumeration.containsKey(labelledFormula.not())) {
-          int index = formulaEnumeration.get(labelledFormula.not());
-          report.append("    $\\overline{\\varphi_{" + index + "}}$ \n");
-          report.append("      ");
-        } else {
-          int index = formulaEnumeration.get(labelledFormula);
-          formulaRows.append("    $\\varphi_{")
-            .append(index)
-            .append("}$ & \\multicolumn{")
-            .append(columns)
-            .append("}{p{0.89\\linewidth}}{\\scriptsize $")
-            .append(latexFormula)
-            .append("$} \\\\\n");
-          report.append("    $\\varphi_{" + index + "}$ \n");
-          report.append("      ");
-        }
-
-        for (int group = 0; group < groups; group++) {
-          var groupResults = groupedResults.get(group);
-          int groupColumns = groupResults.size();
-
-          assert groupedTranslators.get(group).size() == groupColumns;
-
-          int smallestSize = Integer.MAX_VALUE;
-          int acceptanceSmallestSize = Integer.MAX_VALUE;
-
-          for (List<TestCase> results : groupResults) {
-            var properties = results.get(row).properties;
-
-            if (properties != null) {
-              smallestSize = Math.min(smallestSize, properties.size);
-              acceptanceSmallestSize = Math.min(acceptanceSmallestSize, properties.acceptanceSets);
-            }
-          }
-
-          for (int groupColumn = 0; groupColumn < groupColumns; groupColumn++) {
-            var result = groupedResults.get(group).get(groupColumn).get(row);
-            assert formula.equals(result.formula)
-              : "Expected: " + formula + "\n Obtained: " + result.formula;
-
-            if (result.properties == null) {
-              report.append("& n/a & ");
-              continue;
-            }
-
-            int size = result.properties.size;
-            int acceptanceSize = result.properties.acceptanceSets;
-
-            if (size == smallestSize) {
-              report.append(String.format("& \\textbf{%d} ", size));
-            } else {
-              report.append(String.format("& %d ", size));
-            }
-
-            if (acceptanceSize > 1) {
-              assert twoColumnGroup.contains(groupedTranslators.get(group));
-
-              if (acceptanceSize == acceptanceSmallestSize) {
-                report.append(String.format("& \\textbf{(%d)} ", acceptanceSize));
-              } else {
-                report.append(String.format("& (%d) ", acceptanceSize));
-              }
-            } else if (twoColumnGroup.contains(groupedTranslators.get(group))) {
-              report.append("& ");
-            }
-          }
-        }
-
-        report.append("\\\\\n");
-        printedRows = printedRows + 1;
-
-        if (printedRows == 2 * 18) {
-          report.append(tableFooter(formulaRows));
-          printedRows = 0;
-          formulaRows = new StringBuilder();
-          report.append(tableHeader());
-        }
-      }
-
-      report.append(tableFooter(formulaRows));
-
-      return report.toString();
-    }
-
-    private StringBuilder tableHeader() {
-      tableCounter++;
-
-      StringBuilder header = new StringBuilder();
-
-      header.append("\n\\begin{table}[hbt]\n");
-      header.append("  \\centering\n");
-      header.append("  \\scriptsize\n");
-      header.append("  \\begin{tabularx}{\\linewidth}{p{\\widthof{$\\varphi_{99}$}}|");
-      header.append(groupedTranslators.stream().map(group ->
-        IntStream.range(0, group.size())
-          .mapToObj(x -> twoColumnGroup.contains(group) ? "r@{\\hspace{0.33\\tabcolsep}}l" : "r")
-          .collect(Collectors.joining("@{\\hspace{1.5\\tabcolsep}}")))
-        .collect(Collectors.joining("|")));
-      header.append("X}\n");
-      header.append("    \\rot{LTL}");
-
-      for (List<Translator> group : groupedTranslators) {
-        for (Translator translator : group) {
-          header.append("& \\rot");
-          header.append(twoColumnGroup.contains(group) ? "Two" : "");
-          header.append('{');
-          header.append(translatorNames.getOrDefault(translator.name, translator.name));
-          header.append("} ");
-        }
-      }
-
-      header.append("\\\\\n");
-      header.append("    \\toprule\n");
-      return header;
-    }
-
-    private StringBuilder tableFooter(StringBuilder formulaRows) {
-      StringBuilder footer = new StringBuilder(formulaRows.capacity() + 100);
-      footer.append("    \\midrule\n");
-      footer.append(formulaRows);
-      footer.append("    \\bottomrule\n");
-      footer.append("  \\end{tabularx}\n");
-      footer.append(String.format("  \\caption{%s:%d}\n",
-        formulaSet.name().toLowerCase(), tableCounter));
-      footer.append(String.format("  \\label{exp:table:%s:%d}\n",
-        formulaSet.name().toLowerCase(), tableCounter));
-      footer.append("\\end{table}\n");
-      return footer;
     }
   }
 }

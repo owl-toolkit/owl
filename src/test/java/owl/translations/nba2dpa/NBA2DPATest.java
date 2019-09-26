@@ -31,6 +31,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.AutomatonReader;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.output.HoaPrinter;
 import owl.run.Environment;
@@ -293,8 +294,9 @@ class NBA2DPATest {
   @ParameterizedTest
   @MethodSource("testCases")
   void runTest(String input, int size) throws ParseException {
-    var nba = AutomatonReader.readHoa(input, Environment.annotated()
-      .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
+    var nba = OmegaAcceptanceCast.cast(AutomatonReader
+        .readHoa(input, Environment.standard().factorySupplier()::getValuationSetFactory),
+      GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 
     assertThat(dpa.acceptance(), ParityAcceptance.class::isInstance);
