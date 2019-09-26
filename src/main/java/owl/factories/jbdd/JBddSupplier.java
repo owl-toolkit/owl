@@ -20,7 +20,6 @@
 package owl.factories.jbdd;
 
 import de.tum.in.jbdd.Bdd;
-import de.tum.in.jbdd.BddConfiguration;
 import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.List;
@@ -44,10 +43,15 @@ public final class JBddSupplier implements FactorySupplier {
   }
 
   private Bdd create(int size) {
-    BddConfiguration configuration = ImmutableBddConfiguration.builder()
+    var configuration = ImmutableBddConfiguration.builder()
       .logStatisticsOnShutdown(false)
+      .useGlobalComposeCache(false)
+      .integrityDuplicatesMaximalSize(50)
+      .cacheBinaryDivider(4)
+      .cacheTernaryDivider(4)
       .build();
-    return BddFactory.buildBdd(size, configuration);
+
+    return BddFactory.buildBddRecursive(size, configuration);
   }
 
   @Override

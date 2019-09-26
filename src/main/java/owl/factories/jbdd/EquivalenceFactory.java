@@ -23,6 +23,8 @@ import de.tum.in.jbdd.Bdd;
 import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -74,9 +76,8 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   private boolean registerActive = false;
 
-  public EquivalenceFactory(Bdd factory, List<String> alphabet, boolean keepRepresentatives) {
-    super(factory);
-
+  public EquivalenceFactory(Bdd bdd, List<String> alphabet, boolean keepRepresentatives) {
+    super(bdd);
     this.alphabet = List.copyOf(alphabet);
     this.keepRepresentatives = keepRepresentatives;
 
@@ -94,8 +95,8 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     // Register literals.
     for (int i = 0; i < alphabetSize; i++) {
       Literal literal = Literal.of(i);
-      int bdd = factory.createVariable();
-      assert factory.getVariable(bdd) == i;
+      int node = this.bdd.createVariable();
+      assert this.bdd.variable(node) == i;
       mapping.put(literal, i);
       reverseMapping[i] = literal;
     }
@@ -103,11 +104,10 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     // Literals are not unfolded.
     Arrays.fill(unfoldSubstitution, -1);
 
-    trueClass = new BddEquivalenceClass(this, factory.getTrueNode(), BooleanConstant.TRUE);
-    falseClass = new BddEquivalenceClass(this, factory.getFalseNode(), BooleanConstant.FALSE);
+    trueClass = new BddEquivalenceClass(this, this.bdd.trueNode(), BooleanConstant.TRUE);
+    falseClass = new BddEquivalenceClass(this, this.bdd.falseNode(), BooleanConstant.FALSE);
   }
 
-  @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
   @Override
   public List<String> variables() {
     return alphabet;
@@ -133,10 +133,10 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
   @Override
   public BitSet atomicPropositions(EquivalenceClass clazz, boolean includeNested) {
     if (!includeNested) {
-      return factory.support(getBdd(clazz), alphabet.size());
+      return bdd.support(getNode(clazz), alphabet.size());
     }
 
-    BitSet atomicPropositions = factory.support(getBdd(clazz));
+    BitSet atomicPropositions = bdd.support(getNode(clazz));
 
     int i = atomicPropositions.nextSetBit(alphabet.size());
     for (; i >= 0; i = atomicPropositions.nextSetBit(i + 1)) {
@@ -152,7 +152,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @Override
   public Set<Formula.ModalOperator> modalOperators(EquivalenceClass clazz) {
-    BitSet support = factory.support(getBdd(clazz));
+    BitSet support = bdd.support(getNode(clazz));
     support.clear(0, alphabet.size());
 
     return new AbstractSet<>() {
@@ -181,12 +181,12 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @Override
   public boolean implies(EquivalenceClass clazz, EquivalenceClass other) {
-    return factory.implies(getBdd(clazz), getBdd(other));
+    return bdd.implies(getNode(clazz), getNode(other));
   }
 
   @Override
   public EquivalenceClass conjunction(Iterator<EquivalenceClass> classes) {
-    int resultBdd = factory.getTrueNode();
+    int resultBdd = bdd.trueNode();
     @Nullable
     List<Formula> representatives = new ArrayList<>();
 
@@ -198,7 +198,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       } else {
         representatives.add(representative);
       }
-      resultBdd = factory.and(resultBdd, getBdd(next));
+      resultBdd = bdd.and(resultBdd, getNode(next));
     }
 
     return create(representatives == null ? null : Conjunction.of(representatives), resultBdd);
@@ -206,7 +206,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @Override
   public EquivalenceClass disjunction(Iterator<EquivalenceClass> classes) {
-    int resultBdd = factory.getFalseNode();
+    int resultBdd = bdd.falseNode();
     @Nullable
     List<Formula> representatives = new ArrayList<>();
 
@@ -218,7 +218,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       } else {
         representatives.add(representative);
       }
-      resultBdd = factory.or(resultBdd, getBdd(next));
+      resultBdd = bdd.or(resultBdd, getNode(next));
     }
 
     return create(representatives == null ? null : Disjunction.of(representatives), resultBdd);
@@ -227,7 +227,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
   @Override
   public EquivalenceClass substitute(EquivalenceClass clazz,
     Function<? super Formula.ModalOperator, ? extends Formula> substitution) {
-    BitSet support = factory.support(getBdd(clazz));
+    BitSet support = bdd.support(getNode(clazz));
 
     Function<Formula.TemporalOperator, Formula> guardedSubstitution = x -> {
       if (x instanceof Formula.ModalOperator) {
@@ -241,7 +241,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     Arrays.setAll(substitutionMap,
       i -> support.get(i) ? toBdd(guardedSubstitution.apply(reverseMapping[i])) : -1);
 
-    return transform(clazz, bdd -> factory.compose(bdd, substitutionMap),
+    return transform(clazz, node -> bdd.compose(node, substitutionMap),
       f -> f.substitute(guardedSubstitution));
   }
 
@@ -257,17 +257,13 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       f -> f.temporalStepUnfold(valuation));
   }
 
-  private int temporalStepBdd(int bdd, BitSet valuation) {
+  private int temporalStepBdd(int node, BitSet valuation) {
     // Adjust valuation literals in substitution. This is not thread-safe!
     for (int i = 0; i < alphabet.size(); i++) {
-      if (valuation.get(i)) {
-        temporalStepSubstitution[i] = factory.getTrueNode();
-      } else {
-        temporalStepSubstitution[i] = factory.getFalseNode();
-      }
+      temporalStepSubstitution[i] = valuation.get(i) ? bdd.trueNode() : bdd.falseNode();
     }
 
-    return factory.compose(bdd, temporalStepSubstitution);
+    return bdd.compose(node, temporalStepSubstitution);
   }
 
   @Override
@@ -281,27 +277,27 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       f -> f.unfoldTemporalStep(valuation));
   }
 
-  private int unfold(int bdd) {
-    return factory.compose(bdd, unfoldSubstitution);
+  private int unfold(int node) {
+    return bdd.compose(node, unfoldSubstitution);
   }
 
 
   @Override
   public String toString(EquivalenceClass clazz) {
-    int bdd = getBdd(clazz);
+    int node = getNode(clazz);
 
-    if (factory.isVariable(bdd)) {
-      return PrintVisitor.toString(reverseMapping[factory.getVariable(bdd)], alphabet, false);
+    if (bdd.isVariable(node)) {
+      return PrintVisitor.toString(reverseMapping[bdd.variable(node)], alphabet, false);
     }
 
-    if (factory.isVariableNegated(bdd)) {
-      return PrintVisitor.toString(reverseMapping[factory.getVariable(bdd)].not(),
+    if (bdd.isVariableNegated(node)) {
+      return PrintVisitor.toString(reverseMapping[bdd.variable(node)].not(),
         alphabet, false);
     }
 
     Formula representative = clazz.representative();
     return representative == null
-      ? String.format("%d", bdd)
+      ? String.format("%d", node)
       : PrintVisitor.toString(representative, alphabet, false);
   }
 
@@ -313,8 +309,9 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
   @Override
   public double trueness(EquivalenceClass clazz) {
-    return factory.countSatisfyingAssignments(getBdd(clazz))
-      / StrictMath.pow(2.0d, (double) factory.numberOfVariables());
+    var satisfyingAssignments = new BigDecimal(bdd.countSatisfyingAssignments(getNode(clazz)));
+    var assignments = BigDecimal.valueOf(2).pow(bdd.numberOfVariables());
+    return satisfyingAssignments.divide(assignments, 24, RoundingMode.HALF_DOWN).doubleValue();
   }
 
   private <T> ValuationTree<T> temporalStepTree(EquivalenceClass clazz,
@@ -325,27 +322,27 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       return tree;
     }
 
-    int bdd = getBdd(clazz);
-    int pivot = factory.isNodeRoot(bdd) ? alphabet.size() : factory.getVariable(bdd);
+    int node = getNode(clazz);
+    int pivot = bdd.isNodeRoot(node) ? alphabet.size() : bdd.variable(node);
 
     if (pivot >= alphabet.size()) {
       Arrays.fill(temporalStepSubstitution, 0, alphabet.size(), -1);
       Set<T> value = mapper.apply(transform(clazz,
-        x -> factory.compose(x, temporalStepSubstitution),
+        x -> bdd.compose(x, temporalStepSubstitution),
         Formula::temporalStep));
       tree = ValuationTree.of(value);
     } else {
       int[] substitution = new int[pivot + 1];
       Arrays.fill(substitution, 0, pivot, -1);
 
-      substitution[pivot] = factory.getTrueNode();
+      substitution[pivot] = bdd.trueNode();
       var trueSubTree = temporalStepTree(transform(clazz,
-        x -> factory.compose(getBdd(clazz), substitution),
+        x -> bdd.compose(getNode(clazz), substitution),
         x -> x.temporalStep(pivot, true)), mapper, cache);
 
-      substitution[pivot] = factory.getFalseNode();
+      substitution[pivot] = bdd.falseNode();
       var falseSubTree = temporalStepTree(transform(clazz,
-        x -> factory.compose(getBdd(clazz), substitution),
+        x -> bdd.compose(getNode(clazz), substitution),
         x -> x.temporalStep(pivot, false)), mapper, cache);
 
       tree = ValuationTree.of(pivot, trueSubTree, falseSubTree);
@@ -360,10 +357,10 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     return (BddEquivalenceClass) clazz;
   }
 
-  private int getBdd(EquivalenceClass clazz) {
-    int bdd = getClass(clazz).bdd;
-    assert factory.getReferenceCount(bdd) == 1 || factory.getReferenceCount(bdd) == -1;
-    return bdd;
+  private int getNode(EquivalenceClass clazz) {
+    int node = getClass(clazz).node;
+    assert bdd.getReferenceCount(node) == 1 || bdd.getReferenceCount(node) == -1;
+    return node;
   }
 
   private int toBdd(Formula formula) {
@@ -386,7 +383,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       reverseMapping = Arrays.copyOf(reverseMapping, newSize);
 
       for (Formula.ModalOperator proposition : newPropositions) {
-        int variable = factory.getVariable(factory.createVariable());
+        int variable = bdd.variable(bdd.createVariable());
         mapping.put(proposition, variable);
         reverseMapping[variable] = proposition;
       }
@@ -406,13 +403,13 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
           unfoldSubstitution[variable] = -1;
           temporalStepSubstitutes[variable] = clazz;
-          temporalStepSubstitution[variable] = clazz.bdd;
+          temporalStepSubstitution[variable] = clazz.node;
         } else {
           Formula unfold = proposition.unfold();
           BddEquivalenceClass clazz = create(unfold, toBdd(unfold));
 
           unfoldSubstitutes[variable] = clazz;
-          unfoldSubstitution[variable] = clazz.bdd;
+          unfoldSubstitution[variable] = clazz.node;
           temporalStepSubstitution[variable] = -1;
         }
       }
@@ -425,33 +422,34 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       registerActive = false;
     }
 
-    return factory.dereference(formula.accept(visitor));
+    return bdd.dereference(formula.accept(visitor));
   }
 
-  private BddEquivalenceClass create(@Nullable Formula representative, int bdd) {
-    if (bdd == factory.getTrueNode()) {
+  private BddEquivalenceClass create(@Nullable Formula representative, int node) {
+    if (node == bdd.trueNode()) {
       return trueClass;
     }
 
-    if (bdd == factory.getFalseNode()) {
+    if (node == bdd.falseNode()) {
       return falseClass;
     }
 
-    return canonicalize(new BddEquivalenceClass(this, bdd,
-      keepRepresentatives ? representative : null));
+    BddEquivalenceClass clazz =
+      new BddEquivalenceClass(this, node, keepRepresentatives ? representative : null);
+    return canonicalize(clazz);
   }
 
   private BddEquivalenceClass transform(EquivalenceClass clazz, IntUnaryOperator bddTransformer,
     UnaryOperator<Formula> representativeTransformer) {
     BddEquivalenceClass casted = getClass(clazz);
 
-    int newBdd = bddTransformer.applyAsInt(casted.bdd);
+    int newBdd = bddTransformer.applyAsInt(casted.node);
 
     @Nullable
     Formula representative = clazz.representative();
     @Nullable
     Formula newRepresentative;
-    if (casted.bdd == newBdd) {
+    if (casted.node == newBdd) {
       newRepresentative = representative;
     } else if (representative == null) {
       newRepresentative = null;
@@ -461,23 +459,64 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     return create(newRepresentative, newBdd);
   }
 
-  public static final class BddEquivalenceClass extends EquivalenceClass implements BddWrapper {
-    final int bdd;
+  // Translates a formula into a BDD under the assumption every subformula is already registered.
+  private final class BddVisitor extends PropositionalIntVisitor {
+    @Override
+    protected int visit(Formula.TemporalOperator formula) {
+      if (formula instanceof Literal) {
+        Literal literal = (Literal) formula;
+        checkLiteralAlphabetRange(List.of(literal));
+        int variableBdd = bdd.variableNode(literal.getAtom());
+        return literal.isNegated() ? bdd.not(variableBdd) : variableBdd;
+      }
 
-    BddEquivalenceClass(EquivalenceClassFactory factory, int bdd,
+      int value = mapping.getInt(formula);
+      assert formula instanceof Formula.ModalOperator;
+      assert value >= 0;
+      return bdd.variableNode(value);
+    }
+
+    @Override
+    public int visit(BooleanConstant booleanConstant) {
+      return booleanConstant.value ? bdd.trueNode() : bdd.falseNode();
+    }
+
+    @Override
+    public int visit(Conjunction conjunction) {
+      int x = bdd.trueNode();
+      for (Formula child : conjunction.children) {
+        int y = child.accept(this);
+        x = bdd.consume(bdd.and(x, y), x, y);
+      }
+      return x;
+    }
+
+    @Override
+    public int visit(Disjunction disjunction) {
+      int x = bdd.falseNode();
+      for (Formula child : disjunction.children) {
+        int y = child.accept(this);
+        x = bdd.consume(bdd.or(x, y), x, y);
+      }
+      return x;
+    }
+  }
+
+  private void checkLiteralAlphabetRange(Collection<? extends Formula> formulas) {
+    for (Formula x : formulas) {
+      if (x instanceof Literal && ((Literal) x).getAtom() >= alphabet.size()) {
+        throw new IllegalArgumentException("Literal " + x + " is not within alphabet.");
+      }
+    }
+  }
+
+  static final class BddEquivalenceClass extends EquivalenceClass implements BddNode {
+    final int node;
+
+    BddEquivalenceClass(EquivalenceClassFactory factory, int node,
       @Nullable Formula representative) {
       super(factory, representative);
-      this.bdd = bdd;
-    }
-
-    @Override
-    public int bdd() {
-      return bdd;
-    }
-
-    @Override
-    public int hashCode() {
-      return HashCommon.mix(bdd);
+      this.node = node;
     }
 
     @Override
@@ -492,58 +531,17 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
 
       BddEquivalenceClass that = (BddEquivalenceClass) obj;
       assert this.factory().equals(that.factory());
-      return bdd == that.bdd;
-    }
-  }
-
-  // Translates a formula into a BDD under the assumption every subformula is already registered.
-  private final class BddVisitor extends PropositionalIntVisitor {
-    @Override
-    protected int visit(Formula.TemporalOperator formula) {
-      if (formula instanceof Literal) {
-        Literal literal = (Literal) formula;
-        checkLiteralAlphabetRange(List.of(literal));
-        int variableBdd = factory.getVariableNode(literal.getAtom());
-        return literal.isNegated() ? factory.not(variableBdd) : variableBdd;
-      }
-
-      int value = mapping.getInt(formula);
-      assert formula instanceof Formula.ModalOperator;
-      assert value >= 0;
-      return factory.getVariableNode(value);
+      return node == that.node;
     }
 
     @Override
-    public int visit(BooleanConstant booleanConstant) {
-      return booleanConstant.value ? factory.getTrueNode() : factory.getFalseNode();
+    public int hashCode() {
+      return HashCommon.mix(node);
     }
 
     @Override
-    public int visit(Conjunction conjunction) {
-      int x = factory.getTrueNode();
-      for (Formula child : conjunction.children) {
-        int y = child.accept(this);
-        x = factory.consume(factory.and(x, y), x, y);
-      }
-      return x;
-    }
-
-    @Override
-    public int visit(Disjunction disjunction) {
-      int x = factory.getFalseNode();
-      for (Formula child : disjunction.children) {
-        int y = child.accept(this);
-        x = factory.consume(factory.or(x, y), x, y);
-      }
-      return x;
-    }
-  }
-
-  private void checkLiteralAlphabetRange(Collection<? extends Formula> formulas) {
-    for (Formula x : formulas) {
-      if (x instanceof Literal && ((Literal) x).getAtom() >= alphabet.size()) {
-        throw new IllegalArgumentException("Literal " + x + " is not within alphabet.");
-      }
+    public int node() {
+      return node;
     }
   }
 }
