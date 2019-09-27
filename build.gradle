@@ -70,9 +70,7 @@ tasks.withType(JavaCompile) {
     // options.errorprone.disableWarningsInGeneratedCode = true
 }
 
-tasks.withType(Javadoc) {
-    options.encoding = defaultEncoding
-}
+
 
 def buildNatives = !project.hasProperty("disable-native")
 
@@ -229,12 +227,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.allSource
 }
 
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
 
-task mavenJars(dependsOn: [jar, sourcesJar, javadocJar])
 
 // ---------------- Script Jobs ----------------
 
@@ -264,11 +257,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
     buildNatives
 }
 
-javadoc {
-    options.addBooleanOption('html5', true)
-    options.setEncoding(defaultEncoding)
-    options.links('https://docs.oracle.com/en/java/javase/11/docs/api')
-}
+
 
 // TODO Include testing framework scripts in distribution -> split scripts directory in two dirs
 
@@ -297,9 +286,7 @@ distributions {
                 fileMode = 0755
             }
 
-            into("javadoc") {
-                from javadoc
-            }
+
         }
     }
 

@@ -24,7 +24,6 @@ public class ReplaceBiCondVisitorTest {
 
   @Test
   void removeBicondTest() {
-
     ReplaceBiCondVisitor r = new ReplaceBiCondVisitor();
     for (int i = 0; i < Inputs.size(); i++) {
       Formula f = r.apply(Inputs.get(i)).nnf();
