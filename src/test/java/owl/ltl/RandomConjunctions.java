@@ -1,5 +1,5 @@
 package owl.ltl;
-
+/*
 import org.junit.jupiter.api.Test;
 
 import java.io.*;
@@ -147,4 +147,4 @@ public class RandomConjunctions {
 
 
   }
-}
+}*/
