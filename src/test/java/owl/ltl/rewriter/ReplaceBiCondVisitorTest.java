@@ -1,4 +1,4 @@
-package owl.ltl.visitors;
+package owl.ltl.rewriter;
 
 import java.util.List;
 
@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.ltlf.LtlfParser;
-import owl.ltl.rewriter.ReplaceBiCondVisitor;
 
 public class ReplaceBiCondVisitorTest {
   private static final List<String> literals = List.of("a","b","c");
