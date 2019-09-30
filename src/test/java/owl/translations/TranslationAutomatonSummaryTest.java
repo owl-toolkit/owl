@@ -158,6 +158,7 @@ class TranslationAutomatonSummaryTest {
           EnumSet.of(SYMMETRIC, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
+      // TODO: Investigate one minute difference
       new Translator("dra.symmetric", environment ->
         SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)),
       new Translator("dgra.symmetric", environment ->

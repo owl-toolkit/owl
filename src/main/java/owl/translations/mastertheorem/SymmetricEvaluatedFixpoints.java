@@ -22,6 +22,7 @@ package owl.translations.mastertheorem;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -39,6 +40,8 @@ import owl.ltl.Formula;
 import owl.ltl.Formulas;
 import owl.ltl.GOperator;
 import owl.ltl.LtlLanguageExpressible;
+import owl.ltl.MOperator;
+import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
@@ -74,9 +77,11 @@ public final class SymmetricEvaluatedFixpoints
     this.language = language;
   }
 
-  public static Set<SymmetricEvaluatedFixpoints> build(Fixpoints fixpoints, Factories factories) {
-    var toCoSafety = new Rewriter.ToCoSafety(fixpoints);
-    var toSafety = new Rewriter.ToSafety(fixpoints);
+  public static Set<SymmetricEvaluatedFixpoints> build(
+    Formula formula, Fixpoints fixpoints, Factories factories) {
+    var unusedFixpoints = new HashSet<>(fixpoints.fixpoints());
+    var toCoSafety = new ExtendedRewriter.ToCoSafety(fixpoints, unusedFixpoints::remove);
+    var toSafety = new ExtendedRewriter.ToSafety(fixpoints, unusedFixpoints::remove);
 
     Set<GOperator> infinitelyOftenFormulas = new HashSet<>();
 
@@ -100,6 +105,34 @@ public final class SymmetricEvaluatedFixpoints
           .map(SymmetricEvaluatedFixpoints::unwrapGf));
         assert !(disjunction instanceof BooleanConstant);
         infinitelyOftenFormulas.add(wrapGf(disjunction));
+      }
+    }
+
+    {
+      List<GOperator> sortedInfinitelyOftenFormulas = new ArrayList<>(infinitelyOftenFormulas);
+      sortedInfinitelyOftenFormulas.sort(Comparator.reverseOrder());
+
+      for (GOperator gOperator : sortedInfinitelyOftenFormulas) {
+        var operand = unwrapGf(gOperator);
+
+        if (operand instanceof Conjunction) {
+          for (Formula conjunct : ((Conjunction) operand).children) {
+            Formula unwrappedConjunct = unwrapX(conjunct);
+
+            if (unwrappedConjunct instanceof FOperator) {
+              infinitelyOftenFormulas.removeIf(
+                y -> y.operand.equals(unwrappedConjunct));
+            } else if (unwrappedConjunct instanceof UOperator) {
+              infinitelyOftenFormulas.removeIf(
+                y -> unwrapGf(y).equals(unwrapX(((UOperator) unwrappedConjunct).right)));
+            } else if (unwrappedConjunct instanceof MOperator) {
+              infinitelyOftenFormulas.removeIf(
+                y -> unwrapGf(y).equals(unwrapX(((MOperator) unwrappedConjunct).left)));
+            } else {
+              infinitelyOftenFormulas.remove(wrapGf(unwrappedConjunct));
+            }
+          }
+        }
       }
     }
 
@@ -135,22 +168,35 @@ public final class SymmetricEvaluatedFixpoints
       almostAlwaysFormulasAlternatives.add(alternatives);
     }
 
+    // Detect un-used fixpoint operators outside of a fixpoint scope by examining the top-level
+    // formula.
+    var toSafetyWithoutGreatestFixpoints
+      = new ExtendedRewriter.ToSafety(fixpoints.leastFixpoints(), unusedFixpoints::remove);
+
+    for (Formula.ModalOperator modalOperator
+      : formula.subformulas(Predicates.IS_GREATEST_FIXPOINT, Formula.ModalOperator.class::cast)) {
+      toSafetyWithoutGreatestFixpoints.apply(modalOperator);
+    }
+
+    if (!unusedFixpoints.isEmpty()) {
+      return Set.of();
+    }
+
     Set<SymmetricEvaluatedFixpoints> fixpointsSet = new HashSet<>();
 
     for (List<FOperator> almostAlwaysFormulas
       : Sets.cartesianProduct(almostAlwaysFormulasAlternatives)) {
-      var factory = factories.eqFactory;
-      var formula = Conjunction.of(Stream.concat(
+      var language = Conjunction.of(Stream.concat(
         almostAlwaysFormulas.stream().map(x -> x.operand),
         infinitelyOftenFormulas.stream()));
-      var language = factory.of(formula.unfold());
+      var languageClazz = factories.eqFactory.of(language.unfold());
 
-      if (language.isFalse()) {
+      if (languageClazz.isFalse()) {
         continue;
       }
 
       fixpointsSet.add(new SymmetricEvaluatedFixpoints(fixpoints,
-        almostAlwaysFormulas, infinitelyOftenFormulas, language));
+        almostAlwaysFormulas, infinitelyOftenFormulas, languageClazz));
     }
 
     return fixpointsSet;

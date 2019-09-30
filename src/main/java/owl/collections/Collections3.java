@@ -188,10 +188,10 @@ public final class Collections3 {
     checkArgument(!iterator1.hasNext() && !iterator2.hasNext(), "Length mismatch.");
   }
 
-  public static <E> boolean isDistinct(List<E> collection) {
-    Set<E> set = new HashSet<>(collection.size());
+  public static <E> boolean isDistinct(List<E> distinctList) {
+    Set<E> set = new HashSet<>(distinctList.size());
 
-    for (E element : collection) {
+    for (E element : distinctList) {
       if (!set.add(element)) {
         return false;
       }
@@ -286,6 +286,39 @@ public final class Collections3 {
     return partitions;
   }
 
+  /**
+   * Creates a new {@link List} by applying the {@code transformer} on each element of {@code list}.
+   *
+   * <p>The implementation does not access {@link Collection#isEmpty()} or
+   * {@link Collection#size()}), since computing these values on live views might be expensive
+   * and cause a full traversal.</p>
+   *
+   * @param list
+   *     the input list.
+   * @param transformer
+   *     the translator function. It is not allowed to return {@code null}, since the used
+   *     data-structures might be null-hostile.
+   *
+   * @param <E1> the element type of the input
+   * @param <E2> the element type of the return value
+   *
+   * @return a new list containing all transformed objects
+   */
+  public static <E1, E2> List<E2> transformList(List<E1> list, Function<E1, E2> transformer) {
+    List<E2> transformedList = new ArrayList<>();
+    list.forEach(x -> transformedList.add(transformer.apply(x)));
+
+    if (transformedList.isEmpty()) {
+      return List.of();
+    }
+
+    if (transformedList.size() == 1) {
+      return List.of(transformedList.iterator().next());
+    }
+
+    return transformedList;
+  }
+
   public static <K1, K2> Map<K2, ValuationSet> transformMap(Map<K1, ValuationSet> map,
     Function<K1, K2> transformer) {
     return transformMap(map, transformer, ValuationSet::union);
@@ -351,7 +384,7 @@ public final class Collections3 {
     }
   }
 
-  public static <E extends Object & Comparable<? super E>> int compare(
+  public static <E extends Comparable<? super E>> int compare(
     Set<? extends E> s1, Set<? extends E> s2) {
     var a1 = s1.toArray(Comparable[]::new);
     var a2 = s2.toArray(Comparable[]::new);

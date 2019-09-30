@@ -19,12 +19,30 @@
 
 package owl.ltl;
 
+import com.google.common.collect.Comparators;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import owl.collections.Collections3;
 
 public final class Formulas {
   private Formulas() {}
+
+  public static int compare(List<Formula> list1, List<Formula> list2) {
+    int lengthComparison = Integer.compare(list1.size(), list2.size());
+
+    if (lengthComparison != 0) {
+      return lengthComparison;
+    }
+
+    int heightComparison = Integer.compare(height(list1), height(list2));
+
+    if (heightComparison != 0) {
+      return heightComparison;
+    }
+
+    return Comparators.lexicographical(Formula::compareTo).compare(list1, list2);
+  }
 
   public static int compare(Set<? extends Formula> set1, Set<? extends Formula> set2) {
     int lengthComparison = Integer.compare(set1.size(), set2.size());

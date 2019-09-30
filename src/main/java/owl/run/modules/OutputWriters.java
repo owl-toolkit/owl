@@ -69,9 +69,8 @@ public final class OutputWriters {
         "Output an automaton with state-acceptance instead of transition acceptance.");
       return new Options().addOption(option);
     },
-    (commandLine, environment) -> {
-      return new ToHoa(environment.annotations(), commandLine.hasOption("state-acceptance"));
-    });
+    (commandLine, environment) ->
+      new ToHoa(environment.annotations(), commandLine.hasOption("state-acceptance")));
 
   public static final OwlModule<OwlModule.OutputWriter> NULL_MODULE = OwlModule.of(
     "null",

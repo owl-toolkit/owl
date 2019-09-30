@@ -1523,6 +1523,9 @@
     "formula": "F((a | !b) \u0026 (Ga | Gb | Gc))"
   },
   {
+    "formula": "F(Fa \u0026 (Fb | Gb))"
+  },
+  {
     "formula": "F(((a) U (b)) \u0026 (Fc | Ga))"
   },
   {
@@ -1670,6 +1673,9 @@
   },
   {
     "formula": "G((a \u0026 b) | (Fa \u0026 F!b \u0026 Fc))"
+  },
+  {
+    "formula": "G(Ga | (Fb \u0026 Gb))"
   },
   {
     "formula": "G(((a) R (b)) | (Fa \u0026 Gc))"

@@ -26,7 +26,6 @@ import owl.run.Environment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 class LTL2DPAFunctionTest {
-
   @Test
   void testComplete() {
     var environment = Environment.standard();

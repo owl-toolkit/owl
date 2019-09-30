@@ -7,10 +7,10 @@ Modules:
 
 * De-duplicate fixed-point guesses in the "symmetric" constructions.
 
-  Fixed-point guesses are removed from the candidate list when they contain two
-  fixed points where one "shadows" the other, i.e. replacing one by (tt) or
-  (ff) makes the other one unreachable in the syntax tree.
-
+  Use extensions of the FG- and GF-advice functions (LICS'18) that use both 
+  guesses X and Y to rewrite the formula. Further, guesses are skipped that 
+  contain unused fixpoints.
+  
 * Removed unmaintained `fgx2dpa` translation. `ltl2dpa` produces almost always
   (on the test sets) smaller automata compared to `fgx2dpa`.
 

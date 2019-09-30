@@ -162,10 +162,11 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       for (Fixpoints fixpoints : knownFixpoints) {
         if (fixpoints.allFixpointsPresent(allModalOperators)) {
-          var evaluatedFixpoints = evaluationMap.get(fixpoints.simplified());
+          var simplifiedFixpoints = fixpoints.simplified();
+          var evaluatedFixpoints = evaluationMap.get(simplifiedFixpoints);
 
           var remainder = x.unfold()
-            .substitute(new Rewriter.ToCoSafety(fixpoints.simplified()));
+            .substitute(new Rewriter.ToCoSafety(simplifiedFixpoints.greatestFixpoints()));
 
           if (remainder.isFalse()) {
             continue;

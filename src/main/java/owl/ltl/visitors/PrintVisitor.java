@@ -19,8 +19,8 @@
 
 package owl.ltl.visitors;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.ltl.Biconditional;
@@ -78,16 +78,16 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Conjunction conjunction) {
+    assert conjunction.children.spliterator().hasCharacteristics(Spliterator.SORTED);
     return '(' + conjunction.children.stream()
-      .sorted(Comparator.naturalOrder())
       .map(this::visitParenthesized)
       .collect(Collectors.joining(" & ")) + ')';
   }
 
   @Override
   public String visit(Disjunction disjunction) {
+    assert disjunction.children.spliterator().hasCharacteristics(Spliterator.SORTED);
     return '(' + disjunction.children.stream()
-      .sorted(Comparator.naturalOrder())
       .map(this::visitParenthesized)
       .collect(Collectors.joining(" | ")) + ')';
   }
