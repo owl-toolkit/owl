@@ -110,13 +110,13 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
       trackingAutomaton = new NonDeterministicConstructions.Tracking(factories, formula.formula());
       this.factories = factories;
       var knownFixpoints = new HashSet<Fixpoints>();
+      int acceptanceSets = 1;
 
       for (Formula initialFormula : trackingAutomaton.initialStates()) {
         knownFixpoints.addAll(Selector.selectSymmetric(initialFormula, false));
       }
 
       this.knownFixpoints = Set.copyOf(knownFixpoints);
-      int acceptanceSets = 1;
 
       for (Fixpoints fixpoints : this.knownFixpoints) {
         var simplified = fixpoints.simplified();
@@ -125,7 +125,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
           continue;
         }
 
-        var evaluatedSet = build(simplified, factories);
+        var evaluatedSet = build(formula.formula(), simplified, factories);
         evaluationMap.put(simplified, evaluatedSet);
 
         for (var evaluated : evaluatedSet) {

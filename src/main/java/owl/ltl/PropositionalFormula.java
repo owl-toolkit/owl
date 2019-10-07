@@ -19,18 +19,42 @@
 
 package owl.ltl;
 
+import static java.util.Spliterator.DISTINCT;
+import static java.util.Spliterator.IMMUTABLE;
+import static java.util.Spliterator.NONNULL;
+import static java.util.Spliterator.ORDERED;
+import static java.util.Spliterator.SIZED;
+import static java.util.Spliterator.SORTED;
+
+import com.google.common.collect.Comparators;
+import java.util.AbstractSet;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import owl.collections.Collections3;
 
 public abstract class PropositionalFormula extends Formula.LogicalOperator {
-  public final Set<Formula> children;
+
+  public final SortedSet<Formula> children;
+  private final List<Formula> childrenDistinctSortedList;
 
   PropositionalFormula(Class<? extends PropositionalFormula> clazz, Set<Formula> children) {
     super(Objects.hash(clazz, children));
-    this.children = Set.copyOf(children);
+    var sortedList = new ArrayList<>(children);
+    sortedList.sort(Formula::compareTo);
+    this.childrenDistinctSortedList = List.copyOf(sortedList);
+    this.children = new DistinctListAsSortedSet(childrenDistinctSortedList);
   }
 
   public static Formula shortCircuit(Formula formula) {
@@ -54,7 +78,7 @@ public abstract class PropositionalFormula extends Formula.LogicalOperator {
   }
 
   @Override
-  public Set<Formula> children() {
+  public SortedSet<Formula> children() {
     return children;
   }
 
@@ -83,15 +107,101 @@ public abstract class PropositionalFormula extends Formula.LogicalOperator {
   protected final int compareToImpl(Formula o) {
     assert this.getClass().equals(o.getClass());
     PropositionalFormula that = (PropositionalFormula) o;
-    return Formulas.compare(this.children, that.children);
+    return Formulas.compare(this.childrenDistinctSortedList, that.childrenDistinctSortedList);
   }
 
   @Override
   protected final boolean equalsImpl(Formula o) {
     assert this.getClass().equals(o.getClass());
     PropositionalFormula that = (PropositionalFormula) o;
-    return children.equals(that.children);
+    return childrenDistinctSortedList.equals(that.childrenDistinctSortedList);
   }
 
   protected abstract String operatorSymbol();
+
+  private static class DistinctListAsSortedSet
+    extends AbstractSet<Formula> implements SortedSet<Formula> {
+    private final List<Formula> distinctList;
+
+    private DistinctListAsSortedSet(List<Formula> distinctList) {
+      this.distinctList = List.copyOf(distinctList);
+      assert Collections3.isDistinct(this.distinctList);
+      assert Comparators.isInStrictOrder(this.distinctList, Comparator.naturalOrder());
+    }
+
+    @Override
+    public Comparator<? super Formula> comparator() {
+      return Formula::compareTo;
+    }
+
+    @Override
+    public boolean contains(Object element) {
+      if (element instanceof Formula) {
+        int index = index((Formula) element);
+        return 0 <= index && index < size();
+      }
+
+      return false;
+    }
+
+    @Override
+    public Object[] toArray() {
+      return distinctList.toArray();
+    }
+
+    @Override
+    public <T> T[] toArray(T[] array) {
+      return distinctList.toArray(array);
+    }
+
+    @Override
+    public void forEach(Consumer<? super Formula> action) {
+      distinctList.forEach(action);
+    }
+
+    @Override
+    public SortedSet<Formula> subSet(Formula fromElement, Formula toElement) {
+      throw new UnsupportedOperationException("Not yet implemented.");
+    }
+
+    @Override
+    public SortedSet<Formula> headSet(Formula toElement) {
+      throw new UnsupportedOperationException("Not yet implemented.");
+    }
+
+    @Override
+    public SortedSet<Formula> tailSet(Formula fromElement) {
+      throw new UnsupportedOperationException("Not yet implemented.");
+    }
+
+    @Override
+    public Formula first() {
+      return distinctList.get(0);
+    }
+
+    @Override
+    public Formula last() {
+      return distinctList.get(size() - 1);
+    }
+
+    @Override
+    public Spliterator<Formula> spliterator() {
+      return Spliterators.spliterator(distinctList.iterator(), size(),
+        SIZED | DISTINCT | SORTED | ORDERED | NONNULL | IMMUTABLE);
+    }
+
+    @Override
+    public Iterator<Formula> iterator() {
+      return distinctList.iterator();
+    }
+
+    @Override
+    public int size() {
+      return distinctList.size();
+    }
+
+    private int index(Formula formula) {
+      return Collections.binarySearch(distinctList, formula);
+    }
+  }
 }

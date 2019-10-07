@@ -127,11 +127,10 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       initialFormulas.sort(Formula::compareTo);
 
       for (Formula initialFormula : initialFormulas) {
-        knownFixpoints.add(Selector.selectSymmetric(initialFormula, false));
+        var sets = Selector.selectSymmetric(initialFormula, false);
+        knownFixpoints.add(sets);
         blockingElements.add(new BlockingElements(initialFormula));
-      }
 
-      for (Set<Fixpoints> sets : knownFixpoints) {
         for (Fixpoints fixpoints : sets) {
           var simplified = fixpoints.simplified();
 
@@ -139,7 +138,8 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
             continue;
           }
 
-          var evaluatedSet = SymmetricEvaluatedFixpoints.build(simplified, factories);
+          var evaluatedSet = SymmetricEvaluatedFixpoints
+            .build(initialFormula, simplified, factories);
           evaluationMap.put(simplified, evaluatedSet);
 
           for (var evaluated : evaluatedSet) {

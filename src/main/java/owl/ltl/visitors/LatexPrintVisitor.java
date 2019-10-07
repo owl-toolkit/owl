@@ -19,8 +19,8 @@
 
 package owl.ltl.visitors;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import owl.ltl.BinaryModalOperator;
@@ -124,8 +124,8 @@ public class LatexPrintVisitor implements Visitor<String> {
   }
 
   private String visit(PropositionalFormula propositionalFormula, String latexString) { // NOPMD
+    assert propositionalFormula.children.spliterator().hasCharacteristics(Spliterator.SORTED);
     return propositionalFormula.children.stream()
-      .sorted(Comparator.naturalOrder())
       .map(x -> {
         if (x instanceof Formula.LogicalOperator && !(x instanceof BooleanConstant)) {
           return '(' + x.accept(this) + ')';

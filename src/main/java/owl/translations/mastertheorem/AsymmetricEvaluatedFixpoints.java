@@ -77,7 +77,7 @@ public final class AsymmetricEvaluatedFixpoints
   @Nullable
   public static AsymmetricEvaluatedFixpoints build(Fixpoints fixpoints, Factories factories) {
     Preconditions.checkArgument(fixpoints.leastFixpoints().isEmpty());
-    Rewriter.ToCoSafety toCoSafety = new Rewriter.ToCoSafety(fixpoints);
+    Rewriter.ToCoSafety toCoSafety = new Rewriter.ToCoSafety(fixpoints.greatestFixpoints());
     Set<GOperator> gOperatorsRewritten = new HashSet<>();
 
     for (Formula.ModalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {

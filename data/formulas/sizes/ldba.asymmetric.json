@@ -3619,6 +3619,17 @@
     }
   },
   {
+    "formula": "F(Fa \u0026 (Fb | Gb))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "F(((a) U (b)) \u0026 (Fc | Ga))",
     "properties": {
       "size": 8,
@@ -3956,6 +3967,17 @@
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "G(Ga | (Fb \u0026 Gb))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
       "deterministic": false
     }
   },
