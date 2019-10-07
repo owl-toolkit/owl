@@ -22,6 +22,7 @@ package owl.game.output;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 class AigPrintableTest {
@@ -70,7 +71,7 @@ class AigPrintableTest {
     sample.feedTo(consumer);
     ByteArrayOutputStream baos = new ByteArrayOutputStream();
     consumer.print(baos);
-    assertEquals(baos.toString(), sampleAigerOutput);
+    assertEquals(sampleAigerOutput, baos.toString(StandardCharsets.UTF_8));
   }
 
   @Test

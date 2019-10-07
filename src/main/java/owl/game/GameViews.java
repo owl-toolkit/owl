@@ -24,24 +24,22 @@ import static com.google.common.base.Preconditions.checkNotNull;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
-import com.google.common.collect.Collections2;
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
@@ -62,8 +60,6 @@ import owl.factories.ValuationSetFactory;
 import owl.run.modules.OwlModule;
 
 public final class GameViews {
-  private static final Logger logger = Logger.getLogger(GameViews.class.getName());
-
   @SuppressWarnings("SpellCheckingInspection")
   public static final OwlModule<OwlModule.Transformer> AUTOMATON_TO_GAME_MODULE =
     OwlModule.<OwlModule.Transformer>of(
@@ -120,11 +116,6 @@ public final class GameViews {
         return (Object input) -> {
           checkArgument(input instanceof Automaton);
           Automaton<?, ?> automaton = (Automaton<?, ?>) input;
-          List<String> environmentAp = automaton.factory().alphabet().stream()
-            .filter(isEnvironmentAp).collect(Collectors.toUnmodifiableList());
-          logger.log(Level.FINER, "Splitting automaton into game with APs {0}/{1}",
-            new Object[] {environmentAp,
-              Collections2.filter(automaton.factory().alphabet(), x -> !isEnvironmentAp.test(x))});
 
           var parityAutomaton = AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class);
           if (wrapComplete) {
@@ -132,7 +123,7 @@ public final class GameViews {
               Views.complete(parityAutomaton, new Object()), ParityAcceptance.class);
           }
 
-          return GameViews.split(parityAutomaton, environmentAp);
+          return GameViews.split(parityAutomaton, isEnvironmentAp);
         };
       });
 
@@ -140,17 +131,22 @@ public final class GameViews {
   private GameViews() {}
 
   public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
-    Set<S> states) {
+    Predicate<S> states) {
     return new FilteredGame<>(game, states, x -> true);
   }
 
   public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
-    Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
     return new FilteredGame<>(game, states, edgeFilter);
   }
 
   public static <S, A extends OmegaAcceptance> Game<Node<S>, A>
-  split(Automaton<S, A> automaton, List<String> firstPropositions) {
+  split(Automaton<S, A> automaton, Collection<String> firstPropositions) {
+    return new ForwardingGame<>(automaton, firstPropositions::contains);
+  }
+
+  public static <S, A extends OmegaAcceptance> Game<Node<S>, A>
+  split(Automaton<S, A> automaton, Predicate<String> firstPropositions) {
     assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
     return new ForwardingGame<>(automaton, firstPropositions);
   }
@@ -162,15 +158,15 @@ public final class GameViews {
     private final Function<Owner, List<String>> variableOwnership;
     private final BiFunction<S, Owner, BitSet> choice;
 
-    FilteredGame(Game<S, A> game, Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    FilteredGame(Game<S, A> game, Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
       this.filteredAutomaton = Views.filter(game, states, edgeFilter);
-      this.ownership = game::getOwner;
-      this.variableOwnership = game::getVariables;
-      this.choice = game::getChoice;
+      this.ownership = game::owner;
+      this.variableOwnership = game::variables;
+      this.choice = game::choice;
     }
 
     @Override
-    public BitSet getChoice(S state, Owner owner) {
+    public BitSet choice(S state, Owner owner) {
       return choice.apply(state, owner);
     }
 
@@ -190,12 +186,12 @@ public final class GameViews {
     }
 
     @Override
-    public Owner getOwner(S state) {
+    public Owner owner(S state) {
       return ownership.apply(state);
     }
 
     @Override
-    public List<String> getVariables(Owner owner) {
+    public List<String> variables(Owner owner) {
       return variableOwnership.apply(owner);
     }
 
@@ -271,18 +267,18 @@ public final class GameViews {
       }
 
       @Override
-      public Owner getOwner(S state) {
-        return game.getOwner(state);
+      public Owner owner(S state) {
+        return game.owner(state);
       }
 
       @Override
-      public BitSet getChoice(S state, Owner owner) {
-        return game.getChoice(state, owner);
+      public BitSet choice(S state, Owner owner) {
+        return game.choice(state, owner);
       }
 
       @Override
-      public List<String> getVariables(Owner owner) {
-        return game.getVariables(owner);
+      public List<String> variables(Owner owner) {
+        return game.variables(owner);
       }
     };
   }
@@ -300,10 +296,17 @@ public final class GameViews {
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
 
-    ForwardingGame(Automaton<S, A> automaton, List<String> firstPlayer) {
+    ForwardingGame(Automaton<S, A> automaton, Predicate<String> firstPlayer) {
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
-      firstPlayer.forEach(x -> this.firstPlayer.set(automaton.factory().alphabet().indexOf(x)));
+      ListIterator<String> iterator = automaton.factory().alphabet().listIterator();
+      while (iterator.hasNext()) {
+        int index = iterator.nextIndex();
+        String next = iterator.next();
+        if (firstPlayer.test(next)) {
+          this.firstPlayer.set(index);
+        }
+      }
       secondPlayer = BitSets.copyOf(this.firstPlayer);
       secondPlayer.flip(0, automaton.factory().alphabetSize());
     }
@@ -362,7 +365,7 @@ public final class GameViews {
     }
 
     @Override
-    public Owner getOwner(Node<S> state) {
+    public Owner owner(Node<S> state) {
       return state.isFirstPlayersTurn() ? Owner.PLAYER_1 : Owner.PLAYER_2;
     }
 
@@ -390,9 +393,9 @@ public final class GameViews {
     }
 
     @Override
-    public Set<Node<S>> getPredecessors(Node<S> state, Owner owner) {
+    public Set<Node<S>> predecessors(Node<S> state, Owner owner) {
       // Alternation
-      return owner == getOwner(state) ? Set.of() : predecessors(state);
+      return owner == owner(state) ? Set.of() : predecessors(state);
     }
 
     @Override
@@ -412,7 +415,7 @@ public final class GameViews {
     }
 
     @Override
-    public List<String> getVariables(Owner owner) {
+    public List<String> variables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
       Indices.forEachIndexed(factory().alphabet(), (i, s) -> {
@@ -430,7 +433,7 @@ public final class GameViews {
     }
 
     @Override
-    public BitSet getChoice(Node<S> state, Owner owner) {
+    public BitSet choice(Node<S> state, Owner owner) {
       checkArgument(state.firstPlayerChoice() != null, "The state has no encoded choice.");
 
       if (owner == Owner.PLAYER_1) {

@@ -133,7 +133,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   public boolean isAccepting(int priority) {
-    return priority % 2 == 0 ^ !parity.even();
+    return parity.isAccepting(priority);
   }
 
   @Override
@@ -244,6 +244,10 @@ public final class ParityAcceptance extends OmegaAcceptance {
     @Override
     public String toString() {
       return maxString() + ' ' + evenString();
+    }
+
+    public boolean isAccepting(int priority) {
+      return priority % 2 == 0 ^ !even();
     }
   }
 }

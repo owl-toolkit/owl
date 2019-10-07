@@ -98,6 +98,7 @@ public final class ParityUtil {
 
   public static <S> MutableAutomaton<S, ParityAcceptance> complement(
     MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
+    // TODO Similarly exists in Views
     assert automaton.is(Automaton.Property.DETERMINISTIC);
     ParityAcceptance acceptance = automaton.acceptance();
 

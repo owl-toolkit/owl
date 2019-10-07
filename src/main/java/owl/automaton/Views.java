@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
@@ -55,6 +56,7 @@ import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.OwlModule;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class Views {
   public static final OwlModule<OwlModule.Transformer> COMPLETE_MODULE = OwlModule.of(
     "complete",
@@ -121,13 +123,6 @@ public final class Views {
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
-    Set<S> states) {
-    return createView(automaton, ViewSettings.<S, A>builder()
-      .stateFilter(states::contains)
-      .build());
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
     Predicate<S> statePredicate) {
     return createView(automaton, ViewSettings.<S, A>builder()
       .stateFilter(statePredicate)
@@ -135,10 +130,18 @@ public final class Views {
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
-    Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    @Nullable Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
+    return createView(automaton, ViewSettings.<S, A>builder()
+      .edgeFilter((s, e) -> edgeFilter.test(e))
+      .stateFilter(states)
+      .build());
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
+    @Nullable Predicate<S> states, BiPredicate<S, Edge<S>> edgeFilter) {
     return createView(automaton, ViewSettings.<S, A>builder()
       .edgeFilter(edgeFilter)
-      .stateFilter(states::contains)
+      .stateFilter(states)
       .build());
   }
 
@@ -155,6 +158,7 @@ public final class Views {
       .initialStates(Set.copyOf(initialStates))
       .build());
   }
+
 
   static <S, A extends OmegaAcceptance> Automaton<S, A> createView(
     Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
@@ -369,7 +373,7 @@ public final class Views {
 
     @Override
     public boolean is(Property property) {
-      return property == Automaton.Property.COMPLETE || automaton.is(property);
+      return property == Property.COMPLETE || automaton.is(property);
     }
   }
 
@@ -385,7 +389,7 @@ public final class Views {
     abstract Predicate<S> stateFilter();
 
     @Nullable
-    abstract Predicate<Edge<S>> edgeFilter();
+    abstract BiPredicate<S, Edge<S>> edgeFilter();
 
     @Nullable
     abstract Function<Edge<S>, Edge<S>> edgeRewriter();
@@ -404,7 +408,7 @@ public final class Views {
 
       abstract Builder<S, A> stateFilter(Predicate<S> filter);
 
-      abstract Builder<S, A> edgeFilter(Predicate<Edge<S>> filter);
+      abstract Builder<S, A> edgeFilter(BiPredicate<S, Edge<S>> filter);
 
       abstract Builder<S, A> edgeRewriter(Function<Edge<S>, Edge<S>> rewriter);
 
@@ -414,7 +418,7 @@ public final class Views {
     }
   }
 
-  public static class AutomatonView<S, A extends OmegaAcceptance>
+  public static final class AutomatonView<S, A extends OmegaAcceptance>
     extends AbstractImplicitAutomaton<S, A> {
 
     private final Automaton<S, ?> backingAutomaton;
@@ -428,6 +432,7 @@ public final class Views {
       this.settings = settings;
     }
 
+    @SuppressWarnings("unchecked")
     private static <S, A extends OmegaAcceptance> A acceptance(
       Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
       A acceptance = settings.acceptance();
@@ -456,9 +461,10 @@ public final class Views {
       return filter == null || filter.test(state);
     }
 
-    private boolean edgeFilter(Edge<S> edge) {
+    @SuppressWarnings("Guava")
+    private com.google.common.base.Predicate<Edge<S>> edgeFilter(S state) {
       var filter = settings.edgeFilter();
-      return (filter == null || filter.test(edge)) && stateFilter(edge.successor());
+      return edge -> (filter == null || filter.test(state, edge)) && stateFilter(edge.successor());
     }
 
     private boolean filterRequired() {
@@ -474,7 +480,7 @@ public final class Views {
     public Set<Edge<S>> edges(S state, BitSet valuation) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Sets.filter(backingAutomaton.edges(state, valuation), this::edgeFilter)
+        ? Sets.filter(backingAutomaton.edges(state, valuation), edgeFilter(state))
         : backingAutomaton.edges(state, valuation);
 
       var edgeRewriter = settings.edgeRewriter();
@@ -487,7 +493,7 @@ public final class Views {
     public Set<Edge<S>> edges(S state) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Sets.filter(backingAutomaton.edges(state), this::edgeFilter)
+        ? Sets.filter(backingAutomaton.edges(state), edgeFilter(state))
         : backingAutomaton.edges(state);
 
       var edgeRewriter = settings.edgeRewriter();
@@ -500,7 +506,7 @@ public final class Views {
     public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Maps.filterKeys(backingAutomaton.edgeMap(state), this::edgeFilter)
+        ? Maps.filterKeys(backingAutomaton.edgeMap(state), edgeFilter(state))
         : backingAutomaton.edgeMap(state);
 
       var edgeRewriter = settings.edgeRewriter();
@@ -521,9 +527,9 @@ public final class Views {
 
       if (filterRequired()) {
         if (edgeRewriter == null) {
-          mapper = x -> Sets.filter(x, this::edgeFilter);
+          mapper = x -> Sets.filter(x, edgeFilter(state));
         } else {
-          mapper = x -> Collections3.transformSet(Sets.filter(x, this::edgeFilter), edgeRewriter);
+          mapper = x -> Collections3.transformSet(Sets.filter(x, edgeFilter(state)), edgeRewriter);
         }
       } else {
         if (edgeRewriter == null) {

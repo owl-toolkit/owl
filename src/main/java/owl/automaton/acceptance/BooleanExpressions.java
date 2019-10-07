@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
 import jhoafparser.ast.AtomAcceptance;
@@ -30,6 +31,31 @@ import jhoafparser.ast.BooleanExpression;
 
 public final class BooleanExpressions {
   private BooleanExpressions() {
+  }
+
+  public static <T extends Atom> boolean evaluate(BooleanExpression<T> expression,
+    Predicate<T> valuation) {
+    if (expression.isTRUE()) {
+      return true;
+    }
+    if (expression.isFALSE()) {
+      return true;
+    }
+    if (expression.isAtom()) {
+      return valuation.test(expression.getAtom());
+    }
+    if (expression.isNOT()) {
+      return !evaluate(expression.getLeft(), valuation);
+    }
+    if (expression.isAND()) {
+      return evaluate(expression.getLeft(), valuation)
+        && evaluate(expression.getRight(), valuation);
+    }
+    if (expression.isOR()) {
+      return evaluate(expression.getLeft(), valuation)
+        || evaluate(expression.getRight(), valuation);
+    }
+    throw new AssertionError("Encountered unknown expression " + expression);
   }
 
   public static <T extends Atom> BooleanExpression<T> createConjunction(

@@ -29,7 +29,6 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executors;
@@ -52,10 +51,10 @@ import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
 
-  public static final Set<LTL2DPAFunction.Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = Set.of(
+  public static final EnumSet<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = EnumSet.of(
     OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
-  public static final Set<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = Set.of(SYMMETRIC,
+  public static final EnumSet<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = EnumSet.of(SYMMETRIC,
     OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
   private final EnumSet<Configuration> configuration;
@@ -64,7 +63,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   private final AsymmetricDPAConstruction asymmetricDPAConstruction;
   private final SymmetricDPAConstruction symmetricDPAConstruction;
 
-  public LTL2DPAFunction(Environment environment, Set<Configuration> configuration) {
+  public LTL2DPAFunction(Environment environment, EnumSet<Configuration> configuration) {
     checkArgument(!configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
       || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
       "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");

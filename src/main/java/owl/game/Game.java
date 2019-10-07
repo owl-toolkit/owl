@@ -46,8 +46,8 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
     Set<S> attractor = new HashSet<>();
 
     // Add states that owner controls;
-    for (S predecessor : getPredecessors(states)) {
-      if (owner == getOwner(predecessor) || states.containsAll(successors(predecessor))) {
+    for (S predecessor : predecessors(states)) {
+      if (owner == owner(predecessor) || states.containsAll(successors(predecessor))) {
         attractor.add(predecessor);
       }
     }
@@ -66,24 +66,24 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
     return attractor;
   }
 
-  Owner getOwner(S state);
+  Owner owner(S state);
 
-  default Set<S> getStates(Owner owner) {
-    return Sets.filter(states(), x -> getOwner(x) == owner);
+  default Set<S> states(Owner owner) {
+    return Sets.filter(states(), x -> owner(x) == owner);
   }
 
-  BitSet getChoice(S state, Owner owner);
+  BitSet choice(S state, Owner owner);
 
   @Override
   default void feedTo(AigConsumer consumer) {
-    List<String> inputNames = getVariables(Owner.PLAYER_1);
-    List<String> outputNames = getVariables(Owner.PLAYER_2);
+    List<String> inputNames = variables(Owner.PLAYER_1);
+    List<String> outputNames = variables(Owner.PLAYER_2);
 
     AigFactory factory = new AigFactory();
     inputNames.forEach(consumer::addInput);
 
     // how many latches will we need?
-    int nStates = getStates(Owner.PLAYER_2).size();
+    int nStates = states(Owner.PLAYER_2).size();
     int nLatches = (int) Math.ceil(Math.log(nStates) / Math.log(2));
 
     // create mapping from states to bitsets of latches + inputs
@@ -91,7 +91,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
     Map<S, BitSet> encoding = new HashMap<>();
     int iState = inputNames.size() + 1;
 
-    for (S state : getStates(Owner.PLAYER_2)) {
+    for (S state : states(Owner.PLAYER_2)) {
       int value = iState;
       int index = inputNames.size();
       BitSet b = new BitSet(inputNames.size() + nLatches);
@@ -113,14 +113,14 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
       Collections.nCopies(outputNames.size(), factory.getFalse()));
 
     // iterate through labelled edges to create latch and output formulas
-    for (S player2State : getStates(Owner.PLAYER_2)) {
+    for (S player2State : states(Owner.PLAYER_2)) {
       BitSet stateAndInput = BitSets.copyOf(encoding.get(player2State));
-      stateAndInput.or(getChoice(player2State, Owner.PLAYER_1));
+      stateAndInput.or(choice(player2State, Owner.PLAYER_1));
       LabelledAig stateAndInputAig = factory.cube(stateAndInput);
 
       // for all set indices in the output valuation
       // we update their transition function
-      getChoice(player2State, Owner.PLAYER_2).stream().forEach(
+      choice(player2State, Owner.PLAYER_2).stream().forEach(
         i -> outputs.set(i, factory.disjunction(outputs.get(i), stateAndInputAig)));
 
       // we do the same for all set indices in the representation
@@ -137,35 +137,35 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
     Collections3.forEachPair(outputNames, outputs, consumer::addOutput);
   }
 
-  default Set<S> getPredecessors(S state, Owner owner) {
-    return getPredecessors(Set.of(state), owner);
+  default Set<S> predecessors(S state, Owner owner) {
+    return predecessors(Set.of(state), owner);
   }
 
-  default Set<S> getPredecessors(Iterable<S> states) {
+  default Set<S> predecessors(Iterable<S> states) {
     Set<S> predecessors = new HashSet<>();
     states.forEach(x -> predecessors.addAll(predecessors(x)));
     return predecessors;
   }
 
-  default Set<S> getPredecessors(Iterable<S> state, Owner owner) {
-    return Sets.filter(getPredecessors(state), x -> owner == getOwner(x));
+  default Set<S> predecessors(Iterable<S> state, Owner owner) {
+    return Sets.filter(predecessors(state), x -> owner == owner(x));
   }
 
-  default Set<S> getSuccessors(S state, Owner owner) {
-    return getSuccessors(Set.of(state), owner);
+  default Set<S> successors(S state, Owner owner) {
+    return successors(Set.of(state), owner);
   }
 
-  default Set<S> getSuccessors(Iterable<S> states) {
+  default Set<S> successors(Iterable<S> states) {
     Set<S> successors = new HashSet<>();
     states.forEach(x -> successors.addAll(successors(x)));
     return successors;
   }
 
-  default Set<S> getSuccessors(Iterable<S> states, Owner owner) {
-    return Sets.filter(getSuccessors(states), x -> owner == getOwner(x));
+  default Set<S> successors(Iterable<S> states, Owner owner) {
+    return Sets.filter(successors(states), x -> owner == owner(x));
   }
 
-  List<String> getVariables(Owner owner);
+  List<String> variables(Owner owner);
 
   enum Owner {
     /**

@@ -38,7 +38,7 @@ public final class ParityGameSolver {
   // TODO: should be returning a winning region or strategy
   public static final OwlModule<OwlModule.Transformer> ZIELONKA_SOLVER = OwlModule.of(
     "zielonka",
-    "???",
+    "Solves a game using Zielonka's algorithm",
     (commandLine, environment) -> Transformers.fromFunction(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
       return winning.player2.contains(x.onlyInitialState())
@@ -79,7 +79,7 @@ public final class ParityGameSolver {
     Predicate<Edge<S>> hasMinCol = y -> y.smallestAcceptanceSet() == theMinimalColour;
 
     Set<S> winningStates = Sets.filter(states, x -> {
-      if (game.getOwner(x) != PLAYER_2) {
+      if (game.owner(x) != PLAYER_2) {
         return false;
       }
 
@@ -92,14 +92,14 @@ public final class ParityGameSolver {
     // NOTE: winningStates may be empty! this is because it is actually
     // the second layer of the attractor fixpoint, with the coloured edges
     // being the first layer
-    assert winningStates.stream().allMatch(x -> game.getOwner(x) == PLAYER_2);
+    assert winningStates.stream().allMatch(x -> game.owner(x) == PLAYER_2);
 
     // we now compute the attractor of the winning states and get a filtered
     // game without the attractor states
     Set<S> losingSet = Sets.difference(states,
       game.getAttractorFixpoint(winningStates, ourHorse));
 
-    Game<S, ParityAcceptance> subGame = GameViews.filter(game, losingSet, hasMinCol.negate());
+    var subGame = GameViews.filter(game, losingSet::contains, hasMinCol.negate());
     WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
     // if in the sub-game our horse wins everywhere, then he's the winner
@@ -112,7 +112,8 @@ public final class ParityGameSolver {
       game.getAttractorFixpoint(subWinning.winningRegion(ourHorse.opponent()), ourHorse.opponent());
 
     Set<S> difference = Sets.difference(states, opponentAttractor);
-    WinningRegions<S> newSubWinning = recursiveZielonka(GameViews.filter(game, difference));
+    WinningRegions<S> newSubWinning =
+      recursiveZielonka(GameViews.filter(game, difference::contains));
     newSubWinning.addAll(opponentAttractor, ourHorse.opponent());
 
     return newSubWinning;

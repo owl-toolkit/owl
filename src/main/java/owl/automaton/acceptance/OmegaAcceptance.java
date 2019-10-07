@@ -58,6 +58,11 @@ public abstract class OmegaAcceptance {
    */
   public abstract boolean isWellFormedEdge(Edge<?> edge);
 
+  public boolean isAcceptingEdge(Edge<?> edge) {
+    return BooleanExpressions.evaluate(booleanExpression(),
+      atom -> edge.inSet(atom.getAcceptanceSet()));
+  }
+
   public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
     return automaton.states().stream().allMatch(
       x -> automaton.edges(x).stream().allMatch(this::isWellFormedEdge));
