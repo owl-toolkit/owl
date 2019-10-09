@@ -20,6 +20,7 @@
 package owl.ltl.visitors;
 
 import java.util.Set;
+
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;

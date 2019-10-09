@@ -23,6 +23,7 @@ import static java.util.Objects.checkIndex;
 
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
@@ -40,21 +41,21 @@ public final class Literal extends Formula.TemporalOperator {
   }
 
   private Literal(Literal other) {
-    super(Integer.hashCode(-other.index));
+    super(Objects.hash(Literal.class, Integer.hashCode(-other.index)));
     this.index = -other.index;
     this.negation = other;
     assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
   }
 
   private Literal(@Nonnegative int index) {
-    super(Integer.hashCode(index + 1));
+    super(Objects.hash(Literal.class, Integer.hashCode(index + 1)));
     checkIndex(index, Integer.MAX_VALUE);
     this.index = index + 1;
     this.negation = new Literal(this);
     assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
   }
 
-
+  
   public static Literal of(@Nonnegative int index) {
     return of(index, false);
   }

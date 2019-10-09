@@ -47,6 +47,8 @@ namespace owl {
         jmethodID methodIDs[MOperator + 1];
         jclass ltlParser;
         jmethodID ltlParseID;
+        jclass ltlfParser;
+        jmethodID ltlfParseID;
 
         void bind_static(int index, const char *className, const char *methodName, const char *signature);
 
@@ -75,6 +77,7 @@ namespace owl {
         Formula createNegation(const Formula& formula);
         Formula createBiimplication(const Formula &left, const Formula &right);
         Formula parse(const std::string& formula, const std::vector<std::string>& apMapping);
+        Formula parseFinite(const std::string& formula_string, const std::vector<std::string>& apMapping);
 
         template<typename... Args>
         Formula createConjunction(const Formula& left, const Formula& right, Args... args) {

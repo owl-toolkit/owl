@@ -29,6 +29,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
@@ -45,9 +46,11 @@ public interface IntVisitor extends ToIntFunction<Formula> {
   default int visit(BooleanConstant booleanConstant) { throw uoe(booleanConstant); }
   default int visit(Conjunction conjunction)         { throw uoe(conjunction);     }
   default int visit(Disjunction disjunction)         { throw uoe(disjunction);     }
+  default int visit(Literal literal)                 { throw uoe(literal);         }
+  default int visit(Negation negation)               { throw uoe(negation);        }
+
   default int visit(FOperator fOperator)             { throw uoe(fOperator);       }
   default int visit(GOperator gOperator)             { throw uoe(gOperator);       }
-  default int visit(Literal literal)                 { throw uoe(literal);         }
   default int visit(MOperator mOperator)             { throw uoe(mOperator);       }
   default int visit(ROperator rOperator)             { throw uoe(rOperator);       }
   default int visit(UOperator uOperator)             { throw uoe(uOperator);       }
