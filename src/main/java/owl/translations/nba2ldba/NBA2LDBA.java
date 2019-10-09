@@ -22,7 +22,6 @@ package owl.translations.nba2ldba;
 import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
-import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
 import de.tum.in.naturals.bitset.BitSets;
 import java.io.IOException;
@@ -35,12 +34,14 @@ import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.TwoPartAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
@@ -55,44 +56,49 @@ import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
-public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, BuchiAcceptance>> {
+public final class NBA2LDBA
+  implements Function<Automaton<?, ?>, Automaton<?, BuchiAcceptance>> {
 
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "nba2ldba",
     "Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
       + "automaton",
-    (commandLine, environment) -> (input) -> new NBA2LDBA().apply(AutomatonUtil.cast(input)));
+    (commandLine, environment) -> (input) -> new NBA2LDBA().apply((Automaton<Object, ?>) input));
 
   @Override
   public Automaton<?, BuchiAcceptance> apply(Automaton<?, ?> automaton) {
     return applyLDBA(automaton).automaton();
   }
 
-  public static LDBA<?> applyLDBA(Automaton<?, ?> automaton) {
-    Automaton<Object, GeneralizedBuchiAcceptance> ngba;
+  public static AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<?, BuchiAcceptance>
+    applyLDBA(Automaton<?, ?> automaton) {
+    Automaton<?, GeneralizedBuchiAcceptance> ngba;
 
     if (automaton.acceptance() instanceof AllAcceptance) {
-      var allAutomaton = Views.createPowerSetAutomaton(automaton, AllAcceptance.INSTANCE, true);
-      var castedAutomaton = AutomatonUtil.cast(allAutomaton, Object.class, AllAcceptance.class);
-      ngba = Views.viewAs(castedAutomaton, GeneralizedBuchiAcceptance.class);
-    } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
-      ngba = AutomatonUtil.cast(automaton, Object.class, GeneralizedBuchiAcceptance.class);
+      // Use subset construction to get a deterministic automaton and use double cast to take the
+      // LDBA-shortcut.
+      ngba = OmegaAcceptanceCast.cast(
+        OmegaAcceptanceCast.cast(
+          Views.createPowerSetAutomaton(automaton, AllAcceptance.INSTANCE, true),
+          BuchiAcceptance.class),
+        GeneralizedBuchiAcceptance.class);
     } else {
-      throw new UnsupportedOperationException(automaton.acceptance() + " is unsupported.");
+      ngba = OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class);
     }
 
     if (automaton.acceptance() instanceof BuchiAcceptance) {
-      var nba = AutomatonUtil.cast(ngba, BuchiAcceptance.class);
-      var initialComponentOptional = AutomatonUtil.ldbaSplit(nba);
+      var ldba = AutomatonUtil.ldbaSplit(OmegaAcceptanceCast.cast(ngba, BuchiAcceptance.class));
 
-      if (initialComponentOptional.isPresent()) {
-        return LDBA.of(nba, initialComponentOptional.orElseThrow());
+      if (ldba.isPresent()) {
+        return ldba.get();
       }
     }
 
-    var ldba = MutableAutomatonUtil.asMutable(new BreakpointAutomaton<>(ngba));
+    MutableAutomaton<Either<?, ?>, BuchiAcceptance> ldba =
+      (MutableAutomaton) MutableAutomatonUtil.asMutable(new BreakpointAutomaton<>(ngba));
     AcceptanceOptimizations.removeDeadStates(ldba);
-    return LDBA.of(ldba, ldba.states().stream().filter(Either::isLeft).collect(toSet()));
+    return AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton.of(ldba,
+      ldba.states().stream().filter(x -> x.type() == Either.Type.LEFT).collect(toSet()));
   }
 
   public static void main(String... args) throws IOException {
@@ -102,17 +108,6 @@ public final class NBA2LDBA implements Function<Automaton<?, ?>, Automaton<?, Bu
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
-  }
-
-  @AutoValue
-  public abstract static class LDBA<S> {
-    public abstract Automaton<S, BuchiAcceptance> automaton();
-
-    public abstract Set<S> initialComponent();
-
-    static <S> LDBA<S> of(Automaton<S, BuchiAcceptance> automaton, Set<S> initialComponent) {
-      return new AutoValue_NBA2LDBA_LDBA<>(automaton, Set.copyOf(initialComponent));
-    }
   }
 
   static final class BreakpointAutomaton<S>

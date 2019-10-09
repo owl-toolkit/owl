@@ -46,10 +46,10 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.util.AnnotatedState;
@@ -115,11 +115,11 @@ public final class GameViews {
 
         return (Object input) -> {
           checkArgument(input instanceof Automaton);
-          Automaton<?, ?> automaton = (Automaton<?, ?>) input;
+          var automaton = (Automaton<Object, ?>) input;
+          var parityAutomaton = OmegaAcceptanceCast.cast(automaton, ParityAcceptance.class);
 
-          var parityAutomaton = AutomatonUtil.cast(automaton, Object.class, ParityAcceptance.class);
           if (wrapComplete) {
-            parityAutomaton = AutomatonUtil.cast(
+            parityAutomaton = OmegaAcceptanceCast.cast(
               Views.complete(parityAutomaton, new Object()), ParityAcceptance.class);
           }
 

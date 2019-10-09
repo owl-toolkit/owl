@@ -21,6 +21,8 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
+import static owl.automaton.acceptance.OmegaAcceptanceCast.cast;
+import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Maps;
@@ -39,15 +41,10 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
-import owl.automaton.acceptance.NoneAcceptance;
+import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.ParityAcceptance.Parity;
-import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
@@ -62,16 +59,14 @@ public final class Views {
     "complete",
     "Make the transition relation of an automaton complete by adding a sink-state.",
     (commandLine, environment) -> (input) -> Views
-      .complete(AutomatonUtil.cast(input), new MutableAutomatonUtil.Sink()));
+      .complete((Automaton<Object, ?>) input, new MutableAutomatonUtil.Sink()));
 
   private Views() {}
 
-  public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton) {
-    return complement(automaton, null);
-  }
-
-  public static <S> Automaton<S, OmegaAcceptance> complement(Automaton<S, ?> automaton,
-    @Nullable S trapState) {
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> complement(
+    Automaton<S, ?> automaton,
+    @Nullable S trapState,
+    Class<A> expectedAcceptance) {
     var completeAutomaton = trapState == null ? automaton : complete(automaton, trapState);
 
     checkArgument(completeAutomaton.is(Automaton.Property.COMPLETE), "Automaton is not complete.");
@@ -82,19 +77,49 @@ public final class Views {
     var acceptance = completeAutomaton.acceptance();
 
     if (acceptance instanceof BuchiAcceptance) {
-      return createView(completeAutomaton, ViewSettings.<S, OmegaAcceptance>builder()
-        .acceptance(CoBuchiAcceptance.INSTANCE).build());
+      checkArgument(isInstanceOf(CoBuchiAcceptance.class, expectedAcceptance));
+
+      var complement = new AutomatonView<>(completeAutomaton,
+        ViewSettings.<S, OmegaAcceptance>builder().acceptance(CoBuchiAcceptance.INSTANCE).build());
+      return cast(complement, expectedAcceptance);
     }
 
     if (acceptance instanceof CoBuchiAcceptance) {
-      return createView(completeAutomaton, ViewSettings.<S, OmegaAcceptance>builder()
-        .acceptance(BuchiAcceptance.INSTANCE).build());
+      checkArgument(isInstanceOf(BuchiAcceptance.class, expectedAcceptance));
+
+      var complement = new AutomatonView<>(completeAutomaton,
+        ViewSettings.<S, OmegaAcceptance>builder().acceptance(BuchiAcceptance.INSTANCE).build());
+      return cast(complement, expectedAcceptance);
+    }
+
+    if (acceptance instanceof GeneralizedBuchiAcceptance) {
+      checkArgument(isInstanceOf(GeneralizedCoBuchiAcceptance.class, expectedAcceptance));
+
+      var complementAcceptance
+        = GeneralizedCoBuchiAcceptance.of(((GeneralizedBuchiAcceptance) acceptance).size);
+      var complement = new AutomatonView<>(completeAutomaton,
+        ViewSettings.<S, OmegaAcceptance>builder().acceptance(complementAcceptance).build());
+      return cast(complement, expectedAcceptance);
+    }
+
+    if (acceptance instanceof GeneralizedCoBuchiAcceptance) {
+      checkArgument(isInstanceOf(GeneralizedBuchiAcceptance.class, expectedAcceptance));
+
+      var complementAcceptance
+        = GeneralizedBuchiAcceptance.of(((GeneralizedCoBuchiAcceptance) acceptance).size);
+      var complement = new AutomatonView<>(completeAutomaton,
+        ViewSettings.<S, OmegaAcceptance>builder().acceptance(complementAcceptance).build());
+      return cast(complement, expectedAcceptance);
     }
 
     if (acceptance instanceof ParityAcceptance) {
-      var parityAcceptance = (ParityAcceptance) automaton.acceptance();
-      return createView(completeAutomaton, ViewSettings.<S, OmegaAcceptance>builder()
-        .acceptance(parityAcceptance.complement()).build());
+      checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
+
+      var complementAcceptance
+        = ((ParityAcceptance) automaton.acceptance()).complement();
+      var complement = new AutomatonView<>(completeAutomaton,
+        ViewSettings.<S, OmegaAcceptance>builder().acceptance(complementAcceptance).build());
+      return cast(complement, expectedAcceptance);
     }
 
     throw new UnsupportedOperationException();
@@ -159,84 +184,9 @@ public final class Views {
       .build());
   }
 
-
   static <S, A extends OmegaAcceptance> Automaton<S, A> createView(
     Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
     return new AutomatonView<>(automaton, settings);
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> viewAs(Automaton<S, ?> automaton,
-    Class<A> acceptanceClazz) {
-    if (acceptanceClazz.isInstance(automaton.acceptance())) {
-      return AutomatonUtil.cast(automaton, acceptanceClazz);
-    }
-
-    if (ParityAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
-
-      var remapping = ViewSettings.<S, ParityAcceptance>builder()
-        .acceptance(new ParityAcceptance(2, Parity.MIN_EVEN))
-        .edgeRewriter(edge -> edge.inSet(0) ? edge : Edge.of(edge.successor(), 1))
-        .build();
-
-      return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
-    }
-
-    if (RabinAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof BuchiAcceptance);
-
-      var remapping = ViewSettings.<S, RabinAcceptance>builder()
-        .acceptance(RabinAcceptance.of(RabinPair.of(0)))
-        .edgeRewriter(edge -> edge.withAcceptance(x -> x + 1))
-        .build();
-
-      return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
-    }
-
-    if (GeneralizedRabinAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof GeneralizedBuchiAcceptance);
-
-      int sets = automaton.acceptance().acceptanceSets();
-      var remapping = ViewSettings.<S, GeneralizedRabinAcceptance>builder()
-        .acceptance(GeneralizedRabinAcceptance.of(RabinPair.ofGeneralized(0, sets)))
-        .edgeRewriter(edge -> edge.withAcceptance(x -> x + 1))
-        .build();
-
-      return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
-    }
-
-    if (BuchiAcceptance.class.equals(acceptanceClazz)
-      || GeneralizedBuchiAcceptance.class.equals(acceptanceClazz)) {
-      checkArgument(automaton.acceptance() instanceof AllAcceptance);
-
-      var remapping = ViewSettings.<S, BuchiAcceptance>builder()
-        .acceptance(BuchiAcceptance.INSTANCE)
-        .edgeRewriter(edge -> edge.withAcceptance(0))
-        .build();
-
-      return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
-    }
-
-    if (EmersonLeiAcceptance.class.equals(acceptanceClazz)) {
-      var acceptance = automaton.acceptance();
-      var remapping = ViewSettings.<S, EmersonLeiAcceptance>builder()
-        .acceptance(
-          new EmersonLeiAcceptance(acceptance.acceptanceSets(), acceptance.booleanExpression()))
-        .build();
-
-      return AutomatonUtil.cast(createView(automaton, remapping), acceptanceClazz);
-    }
-
-    throw new UnsupportedOperationException();
-  }
-
-  public static <S> Automaton<S, NoneAcceptance> viewAsLts(Automaton<S, ?> automaton) {
-    var remapping = ViewSettings.<S, NoneAcceptance>builder()
-      .acceptance(NoneAcceptance.INSTANCE)
-      .edgeRewriter(Edge::withoutAcceptance)
-      .build();
-
-    return createView(automaton, remapping);
   }
 
   static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
@@ -394,25 +344,21 @@ public final class Views {
     @Nullable
     abstract Function<Edge<S>, Edge<S>> edgeRewriter();
 
-    abstract Map<Automaton.Property, Boolean> properties();
-
     static <S, A extends OmegaAcceptance> Builder<S, A> builder() {
-      return (new AutoValue_Views_ViewSettings.Builder<S, A>()).properties(Map.of());
+      return new AutoValue_Views_ViewSettings.Builder<>();
     }
 
     @AutoValue.Builder
     abstract static class Builder<S, A extends OmegaAcceptance> {
-      abstract Builder<S, A> acceptance(A acceptance);
+      abstract Builder<S, A> acceptance(@Nullable A acceptance);
 
-      abstract Builder<S, A> initialStates(Set<S> initialStates);
+      abstract Builder<S, A> initialStates(@Nullable Set<S> initialStates);
 
-      abstract Builder<S, A> stateFilter(Predicate<S> filter);
+      abstract Builder<S, A> stateFilter(@Nullable Predicate<S> filter);
 
-      abstract Builder<S, A> edgeFilter(BiPredicate<S, Edge<S>> filter);
+      abstract Builder<S, A> edgeFilter(@Nullable BiPredicate<S, Edge<S>> filter);
 
-      abstract Builder<S, A> edgeRewriter(Function<Edge<S>, Edge<S>> rewriter);
-
-      abstract Builder<S, A> properties(Map<Automaton.Property, Boolean> properties);
+      abstract Builder<S, A> edgeRewriter(@Nullable Function<Edge<S>, Edge<S>> rewriter);
 
       abstract ViewSettings<S, A> build();
     }
@@ -461,8 +407,7 @@ public final class Views {
       return filter == null || filter.test(state);
     }
 
-    @SuppressWarnings("Guava")
-    private com.google.common.base.Predicate<Edge<S>> edgeFilter(S state) {
+    private Predicate<Edge<S>> edgeFilter(S state) {
       var filter = settings.edgeFilter();
       return edge -> (filter == null || filter.test(state, edge)) && stateFilter(edge.successor());
     }
@@ -480,7 +425,8 @@ public final class Views {
     public Set<Edge<S>> edges(S state, BitSet valuation) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Sets.filter(backingAutomaton.edges(state, valuation), edgeFilter(state))
+        ? backingAutomaton.edges(state, valuation).stream()
+            .filter(edgeFilter(state)).collect(Collectors.toSet())
         : backingAutomaton.edges(state, valuation);
 
       var edgeRewriter = settings.edgeRewriter();
@@ -493,7 +439,8 @@ public final class Views {
     public Set<Edge<S>> edges(S state) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Sets.filter(backingAutomaton.edges(state), edgeFilter(state))
+        ? backingAutomaton.edges(state).stream()
+            .filter(edgeFilter(state)).collect(Collectors.toSet())
         : backingAutomaton.edges(state);
 
       var edgeRewriter = settings.edgeRewriter();
@@ -506,7 +453,7 @@ public final class Views {
     public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       checkArgument(stateFilter(state));
       var filteredEdges = filterRequired()
-        ? Maps.filterKeys(backingAutomaton.edgeMap(state), edgeFilter(state))
+        ? Maps.filterKeys(backingAutomaton.edgeMap(state), x -> edgeFilter(state).test(x))
         : backingAutomaton.edgeMap(state);
 
       var edgeRewriter = settings.edgeRewriter();
@@ -527,9 +474,11 @@ public final class Views {
 
       if (filterRequired()) {
         if (edgeRewriter == null) {
-          mapper = x -> Sets.filter(x, edgeFilter(state));
+          mapper = x -> Sets.filter(x, y -> edgeFilter(state).test(y));
         } else {
-          mapper = x -> Collections3.transformSet(Sets.filter(x, edgeFilter(state)), edgeRewriter);
+          mapper = x -> Collections3.transformSet(
+            Sets.filter(x, y -> edgeFilter(state).test(y)),
+            edgeRewriter);
         }
       } else {
         if (edgeRewriter == null) {
@@ -540,12 +489,6 @@ public final class Views {
       }
 
       return mapper == null ? edges : edges.map(mapper);
-    }
-
-    @Override
-    public boolean is(Property property) {
-      Boolean value = settings.properties().get(property);
-      return value == null ? super.is(property) : value;
     }
   }
 }

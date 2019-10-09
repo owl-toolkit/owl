@@ -19,6 +19,8 @@
 
 package owl.translations.ltl2dpa;
 
+import static java.util.Map.entry;
+
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -26,6 +28,8 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.NavigableMap;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
@@ -86,8 +90,8 @@ final class SymmetricDPAConstruction {
       initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
     }
 
-    private Edge<SymmetricRankingState> edge(
-      Map<Integer, EquivalenceClass> successor, List<SymmetricProductState> previousRanking,
+    private Edge<SymmetricRankingState> edge(Map<Integer, EquivalenceClass> successor,
+      List<Entry<Integer, SymmetricProductState>> previousRanking,
       int previousSafetyBucket, int previousSafetyBucketIndex, @Nullable BitSet valuation) {
 
       for (EquivalenceClass entry : successor.values()) {
@@ -97,10 +101,10 @@ final class SymmetricDPAConstruction {
       }
 
       // We compute the relevant accepting components, which we can jump to.
-      Set<SymmetricEvaluatedFixpoints> allowedComponents = new HashSet<>();
-      List<List<SymmetricProductState>> targets
+      Set<Entry<Integer, SymmetricEvaluatedFixpoints>> allowedComponents = new HashSet<>();
+      List<List<Entry<Integer, SymmetricProductState>>> targets
         = List.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
-      var safety = new TreeMap<Integer, List<SymmetricProductState>>();
+      NavigableMap<Integer, List<SymmetricProductState>> safety = new TreeMap<>();
 
       successor.forEach((index, value) -> {
         for (SymmetricProductState jumpTarget : ldba.stateAnnotation().apply(index, value)) {
@@ -109,7 +113,7 @@ final class SymmetricDPAConstruction {
           }
 
           var fixpoints = jumpTarget.evaluatedFixpoints;
-          boolean changed = allowedComponents.add(fixpoints);
+          boolean changed = allowedComponents.add(entry(index, fixpoints));
 
           if (fixpoints.isSafety()) {
             safety.compute(index, (x, oldList) -> {
@@ -122,24 +126,28 @@ final class SymmetricDPAConstruction {
             });
           } else if (fixpoints.isLiveness() && jumpTarget.safety.isTrue()) {
             assert changed;
-            targets.get(0).add(jumpTarget);
+            targets.get(0).add(entry(index, jumpTarget));
           } else if (fixpoints.isLiveness()) {
             assert changed;
-            targets.get(1).add(jumpTarget);
+            targets.get(1).add(entry(index, jumpTarget));
           } else {
             assert changed;
-            targets.get(2).add(jumpTarget);
+            targets.get(2).add(entry(index, jumpTarget));
           }
         }
       });
 
+      var comparator = Comparator
+        .<Entry<Integer, SymmetricProductState>>comparingInt(Entry::getKey)
+        .thenComparing(y -> y.getValue().evaluatedFixpoints);
+
       // Fix iteration order.
-      targets.forEach(x -> x.sort(Comparator.comparing(y -> y.evaluatedFixpoints)));
+      targets.forEach(target -> target.sort(comparator));
       safety.values().forEach(x -> x.sort(Comparator.comparing(y -> y.evaluatedFixpoints)));
 
       // Default rejecting color.
       int edgeColor = 2 * previousRanking.size();
-      List<SymmetricProductState> ranking = new ArrayList<>(previousRanking.size());
+      List<Entry<Integer, SymmetricProductState>> ranking = new ArrayList<>(previousRanking.size());
 
       boolean activeSafetyComponent = false;
 
@@ -148,17 +156,18 @@ final class SymmetricDPAConstruction {
 
         while (iterator.hasNext()) {
           assert valuation != null : "Valuation is only allowed to be null for empty rankings.";
-          var rankingEdge = ldba.acceptingComponent().edge(iterator.next(), valuation);
+          var entry = iterator.next();
+          var rankingEdge = ldba.acceptingComponent().edge(entry.getValue(), valuation);
           var rankingSuccessor = rankingEdge == null ? null : rankingEdge.successor();
 
           // There are no jumps to this component anymore or the run stopped.
           if (rankingEdge == null
-            || !allowedComponents.remove(rankingSuccessor.evaluatedFixpoints)) {
+            || !allowedComponents.remove(fixpointsEntry(entry))) {
             edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
             continue;
           }
 
-          ranking.add(rankingSuccessor);
+          ranking.add(entry(entry.getKey(), rankingSuccessor));
 
           if (rankingEdge.inSet(0)) {
             edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
@@ -180,9 +189,8 @@ final class SymmetricDPAConstruction {
         safetyBucket = previousSafetyBucket;
         safetyBucketIndex = previousSafetyBucketIndex;
       } else {
-        for (SymmetricProductState rankingState
-          : Iterables.concat(targets.get(0), targets.get(1), targets.get(2))) {
-          if (allowedComponents.remove(rankingState.evaluatedFixpoints)) {
+        for (var rankingState : Iterables.concat(targets.get(0), targets.get(1), targets.get(2))) {
+          if (allowedComponents.remove(fixpointsEntry(rankingState))) {
             ranking.add(rankingState);
           }
         }
@@ -212,7 +220,7 @@ final class SymmetricDPAConstruction {
           safetyBucket = safetyEntry.getKey();
           assert safetyBucket > 0;
           safetyBucketIndex = safetyBucketIndex + 1;
-          ranking.add(safetyEntry.getValue().get(safetyBucketIndex));
+          ranking.add(entry(safetyBucket, safetyEntry.getValue().get(safetyBucketIndex)));
         }
       }
 
@@ -240,5 +248,10 @@ final class SymmetricDPAConstruction {
       return edge(successor, state.ranking(), state.safetyBucket(), state.safetyBucketIndex(),
         valuation);
     }
+  }
+
+  private static Entry<Integer, SymmetricEvaluatedFixpoints> fixpointsEntry(
+    Entry<Integer, SymmetricProductState> stateEntry) {
+    return entry(stateEntry.getKey(), stateEntry.getValue().evaluatedFixpoints);
   }
 }

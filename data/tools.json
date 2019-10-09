@@ -5,6 +5,9 @@
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2nba",
+            "flags": {
+                "disable-portfolio": "--disable-portfolio"
+            },
             "pre": [
                 "simplify-ltl"
             ]
@@ -14,6 +17,9 @@
             "input": "ltl",
             "output": "hoa",
             "name": "ltl2ngba",
+            "flags": {
+                "disable-portfolio": "--disable-portfolio"
+            },
             "pre": [
                 "simplify-ltl"
             ]
@@ -25,7 +31,8 @@
             "name": "ltl2ldba",
             "flags": {
                 "asymmetric": "--asymmetric",
-                "symmetric": "--symmetric"
+                "symmetric": "--symmetric",
+                "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
                 "simplify-ltl"
@@ -38,7 +45,8 @@
             "name": "ltl2ldgba",
             "flags": {
                 "asymmetric": "--asymmetric",
-                "symmetric": "--symmetric"
+                "symmetric": "--symmetric",
+                "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
                 "simplify-ltl"
@@ -51,8 +59,9 @@
             "name": "ltl2dpa",
             "flags": {
                 "asymmetric": "--asymmetric",
-                "complement": "--complement",
-                "symmetric": "--symmetric"
+                "symmetric": "--symmetric",
+                "disable-complement": "--disable-complement",
+                "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
                 "simplify-ltl"
@@ -65,7 +74,8 @@
             "name": "ltl2dra",
             "flags": {
                 "asymmetric": "--asymmetric",
-                "symmetric": "--symmetric"
+                "symmetric": "--symmetric",
+                "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
                 "simplify-ltl"
@@ -81,7 +91,8 @@
             "name": "ltl2dgra",
             "flags": {
                 "asymmetric": "--asymmetric",
-                "symmetric": "--symmetric"
+                "symmetric": "--symmetric",
+                "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
                 "simplify-ltl"

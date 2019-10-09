@@ -37,7 +37,7 @@ public abstract class SymmetricRankingState
   @Override
   public abstract Map<Integer, EquivalenceClass> state();
 
-  public abstract List<SymmetricProductState> ranking();
+  public abstract List<Map.Entry<Integer, SymmetricProductState>> ranking();
 
   public abstract int safetyBucket();
 
@@ -48,7 +48,8 @@ public abstract class SymmetricRankingState
   }
 
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
-    List<SymmetricProductState> ranking, int safetyBucket, int safetyBucketIndex) {
+    List<Map.Entry<Integer, SymmetricProductState>> ranking,
+    int safetyBucket, int safetyBucketIndex) {
     var copiedState = Map.copyOf(state);
     var copiedRanking = List.copyOf(ranking);
 

@@ -159,6 +159,7 @@ public abstract class ValuationTree<E> {
       return values;
     }
 
+    // Perfect for fork/join-parallesism
     @Override
     protected <T> ValuationTree<T> memoizedMap(
       Function<? super Set<E>, ? extends Collection<? extends T>> mapper,

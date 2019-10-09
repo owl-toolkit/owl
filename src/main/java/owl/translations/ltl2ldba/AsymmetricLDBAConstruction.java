@@ -39,9 +39,9 @@ import owl.automaton.Automaton;
 import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
@@ -218,7 +218,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
     var automaton = new ImplicitNonDeterministicEdgeTreeAutomaton<>(
       factories.vsFactory, initialState.isFalse() ? List.of() : List.of(initialState),
-      NoneAcceptance.INSTANCE, null, edgeTree);
+      AllAcceptance.INSTANCE, null, edgeTree);
 
     var initialComponent = MutableAutomatonFactory.copy(automaton);
     assert initialComponent.is(Automaton.Property.DETERMINISTIC);

@@ -39,7 +39,7 @@ public final class LanguageAnalysis {
     }
 
     var labelledFormula = attachDummyAlphabet(formula);
-    var translation = new LTL2NAFunction(Environment.of(false), GeneralizedBuchiAcceptance.class);
+    var translation = new LTL2NAFunction(GeneralizedBuchiAcceptance.class, Environment.of(false));
     return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }
 

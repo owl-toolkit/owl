@@ -46,6 +46,8 @@ final class AbstractLTL2LDBAModule {
   }
 
   static Options options() {
-    return new Options().addOptionGroup(getOptionGroup());
+    return new Options()
+      .addOptionGroup(getOptionGroup())
+      .addOption(AbstractLTL2PortfolioModule.disablePortfolio());
   }
 }

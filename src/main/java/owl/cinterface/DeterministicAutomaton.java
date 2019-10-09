@@ -46,6 +46,7 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -58,7 +59,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.run.Environment;
-import owl.translations.LTL2DAFunction;
+import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.BreakpointState;
 import owl.translations.canonical.GenericConstructions;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
@@ -113,7 +114,7 @@ public final class DeterministicAutomaton<S, T> {
   public static DeterministicAutomaton<?, ?> of(LabelledFormula formula) {
     if (SyntacticFragments.isSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.safety(ENV, formula),
+        DeterministicConstructionsPortfolio.safety(ENV, formula),
         SAFETY, AllAcceptance.class,
         EquivalenceClass::isTrue,
         Function.identity(),
@@ -123,7 +124,7 @@ public final class DeterministicAutomaton<S, T> {
 
     if (SyntacticFragments.isCoSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.coSafety(ENV, formula),
+        DeterministicConstructionsPortfolio.coSafety(ENV, formula),
         Acceptance.CO_SAFETY, BuchiAcceptance.class,
         EquivalenceClass::isTrue,
         Function.identity(),
@@ -137,7 +138,7 @@ public final class DeterministicAutomaton<S, T> {
 
     if (formulasConj.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.gfCoSafety(ENV, formula, false),
+        DeterministicConstructionsPortfolio.gfCoSafety(ENV, formula, false),
         BUCHI, GeneralizedBuchiAcceptance.class,
         x -> false,
         x -> formula,
@@ -147,7 +148,7 @@ public final class DeterministicAutomaton<S, T> {
 
     if (SyntacticFragments.isGCoSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.gCoSafety(ENV, formula),
+        DeterministicConstructionsPortfolio.gCoSafety(ENV, formula),
         BUCHI, BuchiAcceptance.class,
         x -> false,
         x -> x.current().and(x.next()),
@@ -167,7 +168,7 @@ public final class DeterministicAutomaton<S, T> {
       if (SyntacticFragments.isGCoSafety(unwrapped)) {
         return new DeterministicAutomaton<>(
           GenericConstructions.delay(
-            LTL2DAFunction.gCoSafety(ENV, LabelledFormula.of(unwrapped, formula.variables())),
+            DeterministicConstructionsPortfolio.gCoSafety(ENV, LabelledFormula.of(unwrapped, formula.variables())),
             xCount),
           BUCHI, BuchiAcceptance.class,
           x -> false,
@@ -179,7 +180,7 @@ public final class DeterministicAutomaton<S, T> {
 
     if (SyntacticFragments.isSafetyCoSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.safetyCoSafety(ENV, formula),
+        DeterministicConstructionsPortfolio.safetyCoSafety(ENV, formula),
         BUCHI, BuchiAcceptance.class,
         x -> x.current().isFalse() && x.next().isFalse(),
         BreakpointState::current,
@@ -193,49 +194,17 @@ public final class DeterministicAutomaton<S, T> {
 
     if (formulasDisj.stream().allMatch(SyntacticFragments::isFgSafety)) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.fgSafetyInterleaved(ENV, formula),
-        CO_BUCHI, CoBuchiAcceptance.class,
+        DeterministicConstructionsPortfolio.fgSafety(ENV, formula, false),
+        CO_BUCHI, GeneralizedCoBuchiAcceptance.class,
         x -> false,
         x -> formula,
         x -> x.inSet(0) ? 0.0d : 0.5d
       );
     }
-
-    if (SyntacticFragments.isFSafety(formula.formula())) {
-      return new DeterministicAutomaton<>(
-        LTL2DAFunction.fSafety(ENV, formula),
-        CO_BUCHI, CoBuchiAcceptance.class,
-        x -> false,
-        x -> x.current().and(x.next()),
-        x -> x.inSet(0) ? 0.0d : 0.5d
-      );
-    }
-
-    if (formula.formula() instanceof XOperator) {
-      int xCount = 0;
-      var unwrappedFormula = formula.formula();
-
-      while (unwrappedFormula instanceof XOperator) {
-        xCount++;
-        unwrappedFormula = ((XOperator) unwrappedFormula).operand;
-      }
-
-      if (SyntacticFragments.isFSafety(unwrappedFormula)) {
-        return new DeterministicAutomaton<>(
-          GenericConstructions.delay(
-            LTL2DAFunction.fSafety(ENV, formula.wrap(unwrappedFormula)),
-            xCount),
-          CO_BUCHI, CoBuchiAcceptance.class,
-          x -> false,
-          x -> x.map(i -> i, j -> j.current().and(j.next())),
-          x -> x.inSet(0) ? 0.0d : 0.5d
-        );
-      }
-    }
-
+    
     if (SyntacticFragments.isCoSafetySafety(formula.formula())) {
       return new DeterministicAutomaton<>(
-        LTL2DAFunction.coSafetySafety(ENV, formula),
+        DeterministicConstructionsPortfolio.coSafetySafety(ENV, formula),
         CO_BUCHI, CoBuchiAcceptance.class,
         x -> x.current().isTrue() && x.next().isTrue(),
         BreakpointState::current,

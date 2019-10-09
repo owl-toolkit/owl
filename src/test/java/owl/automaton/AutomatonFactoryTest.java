@@ -31,13 +31,11 @@ import java.util.Map;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.AllAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
-import owl.translations.LTL2DAFunction;
+import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 class AutomatonFactoryTest {
 
@@ -46,9 +44,9 @@ class AutomatonFactoryTest {
 
   @Test
   void testCopy() {
-    var automaton = MutableAutomatonFactory.copy(AutomatonUtil.cast(
-      LTL2DAFunction.safety(Environment.annotated(), LtlParser.parse("G a | b R c")),
-      EquivalenceClass.class, AllAcceptance.class));
+    var automaton = MutableAutomatonFactory.copy(
+      DeterministicConstructionsPortfolio.safety(
+        Environment.annotated(), LtlParser.parse("G a | b R c")));
 
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
@@ -90,7 +88,7 @@ class AutomatonFactoryTest {
     var state = new Object();
     var states = Set.of(state);
     var edge = Edge.of(state);
-    var automaton = AutomatonFactory.singleton(factory, state, NoneAcceptance.INSTANCE, Set.of());
+    var automaton = AutomatonFactory.singleton(factory, state, AllAcceptance.INSTANCE, Set.of());
 
     assertAll(
       () -> assertEquals(states, automaton.states()),
@@ -101,7 +99,7 @@ class AutomatonFactoryTest {
       () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
       () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
 
-      () -> assertSame(NoneAcceptance.INSTANCE, automaton.acceptance())
+      () -> assertSame(AllAcceptance.INSTANCE, automaton.acceptance())
     );
   }
 }

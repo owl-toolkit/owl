@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
+import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -52,6 +53,13 @@ final class EdgeLong<S> extends Edge<S> {
   @Override
   public PrimitiveIterator.OfInt acceptanceSetIterator() {
     return new LongBitIterator(store);
+  }
+
+  @Override
+  public BitSet acceptanceSets() {
+    BitSet bitSet = new BitSet();
+    acceptanceSetIterator().forEachRemaining((IntConsumer) bitSet::set);
+    return bitSet;
   }
 
   @Override

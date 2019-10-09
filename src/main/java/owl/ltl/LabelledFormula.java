@@ -19,7 +19,7 @@
 
 package owl.ltl;
 
-import static com.google.common.base.Preconditions.checkState;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
 import java.util.List;
@@ -33,9 +33,11 @@ public abstract class LabelledFormula {
   public abstract List<String> variables();
 
   public static LabelledFormula of(Formula formula, List<String> variables) {
-    var copiedVariables = List.copyOf(variables);
-    checkState(Collections3.isDistinct(copiedVariables));
-    return new AutoValue_LabelledFormula(formula, copiedVariables);
+    int atomicPropositionsSize = formula.atomicPropositions(true).length();
+    checkArgument(Collections3.isDistinct(variables));
+    checkArgument(atomicPropositionsSize <= variables.size());
+    return new AutoValue_LabelledFormula(formula,
+      List.copyOf(variables.subList(0, atomicPropositionsSize)));
   }
 
   public LabelledFormula wrap(Formula formula) {

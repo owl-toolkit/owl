@@ -22,7 +22,7 @@ package owl.translations.canonical;
 import java.util.BitSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.NoneAcceptance;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationTree;
 import owl.factories.Factories;
@@ -33,7 +33,7 @@ import owl.ltl.EquivalenceClass;
  */
 @Deprecated
 public final class LegacyFactory
-  extends DeterministicConstructions.Base<EquivalenceClass, NoneAcceptance> {
+  extends DeterministicConstructions.Base<EquivalenceClass, AllAcceptance> {
 
   public LegacyFactory(Factories factories) {
     super(factories, true);
@@ -57,8 +57,8 @@ public final class LegacyFactory
   }
 
   @Override
-  public NoneAcceptance acceptance() {
-    return NoneAcceptance.INSTANCE;
+  public AllAcceptance acceptance() {
+    return AllAcceptance.INSTANCE;
   }
 
   public EquivalenceClass successor(EquivalenceClass clazz, BitSet valuation,

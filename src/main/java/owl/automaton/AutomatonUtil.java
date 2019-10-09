@@ -19,8 +19,7 @@
 
 package owl.automaton;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
+import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -33,7 +32,6 @@ import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
@@ -43,53 +41,6 @@ import owl.factories.ValuationSetFactory;
 public final class AutomatonUtil {
 
   private AutomatonUtil() {}
-
-  public static Automaton<Object, OmegaAcceptance> cast(Object automaton) {
-    return cast(automaton, OmegaAcceptance.class);
-  }
-
-  public static <A extends OmegaAcceptance> Automaton<Object, A> cast(Object automaton,
-    Class<A> acceptanceClass) {
-    return cast(automaton, Object.class, acceptanceClass);
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> cast(Object automaton,
-    Class<S> stateClass, Class<A> acceptanceClass) {
-    checkArgument(automaton instanceof Automaton, "Expected automaton, got %s",
-      automaton.getClass().getName());
-    Automaton<?, ?> castedAutomaton = (Automaton<?, ?>) automaton;
-
-    checkAcceptanceClass(castedAutomaton, acceptanceClass);
-    // Very costly to check, so only asserted
-    assert checkStateClass(castedAutomaton, stateClass);
-    return (Automaton<S, A>) castedAutomaton;
-  }
-
-  @SuppressWarnings("unchecked")
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> cast(Automaton<S, ?> automaton,
-    Class<A> acceptanceClass) {
-    checkAcceptanceClass(automaton, acceptanceClass);
-    return (Automaton<S, A>) automaton;
-  }
-
-  private static <S> void checkAcceptanceClass(Automaton<S, ?> automaton, Class<?> clazz) {
-    checkArgument(clazz.isInstance(automaton.acceptance()),
-      "Expected acceptance type %s, got %s", clazz.getName(), automaton.acceptance().getClass());
-  }
-
-  private static <S> boolean checkStateClass(Automaton<S, ?> automaton, Class<?> clazz) {
-    if (Object.class.equals(clazz)) {
-      return true;
-    }
-
-    for (Object state : automaton.states()) {
-      checkArgument(clazz.isInstance(state),
-        "Expected states of type %s but got %s.", clazz.getName(), state.getClass().getName());
-    }
-
-    return true;
-  }
 
   public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
     BiConsumer<S, Edge<S>> action) {
@@ -215,7 +166,8 @@ public final class AutomatonUtil {
   }
 
   public static <S, B extends GeneralizedBuchiAcceptance>
-    Optional<Set<S>> ldbaSplit(Automaton<S, B> automaton) {
+    Optional<LimitDeterministicGeneralizedBuchiAutomaton<S, B>>
+    ldbaSplit(Automaton<S, B> automaton) {
     Set<S> acceptingSccs = new HashSet<>();
 
     for (Set<S> scc : SccDecomposition.computeSccs(automaton)) {
@@ -230,8 +182,27 @@ public final class AutomatonUtil {
     }
 
     var acceptingComponentAutomaton = Views.replaceInitialState(automaton, acceptingSccs);
-    return acceptingComponentAutomaton.is(Automaton.Property.SEMI_DETERMINISTIC)
-      ? Optional.of(Sets.difference(automaton.states(), acceptingComponentAutomaton.states()))
-      : Optional.empty();
+    if (!acceptingComponentAutomaton.is(Automaton.Property.SEMI_DETERMINISTIC)) {
+      return Optional.empty();
+    }
+
+    var initialComponent
+      = Sets.difference(automaton.states(), acceptingComponentAutomaton.states());
+    return Optional.of(LimitDeterministicGeneralizedBuchiAutomaton.of(automaton, initialComponent));
+  }
+
+  @AutoValue
+  public abstract static class
+    LimitDeterministicGeneralizedBuchiAutomaton<S, B extends GeneralizedBuchiAcceptance> {
+    public abstract Automaton<S, B> automaton();
+
+    public abstract Set<S> initialComponent();
+
+    public static <S, B extends GeneralizedBuchiAcceptance>
+      LimitDeterministicGeneralizedBuchiAutomaton<S, B>
+      of(Automaton<S, B> automaton, Set<S> initialComponent) {
+      return new AutoValue_AutomatonUtil_LimitDeterministicGeneralizedBuchiAutomaton<>(
+        automaton, Set.copyOf(initialComponent));
+    }
   }
 }

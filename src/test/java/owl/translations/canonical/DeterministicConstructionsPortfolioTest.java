@@ -17,11 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.translations;
+package owl.translations.canonical;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
+import static owl.translations.canonical.DeterministicConstructionsPortfolio.coSafety;
+import static owl.translations.canonical.DeterministicConstructionsPortfolio.fgSafety;
+import static owl.translations.canonical.DeterministicConstructionsPortfolio.gCoSafety;
+import static owl.translations.canonical.DeterministicConstructionsPortfolio.gfCoSafety;
+import static owl.translations.canonical.DeterministicConstructionsPortfolio.safety;
 import static owl.util.Assertions.assertThat;
 
 import de.tum.in.naturals.bitset.BitSets;
@@ -42,7 +47,7 @@ import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
-class LTL2DAFunctionTest {
+class DeterministicConstructionsPortfolioTest {
   private static final Environment environment = Environment.standard();
 
   @TestInstance(PER_CLASS)
@@ -62,7 +67,7 @@ class LTL2DAFunctionTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
-      var automaton = LTL2DAFunction.coSafety(environment, labelledFormula);
+      var automaton = coSafety(environment, labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
@@ -72,7 +77,7 @@ class LTL2DAFunctionTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.coSafety(environment, LtlParser.parse("G a")));
+        () -> coSafety(environment, LtlParser.parse("G a")));
     }
   }
 
@@ -92,22 +97,22 @@ class LTL2DAFunctionTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = LTL2DAFunction.fgSafety(environment, labelledFormula);
+      var automaton = fgSafety(environment, labelledFormula, false);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, true);
-      assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
-      assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isTrue));
+      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
+      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isTrue()));
       assertThat(automaton.acceptance(), CoBuchiAcceptance.class::isInstance);
     }
 
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.fgSafety(environment, LtlParser.parse("F a")));
+        () -> fgSafety(environment, LtlParser.parse("F a"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.fgSafety(environment, LtlParser.parse("F ((G a) & (G b))")));
+        () -> fgSafety(environment, LtlParser.parse("F ((G a) & (G b))"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.fgSafety(environment, LtlParser.parse("F (G (F a))")));
+        () -> fgSafety(environment, LtlParser.parse("F (G (F a))"), false));
     }
   }
 
@@ -128,7 +133,7 @@ class LTL2DAFunctionTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = LTL2DAFunction.gCoSafety(environment, labelledFormula);
+      var automaton = gCoSafety(environment, labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(
@@ -140,11 +145,11 @@ class LTL2DAFunctionTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gCoSafety(environment, LtlParser.parse("G a")));
+        () -> gCoSafety(environment, LtlParser.parse("G a")));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gCoSafety(environment, LtlParser.parse("G F a")));
+        () -> gCoSafety(environment, LtlParser.parse("G F a")));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gCoSafety(environment, LtlParser.parse("G (a U (b R c))")));
+        () -> gCoSafety(environment, LtlParser.parse("G (a U (b R c))")));
     }
   }
 
@@ -164,7 +169,7 @@ class LTL2DAFunctionTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = LTL2DAFunction.gfCoSafety(environment, labelledFormula, false);
+      var automaton = gfCoSafety(environment, labelledFormula, false);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
@@ -175,11 +180,11 @@ class LTL2DAFunctionTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G a"), false));
+        () -> gfCoSafety(environment, LtlParser.parse("G a"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G ((F a) | (F b))"), false));
+        () -> gfCoSafety(environment, LtlParser.parse("G ((F a) | (F b))"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.gfCoSafety(environment, LtlParser.parse("G (F (G a))"), false));
+        () -> gfCoSafety(environment, LtlParser.parse("G (F (G a))"), false));
     }
   }
 
@@ -200,7 +205,7 @@ class LTL2DAFunctionTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
-      var automaton = LTL2DAFunction.safety(environment, labelledFormula);
+      var automaton = safety(environment, labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
@@ -210,7 +215,7 @@ class LTL2DAFunctionTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> LTL2DAFunction.safety(environment, LtlParser.parse("F a")));
+        () -> safety(environment, LtlParser.parse("F a")));
     }
   }
 

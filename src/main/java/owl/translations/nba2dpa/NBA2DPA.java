@@ -42,6 +42,7 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.LanguageContainment;
@@ -54,13 +55,14 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.nba2ldba.NBA2LDBA;
 
-public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {
+public final class NBA2DPA
+  implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {
 
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "nba2dpa",
     "Converts a non-deterministic generalized Büchi automaton "
       + "into a deterministic parity automaton",
-    (commandLine, environment) -> (input) -> new NBA2DPA().apply(AutomatonUtil.cast(input)));
+    (commandLine, environment) -> (input) -> new NBA2DPA().apply((Automaton<Object, ?>) input));
 
   public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
@@ -71,10 +73,9 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 
-  @SuppressWarnings("unchecked")
   @Override
-  public Automaton<RankingState<Object>, ParityAcceptance> apply(Automaton<?, ?> nba) {
-    return new RankingAutomaton<>((NBA2LDBA.LDBA<Object>) NBA2LDBA.applyLDBA(nba));
+  public Automaton<?, ParityAcceptance> apply(Automaton<?, ?> nba) {
+    return new RankingAutomaton<>(NBA2LDBA.applyLDBA(nba));
   }
 
   private static final class RankingAutomaton<S>
@@ -89,9 +90,10 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
 
     private final LoadingCache<Map.Entry<Set<S>, S>, Boolean> greaterOrEqualCache;
 
-    RankingAutomaton(NBA2LDBA.LDBA<S> ldba) {
-      nba = ldba.automaton();
-      intialComponent = Set.copyOf(ldba.initialComponent());
+    RankingAutomaton(
+      AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<S, BuchiAcceptance> LDGBA) {
+      nba = LDGBA.automaton();
+      intialComponent = Set.copyOf(LDGBA.initialComponent());
       greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500_000)
         .expireAfterAccess(60, TimeUnit.SECONDS)
         .build(new CacheLoader<>() {
@@ -99,7 +101,7 @@ public final class NBA2DPA implements Function<Automaton<?, ?>, Automaton<?, Par
           public Boolean load(Map.Entry<Set<S>, S> entry) {
             return LanguageContainment.contains(
               Views.replaceInitialState(nba, Set.of(entry.getValue())),
-              AutomatonUtil.cast(AutomatonOperations.union(entry.getKey().stream()
+              OmegaAcceptanceCast.cast(AutomatonOperations.union(entry.getKey().stream()
                 .map(x -> Views.replaceInitialState(nba, Set.of(x)))
                 .collect(Collectors.toList())), BuchiAcceptance.class));
           }

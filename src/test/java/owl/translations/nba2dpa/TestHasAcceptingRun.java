@@ -25,10 +25,11 @@ import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
+import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.output.HoaPrinter;
 import owl.run.Environment;
@@ -108,7 +109,7 @@ class TestHasAcceptingRun {
     HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertEquals(LanguageEmptiness.isEmpty(dpa), !hasAcceptingRun);
 
-    var complement = Views.complement(AutomatonUtil.cast(dpa), new Object());
+    var complement = Views.complement((Automaton) dpa, new Object(), OmegaAcceptance.class);
     HoaPrinter.feedTo(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertEquals(LanguageEmptiness.isEmpty(complement), !complementHasAcceptingRun);
   }

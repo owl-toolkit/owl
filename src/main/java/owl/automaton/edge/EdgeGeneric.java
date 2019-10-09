@@ -19,7 +19,6 @@
 
 package owl.automaton.edge;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.PrimitiveIterator.OfInt;
@@ -38,7 +37,12 @@ final class EdgeGeneric<S> extends Edge<S> {
 
   @Override
   public OfInt acceptanceSetIterator() {
-    return BitSets.iterator(acceptance);
+    return acceptance.stream().iterator();
+  }
+
+  @Override
+  public BitSet acceptanceSets() {
+    return (BitSet) acceptance.clone();
   }
 
   @Override

@@ -53,8 +53,8 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -106,7 +106,7 @@ public final class AutomatonReader {
   private static <A extends OmegaAcceptance> Consumer<Automaton<HoaState, ?>> consumer(
     AtomicReference<Automaton<HoaState, A>> box, Class<A> acceptanceClass) {
     return automaton -> {
-      var oldValue = box.getAndSet(AutomatonUtil.cast(automaton, HoaState.class, acceptanceClass));
+      var oldValue = box.getAndSet(OmegaAcceptanceCast.cast(automaton, acceptanceClass));
 
       if (oldValue != null) {
         throw new IllegalArgumentException(
@@ -234,9 +234,6 @@ public final class AutomatonReader {
         : name.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
           return AllAcceptance.INSTANCE;
-
-        case "none":
-          return NoneAcceptance.INSTANCE;
 
         case "buchi":
           return BuchiAcceptance.INSTANCE;

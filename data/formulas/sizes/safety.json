@@ -1155,6 +1155,9 @@
     "formula": "(((a) R (b)) \u0026 F(c \u0026 Xa))"
   },
   {
+    "formula": "(FGa \u0026 (Ga | ((b) U (Ga))))"
+  },
+  {
     "formula": "(GFa \u0026 (F!a | FGb))"
   },
   {
@@ -1366,6 +1369,9 @@
   },
   {
     "formula": "(FG!a | (Ga \u0026 GFb))"
+  },
+  {
+    "formula": "(GFa | (Fa \u0026 ((b) R (Fa))))"
   },
   {
     "formula": "(((Xa) U (b)) | X((!a) R ((!a | !b))))"

@@ -28,10 +28,10 @@ import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.run.Environment;
@@ -42,7 +42,8 @@ public final class ParityUtil {
     "complement-parity",
     "Complements a parity automaton",
     (commandLine, environment) -> input -> ParityUtil.complement(
-      MutableAutomatonUtil.asMutable(AutomatonUtil.cast(input, ParityAcceptance.class)),
+      MutableAutomatonUtil.asMutable(
+        OmegaAcceptanceCast.cast((Automaton<Object, ?>) input, ParityAcceptance.class)),
       new MutableAutomatonUtil.Sink()));
 
   public static final OwlModule<OwlModule.Transformer> CONVERSION_MODULE = OwlModule.of(
@@ -77,7 +78,8 @@ public final class ParityUtil {
       }
 
       return (Object input) -> {
-        var automaton = AutomatonUtil.cast(input, ParityAcceptance.class);
+        var automaton = OmegaAcceptanceCast.cast(
+          (Automaton<Object, ?>) input, ParityAcceptance.class);
         var target = automaton.acceptance().parity();
 
         if (toEven != null) {
@@ -93,8 +95,7 @@ public final class ParityUtil {
     })
   );
 
-  private ParityUtil() {
-  }
+  private ParityUtil() {}
 
   public static <S> MutableAutomaton<S, ParityAcceptance> complement(
     MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
@@ -123,17 +124,42 @@ public final class ParityUtil {
   public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
     Parity toParity, S sink) {
 
-    // TODO Check for "colored" property
     if (automaton.acceptance().parity().equals(toParity)) {
       return automaton;
     }
 
     var mutableAutomaton = MutableAutomatonUtil.asMutable(automaton);
-    // ensure that there is enough colours to have rejecting state.
+
+    // Ensure that there are enough colours to have a rejecting state.
     mutableAutomaton.updateAcceptance(x -> x.withAcceptanceSets(Math.max(3, x.acceptanceSets())));
     MutableAutomatonUtil.complete(mutableAutomaton, sink);
 
     ParityAcceptance fromAcceptance = mutableAutomaton.acceptance();
+
+    // Ensure automaton is coloured.
+    if (fromAcceptance.parity().max()) {
+      int colours = fromAcceptance.acceptanceSets();
+      mutableAutomaton.acceptance(fromAcceptance.withAcceptanceSets(colours + 2));
+      mutableAutomaton.updateEdges((state, edge) -> {
+        if (edge.hasAcceptanceSets()) {
+          return edge.withAcceptance(edge.largestAcceptanceSet() + 2);
+        }
+
+        return edge.withAcceptance(1);
+      });
+    } else {
+      int colours = fromAcceptance.acceptanceSets();
+      mutableAutomaton.acceptance(fromAcceptance.withAcceptanceSets(colours + 2));
+      mutableAutomaton.updateEdges((state, edge) -> {
+        if (edge.hasAcceptanceSets()) {
+          return edge.withAcceptance(edge.smallestAcceptanceSet() + 2);
+        }
+
+        return edge.withAcceptance(colours);
+      });
+    }
+
+    fromAcceptance = mutableAutomaton.acceptance();
     IntUnaryOperator mapping;
 
     if (fromAcceptance.parity().max() == toParity.max()) {
@@ -153,22 +179,19 @@ public final class ParityUtil {
 
       int newAcceptanceSets = acceptanceSets + offset;
       mapping = i -> newAcceptanceSets - i;
+
+      throw new UnsupportedOperationException(
+        "This combination of options is (currently) unsupported.");
     }
 
     var maximalNewAcceptance = new AtomicInteger(0);
 
     mutableAutomaton.updateEdges((state, edge) -> {
       if (!edge.hasAcceptanceSets()) {
-        // TODO: should this throw?
-        return edge;
+        throw new IllegalStateException();
       }
 
       int newAcceptance = mapping.applyAsInt(edge.smallestAcceptanceSet());
-
-      if (newAcceptance == -1) {
-        // TODO: should this throw?
-        return edge.withoutAcceptance();
-      }
 
       if (maximalNewAcceptance.get() < newAcceptance) {
         maximalNewAcceptance.set(newAcceptance);

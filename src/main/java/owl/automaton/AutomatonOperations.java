@@ -40,6 +40,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.ValuationSetFactory;
@@ -88,11 +89,11 @@ public final class AutomatonOperations {
       checkArgument(automaton.is(DETERMINISTIC), "Only deterministic automata supported");
 
       if (automaton.acceptance() instanceof AllAcceptance) {
-        builder.all.add(AutomatonUtil.cast(automaton, AllAcceptance.class));
+        builder.all.add(OmegaAcceptanceCast.cast(automaton, AllAcceptance.class));
       } else if (automaton.acceptance() instanceof CoBuchiAcceptance) {
-        builder.coBuchi.add(AutomatonUtil.cast(automaton, CoBuchiAcceptance.class));
+        builder.coBuchi.add(OmegaAcceptanceCast.cast(automaton, CoBuchiAcceptance.class));
       } else if (automaton.acceptance() instanceof GeneralizedBuchiAcceptance) {
-        builder.buchi.add(AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class));
+        builder.buchi.add(OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class));
         builder.acceptanceRemapping.add(offset);
         offset += automaton.acceptance().acceptanceSets();
       } else {

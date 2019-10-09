@@ -28,7 +28,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nonnull;
@@ -39,7 +38,6 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -48,6 +46,7 @@ import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.BooleanConstant;
+import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
@@ -211,7 +210,7 @@ public final class DeterministicConstructions {
     }
   }
 
-  public static final class Tracking extends Base<EquivalenceClass, NoneAcceptance> {
+  public static final class Tracking extends Base<EquivalenceClass, AllAcceptance> {
 
     public Tracking(Factories factories, boolean unfold) {
       super(factories, unfold);
@@ -219,8 +218,8 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    public NoneAcceptance acceptance() {
-      return NoneAcceptance.INSTANCE;
+    public AllAcceptance acceptance() {
+      return AllAcceptance.INSTANCE;
     }
 
     // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
@@ -245,82 +244,6 @@ public final class DeterministicConstructions {
     @Override
     public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
       return clazz.temporalStepTree(x -> Set.of(Edge.of(x.unfold())));
-    }
-  }
-
-  private abstract static class Looping<A extends OmegaAcceptance>
-    extends Base<EquivalenceClass, A> {
-    protected final EquivalenceClass initialState;
-    protected final ValuationTree<EquivalenceClass> initialStateSuccessorTree;
-
-    private Looping(Factories factories, boolean unfold, Formula formula,
-      Predicate<Formula> isSupported) {
-      super(factories, unfold);
-      Preconditions.checkArgument(isSupported.test(formula), formula);
-      this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
-      this.initialStateSuccessorTree = super.successorTreeInternal(initialState);
-    }
-
-    public final EquivalenceClass onlyInitialStateUnstepped() {
-      return initialState;
-    }
-
-    @Override
-    public final EquivalenceClass onlyInitialState() {
-      // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
-      // performing a single step.
-      return edge(onlyInitialStateUnstepped(), new BitSet()).successor();
-    }
-
-    @Nonnull
-    @Override
-    public final Edge<EquivalenceClass> edge(EquivalenceClass clazz, BitSet valuation) {
-      var successor = super.successorInternal(clazz, valuation);
-      var initialStateSuccessors = initialStateSuccessorTree.get(valuation);
-      return buildEdge(successor, initialStateSuccessors.iterator().next());
-    }
-
-    @Override
-    public final ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
-      var successorTree = super.successorTreeInternal(clazz);
-      return cartesianProduct(successorTree, initialStateSuccessorTree, this::buildEdge);
-    }
-
-    @Override
-    public final boolean is(Property property) {
-      if (property == Property.COMPLETE) {
-        return true;
-      }
-
-      return super.is(property);
-    }
-
-    protected abstract Edge<EquivalenceClass> buildEdge(EquivalenceClass successor,
-      EquivalenceClass initialStateSuccessor);
-  }
-
-  public static final class FgSafety extends Looping<CoBuchiAcceptance> {
-    public FgSafety(Factories factories, boolean unfold, Formula formula) {
-      super(factories, unfold, formula, SyntacticFragments::isFgSafety);
-    }
-
-    @Override
-    public CoBuchiAcceptance acceptance() {
-      return CoBuchiAcceptance.INSTANCE;
-    }
-
-    @Override
-    protected Edge<EquivalenceClass> buildEdge(
-      EquivalenceClass successor, EquivalenceClass initialStateSuccessor) {
-      if (!successor.isFalse()) {
-        return Edge.of(successor);
-      }
-
-      if (!initialStateSuccessor.isFalse()) {
-        return Edge.of(initialStateSuccessor, 0);
-      }
-
-      return Edge.of(initialState, 0);
     }
   }
 
@@ -549,7 +472,10 @@ public final class DeterministicConstructions {
     public CoSafetySafety(Factories factories, Formula formula) {
       super(factories, true);
       Preconditions.checkArgument(SyntacticFragments.isCoSafetySafety(formula)
-        && !SyntacticFragments.isFSafety(formula));
+        && !SyntacticFragments.isCoSafety(formula)
+        && !SyntacticFragments.isSafety(formula)
+        && (!(formula instanceof Disjunction)
+          || !((Disjunction) formula).children.stream().allMatch(SyntacticFragments::isFgSafety)));
       this.initialState = initialStateInternal(factory.of(formula));
     }
 

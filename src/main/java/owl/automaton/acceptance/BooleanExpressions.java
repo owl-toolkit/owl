@@ -19,7 +19,6 @@
 
 package owl.automaton.acceptance;
 
-import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -116,7 +115,7 @@ public final class BooleanExpressions {
     }
 
     if (!exp.isAND()) {
-      return Lists.newArrayList(exp);
+      return new ArrayList<>(List.of(exp));
     }
 
     List<BooleanExpression<T>> conjuncts = getConjuncts(exp.getLeft());
@@ -130,7 +129,7 @@ public final class BooleanExpressions {
     }
 
     if (!exp.isOR()) {
-      return Lists.newArrayList(exp);
+      return new ArrayList<>(List.of(exp));
     }
 
     List<BooleanExpression<T>> disjuncts = getDisjuncts(exp.getLeft());

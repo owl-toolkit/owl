@@ -19,44 +19,61 @@
 
 package owl.automaton.acceptance;
 
+import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
+
 import java.util.BitSet;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.stream.IntStream;
+import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.edge.Edge;
 
-public final class NoneAcceptance extends OmegaAcceptance {
-  public static final NoneAcceptance INSTANCE = new NoneAcceptance();
+public class GeneralizedCoBuchiAcceptance extends OmegaAcceptance {
+  @Nonnegative
+  public final int size;
 
-  private NoneAcceptance() {}
+  GeneralizedCoBuchiAcceptance(int size) {
+    this.size = size;
+  }
 
-  @Override
-  public int acceptanceSets() {
-    return 0;
+  public static GeneralizedCoBuchiAcceptance of(int size) {
+    return size == 1 ? CoBuchiAcceptance.INSTANCE : new GeneralizedCoBuchiAcceptance(size);
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
-    return new BooleanExpression<>(false);
+  public final int acceptanceSets() {
+    return size;
+  }
+
+  @Override
+  public final BooleanExpression<AtomAcceptance> booleanExpression() {
+    return createDisjunction(IntStream.range(0, size).mapToObj(BooleanExpressions::mkFin));
   }
 
   @Override
   public String name() {
-    return "none";
+    return "generalized-co-Buchi";
+  }
+
+  @Override
+  public List<Object> nameExtra() {
+    return List.of(size);
   }
 
   @Override
   public BitSet acceptingSet() {
-    throw new NoSuchElementException();
-  }
+    if (size == 0) {
+      throw new NoSuchElementException();
+    }
 
-  @Override
-  public BitSet rejectingSet() {
     return new BitSet();
   }
 
   @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return !edge.hasAcceptanceSets();
+  public BitSet rejectingSet() {
+    BitSet set = new BitSet();
+    set.set(0, size);
+    return set;
   }
 }

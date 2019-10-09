@@ -81,13 +81,15 @@
         "ltl2nba": {
             "tools": [
                 "ltl2nba",
-                "ltl2ngba"
+                "ltl2ngba",
+                "ltl2nba#disable-portfolio",
+                "ltl2ngba#disable-portfolio"
             ]
         },
         "ltl2nba-random": {
             "tools": [
-                "ltl2nba",
-                "ltl2ngba"
+                "ltl2nba#disable-portfolio",
+                "ltl2ngba#disable-portfolio"
             ],
             "data": "RANDOM"
         },
@@ -96,47 +98,55 @@
                 "ltl2ldba#asymmetric",
                 "ltl2ldba#symmetric",
                 "ltl2ldgba#asymmetric",
-                "ltl2ldgba#symmetric"
+                "ltl2ldgba#symmetric",
+                "ltl2ldba#asymmetric,disable-portfolio",
+                "ltl2ldba#symmetric,disable-portfolio",
+                "ltl2ldgba#asymmetric,disable-portfolio",
+                "ltl2ldgba#symmetric,disable-portfolio"
             ]
         },
         "ltl2ldba-random": {
             "tools": [
-                "ltl2ldba#asymmetric",
-                "ltl2ldba#symmetric",
-                "ltl2ldgba#asymmetric",
-                "ltl2ldgba#symmetric"
+                "ltl2ldba#asymmetric,disable-portfolio",
+                "ltl2ldba#symmetric,disable-portfolio",
+                "ltl2ldgba#asymmetric,disable-portfolio",
+                "ltl2ldgba#symmetric,disable-portfolio"
             ],
             "data": "RANDOM"
         },
         "ltl2dra": {
             "tools": [
                 "ltl2dra#symmetric",
-                "ltl2dgra#symmetric"
+                "ltl2dgra#symmetric",
+                "ltl2dra#symmetric,disable-portfolio",
+                "ltl2dgra#symmetric,disable-portfolio"
             ],
             "data": "L"
         },
         "ltl2dra-random": {
             "tools": [
-                "ltl2dra#symmetric",
-                "ltl2dgra#symmetric"
+                "ltl2dra#symmetric,disable-portfolio",
+                "ltl2dgra#symmetric,disable-portfolio"
             ],
             "data": "RANDOM"
         },
         "ltl2dpa": {
             "tools": [
                 "ltl2dpa#asymmetric",
-                "ltl2dpa#asymmetric,complement",
+                "ltl2dpa#asymmetric,disable-complement",
                 "ltl2dpa#symmetric",
-                "ltl2dpa#symmetric,complement"
+                "ltl2dpa#symmetric,disable-complement",
+                "ltl2dpa#asymmetric,disable-portfolio",
+                "ltl2dpa#asymmetric,disable-complement,disable-portfolio",
+                "ltl2dpa#symmetric,disable-portfolio",
+                "ltl2dpa#symmetric,disable-complement,disable-portfolio"
             ],
             "data": "L"
         },
         "ltl2dpa-random": {
             "tools": [
-                "ltl2dpa#asymmetric",
-                "ltl2dpa#asymmetric,complement",
-                "ltl2dpa#symmetric",
-                "ltl2dpa#symmetric,complement"
+                "ltl2dpa#asymmetric,disable-complement",
+                "ltl2dpa#symmetric,disable-complement"
             ],
             "data": "RANDOM"
         },
@@ -163,20 +173,17 @@
         },
         "rabinizer": {
             "tools": [
-                "ltl2dgra#asymmetric",
-                "ltl2dra#asymmetric",
+                "ltl2dgra#asymmetric,disable-portfolio",
+                "ltl2dra#asymmetric,disable-portfolio",
                 "rabinizer-dpa#asymmetric"
             ],
             "data": "M"
         },
         "ltl2dpa-convert": {
             "tools": [
-                "ltl2dpa-convert#max",
                 "ltl2dpa-convert#min",
                 "ltl2dpa-convert#even",
                 "ltl2dpa-convert#odd",
-                "ltl2dpa-convert#max,even",
-                "ltl2dpa-convert#max,odd",
                 "ltl2dpa-convert#min,even",
                 "ltl2dpa-convert#min,odd"
             ],

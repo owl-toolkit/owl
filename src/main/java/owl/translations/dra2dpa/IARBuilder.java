@@ -44,13 +44,13 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.Views;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -72,7 +72,7 @@ public final class IARBuilder<R> {
     "dra2dpa",
     "Converts a Rabin automaton into a parity automaton",
     (commandLine, environment) -> input -> new IARBuilder<>(
-      AutomatonUtil.cast(input, RabinAcceptance.class)).build());
+      OmegaAcceptanceCast.cast((Automaton<?, ?>) input, RabinAcceptance.class)).build());
 
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
@@ -247,7 +247,7 @@ public final class IARBuilder<R> {
       R transientSccState = scc.iterator().next();
       IARState<R> iarState = IARState.of(transientSccState);
       return new SccProcessingResult<>(interSccConnections,
-        AutomatonFactory.singleton(vsFactory, iarState, NoneAcceptance.INSTANCE));
+        AutomatonFactory.singleton(vsFactory, iarState, AllAcceptance.INSTANCE));
     }
 
     if (!seenAnyInfSet.get()) {

@@ -21,22 +21,27 @@ package owl.translations.modules;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
+import javax.annotation.Nullable;
+import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
+import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
+import owl.run.modules.OwlModule.Transformer;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 import owl.translations.rabinizer.RabinizerBuilder;
 import owl.translations.rabinizer.RabinizerConfiguration;
 
 public final class LTL2DGRAModule {
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+  public static final OwlModule<Transformer> MODULE = OwlModule.of(
     "ltl2dgra",
     "Translate LTL to deterministic generalized Rabin automata using either "
       + "a symmetric construction (default) based on a unified approach using the Master Theorem or"
@@ -44,14 +49,10 @@ public final class LTL2DGRAModule {
     AbstractLTL2DRAModule.options(),
     (commandLine, environment) -> {
       RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
-
-      if (configuration == null) {
-        return Transformers.fromFunction(LabelledFormula.class,
-          SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true));
-      } else {
-        return Transformers.fromFunction(LabelledFormula.class,
-          formula -> RabinizerBuilder.build(formula, environment, configuration));
-      }
+      boolean useSymmetric = configuration == null;
+      boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
+      return Transformer.of(LabelledFormula.class,
+        translation(environment, useSymmetric, usePortfolio, configuration));
     });
 
   private LTL2DGRAModule() {}
@@ -63,5 +64,37 @@ public final class LTL2DGRAModule {
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
+  }
+
+  public static Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>>
+    translation(Environment environment, boolean useSymmetric, boolean usePortfolio,
+    @Nullable RabinizerConfiguration configuration) {
+
+    Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>> construction;
+
+    if (useSymmetric) {
+      construction =
+        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)::apply;
+    } else {
+      assert configuration != null;
+      construction = labelledFormula ->
+        RabinizerBuilder.build(labelledFormula, environment, configuration);
+    }
+
+    DeterministicConstructionsPortfolio<GeneralizedRabinAcceptance> portfolio = usePortfolio
+      ? new DeterministicConstructionsPortfolio<>(GeneralizedRabinAcceptance.class, environment)
+      : null;
+
+    return labelledFormula -> {
+      if (portfolio != null) {
+        var automaton = portfolio.apply(labelledFormula);
+
+        if (automaton.isPresent()) {
+          return automaton.orElseThrow();
+        }
+      }
+
+      return construction.apply(labelledFormula);
+    };
   }
 }

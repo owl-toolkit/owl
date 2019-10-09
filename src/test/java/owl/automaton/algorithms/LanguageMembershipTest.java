@@ -39,7 +39,7 @@ import owl.translations.LTL2NAFunction;
 class LanguageMembershipTest {
 
   private static final Function<LabelledFormula, Automaton<?, ?>> deterministicTranslation
-    = new LTL2DAFunction(Environment.standard(), RabinAcceptance.class);
+    = new LTL2DAFunction(RabinAcceptance.class, Environment.standard());
 
   private static final Function<LabelledFormula, Automaton<?, ?>> nondeterministicTranslation
     = new LTL2NAFunction(Environment.standard());

@@ -28,7 +28,6 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
@@ -59,9 +58,8 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     builder = ProductState.builder();
     this.constructor = formula -> automatonCache.computeIfAbsent(formula, x ->
       AcceptanceOptimizations.optimize(
-        MutableAutomatonUtil.asMutable(
-          constructor.apply(LabelledFormula.of(x, this.factory.variables())))
-      ));
+        constructor.apply(LabelledFormula.of(x, this.factory.variables())))
+      );
   }
 
   ProductState<T> buildInitialState() {

@@ -1,12 +1,16 @@
 package owl.run.modules;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.auto.value.AutoValue;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.function.Consumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.run.Environment;
@@ -29,6 +33,11 @@ public abstract class OwlModule<M extends OwlModule.Instance> {
   public static <M extends OwlModule.Instance> OwlModule<M>
   of(String key, String description, Supplier<Options> supplier, Constructor<M> constructor) {
     return of(key, description, supplier.get(), constructor);
+  }
+
+  public static <M extends OwlModule.Instance> OwlModule<M>
+  of(String key, String description, Option option, Constructor<M> constructor) {
+    return of(key, description, new Options().addOption(option), constructor);
   }
 
   public static <M extends OwlModule.Instance> OwlModule<M>
@@ -74,6 +83,14 @@ public abstract class OwlModule<M extends OwlModule.Instance> {
   @FunctionalInterface
   public interface Transformer extends Instance {
     Object transform(Object object);
+
+    static <K, V> Transformer of(Class<K> inputClass, Function<K, V> function) {
+      return object -> {
+        checkArgument(inputClass.isInstance(object),
+          "Expected type %s, got type %s", inputClass, object.getClass());
+        return function.apply(inputClass.cast(object));
+      };
+    }
   }
 
   /**

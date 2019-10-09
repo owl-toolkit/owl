@@ -20,32 +20,17 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
-import java.util.List;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import owl.automaton.edge.Edge;
 
-public final class CoBuchiAcceptance extends OmegaAcceptance {
+public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
   public static final CoBuchiAcceptance INSTANCE = new CoBuchiAcceptance();
 
-  @Override
-  public int acceptanceSets() {
-    return 1;
-  }
-
-  @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
-    return BooleanExpressions.mkFin(0);
+  private CoBuchiAcceptance() {
+    super(1);
   }
 
   @Override
   public String name() {
     return "co-Buchi";
-  }
-
-  @Override
-  public List<Object> nameExtra() {
-    return List.of();
   }
 
   @Override
@@ -58,10 +43,5 @@ public final class CoBuchiAcceptance extends OmegaAcceptance {
     BitSet set = new BitSet();
     set.set(0);
     return set;
-  }
-
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.largestAcceptanceSet() <= 0;
   }
 }

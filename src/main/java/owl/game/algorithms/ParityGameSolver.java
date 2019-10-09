@@ -32,14 +32,13 @@ import owl.automaton.edge.Edge;
 import owl.game.Game;
 import owl.game.GameViews;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
 
 public final class ParityGameSolver {
   // TODO: should be returning a winning region or strategy
   public static final OwlModule<OwlModule.Transformer> ZIELONKA_SOLVER = OwlModule.of(
     "zielonka",
     "Solves a game using Zielonka's algorithm",
-    (commandLine, environment) -> Transformers.fromFunction(Game.class, x -> {
+    (commandLine, environment) -> OwlModule.Transformer.of(Game.class, x -> {
       WinningRegions<?> winning = recursiveZielonka(x);
       return winning.player2.contains(x.onlyInitialState())
         ? "The specification is REALISABLE"
