@@ -262,8 +262,11 @@ inline jstring copy_to_java(JNIEnv *env, const std::string &string) {
 }
 
 inline jintArray copy_to_java(JNIEnv *env, jsize len, const jint *buf) {
-    jintArray array = ref(env, env->NewIntArray(len));
+    jintArray local_array = env->NewIntArray(len);
+    check_exception(env, "Failed to allocate int array in Java.");
+    jintArray array = make_global(env, local_array);
     env->SetIntArrayRegion(array, 0, len, buf);
+    check_exception(env, "Failed to copy int array to Java.");
     return array;
 }
 
