@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -23,6 +23,9 @@ import static owl.translations.TranslationAutomatonSummaryTest.AutomatonSummary;
 import static owl.translations.TranslationAutomatonSummaryTest.COMMON_ALPHABET;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet;
 import static owl.translations.TranslationAutomatonSummaryTest.Translator;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBasedTable;
@@ -35,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +69,8 @@ import owl.ltl.visitors.LatexPrintVisitor;
 import owl.run.Environment;
 import owl.translations.ExternalTranslator.InputMode;
 import owl.translations.dra2dpa.IARBuilder;
+import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2dpa.TypenessDPAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 import owl.translations.modules.LTL2DPAModule;
 import owl.translations.modules.LTL2LDBAModule;
@@ -209,10 +215,10 @@ class TranslationReport {
     // Without Portfolio.
 
     var dpa_ldba_asymmetric = new Translator("\\LDone", environment ->
-      LTL2DPAModule.translation(environment, false, false, false));
+      LTL2DPAModule.ldbaTranslation(environment, false, false, false));
 
     var dpa_ldba_symmetric = new Translator("\\LDtwo", environment ->
-      LTL2DPAModule.translation(environment, true, false, false));
+      LTL2DPAModule.ldbaTranslation(environment, true, false, false));
 
     var dpa_iar_asymmetric = new Translator("\\Done", environment -> formula -> {
       var dgra = RabinizerBuilder.build(formula, environment, configuration);
@@ -236,8 +242,8 @@ class TranslationReport {
     // With Portfolio
 
     var dpa_ldba_asymmetric_portfolio = new Translator("\\LDp", environment -> {
-      var translation1 = LTL2DPAModule.translation(environment, false, true, true);
-      var translation2 = LTL2DPAModule.translation(environment, true, true, true);
+      var translation1 = LTL2DPAModule.ldbaTranslation(environment, false, true, true);
+      var translation2 = LTL2DPAModule.ldbaTranslation(environment, true, true, true);
       return labelledFormula -> {
         var automaton1 = translation1.apply(labelledFormula);
         var automaton2 = translation2.apply(labelledFormula);
@@ -382,6 +388,86 @@ class TranslationReport {
       formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
       resultTable,
       OmegaAcceptance::acceptanceSets, 100, false);
+
+    try (Writer writer = Files.newBufferedWriter(
+      Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
+      writer.write(latexReport);
+    }
+  }
+
+  @Tag("size-report")
+  @ParameterizedTest
+  @EnumSource(
+    value = FormulaSet.class,
+    names = {"DWYER", "PARAMETRISED"}) // "LIBEROUTER", "PELANEK", "ETESSAMI", "SOMENZI",
+  void generateParityLatexReport(FormulaSet set) throws IOException {
+    var dpa_ldba_asymmetric = new Translator("DPA (LDBA, asymmetric)", environment ->
+      new LTL2DPAFunction(environment, EnumSet.of(OPTIMISE_INITIAL_STATE, COMPRESS_COLOURS)));
+
+    var dpa_ldba_symmetric = new Translator("DPA (LDBA, symmetric)", environment ->
+      new LTL2DPAFunction(environment,
+        EnumSet.of(SYMMETRIC, OPTIMISE_INITIAL_STATE, COMPRESS_COLOURS)));
+
+    var configuration = RabinizerConfiguration.of(true, true, true);
+
+    var dpa_iar_asymmetric = new Translator("DPA (IAR, asymmetric)", environment -> formula -> {
+      var dgra = RabinizerBuilder.build(formula, environment, configuration);
+      var optimisedDgra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
+
+      var dra = RabinDegeneralization.degeneralize(optimisedDgra);
+      var optimisedDra = OmegaAcceptanceCast.cast(dra, RabinAcceptance.class);
+      //  var optimisedDra = OmegaAcceptanceCast.cast(
+      //    AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+
+      return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
+    });
+
+    var dpa_iar_symmetric = new Translator("DPA (IAR, symmetric)", environment -> formula ->
+      new IARBuilder<>(
+        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula),
+        ParityAcceptance.Parity.MAX_EVEN)
+        .build());
+
+    var dpa_typeness = new Translator("DPA (typeness)", environment -> formula
+      -> TypenessDPAConstruction.of(environment).apply(formula));
+
+    //var portfolio = List.of(new Translator("ltl2tgba (portfolio)", environment
+    //  -> new ExternalTranslator(ltl2tgbaCommand, InputMode.REPLACE, environment)));
+
+    var translators = List.of(List.of(dpa_ldba_asymmetric, dpa_ldba_symmetric, dpa_iar_asymmetric, dpa_iar_symmetric, dpa_typeness));
+    var formulaSet = set.loadAndDeduplicateFormulaSet();
+
+    Table<Formula, String, AutomatonSummary> resultTable = HashBasedTable.create();
+
+    for (List<Translator> group : translators) {
+      for (Translator translator : group) {
+        var translatorFunction = translator.constructor.apply(Environment.standard());
+
+        for (LabelledFormula formula : formulaSet) {
+          var summary = AutomatonSummary.of(() -> translatorFunction.apply(formula));
+          var negationSummary = AutomatonSummary.of(() -> translatorFunction.apply(formula.not()));
+
+          if (summary != null) {
+            resultTable.put(formula.formula(), translator.name, summary);
+          }
+
+          if (negationSummary != null) {
+            resultTable.put(formula.formula().not(), translator.name, negationSummary);
+          }
+        }
+      }
+    }
+
+    var latexReport = LatexReport.create(
+      translators.stream()
+        .map(x -> Collections3.transformList(x, y -> y.name))
+        .collect(Collectors.toList()),
+      Map.of(),
+      set.name().toLowerCase(),
+      formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
+      resultTable,
+      OmegaAcceptance::acceptanceSets, 25, false);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {

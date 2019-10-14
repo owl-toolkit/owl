@@ -51,20 +51,20 @@ public abstract class NullablePair<A, B> {
     return pairs;
   }
 
-  public Pair<B,A> swap() {
-    return Pair.of(snd(), fst());
+  public final NullablePair<B, A> swap() {
+    return NullablePair.of(snd(), fst());
   }
 
-  public <C> Pair<C,B> mapFst(Function<A,C> fun) {
-    return Pair.<C,B>of(fun.apply(fst()), snd());
+  public final <C> NullablePair<C, B> mapFst(Function<A, C> mapper) {
+    return NullablePair.of(mapper.apply(fst()), snd());
   }
 
-  public <C> Pair<A,C> mapSnd(Function<B,C> fun) {
-    return Pair.<A,C>of(fst(), fun.apply(snd()));
+  public final <C> NullablePair<A, C> mapSnd(Function<B,C> mapper) {
+    return NullablePair.of(fst(), mapper.apply(snd()));
   }
 
   @Override
-  public String toString() {
-    return "(" + fst() + "," + snd() + ")";
+  public final String toString() {
+    return String.format("(%s, %s)", fst(), snd());
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -214,9 +214,9 @@ class HashMapAutomatonTest {
 
     assertAll(
       () -> automaton.edgeMap("1").forEach((x, y)
-      -> x.acceptanceSetIterator().forEachRemaining((int z) -> assertEquals(0, z))),
+      -> x.forEachAcceptanceSet((int z) -> assertEquals(0, z))),
       () -> automaton.edgeMap("2").forEach((x, y)
-      -> x.acceptanceSetIterator().forEachRemaining((int z) -> assertEquals(1, z)))
+      -> x.forEachAcceptanceSet((int z) -> assertEquals(1, z)))
     );
 
     assertTrue(automaton.checkConsistency(), "Automaton is inconsistent.");

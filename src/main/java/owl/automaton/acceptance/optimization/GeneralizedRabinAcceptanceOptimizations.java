@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -130,7 +130,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) ->
-      edge.acceptanceSetIterator().forEachRemaining((int index) -> {
+      edge.forEachAcceptanceSet((int index) -> {
         BitSet consequences = impliesMap[index];
         BitSets.forEach(consequences, consequent -> {
           if (!edge.inSet(consequent)) {
@@ -270,7 +270,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     automaton.updateEdges((state, edge) -> {
       BitSet newAcceptance = new BitSet();
 
-      edge.acceptanceSetIterator().forEachRemaining(
+      edge.forEachAcceptanceSet(
         (int index) -> {
           IntSet indexRemapping = remapping.get(index);
           if (indexRemapping == null) {
@@ -322,8 +322,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
         return edge;
       }
 
-      BitSet modifiedAcceptance = new BitSet(edge.largestAcceptanceSet());
-      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) modifiedAcceptance::set);
+      BitSet modifiedAcceptance = edge.acceptanceSets();
       pairs.get(overlapIndex).forEachInfSet(modifiedAcceptance::clear);
 
       for (int index = overlapIndex + 1; index < pairs.size(); index++) {
@@ -366,7 +365,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
           if (scc.contains(edge.successor())) {
-            edge.acceptanceSetIterator().forEachRemaining((int index) ->
+            edge.forEachAcceptanceSet((int index) ->
               BitSets.forEach(impliesMap[index], consequent -> {
                 if (!edge.inSet(consequent)) {
                   impliesMap[index].clear(consequent);
@@ -567,7 +566,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     IntSet occurringIndices = new IntOpenHashSet();
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> {
-      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) occurringIndices::add);
+      edge.forEachAcceptanceSet(occurringIndices::add);
       indicesOnEveryEdge.removeIf((int index) -> !edge.inSet(index));
     });
 

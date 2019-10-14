@@ -132,14 +132,16 @@
         },
         "ltl2dpa": {
             "tools": [
-                "ltl2dpa#asymmetric",
-                "ltl2dpa#asymmetric,disable-complement",
-                "ltl2dpa#symmetric",
-                "ltl2dpa#symmetric,disable-complement",
-                "ltl2dpa#asymmetric,disable-portfolio",
-                "ltl2dpa#asymmetric,disable-complement,disable-portfolio",
-                "ltl2dpa#symmetric,disable-portfolio",
-                "ltl2dpa#symmetric,disable-complement,disable-portfolio"
+                "ltl2dpa#ldba-asymmetric",
+                "ltl2dpa#ldba-asymmetric,disable-complement",
+                "ltl2dpa#ldba-symmetric",
+                "ltl2dpa#ldba-symmetric,disable-complement",
+                "ltl2dpa#ldba-asymmetric,disable-portfolio",
+                "ltl2dpa#ldba-asymmetric,disable-complement,disable-portfolio",
+                "ltl2dpa#ldba-symmetric,disable-portfolio",
+                "ltl2dpa#ldba-symmetric,disable-complement,disable-portfolio",
+                "ltl2dpa#typeness-dra-asymmetric",
+                "ltl2dpa#typeness-dra-symmetric"
             ],
             "data": "L"
         },

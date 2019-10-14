@@ -12,6 +12,7 @@
     <suppress files="owl[\\/]cinterface[\\/]CAutomaton" checks=".*"/>
     <suppress files="owl[\\/]automaton[\\/]acceptance[\\/]BooleanExpressions" checks=".*"/>
 
+    <suppress files="owl[\\/]run[\\/]parser[\\/]OwlParser" checks="AvoidEscapedUnicodeCharacters"/>
     <suppress files="FG.*|.+2.+|.*DPA.*" checks="AbbreviationAsWordInName"/>
 
     <!-- Soon we will doc everything ... -->

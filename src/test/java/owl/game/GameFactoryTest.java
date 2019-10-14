@@ -22,11 +22,11 @@ package owl.game;
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -46,12 +46,12 @@ public class GameFactoryTest {
     var automaton = translate(formula);
     var game = GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
 
-    for (Node<Object> state : game.states()) {
-      for (Node<Object> predecessor : game.predecessors(state)) {
+    for (Node<Optional<?>> state : game.states()) {
+      for (Node<Optional<?>> predecessor : game.predecessors(state)) {
         assertThat(state, game.successors(predecessor)::contains);
       }
 
-      for (Node<Object> successors : game.successors(state)) {
+      for (Node<Optional<?>> successors : game.successors(state)) {
         assertThat(state, game.predecessors(successors)::contains);
       }
     }
@@ -65,8 +65,8 @@ public class GameFactoryTest {
 
     var winningStates = game.states().stream()
       .filter(x -> {
-        var state = (AnnotatedState) x.state();
-        return ((EquivalenceClass) state.state()).isTrue();
+        var state = x.state();
+        return ((EquivalenceClass) ((AnnotatedState) state.get()).state()).isTrue();
       }).collect(Collectors.toSet());
     assertThat(winningStates, x -> !x.isEmpty());
 
@@ -79,12 +79,11 @@ public class GameFactoryTest {
       x -> !x.contains(game.onlyInitialState()));
   }
 
-  public static Automaton<Object, ParityAcceptance> translate(LabelledFormula x) {
+  public static Automaton<Optional<?>, ParityAcceptance> translate(LabelledFormula x) {
     var dpa = new LTL2DPAFunction(
       Environment.annotated(), LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
-    var complete = Views.complete(
-      OmegaAcceptanceCast.cast((Automaton<Object, ?>) dpa, ParityAcceptance.class),
-      new MutableAutomatonUtil.Sink());
-    return OmegaAcceptanceCast.cast(complete, ParityAcceptance.class);
+    return OmegaAcceptanceCast.cast(
+      (Automaton) Views.completeWithOptional(dpa),
+      ParityAcceptance.class);
   }
 }

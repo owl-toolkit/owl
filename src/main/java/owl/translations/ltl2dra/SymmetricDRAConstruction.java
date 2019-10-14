@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -30,7 +30,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.AnnotatedStateOptimisation;
@@ -153,7 +152,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
         if (SyntacticFragments.isSafety(clazz)) {
           if (safetyRabinPair.hasInfSet()) {
             BitSet acceptanceSets = new BitSet();
-            safetyRabinPair.infSetIterator().forEachRemaining((IntConsumer) acceptanceSets::set);
+            safetyRabinPair.infSetStream().forEach(acceptanceSets::set);
             return Edge.of(SymmetricRankingState.of(successor), acceptanceSets);
           }
 
@@ -192,7 +191,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
           acceptance.set(pair.finSet());
         } else {
           successorTable.put(index, fixpoints, edge.successor());
-          edge.acceptanceSetIterator().forEachRemaining((int i) -> acceptance.set(pair.infSet(i)));
+          edge.forEachAcceptanceSet((int i) -> acceptance.set(pair.infSet(i)));
         }
       }
 

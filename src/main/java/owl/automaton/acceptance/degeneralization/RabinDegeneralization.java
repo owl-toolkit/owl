@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -28,7 +28,6 @@ import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
 import de.tum.in.naturals.Indices;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -129,7 +128,7 @@ public final class RabinDegeneralization {
       IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
       Indices.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfSet();
-        if (IntIterators.all(pair.infSetIterator(), indices::get)) {
+        if (pair.infSetStream().allMatch(indices::get)) {
           sccTrackedPairs.add(pairIndex);
         }
       });

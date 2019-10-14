@@ -20,7 +20,6 @@
 package owl.collections;
 
 import com.google.auto.value.AutoValue;
-
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -51,20 +50,20 @@ public abstract class Pair<A, B> {
     return pairs;
   }
 
-  public Pair<B,A> swap() {
+  public final Pair<B, A> swap() {
     return Pair.of(snd(), fst());
   }
 
-  public <C> Pair<C,B> mapFst(Function<A,C> fun) {
-    return Pair.<C,B>of(fun.apply(fst()), snd());
+  public final <C> Pair<C, B> mapFst(Function<A,C> mapper) {
+    return Pair.of(mapper.apply(fst()), snd());
   }
 
-  public <C> Pair<A,C> mapSnd(Function<B,C> fun) {
-    return Pair.<A,C>of(fst(), fun.apply(snd()));
+  public final <C> Pair<A, C> mapSnd(Function<B,C> mapper) {
+    return Pair.of(fst(), mapper.apply(snd()));
   }
 
   @Override
-  public String toString() {
-    return "(" + fst() + "," + snd() + ")";
+  public final String toString() {
+    return String.format("(%s, %s)", fst(), snd());
   }
 }

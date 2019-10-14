@@ -125,11 +125,11 @@ public final class AutomatonUtil {
     BitSet set = new BitSet();
 
     for (S state : states) {
-      automaton.edges(state).forEach(edge -> {
+      for (Edge<S> edge : automaton.edges(state)) {
         if (states.contains(edge.successor())) {
-          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) set::set);
+          edge.forEachAcceptanceSet(set::set);
         }
-      });
+      }
     }
 
     return set;
@@ -147,21 +147,21 @@ public final class AutomatonUtil {
     switch (automaton.preferredEdgeAccess().get(0)) {
       case EDGES:
         automaton.accept((state, valuation, edge) ->
-          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set));
+          edge.forEachAcceptanceSet(indices::set));
         break;
 
       case EDGE_MAP:
         automaton.accept((EdgeMapVisitor<S>) (state, edgeMap) -> edgeMap.forEach((edge, set) ->
-          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set)));
+          edge.forEachAcceptanceSet((IntConsumer) indices::set)));
         break;
 
       case EDGE_TREE:
         automaton.accept((Automaton.EdgeTreeVisitor<S>) (state, tree) -> tree.flatValues().forEach(
-          edge -> edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set)));
+          edge -> edge.forEachAcceptanceSet((IntConsumer) indices::set)));
         break;
 
       default:
-        throw new AssertionError("Unreable.");
+        throw new AssertionError("Unreachable.");
     }
 
     return indices;

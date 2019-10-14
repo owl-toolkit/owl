@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -21,6 +21,7 @@ package owl.automaton.hoa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static owl.util.Assertions.assertThat;
 
 import java.util.BitSet;
@@ -234,19 +235,19 @@ class HoaReaderTest {
 
     HoaState initialState = automaton.onlyInitialState();
     HoaState successor = automaton.successor(initialState, createBitSet(false, false));
-    assertThat(successor, Objects::nonNull);
+    assertNotNull(successor);
 
     Edge<HoaState> initialToSucc = automaton.edge(initialState, createBitSet(false, false));
-    assertThat(initialToSucc, Objects::nonNull);
-    assertThat(initialToSucc.acceptanceSetIterator().nextInt(), x -> x == 2);
+    assertNotNull(initialToSucc);
+    assertThat(initialToSucc.smallestAcceptanceSet(), x -> x == 2);
 
     Edge<HoaState> succToInitial = automaton.edge(successor, createBitSet(true, false));
-    assertThat(succToInitial, Objects::nonNull);
-    assertThat(succToInitial.acceptanceSetIterator().nextInt(), x -> x == 1);
+    assertNotNull(succToInitial);
+    assertThat(succToInitial.smallestAcceptanceSet(), x -> x == 1);
 
     Edge<HoaState> succToSucc = automaton.edge(successor, createBitSet(false, true));
-    assertThat(succToSucc, Objects::nonNull);
-    assertFalse(succToSucc.acceptanceSetIterator().hasNext());
+    assertNotNull(succToSucc);
+    assertEquals(Integer.MAX_VALUE, succToSucc.smallestAcceptanceSet());
   }
 
   @Test

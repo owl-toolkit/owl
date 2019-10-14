@@ -34,9 +34,9 @@ import java.util.function.IntUnaryOperator;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationTree<E> {
-  private ValuationTree() {
-  }
+  private ValuationTree() {}
 
+  @SuppressWarnings("unchecked")
   public static <E> ValuationTree<E> of() {
     return (ValuationTree<E>) Leaf.EMPTY;
   }
@@ -102,7 +102,7 @@ public abstract class ValuationTree<E> {
     Set<Set<E>> values, Set<ValuationTree<E>> seenNodes);
 
   public static final class Leaf<E> extends ValuationTree<E> {
-    private static final ValuationTree<Object> EMPTY = new Leaf<>(Set.of());
+    private static final ValuationTree<?> EMPTY = new Leaf<>(Set.of());
 
     public final Set<E> value;
 

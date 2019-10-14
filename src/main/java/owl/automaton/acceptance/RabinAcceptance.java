@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -118,13 +118,11 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   }
 
   public static final class Builder {
-    private final List<RabinPair> pairs = new ArrayList<>(); // NOPMD
-    private int sets = 0;
+    private final List<RabinPair> pairs = new ArrayList<>();
 
     public RabinPair add() {
-      RabinPair pair = new RabinPair(sets, sets + 1);
+      RabinPair pair = RabinPair.of(2 * pairs.size());
       pairs.add(pair);
-      sets += 2;
       return pair;
     }
 

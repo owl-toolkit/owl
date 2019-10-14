@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -55,6 +55,11 @@ public interface SuccessorFunction<S> extends Function<S, Collection<S>> {
 
   static <S> SuccessorFunction<S> filter(Automaton<S, ?> automaton,
     Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    return filter(automaton::edges, states, edgeFilter);
+  }
+
+  static <S> SuccessorFunction<S> filter(Function<S, ? extends Collection<Edge<S>>> edges,
+    Set<S> states, Predicate<Edge<S>> edgeFilter) {
     return state -> {
       if (!states.contains(state)) {
         return List.of();
@@ -62,7 +67,7 @@ public interface SuccessorFunction<S> extends Function<S, Collection<S>> {
 
       List<S> successors = new ArrayList<>();
 
-      automaton.edges(state).forEach(edge -> {
+      edges.apply(state).forEach(edge -> {
         if (edgeFilter.test(edge) && states.contains(edge.successor())) {
           successors.add(edge.successor());
         }
@@ -70,5 +75,9 @@ public interface SuccessorFunction<S> extends Function<S, Collection<S>> {
 
       return successors;
     };
+  }
+
+  static <S> SuccessorFunction<S> of(Function<S, ? extends Collection<S>> successorFunction) {
+    return successorFunction::apply;
   }
 }

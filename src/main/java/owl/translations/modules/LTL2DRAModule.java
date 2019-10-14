@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import org.apache.commons.cli.CommandLine;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
@@ -48,13 +49,8 @@ public final class LTL2DRAModule {
       + "a symmetric construction (default) based on a unified approach using the Master Theorem or"
       + " an asymmetric construction, also known as the \"Rabinizer construction\".",
     AbstractLTL2DRAModule.options(),
-    (commandLine, environment) -> {
-      RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
-      boolean useSymmetric = configuration == null;
-      boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
-      return OwlModule.LabelledFormulaTransformer
-        .of(translation(environment, useSymmetric, usePortfolio, configuration));
-    });
+    (commandLine, environment)
+    -> OwlModule.LabelledFormulaTransformer.of(translation(environment, commandLine)));
 
   private LTL2DRAModule() {}
 
@@ -65,6 +61,15 @@ public final class LTL2DRAModule {
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
+  }
+
+  public static Function<LabelledFormula, Automaton<?, RabinAcceptance>>
+    translation(Environment environment, CommandLine commandLine) {
+
+    RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
+    boolean useSymmetric = configuration == null;
+    boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
+    return translation(environment, useSymmetric, usePortfolio, configuration);
   }
 
   public static Function<LabelledFormula, Automaton<?, RabinAcceptance>>

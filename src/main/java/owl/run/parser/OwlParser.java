@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -58,7 +58,7 @@ public final class OwlParser {
 
     logger.log(Level.FINE, "Parsing arguments list {0}", Arrays.toString(arguments));
     if (arguments.length == 0 || ParseUtil.isHelp(arguments)) {
-      ParseUtil.println("This is owl. Owl is a flexible "
+      ParseUtil.println("This is Owl (\uD83E\uDD89). Owl is a flexible "
         + "tool for various translations involving automata. To allow for great flexibility and "
         + "rapid prototyping, it was equipped with a very flexible module-based command line "
         + "interface. You can specify a specific translation in the following way:\n"

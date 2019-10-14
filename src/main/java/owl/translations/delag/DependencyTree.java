@@ -195,14 +195,16 @@ abstract class DependencyTree<T> {
       T fallbackState = state.productState.fallback().get(formula);
       var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
       var acceptanceSets = edge == null
-        ? automaton.acceptance().rejectingSet().orElseThrow().stream().iterator()
-        : edge.acceptanceSetIterator();
+        ? automaton.acceptance().rejectingSet().orElseThrow()
+        : edge.acceptanceSets();
 
       // Shift acceptance sets.
       BitSet set = new BitSet();
-      acceptanceSets.forEachRemaining((int x) -> set.set(x + acceptanceSet));
+      acceptanceSets.stream().forEach((int x) -> set.set(x + acceptanceSet));
       return set;
     }
+
+
 
     @Override
     BooleanExpression<AtomAcceptance> getAcceptanceExpression() {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -22,7 +22,6 @@ package owl.automaton.algorithm;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
@@ -189,7 +188,7 @@ public final class LanguageEmptiness {
               continue;
             }
 
-            successorEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) remaining::clear);
+            successorEdge.forEachAcceptanceSet(remaining::clear);
 
             if (remaining.isEmpty()) {
               return true;
@@ -282,8 +281,7 @@ public final class LanguageEmptiness {
                   continue;
                 }
 
-                edge.acceptanceSetIterator()
-                  .forEachRemaining((IntConsumer) awaitedIndices::clear);
+                edge.forEachAcceptanceSet(awaitedIndices::clear);
 
                 if (awaitedIndices.isEmpty()) {
                   // This edge yields an accepting cycle

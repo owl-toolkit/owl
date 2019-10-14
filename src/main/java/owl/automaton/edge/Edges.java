@@ -23,8 +23,7 @@ import java.util.Set;
 import owl.collections.Collections3;
 
 public final class Edges {
-  private Edges() {
-  }
+  private Edges() {}
 
   public static <S> Set<S> successors(Set<Edge<S>> edges) {
     return Collections3.transformSet(edges, Edge::successor);

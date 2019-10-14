@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -148,18 +147,26 @@ public class TranslationAutomatonSummaryTest {
         LTL2LDGBAModule.translation(environment, true, true)),
 
       new Translator("dpa.asymmetric", environment ->
-        LTL2DPAModule.translation(environment, false, false, false),
+        LTL2DPAModule.ldbaTranslation(environment, false, false, false),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("dpa.asymmetric.portfolio", environment ->
-        LTL2DPAModule.translation(environment, false, false, true),
+        LTL2DPAModule.ldbaTranslation(environment, false, false, true),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("dpa.symmetric", environment ->
-        LTL2DPAModule.translation(environment, true, false, false),
+        LTL2DPAModule.ldbaTranslation(environment, true, false, false),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
       new Translator("dpa.symmetric.portfolio", environment ->
-        LTL2DPAModule.translation(environment, true, false, true),
+        LTL2DPAModule.ldbaTranslation(environment, true, false, true),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+
+      new Translator("dpa.typeness.symmetric", environment ->
+        LTL2DPAModule.typenessTranslation(
+          LTL2DRAModule.translation(environment, true, false, null)),
+        EnumSet.of(LIBEROUTER, SIZE_FGGF)),
+      new Translator("dpa.typeness.symmetric.portfolio", environment ->
+        LTL2DPAModule.typenessTranslation(LTL2DRAModule.translation(environment, true, true, null)),
+        EnumSet.of(LIBEROUTER, SIZE_FGGF)),
 
       // TODO: Investigate one minute difference
       new Translator("dra.symmetric", environment ->
@@ -451,6 +458,7 @@ public class TranslationAutomatonSummaryTest {
           assertNotNull(properties);
           properties.test(automaton);
         } catch (IllegalArgumentException | UnsupportedOperationException ex) {
+          ex.printStackTrace(System.err);
           assertNull(properties, ex.getMessage());
         }
       });
@@ -486,7 +494,7 @@ public class TranslationAutomatonSummaryTest {
           automaton.acceptance(),
           automaton.is(Automaton.Property.DETERMINISTIC),
           automaton.is(Automaton.Property.COMPLETE));
-      } catch (IllegalArgumentException | UnsupportedOperationException | CompletionException ex) {
+      } catch (IllegalArgumentException | UnsupportedOperationException ex) {
         return null;
       }
     }

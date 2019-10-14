@@ -58,10 +58,13 @@
             "output": "hoa",
             "name": "ltl2dpa",
             "flags": {
-                "asymmetric": "--asymmetric",
-                "symmetric": "--symmetric",
-                "disable-complement": "--disable-complement",
-                "disable-portfolio": "--disable-portfolio"
+                "ldba-asymmetric":         "--ldba='--asymmetric'",
+                "ldba-symmetric":          "--ldba='--symmetric'",
+                "typeness-dra-asymmetric": "--typeness='--asymmetric'",
+                "typeness-dra-symmetric":  "--typeness='--symmetric'",
+                "iar-dra-asymmetric":      "TBD",
+                "iar-dra-symmetric":       "TBD",
+                "disable-portfolio":       "--disable-portfolio"
             },
             "pre": [
                 "simplify-ltl"

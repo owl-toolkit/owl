@@ -25,7 +25,6 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.BooleanOperations;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.determinization.Determinization;
 
 public final class LanguageContainment {
@@ -47,9 +46,10 @@ public final class LanguageContainment {
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
       "Second argument needs to be deterministic.");
 
-    var automaton2Complement = BooleanOperations.deterministicComplement(
-      (Automaton<Object, ?>) automaton2, new Object(), EmersonLeiAcceptance.class);
-    var intersection = BooleanOperations.intersection(automaton1, automaton2Complement,true);
+    var intersection = BooleanOperations.intersection(
+      automaton1,
+      BooleanOperations.deterministicComplement(automaton2),
+      true);
 
     return LanguageEmptiness.isEmpty(intersection);
   }

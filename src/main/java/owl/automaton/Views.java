@@ -32,6 +32,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -44,6 +45,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
@@ -56,13 +58,12 @@ public final class Views {
   public static final OwlModule<OwlModule.Transformer> COMPLETE_MODULE = OwlModule.of(
     "complete",
     "Make the transition relation of an automaton complete by adding a sink-state.",
-    (commandLine, environment) ->
-      AutomatonTransformer.of(automaton ->
-        Views.complete(automaton, new MutableAutomatonUtil.Sink())));
+    (commandLine, environment) -> AutomatonTransformer.of(Views::completeWithOptional));
 
   private Views() {}
 
-  public static <S> Automaton<S, ?> complete(Automaton<S, ?> automaton, S trapState) {
+  public static <S> Automaton<S, ?> complete(Automaton<S, ?> automaton, S rejectingSink) {
+    assert !automaton.states().contains(rejectingSink);
     var acceptance = automaton.acceptance();
 
     // Patch acceptance, if necessary.
@@ -75,7 +76,80 @@ public final class Views {
     OmegaAcceptance finalAcceptance = acceptance;
     BitSet rejectingSet = acceptance.rejectingSet()
       .orElseThrow(() -> new NoSuchElementException("No rejecting set for " + finalAcceptance));
-    return new Complete<>(automaton, Edge.of(trapState, rejectingSet), acceptance);
+    return new Complete<>(automaton, Edge.of(rejectingSink, rejectingSet), acceptance);
+  }
+
+  public static <S> Automaton<Optional<S>, ?> completeWithOptional(Automaton<S, ?> automaton) {
+    var optionalAutomaton = new Automaton<Optional<S>, OmegaAcceptance>() {
+      @Override
+      public OmegaAcceptance acceptance() {
+        return automaton.acceptance();
+      }
+
+      @Override
+      public ValuationSetFactory factory() {
+        return automaton.factory();
+      }
+
+      @Override
+      public Set<Optional<S>> initialStates() {
+        return Collections3.transformSetWithOptionalOf(automaton.initialStates());
+      }
+
+      @Override
+      public Set<Optional<S>> states() {
+        return Collections3.transformSetWithOptionalOf(automaton.states());
+      }
+
+      @Override
+      public Set<Edge<Optional<S>>> edges(Optional<S> state, BitSet valuation) {
+        if (state.isEmpty()) {
+          throw new IllegalArgumentException("state is empty");
+        }
+
+        return transformEdges(automaton.edges(state.get(), valuation));
+      }
+
+      @Override
+      public Map<Edge<Optional<S>>, ValuationSet> edgeMap(Optional<S> state) {
+        if (state.isEmpty()) {
+          throw new IllegalArgumentException("state is empty");
+        }
+
+        return Collections3.transformMap(
+          automaton.edgeMap(state.get()),
+          edge -> edge.withSuccessor(Optional.of(edge.successor())),
+          (edge1, edge2) -> {
+            throw new AssertionError("should not merge.");
+          });
+      }
+
+      @Override
+      public ValuationTree<Edge<Optional<S>>> edgeTree(Optional<S> state) {
+        if (state.isEmpty()) {
+          throw new IllegalArgumentException("state is empty");
+        }
+
+        return automaton.edgeTree(state.get()).map(this::transformEdges);
+      }
+
+      @Override
+      public List<PreferredEdgeAccess> preferredEdgeAccess() {
+        return automaton.preferredEdgeAccess();
+      }
+
+      private Set<Edge<Optional<S>>> transformEdges(Set<Edge<S>> edges) {
+        return Collections3.transformSet(edges,
+          edge -> edge.withSuccessor(Optional.of(edge.successor())));
+      }
+
+      @Override
+      public boolean is(Property property) {
+        return automaton.is(property);
+      }
+    };
+
+    return complete(optionalAutomaton, Optional.empty());
   }
 
   /**
@@ -94,30 +168,28 @@ public final class Views {
     return new AutomatonView<>(automaton, filter);
   }
 
-  private static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
-    implements Automaton<S, B> {
+  private static class Complete<S, A extends OmegaAcceptance> implements Automaton<S, A> {
 
+    private final Automaton<S, ?> automaton;
+    private final A acceptance;
+
+    private final Set<S> sinkSet;
     private final Edge<S> sinkEdge;
     private final Set<Edge<S>> sinkEdgeSet;
-    private final Automaton<S, A> automaton;
-    private final S sink;
-    private final Set<S> sinkSet;
-    private final B acceptance;
 
     @Nullable
     private Map<S, ValuationSet> incompleteStates;
 
-    Complete(Automaton<S, A> automaton, Edge<S> sinkEdge, B acceptance) {
+    Complete(Automaton<S, ?> automaton, Edge<S> sinkEdge, A acceptance) {
       this.automaton = automaton;
-      this.sink = sinkEdge.successor();
-      this.sinkSet = Set.of(sink);
+      this.acceptance = acceptance;
+      this.sinkSet = Set.of(sinkEdge.successor());
       this.sinkEdge = sinkEdge;
       this.sinkEdgeSet = Set.of(sinkEdge);
-      this.acceptance = acceptance;
     }
 
     @Override
-    public B acceptance() {
+    public A acceptance() {
       return acceptance;
     }
 
@@ -151,7 +223,7 @@ public final class Views {
 
     @Override
     public Set<S> successors(S state) {
-      if (sink.equals(state)) {
+      if (sinkEdge.successor().equals(state)) {
         return sinkSet;
       }
 
@@ -164,7 +236,7 @@ public final class Views {
 
     @Override
     public Set<Edge<S>> edges(S state, BitSet valuation) {
-      if (sink.equals(state)) {
+      if (sinkEdge.successor().equals(state)) {
         return sinkEdgeSet;
       }
 
@@ -174,7 +246,7 @@ public final class Views {
 
     @Override
     public Set<Edge<S>> edges(S state) {
-      if (sink.equals(state)) {
+      if (sinkEdge.successor().equals(state)) {
         return sinkEdgeSet;
       }
 
@@ -191,7 +263,7 @@ public final class Views {
     public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       ValuationSetFactory factory = automaton.factory();
 
-      if (sink.equals(state)) {
+      if (sinkEdge.successor().equals(state)) {
         return Map.of(sinkEdge, factory.universe());
       }
 
@@ -213,7 +285,7 @@ public final class Views {
 
     @Override
     public ValuationTree<Edge<S>> edgeTree(S state) {
-      if (sink.equals(state)) {
+      if (sinkEdge.successor().equals(state)) {
         return ValuationTree.of(sinkEdgeSet);
       }
 
@@ -418,7 +490,7 @@ public final class Views {
   }
 
   /**
-   * This is essentially {@code fmap :: (S -> T) -> Automaton<S,A> -> Automaton<T,A>}.
+   * This is essentially {@code fmap :: (S -> T) -> Automaton<S, A> -> Automaton<T, A>}.
    * When the function is injective, the effect is just replacing states of type S with states of
    * type T. If it is not, the result will be a quotient wrt. the equivalence classes induced by
    * the preimages.
@@ -490,5 +562,56 @@ public final class Views {
     public List<PreferredEdgeAccess> preferredEdgeAccess() {
       return automaton.preferredEdgeAccess();
     }
+  }
+
+  public static <S> Automaton<S, AllAcceptance>
+    transitionStructure(Automaton<S, ?> automaton) {
+
+    return new Automaton<>() {
+      @Override
+      public AllAcceptance acceptance() {
+        return AllAcceptance.INSTANCE;
+      }
+
+      @Override
+      public ValuationSetFactory factory() {
+        return automaton.factory();
+      }
+
+      @Override
+      public Set<S> initialStates() {
+        return automaton.initialStates();
+      }
+
+      @Override
+      public Set<S> states() {
+        return automaton.states();
+      }
+
+      @Override
+      public Set<Edge<S>> edges(S state, BitSet valuation) {
+        return Collections3.transformSet(
+          automaton.edges(state, valuation),
+          Edge::withoutAcceptance);
+      }
+
+      @Override
+      public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+        return Collections3.transformMap(
+          automaton.edgeMap(state),
+          Edge::withoutAcceptance);
+      }
+
+      @Override
+      public ValuationTree<Edge<S>> edgeTree(S state) {
+        return automaton.edgeTree(state)
+          .map(x -> Collections3.transformSet(x, Edge::withoutAcceptance));
+      }
+
+      @Override
+      public List<PreferredEdgeAccess> preferredEdgeAccess() {
+        return automaton.preferredEdgeAccess();
+      }
+    };
   }
 }

@@ -34,6 +34,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -116,16 +117,29 @@ public final class BooleanOperations {
     };
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> deterministicComplement(
-    Automaton<S, ?> automaton,
-    @Nullable S trapState,
-    Class<A> expectedAcceptance) {
-    var completeAutomaton = trapState == null ? automaton : Views.complete(automaton, trapState);
+  public static <S> Automaton<Optional<S>, ?> deterministicComplement(Automaton<S, ?> automaton) {
+    return deterministicComplement(automaton, OmegaAcceptance.class);
+  }
 
-    checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
-    checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
+  public static <S, A extends OmegaAcceptance> Automaton<Optional<S>, A> deterministicComplement(
+    Automaton<S, ?> automaton, Class<A> expectedAcceptance) {
+    return deterministicComplement(
+      Views.completeWithOptional(automaton), null, expectedAcceptance);
+  }
+
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> deterministicComplement(
+    Automaton<S, ?> automaton, @Nullable S rejectingSink, Class<A> expectedAcceptance) {
+
+    var completeAutomaton = rejectingSink == null
+      ? automaton
+      : Views.complete(automaton, rejectingSink);
+
+    checkArgument(completeAutomaton.initialStates().size() == 1,
+      "Automaton must have exactly one initial state.");
+    checkArgument(completeAutomaton.is(COMPLETE),
+      "Automaton must be complete.");
     // Check is too costly.
-    // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
+    assert completeAutomaton.is(DETERMINISTIC) : "Automaton must be deterministic.";
 
     OmegaAcceptance acceptance = completeAutomaton.acceptance();
     OmegaAcceptance complementAcceptance = null;
@@ -219,6 +233,25 @@ public final class BooleanOperations {
     var factory = commonAlphabet(automata, ignoreSymbolicFactoryMismatch);
     var union = new MapDeterministicUnionAutomaton<>(automata, factory);
     return OmegaAcceptanceCast.castHeuristically(union);
+  }
+
+  public static <S1, S2, A extends OmegaAcceptance> Automaton<NullablePair<S1, S2>, A>
+    deterministicProduct(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2,
+    A acceptanceCondition) {
+
+    return deterministicProduct(automaton1, automaton2, acceptanceCondition, false);
+  }
+
+  public static <S1, S2, A extends OmegaAcceptance> Automaton<NullablePair<S1, S2>, A>
+    deterministicProduct(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2,
+    A acceptanceCondition, boolean ignoreSymbolicFactoryMismatch) {
+
+    var factory = commonAlphabet(
+      List.of(automaton1.factory(), automaton2.factory()),
+      ignoreSymbolicFactoryMismatch);
+
+    return new NullablePairDeterministicProductAutomaton<>(
+      automaton1, automaton2, acceptanceCondition, factory);
   }
 
   // Private implementations
@@ -479,20 +512,18 @@ public final class BooleanOperations {
     return new EmersonLeiAcceptance(unionAcceptanceSets, unionExpression);
   }
 
-  private static class NullablePairDeterministicUnionAutomaton<S1, S2>
-    extends SemiDeterministicEdgesAutomaton<NullablePair<S1, S2>, EmersonLeiAcceptance> {
+  private static class NullablePairDeterministicProductAutomaton<S1, S2, A extends OmegaAcceptance>
+    extends SemiDeterministicEdgesAutomaton<NullablePair<S1, S2>, A> {
 
-    private final Automaton<S1, ?> automaton1;
-    private final Automaton<S2, ?> automaton2;
+    protected final Automaton<S1, ?> automaton1;
+    protected final Automaton<S2, ?> automaton2;
 
-    private NullablePairDeterministicUnionAutomaton(
+    private NullablePairDeterministicProductAutomaton(
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      Pair<ValuationSetFactory, Boolean> factory) {
+      A acceptance, Pair<ValuationSetFactory, Boolean> factory) {
 
-      super(factory.fst(),
-        Set.of(initialState(automaton1, automaton2)),
-        unionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
+      super(factory.fst(), Set.of(initialState(automaton1, automaton2)), acceptance);
       this.automaton1 = automaton1;
       this.automaton2 = automaton2;
     }
@@ -533,6 +564,21 @@ public final class BooleanOperations {
       }
 
       return Edge.of(NullablePair.of(successor1, successor2), acceptance);
+    }
+  }
+
+  private static class NullablePairDeterministicUnionAutomaton<S1, S2>
+    extends NullablePairDeterministicProductAutomaton<S1, S2, EmersonLeiAcceptance> {
+
+    private NullablePairDeterministicUnionAutomaton(
+      Automaton<S1, ?> automaton1,
+      Automaton<S2, ?> automaton2,
+      Pair<ValuationSetFactory, Boolean> factory) {
+
+      super(automaton1,
+        automaton2,
+        unionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())),
+        factory);
     }
   }
 

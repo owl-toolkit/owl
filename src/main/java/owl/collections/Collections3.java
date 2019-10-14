@@ -35,11 +35,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
@@ -371,6 +373,45 @@ public final class Collections3 {
     }
 
     return transformedSet;
+  }
+
+  public static <E> Set<Optional<E>> transformSetWithOptionalOf(Set<E> set) {
+    return new AbstractSet<Optional<E>>() {
+      @Override
+      public boolean isEmpty() {
+        return set.isEmpty();
+      }
+
+      @Override
+      public boolean contains(Object o) {
+        if (!(o instanceof Optional)) {
+          return false;
+        }
+
+        var optional = (Optional<?>) o;
+
+        if (optional.isEmpty()) {
+          return false;
+        }
+
+        return set.contains(optional.get());
+      }
+
+      @Override
+      public Stream<Optional<E>> stream() {
+        return set.stream().map(Optional::of);
+      }
+
+      @Override
+      public Iterator<Optional<E>> iterator() {
+        return stream().iterator();
+      }
+
+      @Override
+      public int size() {
+        return set.size();
+      }
+    };
   }
 
   public static <E> Set<E> union(Set<E> set1, Set<E> set2) {

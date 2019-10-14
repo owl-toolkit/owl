@@ -99,7 +99,6 @@ public final class AcceptanceOptimizations {
 
   private AcceptanceOptimizations() {}
 
-  @SuppressWarnings("unchecked")
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> optimize(
     Automaton<S, A> automaton) {
     var mutableAutomaton = MutableAutomatonUtil.asMutable(automaton);
@@ -118,6 +117,7 @@ public final class AcceptanceOptimizations {
       logger.log(Level.FINE, "Received unsupported acceptance type {0}", acceptance.getClass());
     }
 
+    assert mutableAutomaton.acceptance().getClass().equals(automaton.acceptance().getClass());
     return mutableAutomaton;
   }
 

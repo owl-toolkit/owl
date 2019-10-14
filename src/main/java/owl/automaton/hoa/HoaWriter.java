@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -199,7 +199,7 @@ public final class HoaWriter {
       @Override
       public void visit(S state, BitSet valuation, Edge<S> edge) {
         IntArrayList accSets = new IntArrayList();
-        edge.acceptanceSetIterator().forEachRemaining((IntConsumer) accSets::add);
+        edge.forEachAcceptanceSet((IntConsumer) accSets::add);
         List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
 
         for (int i = 0; i < alphabetSize; i++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -20,11 +20,12 @@
 package owl.translations.ltl2nba;
 
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.ltl.Formula;
 import owl.translations.canonical.RoundRobinState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
-import owl.util.StringUtil;
 
 public final class ProductState {
 
@@ -74,6 +75,8 @@ public final class ProductState {
   @Override
   public String toString() {
     return evaluatedFixpoints
-      + StringUtil.join("GWR=" + safety, liveness == null ? null : "FUM=" + liveness);
+      + Stream.of("GWR=" + safety, liveness == null ? null : "FUM=" + liveness)
+      .filter(Objects::nonNull)
+      .collect(Collectors.joining(",", "[", "]"));
   }
 }

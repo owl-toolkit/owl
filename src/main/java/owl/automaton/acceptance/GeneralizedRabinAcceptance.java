@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -25,16 +25,15 @@ import static jhoafparser.extensions.BooleanExpressions.createDisjunction;
 import static jhoafparser.extensions.BooleanExpressions.getConjuncts;
 import static jhoafparser.extensions.BooleanExpressions.getDisjuncts;
 
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntIterators;
+import com.google.auto.value.AutoValue;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -63,8 +62,8 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
     // Count sets and check consistency.
     for (RabinPair pair : this.pairs) {
-      checkArgument(count == pair.finIndex);
-      checkArgument(pair.finIndex <= pair.infIndex);
+      checkArgument(count == pair.finIndex());
+      checkArgument(pair.finIndex() <= pair.infIndex());
       count += pair.infSetCount() + 1;
     }
 
@@ -85,7 +84,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   @Override
   public Optional<BitSet> rejectingSet() {
     BitSet set = new BitSet();
-    pairs.forEach(x -> set.set(x.finIndex));
+    pairs.forEach(x -> set.set(x.finIndex()));
     return Optional.of(set);
   }
 
@@ -181,22 +180,25 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     int removedIndices = 0;
 
     for (RabinPair pair : pairs) {
-      if (predicate.test(pair.finIndex)) {
+      if (predicate.test(pair.finIndex())) {
         removedIndices += pair.infSetCount() + 1;
       } else {
         int removedInfIndices = 0;
 
-        for (int i = pair.finIndex + 1; i <= pair.infIndex; i++) {
+        for (int i = pair.finIndex() + 1; i <= pair.infIndex(); i++) {
           if (predicate.test(i)) {
             removedInfIndices++;
           }
         }
 
-        assert pair.finIndex >= removedIndices;
-        assert pair.infIndex >= removedIndices + removedInfIndices;
 
-        newPairs.add(new RabinPair(pair.finIndex - removedIndices,
-          pair.infIndex - (removedIndices + removedInfIndices)));
+
+        assert pair.finIndex() >= removedIndices;
+        assert pair.infIndex() >= removedIndices + removedInfIndices;
+
+        newPairs.add(RabinPair.ofGeneralized(
+          pair.finIndex() - removedIndices,
+          pair.infSetCount() - removedInfIndices));
         removedIndices += removedInfIndices;
       }
     }
@@ -208,34 +210,31 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     return GeneralizedRabinAcceptance.of(newPairs);
   }
 
-  public static final class RabinPair implements Comparable<RabinPair> {
+  @AutoValue
+  public abstract static class RabinPair implements Comparable<RabinPair> {
     @Nonnegative
-    final int finIndex;
+    abstract int finIndex();
 
     // All indices in the interval ]finIndex, infIndex] are considered inf.
     @Nonnegative
-    final int infIndex;
-
-    RabinPair(@Nonnegative int finIndex, int infIndex) {
-      assert infIndex >= finIndex;
-      this.finIndex = finIndex;
-      this.infIndex = infIndex;
-    }
+    abstract int infIndex();
 
     public static RabinPair of(@Nonnegative int finIndex) {
       return ofGeneralized(finIndex, 1);
     }
 
     public static RabinPair ofGeneralized(@Nonnegative int finIndex, @Nonnegative int infSets) {
-      return new RabinPair(finIndex, finIndex + infSets);
+      checkArgument(finIndex >= 0);
+      checkArgument(infSets >= 0);
+      return new AutoValue_GeneralizedRabinAcceptance_RabinPair(finIndex, finIndex + infSets);
     }
 
     public boolean contains(BitSet indices) {
-      return !indices.get(finIndex, infIndex + 1).isEmpty();
+      return !indices.get(finIndex(), infIndex() + 1).isEmpty();
     }
 
     public boolean contains(Edge<?> edge) {
-      return edge.inSet(finIndex) || containsInfinite(edge);
+      return edge.inSet(finIndex()) || containsInfinite(edge);
     }
 
     /**
@@ -249,7 +248,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
      * @see Edge#inSet(int)
      */
     public boolean containsInfinite(Edge<?> edge) {
-      for (int i = finIndex + 1; i <= infIndex; i++) {
+      for (int i = finIndex() + 1; i <= infIndex(); i++) {
         if (edge.inSet(i)) {
           return true;
         }
@@ -259,20 +258,20 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     }
 
     public void forEachIndex(IntConsumer action) {
-      action.accept(finIndex);
+      action.accept(finIndex());
       forEachInfSet(action);
     }
 
     public void forEachInfSet(IntConsumer action) {
-      for (int i = finIndex + 1; i <= infIndex; i++) {
+      for (int i = finIndex() + 1; i <= infIndex(); i++) {
         action.accept(i);
       }
     }
 
     private BooleanExpression<AtomAcceptance> booleanExpression() {
-      BooleanExpression<AtomAcceptance> acceptance = BooleanExpressions.mkFin(finIndex);
+      BooleanExpression<AtomAcceptance> acceptance = BooleanExpressions.mkFin(finIndex());
 
-      for (int index = finIndex + 1; index <= infIndex; index++) {
+      for (int index = finIndex() + 1; index <= infIndex(); index++) {
         acceptance = acceptance.and(BooleanExpressions.mkInf(index));
       }
 
@@ -281,66 +280,47 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
     @Nonnegative
     public int finSet() {
-      return finIndex;
+      return finIndex();
     }
 
     @Nonnegative
     public int infSet(int number) {
-      assert finIndex + number < infIndex;
-      return finIndex + 1 + number;
+      assert finIndex() + number < infIndex();
+      return finIndex() + 1 + number;
     }
 
     @Nonnegative
     public int infSetCount() {
-      return infIndex - finIndex;
+      return infIndex() - finIndex();
     }
 
     public boolean hasInfSet() {
       return infSetCount() > 0;
     }
 
-    public IntIterator infSetIterator() {
-      return IntIterators.fromTo(finIndex + 1, infIndex + 1);
+    public IntStream infSetStream() {
+      return IntStream.rangeClosed(finIndex() + 1, infIndex());
     }
 
     public boolean isInfinite(int i) {
-      return finIndex < i && i <= infIndex;
+      return finIndex() < i && i <= infIndex();
     }
 
     public int infSet() {
       checkState(infSetCount() == 1);
-      return infIndex;
+      return infIndex();
     }
 
     @Override
     public String toString() {
-      return "(" + finIndex + ", " + infIndex + ')';
+      return "(" + finIndex() + ", " + infIndex() + ')';
     }
 
     @Override
     public int compareTo(RabinPair o) {
-      return Comparator.comparingInt((RabinPair x) -> x.finIndex)
-        .thenComparingInt((RabinPair x) -> x.infIndex)
+      return Comparator.comparingInt(RabinPair::finIndex)
+        .thenComparingInt(RabinPair::infIndex)
         .compare(this, o);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof RabinPair)) {
-        return false;
-      }
-
-      RabinPair rabinPair = (RabinPair) o;
-      return finIndex == rabinPair.finIndex && infIndex == rabinPair.infIndex;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(finIndex, infIndex);
     }
   }
 
@@ -349,7 +329,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     private int sets = 0;
 
     public RabinPair add(@Nonnegative int infSets) {
-      RabinPair pair = new RabinPair(sets, sets + infSets);
+      RabinPair pair = RabinPair.ofGeneralized(sets, infSets);
       pairs.add(pair);
       sets += 1 + infSets;
       return pair;

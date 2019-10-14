@@ -207,15 +207,15 @@ public class OwlModuleRegistry {
     return typeMap.keySet().iterator().next();
   }
 
-  public void putReaders(List<OwlModule<OwlModule.InputReader>> modules) {
+  private void putReaders(List<OwlModule<OwlModule.InputReader>> modules) {
     modules.forEach(module -> put(readers, module));
   }
 
-  public void putTransformers(List<OwlModule<OwlModule.Transformer>> modules) {
+  private void putTransformers(List<OwlModule<OwlModule.Transformer>> modules) {
     modules.forEach(module -> put(transformers, module));
   }
 
-  public void registerWriter(List<OwlModule<OwlModule.OutputWriter>> modules) {
+  private void registerWriter(List<OwlModule<OwlModule.OutputWriter>> modules) {
     modules.forEach(module -> put(writers, module));
   }
 
