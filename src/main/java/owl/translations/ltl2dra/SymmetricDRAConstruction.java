@@ -57,7 +57,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
 
   private final boolean optimizeInitialState;
   private final Class<? extends R> acceptanceClass;
-  private final SymmetricLDBAConstruction<?> translation;
+  private final SymmetricLDBAConstruction<?> ldbaConstruction;
 
   private SymmetricDRAConstruction(
     Environment environment, Class<? extends R> acceptanceClass, boolean optimizeInitialState) {
@@ -70,7 +70,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
 
     this.acceptanceClass = acceptanceClass;
     this.optimizeInitialState = optimizeInitialState;
-    this.translation = SymmetricLDBAConstruction.of(environment, buchiAcceptance);
+    this.ldbaConstruction = SymmetricLDBAConstruction.of(environment, buchiAcceptance);
   }
 
   public static <R extends GeneralizedRabinAcceptance> SymmetricDRAConstruction<R>
@@ -80,7 +80,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
 
   @Override
   public Automaton<SymmetricRankingState, R> apply(LabelledFormula formula) {
-    var ldba = translation.apply(formula);
+    var ldba = ldbaConstruction.apply(formula);
     var builder = new Builder(ldba);
     var automaton = AutomatonFactory.<SymmetricRankingState, R>create(ldba.factory(),
       Collections3.ofNullable(builder.initialState), builder.acceptance, builder::edge);

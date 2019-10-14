@@ -51,14 +51,14 @@ import owl.translations.ltl2ldba.AsymmetricProductState;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 
 final class AsymmetricDPAConstruction {
-  private final AsymmetricLDBAConstruction<BuchiAcceptance> ldbaTranslator;
+  private final AsymmetricLDBAConstruction<BuchiAcceptance> ldbaConstruction;
 
   AsymmetricDPAConstruction(Environment environment) {
-    ldbaTranslator = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+    ldbaConstruction = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
   }
 
   Automaton<AsymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {
-    var ldba = ldbaTranslator.apply(labelledFormula);
+    var ldba = ldbaConstruction.apply(labelledFormula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
       return AutomatonFactory.empty(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));

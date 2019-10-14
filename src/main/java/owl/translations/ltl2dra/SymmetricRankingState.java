@@ -30,14 +30,14 @@ import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 
 @AutoValue
-abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, EquivalenceClass>> {
+public abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, EquivalenceClass>> {
 
   @Override
   public abstract Map<Integer, EquivalenceClass> state();
 
   abstract Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> table();
 
-  static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
+  public static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
     return of(state, ImmutableTable.of());
   }
 

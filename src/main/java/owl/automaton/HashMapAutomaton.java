@@ -47,6 +47,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
@@ -57,6 +58,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   private A acceptance;
   private final Set<S> initialStates;
   private IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
+  private IdentityHashMap<S, ValuationTree<Edge<S>>> cachedTrees;
   private Map<S, S> uniqueStates;
   private final ValuationSetFactory valuationSetFactory;
   @Nullable
@@ -69,6 +71,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
 
     // Warning: Before doing ANY operation on transitions one needs to make the key unique!
     transitions = new IdentityHashMap<>();
+    cachedTrees = new IdentityHashMap<>();
     uniqueStates = new HashMap<>();
     initialStates = new HashSet<>();
   }
@@ -189,6 +192,13 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   public Map<Edge<S>, ValuationSet> edgeMap(S state) {
     readMode();
     return Collections.unmodifiableMap(edgeMapInternal(state));
+  }
+
+  @Override
+  public ValuationTree<Edge<S>> edgeTree(S state) {
+    readMode();
+    S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
+    return cachedTrees.computeIfAbsent(uniqueState, x -> factory().inverse(edgeMap(x)));
   }
 
   @Override
@@ -327,6 +337,8 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
 
   @Override
   public void trim() {
+    cachedTrees.clear();
+
     if (state != State.WRITE_REBUILD) {
       state = State.READ;
       return;

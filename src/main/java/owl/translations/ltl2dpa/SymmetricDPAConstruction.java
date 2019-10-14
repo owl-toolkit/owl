@@ -48,14 +48,14 @@ import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 
 final class SymmetricDPAConstruction {
-  private final SymmetricLDBAConstruction<BuchiAcceptance> ldbaTranslator;
+  private final SymmetricLDBAConstruction<BuchiAcceptance> ldbaConstruction;
 
   SymmetricDPAConstruction(Environment environment) {
-    ldbaTranslator = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+    ldbaConstruction = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
   }
 
   Automaton<SymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {
-    var ldba = ldbaTranslator.apply(labelledFormula);
+    var ldba = ldbaConstruction.apply(labelledFormula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
       return AutomatonFactory.empty(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
