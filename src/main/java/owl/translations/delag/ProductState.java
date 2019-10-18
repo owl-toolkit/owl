@@ -27,12 +27,12 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
 @AutoValue
-abstract class ProductState<T> {
-  abstract Map<Formula, T> fallback();
+public abstract class ProductState<T> {
+  public abstract Map<Formula, T> fallback();
 
-  abstract Map<DependencyTree<T>, Boolean> finished();
+  public abstract Map<DependencyTree<T>, Boolean> finished();
 
-  abstract Map<Formula, EquivalenceClass> safety();
+  public abstract Map<Formula, EquivalenceClass> safety();
 
   static <T> Builder<T> builder() {
     return new Builder<>();

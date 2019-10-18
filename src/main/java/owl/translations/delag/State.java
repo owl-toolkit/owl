@@ -22,8 +22,8 @@ package owl.translations.delag;
 import java.util.Objects;
 
 public final class State<T> {
-  final History past;
-  final ProductState<T> productState;
+  public final History past;
+  public final ProductState<T> productState;
 
   State() {
     past = new History();
