@@ -26,8 +26,8 @@ import java.util.List;
 import owl.ltl.EquivalenceClass;
 
 @AutoValue
-abstract class MonitorState {
-  abstract List<EquivalenceClass> formulaRanking();
+public abstract class MonitorState {
+  public abstract List<EquivalenceClass> formulaRanking();
 
   static MonitorState of(EquivalenceClass initialClass) {
     return of(List.of(initialClass));

@@ -58,7 +58,7 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   private A acceptance;
   private final Set<S> initialStates;
   private IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
-  private IdentityHashMap<S, ValuationTree<Edge<S>>> cachedTrees;
+  private final IdentityHashMap<S, ValuationTree<Edge<S>>> cachedTrees;
   private Map<S, S> uniqueStates;
   private final ValuationSetFactory valuationSetFactory;
   @Nullable

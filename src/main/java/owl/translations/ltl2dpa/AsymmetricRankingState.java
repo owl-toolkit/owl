@@ -28,13 +28,13 @@ import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.AsymmetricProductState;
 
 @AutoValue
-abstract class AsymmetricRankingState implements AnnotatedState<EquivalenceClass> {
+public abstract class AsymmetricRankingState implements AnnotatedState<EquivalenceClass> {
   @Override
   public abstract EquivalenceClass state();
 
-  abstract List<AsymmetricProductState> ranking();
+  public abstract List<AsymmetricProductState> ranking();
 
-  abstract int safetyIndex();
+  public abstract int safetyIndex();
 
   static AsymmetricRankingState of(EquivalenceClass state) {
     return of(state, List.of(), -1);

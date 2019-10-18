@@ -31,11 +31,11 @@ public final class AsymmetricProductState implements LtlLanguageExpressible {
   // Index of the current checked cosafety formula
   // [0, |gCoSafety| - 1] -> gCoSafety
   // [-|gfCoSafety|, -1] -> gfCoSafety
-  final int index;
-  final EquivalenceClass currentCoSafety;
-  final List<EquivalenceClass> nextCoSafety;
+  public final int index;
+  public final EquivalenceClass currentCoSafety;
+  public final List<EquivalenceClass> nextCoSafety;
 
-  final EquivalenceClass safety;
+  public final EquivalenceClass safety;
 
   private final EquivalenceClass language;
   private final int hashCode;

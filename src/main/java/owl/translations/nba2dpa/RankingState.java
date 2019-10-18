@@ -28,9 +28,9 @@ import owl.collections.Collections3;
 @AutoValue
 public abstract class RankingState<S> {
 
-  abstract Set<S> initialComponentStates();
+  public abstract Set<S> initialComponentStates();
 
-  abstract List<S> acceptingComponentStates();
+  public abstract List<S> acceptingComponentStates();
 
   static <S> RankingState<S> of(Set<S> initialComponentStates, List<S> acceptingComponentStates) {
     var initialComponentStatesCopy = Set.copyOf(initialComponentStates);

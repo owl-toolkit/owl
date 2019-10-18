@@ -31,16 +31,17 @@ import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.SymmetricProductState;
 
 @AutoValue
-abstract class SymmetricRankingState implements AnnotatedState<Map<Integer, EquivalenceClass>> {
+public abstract class SymmetricRankingState
+  implements AnnotatedState<Map<Integer, EquivalenceClass>> {
 
   @Override
   public abstract Map<Integer, EquivalenceClass> state();
 
-  abstract List<SymmetricProductState> ranking();
+  public abstract List<SymmetricProductState> ranking();
 
-  abstract int safetyBucket();
+  public abstract int safetyBucket();
 
-  abstract int safetyBucketIndex();
+  public abstract int safetyBucketIndex();
 
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
     return of(state, List.of(), 0, -1);
