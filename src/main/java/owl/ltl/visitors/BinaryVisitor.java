@@ -29,6 +29,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
@@ -45,9 +46,11 @@ public interface BinaryVisitor<P, R> extends BiFunction<Formula, P, R> {
   default R visit(BooleanConstant booleanConstant, P parameter) { throw uoe(booleanConstant); }
   default R visit(Conjunction conjunction, P parameter)         { throw uoe(conjunction);     }
   default R visit(Disjunction disjunction, P parameter)         { throw uoe(disjunction);     }
+  default R visit(Literal literal, P parameter)                 { throw uoe(literal);         }
+  default R visit(Negation negation, P parameter)               { throw uoe(negation);        }
+
   default R visit(FOperator fOperator, P parameter)             { throw uoe(fOperator);       }
   default R visit(GOperator gOperator, P parameter)             { throw uoe(gOperator);       }
-  default R visit(Literal literal, P parameter)                 { throw uoe(literal);         }
   default R visit(MOperator mOperator, P parameter)             { throw uoe(mOperator);       }
   default R visit(UOperator uOperator, P parameter)             { throw uoe(uOperator);       }
   default R visit(ROperator rOperator, P parameter)             { throw uoe(rOperator);       }

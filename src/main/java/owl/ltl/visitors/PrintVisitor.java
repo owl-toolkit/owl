@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Spliterator;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+
 import owl.ltl.Biconditional;
 import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
@@ -34,6 +35,7 @@ import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.UnaryModalOperator;
@@ -100,6 +102,11 @@ public final class PrintVisitor implements Visitor<String> {
   @Override
   public String visit(GOperator gOperator) {
     return visit((UnaryModalOperator) gOperator);
+  }
+
+  @Override
+  public String visit(Negation negation) {
+    return "! " + visitParenthesized(negation.operand);
   }
 
   @Override

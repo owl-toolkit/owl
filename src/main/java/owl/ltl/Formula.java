@@ -35,6 +35,7 @@ public abstract class Formula implements Comparable<Formula> {
   private static final List<Class<? extends Formula>> ORDER = List.of(
     BooleanConstant.class,
     Literal.class,
+    Negation.class,
     Conjunction.class,
     Disjunction.class,
     Biconditional.class,
@@ -373,6 +374,12 @@ public abstract class Formula implements Comparable<Formula> {
         formula.children().forEach(x -> x.accept(this));
       }
 
+      return null;
+    }
+
+    @Override
+    public Void visit(Negation negation) {
+      negation.operand.accept(this);
       return null;
     }
   }

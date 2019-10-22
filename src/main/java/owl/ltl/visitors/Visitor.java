@@ -29,6 +29,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
@@ -45,9 +46,11 @@ public interface Visitor<R> extends Function<Formula, R> {
   default R visit(BooleanConstant booleanConstant) { throw uoe(booleanConstant); }
   default R visit(Conjunction conjunction)         { throw uoe(conjunction);     }
   default R visit(Disjunction disjunction)         { throw uoe(disjunction);     }
+  default R visit(Literal literal)                 { throw uoe(literal);         }
+  default R visit(Negation negation)               { throw uoe(negation);        }
+
   default R visit(FOperator fOperator)             { throw uoe(fOperator);       }
   default R visit(GOperator gOperator)             { throw uoe(gOperator);       }
-  default R visit(Literal literal)                 { throw uoe(literal);         }
   default R visit(MOperator mOperator)             { throw uoe(mOperator);       }
   default R visit(ROperator rOperator)             { throw uoe(rOperator);       }
   default R visit(UOperator uOperator)             { throw uoe(uOperator);       }

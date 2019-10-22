@@ -20,6 +20,7 @@
 package owl.ltl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -31,8 +32,12 @@ import owl.ltl.visitors.Visitor;
 
 public final class Disjunction extends PropositionalFormula {
 
-  private Disjunction(Formula[] disjuncts) {
-    super(Disjunction.class, Set.of(disjuncts));
+  public Disjunction(Collection<? extends Formula> conjuncts) {
+    super(Disjunction.class, Set.copyOf(conjuncts));
+  }
+
+  public Disjunction(Formula... conjuncts) {
+    super(Disjunction.class, Set.of(conjuncts));
   }
 
   public static Formula of(Formula left, Formula right) {

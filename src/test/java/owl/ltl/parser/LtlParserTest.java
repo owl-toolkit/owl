@@ -39,7 +39,7 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
 class LtlParserTest {
-  private static final String[] INPUT = {
+  private static final List<String> INPUT = List.of(
     "!a",
     "G a",
     "F a & X b",
@@ -48,10 +48,10 @@ class LtlParserTest {
     "a M b",
     "a R b",
     "!(a R b)",
-    "a W b U c R a",
-  };
+    "a W b U c R a"
+    );
 
-  private static final Formula[] OUTPUT = {
+  private static final List<Formula> OUTPUT = List.of(
     Literal.of(0, true),
     new GOperator(Literal.of(0)),
     Conjunction.of(new FOperator(Literal.of(0)), new XOperator(Literal.of(1))),
@@ -62,12 +62,12 @@ class LtlParserTest {
     new UOperator(Literal.of(0, true), Literal.of(1, true)),
     new WOperator(Literal.of(0), new UOperator(Literal.of(1),
       new ROperator(Literal.of(2), Literal.of(0))))
-  };
+  );
 
   @Test
   void testSyntax() {
-    for (int i = 0; i < INPUT.length; i++) {
-      assertEquals(OUTPUT[i], LtlParser.syntax(INPUT[i]));
+    for (int i = 0; i < INPUT.size(); i++) {
+      assertEquals(OUTPUT.get(i), LtlParser.syntax(INPUT.get(i)));
     }
   }
 

@@ -20,6 +20,7 @@
 package owl.ltl;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -32,7 +33,11 @@ import owl.util.annotation.CEntryPoint;
 
 public final class Conjunction extends PropositionalFormula {
 
-  private Conjunction(Formula[] conjuncts) {
+  public Conjunction(Collection<? extends Formula> conjuncts) {
+    super(Conjunction.class, Set.copyOf(conjuncts));
+  }
+
+  public Conjunction(Formula... conjuncts) {
     super(Conjunction.class, Set.of(conjuncts));
   }
 
