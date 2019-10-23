@@ -2299,6 +2299,17 @@
     }
   },
   {
+    "formula": "(FGa \u0026 (Ga | ((b) U (Ga))))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(GFa \u0026 (F!a | FGb))",
     "properties": {
       "size": 2,
@@ -2830,6 +2841,17 @@
     "formula": "(FG!a | (Ga \u0026 GFb))",
     "properties": {
       "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(GFa | (Fa \u0026 ((b) R (Fa))))",
+    "properties": {
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 3,

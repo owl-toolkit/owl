@@ -23,7 +23,6 @@ import java.util.BitSet;
 import java.util.NoSuchElementException;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.edge.Edge;
 
 public final class AllAcceptance extends OmegaAcceptance {
   public static final AllAcceptance INSTANCE = new AllAcceptance();
@@ -53,10 +52,5 @@ public final class AllAcceptance extends OmegaAcceptance {
   @Override
   public BitSet rejectingSet() {
     throw new NoSuchElementException();
-  }
-
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return !edge.hasAcceptanceSets();
   }
 }

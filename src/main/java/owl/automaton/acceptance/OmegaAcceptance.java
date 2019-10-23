@@ -31,7 +31,7 @@ public abstract class OmegaAcceptance {
   public abstract int acceptanceSets();
 
   /**
-   * Builds the canonical representation as {@link BooleanExpression}.
+   * Get the canonical representation as {@link BooleanExpression}.
    */
   public abstract BooleanExpression<AtomAcceptance> booleanExpression();
 
@@ -46,6 +46,11 @@ public abstract class OmegaAcceptance {
 
   public abstract BitSet rejectingSet();
 
+  public boolean isAcceptingEdge(Edge<?> edge) {
+    return BooleanExpressions.evaluate(booleanExpression(),
+      atom -> edge.inSet(atom.getAcceptanceSet()));
+  }
+
   /**
    * This method determines if the given edge is a well defined edge for this acceptance condition.
    * E.g. a parity condition might check that the edge has at most one acceptance index and the
@@ -56,11 +61,8 @@ public abstract class OmegaAcceptance {
    *
    * @return Whether the edge acceptance is well defined.
    */
-  public abstract boolean isWellFormedEdge(Edge<?> edge);
-
-  public boolean isAcceptingEdge(Edge<?> edge) {
-    return BooleanExpressions.evaluate(booleanExpression(),
-      atom -> edge.inSet(atom.getAcceptanceSet()));
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return edge.largestAcceptanceSet() < acceptanceSets();
   }
 
   public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {

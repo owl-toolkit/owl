@@ -29,9 +29,6 @@ import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBERO
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.PARAMETRISED_HARDNESS;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE_FGGF;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
 import com.google.common.collect.Collections2;
 import com.google.gson.Gson;
@@ -72,8 +69,6 @@ import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomatonFactory;
-import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -92,13 +87,17 @@ import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.LatexPrintVisitor;
 import owl.run.Environment;
+import owl.translations.canonical.DeterministicConstructionsPortfolio;
+import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
-import owl.translations.ltl2ldba.AnnotatedLDBA;
-import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
-import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
-import owl.translations.ltl2nba.SymmetricNBAConstruction;
+import owl.translations.modules.LTL2DGRAModule;
+import owl.translations.modules.LTL2DPAModule;
+import owl.translations.modules.LTL2DRAModule;
+import owl.translations.modules.LTL2LDBAModule;
+import owl.translations.modules.LTL2LDGBAModule;
+import owl.translations.modules.LTL2NBAModule;
+import owl.translations.modules.LTL2NGBAModule;
 import owl.translations.rabinizer.RabinizerBuilder;
 import owl.translations.rabinizer.RabinizerConfiguration;
 
@@ -112,71 +111,94 @@ class TranslationAutomatonSummaryTest {
 
   static {
     TRANSLATORS = List.of(
-      new Translator("safety", LTL2DAFunction::safety),
-      new Translator("safety.nondeterministic", LTL2NAFunction::safety),
+      new Translator("safety",
+        DeterministicConstructionsPortfolio::safety),
+      new Translator("safety.nondeterministic",
+        NonDeterministicConstructionsPortfolio::safety),
 
-      new Translator("coSafety", LTL2DAFunction::coSafety),
-      new Translator("coSafety.nondeterministic", LTL2NAFunction::coSafety),
+      new Translator("coSafety",
+        DeterministicConstructionsPortfolio::coSafety),
+      new Translator("coSafety.nondeterministic",
+        NonDeterministicConstructionsPortfolio::coSafety),
 
-      new Translator("fgSafety", LTL2DAFunction::fgSafety),
-      new Translator("fgSafety.interleaved", LTL2DAFunction::fgSafetyInterleaved),
-      new Translator("fgSafety.nondeterministic", LTL2NAFunction::fgSafety),
+      new Translator("fgSafety",
+      x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, false)),
+      new Translator("fgSafety.generalized",
+      x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, true)),
+      new Translator("fgSafety.nondeterministic",
+        NonDeterministicConstructionsPortfolio::fgSafety),
 
       new Translator("gfCoSafety",
-      x -> y -> LTL2DAFunction.gfCoSafety(x, y, false)),
+      x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
       new Translator("gfCoSafety.generalized",
-      x -> y -> LTL2DAFunction.gfCoSafety(x, y, true)),
+      x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
       new Translator("gfCoSafety.nondeterministic",
-      x -> y -> LTL2NAFunction.gfCoSafety(x, y, false)),
+      x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
       new Translator("gfCoSafety.nondeterministic.generalized",
-      x -> y -> LTL2NAFunction.gfCoSafety(x, y, true)),
+      x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
 
-      new Translator("fSafety", LTL2DAFunction::fSafety),
-      new Translator("gCoSafety", LTL2DAFunction::gCoSafety),
+      new Translator("coSafetySafety", DeterministicConstructionsPortfolio::coSafetySafety),
+      new Translator("safetyCoSafety", DeterministicConstructionsPortfolio::safetyCoSafety),
 
       new Translator("ldba.asymmetric", environment ->
-        AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable)),
+        LTL2LDBAModule.translation(environment, false, false)),
+      new Translator("ldba.asymmetric.portfolio", environment ->
+        LTL2LDBAModule.translation(environment, false, true)),
       new Translator("ldgba.asymmetric", environment ->
-        AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          .andThen(AnnotatedLDBA::copyAsMutable)),
+        LTL2LDGBAModule.translation(environment, false, false)),
+      new Translator("ldgba.asymmetric.portfolio", environment ->
+        LTL2LDGBAModule.translation(environment, false, true)),
 
       new Translator("ldba.symmetric", environment ->
-        SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class)
-          ::applyWithShortcuts),
+        LTL2LDBAModule.translation(environment, true, false)),
+      new Translator("ldba.symmetric.portfolio", environment ->
+        LTL2LDBAModule.translation(environment, true, true)),
       new Translator("ldgba.symmetric", environment ->
-        SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
-          ::applyWithShortcuts),
+        LTL2LDGBAModule.translation(environment, true, false)),
+      new Translator("ldgba.symmetric.portfolio", environment ->
+        LTL2LDGBAModule.translation(environment, true, true)),
 
       new Translator("dpa.asymmetric", environment ->
-        new LTL2DPAFunction(environment,
-          EnumSet.of(COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
+        LTL2DPAModule.translation(environment, false, false, false),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+      new Translator("dpa.asymmetric.portfolio", environment ->
+        LTL2DPAModule.translation(environment, false, false, true),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       new Translator("dpa.symmetric", environment ->
-        new LTL2DPAFunction(environment,
-          EnumSet.of(SYMMETRIC, COMPRESS_COLOURS, OPTIMISE_INITIAL_STATE)),
+        LTL2DPAModule.translation(environment, true, false, false),
+        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+      new Translator("dpa.symmetric.portfolio", environment ->
+        LTL2DPAModule.translation(environment, true, false, true),
         EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
       // TODO: Investigate one minute difference
       new Translator("dra.symmetric", environment ->
-        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)),
-      new Translator("dgra.symmetric", environment ->
-        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)),
-
+        LTL2DRAModule.translation(environment, true, false, null)),
+      new Translator("dra.symmetric.portfolio", environment ->
+        LTL2DRAModule.translation(environment, true, true, null)),
       new Translator("dra.symmetric.optimizations", environment -> x ->
         AcceptanceOptimizations.optimize(
           SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
             .apply(x))),
+
+      new Translator("dgra.symmetric", environment ->
+        LTL2DGRAModule.translation(environment, true, false, null)),
+      new Translator("dgra.symmetric.portfolio", environment ->
+        LTL2DGRAModule.translation(environment, true, true, null)),
       new Translator("dgra.symmetric.optimizations", environment -> x ->
         AcceptanceOptimizations.optimize(
           SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
             .apply(x))),
 
       new Translator("nba.symmetric", environment ->
-        SymmetricNBAConstruction.of(environment, BuchiAcceptance.class)),
+        LTL2NBAModule.translation(environment, false)),
+      new Translator("nba.symmetric.portfolio", environment ->
+        LTL2NBAModule.translation(environment, true)),
       new Translator("ngba.symmetric", environment ->
-        SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)),
+        LTL2NGBAModule.translation(environment, false)),
+      new Translator("ngba.symmetric.portfolio", environment ->
+        LTL2NGBAModule.translation(environment, true)),
 
       new Translator("delag",
         DelagBuilder::new,

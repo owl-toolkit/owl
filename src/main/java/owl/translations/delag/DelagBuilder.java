@@ -34,8 +34,6 @@ import jhoafparser.ast.BooleanExpression;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonFactory;
-import owl.automaton.AutomatonUtil;
-import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
@@ -47,7 +45,6 @@ import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
@@ -66,11 +63,11 @@ public class DelagBuilder
       String fallbackTool = commandLine.getOptionValue("fallback");
 
       if (fallbackTool == null) {
-        return Transformers.fromFunction(LabelledFormula.class,
+        return OwlModule.Transformer.of(LabelledFormula.class,
           new DelagBuilder(environment));
       }
 
-      return Transformers.fromFunction(LabelledFormula.class,
+      return OwlModule.Transformer.of(LabelledFormula.class,
         new DelagBuilder(environment, new ExternalTranslator(environment, fallbackTool)));
     });
 
@@ -81,7 +78,7 @@ public class DelagBuilder
 
   public DelagBuilder(Environment environment) {
     this.environment = environment;
-    this.fallback = new LTL2DAFunction(environment, GeneralizedRabinAcceptance.class);
+    this.fallback = new LTL2DAFunction(GeneralizedRabinAcceptance.class, environment);
   }
 
   private DelagBuilder(Environment environment, ExternalTranslator fallback) {
@@ -104,7 +101,8 @@ public class DelagBuilder
     Factories factories = environment.factorySupplier().getFactories(formula.variables());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
-      return Views.viewAs(AutomatonFactory.empty(factories.vsFactory), EmersonLeiAcceptance.class);
+      return AutomatonFactory.empty(factories.vsFactory,
+        new EmersonLeiAcceptance(0, new BooleanExpression<>(false)));
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
@@ -115,7 +113,7 @@ public class DelagBuilder
     }
 
     DependencyTreeFactory<Object> treeConverter =
-      new DependencyTreeFactory<>(factories, x -> AutomatonUtil.cast(fallback.apply(x)));
+      new DependencyTreeFactory<>(factories, x -> (Automaton<Object, ?>) fallback.apply(x));
     DependencyTree<Object> tree = formula.formula().accept(treeConverter);
     BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;

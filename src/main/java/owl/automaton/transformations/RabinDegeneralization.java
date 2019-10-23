@@ -47,6 +47,7 @@ import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
@@ -67,7 +68,7 @@ public final class RabinDegeneralization implements OwlModule.Transformer {
   public static <S> Automaton<?, RabinAcceptance> degeneralize(
     Automaton<S, ? extends GeneralizedRabinAcceptance> automaton) {
     if (automaton.acceptance() instanceof RabinAcceptance) {
-      return AutomatonUtil.cast(automaton, RabinAcceptance.class);
+      return OmegaAcceptanceCast.cast(automaton, RabinAcceptance.class);
     }
 
     if (logger.isLoggable(Level.FINER)) {
@@ -256,7 +257,8 @@ public final class RabinDegeneralization implements OwlModule.Transformer {
 
   @Override
   public Object transform(Object object) {
-    return degeneralize(AutomatonUtil.cast(object, GeneralizedRabinAcceptance.class));
+    return degeneralize(OmegaAcceptanceCast.cast(
+      (Automaton<Object, ?>) object, GeneralizedRabinAcceptance.class));
   }
 
   @AutoValue

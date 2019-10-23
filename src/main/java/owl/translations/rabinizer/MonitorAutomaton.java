@@ -26,7 +26,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.EdgeMapAutomatonMixin;
-import owl.automaton.acceptance.NoneAcceptance;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -34,7 +34,7 @@ import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.GOperator;
 
-class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, NoneAcceptance> {
+class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, AllAcceptance> {
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
   private final Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;
@@ -55,8 +55,8 @@ class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, NoneAccept
   }
 
   @Override
-  public NoneAcceptance acceptance() {
-    return NoneAcceptance.INSTANCE;
+  public AllAcceptance acceptance() {
+    return AllAcceptance.INSTANCE;
   }
 
   Map<GSet, Automaton<MonitorState, ParityAcceptance>> getAutomata() {

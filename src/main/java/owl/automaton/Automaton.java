@@ -31,6 +31,7 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
@@ -376,7 +377,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
       case LIMIT_DETERMINISTIC:
         if (acceptance() instanceof GeneralizedBuchiAcceptance) {
           return AutomatonUtil.ldbaSplit(
-            AutomatonUtil.cast(this, GeneralizedBuchiAcceptance.class)).isPresent();
+            OmegaAcceptanceCast.cast(this, GeneralizedBuchiAcceptance.class)).isPresent();
         }
 
         return false;

@@ -17,22 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.run.modules;
+package owl.translations.modules;
 
-import static com.google.common.base.Preconditions.checkArgument;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Option;
 
-import java.util.function.Function;
+final class AbstractLTL2PortfolioModule {
+  private AbstractLTL2PortfolioModule() {}
 
-public final class Transformers {
-  private Transformers() {
+  static Option disablePortfolio() {
+    return new Option(null, "disable-portfolio", false,
+      "Disable selection of a specialised translation for fragments of LTL.");
   }
 
-  public static <K, V> OwlModule.Transformer fromFunction(Class<K> inputClass,
-    Function<K, V> function) {
-    return object -> {
-      checkArgument(inputClass.isInstance(object),
-        "Expected type %s, got type %s", inputClass, object.getClass());
-      return function.apply(inputClass.cast(object));
-    };
+  static boolean usePortfolio(CommandLine commandLine) {
+    return !commandLine.hasOption(disablePortfolio().getLongOpt());
   }
 }

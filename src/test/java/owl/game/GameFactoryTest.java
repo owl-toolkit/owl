@@ -22,13 +22,12 @@ package owl.game;
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.util.AnnotatedState;
 import owl.game.Game.Owner;
@@ -43,11 +42,9 @@ public class GameFactoryTest {
 
   @Test
   void testTransform() {
-    LabelledFormula formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
-    Automaton<Object, ParityAcceptance> automaton = AutomatonUtil.cast(
-      translate(formula), Object.class, ParityAcceptance.class);
-    Game<Node<Object>, ParityAcceptance> game =
-      GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
+    var formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
+    var automaton = translate(formula);
+    var game = GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
 
     for (Node<Object> state : game.states()) {
       for (Node<Object> predecessor : game.predecessors(state)) {
@@ -62,19 +59,14 @@ public class GameFactoryTest {
 
   @Test
   void testAttractor() {
-    LabelledFormula formula = LtlParser.parse("F (a <-> X b)");
+    var formula = LtlParser.parse("F (a <-> X b)");
+    var automaton = translate(formula);
+    var game = GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
 
-    Automaton<AnnotatedState, ParityAcceptance> automaton = AutomatonUtil.cast(
-      translate(formula), AnnotatedState.class, ParityAcceptance.class);
-
-    Game<Node<AnnotatedState>, ParityAcceptance> game =
-      GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
-
-    Set<Node<AnnotatedState>> winningStates = game.states().stream()
+    var winningStates = game.states().stream()
       .filter(x -> {
-        @SuppressWarnings("unchecked")
-        var state = (AnnotatedState<EquivalenceClass>) x.state();
-        return state.state().isTrue();
+        var state = (AnnotatedState) x.state();
+        return ((EquivalenceClass) state.state()).isTrue();
       }).collect(Collectors.toSet());
     assertThat(winningStates, x -> !x.isEmpty());
 
@@ -91,8 +83,8 @@ public class GameFactoryTest {
     var dpa = new LTL2DPAFunction(
       Environment.annotated(), LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
     var complete = Views.complete(
-      AutomatonUtil.cast(dpa, Object.class, ParityAcceptance.class),
+      OmegaAcceptanceCast.cast((Automaton<Object, ?>) dpa, ParityAcceptance.class),
       new MutableAutomatonUtil.Sink());
-    return AutomatonUtil.cast(complete, Object.class, ParityAcceptance.class);
+    return OmegaAcceptanceCast.cast(complete, ParityAcceptance.class);
   }
 }

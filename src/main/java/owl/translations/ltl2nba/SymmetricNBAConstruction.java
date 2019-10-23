@@ -31,7 +31,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
@@ -240,8 +239,8 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
           var successor = new ProductState(safetyEdge.successor(), livenessEdge.successor(),
             state.evaluatedFixpoints, automata);
-          var acceptance = new BitSet();
-          livenessEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptance::set);
+
+          var acceptance = livenessEdge.acceptanceSets();
           acceptance.set(livenessAutomaton.acceptance().acceptanceSets(), acceptanceSets);
 
           return Edge.of(successor, acceptance);
@@ -321,7 +320,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
       Set<Edge<Either<Formula, ProductState>>> acceptingComponentEdges = new HashSet<>();
 
       for (var edge : edges) {
-        if (edge.successor().isLeft()) {
+        if (edge.successor().type() == Either.Type.LEFT) {
           initialComponentEdges.add(edge);
 
           var formula = edge.successor().left();

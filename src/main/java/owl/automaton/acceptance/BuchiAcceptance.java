@@ -24,7 +24,7 @@ import java.util.List;
 public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
   public static final BuchiAcceptance INSTANCE = new BuchiAcceptance();
 
-  public BuchiAcceptance() {
+  private BuchiAcceptance() {
     super(1);
   }
 

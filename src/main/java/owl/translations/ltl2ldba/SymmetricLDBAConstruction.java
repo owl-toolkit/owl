@@ -39,7 +39,6 @@ import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -47,9 +46,9 @@ import owl.automaton.Automaton;
 import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.collections.Either;
@@ -197,7 +196,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       };
 
     var automaton = new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
-      Collections3.ofNullable(initialState), NoneAcceptance.INSTANCE, null, edgeTree);
+      Collections3.ofNullable(initialState), AllAcceptance.INSTANCE, null, edgeTree);
 
     Consumer<Map.Entry<Integer, EquivalenceClass>> jumpGenerator = entry -> {
       if (epsilonJumps.containsKey(entry)) {
@@ -321,7 +320,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     var shortCuts = new HashMap<EquivalenceClass, SymmetricProductState>();
 
     ldba.states().forEach((state) -> {
-      if (!state.isRight()) {
+      if (state.type() == Either.Type.LEFT) {
         return;
       }
 
@@ -333,7 +332,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     });
 
     ldba.updateEdges((state, edge) -> {
-      if (state.isRight() || edge.successor().isRight()) {
+      if (state.type() == Either.Type.RIGHT || edge.successor().type() == Either.Type.RIGHT) {
         return edge;
       }
 
@@ -425,8 +424,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         var successor = new SymmetricProductState(safetyEdge.successor(),
           livenessEdge.successor(), state.evaluatedFixpoints, automata);
 
-        var acceptance = new BitSet();
-        livenessEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptance::set);
+        var acceptance = livenessEdge.acceptanceSets();
         acceptance.set(livenessAutomaton.acceptance().acceptanceSets(),
           this.acceptance.acceptanceSets());
 

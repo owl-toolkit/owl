@@ -28,7 +28,6 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.edge.Edge;
 
 public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   @Nonnegative
@@ -48,7 +47,7 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
+  public final BooleanExpression<AtomAcceptance> booleanExpression() {
     return createConjunction(IntStream.range(0, size).mapToObj(BooleanExpressions::mkInf));
   }
 
@@ -76,10 +75,5 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
     }
 
     return new BitSet();
-  }
-
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.largestAcceptanceSet() < size;
   }
 }

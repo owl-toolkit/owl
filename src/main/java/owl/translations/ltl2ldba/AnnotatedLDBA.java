@@ -31,8 +31,8 @@ import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.TwoPartAutomaton;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
@@ -58,7 +58,7 @@ import owl.ltl.SyntacticFragments;
 public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
   B extends GeneralizedBuchiAcceptance, X, Y> {
 
-  private final MutableAutomaton<S, NoneAcceptance> initialComponent;
+  private final MutableAutomaton<S, AllAcceptance> initialComponent;
   private final SetMultimap<S, T> epsilonJumps;
   private final MutableAutomaton<T, B> acceptingComponent;
 
@@ -67,7 +67,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
   private final Function<S, EquivalenceClass> languageFunction;
 
-  private AnnotatedLDBA(MutableAutomaton<S, NoneAcceptance> initialComponent,
+  private AnnotatedLDBA(MutableAutomaton<S, AllAcceptance> initialComponent,
     MutableAutomaton<T, B> acceptingComponent,
     SetMultimap<S, T> epsilonJumps,
     Function<S, EquivalenceClass> languageFunction,
@@ -87,7 +87,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
   static <S, T extends LtlLanguageExpressible, Acc extends GeneralizedBuchiAcceptance, X, Y>
   AnnotatedLDBA<S, T, Acc, X, Y> build(
-    MutableAutomaton<S, NoneAcceptance> initialComponent,
+    MutableAutomaton<S, AllAcceptance> initialComponent,
     AcceptingComponentBuilder<T, Acc> acceptingComponentBuilder,
     Function<S, Set<T>> jumps,
     Function<S, EquivalenceClass> languageFunction,
@@ -148,7 +148,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     return acceptingComponent.factory();
   }
 
-  public Automaton<S, NoneAcceptance> initialComponent() {
+  public Automaton<S, AllAcceptance> initialComponent() {
     return initialComponent;
   }
 
@@ -203,7 +203,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
       Set<Edge<Either<S, T>>> acceptingComponentEdges = new HashSet<>();
 
       for (var edge : edges) {
-        if (edge.successor().isLeft()) {
+        if (edge.successor().type() == Either.Type.LEFT) {
           assert initialComponentEdge == null;
           initialComponentEdge = edge;
         } else {

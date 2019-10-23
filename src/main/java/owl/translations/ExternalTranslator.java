@@ -48,7 +48,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
 
 public class ExternalTranslator
   implements Function<LabelledFormula, Automaton<HoaState, OmegaAcceptance>> {
@@ -84,7 +83,7 @@ public class ExternalTranslator
       String[] tool = splitPattern.split(toolPath);
 
       ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
-      return Transformers.fromFunction(LabelledFormula.class, translator);
+      return OwlModule.Transformer.of(LabelledFormula.class, translator);
     });
 
   private final Environment env;

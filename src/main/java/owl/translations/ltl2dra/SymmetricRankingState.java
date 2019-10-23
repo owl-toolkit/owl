@@ -33,6 +33,10 @@ import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 public abstract class SymmetricRankingState
   implements AnnotatedState<Map<Integer, EquivalenceClass>> {
 
+  SymmetricRankingState() {
+    // This constructor is intentionally empty. Only AutoValue is allowed to subclass.
+  }
+
   @Override
   public abstract Map<Integer, EquivalenceClass> state();
 

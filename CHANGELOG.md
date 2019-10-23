@@ -15,12 +15,25 @@ Modules:
   (on the test sets) smaller automata compared to `fgx2dpa`.
 
 * `ltl2da` uses for the "safety-cosafety" and "cosafety-safety" fragment a
-   optimised construction without invoking a fallback solution. 
+   optimised construction without invoking a fallback solution.
+   
+* `ltl2nba`, `ltl2ngba`, `ltl2ldba`, `ltl2ldgba`, `ltl2dra`, `ltl2dgra`, 
+  and `ltl2dpa` use a portfolio translator selecting simpler translations
+  based on syntactic criteria, before applying the general purpose 
+  translation. This feature can be deactivated using `--disable-portfolio`.
+  
+* `ltl2dpa` by default uses also a complement translation to obtain a small
+  DPA. This feature can be deactivated using `--disable-complement`.
 
 API:
 
 * Removed unused and unmaintained `FrequencyG` class and forbid subclassing
   of `GOperator`.
+  
+* Addition of `Negation` as a syntactic element for LTL formulas.
+
+* OmegaAcceptanceCast enables casting and conversion of different types of 
+  omega-acceptance.
 
 Bugfixes:
 

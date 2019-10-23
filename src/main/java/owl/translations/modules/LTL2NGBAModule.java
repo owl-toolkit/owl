@@ -21,26 +21,30 @@ package owl.translations.modules;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.function.Function;
+import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
+import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
+import owl.run.modules.OwlModule.Transformer;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
 public final class LTL2NGBAModule {
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+  public static final OwlModule<Transformer> MODULE = OwlModule.of(
     "ltl2ngba",
     "Translate LTL to non-deterministic generalized-Büchi automata. "
       + "The construction is based on the symmetric approach from [EKS: LICS'18].",
-    (commandLine, environment) -> Transformers.fromFunction(
-      LabelledFormula.class,
-      SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class))
+    AbstractLTL2PortfolioModule.disablePortfolio(),
+    (commandLine, environment) -> Transformer.of(LabelledFormula.class,
+      translation(environment, AbstractLTL2PortfolioModule.usePortfolio(commandLine)))
   );
 
   private LTL2NGBAModule() {}
@@ -52,5 +56,26 @@ public final class LTL2NGBAModule {
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
+  }
+
+  public static Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>>
+    translation(Environment environment, boolean usePortfolio) {
+
+    var construction = SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class);
+    var portfolio = usePortfolio
+      ? new NonDeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class, environment)
+      : null;
+
+    return labelledFormula -> {
+      if (portfolio != null) {
+        var automaton = portfolio.apply(labelledFormula);
+
+        if (automaton.isPresent()) {
+          return automaton.orElseThrow();
+        }
+      }
+
+      return construction.apply(labelledFormula);
+    };
   }
 }

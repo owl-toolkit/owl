@@ -29,7 +29,6 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
@@ -145,10 +144,6 @@ public final class AutomatonFactory {
     Function<S, ? extends Map<Edge<S>, ValuationSet>> labelledEdgesFunction) {
     return new ImplicitNonDeterministicEdgeMapAutomaton<>(factory, initialStates, acceptance,
       Objects.requireNonNull(edgesFunction), labelledEdgesFunction);
-  }
-
-  public static <S> Automaton<S, NoneAcceptance> empty(ValuationSetFactory factory) {
-    return empty(factory, NoneAcceptance.INSTANCE);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> empty(

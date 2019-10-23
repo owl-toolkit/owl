@@ -109,6 +109,8 @@ public abstract class Edge<S> {
    */
   public abstract PrimitiveIterator.OfInt acceptanceSetIterator();
 
+  public abstract BitSet acceptanceSets();
+
   /**
    * Get the target state of the edge.
    *

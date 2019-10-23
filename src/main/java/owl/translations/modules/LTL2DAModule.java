@@ -19,28 +19,26 @@
 
 package owl.translations.modules;
 
+import static owl.run.modules.OwlModule.Transformer;
+
 import java.io.IOException;
 import java.util.List;
-import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.LTL2DAFunction;
 
 public final class LTL2DAModule {
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+  public static final OwlModule<Transformer> MODULE = OwlModule.of(
     "ltl2da",
     "Translate LTL to a (heuristically chosen) small deterministic automaton.",
-    (commandLine, environment) -> {
-      LTL2DAFunction function = new LTL2DAFunction(environment, EmersonLeiAcceptance.class);
-      return Transformers.fromFunction(LabelledFormula.class, function::apply);
-    });
+    (commandLine, environment) ->
+      Transformer.of(LabelledFormula.class, new LTL2DAFunction(environment)));
 
   private LTL2DAModule() {}
 

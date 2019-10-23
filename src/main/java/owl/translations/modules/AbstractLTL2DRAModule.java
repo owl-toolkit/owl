@@ -60,7 +60,9 @@ final class AbstractLTL2DRAModule {
   }
 
   static Options options() {
-    return getAsymmetricOptions().addOptionGroup(getOptionGroup());
+    return getAsymmetricOptions()
+      .addOptionGroup(getOptionGroup())
+      .addOption(AbstractLTL2PortfolioModule.disablePortfolio());
   }
 
   @Nullable

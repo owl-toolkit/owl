@@ -24,10 +24,10 @@ import java.util.List;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.AutomatonOperations;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 
 public final class LanguageContainment {
 
@@ -51,10 +51,12 @@ public final class LanguageContainment {
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
       "Second argument needs to be deterministic.");
 
-    var casted1 = AutomatonUtil.cast(automaton1, Object.class, BuchiAcceptance.class);
-    var casted2 = AutomatonUtil.cast(automaton2, Object.class, BuchiAcceptance.class);
+    var casted1 = OmegaAcceptanceCast.cast(
+      (Automaton<Object, ?>) automaton1, BuchiAcceptance.class);
+    var casted2 = OmegaAcceptanceCast.cast(
+      (Automaton<Object, ?>) automaton2, BuchiAcceptance.class);
 
     return LanguageEmptiness.isEmpty(AutomatonOperations.intersection(List.of(casted1,
-      AutomatonUtil.cast(Views.complement(casted2, new Object()), CoBuchiAcceptance.class))));
+      Views.complement(casted2, new Object(), CoBuchiAcceptance.class))));
   }
 }

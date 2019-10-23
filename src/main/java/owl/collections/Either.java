@@ -46,14 +46,6 @@ public abstract class Either<A, B> {
     return AutoOneOf_Either.right(value);
   }
 
-  public final boolean isLeft() {
-    return type() == Type.LEFT;
-  }
-
-  public final boolean isRight() {
-    return type() == Type.RIGHT;
-  }
-
   public final <C> C map(Function<? super A, ? extends C> left,
     Function<? super B, ? extends C> right) {
     switch (type()) {

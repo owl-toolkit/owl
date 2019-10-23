@@ -27,18 +27,17 @@ import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
-import owl.run.modules.Transformers;
+import owl.run.modules.OwlModule.Transformer;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.LTL2NAFunction;
 
 public final class LTL2NAModule {
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+  public static final OwlModule<Transformer> MODULE = OwlModule.of(
     "ltl2na",
     "Translate LTL to a (heuristically chosen) small non-deterministic automaton.",
-    (commandLine, environment) -> Transformers.fromFunction(
-      LabelledFormula.class,
-      new LTL2NAFunction(environment)));
+    (commandLine, environment) ->
+      Transformer.of(LabelledFormula.class, new LTL2NAFunction(environment)));
 
   private LTL2NAModule() {}
 

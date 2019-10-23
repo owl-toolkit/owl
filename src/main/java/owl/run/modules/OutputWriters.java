@@ -35,7 +35,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.output.HoaPrinter;
 import owl.automaton.output.HoaPrinter.HoaOption;
@@ -179,7 +178,7 @@ public final class OutputWriters {
         options = EnumSet.noneOf(HoaOption.class);
       }
 
-      HoaPrinter.feedTo(AutomatonUtil.cast(object), wrappedPrinter, options);
+      HoaPrinter.feedTo((Automaton<?, ?>) object, wrappedPrinter, options);
     }
   }
 

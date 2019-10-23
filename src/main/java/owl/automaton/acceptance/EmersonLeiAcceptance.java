@@ -22,12 +22,15 @@ package owl.automaton.acceptance;
 import java.util.BitSet;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
-import owl.automaton.edge.Edge;
 
 public final class EmersonLeiAcceptance extends OmegaAcceptance {
 
   private final BooleanExpression<AtomAcceptance> expression;
   private final int sets;
+
+  EmersonLeiAcceptance(OmegaAcceptance acceptance) {
+    this(acceptance.acceptanceSets(), acceptance.booleanExpression());
+  }
 
   public EmersonLeiAcceptance(int sets, BooleanExpression<AtomAcceptance> expression) {
     this.expression = expression;
@@ -57,10 +60,5 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   @Override
   public BitSet rejectingSet() {
     throw new UnsupportedOperationException("Not yet implemented");
-  }
-
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return true;
   }
 }

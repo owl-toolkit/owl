@@ -38,7 +38,6 @@ import owl.automaton.EdgeTreeAutomatonMixin;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -252,24 +251,12 @@ public final class NonDeterministicConstructions {
 
       @Override
       public Boolean visit(Conjunction conjunction) {
-        for (Formula x : conjunction.children) {
-          if (!x.accept(this)) {
-            return false;
-          }
-        }
-
-        return true;
+        return conjunction.children.stream().allMatch(x -> x.accept(this));
       }
 
       @Override
       public Boolean visit(Disjunction disjunction) {
-        for (Formula x : disjunction.children) {
-          if (!x.accept(this)) {
-            return false;
-          }
-        }
-
-        return true;
+        return disjunction.children.stream().allMatch(x -> x.accept(this));
       }
 
       @Override
@@ -410,14 +397,14 @@ public final class NonDeterministicConstructions {
     }
   }
 
-  public static final class Tracking extends NonLooping<NoneAcceptance> {
+  public static final class Tracking extends NonLooping<AllAcceptance> {
     public Tracking(Factories factories, Formula formula) {
       super(factories, formula);
     }
 
     @Override
-    public NoneAcceptance acceptance() {
-      return NoneAcceptance.INSTANCE;
+    public AllAcceptance acceptance() {
+      return AllAcceptance.INSTANCE;
     }
 
     @Override

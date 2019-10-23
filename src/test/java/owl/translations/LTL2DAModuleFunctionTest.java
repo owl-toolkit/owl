@@ -39,15 +39,15 @@ class LTL2DAModuleFunctionTest {
   private static final String LARGE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)"
       + "& X G (x1 | x2 | x3)";
 
-  private static final LTL2DAFunction translator = new LTL2DAFunction(Environment.standard(),
-    ParityAcceptance.class);
+  private static final LTL2DAFunction TRANSLATOR
+    = new LTL2DAFunction(ParityAcceptance.class, Environment.standard());
 
   @Test
   void construct() {
     var formula = LtlParser.parse("a | b R X c");
 
-    var automaton = translator.apply(formula);
-    var complementAutomaton = translator.apply(formula.not());
+    var automaton = TRANSLATOR.apply(formula);
+    var complementAutomaton = TRANSLATOR.apply(formula.not());
 
     assertEquals(automaton.size(), complementAutomaton.size());
     assertFalse(LanguageEmptiness.isEmpty(automaton));
@@ -59,7 +59,7 @@ class LTL2DAModuleFunctionTest {
     var formula = LtlParser.parse(LARGE);
     assertEquals(29, formula.variables().size());
 
-    var automaton = (Automaton<Object, ?>) translator.apply(formula);
+    var automaton = (Automaton<Object, ?>) TRANSLATOR.apply(formula);
     var state = automaton.onlyInitialState();
 
     // Check null successor.
@@ -73,7 +73,7 @@ class LTL2DAModuleFunctionTest {
     var formula = LtlParser.parse(LARGE).not();
     assertEquals(29, formula.variables().size());
 
-    var automaton = (Automaton<EquivalenceClass, ?>) translator.apply(formula);
+    var automaton = (Automaton<EquivalenceClass, ?>) TRANSLATOR.apply(formula);
     var state = automaton.onlyInitialState().factory().getTrue();
     var edge = Edge.of(state, 0);
 

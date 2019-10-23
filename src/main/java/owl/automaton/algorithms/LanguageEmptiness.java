@@ -25,15 +25,14 @@ import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
-import owl.automaton.acceptance.NoneAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
@@ -55,31 +54,27 @@ public final class LanguageEmptiness {
     }
 
     if (acceptance instanceof BuchiAcceptance) {
-      var casted = AutomatonUtil.cast(automaton, BuchiAcceptance.class);
+      var casted = OmegaAcceptanceCast.cast(automaton, BuchiAcceptance.class);
       return initialStates.stream().noneMatch(x -> Buchi.containsAcceptingLasso(casted, x));
     }
 
     if (acceptance instanceof GeneralizedBuchiAcceptance) {
-      var casted = AutomatonUtil.cast(automaton, GeneralizedBuchiAcceptance.class);
+      var casted = OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class);
       return !Buchi.containsAcceptingScc(casted, initialStates);
     }
 
-    if (acceptance instanceof NoneAcceptance) {
-      return true;
-    }
-
     if (acceptance instanceof ParityAcceptance) {
-      var casted = AutomatonUtil.cast(automaton, ParityAcceptance.class);
+      var casted = OmegaAcceptanceCast.cast(automaton, ParityAcceptance.class);
       return initialStates.stream().noneMatch(x -> Parity.containsAcceptingLasso(casted, x));
     }
 
     if (acceptance instanceof RabinAcceptance) {
-      var casted = AutomatonUtil.cast(automaton, RabinAcceptance.class);
+      var casted = OmegaAcceptanceCast.cast(automaton, RabinAcceptance.class);
       return initialStates.stream().noneMatch(x -> Rabin.containsAcceptingLasso(casted, x));
     }
 
     if (acceptance instanceof GeneralizedRabinAcceptance) {
-      var casted = AutomatonUtil.cast(automaton, GeneralizedRabinAcceptance.class);
+      var casted = OmegaAcceptanceCast.cast(automaton, GeneralizedRabinAcceptance.class);
       return !Rabin.containsAcceptingScc(casted, initialStates);
     }
 
