@@ -101,11 +101,13 @@ final class HoaConsumerExtended<S> {
     }
   }
 
+  // TODO: global scope?
   private static String tool() {
     String title = HoaConsumerExtended.class.getPackage().getImplementationTitle();
     return title == null ? "owl" : title;
   }
 
+  // TODO: global scope?
   private static String version() {
     String version = HoaConsumerExtended.class.getPackage().getImplementationVersion();
     return version == null ? "development" : version;

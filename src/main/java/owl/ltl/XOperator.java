@@ -20,7 +20,6 @@
 package owl.ltl;
 
 import com.google.common.base.Preconditions;
-import java.util.BitSet;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
@@ -29,7 +28,7 @@ import owl.util.annotation.CEntryPoint;
 /**
  * Next.
  */
-public final class XOperator extends UnaryModalOperator {
+public final class XOperator extends Formula.UnaryTemporalOperator {
 
   public XOperator(Formula operand) {
     super(XOperator.class, operand);
@@ -118,10 +117,5 @@ public final class XOperator extends UnaryModalOperator {
   @Override
   public Formula unfold() {
     return this;
-  }
-
-  @Override
-  public Formula unfoldTemporalStep(BitSet valuation) {
-    return temporalStep(valuation);
   }
 }

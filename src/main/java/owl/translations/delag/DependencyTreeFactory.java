@@ -36,6 +36,7 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
+import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.visitors.PropositionalVisitor;
@@ -58,7 +59,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     builder = ProductState.builder();
     this.constructor = formula -> automatonCache.computeIfAbsent(formula, x ->
       AcceptanceOptimizations.optimize(
-        constructor.apply(LabelledFormula.of(x, this.factory.variables())))
+        constructor.apply(LabelledFormula.of(x, this.factory.atomicPropositions())))
       );
   }
 
@@ -69,6 +70,11 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
   @Override
   protected DependencyTree<T> visit(Formula.TemporalOperator formula) {
     return defaultAction(formula, null);
+  }
+
+  @Override
+  public DependencyTree<T> visit(Literal literal) {
+    return defaultAction(literal, null);
   }
 
   private DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {

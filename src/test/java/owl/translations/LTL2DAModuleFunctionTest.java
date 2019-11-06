@@ -31,6 +31,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.edge.Edge;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
@@ -57,7 +58,7 @@ class LTL2DAModuleFunctionTest {
   @Test
   void performanceSafety() {
     var formula = LtlParser.parse(LARGE);
-    assertEquals(29, formula.variables().size());
+    assertEquals(29, formula.atomicPropositions().size());
 
     var automaton = (Automaton<Object, ?>) TRANSLATOR.apply(formula);
     var state = automaton.onlyInitialState();
@@ -71,10 +72,10 @@ class LTL2DAModuleFunctionTest {
   @Test
   void performanceCosafety() {
     var formula = LtlParser.parse(LARGE).not();
-    assertEquals(29, formula.variables().size());
+    assertEquals(29, formula.atomicPropositions().size());
 
     var automaton = (Automaton<EquivalenceClass, ?>) TRANSLATOR.apply(formula);
-    var state = automaton.onlyInitialState().factory().getTrue();
+    var state = automaton.onlyInitialState().factory().of(BooleanConstant.TRUE);
     var edge = Edge.of(state, 0);
 
     // Check true sink.

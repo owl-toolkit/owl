@@ -34,6 +34,10 @@ API:
 
 * OmegaAcceptanceCast enables casting and conversion of different types of 
   omega-acceptance.
+  
+* EquivalenceClass always maintains the representative. This is made 
+  possible by major performance improvements in the EquivalenceClass 
+  implementation.   
 
 Bugfixes:
 

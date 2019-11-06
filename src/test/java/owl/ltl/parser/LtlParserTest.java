@@ -74,14 +74,14 @@ class LtlParserTest {
   @Test
   void testSingleQuotedLiteralParsing() {
     LabelledFormula formula = LtlParser.parse("'a b c'");
-    assertEquals(List.of("a b c"), formula.variables());
+    assertEquals(List.of("a b c"), formula.atomicPropositions());
     assertEquals(Literal.of(0), formula.formula());
   }
 
   @Test
   void testDoubleQuotedLiteralParsing() {
     LabelledFormula formula = LtlParser.parse("\"a b c\"");
-    assertEquals(List.of("a b c"), formula.variables());
+    assertEquals(List.of("a b c"), formula.atomicPropositions());
     assertEquals(Literal.of(0), formula.formula());
   }
 

@@ -52,7 +52,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
+import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.run.Environment;
@@ -89,10 +89,10 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     apply(LabelledFormula input) {
     LabelledFormula formula = input.nnf();
 
-    var factories = environment.factorySupplier().getFactories(formula.variables(), true);
-    var modalOperators = factories.eqFactory.of(formula.formula()).modalOperators();
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    var formulaClass = factories.eqFactory.of(formula.formula());
 
-    Set<Formula.ModalOperator> blockingModalOperators;
+    Set<Formula.TemporalOperator> blockingModalOperators;
     int acceptanceSets = 1;
 
     var knownFixpoints = new TreeSet<Fixpoints>();
@@ -100,8 +100,8 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     var automataMap = new HashMap<AsymmetricEvaluatedFixpoints,
       AsymmetricEvaluatedFixpoints.DeterministicAutomata>();
 
-    if (SyntacticFragments.isSafety(modalOperators)
-      || SyntacticFragments.isCoSafety(modalOperators)) {
+    if (SyntacticFragments.isSafety(formulaClass)
+      || SyntacticFragments.isCoSafety(formulaClass)) {
       blockingModalOperators = Set.of();
     } else {
       for (Fixpoints fixpoints : Selector.selectAsymmetric(formula.formula(), false)) {
@@ -128,7 +128,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       blockingModalOperators = formula.formula()
         .accept(BlockingModalOperatorsVisitor.INSTANCE).stream()
-        .filter(x -> !isProperSubformula(x, modalOperators))
+        .filter(x -> !isProperSubformula(x, formulaClass.temporalOperators()))
         .collect(Collectors.toUnmodifiableSet());
 
       if (acceptanceClass.equals(GeneralizedBuchiAcceptance.class)) {
@@ -144,21 +144,23 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     Map<EquivalenceClass, Set<AsymmetricProductState>> jumps = new HashMap<>();
 
     Consumer<EquivalenceClass> jumpGenerator = x -> {
-      Set<Formula.ModalOperator> operators = x.modalOperators();
 
       // The state is a simple safety or cosafety condition. We don't need to use reasoning about
       // the infinite behaviour and simply build the left-derivative of the formula.
-      if (SyntacticFragments.isCoSafety(operators)
-        || SyntacticFragments.isSafety(operators)
-        || !Collections.disjoint(operators, blockingModalOperators)) {
+      if (SyntacticFragments.isCoSafety(x)
+        || SyntacticFragments.isSafety(x)
+        || !Collections.disjoint(x.temporalOperators(), blockingModalOperators)) {
         return;
       }
 
       List<AsymmetricProductState> productStates = new ArrayList<>();
+      Set<Formula.TemporalOperator> allModalOperators = new HashSet<>();
 
-      Set<Formula.ModalOperator> allModalOperators = new HashSet<>();
-      operators.forEach(y -> allModalOperators.addAll(y.subformulas(Predicates.IS_GREATEST_FIXPOINT,
-        Formula.ModalOperator.class::cast)));
+      for (var temporalOperator : x.temporalOperators()) {
+        allModalOperators.addAll(
+          temporalOperator.subformulas(Predicates.IS_GREATEST_FIXPOINT,
+            Formula.TemporalOperator.class::cast));
+      }
 
       for (Fixpoints fixpoints : knownFixpoints) {
         if (fixpoints.allFixpointsPresent(allModalOperators)) {
@@ -175,7 +177,8 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
           AsymmetricProductState productState;
 
           if (evaluatedFixpoints.language().implies(remainder)) {
-            productState = acceptingComponentBuilder.createState(factories.eqFactory.getTrue(),
+            productState = acceptingComponentBuilder.createState(
+              factories.eqFactory.of(BooleanConstant.TRUE),
               evaluatedFixpoints, automataMap.get(evaluatedFixpoints));
           } else if (!dependsOnExternalAtoms(remainder, evaluatedFixpoints)) {
             productState = acceptingComponentBuilder.createState(remainder.unfold(),
@@ -208,7 +211,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
           return Set.of();
         }
 
-        return Set.of(SyntacticFragments.isSafety(successor.modalOperators())
+        return Set.of(SyntacticFragments.isSafety(successor)
           ? Edge.of(successor, bitSet)
           : Edge.of(successor));
       });
@@ -246,14 +249,14 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     AsymmetricProductState createState(EquivalenceClass remainder,
       AsymmetricEvaluatedFixpoints evaluatedFixpoints,
       AsymmetricEvaluatedFixpoints.DeterministicAutomata automata) {
-      assert remainder.modalOperators().stream().allMatch(SyntacticFragments::isCoSafety);
+      assert SyntacticFragments.isCoSafety(remainder);
 
       EquivalenceClass safety = automata.safetyAutomaton.onlyInitialState();
       EquivalenceClass current = remainder;
 
-      if (remainder.modalOperators().stream().allMatch(SyntacticFragments::isSafety)) {
+      if (SyntacticFragments.isSafety(remainder)) {
         safety = current.and(safety);
-        current = factories.eqFactory.getTrue();
+        current = factories.eqFactory.of(BooleanConstant.TRUE);
       } else {
         current = factory.initialStateInternal(current,
           safety.and(evaluatedFixpoints.language()).unfold());
@@ -275,7 +278,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
           current = factory.initialStateInternal(automata.fCoSafety.get(0), safety);
         } else {
           current = factory.initialStateInternal(nextCoSafety[0], safety);
-          nextCoSafety[0] = factories.eqFactory.getTrue();
+          nextCoSafety[0] = factories.eqFactory.of(BooleanConstant.TRUE);
         }
       }
 
@@ -367,7 +370,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       for (int i = 0; i < nextSuccessors.size(); i++) {
         if (currentSuccessful && i == j) {
-          nextSuccessors.set(i, factories.eqFactory.getTrue());
+          nextSuccessors.set(i, factories.eqFactory.of(BooleanConstant.TRUE));
         } else {
           nextSuccessors.set(i, nextSuccessors.get(i)
             .and(factory.initialStateInternal(automata.coSafety.get(i), assumptions)));
@@ -448,7 +451,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
   }
 
   private static final class BlockingModalOperatorsVisitor
-    extends PropositionalVisitor<Set<Formula.ModalOperator>> {
+    extends PropositionalVisitor<Set<Formula.TemporalOperator>> {
 
     private static final BlockingModalOperatorsVisitor INSTANCE
       = new BlockingModalOperatorsVisitor();
@@ -456,30 +459,35 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     private BlockingModalOperatorsVisitor() {}
 
     @Override
-    protected Set<Formula.ModalOperator> visit(Formula.TemporalOperator formula) {
-      if (SyntacticFragment.FINITE.contains(formula)) {
+    protected Set<Formula.TemporalOperator> visit(Formula.TemporalOperator formula) {
+      if (SyntacticFragments.isFinite(formula)) {
         return Set.of();
       }
 
       if (SyntacticFragments.isCoSafety(formula)) {
-        return Set.of((Formula.ModalOperator) formula);
+        return Set.of(formula);
       }
 
       return Set.of();
     }
 
     @Override
-    public Set<Formula.ModalOperator> visit(BooleanConstant booleanConstant) {
+    public Set<Formula.TemporalOperator> visit(Literal literal) {
       return Set.of();
     }
 
     @Override
-    public Set<Formula.ModalOperator> visit(Conjunction conjunction) {
-      Set<Formula.ModalOperator> blockingOperators = new HashSet<>();
+    public Set<Formula.TemporalOperator> visit(BooleanConstant booleanConstant) {
+      return Set.of();
+    }
+
+    @Override
+    public Set<Formula.TemporalOperator> visit(Conjunction conjunction) {
+      Set<Formula.TemporalOperator> blockingOperators = new HashSet<>();
 
       for (Formula child : conjunction.children) {
         // Only consider non-finite LTL formulas.
-        if (!SyntacticFragment.FINITE.contains(child)) {
+        if (!SyntacticFragments.isFinite(child)) {
           blockingOperators.addAll(child.accept(this));
         }
       }
@@ -488,12 +496,12 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     }
 
     @Override
-    public Set<Formula.ModalOperator> visit(Disjunction disjunction) {
-      Set<Formula.ModalOperator> blockingOperators = null;
+    public Set<Formula.TemporalOperator> visit(Disjunction disjunction) {
+      Set<Formula.TemporalOperator> blockingOperators = null;
 
       for (Formula child : disjunction.children) {
         // Only consider non-finite LTL formulas.
-        if (!SyntacticFragment.FINITE.contains(child)) {
+        if (!SyntacticFragments.isFinite(child)) {
           if (blockingOperators == null) {
             blockingOperators = new HashSet<>(child.accept(this));
           } else {

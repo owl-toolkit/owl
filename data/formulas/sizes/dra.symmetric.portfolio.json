@@ -4708,6 +4708,17 @@
     }
   },
   {
+    "formula": "((Fa | X(F!b \u0026 G!a)) \u0026 (G!a | X(Fa | Gb)))",
+    "properties": {
+      "size": 8,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 4,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((((a) R (b)) | (FGa \u0026 GFb) | (FGc \u0026 GFd)) \u0026 (((a) R (c)) | (FGa \u0026 GFd) | (FGc \u0026 GFb)))",
     "properties": {
       "size": 27,
@@ -5133,6 +5144,17 @@
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 4,
       "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "((Fa \u0026 X(F!b \u0026 G!a)) | (G!a \u0026 X(Fa | Gb)))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 4,
+      "complete": false,
       "deterministic": true
     }
   },

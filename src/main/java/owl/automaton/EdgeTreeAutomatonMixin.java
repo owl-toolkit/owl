@@ -61,6 +61,11 @@ public interface EdgeTreeAutomatonMixin<S, A extends OmegaAcceptance> extends Au
   }
 
   @Override
+  default Set<S> successors(S state) {
+    return edgeTree(state).values(Edge::successor);
+  }
+
+  @Override
   default List<PreferredEdgeAccess> preferredEdgeAccess() {
     return ACCESS_MODES;
   }

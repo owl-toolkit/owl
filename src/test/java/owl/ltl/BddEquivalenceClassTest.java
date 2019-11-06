@@ -26,6 +26,6 @@ public class BddEquivalenceClassTest extends EquivalenceClassTest {
   @Override
   protected EquivalenceClassFactory obtainFactory(LabelledFormula domain) {
     return Environment.annotated().factorySupplier()
-      .getEquivalenceClassFactory(domain.variables(), false);
+      .getEquivalenceClassFactory(domain.atomicPropositions());
   }
 }

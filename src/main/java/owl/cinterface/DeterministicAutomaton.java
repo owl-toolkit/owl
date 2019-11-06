@@ -168,7 +168,7 @@ public final class DeterministicAutomaton<S, T> {
       if (SyntacticFragments.isGCoSafety(unwrapped)) {
         return new DeterministicAutomaton<>(
           GenericConstructions.delay(
-            DeterministicConstructionsPortfolio.gCoSafety(ENV, LabelledFormula.of(unwrapped, formula.variables())),
+            DeterministicConstructionsPortfolio.gCoSafety(ENV, LabelledFormula.of(unwrapped, formula.atomicPropositions())),
             xCount),
           BUCHI, BuchiAcceptance.class,
           x -> false,
@@ -201,7 +201,7 @@ public final class DeterministicAutomaton<S, T> {
         x -> x.inSet(0) ? 0.0d : 0.5d
       );
     }
-    
+
     if (SyntacticFragments.isCoSafetySafety(formula.formula())) {
       return new DeterministicAutomaton<>(
         DeterministicConstructionsPortfolio.coSafetySafety(ENV, formula),

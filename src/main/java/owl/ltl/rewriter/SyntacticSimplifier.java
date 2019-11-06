@@ -28,7 +28,6 @@ import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import owl.collections.Collections3;
 import owl.ltl.Biconditional;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -37,7 +36,6 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
@@ -73,7 +71,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    Set<Formula> newConjunction = conjunction.map(x -> x.accept(this)).collect(Collectors.toSet());
+    Set<Formula> newConjunction = new HashSet<>(conjunction.map(x -> x.accept(this)));
 
     // Short-circuit conjunction if it contains x and !x.
     if (newConjunction.stream().anyMatch(x -> newConjunction.contains(x.not()))) {
@@ -109,14 +107,16 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       }
     }
 
-    for (BinaryModalOperator operator : filter(newConjunction, BinaryModalOperator.class,
+    for (Formula.BinaryTemporalOperator operator
+      : filter(newConjunction, Formula.BinaryTemporalOperator.class,
       x -> x instanceof UOperator || x instanceof WOperator)) {
       if (newConjunction.contains(operator.right)) {
         newConjunction.remove(operator);
       }
     }
 
-    for (BinaryModalOperator operator : filter(newConjunction, BinaryModalOperator.class,
+    for (Formula.BinaryTemporalOperator operator
+      : filter(newConjunction, Formula.BinaryTemporalOperator.class,
       x -> x instanceof MOperator || x instanceof ROperator)) {
       if (newConjunction.contains(operator.left)) {
         newConjunction.remove(operator);
@@ -137,7 +137,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(Disjunction disjunction) {
-    Set<Formula> newDisjunction = disjunction.map(x -> x.accept(this)).collect(Collectors.toSet());
+    Set<Formula> newDisjunction = new HashSet<>(disjunction.map(x -> x.accept(this)));
 
     // Short-circuit disjunction if it contains x and !x.
     if (newDisjunction.stream().anyMatch(x -> newDisjunction.contains(x.not()))) {
@@ -173,15 +173,17 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       }
     }
 
-    for (BinaryModalOperator operator : filter(newDisjunction, BinaryModalOperator.class,
-      x -> x instanceof MOperator || x instanceof ROperator)) {
+    for (Formula.BinaryTemporalOperator operator :
+      filter(newDisjunction, Formula.BinaryTemporalOperator.class,
+        x -> x instanceof MOperator || x instanceof ROperator)) {
       if (newDisjunction.contains(operator.right)) {
         newDisjunction.remove(operator);
       }
     }
 
-    for (BinaryModalOperator operator : filter(newDisjunction, BinaryModalOperator.class,
-      x -> x instanceof UOperator || x instanceof WOperator)) {
+    for (Formula.BinaryTemporalOperator operator :
+      filter(newDisjunction, Formula.BinaryTemporalOperator.class,
+        x -> x instanceof UOperator || x instanceof WOperator)) {
       if (newDisjunction.contains(operator.left)) {
         newDisjunction.remove(operator);
         newDisjunction.add(operator.right);
@@ -488,10 +490,10 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       return operand;
     }
 
-    if (operand instanceof PropositionalFormula) {
-      Set<Formula> suspendable = ((PropositionalFormula) operand).children.stream().filter(
-        Formula::isSuspendable).collect(Collectors.toSet());
-      Set<Formula> others = Sets.difference(((PropositionalFormula) operand).children, suspendable);
+    if (operand instanceof Formula.NaryPropositionalOperator) {
+      Set<Formula> suspendable = operand.children()
+        .stream().filter(Formula::isSuspendable).collect(Collectors.toSet());
+      Set<Formula> others = Sets.difference(new HashSet<>(operand.children()), suspendable);
 
       if (!suspendable.isEmpty()) {
         if (operand instanceof Conjunction) {
@@ -517,13 +519,12 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     return filter(collection, clazz, x -> true);
   }
 
-  @SuppressWarnings("unchecked")
   private static <T> Set<T> filter(Collection<Formula> iterator, Class<T> clazz,
     Predicate<T> predicate) {
     Set<T> operators = new HashSet<>();
     iterator.forEach(x -> {
-      if (clazz.isInstance(x) && predicate.test((T) x)) {
-        operators.add((T) x);
+      if (clazz.isInstance(x) && predicate.test(clazz.cast(x))) {
+        operators.add(clazz.cast(x));
       }
     });
 

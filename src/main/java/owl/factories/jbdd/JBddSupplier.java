@@ -29,17 +29,12 @@ import owl.factories.FactorySupplier;
 import owl.factories.ValuationSetFactory;
 
 public final class JBddSupplier implements FactorySupplier {
-  private static final JBddSupplier PLAIN = new JBddSupplier(false);
-  private static final JBddSupplier ANNOTATED = new JBddSupplier(true);
+  private static final JBddSupplier INSTANCE = new JBddSupplier();
 
-  private final boolean keepRepresentativesDefault;
+  private JBddSupplier() {}
 
-  private JBddSupplier(boolean keepRepresentativesDefault) {
-    this.keepRepresentativesDefault = keepRepresentativesDefault;
-  }
-
-  public static FactorySupplier async(boolean keepRepresentativesDefault) {
-    return keepRepresentativesDefault ? ANNOTATED : PLAIN;
+  public static FactorySupplier async() {
+    return INSTANCE;
   }
 
   private Bdd create(int size) {
@@ -49,27 +44,23 @@ public final class JBddSupplier implements FactorySupplier {
       .integrityDuplicatesMaximalSize(50)
       .cacheBinaryDivider(4)
       .cacheTernaryDivider(4)
+      .growthFactor(2)
       .build();
 
+    // Do not use buildBddIterative, since 'support(...)' is broken.
     return BddFactory.buildBddRecursive(size, configuration);
   }
 
   @Override
   public EquivalenceClassFactory getEquivalenceClassFactory(List<String> alphabet) {
-    return getEquivalenceClassFactory(alphabet, keepRepresentativesDefault);
-  }
-
-  @Override
-  public EquivalenceClassFactory getEquivalenceClassFactory(List<String> alphabet,
-    boolean keepRepresentatives) {
     Bdd eqFactoryBdd = create(1024 * (alphabet.size() + 1));
-    return new EquivalenceFactory(eqFactoryBdd, alphabet, keepRepresentatives);
+    return new EquivalenceFactory(eqFactoryBdd, alphabet);
   }
 
   @Override
   public Factories getFactories(List<String> alphabet) {
     return new Factories(
-      getEquivalenceClassFactory(alphabet, keepRepresentativesDefault),
+      getEquivalenceClassFactory(alphabet),
       getValuationSetFactory(alphabet));
   }
 

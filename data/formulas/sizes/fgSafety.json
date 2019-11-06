@@ -1388,6 +1388,9 @@
     "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb))"
   },
   {
+    "formula": "((Fa | X(F!b \u0026 G!a)) \u0026 (G!a | X(Fa | Gb)))"
+  },
+  {
     "formula": "((((a) R (b)) | (FGa \u0026 GFb) | (FGc \u0026 GFd)) \u0026 (((a) R (c)) | (FGa \u0026 GFd) | (FGc \u0026 GFb)))"
   },
   {
@@ -1511,6 +1514,9 @@
       "complete": true,
       "deterministic": true
     }
+  },
+  {
+    "formula": "((Fa \u0026 X(F!b \u0026 G!a)) | (G!a \u0026 X(Fa | Gb)))"
   },
   {
     "formula": "((((a) U (b)) \u0026 (FGb | GFa) \u0026 (FGc | GFd)) | (((a) U (d)) \u0026 (FGb | GFd) \u0026 (FGc | GFa)))"

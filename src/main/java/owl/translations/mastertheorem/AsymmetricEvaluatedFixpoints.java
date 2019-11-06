@@ -80,7 +80,7 @@ public final class AsymmetricEvaluatedFixpoints
     Rewriter.ToCoSafety toCoSafety = new Rewriter.ToCoSafety(fixpoints.greatestFixpoints());
     Set<GOperator> gOperatorsRewritten = new HashSet<>();
 
-    for (Formula.ModalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
+    for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
       GOperator gOperator = (GOperator) greatestFixpoint;
       Formula operand = gOperator.operand.substitute(toCoSafety);
 

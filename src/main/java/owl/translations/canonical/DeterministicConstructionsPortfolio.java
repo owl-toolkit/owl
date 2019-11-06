@@ -29,6 +29,7 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -100,13 +101,13 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
     }
 
     if (isAllowed(CoBuchiAcceptance.class)
-      && formula.formula() instanceof Formula.ModalOperator
+      && formula.formula() instanceof Formula.TemporalOperator
       && SyntacticFragments.isCoSafetySafety(formula.formula())) {
       return box(coSafetySafety(environment, formula));
     }
 
     if (isAllowed(BuchiAcceptance.class)
-      && formula.formula() instanceof Formula.ModalOperator
+      && formula.formula() instanceof Formula.TemporalOperator
       && SyntacticFragments.isSafetyCoSafety(formula.formula())) {
       return box(safetyCoSafety(environment, formula));
     }
@@ -116,21 +117,21 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
 
   public static Automaton<EquivalenceClass, AllAcceptance> safety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new DeterministicConstructions.Safety(factories, true, formula.formula());
   }
 
   public static Automaton<EquivalenceClass, BuchiAcceptance> coSafety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new DeterministicConstructions.CoSafety(factories, true, formula.formula());
   }
 
   public static Automaton<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance>
     gfCoSafety(Environment environment, LabelledFormula formula, boolean generalized) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     var formulas = formula.formula() instanceof Conjunction
-      ? formula.formula().children()
+      ? Set.copyOf(formula.formula().children())
       : Set.of(formula.formula());
     return new DeterministicConstructions.GfCoSafety(factories, true, formulas, generalized);
   }
@@ -143,13 +144,13 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
 
   public static Automaton<BreakpointState<EquivalenceClass>, BuchiAcceptance> gCoSafety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new DeterministicConstructions.GCoSafety(factories, true, formula.formula());
   }
 
   public static Automaton<BreakpointState<EquivalenceClass>, CoBuchiAcceptance> coSafetySafety(
     Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.variables(), true);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     return new DeterministicConstructions.CoSafetySafety(factories, formula.formula());
   }
 
@@ -158,8 +159,9 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
     Environment environment, LabelledFormula formula) {
     var automaton = coSafetySafety(environment, formula.not());
     var factory = automaton.onlyInitialState().current().factory();
+    var falseClass = factory.of(BooleanConstant.FALSE);
     var complementAutomaton = Views.complement(automaton,
-      BreakpointState.of(factory.getFalse(), factory.getFalse()), BuchiAcceptance.class);
+      BreakpointState.of(falseClass, falseClass), BuchiAcceptance.class);
     return Views.filter(complementAutomaton,
       x -> !x.current().isTrue() || !x.next().isTrue());
   }

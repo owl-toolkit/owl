@@ -26,14 +26,9 @@ public interface FactorySupplier {
 
   EquivalenceClassFactory getEquivalenceClassFactory(List<String> alphabet);
 
-  EquivalenceClassFactory getEquivalenceClassFactory(List<String> alphabet,
-    boolean keepRepresentatives);
-
-  Factories getFactories(List<String> alphabet);
-
-  default Factories getFactories(List<String> alphabet, boolean keepRepresentatives) {
+  default Factories getFactories(List<String> alphabet) {
     return new Factories(
-      getEquivalenceClassFactory(alphabet, keepRepresentatives),
+      getEquivalenceClassFactory(alphabet),
       getValuationSetFactory(alphabet));
   }
 }

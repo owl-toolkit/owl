@@ -65,12 +65,12 @@ public final class LtlfToLtlTranslator {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      return Conjunction.of(conjunction.children.stream().map(x -> x.accept(this)));
+      return Conjunction.of(conjunction.map(x -> x.accept(this)));
     }
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      return Disjunction.of(disjunction.children.stream().map(x -> x.accept(this)));
+      return Disjunction.of(disjunction.map(x -> x.accept(this)));
     }
 
     @Override

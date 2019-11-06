@@ -19,11 +19,11 @@
 
 package owl.ltl.visitors;
 
+import com.google.common.collect.Comparators;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Spliterator;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -32,10 +32,8 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
@@ -64,12 +62,12 @@ public class LatexPrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(FOperator fOperator) {
-    return visit((UnaryModalOperator) fOperator);
+    return visit((Formula.UnaryTemporalOperator) fOperator);
   }
 
   @Override
   public String visit(GOperator gOperator) {
-    return visit((UnaryModalOperator) gOperator);
+    return visit((Formula.UnaryTemporalOperator) gOperator);
   }
 
   @Override
@@ -80,38 +78,39 @@ public class LatexPrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(MOperator mOperator) {
-    return visit((BinaryModalOperator) mOperator);
+    return visit((Formula.BinaryTemporalOperator) mOperator);
   }
 
   @Override
   public String visit(ROperator rOperator) {
-    return visit((BinaryModalOperator) rOperator);
+    return visit((Formula.BinaryTemporalOperator) rOperator);
   }
 
   @Override
   public String visit(UOperator uOperator) {
-    return visit((BinaryModalOperator) uOperator);
+    return visit((Formula.BinaryTemporalOperator) uOperator);
   }
 
   @Override
   public String visit(WOperator wOperator) {
-    return visit((BinaryModalOperator) wOperator);
+    return visit((Formula.BinaryTemporalOperator) wOperator);
   }
 
   @Override
   public String visit(XOperator xOperator) {
-    return visit((UnaryModalOperator) xOperator);
+    return visit((Formula.UnaryTemporalOperator) xOperator);
   }
 
-  private String visit(UnaryModalOperator operator) {
-    if (operator.operand instanceof UnaryModalOperator || operator.operand instanceof Literal) {
+  private String visit(Formula.UnaryTemporalOperator operator) {
+    if (operator.operand instanceof Formula.UnaryTemporalOperator
+      || operator.operand instanceof Literal) {
       return '\\' + operator.operatorSymbol() + ' ' + operator.operand.accept(this);
     }
 
     return '\\' + operator.operatorSymbol() + " (" + operator.operand.accept(this) + ')';
   }
 
-  private String visit(BinaryModalOperator operator) {
+  private String visit(Formula.BinaryTemporalOperator operator) {
     return Stream.of(operator.left, operator.right)
       .map(x -> {
         if (x instanceof Literal) {
@@ -123,11 +122,12 @@ public class LatexPrintVisitor implements Visitor<String> {
       .collect(Collectors.joining(" \\" + operator.operatorSymbol() + ' '));
   }
 
-  private String visit(PropositionalFormula propositionalFormula, String latexString) { // NOPMD
-    assert propositionalFormula.children.spliterator().hasCharacteristics(Spliterator.SORTED);
-    return propositionalFormula.children.stream()
+  private String visit(Formula.NaryPropositionalOperator propositionalFormula, String latexString) {
+    // NOPMD
+    assert Comparators.isInStrictOrder(propositionalFormula.children(), Comparator.naturalOrder());
+    return propositionalFormula.children().stream()
       .map(x -> {
-        if (x instanceof Formula.LogicalOperator && !(x instanceof BooleanConstant)) {
+        if (x instanceof Formula.PropositionalOperator && !(x instanceof BooleanConstant)) {
           return '(' + x.accept(this) + ')';
         } else {
           return x.accept(this);

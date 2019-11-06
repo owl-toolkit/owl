@@ -141,7 +141,8 @@ public class ExternalTranslator
       try (Reader reader = new BufferedReader(
         new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
         FactorySupplier factorySupplier = env.factorySupplier();
-        ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(formula.variables());
+        ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(
+          formula.atomicPropositions());
         Automaton<HoaState, OmegaAcceptance> automaton =
           AutomatonReader.readHoa(reader, x -> {
             checkArgument(vsFactory.alphabet().containsAll(x));

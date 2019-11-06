@@ -20,7 +20,6 @@
 package owl.ltl.util;
 
 import com.google.common.collect.Collections2;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
@@ -28,7 +27,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.collections.Collections3;
 import owl.ltl.Biconditional;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -37,10 +35,8 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
-import owl.ltl.PropositionalFormula;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.BinaryVisitor;
@@ -116,22 +112,22 @@ public final class FormulaIsomorphism {
 
     @Override
     public Boolean visit(Conjunction conjunction, Formula formula) {
-      return visitPropositionalOperator(conjunction, formula);
+      return visitNaryPropositionalOperator(conjunction, formula);
     }
 
     @Override
     public Boolean visit(Disjunction disjunction, Formula formula) {
-      return visitPropositionalOperator(disjunction, formula);
+      return visitNaryPropositionalOperator(disjunction, formula);
     }
 
     @Override
     public Boolean visit(FOperator fOperator, Formula formula) {
-      return visitUnaryOperator(fOperator, formula);
+      return visitTemporal(fOperator, formula);
     }
 
     @Override
     public Boolean visit(GOperator gOperator, Formula formula) {
-      return visitUnaryOperator(gOperator, formula);
+      return visitTemporal(gOperator, formula);
     }
 
     @Override
@@ -151,60 +147,67 @@ public final class FormulaIsomorphism {
 
     @Override
     public Boolean visit(MOperator mOperator, Formula formula) {
-      return visitBinaryOperator(mOperator, formula);
+      return visitTemporal(mOperator, formula);
     }
 
     @Override
     public Boolean visit(UOperator uOperator, Formula formula) {
-      return visitBinaryOperator(uOperator, formula);
+      return visitTemporal(uOperator, formula);
     }
 
     @Override
     public Boolean visit(ROperator rOperator, Formula formula) {
-      return visitBinaryOperator(rOperator, formula);
+      return visitTemporal(rOperator, formula);
     }
 
     @Override
     public Boolean visit(WOperator wOperator, Formula formula) {
-      return visitBinaryOperator(wOperator, formula);
+      return visitTemporal(wOperator, formula);
     }
 
     @Override
     public Boolean visit(XOperator xOperator, Formula formula) {
-      return visitUnaryOperator(xOperator, formula);
+      return visitTemporal(xOperator, formula);
     }
 
-    private Boolean visitUnaryOperator(UnaryModalOperator operator, Formula formula) {
-      if (!operator.getClass().isInstance(formula)) {
-        return Boolean.FALSE;
-      }
-
-      return operator.operand.accept(this, ((UnaryModalOperator) formula).operand);
-    }
-
-    private Boolean visitBinaryOperator(BinaryModalOperator operator, Formula formula) {
-      if (!operator.getClass().isInstance(formula)) {
-        return Boolean.FALSE;
-      }
-
-      return operator.left.accept(this, ((BinaryModalOperator) formula).left)
-        && operator.right.accept(this, ((BinaryModalOperator) formula).right);
-    }
-
-    private Boolean visitPropositionalOperator(PropositionalFormula formula1, Formula formula2) {
+    private Boolean visitTemporal(Formula.TemporalOperator formula1, Formula formula2) {
       if (!formula1.getClass().isInstance(formula2)) {
         return Boolean.FALSE;
       }
 
-      PropositionalFormula formula2Casted = (PropositionalFormula) formula2;
-
-      if (formula1.children.size() != formula2Casted.children.size()) {
+      if (formula1.height() != formula2.height()) {
         return Boolean.FALSE;
       }
 
-      // TODO, check height.
-      List<Formula> children1 = new ArrayList<>(formula1.children);
-      List<Formula> children2 = new ArrayList<>(formula2Casted.children);
+      List<Formula> children1 = formula1.children();
+      List<Formula> children2 = formula2.children();
+
+      assert children1.size() == children2.size();
+
+      for (int i = 0; i < children1.size(); i++) {
+        if (!children1.get(i).accept(this, children2.get(i))) {
+          return false;
+        }
+      }
+
+      return true;
+    }
+
+    private Boolean visitNaryPropositionalOperator(Formula formula1, Formula formula2) {
+      if (!formula1.getClass().isInstance(formula2)) {
+        return Boolean.FALSE;
+      }
+
+      if (formula1.height() != formula2.height()) {
+        return Boolean.FALSE;
+      }
+
+      List<Formula> children1 = formula1.children();
+      List<Formula> children2 = formula2.children();
+
+      if (children1.size() != children2.size()) {
+        return Boolean.FALSE;
+      }
 
       for (List<Formula> children2Permutation : Collections2.permutations(children2)) {
         int i = 0;

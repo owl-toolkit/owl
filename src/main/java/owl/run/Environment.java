@@ -33,7 +33,7 @@ public abstract class Environment {
   public abstract boolean annotations();
 
   public FactorySupplier factorySupplier() {
-    return JBddSupplier.async(annotations());
+    return JBddSupplier.async();
   }
 
   public static Environment of(boolean annotated) {

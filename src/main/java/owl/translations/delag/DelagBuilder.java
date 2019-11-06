@@ -98,7 +98,7 @@ public class DelagBuilder
   @Override
   public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = inputFormula.nnf();
-    Factories factories = environment.factorySupplier().getFactories(formula.variables());
+    Factories factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
       return AutomatonFactory.empty(factories.vsFactory,

@@ -39,16 +39,18 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
-import owl.ltl.PropositionalFormula;
+import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NormalForms {
-  public static final Function<PropositionalFormula, Set<Formula>> SYNTHETIC_CO_SAFETY_LITERAL =
-  x -> x.children.stream().filter(SyntacticFragments::isCoSafety).collect(toSet());
+  public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
+    SYNTHETIC_CO_SAFETY_LITERAL =
+    x -> x.children.stream().filter(SyntacticFragments::isCoSafety).collect(toSet());
 
-  public static final Function<PropositionalFormula, Set<Formula>> SYNTHETIC_SAFETY_LITERAL =
-  x -> x.children.stream().filter(SyntacticFragments::isSafety).collect(toSet());
+  public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
+    SYNTHETIC_SAFETY_LITERAL =
+    x -> x.children.stream().filter(SyntacticFragments::isSafety).collect(toSet());
 
   private NormalForms() {}
 
@@ -63,7 +65,8 @@ public final class NormalForms {
   }
 
   public static Set<Set<Formula>> toCnf(Formula formula,
-    Function<? super Formula, ? extends Collection<Formula>> syntheticLiteralFactory) {
+    Function<? super Formula.NaryPropositionalOperator,
+      ? extends Collection<Formula>> syntheticLiteralFactory) {
     var visitor = new ConjunctiveNormalFormVisitor(syntheticLiteralFactory);
     var cnf = formula.accept(visitor).representatives();
     return new ClausesView(cnf, visitor.literals());
@@ -80,7 +83,8 @@ public final class NormalForms {
   }
 
   public static Set<Set<Formula>> toDnf(Formula formula,
-    Function<? super PropositionalFormula, ? extends Collection<Formula>> syntheticLiteralFactory) {
+    Function<? super Formula.NaryPropositionalOperator,
+      ? extends Collection<Formula>> syntheticLiteralFactory) {
     var visitor = new DisjunctiveNormalFormVisitor(syntheticLiteralFactory);
     var dnf = formula.accept(visitor).representatives();
     return new ClausesView(dnf, visitor.literals());
@@ -89,11 +93,11 @@ public final class NormalForms {
   private abstract static class AbstractNormalFormVisitor
     extends PropositionalVisitor<UpwardClosedSet> {
 
-    final Function<? super PropositionalFormula, ? extends Collection<Formula>>
+    final Function<? super Formula.NaryPropositionalOperator, ? extends Collection<Formula>>
       syntheticLiteralFactory;
     private final Map<Formula, Integer> literals;
 
-    private AbstractNormalFormVisitor(Function<? super PropositionalFormula,
+    private AbstractNormalFormVisitor(Function<? super Formula.NaryPropositionalOperator,
       ? extends Collection<Formula>> syntheticLiteralFactory) {
       this.literals = new LinkedHashMap<>();
       this.syntheticLiteralFactory = syntheticLiteralFactory;
@@ -110,14 +114,19 @@ public final class NormalForms {
     }
 
     @Override
-    protected UpwardClosedSet visit(Formula.TemporalOperator literal) {
+    public UpwardClosedSet visit(Literal literal) {
       return singleton(literal);
+    }
+
+    @Override
+    protected UpwardClosedSet visit(Formula.TemporalOperator temporalOperator) {
+      return singleton(temporalOperator);
     }
   }
 
   private static final class ConjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
 
-    private ConjunctiveNormalFormVisitor(Function<? super PropositionalFormula,
+    private ConjunctiveNormalFormVisitor(Function<? super Formula.NaryPropositionalOperator,
       ? extends Collection<Formula>> syntheticLiteralFactory) {
       super(syntheticLiteralFactory);
     }
@@ -166,7 +175,7 @@ public final class NormalForms {
 
   private static final class DisjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
 
-    private DisjunctiveNormalFormVisitor(Function<? super PropositionalFormula,
+    private DisjunctiveNormalFormVisitor(Function<? super Formula.NaryPropositionalOperator,
       ? extends Collection<Formula>> syntheticLiteralFactory) {
       super(syntheticLiteralFactory);
     }

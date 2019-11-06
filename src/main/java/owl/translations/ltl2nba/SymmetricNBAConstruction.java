@@ -80,7 +80,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
   @Override
   public Automaton<Either<Formula, ProductState>, B> apply(LabelledFormula input) {
     var formula = input.nnf();
-    var factories = environment.factorySupplier().getFactories(formula.variables(), false);
+    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     var automaton = new SymmetricNBA(factories, formula);
     var mutableAutomaton = MutableAutomatonFactory.copy(automaton);
     AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
@@ -255,7 +255,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
         return Set.of();
       }
 
-      var allModalOperators = state.subformulas(Formula.ModalOperator.class);
+      var allModalOperators = state.subformulas(Formula.TemporalOperator.class);
 
       var availableFixpoints = knownFixpoints.stream()
         .filter(x -> x.allFixpointsPresent(allModalOperators))
@@ -264,7 +264,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
       if (state instanceof Conjunction) {
         for (Formula x : state.children()) {
-          if (!(x instanceof Formula.ModalOperator)) {
+          if (!(x instanceof Formula.TemporalOperator)) {
             continue;
           }
 
@@ -274,7 +274,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
           if (allModalOperators.stream()
             .filter(Predicate.not(SyntacticFragments::isCoSafety))
-            .noneMatch(y -> y.subformulas(Formula.ModalOperator.class).contains(x))) {
+            .noneMatch(y -> y.subformulas(Formula.TemporalOperator.class).contains(x))) {
             return Set.of();
           }
         }

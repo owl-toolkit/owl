@@ -85,7 +85,7 @@ public final class SymmetricEvaluatedFixpoints
 
     Set<GOperator> infinitelyOftenFormulas = new HashSet<>();
 
-    for (Formula.ModalOperator leastFixpoint : fixpoints.leastFixpoints()) {
+    for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
       Formula infinitelyOften = unwrapX(SimplifierFactory.apply(
         GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint))),
         Mode.SYNTACTIC_FIXPOINT, Mode.PULL_UP_X));
@@ -140,7 +140,7 @@ public final class SymmetricEvaluatedFixpoints
 
     List<Set<FOperator>> almostAlwaysFormulasAlternatives = new ArrayList<>();
 
-    for (Formula.ModalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
+    for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
       Formula almostAlways = unwrapX(SimplifierFactory.apply(
         FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint))),
         Mode.SYNTACTIC_FIXPOINT, Mode.PULL_UP_X));
@@ -173,9 +173,9 @@ public final class SymmetricEvaluatedFixpoints
     var toSafetyWithoutGreatestFixpoints
       = new ExtendedRewriter.ToSafety(fixpoints.leastFixpoints(), unusedFixpoints::remove);
 
-    for (Formula.ModalOperator modalOperator
-      : formula.subformulas(Predicates.IS_GREATEST_FIXPOINT, Formula.ModalOperator.class::cast)) {
-      toSafetyWithoutGreatestFixpoints.apply(modalOperator);
+    for (Formula.TemporalOperator greatestFixpoint :
+      formula.subformulas(Predicates.IS_GREATEST_FIXPOINT, Formula.TemporalOperator.class::cast)) {
+      toSafetyWithoutGreatestFixpoints.apply(greatestFixpoint);
     }
 
     if (!unusedFixpoints.isEmpty()) {

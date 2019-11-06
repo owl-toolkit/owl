@@ -1,6 +1,5 @@
 package owl.ltl.ltlf;
 
-import owl.collections.Collections3;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -42,14 +41,12 @@ public class PreprocessorVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    return new Conjunction(
-      Collections3.transformSet(conjunction.children(), x -> x.accept(this)));
+    return new Conjunction(conjunction.map(x -> x.accept(this)));
   }
 
   @Override
   public Formula visit(Disjunction disjunction) {
-    return new Disjunction(
-      Collections3.transformSet(disjunction.children(), x -> x.accept(this)));
+    return new Disjunction(disjunction.map(x -> x.accept(this)));
   }
 
   @Override

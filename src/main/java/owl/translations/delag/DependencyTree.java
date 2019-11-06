@@ -35,7 +35,6 @@ import owl.automaton.Automaton.Property;
 import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 import owl.translations.delag.ProductState.Builder;
@@ -106,7 +105,8 @@ abstract class DependencyTree<T> {
   }
 
   static Formula unwrap(Formula formula) {
-    return ((UnaryModalOperator) ((UnaryModalOperator) formula).operand).operand;
+    return ((Formula.UnaryTemporalOperator)
+      ((Formula.UnaryTemporalOperator) formula).operand).operand;
   }
 
   @Nullable
@@ -274,7 +274,7 @@ abstract class DependencyTree<T> {
       }
 
       if (type == Type.SAFETY || type == Type.CO_SAFETY) {
-        var successor = state.productState.safety().get(formula).temporalStepUnfold(valuation);
+        var successor = state.productState.safety().get(formula).temporalStep(valuation).unfold();
 
         if (successor.isFalse()) {
           builder.addFinished(this, Boolean.FALSE);

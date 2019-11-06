@@ -19,7 +19,8 @@
 
 package owl.ltl;
 
-import java.util.Set;
+import java.util.BitSet;
+import java.util.List;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
@@ -27,13 +28,13 @@ import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 import owl.util.annotation.CEntryPoint;
 
-public final class BooleanConstant extends Formula.LogicalOperator {
+public final class BooleanConstant extends Formula.PropositionalOperator {
   public static final BooleanConstant FALSE = new BooleanConstant(false);
   public static final BooleanConstant TRUE = new BooleanConstant(true);
   public final boolean value;
 
   private BooleanConstant(boolean value) {
-    super(Boolean.hashCode(value));
+    super(Boolean.hashCode(value), 0);
     this.value = value;
   }
 
@@ -58,8 +59,8 @@ public final class BooleanConstant extends Formula.LogicalOperator {
   }
 
   @Override
-  public Set<Formula> children() {
-    return Set.of();
+  public List<Formula> children() {
+    return List.of();
   }
 
   @Override
@@ -84,6 +85,11 @@ public final class BooleanConstant extends Formula.LogicalOperator {
   }
 
   @Override
+  public Formula temporalStep(BitSet valuation) {
+    return this;
+  }
+
+  @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
     return this;
   }
@@ -94,13 +100,13 @@ public final class BooleanConstant extends Formula.LogicalOperator {
   }
 
   @Override
-  protected int compareToImpl(Formula o) {
+  protected int compareValue(Formula o) {
     BooleanConstant that = (BooleanConstant) o;
     return Boolean.compare(value, that.value);
   }
 
   @Override
-  protected boolean equalsImpl(Formula o) {
+  protected boolean equalsValue(Formula o) {
     assert o instanceof BooleanConstant;
     assert this.value != ((BooleanConstant) o).value;
     return false;

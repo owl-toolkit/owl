@@ -66,7 +66,6 @@ import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -81,7 +80,6 @@ import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Converter;
@@ -116,7 +114,7 @@ public final class RabinizerBuilder {
     this.initialClass = initialClass;
     boolean fairnessFragment = configuration.eager()
       && initialClass.atomicPropositions().isEmpty()
-      && initialClass.modalOperators().stream()
+      && initialClass.temporalOperators().stream()
       .allMatch(support -> SyntacticFragments.isInfinitelyOften(support)
         || SyntacticFragments.isAlmostAll(support));
 
@@ -172,7 +170,7 @@ public final class RabinizerBuilder {
       EvaluateVisitor visitor = new EvaluateVisitor(relevantOperators, state);
       EquivalenceClass substitute = state.substitute(visitor);
       BitSet externalAtoms = substitute.atomicPropositions();
-      substitute.modalOperators().forEach(x -> externalAtoms.or(x.atomicPropositions(true)));
+      substitute.temporalOperators().forEach(x -> externalAtoms.or(x.atomicPropositions(true)));
 
       // Check if external atoms are non-empty and disjoint.
       if (externalAtoms.isEmpty() || externalAtoms.intersects(internalAtoms)) {
@@ -206,12 +204,13 @@ public final class RabinizerBuilder {
 
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> build(
     LabelledFormula formula, Environment environment, RabinizerConfiguration configuration) {
-    Factories factories = environment.factorySupplier().getFactories(formula.variables());
+    Factories factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     Formula phiNormalized = formula.formula().nnf().accept(
       new UnabbreviateVisitor(WOperator.class, ROperator.class));
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
-    String formulaString = PrintVisitor.toString(phiNormalized, factories.eqFactory.variables());
+    String formulaString = PrintVisitor
+      .toString(phiNormalized, factories.eqFactory.atomicPropositions());
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
     var automaton = new RabinizerBuilder(configuration, factories, phiNormalized).build();
     automaton.name("Rabinizer automaton for " + formulaString);
@@ -529,7 +528,7 @@ public final class RabinizerBuilder {
 
     // Handle the |G| = {} case
     // TODO: Piggyback on an existing RabinPair.
-    RabinizerState trueState = RabinizerState.of(eqFactory.getTrue(), List.of());
+    RabinizerState trueState = RabinizerState.of(eqFactory.of(BooleanConstant.TRUE), List.of());
     if (rabinizerAutomaton.states().contains(trueState)) {
       assert Objects.equals(Iterables.getOnlyElement(rabinizerAutomaton.successors(trueState)),
         trueState);
@@ -776,14 +775,14 @@ public final class RabinizerBuilder {
 
     // TODO Can we optimize for eager?
 
-    for (Formula.ModalOperator temporalOperator : equivalenceClass.modalOperators()) {
+    for (Formula.TemporalOperator temporalOperator : equivalenceClass.temporalOperators()) {
       if (temporalOperator instanceof GOperator) {
         gOperators.add((GOperator) temporalOperator);
       } else {
         Formula unwrapped = temporalOperator;
 
-        while (unwrapped instanceof UnaryModalOperator) {
-          unwrapped = ((UnaryModalOperator) unwrapped).operand;
+        while (unwrapped instanceof Formula.UnaryTemporalOperator) {
+          unwrapped = ((Formula.UnaryTemporalOperator) unwrapped).operand;
 
           if (unwrapped instanceof GOperator) {
             break;
@@ -794,8 +793,8 @@ public final class RabinizerBuilder {
 
         if (unwrapped instanceof GOperator) {
           gOperators.add((GOperator) unwrapped);
-        } else if (unwrapped instanceof BinaryModalOperator) {
-          BinaryModalOperator binaryOperator = (BinaryModalOperator) unwrapped;
+        } else if (unwrapped instanceof Formula.BinaryTemporalOperator) {
+          var binaryOperator = (Formula.BinaryTemporalOperator) unwrapped;
           findSupportingSubFormulas(factory.of(binaryOperator.left), gOperators);
           findSupportingSubFormulas(factory.of(binaryOperator.right), gOperators);
         } else {
@@ -815,7 +814,7 @@ public final class RabinizerBuilder {
     if (configuration.supportBasedRelevantFormulaAnalysis()) {
       findSupportingSubFormulas(clazz, operators);
     } else {
-      clazz.modalOperators().forEach(x -> operators.addAll(x.subformulas(GOperator.class)));
+      clazz.temporalOperators().forEach(x -> operators.addAll(x.subformulas(GOperator.class)));
     }
 
     return operators;
@@ -973,7 +972,8 @@ public final class RabinizerBuilder {
       // consequent (i.e. the master state).  We can omit the conjunction of the active operators
       // for the antecedent, since we will inject it anyway
 
-      AtomicReference<EquivalenceClass> antecedent = new AtomicReference<>(eqFactory.getTrue());
+      AtomicReference<EquivalenceClass> antecedent = new AtomicReference<>(
+          eqFactory.of(BooleanConstant.TRUE));
       int relevantIndex2 = -1;
       int activeIndex2 = -1;
       for (int gIndex1 = 0; gIndex1 < activeFormulas.length; gIndex1++) {

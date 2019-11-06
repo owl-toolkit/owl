@@ -26,6 +26,7 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationTree;
 import owl.factories.Factories;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 
 /**
@@ -64,7 +65,7 @@ public final class LegacyFactory
   public EquivalenceClass successor(EquivalenceClass clazz, BitSet valuation,
     EquivalenceClass environment) {
     EquivalenceClass state = successorInternal(clazz, valuation);
-    return environment.implies(state) ? factory.getTrue() : state;
+    return environment.implies(state) ? factory.of(BooleanConstant.TRUE) : state;
   }
 
   @Override
@@ -77,6 +78,6 @@ public final class LegacyFactory
   public EquivalenceClass initialStateInternal(EquivalenceClass clazz,
     EquivalenceClass environment) {
     EquivalenceClass state = initialStateInternal(clazz);
-    return environment.implies(state) ? factory.getTrue() : state;
+    return environment.implies(state) ? factory.of(BooleanConstant.TRUE) : state;
   }
 }

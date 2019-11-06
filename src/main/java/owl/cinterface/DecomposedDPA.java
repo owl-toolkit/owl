@@ -24,6 +24,7 @@ import static owl.ltl.SyntacticFragment.SINGLE_STEP;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -41,10 +42,9 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
-import owl.ltl.PropositionalFormula;
+import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.PullUpXVisitor;
@@ -118,7 +118,7 @@ public final class DecomposedDPA {
 
   private static boolean isSingleStep(Formula formula) {
     if (formula instanceof Conjunction) {
-      return ((Conjunction) formula).children.stream().allMatch(DecomposedDPA::isSingleStep);
+      return formula.children().stream().allMatch(DecomposedDPA::isSingleStep);
     }
 
     return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand);
@@ -199,7 +199,8 @@ public final class DecomposedDPA {
       return new LabelledTree.Leaf<>(newReference);
     }
 
-    private List<LabelledTree<Tag, Reference>> createLeaves(PropositionalFormula formula) {
+    private List<LabelledTree<Tag, Reference>> createLeaves(
+      Formula.NaryPropositionalOperator formula) {
       // Partition elements.
       var safety = new Clusters();
       var safetySingleStep = new HashMap<Integer, Clusters>();
@@ -208,7 +209,7 @@ public final class DecomposedDPA {
       var weakOrBuchiOrCoBuchi = new TreeSet<Formula>();
       var parity = new TreeSet<Formula>();
 
-      for (Formula x : formula.children) {
+      for (Formula x : formula.children()) {
         switch (annotatedTree.get(x)) {
           case SAFETY:
             PullUpXVisitor.XFormula rewrittenX = x.accept(PullUpXVisitor.INSTANCE);
@@ -240,7 +241,7 @@ public final class DecomposedDPA {
 
       // Process elements.
       List<LabelledTree<Tag, Reference>> children = new ArrayList<>();
-      Function<Iterable<Formula>, Formula> merger = formula instanceof Conjunction
+      Function<Collection<Formula>, Formula> merger = formula instanceof Conjunction
         ? Conjunction::of
         : Disjunction::of;
 
@@ -278,8 +279,13 @@ public final class DecomposedDPA {
       return createLeaf(formula);
     }
 
+    @Override
+    public LabelledTree<Tag, Reference> visit(Literal literal) {
+      return createLeaf(literal);
+    }
+
     private boolean keepTreeStructureBiconditional(Formula formula) {
-      if (formula instanceof PropositionalFormula) {
+      if (formula instanceof Conjunction || formula instanceof Disjunction) {
         if (formula.children().stream()
           .filter(x -> annotatedTree.get(x) == Acceptance.PARITY).count() > 1) {
           return false;
@@ -293,8 +299,12 @@ public final class DecomposedDPA {
         protected Boolean visit(Formula.TemporalOperator formula) {
           return (SyntacticFragments.isAlmostAll(formula)
             || SyntacticFragments.isInfinitelyOften(formula))
-            && SyntacticFragment.SINGLE_STEP
-            .contains(((UnaryModalOperator) ((UnaryModalOperator) formula).operand).operand);
+            && SyntacticFragment.SINGLE_STEP.contains(formula.children().get(0).children().get(0));
+        }
+
+        @Override
+        public Boolean visit(Literal literal) {
+          return false;
         }
 
         @Override
@@ -304,12 +314,12 @@ public final class DecomposedDPA {
 
         @Override
         public Boolean visit(Conjunction conjunction) {
-          return conjunction.children.stream().allMatch(this::apply);
+          return conjunction.children().stream().allMatch(this::apply);
         }
 
         @Override
         public Boolean visit(Disjunction disjunction) {
-          return disjunction.children.stream().allMatch(this::apply);
+          return disjunction.children().stream().allMatch(this::apply);
         }
       });
     }
@@ -355,7 +365,7 @@ public final class DecomposedDPA {
 
   static class Clusters {
     private static final Predicate<Formula> INTERESTING_OPERATOR =
-    o -> o instanceof Formula.ModalOperator && !(o instanceof XOperator);
+    o -> o instanceof Formula.TemporalOperator && !(o instanceof XOperator);
 
     List<Set<Formula>> clusterList = new ArrayList<>();
 
@@ -364,11 +374,13 @@ public final class DecomposedDPA {
       cluster.add(formula);
 
       clusterList.removeIf(x -> {
-        Set<Formula.TemporalOperator> modalOperators1 = formula.subformulas(INTERESTING_OPERATOR);
-        Set<Formula.TemporalOperator> modalOperators2 = x.stream()
-          .flatMap(y -> y.subformulas(INTERESTING_OPERATOR).stream()).collect(Collectors.toSet());
+        var temporalOperators1 = formula.subformulas(
+          INTERESTING_OPERATOR, Formula.TemporalOperator.class::cast);
+        var temporalOperators2 = x.stream().flatMap(
+          y -> y.subformulas(INTERESTING_OPERATOR, Formula.TemporalOperator.class::cast).stream())
+          .collect(Collectors.toSet());
 
-        if (!Collections.disjoint(modalOperators1, modalOperators2)) {
+        if (!Collections.disjoint(temporalOperators1, temporalOperators2)) {
           cluster.addAll(x);
           return true;
         }
@@ -440,11 +452,16 @@ public final class DecomposedDPA {
       return visitPropositional(disjunction);
     }
 
-    private Map<Formula, Acceptance> visitPropositional(PropositionalFormula formula) {
+    @Override
+    public Map<Formula, Acceptance> visit(Literal literal) {
+      return Map.of(literal, Acceptance.WEAK);
+    }
+
+    private Map<Formula, Acceptance> visitPropositional(Formula.NaryPropositionalOperator formula) {
       Acceptance acceptance = Acceptance.BOTTOM;
       Map<Formula, Acceptance> acceptanceMap = new HashMap<>();
 
-      for (Formula child : formula.children) {
+      for (Formula child : formula.children()) {
         Map<Formula, Acceptance> childDecisions = child.accept(this);
         acceptanceMap.putAll(childDecisions);
         acceptance = acceptance.lub(acceptanceMap.get(child));

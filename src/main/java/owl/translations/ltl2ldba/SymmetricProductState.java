@@ -50,8 +50,8 @@ public final class SymmetricProductState implements LtlLanguageExpressible {
     this.safety = safety;
     this.automata = automata;
     this.hashCode = Objects.hash(liveness, evaluatedFixpoints, safety);
-    assert SyntacticFragments.isSafety(safety.modalOperators());
-    assert liveness == null || SyntacticFragments.isCoSafety(liveness.state().modalOperators());
+    assert SyntacticFragments.isSafety(safety);
+    assert liveness == null || SyntacticFragments.isCoSafety(liveness.state());
   }
 
   @Override

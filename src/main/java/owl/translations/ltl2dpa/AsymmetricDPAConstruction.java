@@ -39,6 +39,7 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithms.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -118,7 +119,7 @@ final class AsymmetricDPAConstruction {
           + ldba.stateAnnotation().apply(successor);
 
         if (fixpoints.isSafety()) {
-          if (SyntacticFragments.isSafety(jumpTarget.language().modalOperators())) {
+          if (SyntacticFragments.isSafety(jumpTarget.language())) {
             partitionedFixpoints.get(3).put(fixpoints, jumpTarget);
           } else {
             partitionedFixpoints.get(2).put(fixpoints, jumpTarget);
@@ -133,7 +134,7 @@ final class AsymmetricDPAConstruction {
       // Compute successors of existing ranking.
       List<AsymmetricProductState> ranking = new ArrayList<>(previousRanking.size());
       int rankingColor = 2 * previousRanking.size(); // Default rejecting color.
-      var rankingLanguage = factory.getFalse();
+      var rankingLanguage = factory.of(BooleanConstant.FALSE);
 
       {
         var iterator = previousRanking.iterator();
@@ -173,7 +174,7 @@ final class AsymmetricDPAConstruction {
           if (!iterator.hasNext()
             && partitionedFixpoints.get(3).containsKey(rankingSuccessor.evaluatedFixpoints)
             && ldba.annotation().headSet(fixpoints).size() == previousSafetyProgress) {
-            rankingLanguage = factory.getTrue();
+            rankingLanguage = factory.of(BooleanConstant.TRUE);
           }
         }
       }

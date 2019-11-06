@@ -235,7 +235,7 @@ class DecomposedDPATest {
   @Test
   void testPerformanceComplementConstructionHeuristic() {
     // Computing the automaton without COMPLEMENT_CONSTRUCTION_HEURISTIC takes minutes.
-    assertTimeout(Duration.ofSeconds(6), () -> {
+    assertTimeout(Duration.ofSeconds(2), () -> {
       var formula = LtlParser.syntax(
         "((FGp2|GFp1)&(FGp3|GFp2)&(FGp4|GFp3)&(FGp5|GFp4)&(FGp6|GFp5))");
       of(formula, true, false, 0);
@@ -244,7 +244,7 @@ class DecomposedDPATest {
 
   @Test
   void testPerformanceAmbaDecomposedLock12() {
-    assertTimeout(Duration.ofSeconds(10), () -> {
+    assertTimeout(Duration.ofSeconds(2), () -> {
       var ambaDecomposedLockLiterals = new ArrayList<String>();
       ambaDecomposedLockLiterals.add("decide");
       IntStream.range(0, 12).mapToObj(x -> "hlock_" + x).forEach(ambaDecomposedLockLiterals::add);

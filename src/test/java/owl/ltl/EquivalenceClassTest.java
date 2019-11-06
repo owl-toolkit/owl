@@ -25,6 +25,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.util.Assertions.assertThat;
 
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
@@ -77,7 +78,7 @@ abstract class EquivalenceClassTest {
 
   @Test
   void testEquivalent() {
-    EquivalenceClass equivalenceClass = factory.getFalse();
+    EquivalenceClass equivalenceClass = factory.of(BooleanConstant.FALSE);
 
     assertEquals(equivalenceClass, equivalenceClass);
     assertEquals(equivalenceClass, factory.of(SimplifierFactory
@@ -150,7 +151,7 @@ abstract class EquivalenceClassTest {
       LtlParser.syntax("G a"));
 
     EquivalenceClass clazz = factory.of(Conjunction.of(formulas));
-    assertEquals(Set.copyOf(formulas.subList(1, 3)), clazz.modalOperators());
+    assertEquals(Set.copyOf(formulas.subList(1, 3)), clazz.temporalOperators());
   }
 
   @Test
@@ -236,6 +237,28 @@ abstract class EquivalenceClassTest {
   }
 
   @Test
+  void testTemporalStepTree() {
+    var formula = LtlParser.parse("G (a | b | X c)");
+    var factory = obtainFactory(formula);
+    var clazz = factory.of(formula.formula());
+
+    var formula1 = formula.formula();
+    var tree1 = clazz.temporalStepTree();
+
+    var formula2 = formula1.unfold();
+    var tree2 = clazz.unfold().temporalStepTree();
+
+    var formula3 = formula2.temporalStep(new BitSet()).unfold();
+    var tree3 = tree2.get(new BitSet()).iterator().next().unfold().temporalStepTree();
+
+    for (BitSet set : BitSets.powerSet(4)) {
+      assertEquals(Set.of(factory.of(formula1.temporalStep(set))), tree1.get(set));
+      assertEquals(Set.of(factory.of(formula2.temporalStep(set))), tree2.get(set));
+      assertEquals(Set.of(factory.of(formula3.temporalStep(set))), tree3.get(set));
+    }
+  }
+
+  @Test
   void testUnfoldUnfold() {
     for (LabelledFormula formula : formulas) {
       EquivalenceClassFactory factory = obtainFactory(formula);
@@ -249,10 +272,10 @@ abstract class EquivalenceClassTest {
   @Test
   void testTruthness() {
     double precision = 0.000_000_01d;
-    assertEquals(1.0d, factory.getTrue().trueness(), precision);
+    assertEquals(1.0d, factory.of(BooleanConstant.TRUE).trueness(), precision);
     assertEquals(0.75d, factory.of(LtlParser.syntax("a | b")).trueness(), precision);
     assertEquals(0.5d, factory.of(LtlParser.syntax("a")).trueness(), precision);
     assertEquals(0.25d, factory.of(LtlParser.syntax("a & b")).trueness(), precision);
-    assertEquals(0.0d, factory.getFalse().trueness(), precision);
+    assertEquals(0.0d, factory.of(BooleanConstant.FALSE).trueness(), precision);
   }
 }

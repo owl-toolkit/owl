@@ -19,13 +19,11 @@
 
 package owl.ltl.rewriter;
 
-import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import owl.ltl.Biconditional;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -36,7 +34,6 @@ import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
@@ -62,14 +59,16 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
   @Override
   public XFormula visit(Conjunction conjunction) {
-    List<XFormula> children = conjunction.map(c -> c.accept(this)).collect(Collectors.toList());
+    var children = conjunction.children().stream()
+      .map(c -> c.accept(this)).collect(Collectors.toList());
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
     return new XFormula(depth, Conjunction.of(children.stream().map(c -> c.toFormula(depth))));
   }
 
   @Override
   public XFormula visit(Disjunction disjunction) {
-    List<XFormula> children = disjunction.map(c -> c.accept(this)).collect(Collectors.toList());
+    var children = disjunction.children().stream()
+      .map(c -> c.accept(this)).collect(Collectors.toList());
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
     return new XFormula(depth, Disjunction.of(children.stream().map(c -> c.toFormula(depth))));
   }
@@ -116,7 +115,7 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
     return r;
   }
 
-  private XFormula visit(BinaryModalOperator operator,
+  private XFormula visit(Formula.BinaryTemporalOperator operator,
     BiFunction<Formula, Formula, Formula> constructor) {
     XFormula right = operator.right.accept(this);
     XFormula left = operator.left.accept(this);
@@ -125,7 +124,8 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
     return left;
   }
 
-  private XFormula visit(UnaryModalOperator operator, Function<Formula, Formula> constructor) {
+  private XFormula visit(Formula.UnaryTemporalOperator operator,
+    Function<Formula, Formula> constructor) {
     XFormula formula = operator.operand.accept(this);
     formula.formula = constructor.apply(formula.formula);
     return formula;

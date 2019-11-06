@@ -19,13 +19,12 @@
 
 package owl.ltl.visitors;
 
+import com.google.common.collect.Comparators;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Spliterator;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-
 import owl.ltl.Biconditional;
-import owl.ltl.BinaryModalOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -38,32 +37,33 @@ import owl.ltl.MOperator;
 import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
-import owl.ltl.UnaryModalOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 
 public final class PrintVisitor implements Visitor<String> {
   private final boolean parenthesize;
   @Nullable
-  private final List<String> variableMapping;
+  private final List<String> atomicPropositions;
 
-  private PrintVisitor(boolean parenthesize, @Nullable List<String> variableMapping) {
-    this.variableMapping = variableMapping;
+  private PrintVisitor(boolean parenthesize, @Nullable List<String> atomicPropositions) {
+    this.atomicPropositions = atomicPropositions == null
+      ? atomicPropositions
+      : List.copyOf(atomicPropositions);
     this.parenthesize = parenthesize;
   }
 
-  public static String toString(Formula formula, @Nullable List<String> variableMapping) {
-    return toString(formula, variableMapping, false);
+  public static String toString(Formula formula, @Nullable List<String> atomicPropositions) {
+    return toString(formula, atomicPropositions, false);
   }
 
-  public static String toString(Formula formula, @Nullable List<String> variableMapping,
+  public static String toString(Formula formula, @Nullable List<String> atomicPropositions,
     boolean parenthesize) {
-    PrintVisitor visitor = new PrintVisitor(parenthesize, variableMapping);
+    PrintVisitor visitor = new PrintVisitor(parenthesize, atomicPropositions);
     return formula.accept(visitor);
   }
 
   public static String toString(LabelledFormula formula, boolean parenthesize) {
-    PrintVisitor visitor = new PrintVisitor(parenthesize, formula.variables());
+    PrintVisitor visitor = new PrintVisitor(parenthesize, formula.atomicPropositions());
     return formula.formula().accept(visitor);
   }
 
@@ -80,7 +80,7 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Conjunction conjunction) {
-    assert conjunction.children.spliterator().hasCharacteristics(Spliterator.SORTED);
+    assert Comparators.isInStrictOrder(conjunction.children(), Comparator.naturalOrder());
     return '(' + conjunction.children.stream()
       .map(this::visitParenthesized)
       .collect(Collectors.joining(" & ")) + ')';
@@ -88,7 +88,7 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Disjunction disjunction) {
-    assert disjunction.children.spliterator().hasCharacteristics(Spliterator.SORTED);
+    assert Comparators.isInStrictOrder(disjunction.children(), Comparator.naturalOrder());
     return '(' + disjunction.children.stream()
       .map(this::visitParenthesized)
       .collect(Collectors.joining(" | ")) + ')';
@@ -96,12 +96,12 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(FOperator fOperator) {
-    return visit((UnaryModalOperator) fOperator);
+    return visit((Formula.UnaryTemporalOperator) fOperator);
   }
 
   @Override
   public String visit(GOperator gOperator) {
-    return visit((UnaryModalOperator) gOperator);
+    return visit((Formula.UnaryTemporalOperator) gOperator);
   }
 
   @Override
@@ -111,42 +111,42 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Literal literal) {
-    String name = variableMapping == null
+    String name = atomicPropositions == null
       ? "p" + literal.getAtom()
-      : variableMapping.get(literal.getAtom());
+      : atomicPropositions.get(literal.getAtom());
     return literal.isNegated() ? '!' + name : name;
   }
 
   @Override
   public String visit(MOperator mOperator) {
-    return visit((BinaryModalOperator) mOperator);
+    return visit((Formula.BinaryTemporalOperator) mOperator);
   }
 
   @Override
   public String visit(ROperator rOperator) {
-    return visit((BinaryModalOperator) rOperator);
+    return visit((Formula.BinaryTemporalOperator) rOperator);
   }
 
   @Override
   public String visit(UOperator uOperator) {
-    return visit((BinaryModalOperator) uOperator);
+    return visit((Formula.BinaryTemporalOperator) uOperator);
   }
 
   @Override
   public String visit(WOperator wOperator) {
-    return visit((BinaryModalOperator) wOperator);
+    return visit((Formula.BinaryTemporalOperator) wOperator);
   }
 
   @Override
   public String visit(XOperator xOperator) {
-    return visit((UnaryModalOperator) xOperator);
+    return visit((Formula.UnaryTemporalOperator) xOperator);
   }
 
-  private String visit(UnaryModalOperator operator) {
+  private String visit(Formula.UnaryTemporalOperator operator) {
     return operator.operatorSymbol() + visitParenthesized(operator.operand);
   }
 
-  private String visit(BinaryModalOperator operator) {
+  private String visit(Formula.BinaryTemporalOperator operator) {
     return "((" + operator.left.accept(this) + ") "
       + operator.operatorSymbol()
       + " (" + operator.right.accept(this) + "))";

@@ -145,7 +145,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
       @Nullable BitSet valuation) {
 
       for (EquivalenceClass clazz : successor.values()) {
-        if (SyntacticFragments.isSafety(clazz.modalOperators())) {
+        if (SyntacticFragments.isSafety(clazz)) {
           if (safetyRabinPair.hasInfSet()) {
             BitSet acceptanceSets = new BitSet();
             safetyRabinPair.infSetIterator().forEachRemaining((IntConsumer) acceptanceSets::set);

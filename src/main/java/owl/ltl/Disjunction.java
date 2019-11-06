@@ -19,75 +19,103 @@
 
 package owl.ltl;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.annotation.Nullable;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
+import owl.util.annotation.CEntryPoint;
 
-public final class Disjunction extends PropositionalFormula {
+public final class Disjunction extends Formula.NaryPropositionalOperator {
 
-  public Disjunction(Collection<? extends Formula> conjuncts) {
-    super(Disjunction.class, Set.copyOf(conjuncts));
+  public Disjunction(Formula... disjuncts) {
+    this(sortedList(Set.of(disjuncts)), null);
   }
 
-  public Disjunction(Formula... conjuncts) {
-    super(Disjunction.class, Set.of(conjuncts));
+  public Disjunction(Collection<? extends Formula> disjuncts) {
+    this(sortedList(new HashSet<>(disjuncts)), null);
   }
 
-  public static Formula of(Formula left, Formula right) {
-    return of(Arrays.asList(left, right));
+  // Internal constructor.
+  @SuppressWarnings("PMD.UnusedFormalParameter")
+  private Disjunction(List<? extends Formula> disjuncts, @Nullable Void internal) {
+    super(Conjunction.class, List.copyOf(disjuncts));
+  }
+
+  @CEntryPoint
+  public static Formula of(Formula e1, Formula e2) {
+    ArrayList<Formula> list = new ArrayList<>();
+    list.add(e1);
+    list.add(e2);
+    return ofInternal(list);
   }
 
   public static Formula of(Formula... formulas) {
-    return of(Arrays.asList(formulas));
+    ArrayList<Formula> list = new ArrayList<>(formulas.length);
+    Collections.addAll(list, formulas);
+    return ofInternal(list);
   }
 
-  public static Formula of(Iterable<? extends Formula> iterable) {
-    return of(iterable.iterator());
+  public static Formula of(Collection<? extends Formula> collection) {
+    return ofInternal(new ArrayList<>(collection));
   }
 
   public static Formula of(Stream<? extends Formula> stream) {
-    return of(stream.iterator());
+    return ofInternal(stream.collect(Collectors.toCollection(ArrayList::new)));
   }
 
-  public static Formula of(Iterator<? extends Formula> iterator) {
-    Set<Formula> set = new HashSet<>();
+  @SuppressWarnings("PMD.LooseCoupling")
+  static Formula ofInternal(ArrayList<Formula> list) {
+    boolean sorted = false;
 
-    while (iterator.hasNext()) {
-      Formula child = iterator.next();
-      assert child != null;
+    while (!sorted) {
+      list.sort(null);
+      sorted = true;
 
-      if (BooleanConstant.TRUE.equals(child)) {
-        return BooleanConstant.TRUE;
-      }
+      for (int i = list.size() - 1; i >= 0; i--) {
+        Formula child = list.get(i);
 
-      if (BooleanConstant.FALSE.equals(child)) {
-        continue;
-      }
+        if (BooleanConstant.TRUE.equals(child)) {
+          return BooleanConstant.TRUE;
+        }
 
-      if (child instanceof Disjunction) {
-        set.addAll(((Disjunction) child).children);
-      } else {
-        set.add(child);
+        if (BooleanConstant.FALSE.equals(child)) {
+          list.remove(i);
+          continue;
+        }
+
+        if (i > 0 && list.get(i - 1).equals(child)) {
+          list.remove(i);
+          continue;
+        }
+
+        if (child instanceof Disjunction) {
+          list.remove(i);
+          list.addAll(child.children());
+          sorted = false;
+        }
       }
     }
 
-    if (set.isEmpty()) {
-      return BooleanConstant.FALSE;
-    }
+    switch (list.size()) {
+      case 0:
+        return BooleanConstant.FALSE;
 
-    if (set.size() == 1) {
-      return set.iterator().next();
-    }
+      case 1:
+        return list.get(0);
 
-    // Set.copyOf is stupid if given a Set<>, hence this hack
-    return new Disjunction(set.toArray(Formula[]::new));
+      default:
+        return new Disjunction(list, null);
+    }
   }
 
   @Override
@@ -107,17 +135,34 @@ public final class Disjunction extends PropositionalFormula {
 
   @Override
   public Formula nnf() {
-    return Disjunction.of(map(Formula::nnf));
+    return Disjunction.ofInternal(mapInternal(Formula::nnf));
   }
 
   @Override
   public Formula not() {
-    return Conjunction.of(map(Formula::not));
+    return Conjunction.ofInternal(mapInternal(Formula::not));
   }
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return Disjunction.of(map(c -> c.substitute(substitution)));
+    var disjunction = Disjunction.ofInternal(mapInternal(c -> c.substitute(substitution)));
+
+    if (this.equals(disjunction)) {
+      return this;
+    }
+
+    return disjunction;
+  }
+
+  @Override
+  public Formula temporalStep(BitSet valuation) {
+    var disjunction = Disjunction.ofInternal(mapInternal(c -> c.temporalStep(valuation)));
+
+    if (this.equals(disjunction)) {
+      return this;
+    }
+
+    return disjunction;
   }
 
   @Override
