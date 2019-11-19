@@ -161,7 +161,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       int x = bdd.trueNode();
 
       // Reverse list for better performance!
-      for (Formula child : Lists.reverse(conjunction.children())) {
+      for (Formula child : Lists.reverse(conjunction.operands)) {
         int y = child.accept(this);
         x = bdd.consume(bdd.and(x, y), x, y);
       }
@@ -174,7 +174,7 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
       int x = bdd.falseNode();
 
       // Reverse list for better performance!
-      for (Formula child : Lists.reverse(disjunction.children())) {
+      for (Formula child : Lists.reverse(disjunction.operands)) {
         int y = child.accept(this);
         x = bdd.consume(bdd.or(x, y), x, y);
       }

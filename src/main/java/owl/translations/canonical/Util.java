@@ -90,7 +90,7 @@ class Util {
   }
 
   static Formula unwrap(Formula formula) {
-    return ((Formula.UnaryTemporalOperator) formula).operand;
+    return ((Formula.UnaryTemporalOperator) formula).operand();
   }
 
   private static Formula temporalStep(Formula formula, int atom, boolean valuation) {

@@ -146,13 +146,13 @@ public final class Selector {
   private abstract static class AbstractSymmetricVisitor implements Visitor<Void> {
     @Override
     public Void visit(Conjunction conjunction) {
-      conjunction.children.forEach(x -> x.accept(this));
+      conjunction.operands.forEach(x -> x.accept(this));
       return null;
     }
 
     @Override
     public Void visit(Disjunction disjunction) {
-      disjunction.children.forEach(x -> x.accept(this));
+      disjunction.operands.forEach(x -> x.accept(this));
       return null;
     }
 
@@ -164,7 +164,7 @@ public final class Selector {
 
     @Override
     public final Void visit(XOperator xOperator) {
-      return xOperator.operand.accept(this);
+      return xOperator.operand().accept(this);
     }
   }
 
@@ -177,39 +177,39 @@ public final class Selector {
 
     @Override
     public Void visit(FOperator fOperator) {
-      return fOperator.operand.accept(this);
+      return fOperator.operand().accept(this);
     }
 
     @Override
     public Void visit(GOperator gOperator) {
-      return gOperator.operand.accept(gScopedVisitor);
+      return gOperator.operand().accept(gScopedVisitor);
     }
 
     @Override
     public Void visit(MOperator mOperator) {
-      mOperator.left.accept(this);
-      mOperator.right.accept(this);
+      mOperator.leftOperand().accept(this);
+      mOperator.rightOperand().accept(this);
       return null;
     }
 
     @Override
     public Void visit(ROperator rOperator) {
-      rOperator.left.accept(this);
-      rOperator.right.accept(gScopedVisitor);
+      rOperator.leftOperand().accept(this);
+      rOperator.rightOperand().accept(gScopedVisitor);
       return null;
     }
 
     @Override
     public Void visit(UOperator uOperator) {
-      uOperator.left.accept(this);
-      uOperator.right.accept(this);
+      uOperator.leftOperand().accept(this);
+      uOperator.rightOperand().accept(this);
       return null;
     }
 
     @Override
     public Void visit(WOperator wOperator) {
-      wOperator.left.accept(gScopedVisitor);
-      wOperator.right.accept(this);
+      wOperator.leftOperand().accept(gScopedVisitor);
+      wOperator.rightOperand().accept(this);
       return null;
     }
   }
@@ -229,7 +229,7 @@ public final class Selector {
 
     @Override
     public Void visit(GOperator gOperator) {
-      return gOperator.operand.accept(this);
+      return gOperator.operand().accept(this);
     }
 
     @Override
@@ -240,8 +240,8 @@ public final class Selector {
 
     @Override
     public Void visit(ROperator rOperator) {
-      rOperator.left.accept(this);
-      rOperator.right.accept(this);
+      rOperator.leftOperand().accept(this);
+      rOperator.rightOperand().accept(this);
       return null;
     }
 
@@ -253,8 +253,8 @@ public final class Selector {
 
     @Override
     public Void visit(WOperator wOperator) {
-      wOperator.left.accept(this);
-      wOperator.right.accept(this);
+      wOperator.leftOperand().accept(this);
+      wOperator.rightOperand().accept(this);
       return null;
     }
   }

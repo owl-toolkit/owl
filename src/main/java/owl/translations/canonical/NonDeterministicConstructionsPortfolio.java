@@ -58,7 +58,7 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
 
       while (unwrappedFormula instanceof XOperator) {
         xCount++;
-        unwrappedFormula = ((XOperator) unwrappedFormula).operand;
+        unwrappedFormula = ((XOperator) unwrappedFormula).operand();
       }
 
       var xCountFinal = xCount;
@@ -67,7 +67,7 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
     }
 
     var formulas = formula.formula() instanceof Conjunction
-      ? formula.formula().children()
+      ? formula.formula().operands
       : Set.of(formula.formula());
 
     if (isAllowed(GeneralizedBuchiAcceptance.class)
@@ -104,7 +104,7 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
     Environment environment, LabelledFormula formula, boolean generalized) {
     var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     var formulas = formula.formula() instanceof Conjunction
-      ? Set.copyOf(formula.formula().children())
+      ? Set.copyOf(formula.formula().operands)
       : Set.of(formula.formula());
     return new NonDeterministicConstructions.GfCoSafety(factories, formulas, generalized);
   }

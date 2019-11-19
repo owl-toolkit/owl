@@ -263,7 +263,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
         .collect(Collectors.toSet());
 
       if (state instanceof Conjunction) {
-        for (Formula x : state.children()) {
+        for (Formula x : state.operands) {
           if (!(x instanceof Formula.TemporalOperator)) {
             continue;
           }

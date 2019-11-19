@@ -57,11 +57,9 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
-import owl.ltl.XOperator;
 import owl.run.Environment;
+import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
-import owl.translations.canonical.BreakpointState;
-import owl.translations.canonical.GenericConstructions;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.util.annotation.CEntryPoint;
 
@@ -133,7 +131,7 @@ public final class DeterministicAutomaton<S, T> {
     }
 
     var formulasConj = formula.formula() instanceof Conjunction
-      ? formula.formula().children()
+      ? formula.formula().operands
       : Set.of(formula.formula());
 
     if (formulasConj.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
@@ -146,50 +144,18 @@ public final class DeterministicAutomaton<S, T> {
       );
     }
 
-    if (SyntacticFragments.isGCoSafety(formula.formula())) {
-      return new DeterministicAutomaton<>(
-        DeterministicConstructionsPortfolio.gCoSafety(ENV, formula),
-        BUCHI, BuchiAcceptance.class,
-        x -> false,
-        x -> x.current().and(x.next()),
-        x -> x.inSet(0) ? 1.0d : 0.5d
-      );
-    }
-
-    if (formula.formula() instanceof XOperator) {
-      int xCount = 0;
-      var unwrapped = formula.formula();
-
-      while (unwrapped instanceof XOperator) {
-        xCount++;
-        unwrapped = ((XOperator) unwrapped).operand;
-      }
-
-      if (SyntacticFragments.isGCoSafety(unwrapped)) {
-        return new DeterministicAutomaton<>(
-          GenericConstructions.delay(
-            DeterministicConstructionsPortfolio.gCoSafety(ENV, LabelledFormula.of(unwrapped, formula.atomicPropositions())),
-            xCount),
-          BUCHI, BuchiAcceptance.class,
-          x -> false,
-          x -> x.map(i -> i, j -> j.current().and(j.next())) ,
-          x -> x.inSet(0) ? 1.0d : 0.5d
-        );
-      }
-    }
-
     if (SyntacticFragments.isSafetyCoSafety(formula.formula())) {
       return new DeterministicAutomaton<>(
         DeterministicConstructionsPortfolio.safetyCoSafety(ENV, formula),
         BUCHI, BuchiAcceptance.class,
-        x -> x.current().isFalse() && x.next().isFalse(),
-        BreakpointState::current,
-        x -> x.inSet(0) ? 1.0d : 1 - x.successor().next().trueness()
+        x -> x.all().isFalse() && x.all().isFalse(),
+        DeterministicConstructions.BreakpointStateRejecting::all,
+        x -> x.inSet(0) ? 1.0d : x.successor().rejecting().trueness()
       );
     }
 
     var formulasDisj = formula.formula() instanceof Disjunction
-      ? formula.formula().children()
+      ? formula.formula().operands
       : Set.of(formula.formula());
 
     if (formulasDisj.stream().allMatch(SyntacticFragments::isFgSafety)) {
@@ -206,9 +172,9 @@ public final class DeterministicAutomaton<S, T> {
       return new DeterministicAutomaton<>(
         DeterministicConstructionsPortfolio.coSafetySafety(ENV, formula),
         CO_BUCHI, CoBuchiAcceptance.class,
-        x -> x.current().isTrue() && x.next().isTrue(),
-        BreakpointState::current,
-        x -> x.inSet(0) ? 0.0d : x.successor().next().trueness()
+        x -> x.all().isTrue() && x.accepting().isTrue(),
+        DeterministicConstructions.BreakpointStateAccepting::all,
+        x -> x.inSet(0) ? 0.0d : x.successor().accepting().trueness()
       );
     }
 

@@ -194,9 +194,9 @@ class ExtendedRewriter {
       Set<Formula> children = new HashSet<>();
 
       // Stable iteration order to ensure deterministic results.
-      assert Comparators.isInStrictOrder(conjunction.children(), Comparator.naturalOrder());
+      assert Comparators.isInStrictOrder(conjunction.operands, Comparator.naturalOrder());
 
-      for (Formula child : conjunction.children()) {
+      for (Formula child : conjunction.operands) {
         var visitedChild = child.accept(this, Optional.empty());
 
         // Short-circuit to ensure correct update of "unused operators"
@@ -215,9 +215,9 @@ class ExtendedRewriter {
       Set<Formula> children = new HashSet<>();
 
       // Stable iteration order to ensure deterministic results.
-      assert Comparators.isInStrictOrder(disjunction.children(), Comparator.naturalOrder());
+      assert Comparators.isInStrictOrder(disjunction.operands, Comparator.naturalOrder());
 
-      for (Formula child : disjunction.children()) {
+      for (Formula child : disjunction.operands) {
         var visitedChild = child.accept(this, Optional.empty());
 
         // Short-circuit to ensure correct update of "unused operators"
@@ -233,7 +233,7 @@ class ExtendedRewriter {
 
     @Override
     public Formula visit(XOperator xOperator, Optional<Formula.TemporalOperator> scope) {
-      var operand = xOperator.operand.accept(this, Optional.empty());
+      var operand = xOperator.operand().accept(this, Optional.empty());
       return operand instanceof BooleanConstant ? operand : new XOperator(operand);
     }
 
@@ -243,7 +243,7 @@ class ExtendedRewriter {
     public Formula visit(FOperator fOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && fOperator.equals(scope.get())) {
         assert mode == Mode.STRONG;
-        return fOperator(fOperator.operand.accept(this, Optional.empty()));
+        return fOperator(fOperator.operand().accept(this, Optional.empty()));
       }
 
       consumer.accept(fOperator);
@@ -255,18 +255,18 @@ class ExtendedRewriter {
       if (scope.isPresent() && mOperator.equals(scope.get())) {
         assert mode == Mode.STRONG;
         return mOperator(
-          mOperator.left.accept(this, Optional.empty()),
-          mOperator.right.accept(this, Optional.empty()));
+          mOperator.leftOperand().accept(this, Optional.empty()),
+          mOperator.rightOperand().accept(this, Optional.empty()));
       }
 
-      var fOperator = new FOperator(mOperator.left);
+      var fOperator = new FOperator(mOperator.leftOperand());
 
       consumer.accept(fOperator);
       consumer.accept(mOperator);
 
       if (fOperators.contains(fOperator) || mOperators.contains(mOperator)) {
-        var left = mOperator.left.accept(this, Optional.empty());
-        var right = mOperator.right.accept(this, Optional.empty());
+        var left = mOperator.leftOperand().accept(this, Optional.empty());
+        var right = mOperator.rightOperand().accept(this, Optional.empty());
         return mode == Mode.STRONG ? mOperator(left, right) : rOperator(left, right);
       }
 
@@ -278,18 +278,18 @@ class ExtendedRewriter {
       if (scope.isPresent() && uOperator.equals(scope.get())) {
         assert mode == Mode.STRONG;
         return uOperator(
-          uOperator.left.accept(this, Optional.empty()),
-          uOperator.right.accept(this, Optional.empty()));
+          uOperator.leftOperand().accept(this, Optional.empty()),
+          uOperator.rightOperand().accept(this, Optional.empty()));
       }
 
-      var fOperator = new FOperator(uOperator.right);
+      var fOperator = new FOperator(uOperator.rightOperand());
 
       consumer.accept(fOperator);
       consumer.accept(uOperator);
 
       if (fOperators.contains(fOperator) || uOperators.contains(uOperator)) {
-        var left = uOperator.left.accept(this, Optional.empty());
-        var right = uOperator.right.accept(this, Optional.empty());
+        var left = uOperator.leftOperand().accept(this, Optional.empty());
+        var right = uOperator.rightOperand().accept(this, Optional.empty());
         return mode == Mode.STRONG ? uOperator(left, right) : wOperator(left, right);
       }
 
@@ -302,7 +302,7 @@ class ExtendedRewriter {
     public Formula visit(GOperator gOperator, Optional<Formula.TemporalOperator> scope) {
       if (scope.isPresent() && gOperator.equals(scope.get())) {
         assert mode == Mode.WEAK;
-        return gOperator(gOperator.operand.accept(this, Optional.empty()));
+        return gOperator(gOperator.operand().accept(this, Optional.empty()));
       }
 
       consumer.accept(gOperator);
@@ -312,7 +312,7 @@ class ExtendedRewriter {
       }
 
       assert mode == Mode.WEAK;
-      return gOperator(gOperator.operand.accept(this, Optional.empty()));
+      return gOperator(gOperator.operand().accept(this, Optional.empty()));
     }
 
     @Override
@@ -320,11 +320,11 @@ class ExtendedRewriter {
       if (scope.isPresent() && rOperator.equals(scope.get())) {
         assert mode == Mode.WEAK;
         return rOperator(
-          rOperator.left.accept(this, Optional.empty()),
-          rOperator.right.accept(this, Optional.empty()));
+          rOperator.leftOperand().accept(this, Optional.empty()),
+          rOperator.rightOperand().accept(this, Optional.empty()));
       }
 
-      var gOperator = new GOperator(rOperator.right);
+      var gOperator = new GOperator(rOperator.rightOperand());
 
       consumer.accept(gOperator);
       consumer.accept(rOperator);
@@ -334,8 +334,8 @@ class ExtendedRewriter {
         return BooleanConstant.TRUE;
       }
 
-      var left = rOperator.left.accept(this, Optional.empty());
-      var right = rOperator.right.accept(this, Optional.empty());
+      var left = rOperator.leftOperand().accept(this, Optional.empty());
+      var right = rOperator.rightOperand().accept(this, Optional.empty());
       return mode == Mode.WEAK ? rOperator(left, right) : mOperator(left, right);
     }
 
@@ -344,11 +344,11 @@ class ExtendedRewriter {
       if (scope.isPresent() && wOperator.equals(scope.get())) {
         assert mode == Mode.WEAK;
         return wOperator(
-          wOperator.left.accept(this, Optional.empty()),
-          wOperator.right.accept(this, Optional.empty()));
+          wOperator.leftOperand().accept(this, Optional.empty()),
+          wOperator.rightOperand().accept(this, Optional.empty()));
       }
 
-      var gOperator = new GOperator(wOperator.left);
+      var gOperator = new GOperator(wOperator.leftOperand());
 
       consumer.accept(gOperator);
       consumer.accept(wOperator);
@@ -358,8 +358,8 @@ class ExtendedRewriter {
         return BooleanConstant.TRUE;
       }
 
-      var left = wOperator.left.accept(this, Optional.empty());
-      var right = wOperator.right.accept(this, Optional.empty());
+      var left = wOperator.leftOperand().accept(this, Optional.empty());
+      var right = wOperator.rightOperand().accept(this, Optional.empty());
       return mode == Mode.WEAK ? wOperator(left, right) : uOperator(left, right);
     }
 

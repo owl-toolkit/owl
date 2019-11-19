@@ -65,7 +65,8 @@ public final class DeduplicationRewriter implements Visitor<Formula>, UnaryOpera
   @Override
   public Formula visit(Biconditional biconditional) {
     return computeIfAbsent(biconditional,
-      () -> new Biconditional(biconditional.left.accept(this), biconditional.right.accept(this)));
+      () -> new Biconditional(
+        biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this)));
   }
 
   @Override
@@ -85,12 +86,12 @@ public final class DeduplicationRewriter implements Visitor<Formula>, UnaryOpera
 
   @Override
   public Formula visit(FOperator fOperator) {
-    return computeIfAbsent(fOperator, () -> new FOperator(fOperator.operand.accept(this)));
+    return computeIfAbsent(fOperator, () -> new FOperator(fOperator.operand().accept(this)));
   }
 
   @Override
   public Formula visit(GOperator gOperator) {
-    return computeIfAbsent(gOperator, () -> new GOperator(gOperator.operand.accept(this)));
+    return computeIfAbsent(gOperator, () -> new GOperator(gOperator.operand().accept(this)));
   }
 
   @Override
@@ -101,29 +102,33 @@ public final class DeduplicationRewriter implements Visitor<Formula>, UnaryOpera
   @Override
   public Formula visit(MOperator mOperator) {
     return computeIfAbsent(mOperator,
-      () -> new MOperator(mOperator.left.accept(this), mOperator.right.accept(this)));
+      () -> new MOperator(mOperator.leftOperand().accept(this),
+        mOperator.rightOperand().accept(this)));
   }
 
   @Override
   public Formula visit(ROperator rOperator) {
     return computeIfAbsent(rOperator,
-      () -> new ROperator(rOperator.left.accept(this), rOperator.right.accept(this)));
+      () -> new ROperator(rOperator.leftOperand().accept(this),
+        rOperator.rightOperand().accept(this)));
   }
 
   @Override
   public Formula visit(UOperator uOperator) {
     return computeIfAbsent(uOperator,
-      () -> new UOperator(uOperator.left.accept(this), uOperator.right.accept(this)));
+      () -> new UOperator(uOperator.leftOperand().accept(this),
+        uOperator.rightOperand().accept(this)));
   }
 
   @Override
   public Formula visit(WOperator wOperator) {
     return computeIfAbsent(wOperator,
-      () -> new WOperator(wOperator.left.accept(this), wOperator.right.accept(this)));
+      () -> new WOperator(wOperator.leftOperand().accept(this),
+        wOperator.rightOperand().accept(this)));
   }
 
   @Override
   public Formula visit(XOperator xOperator) {
-    return computeIfAbsent(xOperator, () -> new XOperator(xOperator.operand.accept(this)));
+    return computeIfAbsent(xOperator, () -> new XOperator(xOperator.operand().accept(this)));
   }
 }

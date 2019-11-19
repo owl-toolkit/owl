@@ -174,19 +174,19 @@ class RabinizerStateFactory {
 
       @Override
       public Formula visit(FOperator fOperator) {
-        return Disjunction.of(fOperator.operand.accept(this), fOperator);
+        return Disjunction.of(fOperator.operand().accept(this), fOperator);
       }
 
       @Override
       public Formula visit(UOperator uOperator) {
-        return Disjunction.of(uOperator.right.accept(this),
-          Conjunction.of(uOperator.left.accept(this), uOperator));
+        return Disjunction.of(uOperator.rightOperand().accept(this),
+          Conjunction.of(uOperator.leftOperand().accept(this), uOperator));
       }
 
       @Override
       public Formula visit(MOperator mOperator) {
-        return Conjunction.of(mOperator.right.accept(this),
-          Disjunction.of(mOperator.left.accept(this), mOperator));
+        return Conjunction.of(mOperator.rightOperand().accept(this),
+          Disjunction.of(mOperator.leftOperand().accept(this), mOperator));
       }
     }
   }

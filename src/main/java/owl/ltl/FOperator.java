@@ -46,7 +46,7 @@ public final class FOperator extends Formula.UnaryTemporalOperator {
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant
       || operand instanceof FOperator
-      || (operand instanceof GOperator && ((GOperator) operand).operand instanceof FOperator)) {
+      || (operand instanceof GOperator && ((GOperator) operand).operand() instanceof FOperator)) {
       return operand;
     }
 
@@ -56,16 +56,17 @@ public final class FOperator extends Formula.UnaryTemporalOperator {
 
     if (operand instanceof MOperator) {
       MOperator mOperator = (MOperator) operand;
-      return FOperator.of(Conjunction.of(mOperator.left, mOperator.right));
+      return FOperator.of(Conjunction.of(mOperator.leftOperand(), mOperator.rightOperand()));
     }
 
     if (operand instanceof UOperator) {
-      return of(((UOperator) operand).right);
+      return of(((UOperator) operand).rightOperand());
     }
 
     if (operand instanceof WOperator) {
       WOperator wOperator = (WOperator) operand;
-      return Disjunction.of(of(GOperator.of(wOperator.left)), of(wOperator.right));
+      return Disjunction
+        .of(of(GOperator.of(wOperator.leftOperand())), of(wOperator.rightOperand()));
     }
 
     return new FOperator(operand);
@@ -98,30 +99,30 @@ public final class FOperator extends Formula.UnaryTemporalOperator {
 
   @Override
   public boolean isPureUniversal() {
-    return operand.isPureUniversal();
+    return operand().isPureUniversal();
   }
 
   @Override
   public Formula nnf() {
-    if (operand instanceof Biconditional) {
-      var left = ((Biconditional) operand).left.nnf();
-      var right = ((Biconditional) operand).right.nnf();
+    if (operand() instanceof Biconditional) {
+      var left = ((Biconditional) operand()).leftOperand().nnf();
+      var right = ((Biconditional) operand()).rightOperand().nnf();
 
       return Disjunction.of(
         FOperator.of(Conjunction.of(left, right)),
         FOperator.of(Conjunction.of(left.not(), right.not())));
     }
 
-    return FOperator.of(operand.nnf());
+    return FOperator.of(operand().nnf());
   }
 
   @Override
   public Formula not() {
-    return GOperator.of(operand.not());
+    return GOperator.of(operand().not());
   }
 
   @Override
   public Formula unfold() {
-    return Disjunction.of(operand.unfold(), this);
+    return Disjunction.of(operand().unfold(), this);
   }
 }

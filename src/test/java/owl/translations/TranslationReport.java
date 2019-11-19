@@ -69,6 +69,7 @@ class TranslationReport {
 
   private static final LatexPrintVisitor PRINT_VISITOR = new LatexPrintVisitor(COMMON_ALPHABET);
 
+  @Tag("size-report")
   @ParameterizedTest
   @EnumSource(
     value = FormulaSet.class,

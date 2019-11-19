@@ -45,8 +45,8 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
   @Override
   public XFormula visit(Biconditional biconditional) {
-    XFormula right = biconditional.right.accept(this);
-    XFormula left = biconditional.left.accept(this);
+    XFormula right = biconditional.rightOperand().accept(this);
+    XFormula left = biconditional.leftOperand().accept(this);
     left.formula = Biconditional.of(left.toFormula(right.depth), right.toFormula(left.depth));
     left.depth = Math.min(left.depth, right.depth);
     return left;
@@ -59,7 +59,7 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
   @Override
   public XFormula visit(Conjunction conjunction) {
-    var children = conjunction.children().stream()
+    var children = conjunction.operands.stream()
       .map(c -> c.accept(this)).collect(Collectors.toList());
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
     return new XFormula(depth, Conjunction.of(children.stream().map(c -> c.toFormula(depth))));
@@ -67,7 +67,7 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
   @Override
   public XFormula visit(Disjunction disjunction) {
-    var children = disjunction.children().stream()
+    var children = disjunction.operands.stream()
       .map(c -> c.accept(this)).collect(Collectors.toList());
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
     return new XFormula(depth, Disjunction.of(children.stream().map(c -> c.toFormula(depth))));
@@ -110,15 +110,15 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
   @Override
   public XFormula visit(XOperator xOperator) {
-    XFormula r = xOperator.operand.accept(this);
+    XFormula r = xOperator.operand().accept(this);
     r.depth++;
     return r;
   }
 
   private XFormula visit(Formula.BinaryTemporalOperator operator,
     BiFunction<Formula, Formula, Formula> constructor) {
-    XFormula right = operator.right.accept(this);
-    XFormula left = operator.left.accept(this);
+    XFormula right = operator.rightOperand().accept(this);
+    XFormula left = operator.leftOperand().accept(this);
     left.formula = constructor.apply(left.toFormula(right.depth), right.toFormula(left.depth));
     left.depth = Math.min(left.depth, right.depth);
     return left;
@@ -126,7 +126,7 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
   private XFormula visit(Formula.UnaryTemporalOperator operator,
     Function<Formula, Formula> constructor) {
-    XFormula formula = operator.operand.accept(this);
+    XFormula formula = operator.operand().accept(this);
     formula.formula = constructor.apply(formula.formula);
     return formula;
   }

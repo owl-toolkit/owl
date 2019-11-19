@@ -51,12 +51,12 @@ class SyntacticFragmentTest {
 
   @Test
   void isX() {
-    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(0)));
-    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(1)));
-    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(2)));
-    assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(3)));
-    assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(4)));
-    assertTrue(SyntacticFragment.FINITE.contains(FORMULAS.get(5)));
-    assertFalse(SyntacticFragment.FINITE.contains(FORMULAS.get(8)));
+    assertTrue(SyntacticFragments.isFinite(FORMULAS.get(0)));
+    assertTrue(SyntacticFragments.isFinite(FORMULAS.get(1)));
+    assertTrue(SyntacticFragments.isFinite(FORMULAS.get(2)));
+    assertFalse(SyntacticFragments.isFinite(FORMULAS.get(3)));
+    assertFalse(SyntacticFragments.isFinite(FORMULAS.get(4)));
+    assertTrue(SyntacticFragments.isFinite(FORMULAS.get(5)));
+    assertFalse(SyntacticFragments.isFinite(FORMULAS.get(8)));
   }
 }

@@ -96,22 +96,22 @@ public final class XOperator extends Formula.UnaryTemporalOperator {
 
   @Override
   public boolean isPureEventual() {
-    return operand.isPureEventual();
+    return operand().isPureEventual();
   }
 
   @Override
   public boolean isPureUniversal() {
-    return operand.isPureUniversal();
+    return operand().isPureUniversal();
   }
 
   @Override
   public Formula nnf() {
-    return XOperator.of(operand.nnf());
+    return XOperator.of(operand().nnf());
   }
 
   @Override
   public Formula not() {
-    return XOperator.of(operand.not());
+    return XOperator.of(operand().not());
   }
 
   @Override

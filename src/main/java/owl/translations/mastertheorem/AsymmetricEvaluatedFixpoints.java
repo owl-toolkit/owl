@@ -82,7 +82,7 @@ public final class AsymmetricEvaluatedFixpoints
 
     for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
       GOperator gOperator = (GOperator) greatestFixpoint;
-      Formula operand = gOperator.operand.substitute(toCoSafety);
+      Formula operand = gOperator.operand().substitute(toCoSafety);
 
       // Skip trivial formulas
       if (BooleanConstant.FALSE.equals(operand)) {
@@ -96,7 +96,7 @@ public final class AsymmetricEvaluatedFixpoints
       Formula gOperatorRewritten = GOperator.of(operand);
 
       if (gOperatorRewritten instanceof Conjunction) {
-        gOperatorRewritten.children().forEach(x -> gOperatorsRewritten.add((GOperator) x));
+        gOperatorRewritten.operands.forEach(x -> gOperatorsRewritten.add((GOperator) x));
       } else {
         gOperatorsRewritten.add((GOperator) gOperatorRewritten);
       }
@@ -109,7 +109,7 @@ public final class AsymmetricEvaluatedFixpoints
     for (GOperator gOperator : gOperatorsRewritten) {
       if (SyntacticFragments.isSafety(gOperator)) {
         gSafety.add(gOperator);
-      } else if (gOperator.operand instanceof FOperator) {
+      } else if (gOperator.operand() instanceof FOperator) {
         gfCoSafety.add(gOperator);
       } else {
         gCoSafety.add(gOperator);
@@ -200,7 +200,7 @@ public final class AsymmetricEvaluatedFixpoints
 
     var coSafety = gCoSafety.stream()
       .sorted()
-      .map(x -> factories.eqFactory.of(x.operand.unfold()))
+      .map(x -> factories.eqFactory.of(x.operand().unfold()))
       .collect(Collectors.toUnmodifiableList());
 
     var fCoSafety = new ArrayList<EquivalenceClass>();
@@ -210,15 +210,15 @@ public final class AsymmetricEvaluatedFixpoints
       var fCoSafetySingleStep = new ArrayList<GOperator>();
 
       gfCoSafety.stream().sorted().forEachOrdered(x -> {
-        if (SyntacticFragment.SINGLE_STEP.contains(((FOperator) x.operand).operand)) {
+        if (SyntacticFragment.SINGLE_STEP.contains(((FOperator) x.operand()).operand())) {
           fCoSafetySingleStep.add(x);
         } else {
-          fCoSafety.add(factories.eqFactory.of(x.operand.unfold()));
+          fCoSafety.add(factories.eqFactory.of(x.operand().unfold()));
         }
       });
 
       if (coSafety.isEmpty() && fCoSafety.isEmpty() && !fCoSafetySingleStep.isEmpty()) {
-        fCoSafety.add(factories.eqFactory.of(fCoSafetySingleStep.remove(0).operand).unfold());
+        fCoSafety.add(factories.eqFactory.of(fCoSafetySingleStep.remove(0).operand()).unfold());
       }
 
       if (!fCoSafetySingleStep.isEmpty()) {
@@ -227,7 +227,7 @@ public final class AsymmetricEvaluatedFixpoints
       }
     } else {
       gfCoSafety.stream().sorted().forEachOrdered(
-        x -> fCoSafety.add(factories.eqFactory.of(x.operand.unfold())));
+        x -> fCoSafety.add(factories.eqFactory.of(x.operand().unfold())));
     }
 
     assert !safetyAutomaton.onlyInitialState().isFalse();

@@ -27,11 +27,11 @@ public class PreprocessorVisitor implements Visitor<Formula> {
   public Formula visit(Biconditional biconditional) {
     return new Conjunction(
       new Disjunction(
-        new Negation(biconditional.left).accept(this),
-        biconditional.right.accept(this)),
+        new Negation(biconditional.leftOperand()).accept(this),
+        biconditional.rightOperand().accept(this)),
       new Disjunction(
-        biconditional.left.accept(this),
-        new Negation(biconditional.right).accept(this)));
+        biconditional.leftOperand().accept(this),
+        new Negation(biconditional.rightOperand()).accept(this)));
   }
 
   @Override
@@ -56,50 +56,54 @@ public class PreprocessorVisitor implements Visitor<Formula> {
 
   @Override
   public Formula visit(Negation negation) {
-    return new Negation(negation.operand.accept(this));
+    return new Negation(negation.operand().accept(this));
   }
 
 
   @Override
   public Formula visit(FOperator fOperator) {
-    if (fOperator.operand instanceof FOperator) {
-      return fOperator.operand.accept(this);
+    if (fOperator.operand() instanceof FOperator) {
+      return fOperator.operand().accept(this);
     }
 
-    return new FOperator(fOperator.operand.accept(this));
+    return new FOperator(fOperator.operand().accept(this));
   }
 
   @Override
   public Formula visit(GOperator gOperator) {
-    if (gOperator.operand instanceof GOperator) {
-      return gOperator.operand.accept(this);
+    if (gOperator.operand() instanceof GOperator) {
+      return gOperator.operand().accept(this);
     }
 
-    return new GOperator(gOperator.operand.accept(this));
+    return new GOperator(gOperator.operand().accept(this));
   }
 
   @Override
   public Formula visit(MOperator mOperator) {
-    return new MOperator(mOperator.left.accept(this), mOperator.right.accept(this));
+    return new MOperator(mOperator.leftOperand().accept(this),
+      mOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(ROperator rOperator) {
-    return new ROperator(rOperator.left.accept(this), rOperator.right.accept(this));
+    return new ROperator(rOperator.leftOperand().accept(this),
+      rOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(UOperator uOperator) {
-    return new UOperator(uOperator.left.accept(this), uOperator.right.accept(this));
+    return new UOperator(uOperator.leftOperand().accept(this),
+      uOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(WOperator wOperator) {
-    return new WOperator(wOperator.left.accept(this), wOperator.right.accept(this));
+    return new WOperator(wOperator.leftOperand().accept(this),
+      wOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(XOperator xOperator) {
-    return new XOperator(xOperator.operand.accept(this));
+    return new XOperator(xOperator.operand().accept(this));
   }
 }

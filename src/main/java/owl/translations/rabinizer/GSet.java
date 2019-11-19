@@ -45,7 +45,7 @@ final class GSet extends AbstractSet<GOperator> {
     this.elements = Set.copyOf(elements);
     this.conjunction = factory.of(Conjunction.of(elements));
     this.operatorConjunction = factory
-      .of(Conjunction.of(elements.stream().map(x -> x.operand)));
+      .of(Conjunction.of(elements.stream().map(x -> x.operand())));
     hashCode = this.elements.hashCode();
   }
 

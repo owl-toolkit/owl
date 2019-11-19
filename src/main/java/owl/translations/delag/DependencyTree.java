@@ -106,7 +106,7 @@ abstract class DependencyTree<T> {
 
   static Formula unwrap(Formula formula) {
     return ((Formula.UnaryTemporalOperator)
-      ((Formula.UnaryTemporalOperator) formula).operand).operand;
+      ((Formula.UnaryTemporalOperator) formula).operand()).operand();
   }
 
   @Nullable
@@ -142,7 +142,7 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety().containsKey(leaf.formula)
-        && (SyntacticFragment.FINITE.contains(leaf.formula) || leaf.type == Type.CO_SAFETY);
+        && (SyntacticFragments.isFinite(leaf.formula) || leaf.type == Type.CO_SAFETY);
     }
 
     @Override
@@ -498,7 +498,7 @@ abstract class DependencyTree<T> {
     @Override
     boolean suspend(ProductState<T> productState, Leaf<T> leaf) {
       return productState.safety().containsKey(leaf.formula)
-        && (SyntacticFragment.FINITE.contains(leaf.formula) || leaf.type == Type.SAFETY);
+        && (SyntacticFragments.isFinite(leaf.formula) || leaf.type == Type.SAFETY);
     }
 
     @Override

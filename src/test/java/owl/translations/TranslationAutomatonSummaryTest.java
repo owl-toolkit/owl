@@ -284,7 +284,7 @@ class TranslationAutomatonSummaryTest {
     return containers;
   }
 
-  // @Tag("size-regression-train")
+  @Tag("size-regression-train")
   @ParameterizedTest
   @MethodSource("translatorProvider")
   void train(Translator translator) {

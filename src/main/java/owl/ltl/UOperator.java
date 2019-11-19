@@ -57,7 +57,8 @@ public final class UOperator extends Formula.BinaryTemporalOperator {
       return FOperator.of(rightOperand);
     }
 
-    if (rightOperand instanceof UOperator && leftOperand.equals(((UOperator) rightOperand).left)) {
+    if (rightOperand instanceof UOperator && leftOperand.equals(
+      ((UOperator) rightOperand).leftOperand())) {
       return rightOperand;
     }
 
@@ -86,16 +87,16 @@ public final class UOperator extends Formula.BinaryTemporalOperator {
 
   @Override
   public Formula nnf() {
-    return UOperator.of(left.nnf(), right.nnf());
+    return UOperator.of(leftOperand().nnf(), rightOperand().nnf());
   }
 
   @Override
   public Formula not() {
-    return ROperator.of(left.not(), right.not());
+    return ROperator.of(leftOperand().not(), rightOperand().not());
   }
 
   @Override
   public Formula unfold() {
-    return Disjunction.of(right.unfold(), Conjunction.of(left.unfold(), this));
+    return Disjunction.of(rightOperand().unfold(), Conjunction.of(leftOperand().unfold(), this));
   }
 }

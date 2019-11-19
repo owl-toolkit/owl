@@ -21,6 +21,7 @@ package owl.translations.canonical;
 
 import static owl.collections.ValuationTrees.cartesianProduct;
 
+import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -46,6 +47,7 @@ import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.factories.ValuationSetFactory;
 import owl.ltl.BooleanConstant;
+import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
@@ -54,8 +56,6 @@ import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.translations.canonical.Util.Pair;
-import owl.translations.mastertheorem.Predicates;
-import owl.translations.mastertheorem.Rewriter;
 
 public final class DeterministicConstructions {
 
@@ -136,14 +136,14 @@ public final class DeterministicConstructions {
     }
   }
 
-  private abstract static class Terminal<A extends OmegaAcceptance>
+  private abstract static class Looping<A extends OmegaAcceptance>
     extends Base<EquivalenceClass, A> {
     private final EquivalenceClass initialState;
 
     private final Function<EquivalenceClass, Set<Edge<EquivalenceClass>>>
       edgeMapper = x -> Collections3.ofNullable(this.buildEdge(x.unfold()));
 
-    private Terminal(Factories factories, boolean eagerUnfold, Formula formula) {
+    private Looping(Factories factories, boolean eagerUnfold, Formula formula) {
       super(factories, eagerUnfold);
       this.initialState = initialStateInternal(factory.of(formula));
     }
@@ -170,7 +170,7 @@ public final class DeterministicConstructions {
     protected abstract Edge<EquivalenceClass> buildEdge(EquivalenceClass successor);
   }
 
-  public static final class CoSafety extends Terminal<BuchiAcceptance> {
+  public static final class CoSafety extends Looping<BuchiAcceptance> {
     public CoSafety(Factories factories, boolean eagerUnfold, Formula formula) {
       super(factories, eagerUnfold, formula);
       Preconditions.checkArgument(SyntacticFragments.isCoSafety(formula), formula);
@@ -192,7 +192,7 @@ public final class DeterministicConstructions {
     }
   }
 
-  public static final class Safety extends Terminal<AllAcceptance> {
+  public static final class Safety extends Looping<AllAcceptance> {
     public Safety(Factories factories, boolean unfold, Formula formula) {
       super(factories, unfold, formula);
       Preconditions.checkArgument(SyntacticFragments.isSafety(formula), formula);
@@ -384,93 +384,8 @@ public final class DeterministicConstructions {
     }
   }
 
-  public static final class GCoSafety
-    extends Base<BreakpointState<EquivalenceClass>, BuchiAcceptance> {
-
-    private final EquivalenceClass initialState;
-
-    public GCoSafety(Factories factories, boolean unfold, Formula formula) {
-      super(factories, unfold);
-      Preconditions.checkArgument(SyntacticFragments.isGCoSafety(formula)
-        && !(Util.unwrap(formula) instanceof FOperator)
-        && !SyntacticFragment.FINITE.contains(Util.unwrap(formula)), formula);
-      this.initialState = initialStateInternal(factory.of(Util.unwrap(formula)));
-    }
-
-    @Override
-    public BreakpointState<EquivalenceClass> onlyInitialState() {
-      return BreakpointState.of(initialState, factory.of(BooleanConstant.TRUE));
-    }
-
-    @Override
-    public BuchiAcceptance acceptance() {
-      return BuchiAcceptance.INSTANCE;
-    }
-
-    @Nullable
-    private Edge<BreakpointState<EquivalenceClass>> buildEdge(
-      EquivalenceClass current, EquivalenceClass next) {
-
-      if (current.isFalse() || next.isFalse()) {
-        return null;
-      }
-
-      if (current.isTrue()) {
-        EquivalenceClass newCurrent = next.and(initialState);
-        return newCurrent.isFalse()
-          ? null
-          : Edge.of(BreakpointState.of(newCurrent, current), 0);
-      }
-
-      boolean accepting = false;
-      EquivalenceClass newCurrent = current;
-      EquivalenceClass newNext = next;
-
-      if (current.implies(next)) {
-        newNext = factory.of(BooleanConstant.TRUE);
-      } else if (SyntacticFragments.isFinite(next)) {
-        newCurrent = current.and(next);
-        newNext = factory.of(BooleanConstant.TRUE);
-
-        if (SyntacticFragments.isFinite(current)) {
-          accepting = true;
-        }
-      }
-
-      if (!newCurrent.and(newNext).implies(initialState)) {
-        newNext = newNext.and(initialState);
-      }
-
-      if (newCurrent.isFalse() || newNext.isFalse()) {
-        return null;
-      }
-
-      var successor = BreakpointState.of(newCurrent, newNext);
-      return accepting ? Edge.of(successor, 0) : Edge.of(successor);
-    }
-
-    @Nullable
-    @Override
-    public Edge<BreakpointState<EquivalenceClass>> edge(
-      BreakpointState<EquivalenceClass> breakpointState, BitSet valuation) {
-
-      var currentSuccessor = successorInternal(breakpointState.current(), valuation);
-      var nextSuccessor = successorInternal(breakpointState.next(), valuation);
-      return buildEdge(currentSuccessor, nextSuccessor);
-    }
-
-    @Override
-    public ValuationTree<Edge<BreakpointState<EquivalenceClass>>> edgeTree(
-      BreakpointState<EquivalenceClass> breakpointState) {
-
-      var currentSuccessorTree = super.successorTreeInternal(breakpointState.current());
-      var nextSuccessorTree = super.successorTreeInternal(breakpointState.next());
-      return cartesianProduct(currentSuccessorTree, nextSuccessorTree, this::buildEdge);
-    }
-  }
-
   public static final class CoSafetySafety
-    extends Base<BreakpointState<EquivalenceClass>, CoBuchiAcceptance> {
+    extends Base<BreakpointStateAccepting, CoBuchiAcceptance> {
 
     private final EquivalenceClass initialState;
 
@@ -480,41 +395,13 @@ public final class DeterministicConstructions {
         && !SyntacticFragments.isCoSafety(formula)
         && !SyntacticFragments.isSafety(formula)
         && (!(formula instanceof Disjunction)
-          || !formula.children().stream().allMatch(SyntacticFragments::isFgSafety)));
+        || !formula.operands.stream().allMatch(SyntacticFragments::isFgSafety)));
       this.initialState = initialStateInternal(factory.of(formula));
     }
 
-    private EquivalenceClass jump(EquivalenceClass clazz) {
-      var remainder = clazz.substitute(new Rewriter.ToSafety(Set.of())).unfold();
-      var xRemovedRemainder = remainder;
-
-      // Iteratively remove all X(\psi) that are not within the scope of a fixpoint.
-      do {
-        remainder = xRemovedRemainder;
-
-        var protectedXOperators = remainder.temporalOperators().stream()
-          .flatMap(x -> {
-            if (x instanceof XOperator) {
-              return Stream.empty();
-            } else {
-              assert Predicates.IS_FIXPOINT.test(x);
-              return x.subformulas(XOperator.class).stream();
-            }
-          })
-          .collect(Collectors.toSet());
-
-        xRemovedRemainder = remainder.substitute(x ->
-          x instanceof XOperator && !protectedXOperators.contains(x)
-            ? BooleanConstant.FALSE
-            : x);
-      } while (!remainder.equals(xRemovedRemainder));
-
-      return remainder;
-    }
-
     @Override
-    public BreakpointState<EquivalenceClass> onlyInitialState() {
-      return BreakpointState.of(initialState, jump(initialState));
+    public BreakpointStateAccepting onlyInitialState() {
+      return BreakpointStateAccepting.of(initialState, accepting(initialState));
     }
 
     @Override
@@ -523,50 +410,201 @@ public final class DeterministicConstructions {
     }
 
     @Nullable
-    private Edge<BreakpointState<EquivalenceClass>> buildEdge(
-      EquivalenceClass language, EquivalenceClass safety) {
+    @Override
+    public Edge<BreakpointStateAccepting> edge(BreakpointStateAccepting state, BitSet valuation) {
+      return edge(
+        successorInternal(state.all(), valuation),
+        successorInternal(state.accepting(), valuation),
+        successorInternal(accepting(state.all()), valuation));
+    }
 
-      if (language.isFalse()) {
+    @Override
+    public ValuationTree<Edge<BreakpointStateAccepting>> edgeTree(BreakpointStateAccepting state) {
+      return cartesianProduct(
+        successorTreeInternal(state.all()),
+        successorTreeInternal(state.accepting()),
+        successorTreeInternal(accepting(state.all())),
+        this::edge);
+    }
+
+    @Nullable
+    private Edge<BreakpointStateAccepting> edge(
+      EquivalenceClass all, EquivalenceClass accepting, EquivalenceClass nextAccepting) {
+      // all over-approximates accepting and nextAccepting.
+      assert accepting.implies(all) && nextAccepting.implies(all);
+
+      if (all.isFalse()) {
         return null;
       }
 
-      if (language.isTrue() || SyntacticFragments.isSafety(language)) {
-        return Edge.of(BreakpointState.of(language, factory.of(BooleanConstant.TRUE)));
+      if (SyntacticFragments.isSafety(all)) {
+        return Edge.of(BreakpointStateAccepting.of(all, all));
       }
 
-      if (SyntacticFragments.isCoSafety(language)) {
-        return Edge.of(BreakpointState.of(language, factory.of(BooleanConstant.TRUE)), 0);
+      // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
+      assert !all.isTrue() && !accepting.isTrue() && !nextAccepting.isTrue();
+
+      if (SyntacticFragments.isCoSafety(all)) {
+        return Edge.of(BreakpointStateAccepting.of(all, all), 0);
       }
 
-      if (safety.isFalse()) {
-        return Edge.of(BreakpointState.of(language, jump(language)), 0);
+      if (accepting.isFalse()) {
+        if (nextAccepting.isFalse()) {
+          return Edge.of(BreakpointStateAccepting.of(all, accepting(all)), 0);
+        }
+
+        return Edge.of(BreakpointStateAccepting.of(all, nextAccepting), 0);
       }
 
-      if (safety.isTrue()) {
-        return Edge.of(BreakpointState.of(factory.of(BooleanConstant.TRUE),
-          factory.of(BooleanConstant.TRUE)));
-      }
+      return Edge.of(BreakpointStateAccepting.of(all, accepting));
+    }
 
-      return Edge.of(BreakpointState.of(language, safety));
+    private EquivalenceClass accepting(EquivalenceClass all) {
+      var accepting = all.substitute(
+        x -> SyntacticFragments.isSafety(x) ? x : BooleanConstant.FALSE);
+
+      assert SyntacticFragments.isSafety(accepting);
+
+      var xRemovedAccepting = accepting;
+
+      // Iteratively remove all X(\psi) that are not within the scope of a fixpoint.
+      do {
+        accepting = xRemovedAccepting;
+
+        var protectedXOperators = accepting.temporalOperators().stream()
+          .flatMap(
+            x -> x instanceof XOperator ? Stream.empty() : x.subformulas(XOperator.class).stream())
+          .collect(Collectors.toSet());
+
+        xRemovedAccepting = accepting.substitute(x ->
+          x instanceof XOperator && !protectedXOperators.contains(x) ? BooleanConstant.FALSE : x);
+      } while (!accepting.equals(xRemovedAccepting));
+
+      return accepting.unfold();
+    }
+  }
+
+  @AutoValue
+  public abstract static class BreakpointStateAccepting {
+    public abstract EquivalenceClass all();
+
+    public abstract EquivalenceClass accepting();
+
+    static BreakpointStateAccepting of(EquivalenceClass all, EquivalenceClass accepting) {
+      assert accepting.implies(all);
+      return new AutoValue_DeterministicConstructions_BreakpointStateAccepting(all, accepting);
+    }
+  }
+
+  public static final class SafetyCoSafety
+    extends Base<BreakpointStateRejecting, BuchiAcceptance> {
+
+    private final EquivalenceClass initialState;
+
+    public SafetyCoSafety(Factories factories, Formula formula) {
+      super(factories, true);
+      Preconditions.checkArgument(SyntacticFragments.isSafetyCoSafety(formula)
+        && !SyntacticFragments.isCoSafety(formula)
+        && !SyntacticFragments.isSafety(formula)
+        && (!(formula instanceof Conjunction)
+        || !formula.operands.stream().allMatch(SyntacticFragments::isGfCoSafety)));
+      this.initialState = initialStateInternal(factory.of(formula));
+    }
+
+    @Override
+    public BreakpointStateRejecting onlyInitialState() {
+      return BreakpointStateRejecting.of(initialState, rejecting(initialState));
+    }
+
+    @Override
+    public BuchiAcceptance acceptance() {
+      return BuchiAcceptance.INSTANCE;
     }
 
     @Nullable
     @Override
-    public Edge<BreakpointState<EquivalenceClass>> edge(
-      BreakpointState<EquivalenceClass> state, BitSet valuation) {
-
-      var languageSuccessor = successorInternal(state.current(), valuation);
-      var safetySuccessor = successorInternal(state.next(), valuation);
-      return buildEdge(languageSuccessor, safetySuccessor);
+    public Edge<BreakpointStateRejecting> edge(BreakpointStateRejecting state, BitSet valuation) {
+      return edge(
+        successorInternal(state.all(), valuation),
+        successorInternal(state.rejecting(), valuation),
+        successorInternal(rejecting(state.all()), valuation));
     }
 
     @Override
-    public ValuationTree<Edge<BreakpointState<EquivalenceClass>>> edgeTree(
-      BreakpointState<EquivalenceClass> state) {
+    public ValuationTree<Edge<BreakpointStateRejecting>> edgeTree(BreakpointStateRejecting state) {
+      return cartesianProduct(
+        successorTreeInternal(state.all()),
+        successorTreeInternal(state.rejecting()),
+        successorTreeInternal(rejecting(state.all())),
+        this::edge);
+    }
 
-      var languageSuccessorTree = successorTreeInternal(state.current());
-      var safetySuccessorTree = successorTreeInternal(state.next());
-      return cartesianProduct(languageSuccessorTree, safetySuccessorTree, this::buildEdge);
+    @Nullable
+    private Edge<BreakpointStateRejecting> edge(
+      EquivalenceClass all, EquivalenceClass rejecting, EquivalenceClass nextRejecting) {
+      // all under-approximates rejecting and nextRejecting.
+      assert all.implies(rejecting) && all.implies(nextRejecting);
+
+      if (all.isFalse() || rejecting.isFalse() || nextRejecting.isFalse()) {
+        return null;
+      }
+
+      if (SyntacticFragments.isSafety(all)) {
+        return Edge.of(BreakpointStateRejecting.of(all, all), 0);
+      }
+
+      // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
+      assert !all.isTrue();
+
+      if (SyntacticFragments.isCoSafety(all)) {
+        return Edge.of(BreakpointStateRejecting.of(all, all));
+      }
+
+      if (rejecting.isTrue()) {
+        if (nextRejecting.isTrue()) {
+          return Edge.of(BreakpointStateRejecting.of(all, rejecting(all)), 0);
+        }
+
+        return Edge.of(BreakpointStateRejecting.of(all, nextRejecting), 0);
+      }
+
+      return Edge.of(BreakpointStateRejecting.of(all, rejecting));
+    }
+
+    private EquivalenceClass rejecting(EquivalenceClass all) {
+      var rejecting = all.substitute(
+        x -> SyntacticFragments.isCoSafety(x) ? x : BooleanConstant.TRUE);
+
+      assert SyntacticFragments.isCoSafety(rejecting);
+
+      var xRemovedRejecting = rejecting;
+
+      // Iteratively remove all X that are not within the scope of an F, U, or M.
+      do {
+        rejecting = xRemovedRejecting;
+
+        var protectedXOperators = rejecting.temporalOperators().stream()
+          .flatMap(
+            x -> x instanceof XOperator ? Stream.empty() : x.subformulas(XOperator.class).stream())
+          .collect(Collectors.toSet());
+
+        xRemovedRejecting = rejecting.substitute(x ->
+          x instanceof XOperator && !protectedXOperators.contains(x) ? BooleanConstant.TRUE : x);
+      } while (!rejecting.equals(xRemovedRejecting));
+
+      return rejecting.unfold();
+    }
+  }
+
+  @AutoValue
+  public abstract static class BreakpointStateRejecting {
+    public abstract EquivalenceClass all();
+
+    public abstract EquivalenceClass rejecting();
+
+    public static BreakpointStateRejecting of(EquivalenceClass all, EquivalenceClass rejecting) {
+      assert all.implies(rejecting);
+      return new AutoValue_DeterministicConstructions_BreakpointStateRejecting(all, rejecting);
     }
   }
 }

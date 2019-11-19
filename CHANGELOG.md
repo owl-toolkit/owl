@@ -1,43 +1,47 @@
-# 2019.XX (unreleased)
+# 2020.XX (unreleased)
 
 Modules:
+
+* Added `ltl2normalform` that rewrites LTL formulas into the restricted
+  alternation normal form described in our LICS'20 submission.
 
 * Removed unused `--worker` flag and `OWL_{ANNOTATIONS,INPUT}` environment
   variables.
 
 * De-duplicate fixed-point guesses in the "symmetric" constructions.
 
-  Use extensions of the FG- and GF-advice functions (LICS'18) that use both 
-  guesses X and Y to rewrite the formula. Further, guesses are skipped that 
+  Use extensions of the FG- and GF-advice functions (LICS'18) that use both
+  guesses X and Y to rewrite the formula. Further, guesses are skipped that
   contain unused fixpoints.
-  
+
 * Removed unmaintained `fgx2dpa` translation. `ltl2dpa` produces almost always
   (on the test sets) smaller automata compared to `fgx2dpa`.
 
 * `ltl2da` uses for the "safety-cosafety" and "cosafety-safety" fragment a
-   optimised construction without invoking a fallback solution.
-   
-* `ltl2nba`, `ltl2ngba`, `ltl2ldba`, `ltl2ldgba`, `ltl2dra`, `ltl2dgra`, 
+  optimised construction without invoking a fallback solution. This
+  construction is based on our LICS'20 submission.
+
+* `ltl2nba`, `ltl2ngba`, `ltl2ldba`, `ltl2ldgba`, `ltl2dra`, `ltl2dgra`,
   and `ltl2dpa` use a portfolio translator selecting simpler translations
-  based on syntactic criteria, before applying the general purpose 
+  based on syntactic criteria, before applying the general purpose
   translation. This feature can be deactivated using `--disable-portfolio`.
-  
-* `ltl2dpa` by default uses also a complement translation to obtain a small
-  DPA. This feature can be deactivated using `--disable-complement`.
+
+* `ltl2dpa` by default now uses a complement translation to obtain (possibly)
+  smaller DPAs. This feature can be deactivated using `--disable-complement`.
 
 API:
 
 * Removed unused and unmaintained `FrequencyG` class and forbid subclassing
   of `GOperator`.
-  
+
 * Addition of `Negation` as a syntactic element for LTL formulas.
 
-* OmegaAcceptanceCast enables casting and conversion of different types of 
+* OmegaAcceptanceCast enables casting and conversion of different types of
   omega-acceptance.
-  
-* EquivalenceClass always maintains the representative. This is made 
-  possible by major performance improvements in the EquivalenceClass 
-  implementation.   
+
+* EquivalenceClass always maintains the representative. This is made
+  possible by major performance improvements in the EquivalenceClass
+  implementation.
 
 Bugfixes:
 

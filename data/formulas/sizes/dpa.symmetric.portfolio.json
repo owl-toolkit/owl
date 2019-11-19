@@ -3203,7 +3203,7 @@
   {
     "formula": "F((a | !b) \u0026 (Ga | Gb | Gc))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3247,7 +3247,7 @@
   {
     "formula": "F((a | Gb) \u0026 (c | Gd))",
     "properties": {
-      "size": 13,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3324,7 +3324,7 @@
   {
     "formula": "F((a | Gb) \u0026 (b | Ga) \u0026 (c | Gd))",
     "properties": {
-      "size": 24,
+      "size": 19,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3335,7 +3335,7 @@
   {
     "formula": "F((a | Gb) \u0026 (c | Gd) \u0026 (e | Gf))",
     "properties": {
-      "size": 132,
+      "size": 80,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3467,7 +3467,7 @@
   {
     "formula": "G((a \u0026 b) | (Fa \u0026 F!b \u0026 Fc))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3500,7 +3500,7 @@
   {
     "formula": "G((a \u0026 Fb) | (c \u0026 Fd))",
     "properties": {
-      "size": 12,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3588,7 +3588,7 @@
   {
     "formula": "G((a \u0026 Fb) | (b \u0026 Fa) | (c \u0026 Fd))",
     "properties": {
-      "size": 23,
+      "size": 18,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -3599,7 +3599,7 @@
   {
     "formula": "G((a \u0026 Fb) | (c \u0026 Fd) | (e \u0026 Ff))",
     "properties": {
-      "size": 131,
+      "size": 79,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -4633,7 +4633,7 @@
   {
     "formula": "F(a \u0026 (Ga | Gb | (c \u0026 Gd)))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -4677,7 +4677,7 @@
   {
     "formula": "F(a \u0026 G(b | Xc))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -4798,7 +4798,7 @@
   {
     "formula": "G(a | (Fa \u0026 Fb \u0026 (c | Fd)))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -4831,7 +4831,7 @@
   {
     "formula": "G(a | F(b \u0026 Xc))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -5425,7 +5425,7 @@
   {
     "formula": "F(a \u0026 G(b | XGc))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -5436,7 +5436,7 @@
   {
     "formula": "F(a \u0026 G(b | c | X((c) R (d))))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -5557,7 +5557,7 @@
   {
     "formula": "G(a | F(b \u0026 XFc))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -5568,7 +5568,7 @@
   {
     "formula": "G(a | F(b \u0026 c \u0026 X((c) U (d))))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -5986,7 +5986,7 @@
   {
     "formula": "F(a \u0026 ((!a) R ((b | ((b) R ((c | ((c) R (d)))))))))",
     "properties": {
-      "size": 13,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -6030,7 +6030,7 @@
   {
     "formula": "F(a \u0026 F!b \u0026 ((b) R ((c \u0026 (b | d | X((b) R (e)))))))",
     "properties": {
-      "size": 7,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -6118,7 +6118,7 @@
   {
     "formula": "G(!a | ((a) U ((b \u0026 ((b) U ((c \u0026 ((c) U (d)))))))))",
     "properties": {
-      "size": 12,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
@@ -6129,7 +6129,7 @@
   {
     "formula": "G(a | Gb | ((!b) U ((c | (!b \u0026 d \u0026 X((!b) U (e)))))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,

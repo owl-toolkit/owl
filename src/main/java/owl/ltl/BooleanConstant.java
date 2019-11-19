@@ -34,7 +34,7 @@ public final class BooleanConstant extends Formula.PropositionalOperator {
   public final boolean value;
 
   private BooleanConstant(boolean value) {
-    super(Boolean.hashCode(value), 0);
+    super(BooleanConstant.class, List.of(), Boolean.hashCode(value));
     this.value = value;
   }
 
@@ -56,11 +56,6 @@ public final class BooleanConstant extends Formula.PropositionalOperator {
   @Override
   public <A, B> A accept(BinaryVisitor<B, A> v, B parameter) {
     return v.visit(this, parameter);
-  }
-
-  @Override
-  public List<Formula> children() {
-    return List.of();
   }
 
   @Override

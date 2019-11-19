@@ -35,6 +35,7 @@ import owl.ltl.Literal;
 import owl.ltl.MOperator;
 import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
+import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
@@ -54,8 +55,8 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     if (formula instanceof FOperator) {
       FOperator fOperator = (FOperator) formula;
 
-      if (fOperator.operand instanceof GOperator) {
-        return ((GOperator) fOperator.operand).operand;
+      if (fOperator.operand() instanceof GOperator) {
+        return ((GOperator) fOperator.operand()).operand();
       }
     }
 
@@ -67,8 +68,8 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     if (formula instanceof GOperator) {
       GOperator gOperator = (GOperator) formula;
 
-      if (gOperator.operand instanceof FOperator) {
-        return ((FOperator) gOperator.operand).operand;
+      if (gOperator.operand() instanceof FOperator) {
+        return ((FOperator) gOperator.operand()).operand();
       }
     }
 
@@ -86,10 +87,10 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
 
     if (formula instanceof FOperator) {
-      Formula operand = ((FOperator) formula).operand;
+      Formula operand = ((FOperator) formula).operand();
 
       while (operand instanceof XOperator) {
-        operand = ((XOperator) operand).operand;
+        operand = ((XOperator) operand).operand();
       }
 
       return operand instanceof GOperator;
@@ -97,10 +98,10 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
 
     if (formula instanceof GOperator) {
-      Formula operand = ((GOperator) formula).operand;
+      Formula operand = ((GOperator) formula).operand();
 
       while (operand instanceof XOperator) {
-        operand = ((XOperator) operand).operand;
+        operand = ((XOperator) operand).operand();
       }
 
       return operand instanceof FOperator;
@@ -132,7 +133,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     if (formula instanceof Conjunction) {
       Conjunction conjunction = (Conjunction) formula;
 
-      if (conjunction.children.stream().anyMatch(x -> conjunction.children.contains(x.not()))) {
+      if (conjunction.operands.stream().anyMatch(x -> conjunction.operands.contains(x.not()))) {
         return BooleanConstant.FALSE;
       }
     }
@@ -140,7 +141,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     if (formula instanceof Disjunction) {
       Disjunction disjunction = (Disjunction) formula;
 
-      if (disjunction.children.stream().anyMatch(x -> disjunction.children.contains(x.not()))) {
+      if (disjunction.operands.stream().anyMatch(x -> disjunction.operands.contains(x.not()))) {
         return BooleanConstant.TRUE;
       }
     }
@@ -165,7 +166,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (SyntacticFragment.FINITE.contains(conjunction)) {
+      if (SyntacticFragments.isFinite(conjunction)) {
         return wrap(shortCircuit(conjunction));
       }
 
@@ -175,7 +176,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (SyntacticFragment.FINITE.contains(disjunction)) {
+      if (SyntacticFragments.isFinite(disjunction)) {
         return wrap(shortCircuit(disjunction));
       }
 
@@ -183,16 +184,16 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
       List<Formula> xFragment = new ArrayList<>();
       List<List<Formula>> conjuncts = new ArrayList<>();
 
-      disjunction.children.forEach(child -> {
+      disjunction.operands.forEach(child -> {
         if (child instanceof FOperator) {
-          disjuncts.add(((FOperator) child).operand.accept(INFINITELY_OFTEN_VISITOR));
+          disjuncts.add(((FOperator) child).operand().accept(INFINITELY_OFTEN_VISITOR));
         } else if (child instanceof GOperator) {
-          disjuncts.add(((GOperator) child).operand.accept(this));
-        } else if (SyntacticFragment.FINITE.contains(child)) {
+          disjuncts.add(((GOperator) child).operand().accept(this));
+        } else if (SyntacticFragments.isFinite(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Conjunction;
-          conjuncts.add(child.children());
+          conjuncts.add(child.operands);
         }
       });
 
@@ -206,12 +207,12 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(FOperator fOperator) {
-      return fOperator.operand.accept(INFINITELY_OFTEN_VISITOR);
+      return fOperator.operand().accept(INFINITELY_OFTEN_VISITOR);
     }
 
     @Override
     public Formula visit(GOperator gOperator) {
-      return gOperator.operand.accept(this);
+      return gOperator.operand().accept(this);
     }
 
     @Override
@@ -221,7 +222,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(XOperator xOperator) {
-      return xOperator.operand.accept(this);
+      return xOperator.operand().accept(this);
     }
   }
 
@@ -242,7 +243,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction) {
-      if (SyntacticFragment.FINITE.contains(conjunction)) {
+      if (SyntacticFragments.isFinite(conjunction)) {
         return wrap(shortCircuit(conjunction));
       }
 
@@ -250,16 +251,16 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
       List<Formula> xFragment = new ArrayList<>();
       List<List<Formula>> disjuncts = new ArrayList<>();
 
-      conjunction.children.forEach(child -> {
+      conjunction.operands.forEach(child -> {
         if (child instanceof FOperator) {
-          conjuncts.add(((FOperator) child).operand.accept(this));
+          conjuncts.add(((FOperator) child).operand().accept(this));
         } else if (child instanceof GOperator) {
-          conjuncts.add(((GOperator) child).operand.accept(ALMOST_ALL_VISITOR));
-        } else if (SyntacticFragment.FINITE.contains(child)) {
+          conjuncts.add(((GOperator) child).operand().accept(ALMOST_ALL_VISITOR));
+        } else if (SyntacticFragments.isFinite(child)) {
           xFragment.add(child);
         } else {
           assert child instanceof Disjunction;
-          disjuncts.add(child.children());
+          disjuncts.add(child.operands);
         }
       });
 
@@ -273,7 +274,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction) {
-      if (SyntacticFragment.FINITE.contains(disjunction)) {
+      if (SyntacticFragments.isFinite(disjunction)) {
         return wrap(shortCircuit(disjunction));
       }
 
@@ -283,12 +284,12 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(FOperator fOperator) {
-      return fOperator.operand.accept(this);
+      return fOperator.operand().accept(this);
     }
 
     @Override
     public Formula visit(GOperator gOperator) {
-      return gOperator.operand.accept(ALMOST_ALL_VISITOR);
+      return gOperator.operand().accept(ALMOST_ALL_VISITOR);
     }
 
     @Override
@@ -298,7 +299,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(XOperator xOperator) {
-      return xOperator.operand.accept(this);
+      return xOperator.operand().accept(this);
     }
   }
 
@@ -316,7 +317,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Conjunction conjunction, Integer depth) {
-      if (SyntacticFragment.FINITE.contains(conjunction)) {
+      if (SyntacticFragments.isFinite(conjunction)) {
         return XOperator.of(conjunction, depth);
       }
 
@@ -325,7 +326,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(Disjunction disjunction, Integer depth) {
-      if (SyntacticFragment.FINITE.contains(disjunction)) {
+      if (SyntacticFragments.isFinite(disjunction)) {
         return XOperator.of(disjunction, depth);
       }
 
@@ -335,13 +336,13 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     // The F is within of the scope of FG / GF. Resetting the  X-depth is safe.
     @Override
     public Formula visit(FOperator fOperator, Integer depth) {
-      return new FOperator(fOperator.operand.accept(this, 0));
+      return new FOperator(fOperator.operand().accept(this, 0));
     }
 
     // The G is within of the scope of FG / GF. Resetting the  X-depth is safe.
     @Override
     public Formula visit(GOperator gOperator, Integer depth) {
-      return new GOperator(gOperator.operand.accept(this, 0));
+      return new GOperator(gOperator.operand().accept(this, 0));
     }
 
     @Override
@@ -351,7 +352,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
     @Override
     public Formula visit(XOperator xOperator, Integer parameter) {
-      return xOperator.operand.accept(this, parameter + 1);
+      return xOperator.operand().accept(this, parameter + 1);
     }
   }
 
@@ -384,7 +385,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(conjunction);
       }
 
-      return Conjunction.of(conjunction.children.stream().map(this));
+      return Conjunction.of(conjunction.operands.stream().map(this));
     }
 
     @Override
@@ -393,7 +394,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(disjunction);
       }
 
-      return Disjunction.of(disjunction.children.stream().map(this));
+      return Disjunction.of(disjunction.operands.stream().map(this));
     }
 
     @Override
@@ -402,7 +403,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(fOperator);
       }
 
-      return FOperator.of(fOperator.operand.accept(this));
+      return FOperator.of(fOperator.operand().accept(this));
     }
 
     @Override
@@ -411,7 +412,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(gOperator);
       }
 
-      return GOperator.of(gOperator.operand.accept(this));
+      return GOperator.of(gOperator.operand().accept(this));
     }
 
     @Override
@@ -429,7 +430,8 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(mOperator);
       }
 
-      return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
+      return MOperator
+        .of(mOperator.leftOperand().accept(this), mOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -438,7 +440,8 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(rOperator);
       }
 
-      return ROperator.of(rOperator.left.accept(this), rOperator.right.accept(this));
+      return ROperator
+        .of(rOperator.leftOperand().accept(this), rOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -447,7 +450,8 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(uOperator);
       }
 
-      return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
+      return UOperator
+        .of(uOperator.leftOperand().accept(this), uOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -456,7 +460,8 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(wOperator);
       }
 
-      return WOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
+      return WOperator
+        .of(wOperator.leftOperand().accept(this), wOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -465,7 +470,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
         return rewriter.apply(xOperator);
       }
 
-      return XOperator.of(xOperator.operand.accept(this));
+      return XOperator.of(xOperator.operand().accept(this));
     }
   }
 }

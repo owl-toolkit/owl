@@ -42,8 +42,8 @@ final class PushDownXVisitor implements BinaryVisitor<Integer, Formula> {
 
   @Override
   public Formula visit(Biconditional biconditional, Integer parameter) {
-    return Biconditional.of(biconditional.left.accept(this, parameter),
-      biconditional.right.accept(this, parameter));
+    return Biconditional.of(biconditional.leftOperand().accept(this, parameter),
+      biconditional.rightOperand().accept(this, parameter));
   }
 
   @Override
@@ -63,12 +63,12 @@ final class PushDownXVisitor implements BinaryVisitor<Integer, Formula> {
 
   @Override
   public Formula visit(FOperator fOperator, Integer parameter) {
-    return FOperator.of(fOperator.operand.accept(this, parameter));
+    return FOperator.of(fOperator.operand().accept(this, parameter));
   }
 
   @Override
   public Formula visit(GOperator gOperator, Integer parameter) {
-    return GOperator.of(gOperator.operand.accept(this, parameter));
+    return GOperator.of(gOperator.operand().accept(this, parameter));
   }
 
   @Override
@@ -78,30 +78,34 @@ final class PushDownXVisitor implements BinaryVisitor<Integer, Formula> {
 
   @Override
   public Formula visit(MOperator mOperator, Integer parameter) {
-    return MOperator.of(mOperator.left.accept(this, parameter), mOperator.right.accept(this,
-      parameter));
+    return MOperator
+      .of(mOperator.leftOperand().accept(this, parameter), mOperator.rightOperand().accept(this,
+        parameter));
   }
 
   @Override
   public Formula visit(UOperator uOperator, Integer parameter) {
-    return UOperator.of(uOperator.left.accept(this, parameter), uOperator.right.accept(this,
-      parameter));
+    return UOperator
+      .of(uOperator.leftOperand().accept(this, parameter), uOperator.rightOperand().accept(this,
+        parameter));
   }
 
   @Override
   public Formula visit(ROperator rOperator, Integer parameter) {
-    return ROperator.of(rOperator.left.accept(this, parameter), rOperator.right.accept(this,
-      parameter));
+    return ROperator
+      .of(rOperator.leftOperand().accept(this, parameter), rOperator.rightOperand().accept(this,
+        parameter));
   }
 
   @Override
   public Formula visit(WOperator wOperator, Integer parameter) {
-    return WOperator.of(wOperator.left.accept(this, parameter), wOperator.right.accept(this,
-      parameter));
+    return WOperator
+      .of(wOperator.leftOperand().accept(this, parameter), wOperator.rightOperand().accept(this,
+        parameter));
   }
 
   @Override
   public Formula visit(XOperator xOperator, Integer parameter) {
-    return xOperator.operand.accept(this, parameter + 1);
+    return xOperator.operand().accept(this, parameter + 1);
   }
 }

@@ -21,7 +21,6 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -31,15 +30,9 @@ import owl.ltl.visitors.Visitor;
  * Biconditional.
  */
 public final class Biconditional extends Formula.PropositionalOperator {
-  public final Formula left;
-  public final Formula right;
 
   public Biconditional(Formula leftOperand, Formula rightOperand) {
-    super(
-      Objects.hash(Biconditional.class, leftOperand, rightOperand),
-      Formulas.height(leftOperand, rightOperand) + 1);
-    this.left = leftOperand;
-    this.right = rightOperand;
+    super(Biconditional.class, List.of(leftOperand, rightOperand));
   }
 
   /**
@@ -97,11 +90,6 @@ public final class Biconditional extends Formula.PropositionalOperator {
   }
 
   @Override
-  public List<Formula> children() {
-    return List.of(left, right);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return false;
   }
@@ -113,13 +101,13 @@ public final class Biconditional extends Formula.PropositionalOperator {
 
   @Override
   public Formula not() {
-    return Biconditional.of(left.not(), right);
+    return Biconditional.of(leftOperand().not(), rightOperand());
   }
 
   @Override
   public Formula nnf() {
-    Formula nnfLeft = left.nnf();
-    Formula nnfRight = right.nnf();
+    Formula nnfLeft = leftOperand().nnf();
+    Formula nnfRight = rightOperand().nnf();
 
     return Disjunction.of(
       Conjunction.of(nnfLeft, nnfRight),
@@ -128,16 +116,28 @@ public final class Biconditional extends Formula.PropositionalOperator {
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return Biconditional.of(left.substitute(substitution), right.substitute(substitution));
+    return Biconditional
+      .of(leftOperand().substitute(substitution), rightOperand().substitute(substitution));
   }
 
   @Override
   public Formula temporalStep(BitSet valuation) {
-    return Biconditional.of(left.temporalStep(valuation), right.temporalStep(valuation));
+    return Biconditional
+      .of(leftOperand().temporalStep(valuation), rightOperand().temporalStep(valuation));
   }
 
   @Override
   public String toString() {
-    return "(" + left + " <-> " + right + ')';
+    return "(" + leftOperand() + " <-> " + rightOperand() + ')';
+  }
+
+  public Formula leftOperand() {
+    assert operands.size() == 2;
+    return operands.get(0);
+  }
+
+  public Formula rightOperand() {
+    assert operands.size() == 2;
+    return operands.get(1);
   }
 }

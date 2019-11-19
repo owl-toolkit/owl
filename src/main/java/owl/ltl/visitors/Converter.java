@@ -56,7 +56,8 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   @Override
   public Formula visit(Biconditional biconditional) {
     checkSupportedCase(Biconditional.class);
-    return Biconditional.of(biconditional.left.accept(this), biconditional.right.accept(this));
+    return Biconditional
+      .of(biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this));
   }
 
   @Override
@@ -80,13 +81,13 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   @Override
   public Formula visit(FOperator fOperator) {
     checkSupportedCase(FOperator.class);
-    return FOperator.of(fOperator.operand.accept(this));
+    return FOperator.of(fOperator.operand().accept(this));
   }
 
   @Override
   public Formula visit(GOperator gOperator) {
     checkSupportedCase(GOperator.class);
-    return GOperator.of(gOperator.operand.accept(this));
+    return GOperator.of(gOperator.operand().accept(this));
   }
 
   @Override
@@ -98,31 +99,35 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   @Override
   public Formula visit(MOperator mOperator) {
     checkSupportedCase(MOperator.class);
-    return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
+    return MOperator
+      .of(mOperator.leftOperand().accept(this), mOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(ROperator rOperator) {
     checkSupportedCase(ROperator.class);
-    return ROperator.of(rOperator.left.accept(this), rOperator.right.accept(this));
+    return ROperator
+      .of(rOperator.leftOperand().accept(this), rOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(UOperator uOperator) {
     checkSupportedCase(UOperator.class);
-    return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
+    return UOperator
+      .of(uOperator.leftOperand().accept(this), uOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(WOperator wOperator) {
     checkSupportedCase(WOperator.class);
-    return WOperator.of(wOperator.left.accept(this), wOperator.right.accept(this));
+    return WOperator
+      .of(wOperator.leftOperand().accept(this), wOperator.rightOperand().accept(this));
   }
 
   @Override
   public Formula visit(XOperator xOperator) {
     checkSupportedCase(XOperator.class);
-    return XOperator.of(xOperator.operand.accept(this));
+    return XOperator.of(xOperator.operand().accept(this));
   }
 
   private void checkSupportedCase(Class<? extends Formula> clazz) {

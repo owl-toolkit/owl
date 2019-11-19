@@ -485,7 +485,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     public Set<Formula.TemporalOperator> visit(Conjunction conjunction) {
       Set<Formula.TemporalOperator> blockingOperators = new HashSet<>();
 
-      for (Formula child : conjunction.children) {
+      for (Formula child : conjunction.operands) {
         // Only consider non-finite LTL formulas.
         if (!SyntacticFragments.isFinite(child)) {
           blockingOperators.addAll(child.accept(this));
@@ -499,7 +499,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     public Set<Formula.TemporalOperator> visit(Disjunction disjunction) {
       Set<Formula.TemporalOperator> blockingOperators = null;
 
-      for (Formula child : disjunction.children) {
+      for (Formula child : disjunction.operands) {
         // Only consider non-finite LTL formulas.
         if (!SyntacticFragments.isFinite(child)) {
           if (blockingOperators == null) {
