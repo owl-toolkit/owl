@@ -24,6 +24,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -127,7 +128,7 @@ public class LatexPrintVisitor implements Visitor<String> {
     assert Comparators.isInStrictOrder(propositionalFormula.children(), Comparator.naturalOrder());
     return propositionalFormula.children().stream()
       .map(x -> {
-        if (x instanceof Formula.PropositionalOperator && !(x instanceof BooleanConstant)) {
+        if (x instanceof Formula.NaryPropositionalOperator || x instanceof Biconditional) {
           return '(' + x.accept(this) + ')';
         } else {
           return x.accept(this);

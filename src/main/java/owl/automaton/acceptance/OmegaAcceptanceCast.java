@@ -141,8 +141,9 @@ public final class OmegaAcceptanceCast {
 
   public static <S, A extends OmegaAcceptance, B extends OmegaAcceptance> Automaton<S, B>
     cast(Automaton<S, A> automaton, Class<B> acceptanceClass) {
+    var oldAcceptance = automaton.acceptance();
     @SuppressWarnings("unchecked")
-    var oldAcceptanceClass = (Class<A>) automaton.acceptance().getClass();
+    var oldAcceptanceClass = (Class<A>) oldAcceptance.getClass();
 
     if (acceptanceClass.isAssignableFrom(oldAcceptanceClass)) {
       @SuppressWarnings("unchecked")
@@ -155,21 +156,30 @@ public final class OmegaAcceptanceCast {
         automaton, acceptanceClass.cast(new EmersonLeiAcceptance(automaton.acceptance())), null);
     }
 
-    var cast = castMap(oldAcceptanceClass).get(acceptanceClass);
     var edgeCast = edgeCastMap(oldAcceptanceClass).get(acceptanceClass);
-
-    if (cast == null) {
-      throw new ClassCastException(String.format("Cannot cast %s into %s.",
-        automaton.acceptance().getClass().getSimpleName(), acceptanceClass.getSimpleName()));
-    }
-
     return new CastedAutomaton<>(automaton,
-      acceptanceClass.cast(cast.apply(automaton.acceptance())),
+      cast(oldAcceptance, oldAcceptanceClass, acceptanceClass),
       edgeCast == null ? null : edge -> {
         BitSet set = edge.acceptanceSets();
-        edgeCast.accept(automaton.acceptance(), set);
+        edgeCast.accept(oldAcceptance, set);
         return edge.withAcceptance(set);
       });
+  }
+
+  public static <A extends OmegaAcceptance, B extends OmegaAcceptance> B
+    cast(A acceptance, Class<B> acceptanceClass) {
+    @SuppressWarnings("unchecked")
+    var oldAcceptanceClass = (Class<A>) acceptance.getClass();
+
+    if (acceptanceClass.isAssignableFrom(oldAcceptanceClass)) {
+      return acceptanceClass.cast(acceptance);
+    }
+
+    if (acceptanceClass.equals(EmersonLeiAcceptance.class)) {
+      return acceptanceClass.cast(new EmersonLeiAcceptance(acceptance));
+    }
+
+    return cast(acceptance, oldAcceptanceClass, acceptanceClass);
   }
 
   public static boolean isInstanceOf(
@@ -194,6 +204,18 @@ public final class OmegaAcceptanceCast {
       bitSet.set(2 * i, fin);
       bitSet.set(2 * i + 1, !fin);
     }
+  }
+
+  private static <A extends OmegaAcceptance, B extends OmegaAcceptance>
+    B cast(A acceptance, Class<A> oldClass, Class<B> newClass) {
+    Function<A, OmegaAcceptance> cast = castMap(oldClass).get(newClass);
+
+    if (cast == null) {
+      throw new ClassCastException(String.format("Cannot cast %s (%s) into %s.",
+        oldClass.getSimpleName(), acceptance.booleanExpression(), newClass.getSimpleName()));
+    }
+
+    return newClass.cast(cast.apply(acceptance));
   }
 
   @SuppressWarnings("unchecked")

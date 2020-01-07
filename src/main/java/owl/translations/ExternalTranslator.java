@@ -20,6 +20,7 @@
 package owl.translations;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.run.modules.OwlModule.Transformer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -28,7 +29,10 @@ import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.Writer;
 import java.nio.charset.Charset;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.concurrent.CompletionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Level;
@@ -40,21 +44,16 @@ import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonReader;
 import owl.automaton.AutomatonReader.HoaState;
-import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.output.HoaPrinter;
-import owl.factories.FactorySupplier;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
 import owl.run.modules.OwlModule;
 
-public class ExternalTranslator
-  implements Function<LabelledFormula, Automaton<HoaState, OmegaAcceptance>> {
+public class ExternalTranslator implements Function<LabelledFormula, Automaton<HoaState, ?>> {
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
 
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
+  public static final OwlModule<Transformer> MODULE = OwlModule.of(
     "ltl2aut-ext",
     "Runs an external tool for LTL to automaton translation",
     () -> {
@@ -69,59 +68,52 @@ public class ExternalTranslator
         .addOption(inputType);
     },
     (commandLine, environment) -> {
-      String inputType = commandLine.getOptionValue("inputType");
-      InputMode inputMode;
-      if (inputType == null || "stdin".equals(inputType)) {
-        inputMode = InputMode.STDIN;
-      } else if ("replace".equals(inputType)) {
+      var command = commandLine.getOptionValue("tool");
+      var inputType = commandLine.getOptionValue("inputType");
+
+      InputMode inputMode = InputMode.STDIN;
+
+      if ("replace".equals(inputType)) {
         inputMode = InputMode.REPLACE;
-      } else {
+      } else if (inputType != null && !"stdin".equals(inputType)) {
         throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
       }
 
-      String toolPath = commandLine.getOptionValue("tool");
-      String[] tool = splitPattern.split(toolPath);
-
-      ExternalTranslator translator = new ExternalTranslator(environment, inputMode, tool);
-      return OwlModule.Transformer.of(LabelledFormula.class, translator);
+      var translator = new ExternalTranslator(command, inputMode, environment);
+      return Transformer.of(LabelledFormula.class, translator);
     });
 
-  private final Environment env;
+  private final List<String> command;
   private final InputMode inputMode;
-  private final String[] tool;
+  private final Environment environment;
 
-  public ExternalTranslator(Environment env, String tool) {
-    this(env, InputMode.STDIN, splitPattern.split(tool));
+  public ExternalTranslator(String command, InputMode inputMode, Environment environment) {
+    this(List.of(splitPattern.split(command)), inputMode, environment);
   }
 
-  @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
-                      "AssignmentToCollectionOrArrayFieldFromParameter"})
-  private ExternalTranslator(Environment env, InputMode inputMode, String[] tool) {
-    this.env = env;
+  public ExternalTranslator(List<String> command, InputMode inputMode, Environment environment) {
+    this.environment = environment;
     this.inputMode = inputMode;
+    this.command = List.copyOf(command);
 
-    this.tool = tool;
     if (inputMode == InputMode.REPLACE) {
-      checkArgument(Arrays.asList(tool).contains("%f"));
+      checkArgument(this.command.contains("%f"));
     }
   }
 
   @Override
-  public Automaton<HoaState, OmegaAcceptance> apply(LabelledFormula formula) {
+  public Automaton<HoaState, ?> apply(LabelledFormula formula) {
     ProcessBuilder processBuilder;
     String formulaString = PrintVisitor.toString(formula, true);
+
     if (inputMode == InputMode.REPLACE) {
-      String[] invocation = tool.clone();
-      for (int i = 0; i < invocation.length; i++) {
-        // TODO Replace all %f even if they are only part of an argument, add %% to denote literal %
-        if ("%f".equals(invocation[i])) {
-          invocation[i] = formulaString;
-        }
-      }
-      processBuilder = new ProcessBuilder(invocation);
+      var adjustedCommand = new ArrayList<>(command);
+      adjustedCommand.replaceAll(x -> "%f".equals(x) ? formulaString : x);
+      processBuilder = new ProcessBuilder(adjustedCommand);
     } else {
-      processBuilder = new ProcessBuilder(tool);
+      processBuilder = new ProcessBuilder(command);
     }
+
     Process process = null;
     try {
       process = processBuilder.start();
@@ -140,20 +132,13 @@ public class ExternalTranslator
       //noinspection NestedTryStatement
       try (Reader reader = new BufferedReader(
         new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
-        FactorySupplier factorySupplier = env.factorySupplier();
-        ValuationSetFactory vsFactory = factorySupplier.getValuationSetFactory(
-          formula.atomicPropositions());
-        Automaton<HoaState, OmegaAcceptance> automaton =
-          AutomatonReader.readHoa(reader, x -> {
-            checkArgument(vsFactory.alphabet().containsAll(x));
-            return vsFactory;
-          });
-        logger.log(Level.FINEST, () -> String.format("Read automaton for %s:%n%s", formula,
-          HoaPrinter.toString(automaton)));
-        return automaton;
+        return AutomatonReader.readHoa(reader, atomicPropositions -> {
+          checkArgument(formula.atomicPropositions().containsAll(atomicPropositions));
+          return environment.factorySupplier().getValuationSetFactory(formula.atomicPropositions());
+        });
       }
-    } catch (IOException | ParseException e) {
-      throw new IllegalStateException("Failed to use external translator.", e);
+    } catch (IOException | ParseException | NoSuchElementException ex) {
+      throw new CompletionException("Exception occurred while using external translator.", ex);
     } finally {
       if (process != null && process.isAlive()) {
         process.destroy();
@@ -167,7 +152,7 @@ public class ExternalTranslator
     }
   }
 
-  enum InputMode {
+  public enum InputMode {
     STDIN, REPLACE
   }
 }

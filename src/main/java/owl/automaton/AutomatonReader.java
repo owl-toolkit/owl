@@ -31,6 +31,7 @@ import java.io.StringReader;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -52,9 +53,9 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -66,12 +67,6 @@ public final class AutomatonReader {
   private AutomatonReader() {
   }
 
-  public static void readHoaStream(String string,
-    Function<List<String>, ValuationSetFactory> factorySupplier,
-    Consumer<Automaton<HoaState, ?>> consumer) throws ParseException {
-    readHoaStream(new StringReader(string), factorySupplier, consumer);
-  }
-
   public static void readHoaStream(Reader reader,
     Function<List<String>, ValuationSetFactory> factorySupplier,
     Consumer<Automaton<HoaState, ?>> consumer) throws ParseException {
@@ -79,40 +74,30 @@ public final class AutomatonReader {
       new HoaConsumerAutomatonSupplier(consumer, factorySupplier)), null);
   }
 
-  public static Automaton<HoaState, OmegaAcceptance> readHoa(String string,
+  public static Automaton<HoaState, ?> readHoa(String string,
     Function<List<String>, ValuationSetFactory> factorySupplier) throws ParseException {
     return readHoa(new StringReader(string), factorySupplier);
   }
 
-  public static Automaton<HoaState, OmegaAcceptance> readHoa(Reader reader,
+  public static Automaton<HoaState, ?> readHoa(Reader reader,
     Function<List<String>, ValuationSetFactory> factorySupplier) throws ParseException {
-    return readHoa(reader, factorySupplier, OmegaAcceptance.class);
-  }
+    AtomicReference<Automaton<HoaState, ?>> reference = new AtomicReference<>();
 
-  public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoa(String input,
-    Function<List<String>, ValuationSetFactory> factorySupplier, Class<A> acceptanceClass)
-    throws ParseException {
-    return readHoa(new StringReader(input), factorySupplier, acceptanceClass);
-  }
-
-  public static <A extends OmegaAcceptance> Automaton<HoaState, A> readHoa(Reader stream,
-    Function<List<String>, ValuationSetFactory> factorySupplier, Class<A> acceptanceClass)
-    throws ParseException {
-    AtomicReference<Automaton<HoaState, A>> automaton = new AtomicReference<>();
-    readHoaStream(stream, factorySupplier, consumer(automaton, acceptanceClass));
-    return automaton.get();
-  }
-
-  private static <A extends OmegaAcceptance> Consumer<Automaton<HoaState, ?>> consumer(
-    AtomicReference<Automaton<HoaState, A>> box, Class<A> acceptanceClass) {
-    return automaton -> {
-      var oldValue = box.getAndSet(OmegaAcceptanceCast.cast(automaton, acceptanceClass));
-
+    readHoaStream(reader, factorySupplier, automaton -> {
+      var oldValue = reference.getAndSet(automaton);
       if (oldValue != null) {
         throw new IllegalArgumentException(
           String.format("Stream contained at least two automata: %s, %s", automaton, oldValue));
       }
-    };
+    });
+
+    var automaton = reference.get();
+
+    if (automaton == null) {
+      throw new NoSuchElementException("Stream did not contain an automata.");
+    }
+
+    return automaton;
   }
 
   private static final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
@@ -229,9 +214,7 @@ public final class AutomatonReader {
       var expression = header.getAcceptanceCondition();
       int sets = header.getNumberOfAcceptanceSets();
 
-      switch (name == null
-        ? "default"
-        : name.name.toLowerCase(Locale.ENGLISH)) {
+      switch (name == null ? "default" : name.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
           return AllAcceptance.INSTANCE;
 
@@ -295,7 +278,7 @@ public final class AutomatonReader {
         case "generalized-co-buchi":
           // acc-name: generalized-co-Buchi 3
           // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
-          return new EmersonLeiAcceptance(sets, expression);
+          return GeneralizedCoBuchiAcceptance.of(Integer.parseInt(name.extra.get(0).toString()));
 
         case "streett":
           // acc-name: Streett 3
@@ -313,6 +296,14 @@ public final class AutomatonReader {
           return GeneralizedRabinAcceptance.of(expression);
 
         default:
+          if (expression.isFALSE()) {
+            return GeneralizedCoBuchiAcceptance.of(0);
+          }
+
+          if (expression.isTRUE()) {
+            return AllAcceptance.INSTANCE;
+          }
+
           return new EmersonLeiAcceptance(sets, expression);
       }
     }

@@ -19,6 +19,7 @@
 
 package owl.translations.nba2ldba;
 
+import java.io.StringReader;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
@@ -26,6 +27,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import owl.automaton.AutomatonReader;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.output.HoaPrinter;
 import owl.run.Environment;
 
@@ -105,7 +107,9 @@ class NBA2LDBATest {
   @ValueSource(strings = {ALL_ACCEPTANCE, BUCHI_1, BUCHI_2, BUCHI_3, BUCHI_4})
   void runTest(String hoa) throws ParseException {
     var supplier = Environment.annotated().factorySupplier();
-    var nba = AutomatonReader.readHoa(hoa, supplier::getValuationSetFactory, OmegaAcceptance.class);
+    var nba = OmegaAcceptanceCast
+      .cast(AutomatonReader.readHoa(new StringReader(hoa), supplier::getValuationSetFactory),
+        OmegaAcceptance.class);
     var ldba = new NBA2LDBA().apply(nba);
     HoaPrinter.feedTo(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaPrinter.feedTo(ldba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));

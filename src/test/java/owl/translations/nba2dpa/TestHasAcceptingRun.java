@@ -21,6 +21,7 @@ package owl.translations.nba2dpa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.StringReader;
 import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
@@ -30,6 +31,7 @@ import owl.automaton.AutomatonReader;
 import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.algorithms.LanguageEmptiness;
 import owl.automaton.output.HoaPrinter;
 import owl.run.Environment;
@@ -102,8 +104,9 @@ class TestHasAcceptingRun {
 
   private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
-    var nba = AutomatonReader.readHoa(input, Environment.annotated()
-      .factorySupplier()::getValuationSetFactory, GeneralizedBuchiAcceptance.class);
+    var nba = OmegaAcceptanceCast
+      .cast(AutomatonReader.readHoa(new StringReader(input), Environment.annotated()
+        .factorySupplier()::getValuationSetFactory), GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 
     HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));

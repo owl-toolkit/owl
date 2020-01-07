@@ -38,6 +38,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -194,8 +195,9 @@ class AutomatonReaderTest {
 
   @Test
   void readAutomatonBuchi() throws ParseException {
-    Automaton<HoaState, BuchiAcceptance> automaton = AutomatonReader.readHoa(HOA_BUCHI,
-      FACTORY_SUPPLIER, BuchiAcceptance.class);
+    Automaton<HoaState, BuchiAcceptance> automaton = OmegaAcceptanceCast.cast(
+      AutomatonReader.readHoa(HOA_BUCHI, FACTORY_SUPPLIER),
+      BuchiAcceptance.class);
     assertThat(automaton.size(), x -> x == 2);
     var stateMap = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.factory();
