@@ -100,7 +100,7 @@ public final class Disjunction extends Formula.NaryPropositionalOperator {
 
         if (child instanceof Disjunction) {
           list.remove(i);
-          list.addAll(child.children());
+          list.addAll(child.operands);
           sorted = false;
         }
       }

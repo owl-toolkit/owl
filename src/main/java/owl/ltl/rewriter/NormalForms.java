@@ -46,11 +46,11 @@ import owl.ltl.visitors.PropositionalVisitor;
 public final class NormalForms {
   public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
     SYNTHETIC_CO_SAFETY_LITERAL =
-    x -> x.children.stream().filter(SyntacticFragments::isCoSafety).collect(toSet());
+    x -> x.operands.stream().filter(SyntacticFragments::isCoSafety).collect(toSet());
 
   public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
     SYNTHETIC_SAFETY_LITERAL =
-    x -> x.children.stream().filter(SyntacticFragments::isSafety).collect(toSet());
+    x -> x.operands.stream().filter(SyntacticFragments::isSafety).collect(toSet());
 
   private NormalForms() {}
 
@@ -146,7 +146,7 @@ public final class NormalForms {
         ? UpwardClosedSet.of()
         : singleton(Conjunction.of(syntheticLiteral));
 
-      for (Formula x : conjunction.children) {
+      for (Formula x : conjunction.operands) {
         if (!syntheticLiteral.contains(x)) {
           set = set.union(x.accept(this));
         }
@@ -163,7 +163,7 @@ public final class NormalForms {
         ? UpwardClosedSet.of(new BitSet())
         : singleton(Disjunction.of(syntheticLiteral));
 
-      for (Formula x : disjunction.children) {
+      for (Formula x : disjunction.operands) {
         if (!syntheticLiteral.contains(x)) {
           set = set.intersection(x.accept(this));
         }
@@ -195,7 +195,7 @@ public final class NormalForms {
         ? UpwardClosedSet.of(new BitSet())
         : singleton(Conjunction.of(syntheticLiteral));
 
-      for (Formula x : conjunction.children) {
+      for (Formula x : conjunction.operands) {
         if (!syntheticLiteral.contains(x)) {
           set = set.intersection(x.accept(this));
         }
@@ -212,7 +212,7 @@ public final class NormalForms {
         ? UpwardClosedSet.of()
         : singleton(Disjunction.of(syntheticLiteral));
 
-      for (Formula x : disjunction.children) {
+      for (Formula x : disjunction.operands) {
         if (!syntheticLiteral.contains(x)) {
           set = set.union(x.accept(this));
         }

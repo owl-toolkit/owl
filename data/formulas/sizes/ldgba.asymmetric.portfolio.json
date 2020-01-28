@@ -3984,7 +3984,7 @@
   {
     "formula": "G((a \u0026 b) | (Fa \u0026 F!b \u0026 Fc))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4017,7 +4017,7 @@
   {
     "formula": "G((a \u0026 Fb) | (c \u0026 Fd))",
     "properties": {
-      "size": 12,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4127,7 +4127,7 @@
   {
     "formula": "G((a \u0026 Fb) | (b \u0026 Fa) | (c \u0026 Fd))",
     "properties": {
-      "size": 23,
+      "size": 18,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4138,7 +4138,7 @@
   {
     "formula": "G((a \u0026 Fb) | (c \u0026 Fd) | (e \u0026 Ff))",
     "properties": {
-      "size": 131,
+      "size": 79,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -5568,7 +5568,7 @@
   {
     "formula": "G(a | (Fa \u0026 Fb \u0026 (c | Fd)))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -5601,7 +5601,7 @@
   {
     "formula": "G(a | F(b \u0026 Xc))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -6437,7 +6437,7 @@
   {
     "formula": "G(a | F(b \u0026 XFc))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -6448,7 +6448,7 @@
   {
     "formula": "G(a | F(b \u0026 c \u0026 X((c) U (d))))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -7053,7 +7053,7 @@
   {
     "formula": "G(!a | ((a) U ((b \u0026 ((b) U ((c \u0026 ((c) U (d)))))))))",
     "properties": {
-      "size": 12,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -7064,7 +7064,7 @@
   {
     "formula": "G(a | Gb | ((!b) U ((c | (!b \u0026 d \u0026 X((!b) U (e)))))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,

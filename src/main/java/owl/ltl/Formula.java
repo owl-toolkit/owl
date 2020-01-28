@@ -40,15 +40,22 @@ import owl.ltl.visitors.Visitor;
 
 public abstract class Formula implements Comparable<Formula> {
 
-  private static final Comparator<Iterable<Formula>> LIST_COMPARATOR
-    = Comparators.lexicographical(Formula::compareTo);
+  private static final Comparator<Iterable<Formula>>
+    LIST_COMPARATOR = Comparators.lexicographical(Formula::compareTo);
+
+  public final List<Formula> operands;
 
   private final int hashCode;
   private final int height;
 
-  Formula(int hashCode, int height) {
-    this.hashCode = hashCode;
-    this.height = height;
+  Formula(Class<? extends Formula> clazz, List<? extends Formula> operands) {
+    this(clazz, operands, 42);
+  }
+
+  Formula(Class<? extends Formula> clazz, List<? extends Formula> operands, int valueHashCode) {
+    this.operands = List.copyOf(operands);
+    this.hashCode = Objects.hash(clazz, this.operands, valueHashCode);
+    this.height = this.operands.isEmpty() ? 0 : Formulas.height(this.operands) + 1;
   }
 
   public abstract int accept(IntVisitor visitor);
@@ -68,7 +75,7 @@ public abstract class Formula implements Comparable<Formula> {
         atomicPropositions.set(((Literal) formula).getAtom());
       } else if (formula instanceof PropositionalOperator
         || (includeNested && formula instanceof TemporalOperator)) {
-        workQueue.addAll(formula.children());
+        workQueue.addAll(formula.operands);
       }
     }
 
@@ -80,7 +87,7 @@ public abstract class Formula implements Comparable<Formula> {
       return false;
     }
 
-    for (Formula child : children()) {
+    for (Formula child : operands) {
       if (!child.allMatch(predicate)) {
         return false;
       }
@@ -94,7 +101,7 @@ public abstract class Formula implements Comparable<Formula> {
       return true;
     }
 
-    for (Formula child : children()) {
+    for (Formula child : operands) {
       if (child.anyMatch(predicate)) {
         return true;
       }
@@ -103,40 +110,35 @@ public abstract class Formula implements Comparable<Formula> {
     return false;
   }
 
-  public abstract List<Formula> children();
-
   @Override
-  public final int compareTo(Formula o) {
-    int heightComparison = Integer.compare(height, o.height);
+  public final int compareTo(Formula that) {
+    int heightComparison = Integer.compare(height, that.height);
 
     if (heightComparison != 0) {
       return heightComparison;
     }
 
-    int classComparison = Integer.compare(classIndex(this), classIndex(o));
+    int classComparison = Integer.compare(classIndex(this), classIndex(that));
 
     if (classComparison != 0) {
       return classComparison;
     }
 
-    assert getClass().equals(o.getClass());
+    assert getClass().equals(that.getClass());
 
-    int valueComparison = compareValue(o);
+    int valueComparison = compareValue(that);
 
     if (valueComparison != 0) {
       return valueComparison;
     }
 
-    var thisChildren = this.children();
-    var thatChildren = o.children();
-
-    int lengthComparison = Integer.compare(thisChildren.size(), thatChildren.size());
+    int lengthComparison = Integer.compare(operands.size(), that.operands.size());
 
     if (lengthComparison != 0) {
       return lengthComparison;
     }
 
-    return LIST_COMPARATOR.compare(thisChildren, thatChildren);
+    return LIST_COMPARATOR.compare(operands, that.operands);
   }
 
   @SuppressWarnings("PMD")
@@ -154,12 +156,12 @@ public abstract class Formula implements Comparable<Formula> {
       return false;
     }
 
-    Formula other = (Formula) o;
-    return hashCode == other.hashCode
-      && height == other.height
-      && getClass().equals(other.getClass())
-      && equalsValue(other)
-      && children().equals(other.children());
+    Formula that = (Formula) o;
+    return this.hashCode == that.hashCode
+      && this.height == that.height
+      && this.getClass().equals(that.getClass())
+      && this.equalsValue(that)
+      && this.operands.equals(that.operands);
   }
 
   protected boolean equalsValue(Formula o) {
@@ -215,7 +217,7 @@ public abstract class Formula implements Comparable<Formula> {
         subformulas.add(cast.apply(formula));
       }
 
-      workQueue.addAll(formula.children());
+      workQueue.addAll(formula.operands);
     }
 
     return subformulas;
@@ -233,8 +235,13 @@ public abstract class Formula implements Comparable<Formula> {
   public abstract Formula unfold();
 
   public abstract static class PropositionalOperator extends Formula {
-    PropositionalOperator(int hashCode, int height) {
-      super(hashCode, height);
+    PropositionalOperator(Class<? extends PropositionalOperator> clazz, List<Formula> children) {
+      super(clazz, children);
+    }
+
+    PropositionalOperator(
+      Class<? extends PropositionalOperator> clazz, List<Formula> children, int valueHashCode) {
+      super(clazz, children, valueHashCode);
     }
 
     @Override
@@ -244,8 +251,8 @@ public abstract class Formula implements Comparable<Formula> {
   }
 
   public abstract static class TemporalOperator extends Formula {
-    TemporalOperator(int hashCode, int height) {
-      super(hashCode, height);
+    TemporalOperator(Class<? extends TemporalOperator> clazz, List<Formula> children) {
+      super(clazz, children);
     }
 
     public abstract String operatorSymbol();
@@ -259,7 +266,7 @@ public abstract class Formula implements Comparable<Formula> {
     @Override
     public final Formula temporalStep(BitSet valuation) {
       if (this instanceof XOperator) {
-        return ((XOperator) this).operand;
+        return ((XOperator) this).operand();
       }
 
       return this;
@@ -278,39 +285,25 @@ public abstract class Formula implements Comparable<Formula> {
   }
 
   public abstract static class UnaryTemporalOperator extends TemporalOperator {
-    public final Formula operand;
-
     UnaryTemporalOperator(Class<? extends UnaryTemporalOperator> clazz, Formula operand) {
-      super(Objects.hash(clazz, operand), operand.height() + 1);
-      this.operand = operand;
-    }
-
-    @Override
-    public List<Formula> children() {
-      return List.of(operand);
+      super(clazz, List.of(operand));
     }
 
     @Override
     public String toString() {
-      return operatorSymbol() + operand;
+      return operatorSymbol() + operand();
+    }
+
+    public Formula operand() {
+      assert operands.size() == 1;
+      return operands.get(0);
     }
   }
 
   public abstract static class BinaryTemporalOperator extends TemporalOperator {
-    public final Formula left;
-    public final Formula right;
-
     BinaryTemporalOperator(Class<? extends BinaryTemporalOperator> clazz,
       Formula leftOperand, Formula rightOperand) {
-      super(Objects.hash(clazz, leftOperand, rightOperand),
-        Formulas.height(leftOperand, rightOperand) + 1);
-      this.left = leftOperand;
-      this.right = rightOperand;
-    }
-
-    @Override
-    public List<Formula> children() {
-      return List.of(left, right);
+      super(clazz, List.of(leftOperand, rightOperand));
     }
 
     @Override
@@ -325,32 +318,34 @@ public abstract class Formula implements Comparable<Formula> {
 
     @Override
     public final String toString() {
-      return String.format("(%s%s%s)", left, operatorSymbol(), right);
+      return String.format("(%s%s%s)", leftOperand(), operatorSymbol(), rightOperand());
+    }
+
+    public Formula leftOperand() {
+      assert operands.size() == 2;
+      return operands.get(0);
+    }
+
+    public Formula rightOperand() {
+      assert operands.size() == 2;
+      return operands.get(1);
     }
   }
 
   public abstract static class NaryPropositionalOperator extends PropositionalOperator {
-    public final List<Formula> children;
-
-    NaryPropositionalOperator(Class<? extends NaryPropositionalOperator> clazz,
-      List<? extends Formula> children) {
-      super(Objects.hash(clazz, children), Formulas.height(children) + 1);
-      this.children = List.copyOf(children);
-    }
-
-    @Override
-    public final List<Formula> children() {
-      return children;
+    NaryPropositionalOperator(
+      Class<? extends NaryPropositionalOperator> clazz, List<Formula> children) {
+      super(clazz, children);
     }
 
     @Override
     public final boolean isPureEventual() {
-      return children.stream().allMatch(Formula::isPureEventual);
+      return operands.stream().allMatch(Formula::isPureEventual);
     }
 
     @Override
     public final boolean isPureUniversal() {
-      return children.stream().allMatch(Formula::isPureUniversal);
+      return operands.stream().allMatch(Formula::isPureUniversal);
     }
 
     public final List<Formula> map(UnaryOperator<Formula> mapper) {
@@ -359,20 +354,20 @@ public abstract class Formula implements Comparable<Formula> {
 
     @Override
     public final String toString() {
-      return children.stream()
+      return operands.stream()
         .map(Formula::toString)
         .collect(Collectors.joining(operatorSymbol(), "(", ")"));
     }
 
     protected static List<? extends Formula> sortedList(Set<? extends Formula> children) {
-      Formula[] list = children.toArray(Formula[]::new);
-      Arrays.sort(list);
-      return List.of(list);
+      var arrayChildren = children.toArray(Formula[]::new);
+      Arrays.sort(arrayChildren);
+      return List.of(arrayChildren);
     }
 
     @SuppressWarnings("PMD.LooseCoupling")
     protected final ArrayList<Formula> mapInternal(UnaryOperator<Formula> mapper) {
-      var mappedChildren = new ArrayList<>(children);
+      var mappedChildren = new ArrayList<>(operands);
       mappedChildren.replaceAll(mapper);
       return mappedChildren;
     }

@@ -101,8 +101,8 @@ public final class FormulaIsomorphism {
         return Boolean.FALSE;
       }
 
-      return biconditional.left.accept(this, ((Biconditional) formula).left)
-        && biconditional.right.accept(this, ((Biconditional) formula).right);
+      return biconditional.leftOperand().accept(this, ((Biconditional) formula).leftOperand())
+        && biconditional.rightOperand().accept(this, ((Biconditional) formula).rightOperand());
     }
 
     @Override
@@ -179,8 +179,8 @@ public final class FormulaIsomorphism {
         return Boolean.FALSE;
       }
 
-      List<Formula> children1 = formula1.children();
-      List<Formula> children2 = formula2.children();
+      List<Formula> children1 = formula1.operands;
+      List<Formula> children2 = formula2.operands;
 
       assert children1.size() == children2.size();
 
@@ -202,8 +202,8 @@ public final class FormulaIsomorphism {
         return Boolean.FALSE;
       }
 
-      List<Formula> children1 = formula1.children();
-      List<Formula> children2 = formula2.children();
+      List<Formula> children1 = formula1.operands;
+      List<Formula> children2 = formula2.operands;
 
       if (children1.size() != children2.size()) {
         return Boolean.FALSE;

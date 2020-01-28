@@ -35,7 +35,7 @@ public final class LanguageAnalysis {
 
   public static boolean isSatisfiable(Formula formula) {
     if (formula instanceof Disjunction) {
-      return formula.children().stream().anyMatch(LanguageAnalysis::isSatisfiable);
+      return formula.operands.stream().anyMatch(LanguageAnalysis::isSatisfiable);
     }
 
     var labelledFormula = attachDummyAlphabet(formula);

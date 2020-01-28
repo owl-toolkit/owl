@@ -76,13 +76,13 @@ final class RequiredHistory {
 
     @Override
     public int visit(Conjunction conjunction) {
-      conjunction.children.forEach(x -> x.accept(this));
+      conjunction.operands.forEach(x -> x.accept(this));
       return 0;
     }
 
     @Override
     public int visit(Disjunction disjunction) {
-      disjunction.children.forEach(x -> x.accept(this));
+      disjunction.operands.forEach(x -> x.accept(this));
       return 0;
     }
 
@@ -101,7 +101,7 @@ final class RequiredHistory {
     @Override
     public int visit(XOperator xOperator) {
       index++;
-      xOperator.operand.accept(this);
+      xOperator.operand().accept(this);
       index--;
       return 0;
     }

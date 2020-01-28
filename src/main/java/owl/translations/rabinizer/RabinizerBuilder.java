@@ -551,7 +551,7 @@ public final class RabinizerBuilder {
   private MonitorAutomaton buildMonitor(GOperator gOperator) {
     logger.log(Level.FINE, "Building monitor for sub-formula {0}", gOperator);
 
-    EquivalenceClass operand = eqFactory.of(gOperator.operand);
+    EquivalenceClass operand = eqFactory.of(gOperator.operand());
 
     Set<GOperator> relevantOperators = relevantSubFormulas(operand);
     Set<Set<GOperator>> powerSets = Sets.powerSet(relevantOperators);
@@ -782,7 +782,7 @@ public final class RabinizerBuilder {
         Formula unwrapped = temporalOperator;
 
         while (unwrapped instanceof Formula.UnaryTemporalOperator) {
-          unwrapped = ((Formula.UnaryTemporalOperator) unwrapped).operand;
+          unwrapped = ((Formula.UnaryTemporalOperator) unwrapped).operand();
 
           if (unwrapped instanceof GOperator) {
             break;
@@ -795,8 +795,8 @@ public final class RabinizerBuilder {
           gOperators.add((GOperator) unwrapped);
         } else if (unwrapped instanceof Formula.BinaryTemporalOperator) {
           var binaryOperator = (Formula.BinaryTemporalOperator) unwrapped;
-          findSupportingSubFormulas(factory.of(binaryOperator.left), gOperators);
-          findSupportingSubFormulas(factory.of(binaryOperator.right), gOperators);
+          findSupportingSubFormulas(factory.of(binaryOperator.leftOperand()), gOperators);
+          findSupportingSubFormulas(factory.of(binaryOperator.rightOperand()), gOperators);
         } else {
           findSupportingSubFormulas(factory.of(unwrapped), gOperators);
         }
@@ -1069,7 +1069,8 @@ public final class RabinizerBuilder {
       super(SyntacticFragment.FGMU);
       this.factory = label.factory();
       this.environment = label.and(factory.of(
-        Conjunction.of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand)))));
+        Conjunction
+          .of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand())))));
     }
 
     private boolean isImplied(Formula formula) {
@@ -1091,7 +1092,7 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return FOperator.of(fOperator.operand.accept(this));
+      return FOperator.of(fOperator.operand().accept(this));
     }
 
     @Override
@@ -1100,7 +1101,7 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return BooleanConstant.of(gOperator.operand.accept(this).equals(BooleanConstant.TRUE));
+      return BooleanConstant.of(gOperator.operand().accept(this).equals(BooleanConstant.TRUE));
     }
 
     @Override
@@ -1114,7 +1115,8 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return MOperator.of(mOperator.left.accept(this), mOperator.right.accept(this));
+      return MOperator
+        .of(mOperator.leftOperand().accept(this), mOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -1123,7 +1125,8 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return UOperator.of(uOperator.left.accept(this), uOperator.right.accept(this));
+      return UOperator
+        .of(uOperator.leftOperand().accept(this), uOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -1132,7 +1135,7 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return XOperator.of(xOperator.operand.accept(this));
+      return XOperator.of(xOperator.operand().accept(this));
     }
   }
 }

@@ -24,7 +24,6 @@ import static java.util.Objects.checkIndex;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
@@ -43,14 +42,14 @@ public final class Literal extends Formula.PropositionalOperator {
   }
 
   private Literal(Literal other) {
-    super(Objects.hash(Literal.class, Integer.hashCode(-other.index)), 0);
+    super(Literal.class, List.of(), Integer.hashCode(-other.index));
     this.index = -other.index;
     this.negation = other;
     assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
   }
 
   private Literal(@Nonnegative int index) {
-    super(Objects.hash(Literal.class, Integer.hashCode(index + 1)), 0);
+    super(Literal.class, List.of(), Integer.hashCode(index + 1));
     checkIndex(index, Integer.MAX_VALUE);
     this.index = index + 1;
     this.negation = new Literal(this);
@@ -95,11 +94,6 @@ public final class Literal extends Formula.PropositionalOperator {
   @Override
   public <A, B> A accept(BinaryVisitor<B, A> v, B parameter) {
     return v.visit(this, parameter);
-  }
-
-  @Override
-  public List<Formula> children() {
-    return List.of();
   }
 
   public int getAtom() {

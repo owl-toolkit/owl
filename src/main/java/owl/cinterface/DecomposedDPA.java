@@ -118,10 +118,10 @@ public final class DecomposedDPA {
 
   private static boolean isSingleStep(Formula formula) {
     if (formula instanceof Conjunction) {
-      return formula.children().stream().allMatch(DecomposedDPA::isSingleStep);
+      return formula.operands.stream().allMatch(DecomposedDPA::isSingleStep);
     }
 
-    return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand);
+    return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand());
   }
 
   enum Status {
@@ -209,7 +209,7 @@ public final class DecomposedDPA {
       var weakOrBuchiOrCoBuchi = new TreeSet<Formula>();
       var parity = new TreeSet<Formula>();
 
-      for (Formula x : formula.children()) {
+      for (Formula x : formula.operands) {
         switch (annotatedTree.get(x)) {
           case SAFETY:
             PullUpXVisitor.XFormula rewrittenX = x.accept(PullUpXVisitor.INSTANCE);
@@ -286,7 +286,7 @@ public final class DecomposedDPA {
 
     private boolean keepTreeStructureBiconditional(Formula formula) {
       if (formula instanceof Conjunction || formula instanceof Disjunction) {
-        if (formula.children().stream()
+        if (formula.operands.stream()
           .filter(x -> annotatedTree.get(x) == Acceptance.PARITY).count() > 1) {
           return false;
         }
@@ -299,7 +299,7 @@ public final class DecomposedDPA {
         protected Boolean visit(Formula.TemporalOperator formula) {
           return (SyntacticFragments.isAlmostAll(formula)
             || SyntacticFragments.isInfinitelyOften(formula))
-            && SyntacticFragment.SINGLE_STEP.contains(formula.children().get(0).children().get(0));
+            && SyntacticFragment.SINGLE_STEP.contains(formula.operands.get(0).operands.get(0));
         }
 
         @Override
@@ -309,31 +309,33 @@ public final class DecomposedDPA {
 
         @Override
         public Boolean visit(Biconditional biconditional) {
-          return biconditional.left.accept(this) && biconditional.right.accept(this);
+          return biconditional.leftOperand().accept(this) && biconditional.rightOperand()
+            .accept(this);
         }
 
         @Override
         public Boolean visit(Conjunction conjunction) {
-          return conjunction.children().stream().allMatch(this::apply);
+          return conjunction.operands.stream().allMatch(this::apply);
         }
 
         @Override
         public Boolean visit(Disjunction disjunction) {
-          return disjunction.children().stream().allMatch(this::apply);
+          return disjunction.operands.stream().allMatch(this::apply);
         }
       });
     }
 
     @Override
     public LabelledTree<Tag, Reference> visit(Biconditional biconditional) {
-      if (annotatedTree.get(biconditional.left) == Acceptance.PARITY
-        && annotatedTree.get(biconditional.right) == Acceptance.PARITY) {
+      if (annotatedTree.get(biconditional.leftOperand()) == Acceptance.PARITY
+        && annotatedTree.get(biconditional.rightOperand()) == Acceptance.PARITY) {
 
-        if (keepTreeStructureBiconditional(biconditional.left)
-          || keepTreeStructureBiconditional(biconditional.right)) {
+        if (keepTreeStructureBiconditional(biconditional.leftOperand())
+          || keepTreeStructureBiconditional(biconditional.rightOperand())) {
 
           return new LabelledTree.Node<>(Tag.BICONDITIONAL,
-            List.of(biconditional.left.accept(this), biconditional.right.accept(this)));
+            List.of(biconditional.leftOperand().accept(this),
+              biconditional.rightOperand().accept(this)));
         }
 
         var nnf = biconditional.nnf();
@@ -342,7 +344,8 @@ public final class DecomposedDPA {
       }
 
       return new LabelledTree.Node<>(Tag.BICONDITIONAL,
-        List.of(biconditional.left.accept(this), biconditional.right.accept(this)));
+        List
+          .of(biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this)));
     }
 
     @Override
@@ -422,11 +425,11 @@ public final class DecomposedDPA {
     public Map<Formula, Acceptance> visit(Biconditional biconditional) {
       Map<Formula, Acceptance> acceptanceMap = new HashMap<>();
 
-      acceptanceMap.putAll(biconditional.left.accept(this));
-      acceptanceMap.putAll(biconditional.right.accept(this));
+      acceptanceMap.putAll(biconditional.leftOperand().accept(this));
+      acceptanceMap.putAll(biconditional.rightOperand().accept(this));
 
-      Acceptance leftAcceptance = acceptanceMap.get(biconditional.left);
-      Acceptance rightAcceptance = acceptanceMap.get(biconditional.right);
+      Acceptance leftAcceptance = acceptanceMap.get(biconditional.leftOperand());
+      Acceptance rightAcceptance = acceptanceMap.get(biconditional.rightOperand());
 
       if (leftAcceptance.lub(rightAcceptance).isLessOrEqualWeak()) {
         acceptanceMap.put(biconditional, Acceptance.WEAK);
@@ -461,7 +464,7 @@ public final class DecomposedDPA {
       Acceptance acceptance = Acceptance.BOTTOM;
       Map<Formula, Acceptance> acceptanceMap = new HashMap<>();
 
-      for (Formula child : formula.children()) {
+      for (Formula child : formula.operands) {
         Map<Formula, Acceptance> childDecisions = child.accept(this);
         acceptanceMap.putAll(childDecisions);
         acceptance = acceptance.lub(acceptanceMap.get(child));

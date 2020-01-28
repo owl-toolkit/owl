@@ -113,7 +113,7 @@ public final class NonDeterministicConstructions {
 
     Set<Formula> toCompactDnf(Formula formula) {
       if (formula instanceof Disjunction) {
-        var dnf = formula.children().stream()
+        var dnf = formula.operands.stream()
           .flatMap(x -> toCompactDnf(x).stream()).collect(Collectors.toSet());
 
         var finiteLtl = new HashSet<Formula>();
@@ -149,7 +149,7 @@ public final class NonDeterministicConstructions {
         var finiteLtl = new HashSet<Formula>(); // NOPMD
         var nonFiniteLtl = new HashSet<Formula>(); // NOPMD
 
-        x.children().forEach(y -> {
+        x.operands.forEach(y -> {
           if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
             finiteLtl.add(y);
           } else {
@@ -159,7 +159,7 @@ public final class NonDeterministicConstructions {
 
         for (Formula finiteFormula : finiteLtl) {
           if (nonFiniteLtl.stream().noneMatch(z -> z.anyMatch(finiteFormula::equals))) {
-            return Set.copyOf(x.children());
+            return Set.copyOf(x.operands);
           }
         }
 
@@ -235,12 +235,12 @@ public final class NonDeterministicConstructions {
 
       @Override
       public Boolean visit(Conjunction conjunction) {
-        return conjunction.children.stream().allMatch(x -> x.accept(this));
+        return conjunction.operands.stream().allMatch(x -> x.accept(this));
       }
 
       @Override
       public Boolean visit(Disjunction disjunction) {
-        return disjunction.children.stream().allMatch(x -> x.accept(this));
+        return disjunction.operands.stream().allMatch(x -> x.accept(this));
       }
 
       @Override
@@ -265,38 +265,38 @@ public final class NonDeterministicConstructions {
       public Formula visit(FOperator fOperator) {
         return fOperator.isSuspendable()
           ? fOperator
-          : Disjunction.of(fOperator, fOperator.operand.accept(this));
+          : Disjunction.of(fOperator, fOperator.operand().accept(this));
       }
 
       @Override
       public Formula visit(GOperator gOperator) {
         return gOperator.isSuspendable()
           ? gOperator
-          : Conjunction.of(gOperator, gOperator.operand.accept(this));
+          : Conjunction.of(gOperator, gOperator.operand().accept(this));
       }
 
       @Override
       public Formula visit(MOperator mOperator) {
-        return Conjunction.of(mOperator.right.accept(this),
-          Disjunction.of(mOperator.left.accept(this), mOperator));
+        return Conjunction.of(mOperator.rightOperand().accept(this),
+          Disjunction.of(mOperator.leftOperand().accept(this), mOperator));
       }
 
       @Override
       public Formula visit(ROperator rOperator) {
-        return Conjunction.of(rOperator.right.accept(this),
-          Disjunction.of(rOperator.left.accept(this), rOperator));
+        return Conjunction.of(rOperator.rightOperand().accept(this),
+          Disjunction.of(rOperator.leftOperand().accept(this), rOperator));
       }
 
       @Override
       public Formula visit(UOperator uOperator) {
-        return Disjunction.of(uOperator.right.accept(this),
-          Conjunction.of(uOperator.left.accept(this), uOperator));
+        return Disjunction.of(uOperator.rightOperand().accept(this),
+          Conjunction.of(uOperator.leftOperand().accept(this), uOperator));
       }
 
       @Override
       public Formula visit(WOperator wOperator) {
-        return Disjunction.of(wOperator.right.accept(this),
-          Conjunction.of(wOperator.left.accept(this), wOperator));
+        return Disjunction.of(wOperator.rightOperand().accept(this),
+          Conjunction.of(wOperator.leftOperand().accept(this), wOperator));
       }
 
       @Override
@@ -411,7 +411,7 @@ public final class NonDeterministicConstructions {
       Preconditions.checkArgument(SyntacticFragments.isFgSafety(formula));
       this.initialState = (FOperator) formula;
       this.initialStateSuccessorTree
-        = successorTreeInternal(initialState.operand, Function.identity());
+        = successorTreeInternal(initialState.operand(), Function.identity());
     }
 
     @Override

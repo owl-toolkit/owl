@@ -20,7 +20,6 @@
 package owl.ltl.visitors;
 
 import java.util.Set;
-
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
@@ -47,8 +46,8 @@ public class UnabbreviateVisitor extends Converter {
       return super.visit(rOperator);
     }
 
-    Formula left = rOperator.left.accept(this);
-    Formula right = rOperator.right.accept(this);
+    Formula left = rOperator.leftOperand().accept(this);
+    Formula right = rOperator.rightOperand().accept(this);
 
     return Disjunction.of(GOperator.of(right), UOperator.of(right, Conjunction.of(left, right)));
   }
@@ -59,8 +58,8 @@ public class UnabbreviateVisitor extends Converter {
       return super.visit(wOperator);
     }
 
-    Formula left = wOperator.left.accept(this);
-    Formula right = wOperator.right.accept(this);
+    Formula left = wOperator.leftOperand().accept(this);
+    Formula right = wOperator.rightOperand().accept(this);
 
     return Disjunction.of(GOperator.of(left), UOperator.of(left, right));
   }
@@ -71,8 +70,8 @@ public class UnabbreviateVisitor extends Converter {
       return super.visit(mOperator);
     }
 
-    Formula left = mOperator.left.accept(this);
-    Formula right = mOperator.right.accept(this);
+    Formula left = mOperator.leftOperand().accept(this);
+    Formula right = mOperator.rightOperand().accept(this);
 
     return UOperator.of(right, Conjunction.of(left, right));
   }

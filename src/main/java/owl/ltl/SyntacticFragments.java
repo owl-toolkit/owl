@@ -19,25 +19,36 @@
 
 package owl.ltl;
 
-import owl.ltl.visitors.Visitor;
+import com.google.auto.value.AutoValue;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public final class SyntacticFragments {
-  private SyntacticFragments() {}
-
-  // Simple syntactic patterns
-
-  public static boolean isAlmostAll(Formula formula) {
-    return formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator;
-  }
-
-  public static boolean isInfinitelyOften(Formula formula) {
-    return formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator;
-  }
 
   // Safety-, CoSafety-, and derived LTL fragments
 
+  public static final FormulaClass DELTA_0 = FormulaClass.of(Type.DELTA, 0);
+
+  public static final FormulaClass SIGMA_1 = FormulaClass.of(Type.SIGMA, 1);
+
+  public static final FormulaClass PI_1 = FormulaClass.of(Type.PI, 1);
+
+  public static final FormulaClass DELTA_1 = FormulaClass.of(Type.DELTA, 1);
+
+  public static final FormulaClass SIGMA_2 = FormulaClass.of(Type.SIGMA, 2);
+
+  public static final FormulaClass PI_2 = FormulaClass.of(Type.PI, 2);
+
+  public static final FormulaClass DELTA_2 = FormulaClass.of(Type.DELTA, 2);
+
+  private SyntacticFragments() {}
+
+  public static boolean isSingleStep(Formula formula) {
+    return isFinite(formula) && formula.subformulas(XOperator.class).isEmpty();
+  }
+
   public static boolean isFinite(Formula formula) {
-    return SyntacticFragment.FINITE.contains(formula);
+    return DELTA_0.contains(formula);
   }
 
   public static boolean isFinite(EquivalenceClass clazz) {
@@ -51,7 +62,7 @@ public final class SyntacticFragments {
   }
 
   public static boolean isCoSafety(Formula formula) {
-    return SyntacticFragment.CO_SAFETY.contains(formula);
+    return SIGMA_1.contains(formula);
   }
 
   public static boolean isCoSafety(EquivalenceClass clazz) {
@@ -65,7 +76,7 @@ public final class SyntacticFragments {
   }
 
   public static boolean isSafety(Formula formula) {
-    return SyntacticFragment.SAFETY.contains(formula);
+    return PI_1.contains(formula);
   }
 
   public static boolean isSafety(EquivalenceClass clazz) {
@@ -80,7 +91,7 @@ public final class SyntacticFragments {
 
   public static boolean isGfCoSafety(Formula formula) {
     if (formula instanceof GOperator) {
-      Formula unwrapped = ((GOperator) formula).operand;
+      Formula unwrapped = ((GOperator) formula).operand();
       return unwrapped instanceof FOperator && isCoSafety(unwrapped);
     }
 
@@ -89,7 +100,7 @@ public final class SyntacticFragments {
 
   public static boolean isGCoSafety(Formula formula) {
     if (formula instanceof GOperator) {
-      Formula unwrapped = ((GOperator) formula).operand;
+      Formula unwrapped = ((GOperator) formula).operand();
       return isCoSafety(unwrapped);
     }
 
@@ -98,7 +109,7 @@ public final class SyntacticFragments {
 
   public static boolean isFgSafety(Formula formula) {
     if (formula instanceof FOperator) {
-      Formula unwrapped = ((FOperator) formula).operand;
+      Formula unwrapped = ((FOperator) formula).operand();
       return unwrapped instanceof GOperator && isSafety(unwrapped);
     }
 
@@ -107,7 +118,7 @@ public final class SyntacticFragments {
 
   public static boolean isFSafety(Formula formula) {
     if (formula instanceof FOperator) {
-      Formula unwrapped = ((FOperator) formula).operand;
+      Formula unwrapped = ((FOperator) formula).operand();
       return isSafety(unwrapped);
     }
 
@@ -115,130 +126,131 @@ public final class SyntacticFragments {
   }
 
   public static boolean isCoSafetySafety(Formula formula) {
-    return formula.accept(new Visitor<>() {
-      @Override
-      public Boolean visit(Biconditional biconditional) {
-        return false;
-      }
-
-      @Override
-      public Boolean visit(BooleanConstant booleanConstant) {
-        return true;
-      }
-
-      @Override
-      public Boolean visit(Conjunction conjunction) {
-        return conjunction.children().stream().allMatch(x -> x.accept(this));
-      }
-
-      @Override
-      public Boolean visit(Disjunction disjunction) {
-        return disjunction.children().stream().allMatch(x -> x.accept(this));
-      }
-
-      @Override
-      public Boolean visit(FOperator fOperator) {
-        return fOperator.operand.accept(this);
-      }
-
-      @Override
-      public Boolean visit(GOperator gOperator) {
-        return isSafety(gOperator.operand);
-      }
-
-      @Override
-      public Boolean visit(Literal literal) {
-        return true;
-      }
-
-      @Override
-      public Boolean visit(MOperator mOperator) {
-        return mOperator.left.accept(this) && mOperator.right.accept(this);
-      }
-
-      @Override
-      public Boolean visit(ROperator rOperator) {
-        return isSafety(rOperator);
-      }
-
-      @Override
-      public Boolean visit(UOperator uOperator) {
-        return uOperator.left.accept(this) && uOperator.right.accept(this);
-      }
-
-      @Override
-      public Boolean visit(WOperator wOperator) {
-        return isSafety(wOperator);
-      }
-
-      @Override
-      public Boolean visit(XOperator xOperator) {
-        return xOperator.operand.accept(this);
-      }
-    });
+    return SIGMA_2.contains(formula);
   }
 
   public static boolean isSafetyCoSafety(Formula formula) {
-    return formula.accept(new Visitor<>() {
-      @Override
-      public Boolean visit(Biconditional biconditional) {
+    return PI_2.contains(formula);
+  }
+
+  public enum Type {
+    SIGMA, DELTA, PI
+  }
+
+  @AutoValue
+  public abstract static class FormulaClass {
+    public abstract Type type();
+
+    public abstract int level();
+
+    public static FormulaClass of(Type type, int level) {
+      return new AutoValue_SyntacticFragments_FormulaClass(type, level);
+    }
+
+    public static FormulaClass classify(Formula formula) {
+      if (formula instanceof Biconditional || formula instanceof Negation) {
+        throw new IllegalArgumentException("Formula not in negation-normal-form.");
+      }
+
+      var childrenClass = leastUpperBound(formula.operands.stream()
+        .map(FormulaClass::classify)
+        .collect(Collectors.toList()));
+
+      if (formula instanceof FOperator
+        || formula instanceof MOperator
+        || formula instanceof UOperator) {
+
+        if (childrenClass.type() == Type.SIGMA) {
+          return childrenClass;
+        }
+
+        return of(Type.SIGMA, childrenClass.level() + 1);
+      }
+
+      if (formula instanceof GOperator
+        || formula instanceof ROperator
+        || formula instanceof WOperator) {
+
+        if (childrenClass.type() == Type.PI) {
+          return childrenClass;
+        }
+
+        return of(Type.PI, childrenClass.level() + 1);
+      }
+
+      assert formula instanceof BooleanConstant
+        || formula instanceof Conjunction
+        || formula instanceof Disjunction
+        || formula instanceof Literal
+        || formula instanceof XOperator;
+
+      return childrenClass;
+    }
+
+    public static FormulaClass leastUpperBound(List<FormulaClass> list) {
+      switch (list.size()) {
+        case 0:
+          return DELTA_0;
+
+        case 1:
+          return list.get(0);
+
+        default:
+          var lub = DELTA_0;
+
+          for (var element : list) {
+            lub = lub.leastUpperBound(element);
+          }
+
+          return lub;
+      }
+    }
+
+    public boolean contains(Formula formula) {
+      try {
+        return FormulaClass.classify(formula).lessOrEquals(this);
+      } catch (IllegalArgumentException ex) {
         return false;
       }
+    }
 
-      @Override
-      public Boolean visit(BooleanConstant booleanConstant) {
+    public FormulaClass leastUpperBound(FormulaClass that) {
+      if (this.lessOrEquals(that)) {
+        return that;
+      }
+
+      if (that.lessOrEquals(this)) {
+        return this;
+      }
+
+      assert this.level() == that.level();
+      assert this.type() != that.type();
+      assert this.type() != Type.DELTA;
+      assert that.type() != Type.DELTA;
+
+      return FormulaClass.of(Type.DELTA, this.level());
+    }
+
+    public boolean lessOrEquals(FormulaClass that) {
+      if (this.level() < that.level()) {
         return true;
       }
 
-      @Override
-      public Boolean visit(Conjunction conjunction) {
-        return conjunction.children().stream().allMatch(x -> x.accept(this));
+      if (this.level() == that.level()) {
+        return that.type() == Type.DELTA || this.type() == that.type();
       }
 
-      @Override
-      public Boolean visit(Disjunction disjunction) {
-        return disjunction.children().stream().allMatch(x -> x.accept(this));
-      }
+      return false;
+    }
+  }
 
-      @Override
-      public Boolean visit(FOperator fOperator) {
-        return isCoSafety(fOperator.operand);
-      }
+  // Simple syntactic patterns
 
-      @Override
-      public Boolean visit(GOperator gOperator) {
-        return gOperator.operand.accept(this);
-      }
+  public static boolean isAlmostAll(Formula formula) {
+    return formula instanceof FOperator && ((FOperator) formula).operand() instanceof GOperator;
+  }
 
-      @Override
-      public Boolean visit(Literal literal) {
-        return true;
-      }
-
-      @Override
-      public Boolean visit(MOperator mOperator) {
-        return isCoSafety(mOperator);
-      }
-
-      @Override
-      public Boolean visit(ROperator rOperator) {
-        return rOperator.left.accept(this) && rOperator.right.accept(this);
-      }
-
-      @Override
-      public Boolean visit(UOperator uOperator) {
-        return isCoSafety(uOperator);
-      }
-
-      @Override
-      public Boolean visit(WOperator wOperator) {
-        return wOperator.left.accept(this) && wOperator.right.accept(this);
-      }
-
-      @Override
-      public Boolean visit(XOperator xOperator) {
-        return xOperator.operand.accept(this);
-      }
-    });
+  public static boolean isInfinitelyOften(Formula formula) {
+    return formula instanceof GOperator && ((GOperator) formula).operand() instanceof FOperator;
   }
 }

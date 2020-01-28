@@ -27,7 +27,7 @@ public class BlockingElements {
       var coSafetyTemporalChildren = new ArrayList<Formula.TemporalOperator>();
       var otherChildren = new ArrayList<Formula>();
 
-      for (Formula child : formula.children()) {
+      for (Formula child : formula.operands) {
         if (child instanceof Formula.TemporalOperator && SyntacticFragments.isCoSafety(child)) {
           coSafetyTemporalChildren.add((Formula.TemporalOperator) child);
         } else {
@@ -50,7 +50,7 @@ public class BlockingElements {
           x -> !SyntacticFragments.isCoSafety(x) && !SyntacticFragments.isSafety(x))
         .collect(Collectors.toSet());
 
-      blockingSafety = formula.children()
+      blockingSafety = formula.operands
         .stream()
         .filter(x -> x instanceof Formula.TemporalOperator
           && SyntacticFragments.isSafety(x)

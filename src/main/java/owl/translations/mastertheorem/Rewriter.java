@@ -64,7 +64,7 @@ public class Rewriter {
 
     @Override
     public Formula visit(XOperator xOperator) {
-      var operand = xOperator.operand.accept(this);
+      var operand = xOperator.operand().accept(this);
       return operand instanceof BooleanConstant ? operand : new XOperator(operand);
     }
   }
@@ -110,7 +110,7 @@ public class Rewriter {
 
     @Override
     public Formula visit(FOperator fOperator) {
-      return fOperator(fOperator.operand.accept(this));
+      return fOperator(fOperator.operand().accept(this));
     }
 
     @Override
@@ -120,30 +120,32 @@ public class Rewriter {
 
     @Override
     public Formula visit(MOperator mOperator) {
-      return mOperator(mOperator.left.accept(this), mOperator.right.accept(this));
+      return mOperator(mOperator.leftOperand().accept(this), mOperator.rightOperand().accept(this));
     }
 
     @Override
     public Formula visit(ROperator rOperator) {
-      if (rOperators.contains(rOperator) || gOperators.contains(new GOperator(rOperator.right))) {
+      if (rOperators.contains(rOperator) || gOperators.contains(new GOperator(
+        rOperator.rightOperand()))) {
         return BooleanConstant.TRUE;
       }
 
-      return mOperator(rOperator.left.accept(this), rOperator.right.accept(this));
+      return mOperator(rOperator.leftOperand().accept(this), rOperator.rightOperand().accept(this));
     }
 
     @Override
     public Formula visit(UOperator uOperator) {
-      return uOperator(uOperator.left.accept(this), uOperator.right.accept(this));
+      return uOperator(uOperator.leftOperand().accept(this), uOperator.rightOperand().accept(this));
     }
 
     @Override
     public Formula visit(WOperator wOperator) {
-      if (wOperators.contains(wOperator) || gOperators.contains(new GOperator(wOperator.left))) {
+      if (wOperators.contains(wOperator) || gOperators.contains(new GOperator(
+        wOperator.leftOperand()))) {
         return BooleanConstant.TRUE;
       }
 
-      return uOperator(wOperator.left.accept(this), wOperator.right.accept(this));
+      return uOperator(wOperator.leftOperand().accept(this), wOperator.rightOperand().accept(this));
     }
 
     private static Formula fOperator(Formula operand) {
@@ -234,13 +236,15 @@ public class Rewriter {
 
     @Override
     public Formula visit(GOperator gOperator) {
-      return gOperator(gOperator.operand.accept(this));
+      return gOperator(gOperator.operand().accept(this));
     }
 
     @Override
     public Formula visit(MOperator mOperator) {
-      if (mOperators.contains(mOperator) || fOperators.contains(new FOperator(mOperator.left))) {
-        return rOperator(mOperator.left.accept(this), mOperator.right.accept(this));
+      if (mOperators.contains(mOperator) || fOperators.contains(new FOperator(
+        mOperator.leftOperand()))) {
+        return rOperator(mOperator.leftOperand().accept(this),
+          mOperator.rightOperand().accept(this));
       }
 
       return BooleanConstant.FALSE;
@@ -248,13 +252,15 @@ public class Rewriter {
 
     @Override
     public Formula visit(ROperator rOperator) {
-      return rOperator(rOperator.left.accept(this), rOperator.right.accept(this));
+      return rOperator(rOperator.leftOperand().accept(this), rOperator.rightOperand().accept(this));
     }
 
     @Override
     public Formula visit(UOperator uOperator) {
-      if (uOperators.contains(uOperator) || fOperators.contains(new FOperator(uOperator.right))) {
-        return wOperator(uOperator.left.accept(this), uOperator.right.accept(this));
+      if (uOperators.contains(uOperator) || fOperators.contains(new FOperator(
+        uOperator.rightOperand()))) {
+        return wOperator(uOperator.leftOperand().accept(this),
+          uOperator.rightOperand().accept(this));
       }
 
       return BooleanConstant.FALSE;
@@ -262,7 +268,7 @@ public class Rewriter {
 
     @Override
     public Formula visit(WOperator wOperator) {
-      return wOperator(wOperator.left.accept(this), wOperator.right.accept(this));
+      return wOperator(wOperator.leftOperand().accept(this), wOperator.rightOperand().accept(this));
     }
 
     private static Formula gOperator(Formula operand) {

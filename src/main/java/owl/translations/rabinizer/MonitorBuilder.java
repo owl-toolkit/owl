@@ -72,7 +72,7 @@ final class MonitorBuilder {
 
     boolean isCoSafety = SyntacticFragments.isCoSafety(operand);
 
-    if (isCoSafety && gOperator.operand instanceof FOperator) {
+    if (isCoSafety && gOperator.operand() instanceof FOperator) {
       fragment = Fragment.EVENTUAL;
     } else if (SyntacticFragments.isFinite(operand)) {
       fragment = Fragment.FINITE;

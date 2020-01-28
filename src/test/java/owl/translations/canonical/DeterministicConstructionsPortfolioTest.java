@@ -24,9 +24,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.TestInstance.Lifecycle.PER_CLASS;
 import static owl.translations.canonical.DeterministicConstructionsPortfolio.coSafety;
 import static owl.translations.canonical.DeterministicConstructionsPortfolio.fgSafety;
-import static owl.translations.canonical.DeterministicConstructionsPortfolio.gCoSafety;
 import static owl.translations.canonical.DeterministicConstructionsPortfolio.gfCoSafety;
 import static owl.translations.canonical.DeterministicConstructionsPortfolio.safety;
+import static owl.translations.canonical.DeterministicConstructionsPortfolio.safetyCoSafety;
 import static owl.util.Assertions.assertThat;
 
 import de.tum.in.naturals.bitset.BitSets;
@@ -134,9 +134,9 @@ class DeterministicConstructionsPortfolioTest {
       return List.of(
         Arguments.of("G (a U b)", 1),
         Arguments.of("G (a M b | a U b | F a)", 2),
-        Arguments.of("G ((a & X b) | (c & X F c))", 8),
-        Arguments.of("G ((a & X X b) | (b & X X c) | (c & X X F d))", 228),
-        Arguments.of("G ((a & X X b) | (c & X X d) | (e & X X F f))", 228)
+        Arguments.of("G ((a & X b) | (c & X F c))", 5),
+        Arguments.of("G ((a & X X b) | (b & X X c) | (c & X X F d))", 85),
+        Arguments.of("G ((a & X X b) | (c & X X d) | (e & X X F f))", 85)
       );
     }
 
@@ -144,23 +144,23 @@ class DeterministicConstructionsPortfolioTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = gCoSafety(environment, labelledFormula);
+      var automaton = safetyCoSafety(environment, labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(
-        y -> y.current().isFalse() || y.next().isFalse()));
-      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.current().isTrue()));
+        y -> y.all().isFalse() || y.rejecting().isFalse()));
+      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.all().isTrue()));
       assertThat(automaton.acceptance(), BuchiAcceptance.class::isInstance);
     }
 
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> gCoSafety(environment, LtlParser.parse("G a")));
+        () -> safetyCoSafety(environment, LtlParser.parse("G a")));
       assertThrows(IllegalArgumentException.class,
-        () -> gCoSafety(environment, LtlParser.parse("G F a")));
+        () -> safetyCoSafety(environment, LtlParser.parse("G F a & G F b")));
       assertThrows(IllegalArgumentException.class,
-        () -> gCoSafety(environment, LtlParser.parse("G (a U (b R c))")));
+        () -> safetyCoSafety(environment, LtlParser.parse("G (a U (b R c))")));
     }
   }
 

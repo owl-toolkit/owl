@@ -157,6 +157,6 @@ class NormalFormsTest {
     var clause2 = Set.of(LtlParser.syntax("X c", labelledFormula.atomicPropositions()));
 
     assertEquals(Set.of(clause1, clause2), NormalForms.toDnf(labelledFormula.formula(),
-      x -> x.children().stream().filter(Literal.class::isInstance).collect(Collectors.toSet())));
+      x -> x.operands.stream().filter(Literal.class::isInstance).collect(Collectors.toSet())));
   }
 }

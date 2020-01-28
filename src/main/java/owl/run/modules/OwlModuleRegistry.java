@@ -46,6 +46,7 @@ import owl.translations.modules.LTL2LDGBAModule;
 import owl.translations.modules.LTL2NAModule;
 import owl.translations.modules.LTL2NBAModule;
 import owl.translations.modules.LTL2NGBAModule;
+import owl.translations.modules.LTL2NormalFormModule;
 import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
 
@@ -105,7 +106,9 @@ public class OwlModuleRegistry {
       // -> NELA
       LTL2NAModule.MODULE,
       // external
-      ExternalTranslator.MODULE));
+      ExternalTranslator.MODULE,
+      // -> Delta_2 normal form
+      LTL2NormalFormModule.MODULE));
 
     // Automaton translations
     DEFAULT_REGISTRY.putTransformers(List.of(

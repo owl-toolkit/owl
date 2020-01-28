@@ -69,7 +69,7 @@ final class SatisfactionRelation {
 
     @Override
     public int visit(Conjunction conjunction) {
-      for (Formula child : conjunction.children) {
+      for (Formula child : conjunction.operands) {
         if (child.accept(this) == 0) {
           return 0;
         }
@@ -80,7 +80,7 @@ final class SatisfactionRelation {
 
     @Override
     public int visit(Disjunction disjunction) {
-      for (Formula child : disjunction.children) {
+      for (Formula child : disjunction.operands) {
         if (child.accept(this) == 1) {
           return 1;
         }
@@ -105,7 +105,7 @@ final class SatisfactionRelation {
     @Override
     public int visit(XOperator xOperator) {
       offset++;
-      int models = xOperator.operand.accept(this);
+      int models = xOperator.operand().accept(this);
       offset--;
       return models;
     }

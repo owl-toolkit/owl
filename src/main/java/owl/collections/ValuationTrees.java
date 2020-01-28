@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import owl.util.TriFunction;
 
 public final class ValuationTrees {
   private ValuationTrees() {
@@ -109,6 +110,20 @@ public final class ValuationTrees {
   public static <L, R, E> ValuationTree<E> cartesianProduct(
     ValuationTree<L> factor1, ValuationTree<R> factor2, BiFunction<L, R, @Nullable E> combinator) {
     return cartesianProduct(factor1, factor2, combinator, new HashMap<>());
+  }
+
+  public static <T, R> ValuationTree<R> cartesianProduct(
+    ValuationTree<T> factor1, ValuationTree<T> factor2, ValuationTree<T> factor3,
+    TriFunction<T, T, T, @Nullable R> combinator) {
+
+    return cartesianProduct(List.of(factor1, factor2, factor3)).map(x -> {
+      if (x.isEmpty()) {
+        return Set.of();
+      }
+
+      var y = x.iterator().next();
+      return Collections3.ofNullable(combinator.apply(y.get(0), y.get(1), y.get(2)));
+    });
   }
 
   public static <E> ValuationTree<E> union(Collection<ValuationTree<E>> trees) {

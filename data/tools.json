@@ -138,6 +138,23 @@
                 "simplify-ltl"
             ]
         },
+        "delag-normalform": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2normalform",
+            "flags": {
+              "dual": "--dual",
+              "local": "--local"
+            },
+            "pre": [
+                "simplify-ltl"
+            ],
+            "post": [
+                "simplify-ltl",
+                "delag"
+            ]
+        },
         "rabinizer-dpa": {
             "type": "owl",
             "input": "ltl",

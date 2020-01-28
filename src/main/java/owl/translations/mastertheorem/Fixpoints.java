@@ -103,9 +103,9 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
 
     leastFixpoints().forEach(x -> {
       if (x instanceof MOperator) {
-        fOperators.add(new FOperator(((MOperator) x).left));
+        fOperators.add(new FOperator(((MOperator) x).leftOperand()));
       } else if (x instanceof UOperator) {
-        fOperators.add(new FOperator(((UOperator) x).right));
+        fOperators.add(new FOperator(((UOperator) x).rightOperand()));
       } else {
         fOperators.add((FOperator) x);
       }
@@ -113,9 +113,9 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
 
     greatestFixpoints().forEach(x -> {
       if (x instanceof ROperator) {
-        gOperators.add(new GOperator(((ROperator) x).right));
+        gOperators.add(new GOperator(((ROperator) x).rightOperand()));
       } else if (x instanceof WOperator) {
-        gOperators.add(new GOperator(((WOperator) x).left));
+        gOperators.add(new GOperator(((WOperator) x).leftOperand()));
       } else {
         gOperators.add((GOperator) x);
       }

@@ -116,18 +116,18 @@ public final class SymmetricEvaluatedFixpoints
         var operand = unwrapGf(gOperator);
 
         if (operand instanceof Conjunction) {
-          for (Formula conjunct : ((Conjunction) operand).children) {
+          for (Formula conjunct : ((Conjunction) operand).operands) {
             Formula unwrappedConjunct = unwrapX(conjunct);
 
             if (unwrappedConjunct instanceof FOperator) {
               infinitelyOftenFormulas.removeIf(
-                y -> y.operand.equals(unwrappedConjunct));
+                y -> y.operand().equals(unwrappedConjunct));
             } else if (unwrappedConjunct instanceof UOperator) {
               infinitelyOftenFormulas.removeIf(
-                y -> unwrapGf(y).equals(unwrapX(((UOperator) unwrappedConjunct).right)));
+                y -> unwrapGf(y).equals(unwrapX(((UOperator) unwrappedConjunct).rightOperand())));
             } else if (unwrappedConjunct instanceof MOperator) {
               infinitelyOftenFormulas.removeIf(
-                y -> unwrapGf(y).equals(unwrapX(((MOperator) unwrappedConjunct).left)));
+                y -> unwrapGf(y).equals(unwrapX(((MOperator) unwrappedConjunct).leftOperand())));
             } else {
               infinitelyOftenFormulas.remove(wrapGf(unwrappedConjunct));
             }
@@ -187,7 +187,7 @@ public final class SymmetricEvaluatedFixpoints
     for (List<FOperator> almostAlwaysFormulas
       : Sets.cartesianProduct(almostAlwaysFormulasAlternatives)) {
       var language = Conjunction.of(Stream.concat(
-        almostAlwaysFormulas.stream().map(x -> x.operand),
+        almostAlwaysFormulas.stream().map(x -> x.operand()),
         infinitelyOftenFormulas.stream()));
       var languageClazz = factories.eqFactory.of(language.unfold());
 
@@ -271,7 +271,7 @@ public final class SymmetricEvaluatedFixpoints
     Factories factories, boolean unfold, boolean generalized) {
 
     var safetyAutomaton = new DeterministicConstructions.Safety(
-      factories, unfold, Conjunction.of(almostAlways.stream().map(x -> x.operand)));
+      factories, unfold, Conjunction.of(almostAlways.stream().map(x -> x.operand())));
 
     var gfCoSafetyAutomaton = infinitelyOften.isEmpty() ? null : new DeterministicConstructions
       .GfCoSafety(factories, unfold, new TreeSet<>(infinitelyOften), generalized);
@@ -284,7 +284,7 @@ public final class SymmetricEvaluatedFixpoints
     Factories factories, boolean generalized) {
 
     var safetyAutomaton = new NonDeterministicConstructions.Safety(
-      factories, Conjunction.of(almostAlways.stream().map(x -> x.operand)));
+      factories, Conjunction.of(almostAlways.stream().map(x -> x.operand())));
 
     var gfCoSafetyAutomaton = infinitelyOften.isEmpty() ? null : new NonDeterministicConstructions
       .GfCoSafety(factories, new TreeSet<>(infinitelyOften), generalized);
@@ -321,25 +321,25 @@ public final class SymmetricEvaluatedFixpoints
   // Utility functions
 
   private static Formula unwrapFg(Formula formula) {
-    return ((GOperator) ((FOperator) formula).operand).operand;
+    return ((GOperator) ((FOperator) formula).operand()).operand();
   }
 
   private static Formula unwrapGf(Formula formula) {
-    return ((FOperator) ((GOperator) formula).operand).operand;
+    return ((FOperator) ((GOperator) formula).operand()).operand();
   }
 
   private static Formula unwrapX(Formula formula) {
     var unwrappedFormula = formula;
 
     while (unwrappedFormula instanceof XOperator) {
-      unwrappedFormula = ((XOperator) unwrappedFormula).operand;
+      unwrappedFormula = ((XOperator) unwrappedFormula).operand();
     }
 
     return unwrappedFormula;
   }
 
   private static FOperator wrapFg(Formula formula) {
-    if (formula instanceof FOperator && ((FOperator) formula).operand instanceof GOperator) {
+    if (formula instanceof FOperator && ((FOperator) formula).operand() instanceof GOperator) {
       return (FOperator) formula;
     }
 
@@ -349,7 +349,7 @@ public final class SymmetricEvaluatedFixpoints
   }
 
   private static GOperator wrapGf(Formula formula) {
-    if (formula instanceof GOperator && ((GOperator) formula).operand instanceof FOperator) {
+    if (formula instanceof GOperator && ((GOperator) formula).operand() instanceof FOperator) {
       return (GOperator) formula;
     }
 

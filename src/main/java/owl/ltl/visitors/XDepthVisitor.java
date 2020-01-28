@@ -48,13 +48,13 @@ public class XDepthVisitor implements IntVisitor {
   @Nonnegative
   @Override
   public int visit(FOperator fOperator) {
-    return fOperator.operand.accept(this);
+    return fOperator.operand().accept(this);
   }
 
   @Nonnegative
   @Override
   public int visit(GOperator gOperator) {
-    return gOperator.operand.accept(this);
+    return gOperator.operand().accept(this);
   }
 
   @Nonnegative
@@ -84,14 +84,14 @@ public class XDepthVisitor implements IntVisitor {
   @Nonnegative
   @Override
   public int visit(XOperator xOperator) {
-    return xOperator.operand.accept(this) + 1;
+    return xOperator.operand().accept(this) + 1;
   }
 
   @Nonnegative
   private int visit(Formula.NaryPropositionalOperator formula) {
     int max = 0;
 
-    for (Formula child : formula.children) {
+    for (Formula child : formula.operands) {
       max = Math.max(max, child.accept(this));
     }
 

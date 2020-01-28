@@ -58,7 +58,7 @@ public final class OutputWriters {
       format.setRequired(true);
       return new Options().addOption(format);
     },
-    (commandLine, environment) -> new AutomatonStats(commandLine.getOptionValue("format"))::write);
+    (commandLine, environment) -> new AutomatonStats(commandLine.getOptionValue("format")));
 
   public static final OwlModule<OwlModule.OutputWriter> HOA_OUTPUT_MODULE = OwlModule.of(
     "hoa",

@@ -56,7 +56,8 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(Biconditional biconditional) {
-    return Biconditional.of(biconditional.left.accept(this), biconditional.right.accept(this));
+    return Biconditional
+      .of(biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this));
   }
 
   @Override
@@ -80,37 +81,39 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
     // Reason about modal operators contained in the conjunction.
     for (GOperator gOperator : filter(newConjunction, GOperator.class)) {
-      newConjunction.remove(gOperator.operand);
+      newConjunction.remove(gOperator.operand());
 
-      if (newConjunction.contains(gOperator.operand.not())) {
+      if (newConjunction.contains(gOperator.operand().not())) {
         return BooleanConstant.FALSE;
       }
     }
 
     for (FOperator fOperator : filter(newConjunction, FOperator.class)) {
-      if (newConjunction.contains(fOperator.operand)) {
+      if (newConjunction.contains(fOperator.operand())) {
         newConjunction.remove(fOperator);
       }
 
       for (ROperator rOperator
-        : filter(newConjunction, ROperator.class, x -> fOperator.operand.equals(x.left))) {
+        : filter(newConjunction, ROperator.class,
+        x -> fOperator.operand().equals(x.leftOperand()))) {
         newConjunction.remove(fOperator);
         newConjunction.remove(rOperator);
-        newConjunction.add(MOperator.of(rOperator.left, rOperator.right));
+        newConjunction.add(MOperator.of(rOperator.leftOperand(), rOperator.rightOperand()));
       }
 
       for (WOperator wOperator
-        : filter(newConjunction, WOperator.class, x -> fOperator.operand.equals(x.right))) {
+        : filter(newConjunction, WOperator.class,
+        x -> fOperator.operand().equals(x.rightOperand()))) {
         newConjunction.remove(fOperator);
         newConjunction.remove(wOperator);
-        newConjunction.add(UOperator.of(wOperator.left, wOperator.right));
+        newConjunction.add(UOperator.of(wOperator.leftOperand(), wOperator.rightOperand()));
       }
     }
 
     for (Formula.BinaryTemporalOperator operator
       : filter(newConjunction, Formula.BinaryTemporalOperator.class,
       x -> x instanceof UOperator || x instanceof WOperator)) {
-      if (newConjunction.contains(operator.right)) {
+      if (newConjunction.contains(operator.rightOperand())) {
         newConjunction.remove(operator);
       }
     }
@@ -118,15 +121,15 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     for (Formula.BinaryTemporalOperator operator
       : filter(newConjunction, Formula.BinaryTemporalOperator.class,
       x -> x instanceof MOperator || x instanceof ROperator)) {
-      if (newConjunction.contains(operator.left)) {
+      if (newConjunction.contains(operator.leftOperand())) {
         newConjunction.remove(operator);
-        newConjunction.add(operator.right);
+        newConjunction.add(operator.rightOperand());
       }
     }
 
     // Peek into contained disjunctions and simplify these.
     for (Disjunction disjunction : filter(newConjunction, Disjunction.class)) {
-      Formula newDisjunction = Disjunction.of(disjunction.children.stream()
+      Formula newDisjunction = Disjunction.of(disjunction.operands.stream()
         .filter(x -> !newConjunction.contains(x.not())));
       newConjunction.remove(disjunction);
       newConjunction.add(newDisjunction);
@@ -146,37 +149,39 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
     // Reason about modal operators contained in the disjunction.
     for (FOperator fOperator : filter(newDisjunction, FOperator.class)) {
-      newDisjunction.remove(fOperator.operand);
+      newDisjunction.remove(fOperator.operand());
 
-      if (newDisjunction.contains(fOperator.operand.not())) {
+      if (newDisjunction.contains(fOperator.operand().not())) {
         return BooleanConstant.TRUE;
       }
     }
 
     for (GOperator gOperator : filter(newDisjunction, GOperator.class)) {
-      if (newDisjunction.contains(gOperator.operand)) {
+      if (newDisjunction.contains(gOperator.operand())) {
         newDisjunction.remove(gOperator);
       }
 
       for (MOperator mOperator
-        : filter(newDisjunction, MOperator.class, x -> gOperator.operand.equals(x.right))) {
+        : filter(newDisjunction, MOperator.class,
+        x -> gOperator.operand().equals(x.rightOperand()))) {
         newDisjunction.remove(gOperator);
         newDisjunction.remove(mOperator);
-        newDisjunction.add(ROperator.of(mOperator.left, mOperator.right));
+        newDisjunction.add(ROperator.of(mOperator.leftOperand(), mOperator.rightOperand()));
       }
 
       for (UOperator uOperator
-        : filter(newDisjunction, UOperator.class, x -> gOperator.operand.equals(x.left))) {
+        : filter(newDisjunction, UOperator.class,
+        x -> gOperator.operand().equals(x.leftOperand()))) {
         newDisjunction.remove(gOperator);
         newDisjunction.remove(uOperator);
-        newDisjunction.add(WOperator.of(uOperator.left, uOperator.right));
+        newDisjunction.add(WOperator.of(uOperator.leftOperand(), uOperator.rightOperand()));
       }
     }
 
     for (Formula.BinaryTemporalOperator operator :
       filter(newDisjunction, Formula.BinaryTemporalOperator.class,
         x -> x instanceof MOperator || x instanceof ROperator)) {
-      if (newDisjunction.contains(operator.right)) {
+      if (newDisjunction.contains(operator.rightOperand())) {
         newDisjunction.remove(operator);
       }
     }
@@ -184,15 +189,15 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     for (Formula.BinaryTemporalOperator operator :
       filter(newDisjunction, Formula.BinaryTemporalOperator.class,
         x -> x instanceof UOperator || x instanceof WOperator)) {
-      if (newDisjunction.contains(operator.left)) {
+      if (newDisjunction.contains(operator.leftOperand())) {
         newDisjunction.remove(operator);
-        newDisjunction.add(operator.right);
+        newDisjunction.add(operator.rightOperand());
       }
     }
 
     // Peek into contained conjunctions and simplify these.
     for (Conjunction conjunction : filter(newDisjunction, Conjunction.class)) {
-      Formula newConjunction = Conjunction.of(conjunction.children.stream()
+      Formula newConjunction = Conjunction.of(conjunction.operands.stream()
         .filter(x -> !newDisjunction.contains(x.not())));
       newDisjunction.remove(conjunction);
       newDisjunction.add(newConjunction);
@@ -203,13 +208,13 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(FOperator fOperator) {
-    Formula operand = fOperator.operand;
+    Formula operand = fOperator.operand();
 
     // Remove XF/XG contained in a FG scope.
     if (SyntacticFairnessSimplifier.isApplicable2(fOperator)) {
       Formula formula = NormaliseX.UNGUARDED_OPERATOR.apply(fOperator);
       assert formula instanceof FOperator;
-      operand = ((FOperator) formula).operand;
+      operand = ((FOperator) formula).operand();
     }
 
     operand = operand.accept(this);
@@ -221,8 +226,9 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     if (operand instanceof ROperator) {
       ROperator rOperator = (ROperator) operand;
 
-      return Disjunction.of(FOperator.of(Conjunction.of(rOperator.left, rOperator.right)),
-        FOperator.of(GOperator.of(rOperator.right)));
+      return Disjunction.of(FOperator.of(Conjunction.of(rOperator.leftOperand(),
+        rOperator.rightOperand())),
+        FOperator.of(GOperator.of(rOperator.rightOperand())));
     }
 
     if (operand instanceof Conjunction) {
@@ -230,7 +236,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
       Set<Formula> suspendable = new HashSet<>();
       Set<Formula> others = new HashSet<>();
-      conjunction.children.forEach(x -> {
+      conjunction.operands.forEach(x -> {
         if (x.isSuspendable()) {
           suspendable.add(x);
         } else {
@@ -263,13 +269,13 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(GOperator gOperator) {
-    Formula operand = gOperator.operand;
+    Formula operand = gOperator.operand();
 
     // Remove XF/XG contained in a GF scope.
     if (SyntacticFairnessSimplifier.isApplicable2(gOperator)) {
       Formula formula = NormaliseX.UNGUARDED_OPERATOR.apply(gOperator);
       assert formula instanceof GOperator;
-      operand = ((GOperator) formula).operand;
+      operand = ((GOperator) formula).operand();
     }
 
     operand = operand.accept(this);
@@ -281,8 +287,9 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     if (operand instanceof UOperator) {
       UOperator uOperator = (UOperator) operand;
 
-      return Conjunction.of(GOperator.of(Disjunction.of(uOperator.left, uOperator.right)),
-        GOperator.of(FOperator.of(uOperator.right)));
+      return Conjunction.of(GOperator.of(Disjunction.of(uOperator.leftOperand(),
+        uOperator.rightOperand())),
+        GOperator.of(FOperator.of(uOperator.rightOperand())));
     }
 
     if (operand instanceof Disjunction) {
@@ -290,7 +297,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
       Set<Formula> suspendable = new HashSet<>();
       Set<Formula> others = new HashSet<>();
-      disjunction.children.forEach(x -> {
+      disjunction.operands.forEach(x -> {
         if (x.isSuspendable()) {
           suspendable.add(x);
         } else {
@@ -324,8 +331,8 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(MOperator mOperator) {
-    Formula left = mOperator.left.accept(this);
-    Formula right = mOperator.right.accept(this);
+    Formula left = mOperator.leftOperand().accept(this);
+    Formula right = mOperator.rightOperand().accept(this);
 
     if (left.equals(right.not())) {
       return BooleanConstant.FALSE;
@@ -339,7 +346,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       var pureUniversal = new HashSet<Formula>();
       var other = new HashSet<Formula>();
 
-      right.children().forEach(x -> {
+      right.operands.forEach(x -> {
         if (x.isPureUniversal()) {
           pureUniversal.add(x);
         } else {
@@ -364,8 +371,8 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(ROperator rOperator) {
-    Formula left = rOperator.left.accept(this);
-    Formula right = rOperator.right.accept(this);
+    Formula left = rOperator.leftOperand().accept(this);
+    Formula right = rOperator.rightOperand().accept(this);
 
     if (left.equals(right.not())) {
       return GOperator.of(right);
@@ -379,7 +386,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       var pureUniversal = new HashSet<Formula>();
       var other = new HashSet<Formula>();
 
-      right.children().forEach(x -> {
+      right.operands.forEach(x -> {
         if (x.isPureUniversal()) {
           pureUniversal.add(x);
         } else {
@@ -404,8 +411,8 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(UOperator uOperator) {
-    Formula left = uOperator.left.accept(this);
-    Formula right = uOperator.right.accept(this);
+    Formula left = uOperator.leftOperand().accept(this);
+    Formula right = uOperator.rightOperand().accept(this);
 
     if (left.equals(right.not())) {
       return FOperator.of(right);
@@ -419,7 +426,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       var pureEventual = new HashSet<Formula>();
       var other = new HashSet<Formula>();
 
-      right.children().forEach(x -> {
+      right.operands.forEach(x -> {
         if (x.isPureEventual()) {
           pureEventual.add(x);
         } else {
@@ -444,8 +451,8 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(WOperator wOperator) {
-    Formula left = wOperator.left.accept(this);
-    Formula right = wOperator.right.accept(this);
+    Formula left = wOperator.leftOperand().accept(this);
+    Formula right = wOperator.rightOperand().accept(this);
 
     if (left.equals(right.not())) {
       return BooleanConstant.TRUE;
@@ -459,7 +466,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       var pureEventual = new HashSet<Formula>();
       var other = new HashSet<Formula>();
 
-      right.children().forEach(x -> {
+      right.operands.forEach(x -> {
         if (x.isPureEventual()) {
           pureEventual.add(x);
         } else {
@@ -484,16 +491,16 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(XOperator xOperator) {
-    Formula operand = xOperator.operand.accept(this);
+    Formula operand = xOperator.operand().accept(this);
 
     if (operand.isSuspendable()) {
       return operand;
     }
 
     if (operand instanceof Formula.NaryPropositionalOperator) {
-      Set<Formula> suspendable = operand.children()
+      Set<Formula> suspendable = operand.operands
         .stream().filter(Formula::isSuspendable).collect(Collectors.toSet());
-      Set<Formula> others = Sets.difference(new HashSet<>(operand.children()), suspendable);
+      Set<Formula> others = Sets.difference(new HashSet<>(operand.operands), suspendable);
 
       if (!suspendable.isEmpty()) {
         if (operand instanceof Conjunction) {
@@ -508,7 +515,7 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     }
 
     // Only call constructor, when necessary.
-    if (operand.equals(xOperator.operand)) {
+    if (operand.equals(xOperator.operand())) {
       return xOperator;
     }
 

@@ -21,18 +21,14 @@ package owl.ltl;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.function.Function;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
 public class Negation extends Formula.PropositionalOperator {
-  public final Formula operand;
-
   public Negation(Formula operand) {
-    super(Objects.hash(Negation.class, operand), operand.height() + 1);
-    this.operand = operand;
+    super(Negation.class, List.of(operand));
   }
 
   @Override
@@ -51,11 +47,6 @@ public class Negation extends Formula.PropositionalOperator {
   }
 
   @Override
-  public List<Formula> children() {
-    return List.of(operand);
-  }
-
-  @Override
   public boolean isPureEventual() {
     return false;
   }
@@ -67,21 +58,26 @@ public class Negation extends Formula.PropositionalOperator {
 
   @Override
   public Formula nnf() {
-    return operand.nnf().not();
+    return operand().nnf().not();
   }
 
   @Override
   public Formula not() {
-    return operand;
+    return operand();
   }
 
   @Override
   public Formula temporalStep(BitSet valuation) {
-    return new Negation(operand.temporalStep(valuation));
+    return new Negation(operand().temporalStep(valuation));
   }
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
     throw new UnsupportedOperationException("this is not supported");
+  }
+
+  public Formula operand() {
+    assert operands.size() == 1;
+    return operands.get(0);
   }
 }

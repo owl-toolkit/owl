@@ -397,7 +397,7 @@
   {
     "formula": "((Fa | Gb) \u0026 (Fb | Gc) \u0026 (Fc | Gd))",
     "properties": {
-      "size": 22,
+      "size": 20,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -440,7 +440,7 @@
   {
     "formula": "((Fa | Gb) \u0026 (Fb | Gc) \u0026 (Fc | Gd) \u0026 (Fd | Ge))",
     "properties": {
-      "size": 52,
+      "size": 48,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -760,7 +760,7 @@
   {
     "formula": "((Fa \u0026 Gb) | (Fc \u0026 Ga) | (Fd \u0026 Gc) | (Fe \u0026 Gd))",
     "properties": {
-      "size": 49,
+      "size": 45,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -1607,7 +1607,7 @@
   {
     "formula": "(F(a \u0026 Gb) | F(c \u0026 Gd) | F(e \u0026 Gf) | F(g \u0026 Gh))",
     "properties": {
-      "size": 80,
+      "size": 66,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -1696,7 +1696,7 @@
   {
     "formula": "F((a | !b) \u0026 (Ga | Gb | Gc))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -1732,7 +1732,7 @@
   {
     "formula": "F((a | Gb) \u0026 (c | Gd))",
     "properties": {
-      "size": 13,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -1802,7 +1802,7 @@
   {
     "formula": "F((a | Gb) \u0026 (b | Ga) \u0026 (c | Gd))",
     "properties": {
-      "size": 24,
+      "size": 19,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -1813,7 +1813,7 @@
   {
     "formula": "F((a | Gb) \u0026 (c | Gd) \u0026 (e | Gf))",
     "properties": {
-      "size": 132,
+      "size": 80,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2216,7 +2216,7 @@
   {
     "formula": "(Fa \u0026 Fb \u0026 ((Fa \u0026 FG!c) | (Fb \u0026 FGc)))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2449,7 +2449,7 @@
   {
     "formula": "(FGa | FG!a | F(!a \u0026 XGb))",
     "properties": {
-      "size": 7,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2487,7 +2487,7 @@
   {
     "formula": "F(a \u0026 (Ga | Gb | (c \u0026 Gd)))",
     "properties": {
-      "size": 17,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2531,7 +2531,7 @@
   {
     "formula": "F(a \u0026 G(b | Xc))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2899,7 +2899,7 @@
   {
     "formula": "(F(G(a | b) \u0026 (Fa | XFc)) | F(G(d | e) \u0026 (Fd | XFf)))",
     "properties": {
-      "size": 13,
+      "size": 11,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2939,7 +2939,7 @@
   {
     "formula": "F(a \u0026 G(b | XGc))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -2950,7 +2950,7 @@
   {
     "formula": "F(a \u0026 G(b | c | X((c) R (d))))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -3238,7 +3238,7 @@
   {
     "formula": "F(a \u0026 ((!a) R ((b | ((b) R ((c | ((c) R (d)))))))))",
     "properties": {
-      "size": 13,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
@@ -3274,7 +3274,7 @@
   {
     "formula": "F(a \u0026 F!b \u0026 ((b) R ((c \u0026 (b | d | X((b) R (e)))))))",
     "properties": {
-      "size": 7,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,

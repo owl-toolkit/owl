@@ -100,7 +100,7 @@ public final class Conjunction extends Formula.NaryPropositionalOperator {
 
         if (child instanceof Conjunction) {
           list.remove(i);
-          list.addAll(child.children());
+          list.addAll(child.operands);
           sorted = false;
         }
       }

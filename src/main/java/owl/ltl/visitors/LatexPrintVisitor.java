@@ -103,16 +103,16 @@ public class LatexPrintVisitor implements Visitor<String> {
   }
 
   private String visit(Formula.UnaryTemporalOperator operator) {
-    if (operator.operand instanceof Formula.UnaryTemporalOperator
-      || operator.operand instanceof Literal) {
-      return '\\' + operator.operatorSymbol() + ' ' + operator.operand.accept(this);
+    if (operator.operand() instanceof Formula.UnaryTemporalOperator
+      || operator.operand() instanceof Literal) {
+      return '\\' + operator.operatorSymbol() + ' ' + operator.operand().accept(this);
     }
 
-    return '\\' + operator.operatorSymbol() + " (" + operator.operand.accept(this) + ')';
+    return '\\' + operator.operatorSymbol() + " (" + operator.operand().accept(this) + ')';
   }
 
   private String visit(Formula.BinaryTemporalOperator operator) {
-    return Stream.of(operator.left, operator.right)
+    return Stream.of(operator.leftOperand(), operator.rightOperand())
       .map(x -> {
         if (x instanceof Literal) {
           return x.accept(this);
@@ -125,8 +125,8 @@ public class LatexPrintVisitor implements Visitor<String> {
 
   private String visit(Formula.NaryPropositionalOperator propositionalFormula, String latexString) {
     // NOPMD
-    assert Comparators.isInStrictOrder(propositionalFormula.children(), Comparator.naturalOrder());
-    return propositionalFormula.children().stream()
+    assert Comparators.isInStrictOrder(propositionalFormula.operands, Comparator.naturalOrder());
+    return propositionalFormula.operands.stream()
       .map(x -> {
         if (x instanceof Formula.NaryPropositionalOperator || x instanceof Biconditional) {
           return '(' + x.accept(this) + ')';

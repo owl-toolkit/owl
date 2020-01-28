@@ -37,7 +37,6 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
-import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.translations.delag.DependencyTree.FallbackLeaf;
@@ -120,7 +119,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     List<DependencyTree<T>> children = new ArrayList<>();
 
     formulas.forEach(x -> {
-      if (SyntacticFragment.FINITE.contains(x)) {
+      if (SyntacticFragments.isFinite(x)) {
         finite.add(x);
         return;
       }
@@ -147,7 +146,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     List<Formula> coSafety = new ArrayList<>();
     List<Formula> finite = new ArrayList<>();
 
-    List<DependencyTree<T>> children = group(disjunction.children, safety, coSafety, finite);
+    List<DependencyTree<T>> children = group(disjunction.operands, safety, coSafety, finite);
 
     if (safety.isEmpty()) {
       coSafety.addAll(finite);
@@ -177,7 +176,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     List<Formula> coSafety = new ArrayList<>();
     List<Formula> finite = new ArrayList<>();
 
-    List<DependencyTree<T>> children = group(conjunction.children, safety, coSafety, finite);
+    List<DependencyTree<T>> children = group(conjunction.operands, safety, coSafety, finite);
 
     if (coSafety.isEmpty()) {
       safety.addAll(finite);

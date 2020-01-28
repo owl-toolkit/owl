@@ -364,7 +364,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     }
 
     Set<XOperator> scopedXOperators = clazz.temporalOperators().stream()
-      .flatMap(x -> x.children().stream().flatMap(y -> y.subformulas(XOperator.class).stream()))
+      .flatMap(x -> x.operands.stream().flatMap(y -> y.subformulas(XOperator.class).stream()))
       .collect(Collectors.toSet());
 
     return clazz.temporalOperators().stream()

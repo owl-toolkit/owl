@@ -69,8 +69,8 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Biconditional biconditional) {
-    return "(" + visitParenthesized(biconditional.left)
-      + " <-> " + visitParenthesized(biconditional.right) + ")";
+    return "(" + visitParenthesized(biconditional.leftOperand())
+      + " <-> " + visitParenthesized(biconditional.rightOperand()) + ")";
   }
 
   @Override
@@ -80,16 +80,16 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Conjunction conjunction) {
-    assert Comparators.isInStrictOrder(conjunction.children(), Comparator.naturalOrder());
-    return '(' + conjunction.children.stream()
+    assert Comparators.isInStrictOrder(conjunction.operands, Comparator.naturalOrder());
+    return '(' + conjunction.operands.stream()
       .map(this::visitParenthesized)
       .collect(Collectors.joining(" & ")) + ')';
   }
 
   @Override
   public String visit(Disjunction disjunction) {
-    assert Comparators.isInStrictOrder(disjunction.children(), Comparator.naturalOrder());
-    return '(' + disjunction.children.stream()
+    assert Comparators.isInStrictOrder(disjunction.operands, Comparator.naturalOrder());
+    return '(' + disjunction.operands.stream()
       .map(this::visitParenthesized)
       .collect(Collectors.joining(" | ")) + ')';
   }
@@ -106,7 +106,7 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Negation negation) {
-    return "! " + visitParenthesized(negation.operand);
+    return "! " + visitParenthesized(negation.operand());
   }
 
   @Override
@@ -143,13 +143,13 @@ public final class PrintVisitor implements Visitor<String> {
   }
 
   private String visit(Formula.UnaryTemporalOperator operator) {
-    return operator.operatorSymbol() + visitParenthesized(operator.operand);
+    return operator.operatorSymbol() + visitParenthesized(operator.operand());
   }
 
   private String visit(Formula.BinaryTemporalOperator operator) {
-    return "((" + operator.left.accept(this) + ") "
+    return "((" + operator.leftOperand().accept(this) + ") "
       + operator.operatorSymbol()
-      + " (" + operator.right.accept(this) + "))";
+      + " (" + operator.rightOperand().accept(this) + "))";
   }
 
   private String visitParenthesized(Formula formula) {

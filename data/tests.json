@@ -167,7 +167,11 @@
         "delag": {
             "tools": [
                 "delag",
-                "delag#fallback-spot"
+                "delag#fallback-spot",
+                "delag-normalform",
+                "delag-normalform#dual",
+                "delag-normalform#local",
+                "delag-normalform#dual,local"
             ],
             "data": "M"
         },
