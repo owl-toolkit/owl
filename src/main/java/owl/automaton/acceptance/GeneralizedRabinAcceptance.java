@@ -200,7 +200,11 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
       }
     }
 
-    return new GeneralizedRabinAcceptance(newPairs);
+    if (newPairs.stream().allMatch(x -> x.infSetCount() == 1)) {
+      return RabinAcceptance.of(newPairs);
+    }
+
+    return GeneralizedRabinAcceptance.of(newPairs);
   }
 
   public static final class RabinPair implements Comparable<RabinPair> {

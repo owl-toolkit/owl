@@ -45,6 +45,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
@@ -52,14 +53,20 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.BooleanExpressions;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.transformations.RabinDegeneralization;
 import owl.collections.Collections3;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.LatexPrintVisitor;
 import owl.run.Environment;
 import owl.translations.ExternalTranslator.InputMode;
+import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.modules.LTL2DPAModule;
+import owl.translations.modules.LTL2LDBAModule;
 import owl.translations.rabinizer.RabinizerBuilder;
 import owl.translations.rabinizer.RabinizerConfiguration;
 import owl.util.Statistics;
@@ -69,12 +76,13 @@ class TranslationReport {
 
   private static final LatexPrintVisitor PRINT_VISITOR = new LatexPrintVisitor(COMMON_ALPHABET);
 
+  @Disabled
   @Tag("size-report")
   @ParameterizedTest
   @EnumSource(
     value = FormulaSet.class,
     names = {"DWYER", "PARAMETRISED"})
-  void generateComparison(FormulaSet set) throws IOException {
+  void generateJacmComparison(FormulaSet set) throws IOException {
     Function<LabelledFormula, Automaton<?, ?>> dgraAsymmetric = (LabelledFormula formula) ->
       AcceptanceOptimizations.optimize(
         RabinizerBuilder.build(formula, Environment.standard(), RabinizerConfiguration.of(true, true, true)));
@@ -112,12 +120,13 @@ class TranslationReport {
     System.out.println(symmeticLeq + "/" + completeCount);
   }
 
+  @Disabled
   @Tag("size-report")
   @ParameterizedTest
   @EnumSource(
     value = FormulaSet.class,
-    names = {"DWYER", "PARAMETRISED"}) // "LIBEROUTER", "PELANEK", "ETESSAMI", "SOMENZI",
-  void generateLatexReport(FormulaSet set) throws IOException {
+    names = {"DWYER", "PARAMETRISED"})
+  void generateJacmLatexTables(FormulaSet set) throws IOException {
     var ltl2dstarCommand = List.of(
       "./ltldo",
       "-T", "600",
@@ -180,7 +189,197 @@ class TranslationReport {
       set.name().toLowerCase(),
       formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
       resultTable,
-      z -> BooleanExpressions.toDnf(z.booleanExpression()).size(), 25);
+      z -> BooleanExpressions.toDnf(z.booleanExpression()).size(), 25, true);
+
+    try (Writer writer = Files.newBufferedWriter(
+      Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
+      writer.write(latexReport);
+    }
+  }
+
+  @Tag("size-report")
+  @ParameterizedTest
+  @EnumSource(
+    value = FormulaSet.class,
+    names = {"DWYER", "PARAMETRISED"})
+  void generateStttLatexReport(FormulaSet set) throws IOException {
+    var configuration = RabinizerConfiguration.of(true, true, true);
+
+    // Without Portfolio.
+
+    var dpa_ldba_asymmetric = new Translator("\\LDone", environment ->
+      LTL2DPAModule.translation(environment, false, false, false));
+
+    var dpa_ldba_symmetric = new Translator("\\LDtwo", environment ->
+      LTL2DPAModule.translation(environment, true, false, false));
+
+    var dpa_iar_asymmetric = new Translator("\\Done", environment -> formula -> {
+      var dgra = RabinizerBuilder.build(formula, environment, configuration);
+      var optimisedDgra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
+
+      var dra = RabinDegeneralization.degeneralize(optimisedDgra);
+      var optimisedDra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+
+      return new IARBuilder<>(optimisedDra).build();
+    });
+
+    var dpa_iar_symmetric = new Translator("\\Dtwo", environment -> formula -> {
+      var dra = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula);
+      var optimisedDra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+      return new IARBuilder<>(optimisedDra).build();
+    });
+
+    // With Portfolio
+
+    var dpa_ldba_asymmetric_portfolio = new Translator("\\LDp", environment -> {
+      var translation1 = LTL2DPAModule.translation(environment, false, true, true);
+      var translation2 = LTL2DPAModule.translation(environment, true, true, true);
+      return labelledFormula -> {
+        var automaton1 = translation1.apply(labelledFormula);
+        var automaton2 = translation2.apply(labelledFormula);
+        return automaton1.size() <= automaton2.size() ? automaton1 : automaton2;
+      };
+    });
+
+    // External
+
+    var ltl2tgbaCommand = List.of(
+      "ltldo",
+      "-T", "600",
+      "-f", "%f",
+      "ltl2tgba --parity --deterministic %f > %O"
+    );
+
+    var nbaDetCommand = List.of(
+      "ltldo",
+      "-T", "600",
+      "-f", "%f",
+      "ltl2tgba -B %f | "
+        + "/sttt-experiments/tools/nbautils/build/bin/nbadet -k -j -t -i -r -o -m -d -u2 > %O"
+    );
+
+    var ltl2tgba = new Translator("\\None", environment
+      -> new ExternalTranslator(ltl2tgbaCommand, InputMode.REPLACE, environment));
+
+    var nbaDet = new Translator("\\Ntwo", environment
+      -> new ExternalTranslator(nbaDetCommand, InputMode.REPLACE, environment));
+
+    var translators = List.of(List.of(ltl2tgba, nbaDet,
+      dpa_iar_asymmetric, dpa_iar_symmetric,
+      dpa_ldba_asymmetric, dpa_ldba_symmetric, dpa_ldba_asymmetric_portfolio));
+    var formulaSet = set.loadAndDeduplicateFormulaSet();
+
+    Table<Formula, String, AutomatonSummary> resultTable = HashBasedTable.create();
+
+    for (List<Translator> group : translators) {
+      for (Translator translator : group) {
+        var translatorFunction = translator.constructor.apply(Environment.standard());
+
+        for (LabelledFormula formula : formulaSet) {
+          var summary = AutomatonSummary.of(() -> translatorFunction.apply(formula));
+          var negationSummary = AutomatonSummary.of(() -> translatorFunction.apply(formula.not()));
+
+          if (summary != null) {
+            resultTable.put(formula.formula(), translator.name, summary);
+          }
+
+          if (negationSummary != null) {
+            resultTable.put(formula.formula().not(), translator.name, negationSummary);
+          }
+        }
+      }
+    }
+
+    var latexReport = LatexReport.create(
+      translators.stream()
+        .map(x -> Collections3.transformList(x, y -> y.name))
+        .collect(Collectors.toList()),
+      Map.of(),
+      set.name().toLowerCase(),
+      formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
+      resultTable,
+      OmegaAcceptance::acceptanceSets, 10, false);
+
+    try (Writer writer = Files.newBufferedWriter(
+      Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
+      writer.write(latexReport);
+    }
+  }
+
+  @Tag("size-report")
+  @ParameterizedTest
+  @EnumSource(
+    value = FormulaSet.class,
+    names = {"DWYER", "PARAMETRISED"})
+  void generateIntermediateStttLatexReport(FormulaSet set) throws IOException {
+    var configuration = RabinizerConfiguration.of(true, true, true);
+
+    // Without Portfolio.
+
+    var dpa_ldba_asymmetric = new Translator("\\LDone", environment ->
+      LTL2LDBAModule.translation(environment, false, false));
+
+    var dpa_ldba_symmetric = new Translator("\\LDtwo", environment ->
+      LTL2LDBAModule.translation(environment, true, false));
+
+    var dpa_iar_asymmetric = new Translator("\\Done", environment -> formula -> {
+      var dgra = RabinizerBuilder.build(formula, environment, configuration);
+      var optimisedDgra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
+
+      var dra = RabinDegeneralization.degeneralize(optimisedDgra);
+      var optimisedDra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+
+      return optimisedDra;
+    });
+
+    var dpa_iar_symmetric = new Translator("\\Dtwo", environment -> formula -> {
+      var dra = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula);
+      var optimisedDra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+      return optimisedDra;
+    });
+
+    // With Portfolio
+
+    var translators = List.of(
+      List.of(dpa_iar_asymmetric, dpa_iar_symmetric, dpa_ldba_asymmetric, dpa_ldba_symmetric));
+    var formulaSet = set.loadAndDeduplicateFormulaSet();
+
+    Table<Formula, String, AutomatonSummary> resultTable = HashBasedTable.create();
+
+    for (List<Translator> group : translators) {
+      for (Translator translator : group) {
+        var translatorFunction = translator.constructor.apply(Environment.standard());
+
+        for (LabelledFormula formula : formulaSet) {
+          var summary = AutomatonSummary.of(() -> translatorFunction.apply(formula));
+          var negationSummary = AutomatonSummary.of(() -> translatorFunction.apply(formula.not()));
+
+          if (summary != null) {
+            resultTable.put(formula.formula(), translator.name, summary);
+          }
+
+          if (negationSummary != null) {
+            resultTable.put(formula.formula().not(), translator.name, negationSummary);
+          }
+        }
+      }
+    }
+
+    var latexReport = LatexReport.create(
+      translators.stream()
+        .map(x -> Collections3.transformList(x, y -> y.name))
+        .collect(Collectors.toList()),
+      Map.of(),
+      set.name().toLowerCase(),
+      formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
+      resultTable,
+      OmegaAcceptance::acceptanceSets, 100, false);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
@@ -207,11 +406,14 @@ class TranslationReport {
 
     private int tableCounter = 0;
 
+    private final boolean rotateHeader;
+
     private LatexReport(List<List<String>> tableHeader,
       Map<String, String> readableTranslatorNames,
       String formulaSetName,
       List<Formula> formulas,
-      Table<Formula, String, AutomatonSummary> results) {
+      Table<Formula, String, AutomatonSummary> results,
+      boolean rotateHeader) {
       // Column configuration
       this.tableHeader = tableHeader;
       this.readableTranslatorNames = readableTranslatorNames;
@@ -250,6 +452,8 @@ class TranslationReport {
         double differenceOrderOfMagnitude = Math.log10((upperBound + 1.0d) / (lowerBound + 1.0d));
         sortedSet.add(Map.entry(differenceOrderOfMagnitude, formula));
       });
+
+      this.rotateHeader = rotateHeader;
     }
 
     static String create(List<List<String>> groupedTranslators,
@@ -257,9 +461,11 @@ class TranslationReport {
       String formulaSetName,
       List<Formula> formulas,
       Table<Formula, String, AutomatonSummary> results,
-      Function<OmegaAcceptance, Integer> normalisation, int threshold) {
+      Function<OmegaAcceptance, Integer> normalisation,
+      int threshold,
+      boolean rotateHeader) {
       return new LatexReport(groupedTranslators, readableTranslatorNames,
-        formulaSetName, formulas, results).report(threshold, normalisation);
+        formulaSetName, formulas, results, rotateHeader).report(threshold, normalisation);
     }
 
     private int[] extract_size(String tool) {
@@ -290,9 +496,14 @@ class TranslationReport {
         groupHeader.forEach(tool -> {
           String renderedValue = computation.apply(extract_size(tool));
           int index = renderedValue.indexOf(".");
-          row.append(String.format("& %s & {\\hspace{-0.25em}%s}",
-            renderedValue.substring(0, index),
-            renderedValue.substring(index)));
+
+          if (index < 0) {
+            row.append("& n/a & ");
+          } else {
+            row.append(String.format("& %s & {\\hspace{-0.25em}%s}",
+              renderedValue.substring(0, index),
+              renderedValue.substring(index)));
+          }
         }));
 
       row.append("\\\\\n");
@@ -427,7 +638,7 @@ class TranslationReport {
         tableBuilder.append("\\\\\n");
         rowsPrinted = rowsPrinted + 1;
 
-        if (rowsPrinted == 30) {
+        if (rowsPrinted == 60) {
           tableBuilder.append(tableFooter(false, sortedSet.size() - lines));
           rowsPrinted = 0;
           tableBuilder.append(tableHeader());
@@ -478,13 +689,28 @@ class TranslationReport {
           .collect(Collectors.joining("@{\\hspace{1.5\\tabcolsep}}")))
         .collect(Collectors.joining("|")));
       header.append("X}\n");
-      header.append("    \\rot{LTL}");
+
+      if (rotateHeader) {
+        header.append("    \\rot{LTL}");
+      } else {
+        header.append("    LTL");
+      }
 
       for (List<String> group : this.tableHeader) {
         for (String translator : group) {
-          header.append("& \\rotTwo{");
+          if (rotateHeader) {
+            header.append("& \\rotTwo{");
+          } else {
+            header.append("& ");
+          }
+
           header.append(readableTranslatorNames.getOrDefault(translator, translator));
-          header.append("} ");
+
+          if (rotateHeader) {
+            header.append("} ");
+          } else {
+            header.append(" & ");
+          }
         }
       }
 
