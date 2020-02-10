@@ -25,7 +25,7 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.Environment;
@@ -51,8 +51,8 @@ public final class LTL2DGRAModule {
       RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
       boolean useSymmetric = configuration == null;
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
-      return Transformer.of(LabelledFormula.class,
-        translation(environment, useSymmetric, usePortfolio, configuration));
+      return OwlModule.LabelledFormulaTransformer
+        .of(translation(environment, useSymmetric, usePortfolio, configuration));
     });
 
   private LTL2DGRAModule() {}

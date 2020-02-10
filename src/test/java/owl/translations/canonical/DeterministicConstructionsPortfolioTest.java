@@ -45,7 +45,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.output.HoaPrinter;
+import owl.automaton.hoa.HoaWriter;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -79,7 +79,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
       var automaton = coSafety(environment, labelledFormula);
-      assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
+      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
       assertThat(automaton.acceptance(), BuchiAcceptance.class::isInstance);
@@ -109,7 +109,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
       var automaton = fgSafety(environment, labelledFormula, false);
-      assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
+      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isTrue()));
@@ -145,7 +145,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
       var automaton = safetyCoSafety(environment, labelledFormula);
-      assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
+      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(
         y -> y.all().isFalse() || y.rejecting().isFalse()));
@@ -181,7 +181,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
       var automaton = gfCoSafety(environment, labelledFormula, false);
-      assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
+      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isTrue()));
@@ -217,7 +217,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
       var automaton = safety(environment, labelledFormula);
-      assertEquals(expectedSize, automaton.size(), () -> HoaPrinter.toString(automaton));
+      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
       assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);

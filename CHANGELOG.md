@@ -43,6 +43,8 @@ API:
   possible by major performance improvements in the EquivalenceClass
   implementation.
 
+* Various API simplifications in the automata package.
+
 Bugfixes:
 
 * Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions.

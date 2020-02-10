@@ -28,7 +28,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import owl.automaton.Automaton;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.collections.ValuationSet;
 import owl.ltl.EquivalenceClass;
 

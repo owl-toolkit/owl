@@ -20,6 +20,7 @@
 package owl.automaton;
 
 import com.google.common.collect.Iterables;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -75,6 +76,12 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    */
   A acceptance();
 
+  /**
+   * Returns the backing engine for the symbolic representation of edges. Only this engine might be
+   * used for the access to edges.
+   *
+   * @return The symbolic engine used to generate ValuationSets.
+   */
   ValuationSetFactory factory();
 
 
@@ -178,7 +185,27 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return The set of edges originating from {@code state}
    */
-  Set<Edge<S>> edges(S state);
+  default Set<Edge<S>> edges(S state) {
+    switch (preferredEdgeAccess().get(0)) {
+      case EDGES:
+        var edges = new HashSet<Edge<S>>();
+
+        for (BitSet valuation : BitSets.powerSet(factory().alphabetSize())) {
+          edges.addAll(edges(state, valuation));
+        }
+
+        return edges;
+
+      case EDGE_TREE:
+        return edgeTree(state).values();
+
+      case EDGE_MAP:
+        return edgeMap(state).keySet();
+
+      default:
+        throw new AssertionError("Unreachable.");
+    }
+  }
 
   // Transition function - Symbolic versions
 
@@ -317,7 +344,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    * outgoing edges of a state. This information is also used to dispatch to the right visitor
    * style.
    *
-   * @return An ordered list of the traversal methods. It always contains a complete list
+   * @return An ordered list of the traversal methods. The returned list is always complete.
    */
   List<PreferredEdgeAccess> preferredEdgeAccess();
 

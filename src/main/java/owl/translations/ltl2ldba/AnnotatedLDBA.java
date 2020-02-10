@@ -28,13 +28,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.Automaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.collections.Either;
 import owl.collections.ValuationTree;
@@ -139,7 +139,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
   }
 
   public MutableAutomaton<Either<S, T>, B> copyAsMutable() {
-    var mutableAutomaton = MutableAutomatonFactory.copy(new AutomatonView());
+    var mutableAutomaton = HashMapAutomaton.copyOf(new AutomatonView());
     AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
     return mutableAutomaton;
   }

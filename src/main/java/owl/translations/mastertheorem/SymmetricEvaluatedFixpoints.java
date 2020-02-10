@@ -267,14 +267,14 @@ public final class SymmetricEvaluatedFixpoints
 
   // Automata Classes
 
-  public DeterministicAutomata deterministicAutomata(
-    Factories factories, boolean unfold, boolean generalized) {
+  public DeterministicAutomata deterministicAutomata(Factories factories, boolean generalized) {
+    var safetyAutomaton = DeterministicConstructions.Safety.of(factories,
+      Conjunction.of(almostAlways.stream().map(Formula.UnaryTemporalOperator::operand)));
 
-    var safetyAutomaton = new DeterministicConstructions.Safety(
-      factories, unfold, Conjunction.of(almostAlways.stream().map(x -> x.operand())));
-
-    var gfCoSafetyAutomaton = infinitelyOften.isEmpty() ? null : new DeterministicConstructions
-      .GfCoSafety(factories, unfold, new TreeSet<>(infinitelyOften), generalized);
+    var gfCoSafetyAutomaton = infinitelyOften.isEmpty()
+      ? null
+      : DeterministicConstructions.GfCoSafety
+        .of(factories, new TreeSet<>(infinitelyOften), generalized);
 
     assert !safetyAutomaton.onlyInitialState().isFalse();
     return new DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
@@ -283,11 +283,13 @@ public final class SymmetricEvaluatedFixpoints
   public NonDeterministicAutomata nonDeterministicAutomata(
     Factories factories, boolean generalized) {
 
-    var safetyAutomaton = new NonDeterministicConstructions.Safety(
-      factories, Conjunction.of(almostAlways.stream().map(x -> x.operand())));
+    var safetyAutomaton = NonDeterministicConstructions.Safety.of(factories,
+      Conjunction.of(almostAlways.stream().map(Formula.UnaryTemporalOperator::operand)));
 
-    var gfCoSafetyAutomaton = infinitelyOften.isEmpty() ? null : new NonDeterministicConstructions
-      .GfCoSafety(factories, new TreeSet<>(infinitelyOften), generalized);
+    var gfCoSafetyAutomaton = infinitelyOften.isEmpty()
+      ? null
+      : NonDeterministicConstructions.GfCoSafety
+        .of(factories, new TreeSet<>(infinitelyOften), generalized);
 
     return new NonDeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
   }

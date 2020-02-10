@@ -32,8 +32,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import owl.automaton.AbstractCachedStatesAutomaton;
-import owl.automaton.EdgeTreeAutomatonMixin;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -71,24 +70,16 @@ public final class NonDeterministicConstructions {
   }
 
   abstract static class Base<S, A extends OmegaAcceptance>
-    extends AbstractCachedStatesAutomaton<S, A>
-    implements EdgeTreeAutomatonMixin<S, A> {
+    extends AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<S, A> {
 
     final EquivalenceClassFactory factory;
     final ValuationSetFactory valuationSetFactory;
 
-    Base(Factories factories) {
+    Base(Factories factories, Set<S> initialStates, A acceptance) {
+      super(factories.vsFactory, initialStates, acceptance);
       this.factory = factories.eqFactory;
       this.valuationSetFactory = factories.vsFactory;
     }
-
-    @Override
-    public final ValuationSetFactory factory() {
-      return valuationSetFactory;
-    }
-
-    @Override
-    public abstract Set<S> initialStates();
 
     @Override
     public abstract Set<Edge<S>> edges(S state, BitSet valuation);
@@ -102,19 +93,30 @@ public final class NonDeterministicConstructions {
 
     <T> Set<T> successorsInternal(Formula state, BitSet valuation,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      return mapper.apply(toCompactDnf(unfoldWithSuspension(state).temporalStep(valuation)));
+      return successorsInternal(state, valuation, mapper, factory);
+    }
+
+    static <T> Set<T> successorsInternal(Formula state, BitSet valuation,
+      Function<? super Set<Formula>, ? extends Set<T>> mapper, EquivalenceClassFactory factory) {
+      return mapper.apply(toCompactDnf(unfoldWithSuspension(state).temporalStep(valuation),
+        factory));
     }
 
     <T> ValuationTree<T> successorTreeInternal(Formula state,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      var clazz = factory.of(unfoldWithSuspension(state));
-      return clazz.temporalStepTree(x -> mapper.apply(toCompactDnf(x.representative())));
+      return successorTreeInternal(state, mapper, factory);
     }
 
-    Set<Formula> toCompactDnf(Formula formula) {
+    static <T> ValuationTree<T> successorTreeInternal(Formula state,
+      Function<? super Set<Formula>, ? extends Set<T>> mapper, EquivalenceClassFactory factory) {
+      var clazz = factory.of(unfoldWithSuspension(state));
+      return clazz.temporalStepTree(x -> mapper.apply(toCompactDnf(x.representative(), factory)));
+    }
+
+    static Set<Formula> toCompactDnf(Formula formula, EquivalenceClassFactory factory) {
       if (formula instanceof Disjunction) {
         var dnf = formula.operands.stream()
-          .flatMap(x -> toCompactDnf(x).stream()).collect(Collectors.toSet());
+          .flatMap(x -> toCompactDnf(x, factory).stream()).collect(Collectors.toSet());
 
         var finiteLtl = new HashSet<Formula>();
         dnf.removeIf(x -> {
@@ -168,7 +170,7 @@ public final class NonDeterministicConstructions {
 
       Set<Set<Formula>> compactDnf = NormalForms.toDnf(formula, syntheticLiteralFactory)
         .stream()
-        .flatMap(this::compact)
+        .flatMap(x -> compact(x, factory))
         .collect(Collectors.toSet());
 
       // TODO: Here changes from dissertation
@@ -179,7 +181,8 @@ public final class NonDeterministicConstructions {
       return compactDnf.stream().map(Conjunction::of).collect(Collectors.toSet());
     }
 
-    private Stream<Set<Formula>> compact(Set<Formula> clause) {
+    private static Stream<Set<Formula>> compact(Set<Formula> clause,
+      EquivalenceClassFactory factory) {
       EquivalenceClass clauseClazz = factory.of(Conjunction.of(clause).unfold());
 
       if (clauseClazz.isTrue()) {
@@ -307,8 +310,8 @@ public final class NonDeterministicConstructions {
   }
 
   private abstract static class Terminal<A extends OmegaAcceptance> extends Base<Formula, A> {
-    private Terminal(Factories factories) {
-      super(factories);
+    private Terminal(Factories factories, Set<Formula> initialStates, A acceptance) {
+      super(factories, initialStates, acceptance);
     }
 
     Set<Edge<Formula>> successorToEdge(Set<Formula> successors) {
@@ -322,16 +325,8 @@ public final class NonDeterministicConstructions {
 
   // These automata are not looping in the initial state.
   private abstract static class NonLooping<A extends OmegaAcceptance> extends Terminal<A> {
-    protected final Formula formula;
-
-    private NonLooping(Factories factories, Formula formula) {
-      super(factories);
-      this.formula = formula;
-    }
-
-    @Override
-    public final Set<Formula> initialStates() {
-      return toCompactDnf(formula);
+    private NonLooping(Factories factories, Formula formula, A acceptance) {
+      super(factories, toCompactDnf(formula, factories.eqFactory), acceptance);
     }
 
     @Override
@@ -346,14 +341,13 @@ public final class NonDeterministicConstructions {
   }
 
   public static final class CoSafety extends NonLooping<BuchiAcceptance> {
-    public CoSafety(Factories factories, Formula formula) {
-      super(factories, formula);
-      Preconditions.checkArgument(SyntacticFragments.isCoSafety(formula));
+    private CoSafety(Factories factories, Formula formula) {
+      super(factories, formula, BuchiAcceptance.INSTANCE);
     }
 
-    @Override
-    public BuchiAcceptance acceptance() {
-      return BuchiAcceptance.INSTANCE;
+    public static CoSafety of(Factories factories, Formula formula) {
+      Preconditions.checkArgument(SyntacticFragments.isCoSafety(formula));
+      return new CoSafety(factories, formula);
     }
 
     @Override
@@ -365,14 +359,16 @@ public final class NonDeterministicConstructions {
   }
 
   public static final class Safety extends NonLooping<AllAcceptance> {
-    public Safety(Factories factories, Formula formula) {
-      super(factories, formula);
-      Preconditions.checkArgument(SyntacticFragments.isSafety(formula));
+    private final Formula initialFormula;
+
+    private Safety(Factories factories, Formula formula) {
+      super(factories, formula, AllAcceptance.INSTANCE);
+      this.initialFormula = formula;
     }
 
-    @Override
-    public AllAcceptance acceptance() {
-      return AllAcceptance.INSTANCE;
+    public static Safety of(Factories factories, Formula formula) {
+      Preconditions.checkArgument(SyntacticFragments.isSafety(formula));
+      return new Safety(factories, formula);
     }
 
     @Override
@@ -382,18 +378,13 @@ public final class NonDeterministicConstructions {
 
     // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
     public Set<Formula> initialStatesWithRemainder(Formula remainder) {
-      return toCompactDnf(Conjunction.of(formula, remainder));
+      return toCompactDnf(Conjunction.of(initialFormula, remainder), factory);
     }
   }
 
   public static final class Tracking extends NonLooping<AllAcceptance> {
     public Tracking(Factories factories, Formula formula) {
-      super(factories, formula);
-    }
-
-    @Override
-    public AllAcceptance acceptance() {
-      return AllAcceptance.INSTANCE;
+      super(factories, formula, AllAcceptance.INSTANCE);
     }
 
     @Override
@@ -406,22 +397,16 @@ public final class NonDeterministicConstructions {
     private final FOperator initialState;
     private final ValuationTree<Formula> initialStateSuccessorTree;
 
-    public FgSafety(Factories factories, Formula formula) {
-      super(factories);
-      Preconditions.checkArgument(SyntacticFragments.isFgSafety(formula));
-      this.initialState = (FOperator) formula;
+    private FgSafety(Factories factories, FOperator formula) {
+      super(factories, Set.of(formula), BuchiAcceptance.INSTANCE);
+      this.initialState = formula;
       this.initialStateSuccessorTree
         = successorTreeInternal(initialState.operand(), Function.identity());
     }
 
-    @Override
-    public BuchiAcceptance acceptance() {
-      return BuchiAcceptance.INSTANCE;
-    }
-
-    @Override
-    public Set<Formula> initialStates() {
-      return Set.of(initialState);
+    public static FgSafety of(Factories factories, Formula formula) {
+      Preconditions.checkArgument(SyntacticFragments.isFgSafety(formula));
+      return new FgSafety(factories, (FOperator) formula);
     }
 
     @Override
@@ -455,14 +440,21 @@ public final class NonDeterministicConstructions {
   public static final class GfCoSafety
     extends Base<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> {
 
-    private final GeneralizedBuchiAcceptance acceptance;
-    private final RoundRobinState<Formula> initialState;
+    private final RoundRobinState<Formula> fallbackInitialState;
     private final ValuationTree<Util.Pair<List<RoundRobinState<Formula>>, BitSet>>
       initialStatesSuccessorTree;
 
-    public GfCoSafety(Factories factories, Set<? extends Formula> formulas, boolean generalized) {
-      super(factories);
+    private GfCoSafety(Factories factories, Set<RoundRobinState<Formula>> initialState,
+      RoundRobinState<Formula> fallbackInitialState,
+      ValuationTree<Util.Pair<List<RoundRobinState<Formula>>, BitSet>> tree,
+      GeneralizedBuchiAcceptance acceptance) {
+      super(factories, initialState, acceptance);
+      this.fallbackInitialState = fallbackInitialState;
+      this.initialStatesSuccessorTree = tree;
+    }
 
+    public static GfCoSafety of(Factories factories, Set<? extends Formula> formulas,
+      boolean generalized) {
       Preconditions.checkArgument(!formulas.isEmpty());
 
       List<FOperator> automata = new ArrayList<>();
@@ -491,7 +483,7 @@ public final class NonDeterministicConstructions {
       }
 
       // Iteratively build common edge-tree.
-      var initialStatesSuccessorTree
+      var initialStatesSuccessorTreeTemp
         = ValuationTree.of(Set.of(List.<RoundRobinState<Formula>>of()));
 
       for (int i = 0; i < automata.size(); i++) {
@@ -502,57 +494,63 @@ public final class NonDeterministicConstructions {
             Set<RoundRobinState<Formula>> set = new HashSet<>();
             x.forEach(y -> set.add(RoundRobinState.of(j, y)));
             return Set.copyOf(set);
-          });
-        initialStatesSuccessorTree = cartesianProduct(
-          initialStatesSuccessorTree,
+          }, factories.eqFactory);
+        initialStatesSuccessorTreeTemp = cartesianProduct(
+          initialStatesSuccessorTreeTemp,
           initialStateSuccessorTree,
           Collections3::add);
       }
 
-      this.acceptance = GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1);
-      this.initialState = RoundRobinState.of(0, automata.get(0));
-      this.initialStatesSuccessorTree = cartesianProduct(
-        initialStatesSuccessorTree,
+      var initialStatesSuccessorTree = cartesianProduct(
+        initialStatesSuccessorTreeTemp,
         Util.singleStepTree(singletonAutomata),
         (x, y) -> Util.Pair.of(List.copyOf(x), y));
-    }
 
-    @Override
-    public GeneralizedBuchiAcceptance acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public Set<RoundRobinState<Formula>> initialStates() {
+      RoundRobinState<Formula> fallbackInitialState = RoundRobinState.of(0, automata.get(0));
       // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
       // performing a single step.
-      return Edges.successors(edges(initialState, new BitSet()));
+      Set<RoundRobinState<Formula>> initialStates = Edges.successors(
+        edges(fallbackInitialState, new BitSet(), factories.eqFactory, initialStatesSuccessorTree,
+          fallbackInitialState));
+
+      return new GfCoSafety(factories, initialStates, fallbackInitialState,
+        initialStatesSuccessorTree,
+        GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1));
     }
 
     @Override
     public Set<Edge<RoundRobinState<Formula>>> edges(
       RoundRobinState<Formula> state, BitSet valuation) {
-
-      Set<Edge<RoundRobinState<Formula>>> edges = new HashSet<>();
-
-      for (Formula leftSet : successorsInternal(state.state(), valuation, Function.identity())) {
-        for (var rightSet : initialStatesSuccessorTree.get(valuation)) {
-          edges.add(buildEdge(state.index(), leftSet, rightSet));
-        }
-      }
-
-      return edges;
+      return edges(state, valuation, factory, initialStatesSuccessorTree, fallbackInitialState);
     }
 
     @Override
     public ValuationTree<Edge<RoundRobinState<Formula>>> edgeTree(RoundRobinState<Formula> state) {
       var successorTree = successorTreeInternal(state.state(), Function.identity());
       return cartesianProduct(successorTree, initialStatesSuccessorTree,
-        (x, y) -> buildEdge(state.index(), x, y));
+        (x, y) -> buildEdge(state.index(), x, y, fallbackInitialState));
     }
 
-    private Edge<RoundRobinState<Formula>> buildEdge(int index, Formula successor,
-      Util.Pair<List<RoundRobinState<Formula>>, BitSet> initialStateSuccessors) {
+    private static Set<Edge<RoundRobinState<Formula>>> edges(
+      RoundRobinState<Formula> state, BitSet valuation, EquivalenceClassFactory factory,
+      ValuationTree<Util.Pair<List<RoundRobinState<Formula>>, BitSet>> initialStatesSuccessorTree,
+      RoundRobinState<Formula> fallbackInitialState) {
+
+      Set<Edge<RoundRobinState<Formula>>> edges = new HashSet<>();
+
+      for (Formula leftSet
+        : successorsInternal(state.state(), valuation, Function.identity(), factory)) {
+        for (var rightSet : initialStatesSuccessorTree.get(valuation)) {
+          edges.add(buildEdge(state.index(), leftSet, rightSet, fallbackInitialState));
+        }
+      }
+
+      return edges;
+    }
+
+    private static Edge<RoundRobinState<Formula>> buildEdge(int index, Formula successor,
+      Util.Pair<List<RoundRobinState<Formula>>, BitSet> initialStateSuccessors,
+      RoundRobinState<Formula> fallbackInitialState) {
 
       if (!BooleanConstant.TRUE.equals(successor)) {
         return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.b());
@@ -580,7 +578,7 @@ public final class NonDeterministicConstructions {
       }
 
       // Everything was accepting. Just go to the initial state with index 0.
-      return Edge.of(initialState, acceptance);
+      return Edge.of(fallbackInitialState, acceptance);
     }
   }
 }

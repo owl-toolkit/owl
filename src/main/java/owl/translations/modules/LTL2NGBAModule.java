@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.Environment;
@@ -43,7 +43,7 @@ public final class LTL2NGBAModule {
     "Translate LTL to non-deterministic generalized-Büchi automata. "
       + "The construction is based on the symmetric approach from [EKS: LICS'18].",
     AbstractLTL2PortfolioModule.disablePortfolio(),
-    (commandLine, environment) -> Transformer.of(LabelledFormula.class,
+    (commandLine, environment) -> OwlModule.LabelledFormulaTransformer.of(
       translation(environment, AbstractLTL2PortfolioModule.usePortfolio(commandLine)))
   );
 

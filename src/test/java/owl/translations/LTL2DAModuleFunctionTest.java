@@ -29,7 +29,7 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.algorithms.LanguageEmptiness;
+import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.edge.Edge;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;

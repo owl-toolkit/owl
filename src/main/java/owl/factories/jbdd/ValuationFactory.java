@@ -38,7 +38,6 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
-@Deprecated(since = "19.06.03")
 final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuationSet>
   implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
@@ -94,12 +93,6 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
   @Override
   public ValuationSet complement(ValuationSet set) {
     return create(bdd.not(getNode(set)));
-  }
-
-
-  @Override
-  public BitSet any(ValuationSet set) {
-    return bdd.getSatisfyingAssignment(getNode(set));
   }
 
   @Override

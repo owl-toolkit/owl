@@ -19,6 +19,7 @@
 
 package owl.game.algorithms;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static owl.game.Game.Owner.PLAYER_1;
 import static owl.game.Game.Owner.PLAYER_2;
 
@@ -38,12 +39,15 @@ public final class ParityGameSolver {
   public static final OwlModule<OwlModule.Transformer> ZIELONKA_SOLVER = OwlModule.of(
     "zielonka",
     "Solves a game using Zielonka's algorithm",
-    (commandLine, environment) -> OwlModule.Transformer.of(Game.class, x -> {
+    (commandLine, environment) -> object -> {
+      checkArgument(object instanceof Game,
+        "Expected type %s, got type %s", Game.class, object.getClass());
+      Game x = (Game) object;
       WinningRegions<?> winning = recursiveZielonka(x);
       return winning.player2.contains(x.onlyInitialState())
         ? "The specification is REALISABLE"
         : "The specification is UNREALISABLE";
-    }));
+    });
 
   private ParityGameSolver() {}
 

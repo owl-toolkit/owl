@@ -40,18 +40,20 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaPrinter;
+import owl.automaton.hoa.HoaWriter;
 import owl.collections.Collections3;
+import owl.collections.ValuationSet;
 
 /**
  * Constructs the IAR parity automaton from the given Rabin automaton SCC.
@@ -82,7 +84,7 @@ final class SccIARBuilder<R> {
     iarStates = HashBasedTable.create(rabinAutomaton.size(),
       rabinAutomaton.size() * trackedPairs.size());
     indexToPair = trackedPairs.toArray(RabinPair[]::new);
-    this.resultAutomaton = MutableAutomatonFactory.create(new ParityAcceptance(0, Parity.MIN_ODD),
+    this.resultAutomaton = HashMapAutomaton.of(new ParityAcceptance(0, Parity.MIN_ODD),
       rabinAutomaton.factory());
   }
 
@@ -96,12 +98,18 @@ final class SccIARBuilder<R> {
 
     // Compute the successors of the current state
     // Iterate over each edge
-    var sourceAutomaton = AutomatonFactory.create(resultAutomaton.factory(), initialStates,
-      resultAutomaton.acceptance(), (IARState<R> state) ->
-        Collections3.transformMap(rabinAutomaton.edgeMap(state.state()),
-        x -> computeSuccessorEdge(state.record(), x)));
 
-    MutableAutomatonFactory.copy(sourceAutomaton, resultAutomaton);
+    var sourceAutomaton = new AbstractImmutableAutomaton.NonDeterministicEdgeMapAutomaton<>(
+      resultAutomaton.factory(), initialStates, resultAutomaton.acceptance()) {
+
+      @Override
+      public Map<Edge<IARState<R>>, ValuationSet> edgeMap(IARState<R> state1) {
+        return Collections3.transformMap(rabinAutomaton.edgeMap(state1.state()),
+          x1 -> computeSuccessorEdge(state1.record(), x1));
+      }
+    };
+
+    MutableAutomatonUtil.copyInto(sourceAutomaton, resultAutomaton);
 
     assert checkGeneratedStates();
 
@@ -330,7 +338,7 @@ final class SccIARBuilder<R> {
       });
       logger.log(Level.FINEST, stringBuilder.toString());
       logger.log(Level.FINEST, "Automaton before refinement:\n{0}",
-        HoaPrinter.toString(resultAutomaton));
+        HoaWriter.toString(resultAutomaton));
     }
 
     // Update initial states, for each initial state, pick its refinement (if there is any)
@@ -358,6 +366,6 @@ final class SccIARBuilder<R> {
     resultAutomaton.trim();
 
     logger.log(Level.FINEST, () -> String.format("Automaton after refinement:%n%s",
-      HoaPrinter.toString(resultAutomaton)));
+      HoaWriter.toString(resultAutomaton)));
   }
 }

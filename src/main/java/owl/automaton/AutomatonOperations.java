@@ -30,6 +30,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -115,7 +116,14 @@ public final class AutomatonOperations {
     }
 
     ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::factory));
-    return AutomatonFactory.create(factory, builder.init(), acceptance, builder::successor);
+    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(factory,
+      Set.of(builder.init()), acceptance) {
+
+      @Override
+      public Edge<List<S>> edge(List<S> state, BitSet valuation) {
+        return builder.successor(state, valuation);
+      }
+    };
   }
 
   public static <S> Automaton<List<S>, BuchiAcceptance> union(
@@ -127,8 +135,14 @@ public final class AutomatonOperations {
     ValuationSetFactory factory = sharedAlphabet(automata.stream().map(Automaton::factory));
     builder.buchi.addAll(automata);
 
-    return AutomatonFactory.create(factory, builder.init(), BuchiAcceptance.INSTANCE,
-      builder::successor);
+    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(factory,
+      Set.of(builder.init()), BuchiAcceptance.INSTANCE) {
+
+      @Override
+      public Edge<List<S>> edge(List<S> state, BitSet valuation) {
+        return builder.successor(state, valuation);
+      }
+    };
   }
 
   private static final class ListAutomatonBuilder<S> {

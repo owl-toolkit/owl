@@ -25,6 +25,7 @@ import de.tum.in.naturals.bitset.BitSets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -83,8 +84,15 @@ class AutomatonTest {
     ValuationSetFactory factory = Environment.standard().factorySupplier()
       .getValuationSetFactory(List.of("a", "b"));
 
-    return Stream.of(Arguments.of(AutomatonFactory.create(factory, "x", AllAcceptance.INSTANCE,
-      x -> Map.of(Edge.of("x"), factory.universe(), Edge.of("y"), factory.of(0)))));
+    return Stream.of(Arguments.of(
+      new AbstractImmutableAutomaton.NonDeterministicEdgeMapAutomaton<>(factory, Set.of("x"),
+        AllAcceptance.INSTANCE) {
+
+        @Override
+        public Map<Edge<String>, ValuationSet> edgeMap(String state) {
+          return Map.of(Edge.of("x"), factory.universe(), Edge.of("y"), factory.of(0));
+        }
+      }));
   }
 
   @ParameterizedTest

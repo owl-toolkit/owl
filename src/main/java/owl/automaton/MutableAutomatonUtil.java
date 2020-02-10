@@ -19,6 +19,7 @@
 
 package owl.automaton;
 
+import java.util.BitSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -36,7 +37,7 @@ public final class MutableAutomatonUtil {
       return (MutableAutomaton<S, A>) automaton;
     }
 
-    return MutableAutomatonFactory.copy(automaton);
+    return HashMapAutomaton.copyOf(automaton);
   }
 
   /**
@@ -71,10 +72,42 @@ public final class MutableAutomatonUtil {
     return Optional.of(sinkState);
   }
 
+  public static <S> void copyInto(Automaton<S, ?> source, MutableAutomaton<S, ?> target) {
+    source.initialStates().forEach(target::addInitialState);
+    source.accept((Automaton.Visitor<S>) new CopyVisitor<>(target));
+    target.trim(); // Cannot depend on iteration order, thus we need to trim().
+    target.name(source.name());
+  }
+
   public static final class Sink {
     @Override
     public String toString() {
       return "Sink";
+    }
+  }
+
+  private static final class CopyVisitor<S>
+    implements Automaton.EdgeVisitor<S>, Automaton.EdgeMapVisitor<S> {
+
+    private final MutableAutomaton<S, ?> target;
+
+    private CopyVisitor(MutableAutomaton<S, ?> target) {
+      this.target = target;
+    }
+
+    @Override
+    public void visit(S state, BitSet valuation, Edge<S> edge) {
+      target.addEdge(state, valuation, edge);
+    }
+
+    @Override
+    public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
+      edgeMap.forEach((x, y) -> target.addEdge(state, y, x));
+    }
+
+    @Override
+    public void enter(S state) {
+      target.addState(state);
     }
   }
 }

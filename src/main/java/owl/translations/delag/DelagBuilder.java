@@ -34,8 +34,10 @@ import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import org.apache.commons.cli.Options;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.EmptyAutomaton;
+import owl.automaton.SingletonAutomaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
@@ -65,10 +67,10 @@ public class DelagBuilder
       String command = commandLine.getOptionValue("fallback");
 
       if (command == null) {
-        return Transformer.of(LabelledFormula.class, new DelagBuilder(environment));
+        return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder(environment));
       }
 
-      return Transformer.of(LabelledFormula.class, new DelagBuilder(environment,
+      return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder(environment,
         new ExternalTranslator(command, ExternalTranslator.InputMode.STDIN, environment)));
     });
 
@@ -102,12 +104,12 @@ public class DelagBuilder
     Factories factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
-      return AutomatonFactory.empty(factories.vsFactory,
+      return EmptyAutomaton.of(factories.vsFactory,
         new EmersonLeiAcceptance(0, new BooleanExpression<>(false)));
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
-      return AutomatonFactory.singleton(factories.vsFactory,
+      return SingletonAutomaton.of(factories.vsFactory,
         new State<>(),
         new EmersonLeiAcceptance(0, new BooleanExpression<>(true)),
         Set.of());
@@ -127,9 +129,13 @@ public class DelagBuilder
     State<Object> initialState = new State<>(initialProduct,
       getHistory(null, new BitSet(), initialProduct));
 
-    EmersonLeiAcceptance acceptance = new EmersonLeiAcceptance(sets, expression);
-    return AutomatonFactory.create(factories.vsFactory, initialState, acceptance,
-      (x, y) -> this.edge(tree, x, y));
+    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(factories.vsFactory,
+      Set.of(initialState), new EmersonLeiAcceptance(sets, expression)) {
+      @Override
+      public Edge<State<Object>> edge(State<Object> state, BitSet valuation) {
+        return DelagBuilder.this.edge(tree, state, valuation);
+      }
+    };
   }
 
   private History getHistory(@Nullable History past, BitSet present, ProductState<Object> state) {

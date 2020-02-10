@@ -35,11 +35,11 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.ToIntFunction;
+import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.edge.Edge;
-import owl.automaton.util.AnnotatedState;
 import owl.run.modules.OwlModule;
 
 public final class GameUtil {

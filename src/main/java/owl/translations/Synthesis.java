@@ -21,7 +21,7 @@ package owl.translations;
 
 import java.io.IOException;
 import java.util.List;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.game.GameViews;
 import owl.game.algorithms.ParityGameSolver;
 import owl.ltl.rewriter.SimplifierTransformer;

@@ -78,11 +78,6 @@ public final class GenericConstructions {
       }
 
       @Override
-      public Set<Edge<Either<Integer, S>>> edges(Either<Integer, S> state) {
-        return state.map(this::next, s -> lift(automaton.edges(s)));
-      }
-
-      @Override
       public Map<Edge<Either<Integer, S>>, ValuationSet> edgeMap(Either<Integer, S> state) {
         return state.map(this::nextMap, y -> lift(automaton.edgeMap(y)));
       }

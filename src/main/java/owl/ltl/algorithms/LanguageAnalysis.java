@@ -22,7 +22,7 @@ package owl.ltl.algorithms;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.algorithms.LanguageEmptiness;
+import owl.automaton.algorithm.LanguageEmptiness;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;

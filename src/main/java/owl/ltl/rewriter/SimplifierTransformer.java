@@ -19,8 +19,6 @@
 
 package owl.ltl.rewriter;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.cli.Option;
@@ -30,7 +28,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.run.modules.OwlModule;
 
-public final class SimplifierTransformer implements OwlModule.Transformer {
+public final class SimplifierTransformer implements OwlModule.LabelledFormulaTransformer {
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "simplify-ltl",
     "Rewrites / simplifies LTL formulas",
@@ -78,12 +76,13 @@ public final class SimplifierTransformer implements OwlModule.Transformer {
   }
 
   @Override
-  public Object transform(Object object) {
-    checkArgument(object instanceof LabelledFormula);
-    LabelledFormula result = (LabelledFormula) object;
+  public Object transform(LabelledFormula object) {
+    LabelledFormula result = object;
+
     for (Mode rewrite : rewrites) {
       result = SimplifierFactory.apply(result, rewrite);
     }
+
     return result;
   }
 }

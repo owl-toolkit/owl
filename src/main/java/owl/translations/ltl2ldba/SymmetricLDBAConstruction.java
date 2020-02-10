@@ -42,10 +42,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -113,7 +113,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     var evaluationMap = new HashMap<Fixpoints, Set<SymmetricEvaluatedFixpoints>>();
     var automataMap = new HashMap<SymmetricEvaluatedFixpoints, DeterministicAutomata>();
 
-    var factory = new DeterministicConstructions.Tracking(factories, true);
+    var factory = new DeterministicConstructions.Tracking(factories);
 
     // Compute initial state and available fixpoints.
     {
@@ -146,7 +146,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
               continue;
             }
 
-            var deterministicAutomata = evaluated.deterministicAutomata(factories, true,
+            var deterministicAutomata = evaluated.deterministicAutomata(factories,
               acceptanceClass.equals(GeneralizedBuchiAcceptance.class));
             automataMap.put(evaluated, deterministicAutomata);
 
@@ -195,8 +195,17 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         });
       };
 
-    var automaton = new ImplicitNonDeterministicEdgeTreeAutomaton<>(factories.vsFactory,
-      Collections3.ofNullable(initialState), AllAcceptance.INSTANCE, null, edgeTree);
+    var automaton = new AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<>(
+      factories.vsFactory,
+      Collections3.ofNullable(initialState),
+      AllAcceptance.INSTANCE) {
+
+      @Override
+      public ValuationTree<Edge<Map<Integer, EquivalenceClass>>> edgeTree(
+        Map<Integer, EquivalenceClass> state) {
+        return edgeTree.apply(state);
+      }
+    };
 
     Consumer<Map.Entry<Integer, EquivalenceClass>> jumpGenerator = entry -> {
       if (epsilonJumps.containsKey(entry)) {
@@ -282,7 +291,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         Collections3.maximalElements(jumps, (x, y) -> x.language().implies(y.language()))));
     };
 
-    var initialComponent = MutableAutomatonFactory.copy(automaton);
+    var initialComponent = HashMapAutomaton.copyOf(automaton);
     assert initialComponent.is(Automaton.Property.DETERMINISTIC);
     initialComponent.states().forEach(x -> x.entrySet().forEach(jumpGenerator));
     initialComponent.name("LTL to LDBA (symmetric) for formula: " + formula);
@@ -431,8 +440,15 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
     @Override
     public MutableAutomaton<SymmetricProductState, B> build() {
-      return MutableAutomatonFactory.copy(new ImplicitNonDeterministicEdgeTreeAutomaton<>(
-        factories.vsFactory, anchors, acceptance, null, this::edgeTree));
+      return HashMapAutomaton.copyOf(
+        new AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<>(
+          factories.vsFactory, Set.copyOf(anchors), acceptance) {
+
+          @Override
+          public ValuationTree<Edge<SymmetricProductState>> edgeTree(SymmetricProductState state) {
+            return AcceptingComponentBuilder.this.edgeTree(state);
+          }
+        });
     }
   }
 

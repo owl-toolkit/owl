@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 import jhoafparser.parser.generated.ParseException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
-import owl.automaton.AutomatonReader;
+import owl.automaton.hoa.HoaReader;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.run.PipelineException;
@@ -40,7 +40,7 @@ public final class InputReaders {
       + "necessary",
     (commandline, environment) -> (reader, callback, stopSignal) -> {
       try {
-        AutomatonReader.readHoaStream(
+        HoaReader.readStream(
           reader, environment.factorySupplier()::getValuationSetFactory, callback::accept);
       } catch (ParseException e) {
         throw new PipelineException("Failed to parse input automaton", e);

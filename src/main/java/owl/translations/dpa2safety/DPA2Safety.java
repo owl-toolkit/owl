@@ -22,10 +22,11 @@ package owl.translations.dpa2safety;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.BitSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.IntPredicate;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -77,8 +78,14 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       return Edge.of(new Counter<>(edge.successor(), counters));
     };
 
-    return AutomatonFactory.create(automaton.factory(), initialState, AllAcceptance.INSTANCE,
-      successor);
+    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+      automaton.factory(), Set.of(initialState), AllAcceptance.INSTANCE) {
+
+      @Override
+      public Edge<Counter<S>> edge(Counter<S> state, BitSet valuation) {
+        return successor.apply(state, valuation);
+      }
+    };
   }
 
   static final class Counter<X> {

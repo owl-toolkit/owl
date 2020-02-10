@@ -32,16 +32,16 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import javax.annotation.Nullable;
+import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AnnotatedStateOptimisation;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.util.AnnotatedStateOptimisation;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
@@ -82,8 +82,13 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
   public Automaton<SymmetricRankingState, R> apply(LabelledFormula formula) {
     var ldba = ldbaConstruction.apply(formula);
     var builder = new Builder(ldba);
-    var automaton = AutomatonFactory.<SymmetricRankingState, R>create(ldba.factory(),
-      Collections3.ofNullable(builder.initialState), builder.acceptance, builder::edge);
+    var automaton = new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(ldba.factory(),
+      Collections3.ofNullable(builder.initialState), builder.acceptance) {
+      @Override
+      public Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
+        return builder.edge(state, valuation);
+      }
+    };
     return optimizeInitialState
       ? AnnotatedStateOptimisation.optimizeInitialState(automaton)
       : automaton;

@@ -152,6 +152,12 @@
         },
         "ltl2da": "ltl2da",
         "ltl2na": "ltl2na",
+        "buchi-degen": {
+            "tools": [
+                "buchi-degen"
+            ],
+            "data": "M"
+        },
         "nba2ldba": {
             "tools": [
                 "spot-nba2ldba"

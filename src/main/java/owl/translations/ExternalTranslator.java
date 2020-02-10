@@ -42,8 +42,8 @@ import jhoafparser.parser.generated.ParseException;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonReader;
-import owl.automaton.AutomatonReader.HoaState;
+import owl.automaton.hoa.HoaReader;
+import owl.automaton.hoa.HoaReader.HoaState;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
 import owl.run.Environment;
@@ -80,7 +80,7 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
       }
 
       var translator = new ExternalTranslator(command, inputMode, environment);
-      return Transformer.of(LabelledFormula.class, translator);
+      return OwlModule.LabelledFormulaTransformer.of(translator);
     });
 
   private final List<String> command;
@@ -132,7 +132,7 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
       //noinspection NestedTryStatement
       try (Reader reader = new BufferedReader(
         new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
-        return AutomatonReader.readHoa(reader, atomicPropositions -> {
+        return HoaReader.read(reader, atomicPropositions -> {
           checkArgument(formula.atomicPropositions().containsAll(atomicPropositions));
           return environment.factorySupplier().getValuationSetFactory(formula.atomicPropositions());
         });

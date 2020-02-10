@@ -35,6 +35,11 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
+/**
+ * This class provides functionality to cast an automaton to an automaton with a more generic
+ * acceptance condition. This operation yields a on-the-fly generated view on the backing automaton.
+ * It is assumed that the backing automaton is not modified anymore after the cast.
+ */
 public final class OmegaAcceptanceCast {
 
   private static final Map<Class<? extends OmegaAcceptance>,
@@ -139,6 +144,21 @@ public final class OmegaAcceptanceCast {
 
   private OmegaAcceptanceCast() {}
 
+  /**
+   * Cast the given automaton to the given acceptance condition if possible. A conversion is
+   * considered possible if (trivial) rewriting of the acceptance condition is done and no
+   * changes to state space are necessary, e.g. a Büchi condition can be translated to a Rabin
+   * condition, but a Rabin condition (even only with a single pair) cannot be cast to parity
+   * acceptance condition.
+   *
+   * @param automaton The automaton. It is assumed that after calling this method the automaton is
+   *     not modified anymore.
+   * @param acceptanceClass The desired acceptance condition.
+   * @param <S> The state type.
+   * @param <A> The current acceptance type.
+   * @param <B> The desired acceptance type.
+   * @return A view on the given automaton with the necessary changes.
+   */
   public static <S, A extends OmegaAcceptance, B extends OmegaAcceptance> Automaton<S, B>
     cast(Automaton<S, A> automaton, Class<B> acceptanceClass) {
     var oldAcceptance = automaton.acceptance();
@@ -211,7 +231,7 @@ public final class OmegaAcceptanceCast {
     Function<A, OmegaAcceptance> cast = castMap(oldClass).get(newClass);
 
     if (cast == null) {
-      throw new ClassCastException(String.format("Cannot cast %s (%s) into %s.",
+      throw new ClassCastException(String.format("Cannot cast %s (%s) to %s.",
         oldClass.getSimpleName(), acceptance.booleanExpression(), newClass.getSimpleName()));
     }
 
