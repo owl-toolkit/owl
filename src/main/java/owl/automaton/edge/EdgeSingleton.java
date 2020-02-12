@@ -51,6 +51,15 @@ final class EdgeSingleton<S> extends Edge<S> {
   }
 
   @Override
+  public void forEachAcceptanceSet(java.util.function.IntConsumer action) {
+    Objects.requireNonNull(action);
+
+    if (hasAcceptanceSets()) {
+      action.accept(acceptance);
+    }
+  }
+
+  @Override
   public BitSet acceptanceSets() {
     BitSet bitSet = new BitSet();
 

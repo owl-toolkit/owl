@@ -56,6 +56,12 @@ final class EdgeLong<S> extends Edge<S> {
   }
 
   @Override
+  public void forEachAcceptanceSet(IntConsumer action) {
+    Objects.requireNonNull(action);
+    acceptanceSetIterator().forEachRemaining(action);
+  }
+
+  @Override
   public BitSet acceptanceSets() {
     BitSet bitSet = new BitSet();
     acceptanceSetIterator().forEachRemaining((IntConsumer) bitSet::set);
@@ -111,7 +117,7 @@ final class EdgeLong<S> extends Edge<S> {
   private static final class LongBitIterator implements PrimitiveIterator.OfInt {
     private long store;
 
-    LongBitIterator(long store) {
+    private LongBitIterator(long store) {
       this.store = store;
     }
 

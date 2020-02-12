@@ -24,16 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.common.collect.Maps;
-import com.google.common.math.BigIntegerMath;
 import de.tum.in.naturals.bitset.BitSets;
-import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
@@ -110,45 +105,5 @@ class AutomatonFactoryTest {
     );
   }
 
-  @Test
-  void testPermutation() {
-    int n = 8;
 
-    var initialState = IntStream.range(1, n + 1).boxed().collect(Collectors.toUnmodifiableList());
-
-    var automaton = new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
-      factory, Set.of(initialState), AllAcceptance.INSTANCE) {
-
-      @Override
-      public Edge<List<Integer>> edge(List<Integer> state, BitSet valuation) {
-        List<Integer> successor = new ArrayList<>();
-
-        if (valuation.get(0)) {
-          for (Integer index : state) {
-            int newIndex = index + 1;
-
-            if (newIndex > n) {
-              newIndex = 1;
-            }
-
-            successor.add(newIndex);
-          }
-        } else {
-          for (Integer index : state) {
-            if (index == 1) {
-              successor.add(2);
-            } else if (index == 2) {
-              successor.add(1);
-            } else {
-              successor.add(index);
-            }
-          }
-        }
-
-        return Edge.of(List.copyOf(successor));
-      }
-    };
-
-    assertEquals(BigIntegerMath.factorial(n), BigInteger.valueOf(automaton.size()));
-  }
 }

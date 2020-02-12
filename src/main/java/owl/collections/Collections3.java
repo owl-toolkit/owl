@@ -209,8 +209,7 @@ public final class Collections3 {
    *
    * @param elements the elements
    * @param isLessThan returns true is the first argument is less than the second argument. It is
-   *     only required that the order is transitive and anti-symmetric. The reflexive hull is added
-   *     automatically.
+   *     only required that the order is transitive. The reflexive hull is added automatically.
    * @param <E> the type
    * @return a sublist only containing maximal elements.
    */

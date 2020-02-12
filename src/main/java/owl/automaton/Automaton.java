@@ -53,7 +53,7 @@ import owl.factories.ValuationSetFactory;
  * that a state given as an argument is not reachable from the initial states. Note that this
  * behavior cannot be guaranteed, as it is, generally speaking, extremely expensive to check this
  * for on-the-fly constructed automata. Therefore, it would be wrong to write a program that
- * depended on this exception for its correctness: this should be only used to detect bugs.</p>
+ * depends on this exception for its correctness: this should be only used to detect bugs.</p>
  *
  * <p>Further, every state-related operation (e.g., {@link #successors(Object)}) should be unique,
  * while edge-related operations may yield duplicates.</p>

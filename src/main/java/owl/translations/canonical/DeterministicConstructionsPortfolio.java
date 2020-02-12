@@ -22,7 +22,7 @@ package owl.translations.canonical;
 import java.util.Optional;
 import java.util.Set;
 import owl.automaton.Automaton;
-import owl.automaton.Views;
+import owl.automaton.BooleanOperations;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -138,7 +138,8 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
   public static Automaton<RoundRobinState<EquivalenceClass>, GeneralizedCoBuchiAcceptance>
     fgSafety(Environment environment, LabelledFormula formula, boolean generalized) {
     var automaton = gfCoSafety(environment, formula.not(), generalized);
-    return Views.complement(automaton, null, GeneralizedCoBuchiAcceptance.class);
+    return BooleanOperations
+      .deterministicComplement(automaton, null, GeneralizedCoBuchiAcceptance.class);
   }
 
   public static Automaton<DeterministicConstructions.BreakpointStateAccepting, CoBuchiAcceptance>
