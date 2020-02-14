@@ -74,65 +74,99 @@ public final class Views {
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
 
-    var acceptance = completeAutomaton.acceptance();
+    OmegaAcceptance acceptance = completeAutomaton.acceptance();
+    OmegaAcceptance complementAcceptance = null;
 
     if (acceptance instanceof BuchiAcceptance) {
       checkArgument(isInstanceOf(CoBuchiAcceptance.class, expectedAcceptance));
-
-      var complement = new AutomatonView<>(completeAutomaton,
-        ViewSettings.<S, OmegaAcceptance>builder().acceptance(CoBuchiAcceptance.INSTANCE).build());
-      return cast(complement, expectedAcceptance);
-    }
-
-    if (acceptance instanceof CoBuchiAcceptance) {
+      complementAcceptance = CoBuchiAcceptance.INSTANCE;
+    } else if (acceptance instanceof CoBuchiAcceptance) {
       checkArgument(isInstanceOf(BuchiAcceptance.class, expectedAcceptance));
-
-      var complement = new AutomatonView<>(completeAutomaton,
-        ViewSettings.<S, OmegaAcceptance>builder().acceptance(BuchiAcceptance.INSTANCE).build());
-      return cast(complement, expectedAcceptance);
-    }
-
-    if (acceptance instanceof GeneralizedBuchiAcceptance) {
+      complementAcceptance = BuchiAcceptance.INSTANCE;
+    } else if (acceptance instanceof GeneralizedBuchiAcceptance) {
       checkArgument(isInstanceOf(GeneralizedCoBuchiAcceptance.class, expectedAcceptance));
-
-      var complementAcceptance
-        = GeneralizedCoBuchiAcceptance.of(((GeneralizedBuchiAcceptance) acceptance).size);
-      var complement = new AutomatonView<>(completeAutomaton,
-        ViewSettings.<S, OmegaAcceptance>builder().acceptance(complementAcceptance).build());
-      return cast(complement, expectedAcceptance);
-    }
-
-    if (acceptance instanceof GeneralizedCoBuchiAcceptance) {
+      var castedAcceptance = (GeneralizedBuchiAcceptance) acceptance;
+      complementAcceptance = GeneralizedCoBuchiAcceptance.of(castedAcceptance.size);
+    } else if (acceptance instanceof GeneralizedCoBuchiAcceptance) {
       checkArgument(isInstanceOf(GeneralizedBuchiAcceptance.class, expectedAcceptance));
-
-      var complementAcceptance
-        = GeneralizedBuchiAcceptance.of(((GeneralizedCoBuchiAcceptance) acceptance).size);
-      var complement = new AutomatonView<>(completeAutomaton,
-        ViewSettings.<S, OmegaAcceptance>builder().acceptance(complementAcceptance).build());
-      return cast(complement, expectedAcceptance);
-    }
-
-    if (acceptance instanceof ParityAcceptance) {
+      var castedAcceptance = (GeneralizedCoBuchiAcceptance) acceptance;
+      complementAcceptance = GeneralizedBuchiAcceptance.of(castedAcceptance.size);
+    } else if (acceptance instanceof ParityAcceptance) {
       checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
-
-      var complementAcceptance
-        = ((ParityAcceptance) automaton.acceptance()).complement();
-      var complement = new AutomatonView<>(completeAutomaton,
-        ViewSettings.<S, OmegaAcceptance>builder().acceptance(complementAcceptance).build());
-      return cast(complement, expectedAcceptance);
+      complementAcceptance = ((ParityAcceptance) automaton.acceptance()).complement();
     }
 
-    throw new UnsupportedOperationException();
+    if (complementAcceptance == null) {
+      throw new UnsupportedOperationException("Cannot complement to " + expectedAcceptance);
+    }
+
+    return cast(
+      new ReplacedAcceptanceConditionView<>(completeAutomaton, complementAcceptance),
+      expectedAcceptance);
+  }
+
+  private static class ReplacedAcceptanceConditionView<S, A extends OmegaAcceptance>
+    implements Automaton<S, A> {
+
+    private final A acceptance;
+    private final Automaton<S, ?> backingAutomaton;
+
+    private ReplacedAcceptanceConditionView(Automaton<S, ?> backingAutomaton, A acceptance) {
+      this.acceptance = acceptance;
+      this.backingAutomaton = backingAutomaton;
+    }
+
+    @Override
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
+      return backingAutomaton.edges(state, valuation);
+    }
+
+    @Override
+    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+      return backingAutomaton.edgeMap(state);
+    }
+
+    @Override
+    public ValuationTree<Edge<S>> edgeTree(S state) {
+      return backingAutomaton.edgeTree(state);
+    }
+
+    @Override
+    public List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return backingAutomaton.preferredEdgeAccess();
+    }
+
+    @Override
+    public A acceptance() {
+      return acceptance;
+    }
+
+    @Override
+    public ValuationSetFactory factory() {
+      return backingAutomaton.factory();
+    }
+
+    @Override
+    public Set<S> initialStates() {
+      return backingAutomaton.initialStates();
+    }
+
+    @Override
+    public Set<S> states() {
+      return backingAutomaton.states();
+    }
   }
 
   public static <S> Automaton<S, ?> complete(Automaton<S, ?> automaton, S trapState) {
-    OmegaAcceptance acceptance = automaton.acceptance();
+    var acceptance = automaton.acceptance();
 
+    // Patch acceptance, if necessary.
     if (acceptance instanceof AllAcceptance) {
-      return new Complete<>(automaton, Edge.of(trapState, 0), CoBuchiAcceptance.INSTANCE);
+      acceptance = CoBuchiAcceptance.INSTANCE;
     }
 
-    return new Complete<>(automaton, Edge.of(trapState, acceptance.rejectingSet()), acceptance);
+    var rejectingEdge = Edge.of(trapState, acceptance.rejectingSet());
+    return new Complete<>(automaton, rejectingEdge, acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<Set<S>, A> createPowerSetAutomaton(
@@ -149,42 +183,23 @@ public final class Views {
     };
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
-    Predicate<S> statePredicate) {
-    return createView(automaton, ViewSettings.<S, A>builder()
-      .stateFilter(statePredicate)
-      .build());
+  /**
+   * Create a filtered view on the passed automaton. The returned automaton only contains
+   * states that are reachable from the initial states. States can be protected from removal by
+   * marking them as initial. It is assumed that passed automaton is not changed.
+   *
+   * @param automaton the backing automaton
+   * @param filter the filter defined on the automaton
+   * @param <S> the type of the states
+   * @param <A> the type of
+   * @return a on-the-fly generated view on the automaton.
+   */
+  public static <S, A extends OmegaAcceptance> Automaton<S, A> filtered(
+    Automaton<S, A> automaton, Filter<S> filter) {
+    return new AutomatonView<>(automaton, filter);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
-    @Nullable Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
-    return createView(automaton, ViewSettings.<S, A>builder()
-      .edgeFilter((s, e) -> edgeFilter.test(e))
-      .stateFilter(states)
-      .build());
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
-    @Nullable Predicate<S> states, BiPredicate<S, Edge<S>> edgeFilter) {
-    return createView(automaton, ViewSettings.<S, A>builder()
-      .edgeFilter(edgeFilter)
-      .stateFilter(states)
-      .build());
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> replaceInitialState(
-    Automaton<S, A> automaton, Set<S> initialStates) {
-    return createView(automaton, ViewSettings.<S, A>builder()
-      .initialStates(Set.copyOf(initialStates))
-      .build());
-  }
-
-  static <S, A extends OmegaAcceptance> Automaton<S, A> createView(
-    Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
-    return new AutomatonView<>(automaton, settings);
-  }
-
-  static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
+  private static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
     implements Automaton<S, B> {
 
     private final Edge<S> sinkEdge;
@@ -323,10 +338,7 @@ public final class Views {
   }
 
   @AutoValue
-  abstract static class ViewSettings<S, A extends OmegaAcceptance> {
-    @Nullable
-    abstract A acceptance();
-
+  public abstract static class Filter<S> {
     @Nullable
     abstract Set<S> initialStates();
 
@@ -336,47 +348,102 @@ public final class Views {
     @Nullable
     abstract BiPredicate<S, Edge<S>> edgeFilter();
 
-    static <S, A extends OmegaAcceptance> Builder<S, A> builder() {
-      return new AutoValue_Views_ViewSettings.Builder<>();
+    public static <S> Builder<S> builder() {
+      return new AutoValue_Views_Filter.Builder<>();
+    }
+
+    public static <S> Filter<S> of(Set<S> initialStates) {
+      Builder<S> builder = builder();
+      return builder.initialStates(initialStates).build();
+    }
+
+    public static <S> Filter<S> of(Set<S> initialStates, Predicate<S> stateFilter) {
+      Builder<S> builder = builder();
+      return builder.initialStates(initialStates).stateFilter(stateFilter).build();
+    }
+
+    public static <S> Filter<S> of(Predicate<S> stateFilter) {
+      Builder<S> builder = builder();
+      return builder.stateFilter(stateFilter).build();
+    }
+
+    public static <S> Filter<S> of(Predicate<S> stateFilter, BiPredicate<S, Edge<S>> edgeFilter) {
+      Builder<S> builder = builder();
+      return builder.stateFilter(stateFilter).edgeFilter(edgeFilter).build();
     }
 
     @AutoValue.Builder
-    abstract static class Builder<S, A extends OmegaAcceptance> {
-      abstract Builder<S, A> acceptance(@Nullable A acceptance);
+    public abstract static class Builder<S> {
+      public abstract Builder<S> initialStates(@Nullable Set<S> initialStates);
 
-      abstract Builder<S, A> initialStates(@Nullable Set<S> initialStates);
+      public abstract Builder<S> stateFilter(@Nullable Predicate<S> filter);
 
-      abstract Builder<S, A> stateFilter(@Nullable Predicate<S> filter);
+      public abstract Builder<S> edgeFilter(@Nullable BiPredicate<S, Edge<S>> filter);
 
-      abstract Builder<S, A> edgeFilter(@Nullable BiPredicate<S, Edge<S>> filter);
-
-      abstract ViewSettings<S, A> build();
+      public abstract Filter<S> build();
     }
   }
 
-  public static final class AutomatonView<S, A extends OmegaAcceptance>
+  private static final class AutomatonView<S, A extends OmegaAcceptance>
     extends AbstractImmutableAutomaton<S, A> {
 
-    private final Automaton<S, ?> backingAutomaton;
-    private final ViewSettings<S, A> settings;
+    private final Automaton<S, A> backingAutomaton;
 
-    private AutomatonView(Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
+    @Nullable
+    private final Predicate<S> stateFilter;
+
+    @Nullable
+    private final BiPredicate<S, Edge<S>> edgeFilter;
+
+    private AutomatonView(Automaton<S, A> automaton, Filter<S> settings) {
       super(automaton.factory(),
         initialStates(automaton, settings),
-        acceptance(automaton, settings));
-      this.backingAutomaton = automaton;
-      this.settings = settings;
+        automaton.acceptance());
+
+      if (automaton instanceof AutomatonView) {
+        var castedAutomaton = (AutomatonView<S, A>) automaton;
+        this.backingAutomaton = castedAutomaton.backingAutomaton;
+        this.stateFilter = and(castedAutomaton.stateFilter, settings.stateFilter());
+        this.edgeFilter = and(castedAutomaton.edgeFilter, settings.edgeFilter());
+      } else {
+        this.backingAutomaton = automaton;
+        this.stateFilter = settings.stateFilter();
+        this.edgeFilter = settings.edgeFilter();
+      }
     }
 
-    @SuppressWarnings("unchecked")
-    private static <S, A extends OmegaAcceptance> A acceptance(
-      Automaton<S, ?> automaton, ViewSettings<S, A> settings) {
-      A acceptance = settings.acceptance();
-      return acceptance == null ? (A) automaton.acceptance() : acceptance;
+    @Nullable
+    static <T> Predicate<T> and(
+      @Nullable Predicate<T> predicate1,
+      @Nullable Predicate<T> predicate2) {
+      if (predicate1 == null) {
+        return predicate2;
+      }
+
+      if (predicate2 == null) {
+        return predicate1;
+      }
+
+      return predicate1.and(predicate2);
+    }
+
+    @Nullable
+    static <T, U> BiPredicate<T, U> and(
+      @Nullable BiPredicate<T, U> predicate1,
+      @Nullable BiPredicate<T, U> predicate2) {
+      if (predicate1 == null) {
+        return predicate2;
+      }
+
+      if (predicate2 == null) {
+        return predicate1;
+      }
+
+      return predicate1.and(predicate2);
     }
 
     private static <S> Set<S> initialStates(
-      Automaton<S, ?> automaton, ViewSettings<S, ?> settings) {
+      Automaton<S, ?> automaton, Filter<S> settings) {
       Set<S> initialStates = settings.initialStates();
 
       if (initialStates != null) {
@@ -393,17 +460,16 @@ public final class Views {
     }
 
     private boolean stateFilter(S state) {
-      var filter = settings.stateFilter();
-      return filter == null || filter.test(state);
+      return stateFilter == null || stateFilter.test(state);
     }
 
     private Predicate<Edge<S>> edgeFilter(S state) {
-      var filter = settings.edgeFilter();
-      return edge -> (filter == null || filter.test(state, edge)) && stateFilter(edge.successor());
+      return edge ->
+        (edgeFilter == null || edgeFilter.test(state, edge)) && stateFilter(edge.successor());
     }
 
     private boolean filterRequired() {
-      return settings.stateFilter() != null || settings.edgeFilter() != null;
+      return stateFilter != null || edgeFilter != null;
     }
 
     @Override

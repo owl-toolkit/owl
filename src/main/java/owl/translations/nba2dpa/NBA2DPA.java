@@ -108,9 +108,9 @@ public final class NBA2DPA
           @Override
           public Boolean load(Map.Entry<Set<S>, S> entry) {
             return LanguageContainment.contains(
-              Views.replaceInitialState(nba, Set.of(entry.getValue())),
+                Views.filtered(nba, Views.Filter.of(Set.of(entry.getValue()))),
               OmegaAcceptanceCast.cast(AutomatonOperations.union(entry.getKey().stream()
-                .map(x -> Views.replaceInitialState(nba, Set.of(x)))
+                .map(x -> Views.filtered(nba, Views.Filter.of(Set.of(x))))
                 .collect(Collectors.toList())), BuchiAcceptance.class));
           }
         });

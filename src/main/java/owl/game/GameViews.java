@@ -158,7 +158,8 @@ public final class GameViews {
     private final BiFunction<S, Owner, BitSet> choice;
 
     FilteredGame(Game<S, A> game, Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
-      this.filteredAutomaton = Views.filter(game, states, edgeFilter);
+      this.filteredAutomaton = Views
+          .filtered(game, Views.Filter.of(states, (s, e) -> edgeFilter.test(e)));
       this.ownership = game::owner;
       this.variableOwnership = game::variables;
       this.choice = game::choice;

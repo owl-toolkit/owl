@@ -171,17 +171,13 @@ public final class AutomatonUtil {
     Set<S> acceptingSccs = new HashSet<>();
 
     for (Set<S> scc : SccDecomposition.computeSccs(automaton)) {
-      var viewSettings = Views.ViewSettings.<S, B>builder()
-        .initialStates(Set.of(scc.iterator().next()))
-        .stateFilter(scc::contains)
-        .build();
-
-      if (!LanguageEmptiness.isEmpty(Views.createView(automaton, viewSettings))) {
+      if (!LanguageEmptiness.isEmpty(Views.filtered(automaton,
+        Views.Filter.of(Set.of(scc.iterator().next()), scc::contains)))) {
         acceptingSccs.addAll(scc);
       }
     }
 
-    var acceptingComponentAutomaton = Views.replaceInitialState(automaton, acceptingSccs);
+    var acceptingComponentAutomaton = Views.filtered(automaton, Views.Filter.of(acceptingSccs));
     if (!acceptingComponentAutomaton.is(Automaton.Property.SEMI_DETERMINISTIC)) {
       return Optional.empty();
     }
