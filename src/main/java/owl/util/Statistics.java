@@ -32,6 +32,10 @@ public final class Statistics {
   }
 
   public static double geometricMean(int... values) {
+    if (values.length == 0) {
+      return Double.NaN;
+    }
+
     var product = BigInteger.ONE;
 
     for (int value : values) {
@@ -42,6 +46,10 @@ public final class Statistics {
   }
 
   public static double median(int... values) {
+    if (values.length == 0) {
+      return Double.NaN;
+    }
+
     var valuesCopy = values.clone();
 
     Arrays.sort(valuesCopy);
@@ -55,6 +63,10 @@ public final class Statistics {
   }
 
   public static double standardDeviation(int... values) {
+    if (values.length == 0) {
+      return Double.NaN;
+    }
+
     return Stats.of(values).populationStandardDeviation();
   }
 }
