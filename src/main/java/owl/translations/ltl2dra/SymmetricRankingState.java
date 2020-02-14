@@ -24,7 +24,7 @@ import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Table;
 import java.util.Map;
-import owl.automaton.util.AnnotatedState;
+import owl.automaton.AnnotatedState;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;

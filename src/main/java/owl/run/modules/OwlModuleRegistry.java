@@ -24,10 +24,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+import owl.automaton.ParityUtil;
 import owl.automaton.Views;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.transformations.ParityUtil;
-import owl.automaton.transformations.RabinDegeneralization;
+import owl.automaton.acceptance.degeneralization.BuchiDegeneralization;
+import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.game.GameUtil;
 import owl.game.GameViews;
 import owl.game.algorithms.ParityGameSolver;
@@ -88,6 +89,7 @@ public class OwlModuleRegistry {
       SimplifierTransformer.MODULE,
       GameViews.AUTOMATON_TO_GAME_MODULE,
       AcceptanceOptimizations.MODULE,
+      BuchiDegeneralization.MODULE,
       RabinDegeneralization.MODULE,
       Views.COMPLETE_MODULE));
 

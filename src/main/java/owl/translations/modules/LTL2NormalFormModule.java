@@ -23,7 +23,6 @@ import java.io.IOException;
 import java.util.List;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -38,7 +37,7 @@ public final class LTL2NormalFormModule {
     "ltl2normalform",
     "Translate LTL to the Delta_2 normal-form.",
     options(),
-    (commandLine, environment) -> Transformer.of(LabelledFormula.class,
+    (commandLine, environment) -> OwlModule.LabelledFormulaTransformer.of(
       Normalisation.of(commandLine.hasOption("s"), commandLine.hasOption("d"), false)));
 
   private static Options options() {

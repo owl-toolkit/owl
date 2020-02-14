@@ -21,6 +21,7 @@ package owl.util;
 
 import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
+import java.util.concurrent.CompletionException;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
 import owl.run.Environment;
@@ -47,7 +48,7 @@ class ExternalTranslatorTest {
       ExternalTranslator tool = new ExternalTranslator(
         TOOL[0], ExternalTranslator.InputMode.STDIN, Environment.annotated());
       tool.apply(LtlParser.parse(FORMULA[0]));
-    } catch (IllegalStateException ex) {
+    } catch (IllegalStateException | CompletionException ex) {
       // Assumption is always violated now.
       assumeTrue(false);
     }

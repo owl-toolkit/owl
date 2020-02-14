@@ -22,7 +22,7 @@ package owl.translations.ltl2dpa;
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import java.util.List;
-import owl.automaton.util.AnnotatedState;
+import owl.automaton.AnnotatedState;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.translations.ltl2ldba.AsymmetricProductState;

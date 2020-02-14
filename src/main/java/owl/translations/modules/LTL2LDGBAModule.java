@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.function.Function;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.Environment;
@@ -49,8 +49,8 @@ public final class LTL2LDGBAModule {
     (commandLine, environment) -> {
       boolean useSymmetric = commandLine.hasOption(symmetric().getOpt());
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
-      return Transformer.of(LabelledFormula.class,
-        translation(environment, useSymmetric, usePortfolio));
+      return OwlModule.LabelledFormulaTransformer
+        .of(translation(environment, useSymmetric, usePortfolio));
     }
   );
 

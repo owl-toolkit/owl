@@ -182,6 +182,12 @@ DELAG:
 
 ## Automaton to Automaton
 
+BUCHI-DEGEN:
+  stage: test
+  variables:
+    TEST_NAME: "buchi-degen"
+  <<: *ltlcross_template
+
 NBA2LDBA:
   stage: test
   variables:

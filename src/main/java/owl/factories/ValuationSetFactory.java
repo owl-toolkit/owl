@@ -32,7 +32,6 @@ import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
-@Deprecated(since = "19.06.03")
 public interface ValuationSetFactory {
   List<String> alphabet();
 
@@ -85,8 +84,6 @@ public interface ValuationSetFactory {
   ValuationSet universe();
 
   ValuationSet complement(ValuationSet set);
-
-  BitSet any(ValuationSet set);
 
   boolean contains(ValuationSet set, BitSet valuation);
 

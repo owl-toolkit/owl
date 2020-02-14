@@ -66,8 +66,8 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.output.HoaPrinter;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.hoa.HoaWriter;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -494,13 +494,13 @@ class TranslationAutomatonSummaryTest {
     void test(Automaton<?, ?> automaton) {
       assertEquals(size, automaton.size(),
         () -> String.format("Expected %d states, got %d.\n%s",
-        size, automaton.size(), HoaPrinter.toString(automaton)));
+        size, automaton.size(), HoaWriter.toString(automaton)));
       assertEquals(initialStatesSize, automaton.initialStates().size(),
         () -> String.format("Expected %d intial states, got %d.\n%s",
-        initialStatesSize, automaton.initialStates().size(), HoaPrinter.toString(automaton)));
+        initialStatesSize, automaton.initialStates().size(), HoaWriter.toString(automaton)));
       assertEquals(acceptanceSets, automaton.acceptance().acceptanceSets(),
         () -> String.format("Expected %d acceptance sets, got %d.\n%s",
-        acceptanceSets, automaton.acceptance().acceptanceSets(), HoaPrinter.toString(automaton)));
+        acceptanceSets, automaton.acceptance().acceptanceSets(), HoaWriter.toString(automaton)));
       assertEquals(acceptanceName, automaton.acceptance().getClass().getSimpleName());
       assertEquals(deterministic, automaton.is(Automaton.Property.DETERMINISTIC));
       assertEquals(complete, automaton.is(Automaton.Property.COMPLETE));

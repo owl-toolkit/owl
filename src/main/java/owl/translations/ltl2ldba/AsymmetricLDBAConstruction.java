@@ -35,10 +35,10 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.ImplicitNonDeterministicEdgeTreeAutomaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -198,32 +198,36 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     };
 
     DeterministicConstructions.Tracking tracking
-      = new DeterministicConstructions.Tracking(factories, true);
+      = new DeterministicConstructions.Tracking(factories);
 
     BitSet bitSet = new BitSet();
     bitSet.set(0, acceptanceSets);
 
-    Function<EquivalenceClass, ValuationTree<Edge<EquivalenceClass>>>
-      edgeTree = state -> tracking.successorTree(state).map(successors -> {
-        var successor = Iterables.getOnlyElement(successors);
-
-        if (successor.isFalse()) {
-          return Set.of();
-        }
-
-        return Set.of(SyntacticFragments.isSafety(successor)
-          ? Edge.of(successor, bitSet)
-          : Edge.of(successor));
-      });
-
     Function<EquivalenceClass, Set<AsymmetricProductState>> jumpLookup
       = x -> jumps.getOrDefault(x, Set.of());
 
-    var automaton = new ImplicitNonDeterministicEdgeTreeAutomaton<>(
-      factories.vsFactory, initialState.isFalse() ? List.of() : List.of(initialState),
-      AllAcceptance.INSTANCE, null, edgeTree);
+    var automaton = new AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<>(
+      factories.vsFactory,
+      initialState.isFalse() ? Set.<EquivalenceClass>of() : Set.of(initialState),
+      AllAcceptance.INSTANCE) {
 
-    var initialComponent = MutableAutomatonFactory.copy(automaton);
+      @Override
+      public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
+        return tracking.successorTree(state).map(successors -> {
+          var successor = Iterables.getOnlyElement(successors);
+
+          if (successor.isFalse()) {
+            return Set.of();
+          }
+
+          return Set.of(SyntacticFragments.isSafety(successor)
+            ? Edge.of(successor, bitSet)
+            : Edge.of(successor));
+        });
+      }
+    };
+
+    var initialComponent = HashMapAutomaton.copyOf(automaton);
     assert initialComponent.is(Automaton.Property.DETERMINISTIC);
     initialComponent.states().forEach(jumpGenerator);
     initialComponent.name("LTL to LDBA (asymmetric) for formula: " + formula);
@@ -295,7 +299,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
     @Override
     public MutableAutomaton<AsymmetricProductState, B> build() {
-      return MutableAutomatonFactory.create(
+      return HashMapAutomaton.of(
         acceptanceClass.cast(GeneralizedBuchiAcceptance.of(acceptanceSets)),
         factories.vsFactory,
         anchors,

@@ -23,8 +23,7 @@ import static owl.run.modules.OwlModule.Transformer;
 
 import java.io.IOException;
 import java.util.List;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.ltl.LabelledFormula;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -38,7 +37,7 @@ public final class LTL2DAModule {
     "ltl2da",
     "Translate LTL to a (heuristically chosen) small deterministic automaton.",
     (commandLine, environment) ->
-      Transformer.of(LabelledFormula.class, new LTL2DAFunction(environment)));
+      OwlModule.LabelledFormulaTransformer.of(new LTL2DAFunction(environment)));
 
   private LTL2DAModule() {}
 

@@ -21,7 +21,7 @@ package owl.translations.dra2dpa;
 
 import com.google.auto.value.AutoValue;
 import de.tum.in.naturals.IntPreOrder;
-import owl.automaton.util.AnnotatedState;
+import owl.automaton.AnnotatedState;
 
 @AutoValue
 public abstract class IARState<R> implements AnnotatedState<R> {

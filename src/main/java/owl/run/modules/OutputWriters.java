@@ -35,9 +35,9 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.algorithms.SccDecomposition;
-import owl.automaton.output.HoaPrinter;
-import owl.automaton.output.HoaPrinter.HoaOption;
+import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.hoa.HoaWriter;
+import owl.automaton.hoa.HoaWriter.HoaOption;
 
 public final class OutputWriters {
   public static final OwlModule<OwlModule.OutputWriter> AUTOMATON_STATS_MODULE = OwlModule.of(
@@ -101,7 +101,7 @@ public final class OutputWriters {
 
       // Single line HOA
       Pattern.compile("%H", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> HoaPrinter.toString(automaton).replace('\n', ' '),
+      automaton -> HoaWriter.toString(automaton).replace('\n', ' '),
 
       // Name
       Pattern.compile("%M", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
@@ -149,7 +149,7 @@ public final class OutputWriters {
   }
 
   /**
-   * Converts any {@link HoaPrinter HOA printable} object to its corresponding <a
+   * Converts any {@link HoaWriter HOA printable} object to its corresponding <a
    * href="http://adl.github.io/hoaf/">HOA</a> representation.
    */
   public static class ToHoa implements OwlModule.OutputWriter {
@@ -178,7 +178,7 @@ public final class OutputWriters {
         options = EnumSet.noneOf(HoaOption.class);
       }
 
-      HoaPrinter.feedTo((Automaton<?, ?>) object, wrappedPrinter, options);
+      HoaWriter.write((Automaton<?, ?>) object, wrappedPrinter, options);
     }
   }
 

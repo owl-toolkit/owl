@@ -54,14 +54,14 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaPrinter;
+import owl.automaton.hoa.HoaWriter;
 import owl.collections.ValuationSet;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
@@ -257,13 +257,13 @@ public final class RabinizerBuilder {
       };*/
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
-      MutableAutomatonFactory.create(AllAcceptance.INSTANCE, vsFactory,
+      HashMapAutomaton.of(AllAcceptance.INSTANCE, vsFactory,
         Set.of(initialClass), masterStateFactory::getSuccessor,
         masterStateFactory::getClassSensitiveAlphabet);
 
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "Master automaton for {0}:\n{1}",
-        new Object[] {this.initialClass, HoaPrinter.toString(masterAutomaton)});
+        new Object[] {this.initialClass, HoaWriter.toString(masterAutomaton)});
     } else {
       logger.log(Level.FINE, "Master automaton for {0} has {1} states",
         new Object[] {this.initialClass, masterAutomaton.size()});
@@ -346,7 +346,7 @@ public final class RabinizerBuilder {
     }
 
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      MutableAutomatonFactory.create(builder.build(), vsFactory);
+      HashMapAutomaton.of(builder.build(), vsFactory);
 
     // Process each subset separately
     // TODO Parallel
@@ -542,7 +542,7 @@ public final class RabinizerBuilder {
     }
 
     logger.log(Level.FINER,
-      () -> String.format("Result:%n%s", HoaPrinter.toString(rabinizerAutomaton)));
+      () -> String.format("Result:%n%s", HoaWriter.toString(rabinizerAutomaton)));
     logger.log(Level.FINER, () -> printOperatorSets(activeSets));
 
     return rabinizerAutomaton;
@@ -563,10 +563,10 @@ public final class RabinizerBuilder {
 
     // Postprocessing and logging
     logger.log(Level.FINER,
-      () -> String.format("Monitor for %s:%n%s", gOperator, HoaPrinter.toString(monitor)));
+      () -> String.format("Monitor for %s:%n%s", gOperator, HoaWriter.toString(monitor)));
     if (logger.isLoggable(Level.FINEST)) {
       monitor.getAutomata().forEach((set, automaton) -> logger.log(Level.FINEST,
-        "For set {0}\n{1}", new Object[] {set, HoaPrinter.toString(automaton)}));
+        "For set {0}\n{1}", new Object[] {set, HoaWriter.toString(automaton)}));
     }
     return monitor;
   }

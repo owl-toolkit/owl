@@ -27,13 +27,13 @@ import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonReader;
 import owl.automaton.Views;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
-import owl.automaton.algorithms.LanguageEmptiness;
-import owl.automaton.output.HoaPrinter;
+import owl.automaton.algorithm.LanguageEmptiness;
+import owl.automaton.hoa.HoaReader;
+import owl.automaton.hoa.HoaWriter;
 import owl.run.Environment;
 
 class TestHasAcceptingRun {
@@ -105,15 +105,15 @@ class TestHasAcceptingRun {
   private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
     var nba = OmegaAcceptanceCast
-      .cast(AutomatonReader.readHoa(new StringReader(input), Environment.annotated()
+      .cast(HoaReader.read(new StringReader(input), Environment.annotated()
         .factorySupplier()::getValuationSetFactory), GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 
-    HoaPrinter.feedTo(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertEquals(LanguageEmptiness.isEmpty(dpa), !hasAcceptingRun);
 
     var complement = Views.complement((Automaton) dpa, new Object(), OmegaAcceptance.class);
-    HoaPrinter.feedTo(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaWriter.write(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertEquals(LanguageEmptiness.isEmpty(complement), !complementHasAcceptingRun);
   }
 }

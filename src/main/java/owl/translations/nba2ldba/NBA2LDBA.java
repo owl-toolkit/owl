@@ -42,8 +42,8 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Either;
@@ -63,7 +63,8 @@ public final class NBA2LDBA
     "nba2ldba",
     "Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
       + "automaton",
-    (commandLine, environment) -> (input) -> new NBA2LDBA().apply((Automaton<Object, ?>) input));
+    (commandLine, environment) -> OwlModule.AutomatonTransformer
+      .of(automaton -> new NBA2LDBA().apply(automaton)));
 
   @Override
   public Automaton<?, BuchiAcceptance> apply(Automaton<?, ?> automaton) {

@@ -37,12 +37,7 @@ public final class LegacyFactory
   extends DeterministicConstructions.Base<EquivalenceClass, AllAcceptance> {
 
   public LegacyFactory(Factories factories) {
-    super(factories, true);
-  }
-
-  @Override
-  public EquivalenceClass onlyInitialState() {
-    throw new UnsupportedOperationException();
+    super(factories, factories.eqFactory.of(BooleanConstant.TRUE), AllAcceptance.INSTANCE);
   }
 
   @Nullable
@@ -57,27 +52,15 @@ public final class LegacyFactory
     return successorTreeInternal(state, x -> x.isFalse() ? Set.of() : Set.of(Edge.of(x)));
   }
 
-  @Override
-  public AllAcceptance acceptance() {
-    return AllAcceptance.INSTANCE;
-  }
-
   public EquivalenceClass successor(EquivalenceClass clazz, BitSet valuation,
     EquivalenceClass environment) {
     EquivalenceClass state = successorInternal(clazz, valuation);
     return environment.implies(state) ? factory.of(BooleanConstant.TRUE) : state;
   }
 
-  @Override
-  // Change visibility!
-  @SuppressWarnings("PMD.UselessOverridingMethod")
-  public EquivalenceClass initialStateInternal(EquivalenceClass clazz) {
-    return super.initialStateInternal(clazz);
-  }
-
   public EquivalenceClass initialStateInternal(EquivalenceClass clazz,
     EquivalenceClass environment) {
-    EquivalenceClass state = initialStateInternal(clazz);
+    EquivalenceClass state = clazz.unfold();
     return environment.implies(state) ? factory.of(BooleanConstant.TRUE) : state;
   }
 }

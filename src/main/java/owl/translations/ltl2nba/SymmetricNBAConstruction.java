@@ -34,11 +34,11 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Either;
@@ -82,7 +82,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     var formula = input.nnf();
     var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     var automaton = new SymmetricNBA(factories, formula);
-    var mutableAutomaton = MutableAutomatonFactory.copy(automaton);
+    var mutableAutomaton = HashMapAutomaton.copyOf(automaton);
     AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
     return mutableAutomaton;
   }

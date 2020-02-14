@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.function.IntUnaryOperator;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
@@ -47,19 +46,20 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.OwlModule;
+import owl.run.modules.OwlModule.AutomatonTransformer;
 
 @SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class Views {
   public static final OwlModule<OwlModule.Transformer> COMPLETE_MODULE = OwlModule.of(
     "complete",
     "Make the transition relation of an automaton complete by adding a sink-state.",
-    (commandLine, environment) -> (input) -> Views
-      .complete((Automaton<Object, ?>) input, new MutableAutomatonUtil.Sink()));
+    (commandLine, environment) ->
+      AutomatonTransformer.of(automaton ->
+        Views.complete(automaton, new MutableAutomatonUtil.Sink())));
 
   private Views() {}
 
@@ -137,14 +137,16 @@ public final class Views {
 
   public static <S, A extends OmegaAcceptance> Automaton<Set<S>, A> createPowerSetAutomaton(
     Automaton<S, ?> automaton, A acceptance, boolean dropEmptySet) {
-    return AutomatonFactory.create(automaton.factory(), automaton.initialStates(), acceptance,
-      (Set<S> states, BitSet valuation) -> {
-        Set<S> successors = states.stream()
+    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+      automaton.factory(), Set.of(automaton.initialStates()), acceptance) {
+      @Override
+      public Edge<Set<S>> edge(Set<S> state, BitSet valuation) {
+        Set<S> successors = state.stream()
           .flatMap(x -> automaton.successors(x, valuation).stream())
           .collect(Collectors.toUnmodifiableSet());
         return dropEmptySet && successors.isEmpty() ? null : Edge.of(successors);
       }
-    );
+    };
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> filter(Automaton<S, A> automaton,
@@ -167,13 +169,6 @@ public final class Views {
     return createView(automaton, ViewSettings.<S, A>builder()
       .edgeFilter(edgeFilter)
       .stateFilter(states)
-      .build());
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> remap(Automaton<S, A> automaton,
-    IntUnaryOperator remappingOperator) {
-    return createView(automaton, ViewSettings.<S, A>builder()
-      .edgeRewriter(edge -> edge.withAcceptance(remappingOperator))
       .build());
   }
 
@@ -341,9 +336,6 @@ public final class Views {
     @Nullable
     abstract BiPredicate<S, Edge<S>> edgeFilter();
 
-    @Nullable
-    abstract Function<Edge<S>, Edge<S>> edgeRewriter();
-
     static <S, A extends OmegaAcceptance> Builder<S, A> builder() {
       return new AutoValue_Views_ViewSettings.Builder<>();
     }
@@ -358,14 +350,12 @@ public final class Views {
 
       abstract Builder<S, A> edgeFilter(@Nullable BiPredicate<S, Edge<S>> filter);
 
-      abstract Builder<S, A> edgeRewriter(@Nullable Function<Edge<S>, Edge<S>> rewriter);
-
       abstract ViewSettings<S, A> build();
     }
   }
 
   public static final class AutomatonView<S, A extends OmegaAcceptance>
-    extends AbstractImplicitAutomaton<S, A> {
+    extends AbstractImmutableAutomaton<S, A> {
 
     private final Automaton<S, ?> backingAutomaton;
     private final ViewSettings<S, A> settings;
@@ -424,42 +414,27 @@ public final class Views {
     @Override
     public Set<Edge<S>> edges(S state, BitSet valuation) {
       checkArgument(stateFilter(state));
-      var filteredEdges = filterRequired()
+      return filterRequired()
         ? backingAutomaton.edges(state, valuation).stream()
             .filter(edgeFilter(state)).collect(Collectors.toSet())
         : backingAutomaton.edges(state, valuation);
-
-      var edgeRewriter = settings.edgeRewriter();
-      return edgeRewriter == null
-        ? filteredEdges
-        : Collections3.transformSet(filteredEdges, edgeRewriter);
     }
 
     @Override
     public Set<Edge<S>> edges(S state) {
       checkArgument(stateFilter(state));
-      var filteredEdges = filterRequired()
+      return filterRequired()
         ? backingAutomaton.edges(state).stream()
             .filter(edgeFilter(state)).collect(Collectors.toSet())
         : backingAutomaton.edges(state);
-
-      var edgeRewriter = settings.edgeRewriter();
-      return edgeRewriter == null
-        ? filteredEdges
-        : Collections3.transformSet(filteredEdges, edgeRewriter);
     }
 
     @Override
     public Map<Edge<S>, ValuationSet> edgeMap(S state) {
       checkArgument(stateFilter(state));
-      var filteredEdges = filterRequired()
+      return filterRequired()
         ? Maps.filterKeys(backingAutomaton.edgeMap(state), x -> edgeFilter(state).test(x))
         : backingAutomaton.edgeMap(state);
-
-      var edgeRewriter = settings.edgeRewriter();
-      return edgeRewriter == null
-        ? filteredEdges
-        : Collections3.transformMap(filteredEdges, edgeRewriter);
     }
 
     @Override
@@ -467,25 +442,14 @@ public final class Views {
       checkArgument(stateFilter(state));
 
       var edges = backingAutomaton.edgeTree(state);
-      var edgeRewriter = settings.edgeRewriter();
 
       @Nullable
       Function<Set<Edge<S>>, Set<Edge<S>>> mapper;
 
       if (filterRequired()) {
-        if (edgeRewriter == null) {
-          mapper = x -> Sets.filter(x, y -> edgeFilter(state).test(y));
-        } else {
-          mapper = x -> Collections3.transformSet(
-            Sets.filter(x, y -> edgeFilter(state).test(y)),
-            edgeRewriter);
-        }
+        mapper = x -> Sets.filter(x, y -> edgeFilter(state).test(y));
       } else {
-        if (edgeRewriter == null) {
-          mapper = null;
-        } else {
-          mapper = x -> Collections3.transformSet(x, edgeRewriter);
-        }
+        mapper = null;
       }
 
       return mapper == null ? edges : edges.map(mapper);

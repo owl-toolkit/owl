@@ -41,11 +41,11 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
@@ -120,8 +120,8 @@ final class MonitorBuilder {
     MonitorState initialState = MonitorState.of(initialClass);
 
     for (int i = 0; i < monitorAutomata.length; i++) {
-      MutableAutomaton<MonitorState, ParityAcceptance> monitor = MutableAutomatonFactory
-        .create(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
+      MutableAutomaton<MonitorState, ParityAcceptance> monitor = HashMapAutomaton
+        .of(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
       monitor.name(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addInitialState(initialState);
       monitorAutomata[i] = monitor;

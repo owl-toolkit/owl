@@ -23,6 +23,7 @@ import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
@@ -31,8 +32,10 @@ import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
 
 public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
-  extends AbstractCachedStatesAutomaton<Either<A, B>, C>
-  implements EdgeTreeAutomatonMixin<Either<A, B>, C> {
+  implements EdgeTreeAutomatonMixin<Either<A, B>, C>, Automaton<Either<A, B>, C> {
+
+  @Nullable
+  private Set<Either<A, B>> statesCache;
 
   @Override
   public final Set<Either<A, B>> initialStates() {
@@ -93,5 +96,54 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
   private Set<Edge<Either<A, B>>> liftB(Set<Edge<B>> aEdges) {
     return Collections3.transformSet(aEdges,
       edge -> edge.withSuccessor(Either.right(edge.successor())));
+  }
+
+  @Override
+  public final Set<Either<A, B>> states() {
+    if (statesCache == null) {
+      statesCache = Set.copyOf(DefaultImplementations.getReachableStates(this));
+    }
+
+    return statesCache;
+  }
+
+  @Override
+  public final void accept(EdgeVisitor<Either<A, B>> visitor) {
+    Set<Either<A, B>> exploredStates = DefaultImplementations.visit(this, visitor);
+
+    if (statesCache == null) {
+      statesCache = Set.copyOf(exploredStates);
+    }
+  }
+
+  @Override
+  public final void accept(EdgeMapVisitor<Either<A, B>> visitor) {
+    if (statesCache == null) {
+      statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
+    } else {
+      for (Either<A, B> state : statesCache) {
+        visitor.enter(state);
+        visitor.visit(state, edgeMap(state));
+        visitor.exit(state);
+      }
+    }
+  }
+
+  @Override
+  public final void accept(EdgeTreeVisitor<Either<A, B>> visitor) {
+    if (statesCache == null) {
+      statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
+    } else {
+      for (Either<A, B> state : statesCache) {
+        visitor.enter(state);
+        visitor.visit(state, edgeTree(state));
+        visitor.exit(state);
+      }
+    }
+  }
+
+  @Nullable
+  protected final Set<Either<A, B>> cache() {
+    return statesCache;
   }
 }

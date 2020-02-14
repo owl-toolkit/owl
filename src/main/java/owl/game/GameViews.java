@@ -44,6 +44,7 @@ import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.EdgeMapAutomatonMixin;
@@ -52,12 +53,12 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.util.AnnotatedState;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.OwlModule;
+import owl.run.modules.OwlModule.AutomatonTransformer;
 
 public final class GameViews {
   @SuppressWarnings("SpellCheckingInspection")
@@ -113,10 +114,8 @@ public final class GameViews {
 
         boolean wrapComplete = commandLine.hasOption("complete");
 
-        return (Object input) -> {
-          checkArgument(input instanceof Automaton);
-          var automaton = (Automaton<Object, ?>) input;
-          var parityAutomaton = OmegaAcceptanceCast.cast(automaton, ParityAcceptance.class);
+        return AutomatonTransformer.of((Automaton<Object, ParityAcceptance> automaton) -> {
+          var parityAutomaton = automaton;
 
           if (wrapComplete) {
             parityAutomaton = OmegaAcceptanceCast.cast(
@@ -124,7 +123,7 @@ public final class GameViews {
           }
 
           return GameViews.split(parityAutomaton, isEnvironmentAp);
-        };
+        }, ParityAcceptance.class);
       });
 
 
@@ -442,7 +441,8 @@ public final class GameViews {
         return BitSets.copyOf(choice);
       }
 
-      return Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue().any();
+      ValuationSet valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
+      return valuationSet.getFactory().iterator(valuationSet).next();
     }
   }
 

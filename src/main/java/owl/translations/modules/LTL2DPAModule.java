@@ -31,7 +31,7 @@ import java.util.function.Function;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.Environment;
@@ -54,8 +54,8 @@ public final class LTL2DPAModule {
       boolean useSymmetric = commandLine.hasOption(AbstractLTL2LDBAModule.symmetric().getOpt());
       boolean useComplement = !commandLine.hasOption("disable-complement");
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
-      return Transformer.of(LabelledFormula.class,
-        translation(environment, useSymmetric, useComplement, usePortfolio));
+      return OwlModule.LabelledFormulaTransformer
+        .of(translation(environment, useSymmetric, useComplement, usePortfolio));
     }
   );
 

@@ -26,6 +26,7 @@ import static com.google.common.base.Verify.verify;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
@@ -39,6 +40,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,7 +53,7 @@ import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
-final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
+public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   EdgeMapAutomatonMixin<S, A>, MutableAutomaton<S, A> {
   private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
 
@@ -432,6 +434,76 @@ final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     return successor == uniqueSuccessor // NOPMD
       ? castedEdge
       : castedEdge.withSuccessor(uniqueSuccessor);
+  }
+
+  /**
+   * Creates an empty automaton with given acceptance condition. The {@code valuationSetFactory} is
+   * used as transition backend.
+   *
+   * @param acceptance The acceptance of the new automaton.
+   * @param vsFactory The alphabet.
+   * @param <S> The states of the automaton.
+   * @param <A> The acceptance condition of the automaton.
+   *
+   * @return Empty automaton with the specified parameters.
+   */
+  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> of(A acceptance,
+    ValuationSetFactory vsFactory) {
+    return new HashMapAutomaton<>(vsFactory, acceptance);
+  }
+
+  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> of(A acceptance,
+    ValuationSetFactory vsFactory, Collection<S> initialStates,
+    BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
+    HashMapAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
+    initialStates.forEach(automaton::addInitialState);
+    Set<S> exploredStates = new HashSet<>(initialStates);
+    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
+
+    int alphabetSize = vsFactory.alphabetSize();
+
+    while (!workQueue.isEmpty()) {
+      S state = workQueue.remove();
+
+      BitSet sensitiveAlphabet = alphabet.apply(state);
+      Set<BitSet> bitSets = sensitiveAlphabet == null
+        ? BitSets.powerSet(alphabetSize)
+        : BitSets.powerSet(sensitiveAlphabet);
+
+      for (BitSet valuation : bitSets) {
+        Edge<S> edge = successors.apply(state, valuation);
+
+        if (edge == null) {
+          continue;
+        }
+
+        ValuationSet valuationSet;
+
+        if (sensitiveAlphabet == null) {
+          valuationSet = vsFactory.of(valuation);
+        } else {
+          valuationSet = vsFactory.of(valuation, sensitiveAlphabet);
+        }
+
+        S successorState = edge.successor();
+
+        if (exploredStates.add(successorState)) {
+          workQueue.add(successorState);
+        }
+
+        automaton.addEdge(state, valuationSet, edge);
+      }
+    }
+
+    return automaton;
+  }
+
+  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> copyOf(
+    Automaton<S, A> source) {
+    HashMapAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
+    MutableAutomatonUtil.copyInto(source, target);
+    assert source.states().equals(target.states());
+    return target;
   }
 
   private enum State {

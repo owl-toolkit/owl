@@ -1,8 +1,7 @@
 package owl.run.modules;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
@@ -13,6 +12,10 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
+import owl.automaton.Automaton;
+import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 
 @AutoValue
@@ -83,13 +86,48 @@ public abstract class OwlModule<M extends OwlModule.Instance> {
   @FunctionalInterface
   public interface Transformer extends Instance {
     Object transform(Object object);
+  }
 
-    static <K, V> Transformer of(Class<K> inputClass, Function<K, V> function) {
-      return object -> {
-        checkArgument(inputClass.isInstance(object),
-          "Expected type %s, got type %s", inputClass, object.getClass());
-        return function.apply(inputClass.cast(object));
-      };
+  /**
+   * Derived transformer that casts the argument to an {@link Automaton} and optionally converts
+   * the acceptance condition if possible.
+   */
+  @FunctionalInterface
+  public interface AutomatonTransformer extends Transformer {
+
+    Object transform(Automaton<Object, ?> automaton);
+
+    @Override
+    default Object transform(Object object) {
+      Preconditions.checkArgument(object instanceof Automaton,
+        String.format("Cannot cast %s to Automaton.", object.getClass().getSimpleName()));
+      return this.transform((Automaton<Object, ?>) object);
+    }
+
+    static <R> AutomatonTransformer of(Function<Automaton<Object, ?>, R> function) {
+      return function::apply;
+    }
+
+    static <A extends OmegaAcceptance, R> AutomatonTransformer of(
+      Function<Automaton<Object, A>, R> function, Class<A> acceptanceBound) {
+      return object -> function.apply(OmegaAcceptanceCast.cast(object, acceptanceBound));
+    }
+  }
+
+  @FunctionalInterface
+  public interface LabelledFormulaTransformer extends Transformer {
+
+    Object transform(LabelledFormula labelledFormula);
+
+    @Override
+    default Object transform(Object object) {
+      Preconditions.checkArgument(object instanceof LabelledFormula,
+        String.format("Cannot cast %s to LabelledFormula.", object.getClass().getSimpleName()));
+      return transform((LabelledFormula) object);
+    }
+
+    static <R> LabelledFormulaTransformer of(Function<LabelledFormula, R> function) {
+      return function::apply;
     }
   }
 

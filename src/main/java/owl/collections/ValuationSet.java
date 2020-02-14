@@ -25,7 +25,6 @@ import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.factories.ValuationSetFactory;
 
-@Deprecated(since = "19.06.03")
 public class ValuationSet {
   private final ValuationSetFactory factory;
 
@@ -45,10 +44,6 @@ public class ValuationSet {
 
   public final boolean isUniverse() {
     return equals(factory.universe());
-  }
-
-  public final BitSet any() {
-    return factory.any(this);
   }
 
   public final boolean contains(BitSet valuation) {

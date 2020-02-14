@@ -43,21 +43,22 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.EmptyAutomaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonFactory;
+import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.SingletonAutomaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.output.HoaPrinter;
+import owl.automaton.hoa.HoaWriter;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.PipelineException;
@@ -71,8 +72,8 @@ public final class IARBuilder<R> {
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "dra2dpa",
     "Converts a Rabin automaton into a parity automaton",
-    (commandLine, environment) -> input -> new IARBuilder<>(
-      OmegaAcceptanceCast.cast((Automaton<?, ?>) input, RabinAcceptance.class)).build());
+    (commandLine, environment) -> OwlModule.AutomatonTransformer.of(
+      automaton -> new IARBuilder<>(automaton).build(), RabinAcceptance.class));
 
   private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
@@ -83,7 +84,7 @@ public final class IARBuilder<R> {
     this.rabinAutomaton = rabinAutomaton;
     vsFactory = rabinAutomaton.factory();
     ParityAcceptance acceptance = new ParityAcceptance(0, Parity.MIN_ODD);
-    resultAutomaton = MutableAutomatonFactory.create(acceptance, vsFactory);
+    resultAutomaton = HashMapAutomaton.of(acceptance, vsFactory);
   }
 
   public static void main(String... args) throws IOException {
@@ -97,10 +98,10 @@ public final class IARBuilder<R> {
 
   public Automaton<IARState<R>, ParityAcceptance> build() {
     logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
-    logger.log(Level.FINEST, () -> "Input automaton is\n" + HoaPrinter.toString(rabinAutomaton));
+    logger.log(Level.FINEST, () -> "Input automaton is\n" + HoaWriter.toString(rabinAutomaton));
 
     if (rabinAutomaton.initialStates().isEmpty()) {
-      return AutomatonFactory.empty(
+      return EmptyAutomaton.of(
         rabinAutomaton.factory(),
         new ParityAcceptance(3, Parity.MIN_ODD));
     }
@@ -108,7 +109,7 @@ public final class IARBuilder<R> {
     List<RabinPair> rabinPairs = List.copyOf(rabinAutomaton.acceptance().pairs());
     if (rabinPairs.isEmpty()) {
       IARState<R> state = IARState.of(rabinAutomaton.initialStates().iterator().next());
-      return AutomatonFactory.singleton(rabinAutomaton.factory(), state,
+      return SingletonAutomaton.of(rabinAutomaton.factory(), state,
         new ParityAcceptance(1, Parity.MIN_ODD), Set.of(0));
     }
 
@@ -158,7 +159,7 @@ public final class IARBuilder<R> {
       }
 
       interSccConnectionsBuilder.putAll(result.interSccConnections);
-      MutableAutomatonFactory.copy(result.subAutomaton, resultAutomaton);
+      MutableAutomatonUtil.copyInto(result.subAutomaton, resultAutomaton);
       completedSccs += 1;
     }
 
@@ -195,7 +196,7 @@ public final class IARBuilder<R> {
     Table<R, Edge<R>, ValuationSet> interSccConnections) {
     // TODO If it is bottom, we can just replace it by single rejecting state
     MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
-      MutableAutomatonFactory.create(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
+      HashMapAutomaton.of(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
 
     for (R state : simpleScc) {
       IARState<R> iarState = IARState.of(state);
@@ -247,7 +248,7 @@ public final class IARBuilder<R> {
       R transientSccState = scc.iterator().next();
       IARState<R> iarState = IARState.of(transientSccState);
       return new SccProcessingResult<>(interSccConnections,
-        AutomatonFactory.singleton(vsFactory, iarState, AllAcceptance.INSTANCE));
+        SingletonAutomaton.of(vsFactory, iarState, AllAcceptance.INSTANCE));
     }
 
     if (!seenAnyInfSet.get()) {

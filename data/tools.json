@@ -234,6 +234,16 @@
                 "optimize-aut",
                 "complement-parity"
             ]
+        },
+        "buchi-degen": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "buchi-degeneralization",
+            "pre": [
+                "simplify-ltl",
+                "ltl2ngba"
+            ]
         }
     },
     "aliases": {

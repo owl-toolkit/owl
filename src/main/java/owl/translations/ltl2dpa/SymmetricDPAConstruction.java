@@ -35,12 +35,13 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonFactory;
+import owl.automaton.EmptyAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
-import owl.automaton.algorithms.SccDecomposition;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
@@ -62,12 +63,17 @@ final class SymmetricDPAConstruction {
     var ldba = ldbaConstruction.apply(labelledFormula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
-      return AutomatonFactory.empty(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
+      return EmptyAutomaton.of(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
     }
 
     var builder = new SymmetricDPAConstruction.Builder(ldba);
-    return AutomatonFactory.create(builder.ldba.factory(),
-      builder.initialState, builder.acceptance, builder::edge);
+    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+      builder.ldba.factory(), Set.of(builder.initialState), builder.acceptance) {
+      @Override
+      public Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
+        return builder.edge(state, valuation);
+      }
+    };
   }
 
   private static final class Builder {

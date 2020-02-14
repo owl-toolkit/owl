@@ -195,8 +195,8 @@ public final class AsymmetricEvaluatedFixpoints
   public AsymmetricEvaluatedFixpoints.DeterministicAutomata deterministicAutomata(
     Factories factories, boolean generalized) {
 
-    var safetyAutomaton = new DeterministicConstructions.Safety(
-      factories, true, Conjunction.of(gSafety));
+    var safetyAutomaton = DeterministicConstructions.Safety.of(
+      factories, Conjunction.of(gSafety));
 
     var coSafety = gCoSafety.stream()
       .sorted()
@@ -222,7 +222,7 @@ public final class AsymmetricEvaluatedFixpoints
       }
 
       if (!fCoSafetySingleStep.isEmpty()) {
-        gfCoSafetyAutomaton = new DeterministicConstructions.GfCoSafety(factories, true,
+        gfCoSafetyAutomaton = DeterministicConstructions.GfCoSafety.of(factories,
           new HashSet<>(fCoSafetySingleStep), true);
       }
     } else {

@@ -35,7 +35,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractCachedStatesAutomaton;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonOperations;
 import owl.automaton.AutomatonUtil;
@@ -44,10 +44,9 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.optimizations.AcceptanceOptimizations;
-import owl.automaton.algorithms.LanguageContainment;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.edge.Edge;
-import owl.factories.ValuationSetFactory;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -62,7 +61,8 @@ public final class NBA2DPA
     "nba2dpa",
     "Converts a non-deterministic generalized Büchi automaton "
       + "into a deterministic parity automaton",
-    (commandLine, environment) -> (input) -> new NBA2DPA().apply((Automaton<Object, ?>) input));
+    (commandLine, environment) ->
+      OwlModule.AutomatonTransformer.of(automaton -> new NBA2DPA().apply(automaton)));
 
   public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
@@ -75,25 +75,33 @@ public final class NBA2DPA
 
   @Override
   public Automaton<?, ParityAcceptance> apply(Automaton<?, ?> nba) {
-    return new RankingAutomaton<>(NBA2LDBA.applyLDBA(nba));
+    var ldba = NBA2LDBA.applyLDBA(nba);
+    var initialComponent = Set.copyOf(ldba.initialComponent());
+    var acceptance = new ParityAcceptance(
+      2 * Math.max(1, ldba.automaton().states().size() - initialComponent.size()) + 1,
+      ParityAcceptance.Parity.MIN_ODD);
+    var initialState = RankingState.of(
+      Set.copyOf(Sets.intersection(ldba.automaton().initialStates(), initialComponent)),
+      List.copyOf(Sets.difference(ldba.automaton().initialStates(), initialComponent)));
+    return new RankingAutomaton<>((AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton)
+      ldba, initialState, acceptance);
   }
 
   private static final class RankingAutomaton<S>
-    extends AbstractCachedStatesAutomaton<RankingState<S>, ParityAcceptance>
+    extends AbstractImmutableAutomaton<RankingState<S>, ParityAcceptance>
     implements EdgesAutomatonMixin<RankingState<S>, ParityAcceptance> {
 
     private final Automaton<S, BuchiAcceptance> nba;
-    private final Set<S> intialComponent;
-
-    private final ParityAcceptance acceptance;
-    private final RankingState<S> initialState;
+    private final Set<S> initialComponent;
 
     private final LoadingCache<Map.Entry<Set<S>, S>, Boolean> greaterOrEqualCache;
 
     RankingAutomaton(
-      AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<S, BuchiAcceptance> LDGBA) {
+      AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<S, BuchiAcceptance> LDGBA,
+      RankingState<S> initialState, ParityAcceptance acceptance) {
+      super(LDGBA.automaton().factory(), Set.of(initialState), acceptance);
       nba = LDGBA.automaton();
-      intialComponent = Set.copyOf(LDGBA.initialComponent());
+      initialComponent = Set.copyOf(LDGBA.initialComponent());
       greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500_000)
         .expireAfterAccess(60, TimeUnit.SECONDS)
         .build(new CacheLoader<>() {
@@ -106,27 +114,6 @@ public final class NBA2DPA
                 .collect(Collectors.toList())), BuchiAcceptance.class));
           }
         });
-      initialState = RankingState.of(
-        onlyInitialComponent(nba.initialStates()),
-        List.copyOf(onlyAcceptingComponent(nba.initialStates())));
-      acceptance = new ParityAcceptance(
-        2 * Math.max(1, nba.states().size() - intialComponent.size()) + 1,
-        ParityAcceptance.Parity.MIN_ODD);
-    }
-
-    @Override
-    public ParityAcceptance acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public ValuationSetFactory factory() {
-      return nba.factory();
-    }
-
-    @Override
-    public Set<RankingState<S>> initialStates() {
-      return Set.of(initialState);
     }
 
     @Override
@@ -195,11 +182,11 @@ public final class NBA2DPA
     }
 
     private Set<S> onlyInitialComponent(Set<S> states) {
-      return Sets.intersection(states, intialComponent);
+      return Sets.intersection(states, initialComponent);
     }
 
     private Set<S> onlyAcceptingComponent(Set<S> states) {
-      return Sets.difference(states, intialComponent);
+      return Sets.difference(states, initialComponent);
     }
   }
 }
