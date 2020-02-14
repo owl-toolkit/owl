@@ -58,7 +58,7 @@ public final class AnnotatedStateOptimisation {
           continue;
         }
 
-        int newSize = Views.replaceInitialState(mutableAutomatonCopy, Set.of(state)).size();
+        int newSize = Views.filtered(mutableAutomatonCopy, Views.Filter.of(Set.of(state))).size();
 
         if (newSize < size) {
           candidateInitialState = state;
