@@ -20,9 +20,11 @@
 package owl.collections;
 
 import com.google.auto.value.AutoValue;
+
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
 
 @AutoValue
 public abstract class Pair<A, B> {
@@ -37,7 +39,7 @@ public abstract class Pair<A, B> {
     return new AutoValue_Pair<>(fst, snd);
   }
 
-  public static <A, B> Set<Pair<A, B>> of(Set<A> fstSet, Set<B> sndSet) {
+  public static <A, B> Set<Pair<A, B>> allPairs(Set<A> fstSet, Set<B> sndSet) {
     Set<Pair<A, B>> pairs = new HashSet<>();
 
     for (A fst : fstSet) {
@@ -47,5 +49,22 @@ public abstract class Pair<A, B> {
     }
 
     return pairs;
+  }
+
+  public Pair<B,A> swap() {
+    return Pair.of(snd(), fst());
+  }
+
+  public <C> Pair<C,B> mapFst(Function<A,C> fun) {
+    return Pair.<C,B>of(fun.apply(fst()), snd());
+  }
+
+  public <C> Pair<A,C> mapSnd(Function<B,C> fun) {
+    return Pair.<A,C>of(fst(), fun.apply(snd()));
+  }
+
+  @Override
+  public String toString() {
+    return "(" + fst() + "," + snd() + ")";
   }
 }

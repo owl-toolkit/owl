@@ -21,6 +21,14 @@ src/**/gen/
 *.iws
 /out/
 
+# ==== Eclipse files ====
+.classpath
+.project
+.checkstyle
+.factorypath
+.settings
+bin/
+
 # ==== Python files ====
 
 __pycache__/
@@ -32,3 +40,5 @@ __pycache__/
 *.so
 *cmake-build-*
 .DS_Store
+/.apt_generated/
+/.apt_generated_tests/

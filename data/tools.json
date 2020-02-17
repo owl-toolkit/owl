@@ -67,6 +67,40 @@
                 "simplify-ltl"
             ]
         },
+        "nbadet": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "nbadet",
+            "flags": {
+                "default": "--default-config",
+                "mullerschupp": "-m0",
+                "safra": "-m1",
+                "maxmerge": "-m2",
+                "powersets": "-t",
+                "smartsucc": "-s",
+                "directsim": "-lrefinement",
+                "uselangext": "-e",
+                "uselangint": "-j",
+                "ascc": "-A",
+                "ascccyc": "-b",
+                "rscc": "-r",
+                "optdet": "-d",
+                "optmix": "-c"
+            },
+            "pre": [
+                "simplify-ltl",
+                [
+                    "ltl2aut-ext",
+                    "-t",
+                    "'ltl2tgba -B -H'"
+                ],
+                "optimize-aut"
+            ],
+            "post": [
+                "optimize-aut"
+            ]
+        },
         "ltl2dra": {
             "type": "owl",
             "input": "ltl",
@@ -288,6 +322,25 @@
             "pre": [
                 "simplify-ltl",
                 "ltl2ngba"
+            ]
+        },
+        "nbasim": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "nbasim",
+            "flags": {
+                "refinement": "--direct-refinement",
+                "direct": "--direct",
+                "delayed": "--delayed"
+            },
+            "pre": [
+                "simplify-ltl",
+                [
+                    "ltl2aut-ext",
+                    "-t",
+                    "'ltl2tgba -B -H'"
+                ]
             ]
         }
     },

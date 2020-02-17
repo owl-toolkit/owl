@@ -121,7 +121,7 @@ public final class HoaReader {
   }
 
   public static final class HoaState {
-    final int id;
+    public final int id;
     @Nullable
     final String info;
 

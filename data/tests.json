@@ -150,6 +150,40 @@
             ],
             "data": "RANDOM"
         },
+        "nbasim": {
+            "tools": [
+                "nbasim#refinement",
+                "nbasim#direct",
+                "nbasim#delayed"
+            ],
+            "data": "L"
+        },
+        "nbadet": {
+            "tools": [
+                "nbadet#default"
+            ],
+            "data": "L"
+        },
+        "nbadet-intense": {
+            "tools": [
+                "nbadet#mullerschupp",
+                "nbadet#mullerschupp,powersets",
+                "nbadet#mullerschupp,powersets,smartsucc",
+                "nbadet#mullerschupp,powersets,smartsucc,uselangext,uselangint,directsim",
+                "nbadet#mullerschupp,powersets,smartsucc,uselangext,uselangint,directsim,ascc,ascccyc,rscc,optdet,optmix",
+                "nbadet#safra",
+                "nbadet#safra,powersets",
+                "nbadet#safra,powersets,smartsucc",
+                "nbadet#safra,powersets,smartsucc,uselangext,uselangint,directsim",
+                "nbadet#safra,powersets,smartsucc,uselangext,uselangint,directsim,ascc,ascccyc,rscc,optdet,optmix",
+                "nbadet#maxmerge",
+                "nbadet#maxmerge,powersets",
+                "nbadet#maxmerge,powersets,smartsucc",
+                "nbadet#maxmerge,powersets,smartsucc,uselangext,uselangint,directsim",
+                "nbadet#maxmerge,powersets,smartsucc,uselangext,uselangint,directsim,ascc,ascccyc,rscc,optdet,optmix"
+            ],
+            "data": "S"
+        },
         "ltl2da": "ltl2da",
         "ltl2na": "ltl2na",
         "buchi-degen": {
