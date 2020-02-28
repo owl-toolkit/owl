@@ -35,10 +35,6 @@ import owl.collections.ValuationTree;
 public interface ValuationSetFactory {
   List<String> alphabet();
 
-  default int alphabetSize() {
-    return alphabet().size();
-  }
-
   ValuationSet of(int literal);
 
   ValuationSet of(BitSet valuation);

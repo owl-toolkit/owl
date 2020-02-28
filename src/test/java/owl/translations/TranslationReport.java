@@ -197,6 +197,7 @@ class TranslationReport {
     }
   }
 
+  @Disabled
   @Tag("size-report")
   @ParameterizedTest
   @EnumSource(
@@ -309,6 +310,7 @@ class TranslationReport {
     }
   }
 
+  @Disabled
   @Tag("size-report")
   @ParameterizedTest
   @EnumSource(

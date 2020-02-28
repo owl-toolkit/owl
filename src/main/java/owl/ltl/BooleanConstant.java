@@ -26,7 +26,6 @@ import javax.annotation.Nonnull;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.annotation.CEntryPoint;
 
 public final class BooleanConstant extends Formula.PropositionalOperator {
   public static final BooleanConstant FALSE = new BooleanConstant(false);
@@ -38,7 +37,6 @@ public final class BooleanConstant extends Formula.PropositionalOperator {
     this.value = value;
   }
 
-  @CEntryPoint
   public static BooleanConstant of(boolean value) {
     return value ? TRUE : FALSE;
   }

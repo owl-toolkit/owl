@@ -51,7 +51,7 @@ class AutomatonFactoryTest {
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
 
-    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
+    for (BitSet valuation : BitSets.powerSet(automaton.factory().alphabet().size())) {
       var edge = automaton.edge(initialState, valuation);
       var matchingEdges = Maps.filterValues(edgeMap, x -> x.contains(valuation)).keySet();
 

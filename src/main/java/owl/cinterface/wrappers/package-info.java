@@ -18,6 +18,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.cinterface;
+package owl.cinterface.wrappers;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

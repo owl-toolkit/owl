@@ -22,7 +22,6 @@ package owl.ltl;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.annotation.CEntryPoint;
 
 /**
  * Finally.
@@ -42,7 +41,6 @@ public final class FOperator extends Formula.UnaryTemporalOperator {
    *
    * @return a formula equivalent to F(operand)
    */
-  @CEntryPoint
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant
       || operand instanceof FOperator

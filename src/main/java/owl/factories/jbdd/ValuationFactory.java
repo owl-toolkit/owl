@@ -206,7 +206,7 @@ final class ValuationFactory extends GcManagedFactory<BddValuationSet>
 
     int variable = bdd.variable(node);
 
-    if (variable < alphabetSize()) {
+    if (variable < alphabet().size()) {
       tree = ValuationTree.of(variable,
         inverseMemoized(bdd.high(node), cache, mapper, maxSize),
         inverseMemoized(bdd.low(node), cache, mapper, maxSize));

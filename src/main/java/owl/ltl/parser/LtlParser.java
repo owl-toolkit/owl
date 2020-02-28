@@ -32,7 +32,6 @@ import owl.grammar.LTLLexer;
 import owl.grammar.LTLParser;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.util.annotation.CEntryPoint;
 
 public final class LtlParser {
   private LtlParser() {}
@@ -53,7 +52,6 @@ public final class LtlParser {
     return parse(input).formula();
   }
 
-  @CEntryPoint
   public static Formula syntax(String input, List<String> literals) {
     return parse(input, literals).formula();
   }

@@ -59,7 +59,7 @@ class BddValuationSetFactoryTest {
 
   @Test
   void testGetAlphabet() {
-    assertEquals(ALPHABET.size(), factory.alphabetSize());
+    assertEquals(ALPHABET.size(), factory.alphabet().size());
   }
 }
 

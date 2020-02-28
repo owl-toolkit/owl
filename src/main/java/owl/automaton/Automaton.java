@@ -190,7 +190,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
       case EDGES:
         var edges = new HashSet<Edge<S>>();
 
-        for (BitSet valuation : BitSets.powerSet(factory().alphabetSize())) {
+        for (BitSet valuation : BitSets.powerSet(factory().alphabet().size())) {
           edges.addAll(edges(state, valuation));
         }
 

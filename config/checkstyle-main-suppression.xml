@@ -9,7 +9,7 @@
     <suppress files="owl[\\/]grammar[\\/]" checks=".*"/>
 
     <!-- Suppress broken file -->
-    <suppress files="owl[\\/]cinterface[\\/]DeterministicAutomaton" checks=".*"/>
+    <suppress files="owl[\\/]cinterface[\\/]CAutomaton" checks=".*"/>
     <suppress files="owl[\\/]automaton[\\/]acceptance[\\/]BooleanExpressions" checks=".*"/>
 
     <suppress files="FG.*|.+2.+|.*DPA.*" checks="AbbreviationAsWordInName"/>

@@ -13,7 +13,7 @@ ENV LANG C.UTF-8
 
 RUN apt-get -q update \
     && apt-get -q upgrade -y \
-    && apt-get -q install -y --no-install-recommends ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make netcat unzip wget \
+    && apt-get -q install -y --no-install-recommends build-essential zlib1g-dev ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make netcat unzip wget \
     && rm -rf /var/lib/apt/lists/*
 
 # GraalVM

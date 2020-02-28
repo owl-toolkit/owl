@@ -17,7 +17,39 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
 package owl.cinterface;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import org.graalvm.nativeimage.c.type.CDoublePointer;
+
+class MockedCDoubleBuffer extends MockedPointerBase implements CDoubleBuffer {
+
+  private final CDoublePointer buffer;
+  private final int capacity;
+  private int position;
+
+  MockedCDoubleBuffer(MockedCDoublePointer buffer, int capacity) {
+    this.buffer = buffer;
+    this.capacity = capacity;
+    this.position = 0;
+  }
+
+  @Override
+  public CDoublePointer buffer() {
+    return buffer;
+  }
+
+  @Override
+  public int capacity() {
+    return capacity;
+  }
+
+  @Override
+  public int position() {
+    return position;
+  }
+
+  @Override
+  public void position(int position) {
+    this.position = position;
+  }
+}

@@ -35,7 +35,7 @@ final class DefaultImplementations {
   static <S> Set<S> visit(Automaton<S, ?> automaton, Automaton.EdgeVisitor<S> visitor) {
     Set<S> exploredStates = new HashSet<>(automaton.initialStates());
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
-    Set<BitSet> powerSet = BitSets.powerSet(automaton.factory().alphabetSize());
+    Set<BitSet> powerSet = BitSets.powerSet(automaton.factory().alphabet().size());
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();

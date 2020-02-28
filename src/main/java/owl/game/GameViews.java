@@ -308,7 +308,7 @@ public final class GameViews {
         }
       }
       secondPlayer = BitSets.copyOf(this.firstPlayer);
-      secondPlayer.flip(0, automaton.factory().alphabetSize());
+      secondPlayer.flip(0, automaton.factory().alphabet().size());
     }
 
     @Override
