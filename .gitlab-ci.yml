@@ -1,4 +1,4 @@
-image: gitlab-runner/owl
+image: i7/owl:latest
 
 before_script:
   - chmod +x gradlew
