@@ -37,7 +37,8 @@ public final class ParityAcceptanceOptimizations {
   public static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(
     MutableAutomaton<S, ParityAcceptance> automaton) {
     OmegaAcceptanceOptimizations.removeTransientAcceptance(automaton);
-    return minimizePriorities(automaton, SccDecomposition.computeSccs(automaton, false));
+    return minimizePriorities(automaton,
+      SccDecomposition.of(automaton).sccsWithoutTransient());
   }
 
   private static <S> MutableAutomaton<S, ParityAcceptance> minimizePriorities(

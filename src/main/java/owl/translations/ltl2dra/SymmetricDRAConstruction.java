@@ -108,7 +108,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
     private Builder(AnnotatedLDBA<Map<Integer, EquivalenceClass>,
           SymmetricProductState, ?, SortedSet<SymmetricEvaluatedFixpoints>,
           BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba) {
-      this.initialComponentSccs = SccDecomposition.computeSccs(ldba.initialComponent());
+      this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       this.ldba = ldba;
       this.pairs = HashBasedTable.create();
 

@@ -32,7 +32,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -76,7 +75,7 @@ final class SccIARBuilder<R> {
   private final BitSet usedPriorities;
 
   SccIARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Set<RabinPair> trackedPairs) {
-    assert SccDecomposition.computeSccs(rabinAutomaton).size() == 1;
+    assert SccDecomposition.of(rabinAutomaton).sccs().size() == 1;
     this.rabinAutomaton = rabinAutomaton;
     this.usedPriorities = new BitSet(trackedPairs.size() * 2);
     this.usedPriorities.set(0);
@@ -179,8 +178,6 @@ final class SccIARBuilder<R> {
   private void optimizeInitialStates() {
     /* Idea: Pick good initial permutations for the initial states and remove unreachable states */
 
-    // Iterate in reverse topological order - the "best" SCCs should be further down the ordering
-    List<Set<IARState<R>>> sccs = Lists.reverse(SccDecomposition.computeSccs(resultAutomaton));
     int rabinStateCount = rabinAutomaton.size();
 
     // We want to find the "optimal" SCC for each initial state. If we find a maximal SCC, we remove
@@ -195,10 +192,12 @@ final class SccIARBuilder<R> {
     // Candidates for the initial states in the current SCC
     Map<R, IARState<R>> potentialInitialStates = new HashMap<>();
 
-    for (Set<IARState<R>> scc : sccs) {
-      if (SccDecomposition.isTransient(resultAutomaton::successors, scc)) {
-        continue;
-      }
+    SccDecomposition<IARState<R>> sccDecomposition = SccDecomposition.of(resultAutomaton);
+
+    // Iterate in reverse topological order - the "best" SCCs should be further down the ordering
+    for (Set<IARState<R>> scc : Lists.reverse(
+      sccDecomposition.sccsWithoutTransient())) {
+
       rabinStatesInScc.clear();
       potentialInitialStates.clear();
 

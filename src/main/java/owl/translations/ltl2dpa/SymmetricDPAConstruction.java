@@ -88,7 +88,7 @@ final class SymmetricDPAConstruction {
           SymmetricProductState, BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>,
           BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba) {
       this.ldba = ldba;
-      this.initialComponentSccs = SccDecomposition.computeSccs(ldba.initialComponent());
+      this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       // Identify  safety components.
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);

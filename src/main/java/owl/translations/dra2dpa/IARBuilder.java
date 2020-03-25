@@ -114,7 +114,7 @@ public final class IARBuilder<R> {
     }
 
     // Start analysis
-    List<Set<R>> rabinSccs = SccDecomposition.computeSccs(rabinAutomaton);
+    List<Set<R>> rabinSccs = SccDecomposition.of(rabinAutomaton).sccs();
     logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
 
     // TODO Threading once we have a thread safe BDD library
@@ -187,7 +187,7 @@ public final class IARBuilder<R> {
 
     int sets = maximalSubAutomatonPriority + 1;
     resultAutomaton.updateAcceptance(x -> x.withAcceptanceSets(sets));
-    assert rabinSccs.size() == SccDecomposition.computeSccs(resultAutomaton).size();
+    assert rabinSccs.size() == SccDecomposition.of(resultAutomaton).sccs().size();
 
     return resultAutomaton;
   }

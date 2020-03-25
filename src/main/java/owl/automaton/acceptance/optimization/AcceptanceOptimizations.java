@@ -141,22 +141,34 @@ public final class AcceptanceOptimizations {
    *
    */
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
-    // We start from the bottom of the condensation graph.
-    // Check for transient thingies...
-    List<Set<S>> sccs = SccDecomposition.computeSccs(automaton);
+    var sccDecomposition = SccDecomposition.of(automaton);
+    var sccs = sccDecomposition.sccs();
+    var condensation = sccDecomposition.condensation();
+    var removedSccs = new BitSet();
 
-    for (Set<S> scc : sccs) {
-      // The SCC is not a BSCC. Thus we can reach an accepting SCC.
-      if (!SccDecomposition.isTrap(automaton, scc)) {
-        continue;
+    for (int i = sccs.size() - 1; i >= 0; i--) {
+      var successors = condensation.successors(i);
+      boolean isBottomScc = true;
+
+      for (int j : successors) {
+        assert j >= i;
+
+        if (j > i && !removedSccs.get(j)) {
+          isBottomScc = false;
+          break;
+        }
       }
 
-      // There are no accepting runs.
-      if (LanguageEmptiness.isEmpty(automaton, Set.of(scc.iterator().next()))) {
-        logger.log(Level.FINER, "Removing scc {0}", scc);
-        automaton.removeStateIf(scc::contains);
-        // Ensure readable automaton.
-        automaton.trim();
+      if (isBottomScc) {
+        var scc = sccs.get(i);
+
+        if (LanguageEmptiness.isEmpty(automaton, Set.of(scc.iterator().next()))) {
+          // There are no accepting runs.
+          automaton.removeStateIf(scc::contains);
+          // Ensure readable automaton.
+          automaton.trim();
+          removedSccs.set(i);
+        }
       }
     }
   }

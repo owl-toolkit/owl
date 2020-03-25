@@ -193,8 +193,8 @@ public final class LanguageEmptiness {
         return false;
       };
 
-      return SccDecomposition.anySccMatches(
-        automaton::successors, initialStates, false, acceptingScc);
+      return SccDecomposition.of(initialStates, automaton::successors)
+        .anySccMatches(acceptingScc);
     }
   }
 
@@ -260,10 +260,10 @@ public final class LanguageEmptiness {
       Predicate<Set<S>> acceptingScc = scc -> {
         for (RabinPair pair : automaton.acceptance().pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair
-          SuccessorFunction<S> successorFunction = SuccessorFunction.filter(automaton, scc,
-            edge -> !edge.inSet(pair.finSet()));
+          var filteredSuccessorFunction = SuccessorFunction.filter(
+            automaton, scc, edge -> !edge.inSet(pair.finSet()));
 
-          if (SccDecomposition.anySccMatches(successorFunction, scc, false, subScc -> {
+          if (SccDecomposition.of(scc, filteredSuccessorFunction).anySccMatches(subScc -> {
             // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
             BitSet awaitedIndices = new BitSet();
             pair.forEachInfSet(awaitedIndices::set);
@@ -275,7 +275,8 @@ public final class LanguageEmptiness {
                   continue;
                 }
 
-                edge.acceptanceSetIterator().forEachRemaining((IntConsumer) awaitedIndices::clear);
+                edge.acceptanceSetIterator()
+                  .forEachRemaining((IntConsumer) awaitedIndices::clear);
 
                 if (awaitedIndices.isEmpty()) {
                   // This edge yields an accepting cycle
@@ -289,11 +290,11 @@ public final class LanguageEmptiness {
             return true;
           }
         }
+
         return false;
       };
 
-      return SccDecomposition.anySccMatches(
-        automaton::successors, initialStates, false, acceptingScc);
+      return SccDecomposition.of(initialStates, automaton::successors).anySccMatches(acceptingScc);
     }
   }
 }

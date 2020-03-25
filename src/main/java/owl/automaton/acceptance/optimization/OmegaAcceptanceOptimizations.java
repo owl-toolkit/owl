@@ -33,7 +33,7 @@ public final class OmegaAcceptanceOptimizations {
     Object2IntMap<S> stateToSccMap = new Object2IntOpenHashMap<>(automaton.size());
     stateToSccMap.defaultReturnValue(-1);
 
-    Indices.forEachIndexed(SccDecomposition.computeSccs(automaton, true),
+    Indices.forEachIndexed(SccDecomposition.of(automaton).sccs(),
       (index, scc) -> scc.forEach(state -> stateToSccMap.put(state, index)));
 
     automaton.updateEdges((state, edge) -> {

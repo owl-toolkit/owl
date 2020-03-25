@@ -52,7 +52,7 @@ public final class AnnotatedStateOptimisation {
     S candidateInitialState = null;
     int size = mutableAutomatonCopy.size();
 
-    for (Set<S> scc : SccDecomposition.computeSccs(mutableAutomatonCopy, false)) {
+    for (Set<S> scc : SccDecomposition.of(mutableAutomatonCopy).sccsWithoutTransient()) {
       for (S state : scc) {
         if (!originalInitialState.equals(state.state())) {
           continue;

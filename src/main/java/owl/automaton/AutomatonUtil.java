@@ -44,7 +44,7 @@ public final class AutomatonUtil {
 
   public static <S> void forEachNonTransientEdge(Automaton<S, ?> automaton,
     BiConsumer<S, Edge<S>> action) {
-    List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
+    List<Set<S>> sccs = SccDecomposition.of(automaton).sccsWithoutTransient();
 
     for (Set<S> scc : sccs) {
       for (S state : scc) {
@@ -170,7 +170,7 @@ public final class AutomatonUtil {
     ldbaSplit(Automaton<S, B> automaton) {
     Set<S> acceptingSccs = new HashSet<>();
 
-    for (Set<S> scc : SccDecomposition.computeSccs(automaton)) {
+    for (Set<S> scc : SccDecomposition.of(automaton).sccs()) {
       if (!LanguageEmptiness.isEmpty(Views.filtered(automaton,
         Views.Filter.of(Set.of(scc.iterator().next()), scc::contains)))) {
         acceptingSccs.addAll(scc);
