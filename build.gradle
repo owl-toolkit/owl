@@ -17,17 +17,6 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-buildscript {
-    repositories {
-        flatDir dirs: 'lib/', name: 'gradle-witness.jar'
-    }
-
-    dependencies {
-        classpath ':gradle-witness'
-    }
-}
-
-// These need to be loaded and verified in plugins.gradle.
 plugins {
     // https://github.com/tbroyer/gradle-errorprone-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.errorprone
@@ -37,9 +26,6 @@ plugins {
     // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
     id 'com.github.johnrengelman.shadow' version '5.0.0'
 }
-
-// Dependency Verification
-apply plugin: 'witness'
 
 // Languages
 apply plugin: 'antlr'
@@ -60,8 +46,10 @@ project.version = '20.XX-development'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
-project.sourceCompatibility = JavaVersion.VERSION_12
-project.targetCompatibility = JavaVersion.VERSION_12
+
+// GraalVM only supports JDK 11.
+project.sourceCompatibility = JavaVersion.VERSION_11
+project.targetCompatibility = JavaVersion.VERSION_11
 
 def defaultEncoding = 'UTF-8'
 
@@ -86,7 +74,7 @@ repositories {
 
 dependencies {
     // https://github.com/google/guava
-    implementation 'com.google.guava:guava:28.0-jre'
+    implementation 'com.google.guava:guava:28.2-jre'
     // https://commons.apache.org/proper/commons-cli/
     implementation 'commons-cli:commons-cli:1.4'
     // https://github.com/incaseoftrouble/jbdd
@@ -105,9 +93,9 @@ dependencies {
     // https://github.com/google/gson
     testImplementation 'com.google.code.gson:gson:2.8.5'
     // https://github.com/junit-team/junit5/
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.4.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.4.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
 
     antlr 'org.antlr:antlr4:4.7.2' // Introduces unused runtime dependencies; fixed in antlr.gradle
     // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
@@ -357,56 +345,3 @@ if (buildNatives) {
 }
 
 apply from: 'gradle/idea.gradle'
-
-// Generate update with `./gradlew -q calculateChecksums`
-dependencyVerification {
-    verify = [
-        'antlr:antlr:2.7.7:antlr-2.7.7.jar:88fbda4b912596b9f56e8e12e580cc954bacfb51776ecfddd3e18fc1cf56dc4c',
-        'com.beust:jcommander:1.72:jcommander-1.72.jar:e0de160b129b2414087e01fe845609cd55caec6820cfd4d0c90fabcc7bdb8c1e',
-        'com.google.auto.value:auto-value-annotations:1.6.6:auto-value-annotations-1.6.6.jar:3bf4b9e74a6bf0f38ac70af571e0f8a9d85ccba4c0693a72fea9ea46def0d5a0',
-        'com.google.auto.value:auto-value:1.6.6:auto-value-1.6.6.jar:3734a543e9f367fd6f9929d724125e2d573926ec9eef430d2fc12e2eb29dbad2',
-        'com.google.code.gson:gson:2.8.5:gson-2.8.5.jar:233a0149fc365c9f6edbd683cfe266b19bdc773be98eabdaf6b3c924b48e7d81',
-        'com.google.guava:failureaccess:1.0.1:failureaccess-1.0.1.jar:a171ee4c734dd2da837e4b16be9df4661afab72a41adaf31eb84dfdaf936ca26',
-        'com.google.guava:guava:27.1-jre:guava-27.1-jre.jar:4a5aa70cc968a4d137e599ad37553e5cfeed2265e8c193476d7119036c536fe7',
-        'com.google.guava:guava:28.0-jre:guava-28.0-jre.jar:73e4d6ae5f0e8f9d292a4db83a2479b5468f83d972ac1ff36d6d0b43943b4f91',
-        'com.google.guava:listenablefuture:9999.0-empty-to-avoid-conflict-with-guava:listenablefuture-9999.0-empty-to-avoid-conflict-with-guava.jar:b372a037d4230aa57fbeffdef30fd6123f9c0c2db85d0aced00c91b974f33f99',
-        'com.google.j2objc:j2objc-annotations:1.1:j2objc-annotations-1.1.jar:2994a7eb78f2710bd3d3bfb639b2c94e219cedac0d4d084d516e78c16dddecf6',
-        'com.google.j2objc:j2objc-annotations:1.3:j2objc-annotations-1.3.jar:21af30c92267bd6122c0e0b4d20cccb6641a37eaf956c6540ec471d584e64a7b',
-        'com.ibm.icu:icu4j:61.1:icu4j-61.1.jar:55c98eb1838b2a4bb9a07dc36bd378532d64d0cdcb7ceee914236866a7de4464',
-        'com.puppycrawl.tools:checkstyle:8.21:checkstyle-8.21.jar:2bb1ff142ea0e2b4a86af1826a4eff21831df7536fd57d0715db1c7bec96f3d3',
-        'com.zaxxer:SparseBitSet:1.1:SparseBitSet-1.1.jar:3f35d376d9bc4f705ff362f8b89125d58dcd2e7bd498b87aa2b92cfb5694ed8e',
-        'commons-beanutils:commons-beanutils:1.9.3:commons-beanutils-1.9.3.jar:c058e39c7c64203d3a448f3adb588cb03d6378ed808485618f26e137f29dae73',
-        'commons-cli:commons-cli:1.4:commons-cli-1.4.jar:fd3c7c9545a9cdb2051d1f9155c4f76b1e4ac5a57304404a6eedb578ffba7328',
-        'commons-collections:commons-collections:3.2.2:commons-collections-3.2.2.jar:eeeae917917144a68a741d4c0dff66aa5c5c5fd85593ff217bced3fc8ca783b8',
-        'commons-io:commons-io:2.6:commons-io-2.6.jar:f877d304660ac2a142f3865badfc971dec7ed73c747c7f8d5d2f5139ca736513',
-        'de.tum.in:jbdd:0.5.2:jbdd-0.5.2.jar:d89af013ca4e228af27361c7444eb3d2c1484f697553d879f6ffb818db0167e7',
-        'de.tum.in:naturals-util:0.10.0:naturals-util-0.10.0.jar:6e717bf6fa0b94fd3f2dd71ee65441e64a3c7f5af158db192eae656888f98d7f',
-        'info.picocli:picocli:3.9.6:picocli-3.9.6.jar:9442a6a18d869354a0d922ba37b40032aa1b0a172f414a7a644de39d1972f1f4',
-        'it.unimi.dsi:fastutil:8.2.1:fastutil-8.2.1.jar:7d336e2b61ddf6e4193a55627b7e606bf42b7e2f652df2fb836fc343dd51ba4a',
-        'net.java.dev.javacc:javacc:5.0:javacc-5.0.jar:71113161bc8cf6641515541c2818028b87c78ec2e8ffaa75317686ee08967b89',
-        'net.sf.saxon:Saxon-HE:9.9.1-2:Saxon-HE-9.9.1-2.jar:67432703c9599e46a40f69c67b7139a2c5350df46c6ab07fed68493975cc30fb',
-        'net.sourceforge.pmd:pmd-core:6.15.0:pmd-core-6.15.0.jar:776c6315798e58cc362abba33b69fc074f7a25673706ddc6355cdbd54dc1f572',
-        'net.sourceforge.pmd:pmd-java:6.15.0:pmd-java-6.15.0.jar:3a7d4f8c6054c46cc0954dc34fa28d627d827906f1a183fa98fcdaeb26a574fa',
-        'net.sourceforge.saxon:saxon:9.1.0.8:saxon-9.1.0.8-dom.jar:c6cf3ecc7f4b65ab8b613d00fd9e9c0648a5aa03264a941ba0fd2da5339f917a',
-        'net.sourceforge.saxon:saxon:9.1.0.8:saxon-9.1.0.8.jar:f3dcde81066c75db4ffca341d543555dbbbba7fff7ba6d1c2e7de1101dea394a',
-        'org.abego.treelayout:org.abego.treelayout.core:1.0.3:org.abego.treelayout.core-1.0.3.jar:fa5e31395c39c2e7d46aca0f81f72060931607b2fa41bd36038eb2cb6fb93326',
-        'org.antlr:ST4:4.1:ST4-4.1.jar:8b1ccaed9edc55cd255d9c19c4d8da4756d9b6fcb435671292b43470b16d75d8',
-        'org.antlr:antlr-runtime:3.5.2:antlr-runtime-3.5.2.jar:ce3fc8ecb10f39e9a3cddcbb2ce350d272d9cd3d0b1e18e6fe73c3b9389c8734',
-        'org.antlr:antlr4-runtime:4.7.2:antlr4-runtime-4.7.2.jar:4c518b87d4bdff8b44cd8cbc1af816e944b62a3fe5b80b781501cf1f4759bbc4',
-        'org.antlr:antlr4-runtime:4.7:antlr4-runtime-4.7.jar:2a61943f803bbd1d0e02dffd19b92a418f83340c994346809e3b51e2231aa6c0',
-        'org.antlr:antlr4:4.7.2:antlr4-4.7.2.jar:a3811fad1e4cb6dde62c189c204cf931c5fa40e06e43839ead4a9f2e188f2fe5',
-        'org.apache.commons:commons-lang3:3.8.1:commons-lang3-3.8.1.jar:dac807f65b07698ff39b1b07bfef3d87ae3fd46d91bbf8a2bc02b2a831616f68',
-        'org.apiguardian:apiguardian-api:1.0.0:apiguardian-api-1.0.0.jar:1f58b77470d8d147a0538d515347dd322f49a83b9e884b8970051160464b65b3',
-        'org.checkerframework:checker-qual:2.5.2:checker-qual-2.5.2.jar:64b02691c8b9d4e7700f8ee2e742dce7ea2c6e81e662b7522c9ee3bf568c040a',
-        'org.checkerframework:checker-qual:2.8.1:checker-qual-2.8.1.jar:9103499008bcecd4e948da29b17864abb64304e15706444ae209d17ebe0575df',
-        'org.codehaus.mojo:animal-sniffer-annotations:1.17:animal-sniffer-annotations-1.17.jar:92654f493ecfec52082e76354f0ebf87648dc3d5cec2e3c3cdb947c016747a53',
-        'org.glassfish:javax.json:1.0.4:javax.json-1.0.4.jar:0e1dec40a1ede965941251eda968aeee052cc4f50378bc316cc48e8159bdbeb4',
-        'org.junit.jupiter:junit-jupiter-api:5.4.2:junit-jupiter-api-5.4.2.jar:cdfb355fee661633f15f2763b8c2029c2e1958585b97b9162d38a36b1754dc3e',
-        'org.junit.jupiter:junit-jupiter-engine:5.4.2:junit-jupiter-engine-5.4.2.jar:42aead7c5c1b74e0ef775c374a9fc07c771fd61a3621e66df1793dba14e534fd',
-        'org.junit.jupiter:junit-jupiter-params:5.4.2:junit-jupiter-params-5.4.2.jar:13f89bca59fb6931a0ca9e3f4dc74e1a3054e0c63863e091a5df4855605ae4ce',
-        'org.junit.platform:junit-platform-commons:1.4.2:junit-platform-commons-1.4.2.jar:104bfa65b30ceb425a6de19d66b976caf38443ff5978ae931c103fa0f99d04ce',
-        'org.junit.platform:junit-platform-engine:1.4.2:junit-platform-engine-1.4.2.jar:7edb2ad879a338a84dbb09202b1399640ec0cacc5a95168539a9a74b5a2302e1',
-        'org.opentest4j:opentest4j:1.1.1:opentest4j-1.1.1.jar:f106351abd941110226745ed103c85863b3f04e9fa82ddea1084639ae0c5336c',
-        'org.ow2.asm:asm:7.1:asm-7.1.jar:4ab2fa2b6d2cc9ccb1eaa05ea329c407b47b13ed2915f62f8c4b8cc96258d4de',
-    ]
-}

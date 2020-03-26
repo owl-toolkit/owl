@@ -1,4 +1,4 @@
-image: gitlab.lrz.de:5005/i7/owl:latest
+image: gitlab.lrz.de:5005/i7/owl:jdk14
 
 before_script:
   - chmod +x gradlew
@@ -24,7 +24,6 @@ Build:
     - $GRADLE
   script:
     - java -version
-    - ./gradlew -b plugins.gradle
     - ./gradlew check minimizedDistZip
     - unzip -d build/unzipped build/distributions/*.zip
     - scripts/check_binaries.sh build/unzipped/owl-*/bin
@@ -50,7 +49,6 @@ Assemble:
     paths:
     - $GRADLE
   script:
-    - ./gradlew -b plugins.gradle
     - ./gradlew distZip javadoc
   dependencies:
   - Build
@@ -101,7 +99,6 @@ Size Regression Test:
     paths:
     - $GRADLE
   script:
-    - ./gradlew -b plugins.gradle
     - ./gradlew sizeRegressionTest
   dependencies:
   - Build
@@ -118,7 +115,6 @@ Size Regression Train:
     paths:
     - $GRADLE
   script:
-    - ./gradlew -b plugins.gradle
     - ./gradlew sizeRegressionTrain
   when: manual
   dependencies:
