@@ -117,7 +117,7 @@ public final class OutputWriters {
 
       // Number of SCCs
       Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(SccDecomposition.computeSccs(automaton).size()),
+      automaton -> String.valueOf(SccDecomposition.of(automaton).sccs().size()),
 
       Pattern.compile("%n", Pattern.LITERAL),
       automaton -> "\n");

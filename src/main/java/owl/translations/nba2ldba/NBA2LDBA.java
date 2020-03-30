@@ -120,7 +120,7 @@ public final class NBA2LDBA
 
     BreakpointAutomaton(Automaton<S, GeneralizedBuchiAcceptance> ngba) {
       this.ngba = ngba;
-      this.sccs = SccDecomposition.computeSccs(ngba, false);
+      this.sccs = SccDecomposition.of(ngba).sccsWithoutTransient();
       this.acceptanceSets = Math.max(ngba.acceptance().acceptanceSets(), 1);
     }
 

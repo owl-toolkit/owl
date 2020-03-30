@@ -36,7 +36,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.Automaton;
@@ -463,11 +462,11 @@ final class MonitorBuilder {
     // Since the monitors handle "F G <psi>", we can skip non-repeating prefixes
     // TODO We actually can use this to only compute the successors until we reach a BSCC
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
-    List<Set<MonitorState>> sccs = SccDecomposition.computeSccs(anyMonitor, false);
+
+    var sccDecomposition = SccDecomposition.of(anyMonitor);
+    var transientSccs = sccDecomposition.transientSccs();
 
     BitSet valuation = new BitSet(0);
-    Predicate<MonitorState> isTransient = state ->
-      sccs.parallelStream().noneMatch(scc -> scc.contains(state));
 
     MonitorState optimizedInitialState;
     MonitorState nextOptimizedInitialState = anyMonitor.onlyInitialState();
@@ -476,7 +475,7 @@ final class MonitorBuilder {
     do {
       optimizedInitialState = nextOptimizedInitialState;
 
-      if (isTransient.test(optimizedInitialState)) {
+      if (transientSccs.get(sccDecomposition.index(optimizedInitialState))) {
         nextOptimizedInitialState = anyMonitor.successor(optimizedInitialState, valuation);
       } else {
         nextOptimizedInitialState = null;

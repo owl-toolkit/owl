@@ -89,7 +89,7 @@ final class AsymmetricDPAConstruction {
       BuchiAcceptance, SortedSet<AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass,
       Set<AsymmetricProductState>>> ldba) {
       this.ldba = ldba;
-      this.initialComponentSccs = SccDecomposition.computeSccs(ldba.initialComponent());
+      this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       blockingElements = new BlockingElements(formula);
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);

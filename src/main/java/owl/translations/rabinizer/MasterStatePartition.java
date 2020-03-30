@@ -48,20 +48,21 @@ final class MasterStatePartition {
 
   public static MasterStatePartition create(Automaton<EquivalenceClass, ?> masterAutomaton) {
     // Determine the SCC decomposition and build the sub-automata separately
-    List<Set<EquivalenceClass>> masterSccs = SccDecomposition.computeSccs(masterAutomaton);
+    SccDecomposition<EquivalenceClass> masterSccs = SccDecomposition.of(masterAutomaton);
 
     ImmutableTable.Builder<EquivalenceClass, EquivalenceClass, ValuationSet>
       outgoingTransitionsBuilder = ImmutableTable.builder();
     List<Set<EquivalenceClass>> sccListBuilder = new ArrayList<>();
     Set<EquivalenceClass> transientStatesBuilder = new HashSet<>();
-    for (Set<EquivalenceClass> scc : masterSccs) {
+    for (Set<EquivalenceClass> scc : masterSccs.sccs()) {
       // Compute all outgoing transitions
       scc.forEach(state -> masterAutomaton.edgeMap(state).forEach((edge, valuations) -> {
         if (!scc.contains(edge.successor())) {
           outgoingTransitionsBuilder.put(state, edge.successor(), valuations);
         }
       }));
-      if (SccDecomposition.isTransient(masterAutomaton::successors, scc)) {
+
+      if (masterSccs.isTransientScc(scc)) {
         transientStatesBuilder.add(Iterables.getOnlyElement(scc));
       } else {
         sccListBuilder.add(Set.copyOf(scc));

@@ -103,9 +103,11 @@ public final class RabinDegeneralization {
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
       HashMapAutomaton.of(rabinAcceptance, automaton.factory());
 
+    var sccDecomposition = SccDecomposition.of(automaton);
+
     // Build the transition structure for each SCC separately
-    for (Set<S> scc : SccDecomposition.computeSccs(automaton, true)) {
-      if (SccDecomposition.isTransient(automaton::successors, scc)) {
+    for (Set<S> scc : sccDecomposition.sccs()) {
+      if (sccDecomposition.isTransientScc(scc)) {
         // Transient SCCs never accept - ignore potential acceptance
         S state = Iterables.getOnlyElement(scc);
         assert !stateMap.containsKey(state);
@@ -237,12 +239,14 @@ public final class RabinDegeneralization {
 
       MutableAutomatonUtil.copyInto(sourceAutomaton, resultAutomaton);
 
-      Set<DegeneralizedRabinState<S>> resultBscc = SccDecomposition
-        .computeSccs(SuccessorFunction
-          .filter(resultAutomaton, sourceAutomaton.states()), sourceAutomaton.states(), false)
-        .stream()
-        .filter(resultScc -> SccDecomposition.isTrap(resultAutomaton, resultScc))
-        .findAny().orElseThrow();
+      var sccDecomposition2 = SccDecomposition.of(
+        sourceAutomaton.states(),
+        SuccessorFunction.filter(resultAutomaton, sourceAutomaton.states())
+      );
+
+      var sccs = sccDecomposition2.sccs();
+      var bsccs = sccDecomposition2.bottomSccs();
+      var resultBscc = sccs.get(bsccs.nextSetBit(0));
 
       // Mark some state of the result BSCC initial.
       if (!resultBscc.isEmpty()) {

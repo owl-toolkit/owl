@@ -198,7 +198,8 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     }
 
     SortedMap<RabinPair, IntSet> pairActiveSccs = new TreeMap<>();
-    Indices.forEachIndexed(SccDecomposition.computeSccs(automaton, false), (sccIndex, scc) -> {
+    Indices.forEachIndexed(
+      SccDecomposition.of(automaton).sccsWithoutTransient(), (sccIndex, scc) -> {
       BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       pairs.forEach(pair -> {
         if (pair.contains(indices)) {
@@ -344,7 +345,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     GeneralizedRabinAcceptance acceptance = automaton.acceptance();
     int acceptanceSets = acceptance.acceptanceSets();
     List<RabinPair> pairs = new ArrayList<>(acceptance.pairs());
-    List<Set<S>> sccs = SccDecomposition.computeSccs(automaton, false);
+    List<Set<S>> sccs = SccDecomposition.of(automaton).sccsWithoutTransient();
     List<SortedSetMultimap<RabinPair, RabinPair>> sccImplicationList = new ArrayList<>(sccs.size());
 
     StringBuilder logBuilder = logger.isLoggable(Level.FINEST)
@@ -521,7 +522,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       .filter(x -> !x.hasInfSet())
       .collect(Collectors.toUnmodifiableList());
 
-    for (Set<S> scc : SccDecomposition.computeSccs(automaton, false)) {
+    for (Set<S> scc : SccDecomposition.of(automaton).sccsWithoutTransient()) {
       BitSet indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
       BitSet indicesToRemove = new BitSet();
 

@@ -19,6 +19,7 @@
 
 package owl.translations.ltl2ldba;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
 import java.util.BitSet;
@@ -96,7 +97,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
     SetMultimap<S, T> epsilonJumps = MultimapBuilder.hashKeys().hashSetValues().build();
 
-    for (Set<S> scc : SccDecomposition.computeSccs(initialComponent, false)) {
+    for (Set<S> scc : SccDecomposition.of(initialComponent).sccsWithoutTransient()) {
       for (S state : scc) {
         var targets = jumps.apply(state);
         acceptingComponentBuilder.addInitialStates(targets);
@@ -112,10 +113,10 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     AcceptanceOptimizations.removeDeadStates(acceptingComponent);
     epsilonJumps.values().retainAll(acceptingComponent.states());
 
-    for (Set<S> scc : SccDecomposition.computeSccs(initialComponent)) {
+    for (Set<S> scc : Lists.reverse(SccDecomposition.of(initialComponent).sccs())) {
       if (scc.stream().noneMatch(x -> epsilonJumps.keySet().contains(x)
         || SyntacticFragments.isSafety(languageFunction.apply(x)))
-        && SccDecomposition.isTrap(initialComponent, scc)) {
+        && scc.stream().allMatch(s -> scc.containsAll(initialComponent.successors(s)))) {
         // The is a BSCC without protected states. Safe to remove.
         initialComponent.removeStateIf(scc::contains);
         initialComponent.trim();
