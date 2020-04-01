@@ -3,7 +3,6 @@ package owl.ltl.rewriter;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;

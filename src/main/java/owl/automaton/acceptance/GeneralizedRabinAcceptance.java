@@ -21,9 +21,9 @@ package owl.automaton.acceptance;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static owl.automaton.acceptance.BooleanExpressions.createDisjunction;
-import static owl.automaton.acceptance.BooleanExpressions.getConjuncts;
-import static owl.automaton.acceptance.BooleanExpressions.getDisjuncts;
+import static jhoafparser.extensions.BooleanExpressions.createDisjunction;
+import static jhoafparser.extensions.BooleanExpressions.getConjuncts;
+import static jhoafparser.extensions.BooleanExpressions.getDisjuncts;
 
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
@@ -38,6 +38,7 @@ import java.util.function.IntPredicate;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.edge.Edge;
 
 /**

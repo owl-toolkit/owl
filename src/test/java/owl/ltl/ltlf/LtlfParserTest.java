@@ -3,7 +3,6 @@ package owl.ltl.ltlf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;

@@ -19,9 +19,9 @@
 
 package owl.automaton.acceptance;
 
+import static jhoafparser.extensions.BooleanExpressions.mkFin;
+import static jhoafparser.extensions.BooleanExpressions.mkInf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static owl.automaton.acceptance.BooleanExpressions.mkFin;
-import static owl.automaton.acceptance.BooleanExpressions.mkInf;
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
