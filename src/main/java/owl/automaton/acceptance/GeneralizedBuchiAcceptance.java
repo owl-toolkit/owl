@@ -19,7 +19,7 @@
 
 package owl.automaton.acceptance;
 
-import static owl.automaton.acceptance.BooleanExpressions.createConjunction;
+import static jhoafparser.extensions.BooleanExpressions.createConjunction;
 
 import java.util.BitSet;
 import java.util.List;
@@ -28,6 +28,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.extensions.BooleanExpressions;
 
 public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   @Nonnegative

@@ -26,6 +26,7 @@ import java.util.NoSuchElementException;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.edge.Edge;
 
 public final class ParityAcceptance extends OmegaAcceptance {

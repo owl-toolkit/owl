@@ -30,7 +30,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
-import jhoafparser.transformations.ToStateAcceptance;
+import jhoafparser.extensions.ToStateAcceptanceFixed;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
@@ -153,8 +153,6 @@ public final class OutputWriters {
    * href="http://adl.github.io/hoaf/">HOA</a> representation.
    */
   public static class ToHoa implements OwlModule.OutputWriter {
-    public static final ToHoa DEFAULT = new ToHoa(false, false);
-
     private final boolean annotations;
     private final boolean stateAcceptance;
 
@@ -167,7 +165,7 @@ public final class OutputWriters {
     public void write(Writer writer, Object object) {
       var printer = new HOAConsumerPrint(writer);
       var wrappedPrinter = stateAcceptance
-        ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptance())
+        ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptanceFixed())
         : printer;
 
       EnumSet<HoaOption> options;

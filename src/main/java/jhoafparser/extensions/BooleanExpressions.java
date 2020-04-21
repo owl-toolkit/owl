@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -17,13 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.acceptance;
+package jhoafparser.extensions;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
@@ -111,7 +112,7 @@ public final class BooleanExpressions {
     return disjunction;
   }
 
-  static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
+  public static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
     if (exp.isTRUE()) {
       return new ArrayList<>();
     }
@@ -124,8 +125,8 @@ public final class BooleanExpressions {
     conjuncts.addAll(getConjuncts(exp.getRight()));
     return conjuncts;
   }
-
-  static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
+  
+  public static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
     if (exp.isFALSE()) {
       return new ArrayList<>();
     }
@@ -178,34 +179,32 @@ public final class BooleanExpressions {
     Map<BooleanExpression<AtomAcceptance>, BooleanExpression<AtomAcceptance>> uniqueTable) {
 
     if (isConjunctive(acc)) {
-      return List.of(uniqueTable.computeIfAbsent(acc, x -> acc));
+      return List.of(uniqueTable.computeIfAbsent(acc, Function.identity()));
     } else {
       List<BooleanExpression<AtomAcceptance>> dnf = new ArrayList<>();
       List<BooleanExpression<AtomAcceptance>> left;
       List<BooleanExpression<AtomAcceptance>> right;
 
-      {
-        switch(acc.getType()) {
-          case EXP_AND:
-            left = toDnf(acc.getLeft(), uniqueTable);
-            right = toDnf(acc.getRight(), uniqueTable);
-            for (BooleanExpression<AtomAcceptance> l : left) {
-              for (BooleanExpression<AtomAcceptance> r : right) {
-                var conjunction = l.and(r);
-                dnf.add(uniqueTable.computeIfAbsent(conjunction, x -> conjunction));
-              }
+      switch (acc.getType()) {
+        case EXP_AND:
+          left = toDnf(acc.getLeft(), uniqueTable);
+          right = toDnf(acc.getRight(), uniqueTable);
+          for (BooleanExpression<AtomAcceptance> l : left) {
+            for (BooleanExpression<AtomAcceptance> r : right) {
+              var conjunction = l.and(r);
+              dnf.add(uniqueTable.computeIfAbsent(conjunction, Function.identity()));
             }
-            return dnf;
+          }
+          return dnf;
 
-          case EXP_OR:
-            dnf.addAll(toDnf(acc.getLeft(), uniqueTable));
-            dnf.addAll(toDnf(acc.getRight(), uniqueTable));
-            return dnf;
+        case EXP_OR:
+          dnf.addAll(toDnf(acc.getLeft(), uniqueTable));
+          dnf.addAll(toDnf(acc.getRight(), uniqueTable));
+          return dnf;
 
-          default:
-            throw new UnsupportedOperationException(
-              "Unsupported operator in acceptance condition: " + acc);
-        }
+        default:
+          throw new UnsupportedOperationException(
+            "Unsupported operator in acceptance condition: " + acc);
       }
     }
   }

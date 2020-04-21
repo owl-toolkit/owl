@@ -24,6 +24,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 
