@@ -21,8 +21,6 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
-import static owl.automaton.acceptance.OmegaAcceptanceCast.cast;
-import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Maps;
@@ -38,12 +36,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
-import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
@@ -63,100 +57,6 @@ public final class Views {
 
   private Views() {}
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> complement(
-    Automaton<S, ?> automaton,
-    @Nullable S trapState,
-    Class<A> expectedAcceptance) {
-    var completeAutomaton = trapState == null ? automaton : complete(automaton, trapState);
-
-    checkArgument(completeAutomaton.is(Automaton.Property.COMPLETE), "Automaton is not complete.");
-    checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
-    // Check is too costly.
-    // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
-
-    OmegaAcceptance acceptance = completeAutomaton.acceptance();
-    OmegaAcceptance complementAcceptance = null;
-
-    if (acceptance instanceof BuchiAcceptance) {
-      checkArgument(isInstanceOf(CoBuchiAcceptance.class, expectedAcceptance));
-      complementAcceptance = CoBuchiAcceptance.INSTANCE;
-    } else if (acceptance instanceof CoBuchiAcceptance) {
-      checkArgument(isInstanceOf(BuchiAcceptance.class, expectedAcceptance));
-      complementAcceptance = BuchiAcceptance.INSTANCE;
-    } else if (acceptance instanceof GeneralizedBuchiAcceptance) {
-      checkArgument(isInstanceOf(GeneralizedCoBuchiAcceptance.class, expectedAcceptance));
-      var castedAcceptance = (GeneralizedBuchiAcceptance) acceptance;
-      complementAcceptance = GeneralizedCoBuchiAcceptance.of(castedAcceptance.size);
-    } else if (acceptance instanceof GeneralizedCoBuchiAcceptance) {
-      checkArgument(isInstanceOf(GeneralizedBuchiAcceptance.class, expectedAcceptance));
-      var castedAcceptance = (GeneralizedCoBuchiAcceptance) acceptance;
-      complementAcceptance = GeneralizedBuchiAcceptance.of(castedAcceptance.size);
-    } else if (acceptance instanceof ParityAcceptance) {
-      checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
-      complementAcceptance = ((ParityAcceptance) automaton.acceptance()).complement();
-    }
-
-    if (complementAcceptance == null) {
-      throw new UnsupportedOperationException("Cannot complement to " + expectedAcceptance);
-    }
-
-    return cast(
-      new ReplacedAcceptanceConditionView<>(completeAutomaton, complementAcceptance),
-      expectedAcceptance);
-  }
-
-  private static class ReplacedAcceptanceConditionView<S, A extends OmegaAcceptance>
-    implements Automaton<S, A> {
-
-    private final A acceptance;
-    private final Automaton<S, ?> backingAutomaton;
-
-    private ReplacedAcceptanceConditionView(Automaton<S, ?> backingAutomaton, A acceptance) {
-      this.acceptance = acceptance;
-      this.backingAutomaton = backingAutomaton;
-    }
-
-    @Override
-    public Set<Edge<S>> edges(S state, BitSet valuation) {
-      return backingAutomaton.edges(state, valuation);
-    }
-
-    @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
-      return backingAutomaton.edgeMap(state);
-    }
-
-    @Override
-    public ValuationTree<Edge<S>> edgeTree(S state) {
-      return backingAutomaton.edgeTree(state);
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return backingAutomaton.preferredEdgeAccess();
-    }
-
-    @Override
-    public A acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public ValuationSetFactory factory() {
-      return backingAutomaton.factory();
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return backingAutomaton.initialStates();
-    }
-
-    @Override
-    public Set<S> states() {
-      return backingAutomaton.states();
-    }
-  }
-
   public static <S> Automaton<S, ?> complete(Automaton<S, ?> automaton, S trapState) {
     var acceptance = automaton.acceptance();
 
@@ -167,20 +67,6 @@ public final class Views {
 
     var rejectingEdge = Edge.of(trapState, acceptance.rejectingSet());
     return new Complete<>(automaton, rejectingEdge, acceptance);
-  }
-
-  public static <S, A extends OmegaAcceptance> Automaton<Set<S>, A> createPowerSetAutomaton(
-    Automaton<S, ?> automaton, A acceptance, boolean dropEmptySet) {
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
-      automaton.factory(), Set.of(automaton.initialStates()), acceptance) {
-      @Override
-      public Edge<Set<S>> edge(Set<S> state, BitSet valuation) {
-        Set<S> successors = state.stream()
-          .flatMap(x -> automaton.successors(x, valuation).stream())
-          .collect(Collectors.toUnmodifiableSet());
-        return dropEmptySet && successors.isEmpty() ? null : Edge.of(successors);
-      }
-    };
   }
 
   /**

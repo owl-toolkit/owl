@@ -20,14 +20,13 @@
 package owl.automaton.algorithm;
 
 import com.google.common.base.Preconditions;
-import java.util.List;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.AutomatonOperations;
-import owl.automaton.Views;
-import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.BooleanOperations;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
+import owl.automaton.determinization.Determinization;
 
 public final class LanguageContainment {
 
@@ -44,19 +43,48 @@ public final class LanguageContainment {
    *
    * @return true if L_1 is contained in L_2.
    */
-  public static boolean contains(Automaton<?, BuchiAcceptance> automaton1,
-    Automaton<?, BuchiAcceptance> automaton2) {
-    Preconditions.checkArgument(automaton1.is(Property.DETERMINISTIC),
-      "First argument needs to be deterministic.");
+  public static boolean contains(Automaton<?, ?> automaton1, Automaton<?, ?> automaton2) {
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
       "Second argument needs to be deterministic.");
 
-    var casted1 = OmegaAcceptanceCast.cast(
-      (Automaton<Object, ?>) automaton1, BuchiAcceptance.class);
-    var casted2 = OmegaAcceptanceCast.cast(
-      (Automaton<Object, ?>) automaton2, BuchiAcceptance.class);
+    var automaton2Complement = BooleanOperations.deterministicComplement(
+      (Automaton<Object, ?>) automaton2, new Object(), EmersonLeiAcceptance.class);
+    var intersection = BooleanOperations.intersection(automaton1, automaton2Complement,true);
 
-    return LanguageEmptiness.isEmpty(AutomatonOperations.intersection(List.of(casted1,
-      Views.complement(casted2, new Object(), CoBuchiAcceptance.class))));
+    return LanguageEmptiness.isEmpty(intersection);
+  }
+
+  public static boolean containsCoBuchi(
+    Automaton<?, CoBuchiAcceptance> automaton1,
+    Automaton<?, CoBuchiAcceptance> automaton2) {
+
+    if (automaton2.is(Property.DETERMINISTIC)) {
+      return contains(automaton1, automaton2);
+    }
+
+    return contains(automaton1, Determinization.determinizeCoBuchiAcceptance(automaton2));
+  }
+
+  public static boolean equalsCoBuchi(
+    Automaton<?, CoBuchiAcceptance> automaton1,
+    Automaton<?, CoBuchiAcceptance> automaton2) {
+    return containsCoBuchi(automaton1, automaton2) && containsCoBuchi(automaton2, automaton1);
+  }
+
+  public static boolean containsAll(
+    Automaton<?, AllAcceptance> automaton1,
+    Automaton<?, AllAcceptance> automaton2) {
+
+    if (automaton2.is(Property.DETERMINISTIC)) {
+      return contains(automaton1, automaton2);
+    }
+
+    return contains(automaton1, Determinization.determinizeAllAcceptance(automaton2));
+  }
+
+  public static boolean equalsAll(
+    Automaton<?, AllAcceptance> automaton1,
+    Automaton<?, AllAcceptance> automaton2) {
+    return containsAll(automaton1, automaton2) && containsAll(automaton2, automaton1);
   }
 }

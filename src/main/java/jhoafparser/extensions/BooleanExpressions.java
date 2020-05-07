@@ -125,7 +125,7 @@ public final class BooleanExpressions {
     conjuncts.addAll(getConjuncts(exp.getRight()));
     return conjuncts;
   }
-  
+
   public static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
     if (exp.isFALSE()) {
       return new ArrayList<>();
@@ -150,27 +150,58 @@ public final class BooleanExpressions {
       new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
   }
 
+  public static BooleanExpression<AtomAcceptance> shift(
+    BooleanExpression<AtomAcceptance> expression, int offset) {
+
+    if (offset == 0) {
+      return expression;
+    }
+
+    if (expression.isTRUE() || expression.isFALSE()) {
+      return expression;
+    }
+
+    if (expression.isAtom()) {
+      var atom = expression.getAtom();
+      var shiftedAtom = new AtomAcceptance(
+        atom.getType(), atom.getAcceptanceSet() + offset, atom.isNegated());
+      return new BooleanExpression<>(shiftedAtom);
+    }
+
+    if (expression.isNOT()) {
+      return shift(expression.getLeft(), offset).not();
+    }
+
+    if (expression.isAND()) {
+      return shift(expression.getLeft(), offset).and(shift(expression.getRight(), offset));
+    }
+
+    if (expression.isOR()) {
+      return shift(expression.getLeft(), offset).or(shift(expression.getRight(), offset));
+    }
+
+    throw new AssertionError("Encountered unknown expression " + expression);
+  }
+
   // Copied from jhoafparser and fixed.
   private static boolean isConjunctive(BooleanExpression<AtomAcceptance> acc) {
-    {
-      switch (acc.getType()) {
-        case EXP_FALSE:
-          // fall-through
-        case EXP_TRUE:
-          // fall-through
-        case EXP_ATOM:
-          return true;
+    switch (acc.getType()) {
+      case EXP_FALSE:
+        // fall-through
+      case EXP_TRUE:
+        // fall-through
+      case EXP_ATOM:
+        return true;
 
-        case EXP_AND:
-          return isConjunctive(acc.getLeft()) && isConjunctive(acc.getRight());
+      case EXP_AND:
+        return isConjunctive(acc.getLeft()) && isConjunctive(acc.getRight());
 
-        case EXP_OR:
-          return false;
+      case EXP_OR:
+        return false;
 
-        default:
-          throw new UnsupportedOperationException(
-            "Unsupported operator in acceptance condition " + acc);
-      }
+      default:
+        throw new UnsupportedOperationException(
+          "Unsupported operator in acceptance condition " + acc);
     }
   }
 

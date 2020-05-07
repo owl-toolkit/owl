@@ -43,6 +43,12 @@ API:
   possible by major performance improvements in the EquivalenceClass
   implementation.
 
+* Addition of the `BooleanOperations` utility class that provides Boolean
+  operations (complementation, union, and intersection) on automata.
+
+* Addition of utility classes for determinization of NCW and minimisation
+  of DCW to good-for-games NCW.
+
 * Various API simplifications in the automata package.
 
 Bugfixes:

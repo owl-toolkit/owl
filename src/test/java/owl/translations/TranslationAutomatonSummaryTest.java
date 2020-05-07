@@ -92,7 +92,7 @@ import owl.translations.modules.LTL2NBAModule;
 import owl.translations.modules.LTL2NGBAModule;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
-class TranslationAutomatonSummaryTest {
+public class TranslationAutomatonSummaryTest {
 
   private static final String BASE_PATH = "data/formulas";
 
@@ -323,7 +323,7 @@ class TranslationAutomatonSummaryTest {
     }
   }
 
-  enum FormulaSet {
+  public enum FormulaSet {
     BASE("base"),
     CHECK("check"),
     FGGF("fggf"),
@@ -353,7 +353,7 @@ class TranslationAutomatonSummaryTest {
     }
 
     @SuppressWarnings("PMD.LooseCoupling")
-    LinkedHashSet<LabelledFormula> loadAndDeduplicateFormulaSet() throws IOException {
+    public LinkedHashSet<LabelledFormula> loadAndDeduplicateFormulaSet() throws IOException {
       var formulaSet = new LinkedHashSet<LabelledFormula>();
 
       try (BufferedReader reader = Files.newBufferedReader(file())) {

@@ -28,6 +28,7 @@ import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
@@ -46,6 +47,7 @@ public final class LanguageEmptiness {
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton, Set<S> initialStates) {
     OmegaAcceptance acceptance = automaton.acceptance();
+    // TODO: move to exploration stage.
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
     if (acceptance instanceof AllAcceptance) {
@@ -61,6 +63,11 @@ public final class LanguageEmptiness {
     if (acceptance instanceof GeneralizedBuchiAcceptance) {
       var casted = OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class);
       return !Buchi.containsAcceptingScc(casted, initialStates);
+    }
+
+    if (acceptance instanceof CoBuchiAcceptance) {
+      var casted = OmegaAcceptanceCast.cast(automaton, ParityAcceptance.class);
+      return initialStates.stream().noneMatch(x -> Parity.containsAcceptingLasso(casted, x));
     }
 
     if (acceptance instanceof ParityAcceptance) {

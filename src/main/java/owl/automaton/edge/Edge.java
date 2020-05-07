@@ -25,6 +25,7 @@ import de.tum.in.naturals.bitset.ImmutableBitSet;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
+import java.util.function.IntConsumer;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
 
@@ -108,6 +109,8 @@ public abstract class Edge<S> {
    * @return An iterator with all acceptance sets of this edge.
    */
   public abstract PrimitiveIterator.OfInt acceptanceSetIterator();
+
+  public abstract void forEachAcceptanceSet(IntConsumer action);
 
   public abstract BitSet acceptanceSets();
 

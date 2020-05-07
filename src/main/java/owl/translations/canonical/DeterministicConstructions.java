@@ -41,6 +41,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
+import owl.collections.Pair;
 import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
@@ -53,7 +54,6 @@ import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
-import owl.translations.canonical.Util.Pair;
 
 public final class DeterministicConstructions {
 
@@ -293,24 +293,24 @@ public final class DeterministicConstructions {
       RoundRobinState<EquivalenceClass> fallbackInitialState) {
 
       if (!successor.isTrue()) {
-        return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.b());
+        return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.snd());
       }
 
       // Look at automata after the index.
-      int size = initialStateSuccessors.a().size();
-      var latterSuccessors = initialStateSuccessors.a().subList(index + 1, size);
+      int size = initialStateSuccessors.fst().size();
+      var latterSuccessors = initialStateSuccessors.fst().subList(index + 1, size);
       for (RoundRobinState<EquivalenceClass> initialStateSuccessor : latterSuccessors) {
         if (!initialStateSuccessor.state().isTrue()) {
-          return Edge.of(initialStateSuccessor, initialStateSuccessors.b());
+          return Edge.of(initialStateSuccessor, initialStateSuccessors.snd());
         }
       }
 
       // We finished all goals, thus we can mark the edge as accepting.
-      BitSet acceptance = (BitSet) initialStateSuccessors.b().clone();
+      BitSet acceptance = (BitSet) initialStateSuccessors.snd().clone();
       acceptance.set(0);
 
       // Look at automata before the index.
-      var earlierSuccessors = initialStateSuccessors.a().subList(0, index + 1);
+      var earlierSuccessors = initialStateSuccessors.fst().subList(0, index + 1);
       for (RoundRobinState<EquivalenceClass> initialStateSuccessor : earlierSuccessors) {
         if (!initialStateSuccessor.state().isTrue()) {
           return Edge.of(initialStateSuccessor, acceptance);

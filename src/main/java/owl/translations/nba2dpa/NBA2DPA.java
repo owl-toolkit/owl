@@ -37,8 +37,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonOperations;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.BooleanOperations;
 import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -109,7 +109,7 @@ public final class NBA2DPA
           public Boolean load(Map.Entry<Set<S>, S> entry) {
             return LanguageContainment.contains(
                 Views.filtered(nba, Views.Filter.of(Set.of(entry.getValue()))),
-              OmegaAcceptanceCast.cast(AutomatonOperations.union(entry.getKey().stream()
+              OmegaAcceptanceCast.cast(BooleanOperations.unionBuchi(entry.getKey().stream()
                 .map(x -> Views.filtered(nba, Views.Filter.of(Set.of(x))))
                 .collect(Collectors.toList())), BuchiAcceptance.class));
           }

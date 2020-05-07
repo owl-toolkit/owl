@@ -40,6 +40,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Collections3;
+import owl.collections.Pair;
 import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
@@ -441,12 +442,12 @@ public final class NonDeterministicConstructions {
     extends Base<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> {
 
     private final RoundRobinState<Formula> fallbackInitialState;
-    private final ValuationTree<Util.Pair<List<RoundRobinState<Formula>>, BitSet>>
+    private final ValuationTree<Pair<List<RoundRobinState<Formula>>, BitSet>>
       initialStatesSuccessorTree;
 
     private GfCoSafety(Factories factories, Set<RoundRobinState<Formula>> initialState,
       RoundRobinState<Formula> fallbackInitialState,
-      ValuationTree<Util.Pair<List<RoundRobinState<Formula>>, BitSet>> tree,
+      ValuationTree<Pair<List<RoundRobinState<Formula>>, BitSet>> tree,
       GeneralizedBuchiAcceptance acceptance) {
       super(factories, initialState, acceptance);
       this.fallbackInitialState = fallbackInitialState;
@@ -504,7 +505,7 @@ public final class NonDeterministicConstructions {
       var initialStatesSuccessorTree = cartesianProduct(
         initialStatesSuccessorTreeTemp,
         Util.singleStepTree(singletonAutomata),
-        (x, y) -> Util.Pair.of(List.copyOf(x), y));
+        (x, y) -> Pair.of(List.copyOf(x), y));
 
       RoundRobinState<Formula> fallbackInitialState = RoundRobinState.of(0, automata.get(0));
       // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
@@ -533,7 +534,7 @@ public final class NonDeterministicConstructions {
 
     private static Set<Edge<RoundRobinState<Formula>>> edges(
       RoundRobinState<Formula> state, BitSet valuation, EquivalenceClassFactory factory,
-      ValuationTree<Util.Pair<List<RoundRobinState<Formula>>, BitSet>> initialStatesSuccessorTree,
+      ValuationTree<Pair<List<RoundRobinState<Formula>>, BitSet>> initialStatesSuccessorTree,
       RoundRobinState<Formula> fallbackInitialState) {
 
       Set<Edge<RoundRobinState<Formula>>> edges = new HashSet<>();
@@ -549,28 +550,28 @@ public final class NonDeterministicConstructions {
     }
 
     private static Edge<RoundRobinState<Formula>> buildEdge(int index, Formula successor,
-      Util.Pair<List<RoundRobinState<Formula>>, BitSet> initialStateSuccessors,
+      Pair<List<RoundRobinState<Formula>>, BitSet> initialStateSuccessors,
       RoundRobinState<Formula> fallbackInitialState) {
 
       if (!BooleanConstant.TRUE.equals(successor)) {
-        return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.b());
+        return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.snd());
       }
 
       // Look at automata after the index.
-      int size = initialStateSuccessors.a().size();
-      var latterSuccessors = initialStateSuccessors.a().subList(index + 1, size);
+      int size = initialStateSuccessors.fst().size();
+      var latterSuccessors = initialStateSuccessors.fst().subList(index + 1, size);
       for (RoundRobinState<Formula> initialStateSuccessor : latterSuccessors) {
         if (!BooleanConstant.TRUE.equals(initialStateSuccessor.state())) {
-          return Edge.of(initialStateSuccessor, initialStateSuccessors.b());
+          return Edge.of(initialStateSuccessor, initialStateSuccessors.snd());
         }
       }
 
       // We finished all goals, thus we can mark the edge as accepting.
-      BitSet acceptance = (BitSet) initialStateSuccessors.b().clone();
+      BitSet acceptance = (BitSet) initialStateSuccessors.snd().clone();
       acceptance.set(0);
 
       // Look at automata before the index.
-      var earlierSuccessors = initialStateSuccessors.a().subList(0, index + 1);
+      var earlierSuccessors = initialStateSuccessors.fst().subList(0, index + 1);
       for (RoundRobinState<Formula> initialStateSuccessor : earlierSuccessors) {
         if (!BooleanConstant.TRUE.equals(initialStateSuccessor.state())) {
           return Edge.of(initialStateSuccessor, acceptance);

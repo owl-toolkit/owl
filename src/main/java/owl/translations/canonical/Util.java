@@ -19,7 +19,6 @@
 
 package owl.translations.canonical;
 
-import com.google.auto.value.AutoValue;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
 
-class Util {
+final class Util {
 
   private Util() {}
 
@@ -114,16 +113,5 @@ class Util {
 
     assert formula instanceof BooleanConstant;
     return formula;
-  }
-
-  @AutoValue
-  abstract static class Pair<A, B> {
-    abstract A a();
-
-    abstract B b();
-
-    static <A, B> Pair<A, B> of(A a, B b) {
-      return new AutoValue_Util_Pair<>(a, b);
-    }
   }
 }

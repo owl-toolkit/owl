@@ -37,10 +37,10 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.AnnotatedStateOptimisation;
 import owl.automaton.Automaton;
+import owl.automaton.BooleanOperations;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.ParityUtil;
-import owl.automaton.Views;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.ltl.BooleanConstant;
@@ -256,7 +256,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       }
 
       assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD;
-      return Views.complement(automaton, sinkState, ParityAcceptance.class);
+      return BooleanOperations
+        .deterministicComplement(automaton, sinkState, ParityAcceptance.class);
     }
   }
 }

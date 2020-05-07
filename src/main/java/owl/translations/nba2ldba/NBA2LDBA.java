@@ -37,13 +37,13 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.TwoPartAutomaton;
-import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.determinization.Determinization;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.Either;
@@ -73,16 +73,15 @@ public final class NBA2LDBA
 
   public static AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<?, BuchiAcceptance>
     applyLDBA(Automaton<?, ?> automaton) {
-    Automaton<?, GeneralizedBuchiAcceptance> ngba;
+    Automaton<?, ? extends GeneralizedBuchiAcceptance> ngba;
 
     if (automaton.acceptance() instanceof AllAcceptance) {
       // Use subset construction to get a deterministic automaton and use double cast to take the
       // LDBA-shortcut.
       ngba = OmegaAcceptanceCast.cast(
-        OmegaAcceptanceCast.cast(
-          Views.createPowerSetAutomaton(automaton, AllAcceptance.INSTANCE, true),
-          BuchiAcceptance.class),
-        GeneralizedBuchiAcceptance.class);
+        Determinization.determinizeAllAcceptance(
+          OmegaAcceptanceCast.cast(automaton, AllAcceptance.class)),
+        BuchiAcceptance.class);
     } else {
       ngba = OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class);
     }
@@ -114,11 +113,11 @@ public final class NBA2LDBA
   static final class BreakpointAutomaton<S>
     extends TwoPartAutomaton<S, BreakpointState<S>, BuchiAcceptance>  {
 
-    private final Automaton<S, GeneralizedBuchiAcceptance> ngba;
+    private final Automaton<S, ? extends GeneralizedBuchiAcceptance> ngba;
     private final List<Set<S>> sccs;
     private final int acceptanceSets;
 
-    BreakpointAutomaton(Automaton<S, GeneralizedBuchiAcceptance> ngba) {
+    BreakpointAutomaton(Automaton<S, ? extends GeneralizedBuchiAcceptance> ngba) {
       this.ngba = ngba;
       this.sccs = SccDecomposition.of(ngba).sccsWithoutTransient();
       this.acceptanceSets = Math.max(ngba.acceptance().acceptanceSets(), 1);

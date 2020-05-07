@@ -41,6 +41,12 @@ final class EdgeGeneric<S> extends Edge<S> {
   }
 
   @Override
+  public void forEachAcceptanceSet(java.util.function.IntConsumer action) {
+    Objects.requireNonNull(action);
+    acceptance.stream().forEach(action);
+  }
+
+  @Override
   public BitSet acceptanceSets() {
     return (BitSet) acceptance.clone();
   }
