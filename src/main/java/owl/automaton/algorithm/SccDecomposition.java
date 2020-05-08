@@ -23,9 +23,9 @@ import owl.automaton.SuccessorFunction;
  * This class provides a decomposition into strongly connected components (SCCs) of a directed graph
  * given by either an {@link Automaton} or a {@link SuccessorFunction}.
  *
- * @implNote The SCC decomposition is computed using Tarjan's strongly connected component
- *     algorithm. It runs in linear time, assuming the Map-operation get, put and containsKey
- *     (and the onStack set-operations) take constant time.
+ * <p>The SCC decomposition is computed using Tarjan's strongly connected component algorithm. It
+ * runs in linear time, assuming the Map-operation get, put and containsKey (and the onStack
+ * set-operations) take constant time.</p>
  */
 @AutoValue
 public abstract class SccDecomposition<S> {
@@ -40,7 +40,7 @@ public abstract class SccDecomposition<S> {
 
   public static <S> SccDecomposition<S> of(
     Set<S> initialStates, SuccessorFunction<S> successorFunction) {
-    return new AutoValue_SccDecomposition(Set.copyOf(initialStates), successorFunction);
+    return new AutoValue_SccDecomposition<>(Set.copyOf(initialStates), successorFunction);
   }
 
   /**
@@ -49,9 +49,8 @@ public abstract class SccDecomposition<S> {
    * the result. If the initial states are empty then {@code false} is returned and the predicate
    * is not evaluated.
    *
-   * @apiNote
-   *     This method evaluates the <em>existential quantification</em> of the
-   *     predicate over the strongly connected components (for some x P(x)).
+   * <p>This method evaluates the <em>existential quantification</em> of the predicate over the
+   * strongly connected components (for some x P(x)).</p>
    *
    * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
    *                  <a href="package-summary.html#Statelessness">stateless</a>

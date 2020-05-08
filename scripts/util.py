@@ -5,15 +5,22 @@ import os
 import os.path as path
 import subprocess
 import sys
+import socket
+import time
+import signal
 
 import owlpy.defaults as owl_defaults
 import owlpy.formula as owl_formula
 import owlpy.tool as owl_tool
+import owlpy.run_servers as run_servers
 
 
-def _test(args):
+def _test(args, check):
     if len(args) > 2:
-        print("Usage: util.py test <test names> <dataset>?")
+        if check:
+            print("Usage: util.py test <test names> <dataset>?")
+        else:
+            print("Usage: util.py stats <test names> <dataset>?")
         sys.exit(1)
 
     database = owl_defaults.get_test_path()
@@ -46,7 +53,6 @@ def _test(args):
             if key not in test_json:
                 test_json[key] = value
 
-        reference = test_json["reference"]
         if type(test_json["tools"]) is str:
             tools = [test_json["tools"]]
         else:
@@ -58,8 +64,15 @@ def _test(args):
             else:
                 test_data_sets = [test_data_sets]
 
-        test_arguments = [owl_defaults.get_script_path("ltlcross-run.sh"),
-                          reference["name"], " ".join(reference["exec"])]
+        if check:
+            reference = test_json["reference"]
+            test_arguments = [owl_defaults.get_script_path("ltlcross-run.sh"),
+                              reference["name"], " ".join(reference["exec"])]
+        else:
+            test_arguments = [owl_defaults.get_script_path("ltlcross-bench.sh")]
+
+        if os.name == 'nt':
+            test_arguments = ["bash"] + test_arguments
 
         loaded_tools = []
 
@@ -99,7 +112,7 @@ def _test(args):
             if type(loaded_tool) is owl_tool.OwlTool:
                 if enable_server:
                     servers[port] = loaded_tool.get_server_execution(port)
-                    test_arguments.append("\"build/bin/owl-client\""
+                    test_arguments.append("build/bin/owl-client"
                                           + " localhost " + str(port) + " %f")
                     port += 1
                 else:
@@ -140,11 +153,14 @@ def _test(args):
             test_arguments.append(formula_set_name)
 
         sub_env = os.environ.copy()
-        sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
-
-        server_processes = {}
+        if check:
+            sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
+        else:
+            sub_env["JAVA_OPTS"] = "-Xss64M"
 
         if servers:
+            from contextlib import closing
+
             print("Servers:")
             for server in servers.values():
                 print(" ".join(server))
@@ -152,35 +168,9 @@ def _test(args):
             print()
             sys.stdout.flush()
 
-            for port, server in servers.items():
-                server_process = subprocess.Popen(server, stdin=subprocess.DEVNULL,
-                                                  stdout=subprocess.DEVNULL,
-                                                  stderr=None, env=sub_env)
-                server_processes[port] = server_process
-
-            import socket
-            import time
-            from contextlib import closing
-            for port, process in server_processes.items():
-                while True:
-                    with closing(socket.socket(socket.AF_INET, socket.SOCK_STREAM)) as sock:
-                        if sock.connect_ex(('localhost', port)) == 0:
-                            break
-                        if process.poll() is not None:
-                            sys.exit(1)
-                        time.sleep(0.25)
-
+        server_processes = run_servers.run(servers, sub_env)
         process = subprocess.run(test_arguments, env=sub_env)
-
-        for server_process in server_processes.values():
-            server_process.terminate()
-        for server_process in server_processes.values():
-            try:
-                server_process.wait(timeout=10)
-            except subprocess.TimeoutExpired:
-                server_process.kill()
-
-            time.sleep(0.5)
+        run_servers.stop(server_processes)
 
         if process.returncode:
             sys.exit(process.returncode)
@@ -269,6 +259,10 @@ def _benchmark(args):
 
     benchmark_script = [owl_defaults.get_script_path("benchmark.sh"), "--stdin",
                         "--repeat", str(repeat)]
+
+    if os.name == 'nt':
+        benchmark_script = ["bash"] + benchmark_script
+
     if update:
         benchmark_script += ["--update"]
     if perf:
@@ -294,19 +288,22 @@ if __name__ == "__main__":
         print("Usage: util.py <type> <args>")
         sys.exit(1)
 
-    task_type = sys.argv[1]
+    args = sys.argv
+    task_type = args[1]
 
     try:
         if task_type == "test":
-            _test(sys.argv[2:])
+            _test(args[2:], True)
+        elif task_type == "stats":
+            _test(args[2:], False)
         elif task_type == "formula":
-            _formula(sys.argv[2:])
+            _formula(args[2:])
         elif task_type == "tool":
-            _tool(sys.argv[2:])
+            _tool(args[2:])
         elif task_type == "bench":
-            _benchmark(sys.argv[2:])
+            _benchmark(args[2:])
         else:
-            print("<type> must be one of test, formula, tool or bench")
+            print("<type> must be one of test, stats, formula, tool or bench")
             sys.exit(1)
     except KeyboardInterrupt:
         print("Interrupted")
