@@ -21,6 +21,7 @@ package owl.automaton.acceptance;
 
 import java.util.BitSet;
 import java.util.List;
+import java.util.NoSuchElementException;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -43,13 +44,45 @@ public abstract class OmegaAcceptance {
     return List.of();
   }
 
+  /**
+   * Returns a set of indices which repeated infinitely often are accepting.
+   *
+   * @see #isAccepting(BitSet)
+   * @throws NoSuchElementException if there is no such set
+   */
   public abstract BitSet acceptingSet();
 
+  /**
+   * Returns a set of indices which repeated infinitely often are rejecting.
+   *
+   * @see #isAccepting(BitSet)
+   * @throws NoSuchElementException if there is no such set
+   */
   public abstract BitSet rejectingSet();
 
-  public boolean isAcceptingEdge(Edge<?> edge) {
+  /**
+   * Returns whether repeating these acceptance indices infinitely often would be accepting.
+   */
+  public boolean isAccepting(BitSet set) {
     return BooleanExpressions.evaluate(booleanExpression(),
-      atom -> edge.inSet(atom.getAcceptanceSet()));
+      atom -> {
+        boolean inEdge = set.get(atom.getAcceptanceSet());
+        switch (atom.getType()) {
+          case TEMPORAL_FIN:
+            return !inEdge;
+          case TEMPORAL_INF:
+            return inEdge;
+          default:
+            throw new AssertionError();
+        }
+      });
+  }
+
+  /**
+   * Returns whether repeating this edge infinitely often would be accepting.
+   */
+  public boolean isAcceptingEdge(Edge<?> edge) {
+    return isAccepting(edge.acceptanceSets());
   }
 
   /**
@@ -58,7 +91,7 @@ public abstract class OmegaAcceptance {
    * index is less than the colour count.
    *
    * @param edge
-   *     The edge to be checked.
+   *   The edge to be checked.
    *
    * @return Whether the edge acceptance is well defined.
    */

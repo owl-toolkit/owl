@@ -20,6 +20,7 @@
 package owl.factories.jbdd;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
+import static owl.factories.jbdd.ValuationFactory.BddValuationSet;
 
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
@@ -38,7 +39,7 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
-final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuationSet>
+final class ValuationFactory extends GcManagedFactory<BddValuationSet>
   implements ValuationSetFactory {
   private static final BooleanExpression<AtomLabel> FALSE = new BooleanExpression<>(false);
   private static final BooleanExpression<AtomLabel> TRUE = new BooleanExpression<>(true);
@@ -197,7 +198,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
     assert node != bdd.trueNode();
     assert node != bdd.falseNode();
 
-    var tree = cache.get(Integer.valueOf(node));
+    var tree = cache.get(node);
 
     if (tree != null) {
       return tree;
@@ -214,7 +215,7 @@ final class ValuationFactory extends GcManagedFactory<ValuationFactory.BddValuat
         .stream().mapToObj(mapper).collect(toUnmodifiableSet()));
     }
 
-    cache.put(Integer.valueOf(node), tree);
+    cache.put(node, tree);
     return tree;
   }
 

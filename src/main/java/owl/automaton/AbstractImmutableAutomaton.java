@@ -135,9 +135,6 @@ public abstract class AbstractImmutableAutomaton<S, A extends OmegaAcceptance>
     extends AbstractImmutableAutomaton<S, A>
     implements EdgesAutomatonMixin<S, A> {
 
-    /**
-     * {@inheritDoc}
-     */
     public NonDeterministicEdgesAutomaton(ValuationSetFactory factory, Set<S> initialStates,
       A acceptance) {
       super(factory, initialStates, acceptance);
@@ -153,9 +150,6 @@ public abstract class AbstractImmutableAutomaton<S, A extends OmegaAcceptance>
     extends AbstractImmutableAutomaton<S, A>
     implements EdgeMapAutomatonMixin<S, A> {
 
-    /**
-     * {@inheritDoc}
-     */
     public NonDeterministicEdgeMapAutomaton(ValuationSetFactory factory, Set<S> initialStates,
       A acceptance) {
       super(factory, initialStates, acceptance);
@@ -171,9 +165,6 @@ public abstract class AbstractImmutableAutomaton<S, A extends OmegaAcceptance>
     extends AbstractImmutableAutomaton<S, A>
     implements EdgeTreeAutomatonMixin<S, A> {
 
-    /**
-     * {@inheritDoc}
-     */
     public NonDeterministicEdgeTreeAutomaton(ValuationSetFactory factory, Set<S> initialStates,
       A acceptance) {
       super(factory, initialStates, acceptance);
@@ -188,9 +179,6 @@ public abstract class AbstractImmutableAutomaton<S, A extends OmegaAcceptance>
     extends AbstractImmutableAutomaton<S, A>
     implements EdgesAutomatonMixin<S, A> {
 
-    /**
-     * {@inheritDoc}
-     */
     public SemiDeterministicEdgesAutomaton(ValuationSetFactory factory, Set<S> initialStates,
       A acceptance) {
       super(factory, initialStates, acceptance);

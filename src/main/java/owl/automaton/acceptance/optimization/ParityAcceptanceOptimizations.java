@@ -21,10 +21,10 @@ package owl.automaton.acceptance.optimization;
 
 import it.unimi.dsi.fastutil.ints.Int2IntMap;
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
-import java.util.BitSet;
 import java.util.List;
-import java.util.PrimitiveIterator;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
@@ -49,14 +49,12 @@ public final class ParityAcceptanceOptimizations {
 
     ParityAcceptance acceptance = automaton.acceptance();
     int acceptanceSets = acceptance.acceptanceSets();
-    // Gather the priorities used _after_ the reduction - cheap and can be used for verification
-    BitSet globallyUsedPriorities = new BitSet(acceptanceSets);
 
     // Construct the mapping for the priorities in this map
     Int2IntMap reductionMapping = new Int2IntOpenHashMap();
     reductionMapping.defaultReturnValue(-1);
     // Priorities used in each SCC
-    BitSet usedPriorities = new BitSet(acceptanceSets);
+    SortedSet<Integer> usedPriorities = new TreeSet<>();
     int usedAcceptanceSets = 0;
 
     for (Set<S> scc : sccs) {
@@ -66,34 +64,29 @@ public final class ParityAcceptanceOptimizations {
       // Determine the used priorities
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
-          if (scc.contains(edge.successor())) {
-            PrimitiveIterator.OfInt acceptanceSetIterator = edge.acceptanceSetIterator();
-            if (acceptanceSetIterator.hasNext()) {
-              usedPriorities.set(acceptanceSetIterator.nextInt());
-            }
+          if (edge.hasAcceptanceSets() && scc.contains(edge.successor())) {
+            usedPriorities.add(edge.smallestAcceptanceSet());
           }
         }
       }
 
       // All priorities are used, can't collapse any
-      if (usedPriorities.cardinality() == acceptanceSets) {
+      if (usedPriorities.size() == acceptanceSets) {
         usedAcceptanceSets = Math.max(usedAcceptanceSets, acceptanceSets);
+        continue;
+      }
+      if (usedPriorities.isEmpty()) {
         continue;
       }
 
       // Construct the mapping
-      int currentPriority = usedPriorities.nextSetBit(0);
-      int currentTarget = currentPriority % 2;
-
-      while (currentPriority != -1) {
+      int currentTarget = usedPriorities.first() % 2;
+      for (int currentPriority : usedPriorities) {
         if (currentTarget % 2 != currentPriority % 2) {
           currentTarget += 1;
         }
-
         reductionMapping.put(currentPriority, currentTarget);
-        globallyUsedPriorities.set(currentTarget);
         usedAcceptanceSets = Math.max(usedAcceptanceSets, currentTarget + 1);
-        currentPriority = usedPriorities.nextSetBit(currentPriority + 1);
       }
 
       // This remaps _all_ outgoing edges of the states in the SCC - including transient edges.

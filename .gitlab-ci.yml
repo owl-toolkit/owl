@@ -5,6 +5,7 @@ before_script:
 
 stages:
   - build
+  - check
   - test
   - deploy
 
@@ -24,21 +25,35 @@ Build:
     - $GRADLE
   script:
     - java -version
-    - ./gradlew check minimizedDistZip
-    - unzip -d build/unzipped build/distributions/*.zip
-    - scripts/check_binaries.sh build/unzipped/owl-*/bin
+    - ./gradlew minimizedDistZip
   artifacts:
     paths:
-    - build/tmp/
-    - build/reports/
-    when: on_failure
-    expire_in: 1 hour
-  artifacts:
-    paths:
-    - build/distributions/
+      - build/distributions/
     when: on_success
     expire_in: 1 week
 
+# This should also be in the test stage, however we want to fail-fast if there is a stupid error
+# before starting all the expensive integration tests
+Check:
+  stage:
+    check
+  cache:
+    paths:
+      - $GRADLE
+  script:
+    - ./gradlew check
+    - unzip -d build/unzipped build/distributions/*.zip
+    - scripts/check_binaries.sh build/unzipped/owl-*/bin
+  artifacts:
+    reports:
+      junit: build/test-results/test/*.xml
+    paths:
+      - build/tmp/
+      - build/reports/
+    when: always
+    expire_in: 1 hour
+  dependencies:
+    - Build
 
 # Artifact
 
@@ -103,6 +118,8 @@ Size Regression Test:
   dependencies:
   - Build
   artifacts:
+    reports:
+      junit: build/test-results/test/*.xml
     paths:
     - build/tmp/
     - build/reports/

@@ -24,7 +24,7 @@ plugins {
 
     // https://github.com/johnrengelman/shadow
     // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-    id 'com.github.johnrengelman.shadow' version '5.0.0'
+    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 // Languages
@@ -70,41 +70,44 @@ apply from: 'gradle/natives.gradle'
 
 repositories {
     mavenCentral()
+    jcenter() // required for naturals-util / roaring bitmap
 }
 
 dependencies {
     // https://github.com/google/guava
-    implementation 'com.google.guava:guava:28.2-jre'
+    implementation 'com.google.guava:guava:29.0-jre'
     // https://commons.apache.org/proper/commons-cli/
     implementation 'commons-cli:commons-cli:1.4'
     // https://github.com/incaseoftrouble/jbdd
     implementation 'de.tum.in:jbdd:0.5.2'
     // https://github.com/incaseoftrouble/naturals-util
-    implementation 'de.tum.in:naturals-util:0.10.0'
+    implementation 'de.tum.in:naturals-util:0.15.0'
     // https://github.com/vigna/fastutil
     // https://mvnrepository.com/artifact/it.unimi.dsi/fastutil
-    implementation 'it.unimi.dsi:fastutil:8.2.1'
+    implementation 'it.unimi.dsi:fastutil:8.3.1'
     // http://www.antlr.org/
     // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
-    implementation 'org.antlr:antlr4-runtime:4.7.2'
+    implementation 'org.antlr:antlr4-runtime:4.8-1'
     // https://automata.tools/hoa/jhoafparser/
     implementation files('lib/jhoafparser-1.1.1-patched.jar')
+
+    implementation group: 'com.zaxxer', name: 'SparseBitSet', version: '1.2'
 
     // https://github.com/google/gson
     testImplementation 'com.google.code.gson:gson:2.8.5'
     // https://github.com/junit-team/junit5/
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.4.2'
-    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.4.2'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.6.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 
-    antlr 'org.antlr:antlr4:4.7.2' // Introduces unused runtime dependencies; fixed in antlr.gradle
+    antlr 'org.antlr:antlr4:4.8-1' // Introduces unused runtime dependencies; fixed in antlr.gradle
     // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
     // errorprone 'com.google.errorprone:error_prone_core:2.3.3'
 
 
-    // https://github.com/google/auto/
-    implementation      'com.google.auto.value:auto-value-annotations:1.6.6'
-    annotationProcessor 'com.google.auto.value:auto-value:1.6.6'
+    // https://mvnrepository.com/artifact/com.google.auto.value/auto-value
+    implementation      'com.google.auto.value:auto-value-annotations:1.7.1'
+    annotationProcessor 'com.google.auto.value:auto-value:1.7.1'
 }
 
 test {
@@ -193,13 +196,13 @@ ext.createStartScriptTasks = { name, cp, map ->
             mainClassName = className
             applicationName = scriptName
             // CreateStartScripts is stupid; it.outputs.files = outputDir, not the created scripts.
-            outputDir = new File(project.buildDir, 'scripts/' + scriptName)
+            outputDir = file(project.buildDir.path  + '/scripts/' + scriptName)
             classpath = cp
         }
     }
 }
 
-startScripts.outputDir = new File(project.buildDir, 'scripts/owl')
+startScripts.outputDir = file(project.buildDir.path + '/scripts/owl')
 
 // ---------------- Jars ----------------
 
@@ -248,18 +251,30 @@ rabinizerStartScripts.each() {
 // ---------------- Documentation ----------------
 
 // Compile the markdown files
-tasks.create(name: "compileMarkdown", type: Exec) {
-    executable = 'scripts/render-markdown.sh'
-    outputs.dir "$project.docsDir/markdown"
-    args = ["$project.docsDir/markdown"]
-}.onlyIf {
-    buildNatives
+import org.apache.tools.ant.taskdefs.condition.Os
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    tasks.create(name: "compileMarkdown") {
+        doLast {
+            logger.warn("Cannot compile markdown on windows, skipping")
+        }
+    }.onlyIf {
+        buildNatives
+    }
+} else {
+    tasks.create(name: "compileMarkdown", type: Exec) {
+        executable = 'scripts/render-markdown.sh'
+        outputs.dir "$project.docsDir/markdown"
+        args = ["$project.docsDir/markdown"]
+    }.onlyIf {
+        buildNatives
+    }
 }
 
 javadoc {
     options.addBooleanOption('html5', true)
     options.setEncoding(defaultEncoding)
     options.links('https://docs.oracle.com/en/java/javase/11/docs/api')
+    options.addStringOption('Xdoclint:none', '-quiet') // Silence warnings
 }
 
 // TODO Include testing framework scripts in distribution -> split scripts directory in two dirs
@@ -272,7 +287,7 @@ javadoc {
 
 distributions {
     main {
-        baseName = 'owl'
+        distributionBaseName = 'owl'
 
         contents {
             from "AUTHORS"
@@ -296,7 +311,7 @@ distributions {
     }
 
     minimized {
-        baseName = 'owl-minimized'
+        distributionBaseName = 'owl-minimized'
 
         contents {
             from "AUTHORS"
