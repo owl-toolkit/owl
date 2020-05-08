@@ -8,52 +8,55 @@ if [[ ${#} -eq 0 ]]; then
   exit 1
 fi
 
-source "$(dirname $0)/vars.sh"
+# shellcheck source=./vars.sh
+source "$(dirname "$0")/vars.sh"
 
 # Set default timing method
-if hash perf 2>/dev/null; then
-  METHOD="perf"
+if command -v perf 1>/dev/null 2>&1; then
+  method="perf"
+  perf_supported="1"
 else
-  METHOD="time"
+  method="time"
+  perf_supported="0"
 fi
 
-declare -a FORMULAS=()
-declare -a FORMULA_FILES=()
-declare -a TOOL_EXEC=()
+declare -a formulas=()
+declare -a formula_files=()
+declare -a tool_executions=()
 
-UPDATE="0"
-REPEATS="0"
-READ_STDIN="0"
+update="0"
+repeats="0"
+read_stdin="0"
 
 while [ ${#} -gt 0 ] && [ "$1" != "--" ]; do
-  OPTION="$1"
-  case ${OPTION} in
+  option="$1"
+  case ${option} in
     "-u"|"--update")
-      UPDATE="1"
+      update="1"
       shift
     ;;
     "-f"|"--formula")
-      FORMULAS+=("$2")
+      formulas+=("$2")
       shift 2
     ;;
     "-F"|"--file")
-      FORMULA_FILES+=("$2")
+      formula_files+=("$2")
       shift 2
     ;;
     "--time")
-      METHOD="time"
+      method="time"
       shift
     ;;
     "--perf")
-      METHOD="perf"
+      method="perf"
       shift
     ;;
     "--stdin")
-      READ_STDIN="1"
+      read_stdin="1"
       shift
     ;;
     "-r"|"--repeat")
-      REPEATS="$2"
+      repeats="$2"
       shift 2
     ;;
     *)
@@ -69,73 +72,90 @@ if [ ${#} -eq 0 ]; then
 fi
 shift
 
-TOOL_EXECUTABLE="$1"
-if ! [ -x ${TOOL_EXECUTABLE} ] && ! hash ${TOOL_EXECUTABLE} 2>/dev/null; then
-  echo "Specified tool executable $TOOL_EXECUTABLE not found"
+tool_executable="$(unix_path "$1")"
+if ! [ -e "${tool_executable}" ] && ! command -v "${tool_executable}" 1>/dev/null 2>&1; then
+  echo "Specified tool executable $tool_executable not found"
   exit 1
 fi
-while [ ${#} -gt 0 ]; do TOOL_EXEC+=("$1"); shift; done
-echo "Tested tool: $TOOL_EXEC"
+tool_executions+=("$tool_executable")
+shift;
+while [ ${#} -gt 0 ]; do tool_executions+=("$1"); shift; done
+# shellcheck disable=SC2145
+echo "Tested tool: ${tool_executions[@]}"
 
-if [ "$UPDATE" = "1" ]; then
+if [ "$update" = "1" ]; then
   echo "Updating binaries"
   (
-    cd ${PROJECT_FOLDER}
-    if ! OUTPUT=$(./gradlew --no-daemon buildBin); then
+    cd "${project_folder}"
+    if [[ $os == "windows" ]]; then
+      gradle="gradlew.bat"
+    else
+      gradle="./gradlew"
+    fi
+    if ! output=$($gradle --no-daemon buildBin); then
       echo "Gradle failed, output:"
-      echo ${OUTPUT}
+      echo "${output}"
       exit 1
     fi
   )
 fi
 
-if [ -z "$REPEATS" ] || [[ "$REPEATS" -le 0 ]]; then
-  REPEATS="1"
+if [ -z "$repeats" ] || [[ "$repeats" -le 0 ]]; then
+  repeats="1"
 fi
-if [ "$REPEATS" -gt 1 ] && [ "$METHOD" != "perf" ]; then
+if [ "$method" == "perf" ] && [ "$perf_supported" != "1" ]; then
+  echo "Perf not supported; ignoring"
+  method="time"
+fi
+if [ "$repeats" -gt 1 ] && [ "$method" != "perf" ]; then
   echo "Specifying repeats only supported together with using perf; ignoring"
 fi
 
-if ! FORMULA_FILE=$(mktemp -t owl.tmp.XXXXXXXXXX); then
+if ! formula_file=$(mktemp -t owl.tmp.XXXXXXXXXX); then
   echo "Failed to obtain temporary file"
   exit 1
 fi
 
 function remove_temp {
-  rm -f ${FORMULA_FILE}
+  rm -f "${formula_file}"
 }
 trap remove_temp EXIT
 
 echo "Building formula file"
 
-if [ ${#FORMULA_FILES[@]} -gt 0 ]; then
-  for FILE in "${FORMULA_FILES[@]}"; do
-    cat ${FILE} >> ${FORMULA_FILE}
+if [ ${#formula_files[@]} -gt 0 ]; then
+  for file in "${formula_files[@]}"; do
+    cat "${file}" >> "${formula_file}"
   done
 fi
-if [ ${#FORMULAS[@]} -gt 0 ]; then
-  for FORMULA in "${FORMULAS[@]}"; do
-    echo ${FORMULA} >> ${FORMULA_FILE}
+if [ ${#formulas[@]} -gt 0 ]; then
+  for formula in "${formulas[@]}"; do
+    echo "${formula}" >> "${formula_file}"
   done
 fi
-if [ "$READ_STDIN" = "1" ]; then
-  cat - >> ${FORMULA_FILE}
+if [ "$read_stdin" = "1" ]; then
+  cat - >> "${formula_file}"
 fi
 
-if ! [ -s ${FORMULA_FILE} ]; then
-  echo "No input formulas available in aggregation file ${FORMULA_FILE}"
+if ! [ -s "${formula_file}" ]; then
+  echo "No input formulas available in aggregation file ${formula_file}"
   exit 1
 fi
 
-echo -n "Running benchmark with $METHOD and formulas from $FORMULA_FILE "
-echo    "(total of $(wc -l < ${FORMULA_FILE}) formulas)"
-echo    "Command: ${TOOL_EXEC[@]}"
+echo -n "Running benchmark with $method and formulas from $formula_file "
+echo    "(total of $(wc -l < "${formula_file}") formulas)"
+# shellcheck disable=SC2145
+echo    "Command: ${tool_executions[@]}"
 
-TOOL_EXEC=( "${TOOL_EXEC[@]/\%F/${FORMULA_FILE}}" )
+tool_executions=( "${tool_executions[@]/\%F/$(win_path "${formula_file}")}" )
 
 
-if [ "$METHOD" = "time" ]; then
-  /usr/bin/time -v ${TOOL_EXEC[@]} 2>&1 >/dev/null
-elif [ "$METHOD" = "perf" ]; then
-  perf stat -d -r ${REPEATS} ${TOOL_EXEC[@]} 2>&1 >/dev/null
+if [ "$method" = "time" ]; then
+  if [ -e "/usr/bin/time" ]; then
+    { /usr/bin/time "${tool_executions[@]}" >/dev/null; } 2>&1
+  else
+    time { "${tool_executions[@]}" >/dev/null; } 2>&1
+  fi
+elif [ "$method" = "perf" ]; then
+  { perf stat -d -r ${repeats} ${tool_executions[@]} >/dev/null; } 2>&1
 fi

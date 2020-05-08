@@ -26,43 +26,45 @@ import java.nio.charset.StandardCharsets;
 import org.junit.jupiter.api.Test;
 
 class AigPrintableTest {
+  private static final String SEP = System.lineSeparator();
+
   private static final String sampleAigerOutput =
-    "aag 7 2 1 2 4\n"
-      + "2\n"
-      + "4\n"
-      + "6 14\n"
-      + "6\n"
-      + "7\n"
-      + "8 2 6\n"
-      + "10 3 7\n"
-      + "12 9 11\n"
-      + "14 4 12\n"
-      + "i0 enable\n"
-      + "i1 reset\n"
-      + "l0 latch\n"
-      + "o0 Q\n"
-      + "c\n"
-      + "This is a\n"
-      + "two-line comment\n";
+    "aag 7 2 1 2 4" + SEP
+      + "2" + SEP
+      + "4" + SEP
+      + "6 14" + SEP
+      + "6" + SEP
+      + "7" + SEP
+      + "8 2 6" + SEP
+      + "10 3 7" + SEP
+      + "12 9 11" + SEP
+      + "14 4 12" + SEP
+      + "i0 enable" + SEP
+      + "i1 reset" + SEP
+      + "l0 latch" + SEP
+      + "o0 Q" + SEP
+      + "c" + SEP
+      + "This is a" + SEP
+      + "two-line comment" + SEP;
 
   @SuppressWarnings("StringConcatenationMissingWhitespace")
   private static final String sampleBinaryAigerOutput =
-    "aig 7 2 1 2 4\n"
-      + "14\n"
-      + "6\n"
-      + "7\n"
+    "aig 7 2 1 2 4" + SEP
+      + "14" + SEP
+      + "6" + SEP
+      + "7" + SEP
       + ((char) 0x04)
       + ((char) 0x04)
       + ((char) 0x02)
       + ((char) 0x08)
-      + '\n'
-      + "i0 enable\n"
-      + "i1 reset\n"
-      + "l0 latch\n"
-      + "o0 Q\n"
-      + "c\n"
-      + "This is a\n"
-      + "two-line comment\n";
+      + SEP
+      + "i0 enable" + SEP
+      + "i1 reset" + SEP
+      + "l0 latch" + SEP
+      + "o0 Q" + SEP
+      + "c" + SEP
+      + "This is a" + SEP
+      + "two-line comment" + SEP;
 
   @Test
   void testPrinting() {

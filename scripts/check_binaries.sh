@@ -11,12 +11,12 @@ else
   exit 1
 fi
 
-[ -d ${script_dir} ] || exit 1;
+[ -d "${script_dir}" ] || exit 1
 
 any_err="0"
 
 for binary in $(find "$script_dir" -executable -type f \! -name "*.bat" -print); do
-  if ! ${binary} --version > /dev/null 2>&1; then
+  if ! ${binary} --version >/dev/null 2>&1; then
     echo "Failed to run $binary"
     any_err="1"
   fi

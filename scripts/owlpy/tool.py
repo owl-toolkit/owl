@@ -2,19 +2,20 @@
 # -*- coding: utf-8 -*-
 
 import sys
-
+import os
 
 class Tool(object):
-    def __init__(self, name):
+    def __init__(self, name, flags):
         self.name = name
+        self.flags = flags
 
     def get_name(self):
         return self.name
 
 
 class SpotTool(Tool):
-    def __init__(self, name, execution):
-        super().__init__(name)
+    def __init__(self, name, execution, flags):
+        super().__init__(name, flags)
         self.execution = execution
 
     def get_file_execution(self, file):
@@ -25,20 +26,18 @@ class SpotTool(Tool):
     def get_input_execution(self, static_input):
         tool_execution = list(self.execution)
         tool_execution.extend(["-f", static_input])
-        print(str(tool_execution))
         return tool_execution
 
 
 class OwlTool(Tool):
     def __init__(self, name, tool, flags, input_type, output_type, pre=None, post=None):
-        super().__init__(name)
+        super().__init__(name, flags)
         if post is None:
             post = []
         if pre is None:
             pre = []
         self.pre = pre
         self.tool = tool
-        self.flags = flags
         self.post = post
         self.input_type = input_type
         self.output_type = output_type
@@ -81,7 +80,10 @@ class OwlTool(Tool):
         return pipeline
 
     def get_server_execution(self, port=None):
-        tool_execution = ["build/bin/owl-server"]
+        if os.name == 'nt':
+            tool_execution = ["build\\bin\\owl-server.bat"]
+        else:
+            tool_execution = ["build/bin/owl-server"]
         if port is not None:
             tool_execution.extend(["--port", str(port)])
 
@@ -89,14 +91,19 @@ class OwlTool(Tool):
         return tool_execution
 
     def get_file_execution(self, file):
-        tool_execution = ["build/bin/owl"]
-        # TODO Fix --worker flag
-        tool_execution.extend(["-I", file]) # , "--worker", "0"])
+        if os.name == 'nt':
+            tool_execution = ["build\\bin\\owl.bat"]
+        else:
+            tool_execution = ["build/bin/owl"]
+        tool_execution.extend(["-I", file])
         tool_execution.extend(self.get_pipeline())
         return tool_execution
 
     def get_input_execution(self, static_input):
-        tool_execution = ["build/bin/owl"]
+        if os.name == 'nt':
+            tool_execution = ["build\\bin\\owl.bat"]
+        else:
+            tool_execution = ["build/bin/owl"]
         # TODO Fix --worker flag
         tool_execution.extend(["-i", static_input]) # , "--worker", "0"])
         tool_execution.extend(self.get_pipeline())
@@ -187,7 +194,7 @@ def get_tool(tools_json, tool_description):
         tool_execution = [tool_json["executable"]]
         for flag in set(flags.values()):
             tool_execution.append(flag)
-        tool = SpotTool(tool_name, tool_execution)
+        tool = SpotTool(tool_name, tool_execution, flags)
     else:
         raise KeyError("Unknown tool type {}".format(tool_type))
 

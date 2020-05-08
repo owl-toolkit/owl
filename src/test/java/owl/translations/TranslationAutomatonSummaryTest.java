@@ -272,8 +272,7 @@ public class TranslationAutomatonSummaryTest {
       var translatorFunction = translator.constructor.apply(Environment.standard());
 
       try (Reader sizesFile = Files.newBufferedReader(translator.referenceFile())) {
-        var testCases = Arrays
-          .stream(gson.fromJson(sizesFile, TestCase[].class))
+        var testCases = Arrays.stream(gson.fromJson(sizesFile, TestCase[].class))
           .map(testCase -> testCase.test(translatorFunction));
         containers.add(DynamicContainer.dynamicContainer(translator.name, testCases));
       } catch (IOException exception) {

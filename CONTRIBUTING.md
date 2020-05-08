@@ -75,3 +75,13 @@ Code without any documentation is not accepted.
 The [Oracle](http://www.oracle.com/technetwork/java/javase/tech/index-137868.html) and [Google](https://google.github.io/styleguide/javaguide.html#s7-javadoc) style guides apply.
 Specifically, block tags (like `@throws`, `@return`, etc.) should be continued by a lower-case sentence.
 For example, `@throws IllegalArgumentException if the argument is not allowed` or `@return the thing`.
+
+## Windows
+
+To use development tools on Windows:
+
+* Install Cygwin and Python
+* Compile current version of spot
+* Manually compile owl-client at `src/main/c` and place it in `build/bin`
+* (optional) `dos2unix scripts/*.sh` if your git checkout changes newlines
+* Now, `ltlcross-run.sh` etc. should work (inside the Cygwin console)

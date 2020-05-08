@@ -46,10 +46,11 @@ import owl.run.parser.PartialModuleConfiguration;
  * This class provides a conversion from generalised Büchi automata into Büchi automata. The
  * conversion preserves determinism.
  *
- * <p> This class is also an example on how to do the following:
- * <ul> How to implement an OwlModule and derive a standalone tool. </ul>
- * <ul> How to generate an automaton on-the-fly using the symbolic and explicit API. </ul>
- * </p>
+ * <p>This class is also an example on how to do the following:
+ * <ul>
+ *   <li>How to implement an OwlModule and derive a standalone tool.</li>
+ *   <li>How to generate an automaton on-the-fly using the symbolic and explicit API.</li>
+ * </ul></p>
  */
 public final class BuchiDegeneralization {
 
