@@ -209,9 +209,10 @@ public final class RabinizerBuilder {
       new UnabbreviateVisitor(WOperator.class, ROperator.class));
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
-    String formulaString = PrintVisitor
-      .toString(phiNormalized, factories.eqFactory.atomicPropositions());
+    String formulaString =
+      PrintVisitor.toString(phiNormalized, factories.eqFactory.atomicPropositions());
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
+
     var automaton = new RabinizerBuilder(configuration, factories, phiNormalized).build();
     automaton.name("Rabinizer automaton for " + formulaString);
     automaton.trim();
@@ -465,8 +466,7 @@ public final class RabinizerBuilder {
               // TODO Can we be even smarter here? This usually is the costliest part of the code
               // due to the call to monitors entail
               valuations.forEach(sensitiveAlphabet, valuation -> {
-                ValuationSet edgeValuation =
-                  vsFactory.of(valuation, sensitiveAlphabet);
+                ValuationSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
                 if (configuration.eager() && !rankingPair.monitorsEntailEager(state, valuation)) {
                   transition.addAcceptance(edgeValuation, pair.finSet());
                 } else {
@@ -1115,8 +1115,8 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return MOperator
-        .of(mOperator.leftOperand().accept(this), mOperator.rightOperand().accept(this));
+      return MOperator.of(mOperator.leftOperand().accept(this),
+        mOperator.rightOperand().accept(this));
     }
 
     @Override
@@ -1125,8 +1125,8 @@ public final class RabinizerBuilder {
         return BooleanConstant.TRUE;
       }
 
-      return UOperator
-        .of(uOperator.leftOperand().accept(this), uOperator.rightOperand().accept(this));
+      return UOperator.of(uOperator.leftOperand().accept(this),
+        uOperator.rightOperand().accept(this));
     }
 
     @Override

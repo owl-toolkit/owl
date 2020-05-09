@@ -85,3 +85,18 @@ To use development tools on Windows:
 * Manually compile owl-client at `src/main/c` and place it in `build/bin`
 * (optional) `dos2unix scripts/*.sh` if your git checkout changes newlines
 * Now, `ltlcross-run.sh` etc. should work (inside the Cygwin console)
+
+# Dependency verification
+
+When changing dependency versions, run `gradlew --write-verification-metadata sha256 help` to regenerate the checksums.
+Currently `junit-bom.pom` has to be added manually due to a bug.
+
+To completely regenerate the file and prune stale entries, delete the file and run above command.
+Then, add
+```
+<trusted-artifacts>
+ <trust file=".*-javadoc[.]jar" regex="true"/>
+ <trust file=".*-sources[.]jar" regex="true"/>
+</trusted-artifacts>
+```
+to the `<configuration>` section, otherwise IntelliJ complains.

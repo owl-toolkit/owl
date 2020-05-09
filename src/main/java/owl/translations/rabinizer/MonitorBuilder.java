@@ -19,6 +19,7 @@
 
 package owl.translations.rabinizer;
 
+import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFactory;
 import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFactory.isAccepting;
 import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFactory.isSink;
 
@@ -60,7 +61,7 @@ final class MonitorBuilder {
   private final Fragment fragment;
   private final MutableAutomaton<MonitorState, ParityAcceptance>[] monitorAutomata;
   private final GSet[] relevantSets;
-  private final RabinizerStateFactory.MonitorStateFactory stateFactory;
+  private final MonitorStateFactory stateFactory;
   private final GOperator gOperator;
   private final ValuationSetFactory vsFactory;
 
@@ -83,7 +84,7 @@ final class MonitorBuilder {
         + "fragment: {2}, no G-sub: {3}",
       new Object[] {operand, relevantSets, fragment, isCoSafety});
 
-    this.stateFactory = new RabinizerStateFactory.MonitorStateFactory(eager, isCoSafety);
+    this.stateFactory = new MonitorStateFactory(eager, isCoSafety);
     this.relevantSets = relevantSets.toArray(GSet[]::new);
     assert !isCoSafety || this.relevantSets.length == 1;
 
