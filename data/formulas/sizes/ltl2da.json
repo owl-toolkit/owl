@@ -6468,6 +6468,17 @@
     }
   },
   {
+    "formula": "((((a) M (b))) M ((((c | Gd)) R (((!e \u0026 G!c) | (e \u0026 ((e \u0026 G!c) | (!e \u0026 Fc))))))))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((a) R ((!b | !c | ((Gb) M (((c | d) \u0026 (!d | ((!c) R ((a | !c))))))))))",
     "properties": {
       "size": 14,
@@ -6508,6 +6519,17 @@
       "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
       "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "((((a) W (b))) W ((((!c \u0026 Fd)) U (((e | Fc) \u0026 (!e | ((e | G!c) \u0026 (!e | Fc))))))))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
       "deterministic": true
     }
   },
