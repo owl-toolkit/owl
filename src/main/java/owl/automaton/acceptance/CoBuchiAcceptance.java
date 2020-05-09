@@ -20,6 +20,7 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
+import java.util.Optional;
 
 public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
   public static final CoBuchiAcceptance INSTANCE = new CoBuchiAcceptance();
@@ -34,14 +35,14 @@ public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
   }
 
   @Override
-  public BitSet acceptingSet() {
-    return new BitSet();
+  public Optional<BitSet> acceptingSet() {
+    return Optional.of(new BitSet());
   }
 
   @Override
-  public BitSet rejectingSet() {
+  public Optional<BitSet> rejectingSet() {
     BitSet set = new BitSet();
     set.set(0);
-    return set;
+    return Optional.of(set);
   }
 }

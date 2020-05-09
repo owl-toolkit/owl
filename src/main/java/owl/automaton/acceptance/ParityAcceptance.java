@@ -22,7 +22,7 @@ package owl.automaton.acceptance;
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -50,7 +50,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BitSet acceptingSet() {
+  public Optional<BitSet> acceptingSet() {
     BitSet set = new BitSet();
 
     if (parity.even()) {
@@ -59,15 +59,11 @@ public final class ParityAcceptance extends OmegaAcceptance {
       set.set(1);
     }
 
-    if (colours < set.length()) {
-      throw new NoSuchElementException();
-    }
-
-    return set;
+    return colours < set.length() ? Optional.empty() : Optional.of(set);
   }
 
   @Override
-  public BitSet rejectingSet() {
+  public Optional<BitSet> rejectingSet() {
     BitSet set = new BitSet();
 
     if (parity.even()) {
@@ -76,11 +72,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
       set.set(0);
     }
 
-    if (colours < set.length()) {
-      throw new NoSuchElementException();
-    }
-
-    return set;
+    return colours < set.length() ? Optional.empty() : Optional.of(set);
   }
 
   public Parity parity() {

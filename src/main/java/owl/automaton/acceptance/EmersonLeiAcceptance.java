@@ -20,6 +20,7 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
+import java.util.Optional;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
@@ -53,12 +54,12 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BitSet acceptingSet() {
+  public Optional<BitSet> acceptingSet() {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 
   @Override
-  public BitSet rejectingSet() {
+  public Optional<BitSet> rejectingSet() {
     throw new UnsupportedOperationException("Not yet implemented");
   }
 }

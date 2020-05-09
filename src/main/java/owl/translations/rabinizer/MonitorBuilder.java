@@ -468,7 +468,6 @@ final class MonitorBuilder {
     MutableAutomaton<MonitorState, ParityAcceptance> anyMonitor = monitorAutomata[0];
 
     var sccDecomposition = SccDecomposition.of(anyMonitor);
-    var transientSccs = sccDecomposition.transientSccs();
 
     BitSet valuation = new BitSet(0);
 
@@ -478,12 +477,9 @@ final class MonitorBuilder {
     // Search for another initial state.
     do {
       optimizedInitialState = nextOptimizedInitialState;
-
-      if (transientSccs.get(sccDecomposition.index(optimizedInitialState))) {
-        nextOptimizedInitialState = anyMonitor.successor(optimizedInitialState, valuation);
-      } else {
-        nextOptimizedInitialState = null;
-      }
+      nextOptimizedInitialState = sccDecomposition.isTransientScc(Set.of(optimizedInitialState))
+        ? anyMonitor.successor(optimizedInitialState, valuation)
+        : null;
     } while (nextOptimizedInitialState != null);
 
     if (optimizedInitialState.equals(anyMonitor.onlyInitialState())) {
