@@ -20,6 +20,7 @@
 package owl.translations.dra2dpa;
 
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import de.tum.in.naturals.IntPreOrder;
 import owl.automaton.AnnotatedState;
 
@@ -30,6 +31,7 @@ public abstract class IARState<R> implements AnnotatedState<R> {
 
   public abstract IntPreOrder record();
 
+
   public static <R> IARState<R> of(R originalState) {
     return of(originalState, IntPreOrder.empty());
   }
@@ -37,6 +39,11 @@ public abstract class IARState<R> implements AnnotatedState<R> {
   public static <R> IARState<R> of(R originalState, IntPreOrder record) {
     return new AutoValue_IARState<>(originalState, record);
   }
+
+  @Memoized
+  @Override
+  @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode")
+  public abstract int hashCode();
 
   @Override
   public String toString() {

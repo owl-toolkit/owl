@@ -72,11 +72,11 @@ public final class MutableAutomatonUtil {
     return Optional.of(sinkState);
   }
 
+  /**
+   * Copies all the states of {@code source} into {@code target}.
+   */
   public static <S> void copyInto(Automaton<S, ?> source, MutableAutomaton<S, ?> target) {
-    source.initialStates().forEach(target::addInitialState);
     source.accept((Automaton.Visitor<S>) new CopyVisitor<>(target));
-    target.trim(); // Cannot depend on iteration order, thus we need to trim().
-    target.name(source.name());
   }
 
   public static final class Sink {

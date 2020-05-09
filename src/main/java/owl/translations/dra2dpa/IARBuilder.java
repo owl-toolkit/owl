@@ -19,29 +19,36 @@
 
 package owl.translations.dra2dpa;
 
-import static com.google.common.base.Preconditions.checkState;
+import static java.util.Objects.requireNonNullElse;
 
-import com.google.common.collect.ImmutableTable;
-import com.google.common.collect.Maps;
+import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.HashBasedTable;
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
-import com.google.common.util.concurrent.MoreExecutors;
-import com.google.common.util.concurrent.Uninterruptibles;
+import de.tum.in.naturals.IntPreOrder;
+import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
+import it.unimi.dsi.fastutil.ints.IntSet;
+import it.unimi.dsi.fastutil.ints.IntSets;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorCompletionService;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
@@ -49,19 +56,17 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.SingletonAutomaton;
 import owl.automaton.Views;
-import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.automaton.hoa.HoaWriter;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
-import owl.run.PipelineException;
+import owl.collections.ValuationTree;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -72,211 +77,408 @@ public final class IARBuilder<R> {
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "dra2dpa",
     "Converts a Rabin automaton into a parity automaton",
-    (commandLine, environment) -> OwlModule.AutomatonTransformer.of(
-      automaton -> new IARBuilder<>(automaton).build(), RabinAcceptance.class));
+    new Options()
+      .addOption(new Option(null, "odd", false, "Odd priority (default: even)"))
+      .addOption(new Option(null, "min", false, "Min priority (default: max)")),
+    (commandLine, environment) -> {
+      Parity parity = Parity.of(!commandLine.hasOption("min"), !commandLine.hasOption("odd"));
+      return OwlModule.AutomatonTransformer.of(automaton ->
+        new IARBuilder<>(automaton, parity).build(), RabinAcceptance.class);
+    });
 
-  private static final Logger logger = Logger.getLogger(IARBuilder.class.getName());
   private final Automaton<R, RabinAcceptance> rabinAutomaton;
-  private final MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
-  private final ValuationSetFactory vsFactory;
+  private final Parity parity;
 
-  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton) {
+  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Parity parity) {
     this.rabinAutomaton = rabinAutomaton;
-    vsFactory = rabinAutomaton.factory();
-    ParityAcceptance acceptance = new ParityAcceptance(0, Parity.MIN_ODD);
-    resultAutomaton = HashMapAutomaton.of(acceptance, vsFactory);
+    this.parity = parity;
   }
 
   public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
       InputReaders.HOA_INPUT_MODULE,
-      List.of(),
+      List.of(AcceptanceOptimizations.MODULE),
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   public Automaton<IARState<R>, ParityAcceptance> build() {
-    logger.log(Level.FINE, "Building IAR automaton with SCC decomposition");
-    logger.log(Level.FINEST, () -> "Input automaton is\n" + HoaWriter.toString(rabinAutomaton));
-
     if (rabinAutomaton.initialStates().isEmpty()) {
-      return EmptyAutomaton.of(
-        rabinAutomaton.factory(),
-        new ParityAcceptance(3, Parity.MIN_ODD));
+      return EmptyAutomaton.of(rabinAutomaton.factory(), new ParityAcceptance(1, parity));
     }
 
-    List<RabinPair> rabinPairs = List.copyOf(rabinAutomaton.acceptance().pairs());
+    RabinAcceptance rabinAcceptance = rabinAutomaton.acceptance();
+    Set<RabinPair> rabinPairs = Set.copyOf(rabinAcceptance.pairs());
+    int rejectingPriority = parity.even() ? 1 : 0;
     if (rabinPairs.isEmpty()) {
-      IARState<R> state = IARState.of(rabinAutomaton.initialStates().iterator().next());
-      return SingletonAutomaton.of(rabinAutomaton.factory(), state,
-        new ParityAcceptance(1, Parity.MIN_ODD), Set.of(0));
+      R rabinState = rabinAutomaton.initialStates().iterator().next();
+
+      ParityAcceptance acceptance = new ParityAcceptance(parity.even() ? 2 : 1, parity);
+      return SingletonAutomaton.of(rabinAutomaton.factory(), IARState.of(rabinState),
+        acceptance, acceptance.rejectingSet().orElseThrow());
     }
 
-    // Start analysis
-    List<Set<R>> rabinSccs = SccDecomposition.of(rabinAutomaton).sccs();
-    logger.log(Level.FINER, "Found {0} SCCs", rabinSccs.size());
+    MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
 
-    // TODO Threading once we have a thread safe BDD library
-    CompletionService<SccProcessingResult<R>> completionService =
-      new ExecutorCompletionService<>(MoreExecutors.directExecutor());
+    Multimap<R, IARState<R>> stateMap = HashMultimap.create();
 
-    // Start possibly parallel execution
-    for (Set<R> rabinScc : rabinSccs) {
-      completionService.submit(() -> processScc(rabinScc, rabinPairs));
+    ParityAcceptance acceptance = new ParityAcceptance(0, parity);
+    resultAutomaton = HashMapAutomaton.of(acceptance, rabinAutomaton.factory());
+
+    List<Set<R>> decomposition = SccDecomposition.of(rabinAutomaton).sccsWithoutTransient();
+
+    Set<R> missingStates = new HashSet<>(rabinAutomaton.states());
+    decomposition.forEach(missingStates::removeAll);
+
+    for (Set<R> scc : decomposition) {
+      Set<RabinPair> noInfEdgePairs = new HashSet<>(rabinPairs);
+
+      for (R state : scc) {
+        for (Edge<R> edge : rabinAutomaton.edges(state)) {
+          noInfEdgePairs.removeIf(pair -> edge.inSet(pair.infSet()));
+        }
+      }
+
+      var activeRabinPairs = Set.copyOf(Sets.difference(rabinPairs, noInfEdgePairs));
+      if (activeRabinPairs.isEmpty()) {
+        for (R state : scc) {
+          IARState<R> iarState = IARState.of(state);
+          resultAutomaton.addState(iarState);
+          stateMap.put(state, iarState);
+        }
+        for (R state : scc) {
+          rabinAutomaton.edgeMap(state).forEach((edge, valuation) -> {
+            if (scc.contains(edge.successor())) {
+              resultAutomaton.addEdge(IARState.of(state), valuation,
+                Edge.of(IARState.of(edge.successor()), rejectingPriority));
+            }
+          });
+        }
+      } else {
+        Views.Filter<R> sccFilter = Views.Filter.of(Set.of(scc.iterator().next()), scc::contains);
+        var filtered = Views.filtered(rabinAutomaton, sccFilter);
+        var subAutomaton = build(filtered, activeRabinPairs);
+        MutableAutomatonUtil.copyInto(subAutomaton, resultAutomaton);
+        subAutomaton.states().forEach(state -> stateMap.put(state.state(), state));
+
+        assert subAutomaton.states().stream()
+          .map(IARState::state)
+          .collect(Collectors.toSet())
+          .equals(scc);
+      }
     }
 
-    // Wait till all executions are finished
-
-    logger.log(Level.FINE, "Waiting for completion");
-    ImmutableTable.Builder<R, Edge<R>, ValuationSet> interSccConnectionsBuilder =
-      ImmutableTable.builder();
-    int completedSccs = 0;
-    int maximalSubAutomatonPriority = 0;
-    while (completedSccs < rabinSccs.size()) {
-      Future<SccProcessingResult<R>> currentResultFuture;
-      try {
-        logger.log(Level.FINE, "Waiting for completion");
-        currentResultFuture = completionService.take();
-      } catch (InterruptedException e) {
-        // TODO Stop if environment.isStopped()
-        logger.log(Level.FINE, "Interrupted", e);
-        continue;
-      }
-      assert currentResultFuture.isDone();
-
-      SccProcessingResult<R> result;
-      try {
-        result = Uninterruptibles.getUninterruptibly(currentResultFuture);
-      } catch (ExecutionException e) {
-        throw PipelineException.propagate(e);
-      }
-
-      OmegaAcceptance subAutomatonAcceptance = result.subAutomaton.acceptance();
-      if (subAutomatonAcceptance instanceof ParityAcceptance) {
-        maximalSubAutomatonPriority = Math.max(maximalSubAutomatonPriority,
-          subAutomatonAcceptance.acceptanceSets() - 1);
-      }
-
-      interSccConnectionsBuilder.putAll(result.interSccConnections);
-      MutableAutomatonUtil.copyInto(result.subAutomaton, resultAutomaton);
-      completedSccs += 1;
+    for (R missingState : missingStates) {
+      IARState<R> iarState = IARState.of(missingState);
+      resultAutomaton.addState(iarState);
+      stateMap.put(missingState, iarState);
     }
 
-    Table<R, Edge<R>, ValuationSet> interSccConnections = interSccConnectionsBuilder.build();
+    for (Set<R> scc : decomposition) {
+      for (R state : scc) {
+        Collection<IARState<R>> iarStates = stateMap.get(state);
+        rabinAutomaton.edgeMap(state).forEach(
+          (edge, valuation) -> {
+            R successor = edge.successor();
+            if (!scc.contains(successor)) {
+              IARState<R> successorIar = stateMap.get(successor).iterator().next();
+              for (IARState<R> iarState : iarStates) {
+                resultAutomaton.addEdge(iarState, valuation, Edge.of(successorIar));
+              }
+            }
+          }
+        );
+      }
+    }
+    for (R state : missingStates) {
+      Collection<IARState<R>> iarStates = stateMap.get(state);
+      rabinAutomaton.edgeMap(state).forEach(
+        (edge, valuation) -> {
+          R successor = edge.successor();
+          IARState<R> successorIar = stateMap.get(successor).iterator().next();
+          for (IARState<R> iarState : iarStates) {
+            resultAutomaton.addEdge(iarState, valuation, Edge.of(successorIar));
+          }
+        }
+      );
+    }
 
-    // Arbitrary correspondence map
-    Map<R, IARState<R>> rabinToIarStateMap = Maps.newHashMapWithExpectedSize(rabinAutomaton.size());
-    resultAutomaton.states().forEach(state -> rabinToIarStateMap.put(state.state(), state));
-    assert Objects.equals(rabinToIarStateMap.keySet(), rabinAutomaton.states());
-
-    logger.log(Level.FINE, "Connecting the SCCs");
-
-    // Connect all SCCs back together
-    resultAutomaton.states().forEach(iarState ->
-      interSccConnections.row(iarState.state()).forEach((edge, valuations) -> {
-        IARState<R> successor = rabinToIarStateMap.get(edge.successor());
-        // TODO instead of 0 we should use any which is actually used
-        resultAutomaton.addEdge(iarState, valuations, Edge.of(successor, 0));
-      }));
-
+    assert Objects.equals(stateMap.keySet(), rabinAutomaton.states());
+    // Can we make this choice less arbitrary?
     resultAutomaton.initialStates(rabinAutomaton.initialStates().stream()
-      .map(rabinToIarStateMap::get)
+      .map(stateMap::get)
+      .map(Collection::iterator)
+      .map(Iterator::next)
       .collect(Collectors.toSet()));
+
     resultAutomaton.trim();
+    optimizeInitialStates(resultAutomaton, false);
 
-    int sets = maximalSubAutomatonPriority + 1;
-    resultAutomaton.updateAcceptance(x -> x.withAcceptanceSets(sets));
-    assert rabinSccs.size() == SccDecomposition.of(resultAutomaton).sccs().size();
-
+    resultAutomaton.trim();
+    ParityAcceptanceOptimizations.setAcceptingSets(resultAutomaton);
     return resultAutomaton;
   }
 
-  private SccProcessingResult<R> getTrivialSccResult(Set<R> simpleScc,
-    Table<R, Edge<R>, ValuationSet> interSccConnections) {
-    // TODO If it is bottom, we can just replace it by single rejecting state
-    MutableAutomaton<IARState<R>, ParityAcceptance> resultTransitionSystem =
-      HashMapAutomaton.of(new ParityAcceptance(1, Parity.MIN_ODD), vsFactory);
 
-    for (R state : simpleScc) {
-      IARState<R> iarState = IARState.of(state);
-      // We ensure that the state is reachable and not removed from the automaton. We're not
-      // interested in the language, only in the transition system!
-      resultTransitionSystem.addInitialState(iarState);
-      rabinAutomaton.edgeMap(state).forEach((edge, valuations) -> {
-        if (simpleScc.contains(edge.successor())) {
-          Edge<IARState<R>> iarEdge = Edge.of(IARState.of(edge.successor()), 0);
-          resultTransitionSystem.addEdge(iarState, valuations, iarEdge);
+  private void optimizeInitialStates(MutableAutomaton<IARState<R>, ParityAcceptance> automaton,
+    boolean singleScc) {
+    /* Idea: Pick good initial permutations for the initial states and remove unreachable states */
+
+    SccDecomposition<IARState<R>> sccDecomposition = SccDecomposition.of(automaton);
+    List<Set<IARState<R>>> sccs = Lists.reverse(sccDecomposition.sccsWithoutTransient());
+    List<IARState<R>> newInitialStates = new ArrayList<>();
+    Set<R> initialStatesToSearch = automaton.initialStates().stream()
+      .map(IARState::state)
+      .collect(Collectors.toSet());
+
+    Iterable<IARState<R>> statesToSearch;
+    if (singleScc) {
+      statesToSearch = sccs.stream()
+        .filter(sccDecomposition::isBottomScc)
+        .findAny().orElseThrow();
+    } else {
+      statesToSearch = Iterables.concat(sccs);
+    }
+
+    for (IARState<R> state : statesToSearch) {
+      R rabinState = state.state();
+      if (initialStatesToSearch.remove(rabinState)) {
+        newInitialStates.add(state);
+        if (initialStatesToSearch.isEmpty()) {
+          break;
+        }
+      }
+    }
+
+    if (!initialStatesToSearch.isEmpty()) {
+      // Might happen that the initial state is transient in the rabin automaton, too
+      assert !singleScc;
+      Set<R> foundInitialStates = newInitialStates.stream()
+        .map(IARState::state)
+        .collect(Collectors.toSet());
+      automaton.initialStates().stream()
+        .filter(s -> !foundInitialStates.contains(s.state()))
+        .forEach(newInitialStates::add);
+    }
+
+    assert newInitialStates.stream().map(IARState::state).collect(Collectors.toSet())
+      .equals(automaton.initialStates().stream().map(IARState::state).collect(Collectors.toSet()));
+
+    automaton.initialStates(newInitialStates);
+    automaton.trim();
+  }
+
+  private void optimizeStateRefinement(MutableAutomaton<IARState<R>, ParityAcceptance> automaton) {
+    /* Idea: The IAR records have a notion of "refinement". We now eliminate all states which are
+     * refined by some other state. */
+
+    Map<R, Multimap<IntPreOrder, IntPreOrder>> topElements = new HashMap<>();
+
+    for (IARState<R> state : automaton.states()) {
+      var refinements = topElements.computeIfAbsent(state.state(), k -> ArrayListMultimap.create());
+      var iterator = refinements.asMap().entrySet().iterator();
+      Collection<IntPreOrder> refined = new ArrayList<>();
+      IntPreOrder stateOrder = state.record();
+
+      boolean isTop = true;
+      while (iterator.hasNext()) {
+        var entry = iterator.next();
+        IntPreOrder entryOrder = entry.getKey();
+        if (entryOrder.refines(stateOrder)) {
+          entry.getValue().add(stateOrder);
+          isTop = false;
+          break;
+        }
+        if (stateOrder.refines(entryOrder)) {
+          refined.add(entryOrder);
+          refined.addAll(entry.getValue());
+          iterator.remove();
+        }
+      }
+      if (isTop) {
+        refined.add(stateOrder);
+        refinements.putAll(stateOrder, refined);
+      }
+    }
+
+    Table<R, IntPreOrder, IARState<R>> refinementTable = HashBasedTable.create();
+    for (var entry : topElements.entrySet()) {
+      R rabinState = entry.getKey();
+      var refinements = entry.getValue();
+      refinements.forEach((precise, coarse) -> {
+        if (!coarse.equals(precise)) {
+          refinementTable.put(rabinState, coarse, IARState.of(rabinState, precise));
         }
       });
     }
 
-    return new SccProcessingResult<>(interSccConnections, resultTransitionSystem);
+    // Update initial states, for each initial state, pick its refinement (if there is any)
+    automaton.initialStates(automaton.initialStates().stream()
+      .map(initialState -> requireNonNullElse(refinementTable.get(initialState.state(),
+        initialState.record()), initialState)).collect(Collectors.toSet()));
+
+    // Update edges
+    automaton.updateEdges((state, edge) -> {
+      // For each edge, pick the refined successor (if there is a refinement)
+      IARState<R> successor = edge.successor();
+      IARState<R> refinedSuccessor = refinementTable.get(successor.state(), successor.record());
+      return refinedSuccessor == null ? edge : edge.withSuccessor(refinedSuccessor);
+    });
+
+    automaton.trim();
   }
 
-  private SccProcessingResult<R> processScc(Set<R> scc, Collection<RabinPair> rabinPairs) {
-    assert !rabinPairs.isEmpty();
-    Set<RabinPair> remainingPairsToCheck = new HashSet<>(rabinPairs);
-    ImmutableTable.Builder<R, Edge<R>, ValuationSet> interSccConnectionsBuilder =
-      ImmutableTable.builder();
+  private IARExplorer<R> explorer(Automaton<R, RabinAcceptance> rabinAutomaton,
+    Set<RabinPair> activeRabinPairs) {
+    int numberOfTrackedPairs = activeRabinPairs.size();
+    IntPreOrder initialRecord = IntPreOrder.coarsest(numberOfTrackedPairs);
+    Set<IARState<R>> initialStates = rabinAutomaton.initialStates().stream()
+      .map(initialRabinState -> IARState.of(initialRabinState, initialRecord))
+      .collect(Collectors.toSet());
+    return new IARExplorer<>(rabinAutomaton, initialStates, activeRabinPairs, parity);
+  }
 
-    AtomicBoolean sccHasALoop = new AtomicBoolean(false);
-    AtomicBoolean seenAnyInfSet = new AtomicBoolean(false);
-    AtomicBoolean seenAllInfSets = new AtomicBoolean(false);
+  private MutableAutomaton<IARState<R>, ParityAcceptance>
+  build(Automaton<R, RabinAcceptance> rabinAutomaton, Set<RabinPair> activeRabinPairs) {
+    assert SccDecomposition.of(rabinAutomaton).sccs().size() == 1;
+    IARExplorer<R> explorer = explorer(rabinAutomaton, activeRabinPairs);
+    var resultAutomaton = MutableAutomatonUtil.asMutable(explorer);
+    optimizeInitialStates(resultAutomaton, true);
+    assert SccDecomposition.of(resultAutomaton).sccs().size() == 1;
+    optimizeStateRefinement(resultAutomaton);
+    return resultAutomaton;
+  }
 
-    // Analyse the SCC
-    // TODO This could be done while doing Tarjan
-    scc.forEach(state -> rabinAutomaton.edgeMap(state).forEach((edge, valuations) -> {
-      if (scc.contains(edge.successor())) {
-        // This transition is inside this scc
-        sccHasALoop.lazySet(true);
-        if (remainingPairsToCheck.removeIf(pair -> edge.inSet(pair.infSet()))) {
-          seenAnyInfSet.lazySet(true);
-          seenAllInfSets.lazySet(remainingPairsToCheck.isEmpty());
+  private static final class IARExplorer<S> extends
+    AbstractImmutableAutomaton<IARState<S>, ParityAcceptance> {
+    private final Automaton<S, RabinAcceptance> rabinAutomaton;
+    private final RabinPair[] indexToPair;
+    private final Parity parity;
+
+    IARExplorer(Automaton<S, RabinAcceptance> rabinAutomaton, Set<IARState<S>> initialStates,
+      Set<RabinPair> trackedPairs, Parity parity) {
+      super(rabinAutomaton.factory(), initialStates, new ParityAcceptance(0, parity));
+      this.rabinAutomaton = rabinAutomaton;
+      indexToPair = trackedPairs.toArray(RabinPair[]::new);
+      this.parity = parity;
+    }
+
+    @Nullable
+    @Override
+    public Edge<IARState<S>> edge(IARState<S> state, BitSet valuation) {
+      Edge<S> edge = rabinAutomaton.edge(state.state(), valuation);
+      return edge == null ? null : computeSuccessorEdge(state.record(), edge);
+    }
+
+    @Override
+    public Set<Edge<IARState<S>>> edges(IARState<S> state) {
+      IntPreOrder record = state.record();
+      return Collections3.transformSet(rabinAutomaton.edges(state.state()),
+        edge -> computeSuccessorEdge(record, edge));
+    }
+
+    @Override
+    public Set<Edge<IARState<S>>> edges(IARState<S> state, BitSet valuation) {
+      IntPreOrder record = state.record();
+      return Collections3.transformSet(rabinAutomaton.edges(state.state(), valuation),
+        edge -> computeSuccessorEdge(record, edge));
+    }
+
+    @Override
+    public Map<Edge<IARState<S>>, ValuationSet> edgeMap(IARState<S> state) {
+      IntPreOrder record = state.record();
+      return Collections3.transformMap(rabinAutomaton.edgeMap(state.state()),
+        rabinState -> computeSuccessorEdge(record, rabinState));
+    }
+
+    @Override
+    public ValuationTree<Edge<IARState<S>>> edgeTree(IARState<S> state) {
+      IntPreOrder record = state.record();
+      return rabinAutomaton.edgeTree(state.state()).map(edges ->
+        Collections3.transformSet(edges, edge -> computeSuccessorEdge(record, edge)));
+    }
+
+    @Override
+    public List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return rabinAutomaton.preferredEdgeAccess();
+    }
+
+    private Edge<IARState<S>> computeSuccessorEdge(IntPreOrder record, Edge<S> rabinEdge) {
+      S rabinSuccessor = rabinEdge.successor();
+      int classCount = record.classes();
+
+      if (classCount == 0) {
+        int priority = parity.even() ? 1 : 0;
+        return Edge.of(IARState.of(rabinEdge.successor()), priority);
+      }
+
+      int matchOffset = 0;
+      boolean infMatch = false;
+      // If without preorder fix ascending order arbitrarily to resolve ties equally
+      IntSet seenFin = new IntAVLTreeSet();
+      int currentOffset = 0;
+      for (int currentClass = 0; currentClass < classCount; currentClass++) {
+        int[] classes = record.equivalenceClass(currentClass);
+        currentOffset += classes.length;
+        for (int rabinIndex : classes) {
+          RabinPair rabinPair = indexToPair[rabinIndex];
+          if (rabinEdge.inSet(rabinPair.finSet())) {
+            matchOffset = currentOffset;
+            infMatch = false;
+            seenFin.add(rabinIndex);
+          } else if (matchOffset < currentOffset
+            && rabinEdge.inSet(rabinPair.infSet())) {
+            matchOffset = currentOffset;
+            infMatch = true;
+          }
+        }
+      }
+
+      int priority;
+      if (parity.max()) {
+        if (parity.even()) {
+          if (matchOffset == 0) {
+            priority = 1;
+          } else {
+            priority = infMatch ? matchOffset * 2 : matchOffset * 2 + 1;
+          }
+        } else {
+          if (matchOffset == 0) {
+            priority = 0;
+          } else {
+            priority = infMatch ? matchOffset * 2 + 1 : matchOffset * 2 + 2;
+          }
         }
       } else {
-        // This transition leads outside the SCC
-        interSccConnectionsBuilder.put(state, edge, valuations);
+        int inverse = (indexToPair.length - matchOffset + 1) * 2;
+        if (parity.even()) {
+          if (matchOffset == 0) {
+            priority = indexToPair.length * 2 + 1;
+          } else {
+            priority = infMatch ? inverse : inverse - 1;
+          }
+        } else {
+          if (matchOffset == 0) {
+            priority = indexToPair.length * 2;
+          } else {
+            priority = infMatch ? inverse - 1 : inverse - 2;
+          }
+        }
       }
-    }));
 
-    Table<R, Edge<R>, ValuationSet> interSccConnections = interSccConnectionsBuilder.build();
+      assert priority >= 0 || matchOffset == 0
+        : "Negative priority for " + parity + ": Match at " + matchOffset + " ("
+        + (infMatch ? "INF" : "FIN") + "), " + indexToPair.length;
 
-    if (!sccHasALoop.get()) {
-      // SCC has no transition inside, it's a transient one
-      checkState(scc.size() == 1);
-      R transientSccState = scc.iterator().next();
-      IARState<R> iarState = IARState.of(transientSccState);
-      return new SccProcessingResult<>(interSccConnections,
-        SingletonAutomaton.of(vsFactory, iarState, AllAcceptance.INSTANCE));
-    }
-
-    if (!seenAnyInfSet.get()) {
-      // The SCC has some internal structure, but no transitions are relevant for acceptance
-      return getTrivialSccResult(scc, interSccConnections);
-    }
-
-    Set<RabinPair> activeRabinPairs = seenAllInfSets.get()
-      ? Set.copyOf(rabinPairs)
-      : Set.copyOf(Sets.difference(Set.copyOf(rabinPairs), remainingPairsToCheck));
-
-    // TODO This might access the factory in parallel... Maybe we can return a lazy-explore type
-    // of automaton that can be evaluated by the main thread?
-    R newInitialState = scc.iterator().next();
-    var filtered = Views.filtered(rabinAutomaton,
-      Views.Filter.of(Set.of(newInitialState), scc::contains));
-    var subAutomaton = new SccIARBuilder<>(filtered, activeRabinPairs).build();
-    return new SccProcessingResult<>(interSccConnections, subAutomaton);
-  }
-
-  static final class SccProcessingResult<R> {
-    final Table<R, Edge<R>, ValuationSet> interSccConnections;
-    final Automaton<IARState<R>, ?> subAutomaton;
-
-    SccProcessingResult(Table<R, Edge<R>, ValuationSet> interSccConnections,
-      Automaton<IARState<R>, ?> subAutomaton) {
-      this.interSccConnections = ImmutableTable.copyOf(interSccConnections);
-      this.subAutomaton = subAutomaton;
+      IntPreOrder successorRecord;
+      // TODO Pick existing?
+      successorRecord = record;
+      for (int index : seenFin) {
+        successorRecord = successorRecord.generation(IntSets.singleton(index));
+      }
+      IARState<S> successorState = IARState.of(rabinSuccessor, successorRecord);
+      return Edge.of(successorState, priority);
     }
   }
 }

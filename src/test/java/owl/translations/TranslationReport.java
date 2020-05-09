@@ -54,6 +54,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
@@ -73,7 +74,6 @@ import owl.util.Statistics;
 
 @SuppressWarnings("PMD")
 class TranslationReport {
-
   private static final LatexPrintVisitor PRINT_VISITOR = new LatexPrintVisitor(COMMON_ALPHABET);
 
   @Disabled
@@ -222,14 +222,14 @@ class TranslationReport {
       var optimisedDra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
 
-      return new IARBuilder<>(optimisedDra).build();
+      return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
     });
 
     var dpa_iar_symmetric = new Translator("\\Dtwo", environment -> formula -> {
       var dra = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula);
       var optimisedDra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
-      return new IARBuilder<>(optimisedDra).build();
+      return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
     });
 
     // With Portfolio

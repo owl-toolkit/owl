@@ -189,6 +189,15 @@
             ],
             "data": "M"
         },
+        "iar": {
+            "tools": [
+                "iar",
+                "iar#min",
+                "iar#odd",
+                "iar#min,odd"
+            ],
+            "data": "M"
+        },
         "ltl2dpa-convert": {
             "tools": [
                 "ltl2dpa-convert#min",
