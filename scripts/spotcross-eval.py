@@ -7,8 +7,6 @@ import sys
 from collections import defaultdict
 from statistics import mean, median
 
-import tabulate
-
 
 def die(message, code=1):
     print(message, file=sys.stderr)
@@ -147,4 +145,11 @@ if __name__ == "__main__":
             table_tool_data.extend([f"{mean(val):.1f}", f"({top_avg:.1f})"])
         table_data.append(table_tool_data)
 
-    print(tabulate.tabulate(table_data, headers=table_header, tablefmt="latex"))
+    try:
+        import tabulate
+        print(tabulate.tabulate(table_data, headers=table_header, tablefmt="simple"))
+    except ModuleNotFoundError:
+        print("No tabulate module found, printing raw")
+        print(" | ".join(map(str, table_header)))
+        for row in table_data:
+            print(" | ".join(map(str, row)))
