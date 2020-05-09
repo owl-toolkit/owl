@@ -199,9 +199,28 @@
             "output": "hoa",
             "name": "dra2dpa",
             "flags": {
+                "no-scc": "--no-scc",
+                "no-init": "--no-init",
+                "no-succ": "--no-succ",
                 "odd": "--odd",
                 "min": "--min"
             },
+            "pre": [
+                "simplify-ltl",
+                "ltl2dgra",
+                "optimize-aut",
+                "dgra2dra",
+                "optimize-aut"
+            ],
+            "post": [
+                "optimize-aut"
+            ]
+        },
+        "loding": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "loding",
             "pre": [
                 "simplify-ltl",
                 "ltl2dgra",

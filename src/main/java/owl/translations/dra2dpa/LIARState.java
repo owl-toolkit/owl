@@ -21,23 +21,23 @@ package owl.translations.dra2dpa;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
-import de.tum.in.naturals.IntPreOrder;
+import java.util.Arrays;
 import owl.automaton.AnnotatedState;
 
 @AutoValue
-public abstract class IARState<R> implements AnnotatedState<R> {
+public abstract class LIARState<R> implements AnnotatedState<R> {
   @Override
   public abstract R state();
 
-  public abstract IntPreOrder record();
+  public abstract int[] record();
+
+  public abstract int e();
+
+  public abstract int f();
 
 
-  public static <R> IARState<R> of(R originalState) {
-    return of(originalState, IntPreOrder.empty());
-  }
-
-  public static <R> IARState<R> of(R originalState, IntPreOrder record) {
-    return new AutoValue_IARState<>(originalState, record);
+  public static <R> LIARState<R> of(R originalState, int[] record, int e, int f) {
+    return new AutoValue_LIARState<>(originalState, record, e, f);
   }
 
 
@@ -48,9 +48,6 @@ public abstract class IARState<R> implements AnnotatedState<R> {
 
   @Override
   public String toString() {
-    if (record().size() == 0) {
-      return String.format("{%s}", state());
-    }
-    return String.format("{%s|%s}", state(), record());
+    return String.format("{%s,%s,%s,%s}", state(), Arrays.toString(record()), e(), f());
   }
 }

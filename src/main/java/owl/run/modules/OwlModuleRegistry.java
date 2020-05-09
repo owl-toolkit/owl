@@ -38,6 +38,7 @@ import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
+import owl.translations.dra2dpa.LodingARBuilder;
 import owl.translations.modules.LTL2DAModule;
 import owl.translations.modules.LTL2DGRAModule;
 import owl.translations.modules.LTL2DPAModule;
@@ -115,6 +116,7 @@ public class OwlModuleRegistry {
     // Automaton translations
     DEFAULT_REGISTRY.putTransformers(List.of(
       IARBuilder.MODULE,
+      LodingARBuilder.MODULE,
       NBA2LDBA.MODULE,
       NBA2DPA.MODULE,
       ParityUtil.COMPLEMENT_MODULE,
