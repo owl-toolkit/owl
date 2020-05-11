@@ -146,12 +146,7 @@ public final class Conjunction extends Formula.NaryPropositionalOperator {
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
     var conjunction = Conjunction.ofInternal(mapInternal(c -> c.substitute(substitution)));
-
-    if (this.equals(conjunction)) {
-      return this;
-    }
-
-    return conjunction;
+    return equals(conjunction) ? this : conjunction;
   }
 
   @Override

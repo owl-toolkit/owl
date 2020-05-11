@@ -19,6 +19,8 @@
 
 package owl.factories.jbdd;
 
+import static owl.factories.jbdd.EquivalenceFactory.BddEquivalenceClass;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import de.tum.in.jbdd.Bdd;
@@ -46,8 +48,9 @@ import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.PropositionalIntVisitor;
+import owl.ltl.visitors.Visitor;
 
-final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEquivalenceClass>
+final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   implements EquivalenceClassFactory {
 
   private final List<String> atomicPropositions;
@@ -189,13 +192,12 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     return castedClazz;
   }
 
-  static final class BddEquivalenceClass implements BddNode, EquivalenceClass {
+  public static final class BddEquivalenceClass implements BddNode, EquivalenceClass {
     private final EquivalenceFactory factory;
     private final int node;
 
     @Nullable
     private Formula representative;
-
     @Nullable
     private Set<Formula.TemporalOperator> temporalOperatorsCache = null;
     @Nullable
@@ -315,6 +317,11 @@ final class EquivalenceFactory extends GcManagedFactory<EquivalenceFactory.BddEq
     public EquivalenceClass substitute(
       Function<? super Formula.TemporalOperator, ? extends Formula> substitution) {
       return factory.of(representative().substitute(substitution));
+    }
+
+    @Override
+    public EquivalenceClass accept(Visitor<? extends Formula> visitor) {
+      return factory.of(representative().accept(visitor));
     }
 
     @Override

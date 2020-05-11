@@ -24,6 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
+import owl.ltl.visitors.Visitor;
 
 /**
  * EquivalenceClass interface. The general contract of this interface is: If two implementing
@@ -67,6 +68,8 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
    */
   EquivalenceClass substitute(
     Function<? super Formula.TemporalOperator, ? extends Formula> substitution);
+
+  EquivalenceClass accept(Visitor<? extends Formula> visitor);
 
   /**
    * See {@link Formula#temporalStep(BitSet)}.
