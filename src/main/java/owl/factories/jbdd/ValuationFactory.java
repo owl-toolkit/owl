@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
@@ -130,6 +131,11 @@ final class ValuationFactory extends GcManagedFactory<BddValuationSet>
       });
       solutionSupport.xor(restriction);
     });
+  }
+
+  @Override
+  public void forEachMinimal(ValuationSet set, BiConsumer<BitSet, BitSet> action) {
+    bdd.forEachPath(getNode(set), action);
   }
 
   @Override

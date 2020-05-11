@@ -21,4 +21,6 @@ package owl.automaton;
 
 public interface AnnotatedState<S> {
   S state();
+
+  AnnotatedState<S> withState(S state);
 }

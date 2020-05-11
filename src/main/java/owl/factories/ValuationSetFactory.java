@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
@@ -97,6 +98,8 @@ public interface ValuationSetFactory {
   void forEach(ValuationSet set, Consumer<? super BitSet> action);
 
   void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action);
+
+  void forEachMinimal(ValuationSet set, BiConsumer<BitSet, BitSet> action);
 
   ValuationSet intersection(ValuationSet set1, ValuationSet set2);
 

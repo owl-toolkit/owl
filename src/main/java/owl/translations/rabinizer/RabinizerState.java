@@ -30,13 +30,15 @@ public abstract class RabinizerState {
 
   public abstract List<MonitorState> monitorStates();
 
-  static RabinizerState of(EquivalenceClass masterState, MonitorState[] monitorStates) {
+
+  public static RabinizerState of(EquivalenceClass masterState, MonitorState[] monitorStates) {
     return of(masterState, List.of(monitorStates));
   }
 
-  static RabinizerState of(EquivalenceClass masterState, List<MonitorState> monitorStates) {
+  public static RabinizerState of(EquivalenceClass masterState, List<MonitorState> monitorStates) {
     return new AutoValue_RabinizerState(masterState, List.copyOf(monitorStates));
   }
+
 
   @Override
   public abstract boolean equals(Object object);

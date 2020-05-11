@@ -32,7 +32,6 @@ import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 @AutoValue
 public abstract class SymmetricRankingState
   implements AnnotatedState<Map<Integer, EquivalenceClass>> {
-
   SymmetricRankingState() {
     // This constructor is intentionally empty. Only AutoValue is allowed to subclass.
   }
@@ -42,16 +41,23 @@ public abstract class SymmetricRankingState
 
   public abstract Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> table();
 
+
+  @Override
+  public SymmetricRankingState withState(Map<Integer, EquivalenceClass> state) {
+    return of(state, table());
+  }
+
   public static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
     return of(state, ImmutableTable.of());
   }
 
-  static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
+  public static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
     Table<Integer, SymmetricEvaluatedFixpoints, SymmetricProductState> ranking) {
     var copiedState = Map.copyOf(state);
     var copiedRanking = ImmutableTable.copyOf(ranking);
     return new AutoValue_SymmetricRankingState(copiedState, copiedRanking);
   }
+
 
   @Override
   public abstract boolean equals(Object object);

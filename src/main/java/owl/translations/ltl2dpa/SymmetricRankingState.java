@@ -43,11 +43,17 @@ public abstract class SymmetricRankingState
 
   public abstract int safetyBucketIndex();
 
-  static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
+
+  @Override
+  public SymmetricRankingState withState(Map<Integer, EquivalenceClass> state) {
+    return of(state, ranking(), safetyBucket(), safetyBucketIndex());
+  }
+
+  public static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
     return of(state, List.of(), 0, -1);
   }
 
-  static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
+  public static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
     List<Map.Entry<Integer, SymmetricProductState>> ranking,
     int safetyBucket, int safetyBucketIndex) {
     var copiedState = Map.copyOf(state);
@@ -60,6 +66,7 @@ public abstract class SymmetricRankingState
     return new AutoValue_SymmetricRankingState(
       copiedState, copiedRanking, safetyBucket, safetyBucketIndex);
   }
+
 
   @Override
   public abstract boolean equals(Object object);

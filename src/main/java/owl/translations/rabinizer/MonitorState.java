@@ -29,13 +29,15 @@ import owl.ltl.EquivalenceClass;
 public abstract class MonitorState {
   public abstract List<EquivalenceClass> formulaRanking();
 
-  static MonitorState of(EquivalenceClass initialClass) {
+
+  public static MonitorState of(EquivalenceClass initialClass) {
     return of(List.of(initialClass));
   }
 
-  static MonitorState of(List<EquivalenceClass> ranking) {
+  public static MonitorState of(List<EquivalenceClass> ranking) {
     return new AutoValue_MonitorState(List.copyOf(ranking));
   }
+
 
   @Override
   public abstract boolean equals(Object object);

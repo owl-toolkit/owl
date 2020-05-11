@@ -175,6 +175,12 @@ public final class BuchiDegeneralization {
 
     public abstract int index();
 
+
+    @Override
+    public IndexedState<S> withState(S state) {
+      return of(state, index());
+    }
+
     public static <S> IndexedState<S> of(S state) {
       return of(state, 0);
     }

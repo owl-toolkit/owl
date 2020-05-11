@@ -456,16 +456,22 @@ public final class GameViews {
     public abstract S state();
 
     @Nullable
-    abstract BitSet firstPlayerChoice();
+    public abstract BitSet firstPlayerChoice();
 
 
-    static <S> Node<S> of(S state) {
+    @Override
+    public Node<S> withState(S state) {
+      return new AutoValue_GameViews_Node<>(state, firstPlayerChoice());
+    }
+
+    public static <S> Node<S> of(S state) {
       return new AutoValue_GameViews_Node<>(state, null);
     }
 
     static <S> Node<S> of(S state, BitSet choice) {
       return new AutoValue_GameViews_Node<>(state, owl.collections.BitSet2.copyOf(choice));
     }
+
 
     @Override
     public abstract boolean equals(Object object);

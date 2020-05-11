@@ -32,6 +32,11 @@ public abstract class IARState<R> implements AnnotatedState<R> {
   public abstract IntPreOrder record();
 
 
+  @Override
+  public IARState<R> withState(R state) {
+    return of(state, record());
+  }
+
   public static <R> IARState<R> of(R originalState) {
     return of(originalState, IntPreOrder.empty());
   }
@@ -39,6 +44,7 @@ public abstract class IARState<R> implements AnnotatedState<R> {
   public static <R> IARState<R> of(R originalState, IntPreOrder record) {
     return new AutoValue_IARState<>(originalState, record);
   }
+
 
   @Memoized
   @Override

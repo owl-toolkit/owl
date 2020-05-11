@@ -21,6 +21,7 @@ package owl.collections;
 
 import java.math.BigInteger;
 import java.util.BitSet;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import jhoafparser.ast.AtomLabel;
@@ -53,6 +54,10 @@ public abstract class ValuationSet {
 
   public final void forEach(BitSet restriction, Consumer<? super BitSet> action) {
     factory().forEach(this, restriction, action);
+  }
+
+  public final void forEachMinimal(BiConsumer<BitSet, BitSet> action) {
+    factory().forEachMinimal(this, action);
   }
 
   public abstract ValuationSet complement();

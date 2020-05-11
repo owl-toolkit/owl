@@ -160,9 +160,15 @@ public final class GameUtil {
     @Override
     public abstract S state();
 
-    abstract int acceptance();
+    public abstract int acceptance();
 
-    static <S> PriorityState<S> of(S state, int acceptance) {
+
+    @Override
+    public PriorityState<S> withState(S state) {
+      return of(state, acceptance());
+    }
+
+    public static <S> PriorityState<S> of(S state, int acceptance) {
       return new AutoValue_GameUtil_PriorityState<>(state, acceptance);
     }
   }

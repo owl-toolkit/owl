@@ -307,6 +307,11 @@ public final class OinkGameSolver implements ParityGameSolver {
     }
 
     @Override
+    public AnnotatedState<S> withState(S state) {
+      return of(state, priority());
+    }
+
+    @Override
     public abstract S state();
 
     abstract int priority();

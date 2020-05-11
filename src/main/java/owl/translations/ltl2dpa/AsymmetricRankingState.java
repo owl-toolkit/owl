@@ -36,16 +36,23 @@ public abstract class AsymmetricRankingState implements AnnotatedState<Equivalen
 
   public abstract int safetyIndex();
 
-  static AsymmetricRankingState of(EquivalenceClass state) {
+
+  @Override
+  public AsymmetricRankingState withState(EquivalenceClass state) {
+    return of(state(), ranking(), safetyIndex());
+  }
+
+  public static AsymmetricRankingState of(EquivalenceClass state) {
     return of(state, List.of(), -1);
   }
 
-  static AsymmetricRankingState of(EquivalenceClass state, List<AsymmetricProductState> ranking,
-    int safetyProgress) {
+  public static AsymmetricRankingState of(EquivalenceClass state,
+    List<AsymmetricProductState> ranking, int safetyProgress) {
     var rankingCopy = List.copyOf(ranking);
     assert Collections3.isDistinct(rankingCopy) : "The ranking is not distinct: " + rankingCopy;
     return new AutoValue_AsymmetricRankingState(state, rankingCopy, safetyProgress);
   }
+
 
   @Override
   public abstract boolean equals(Object object);

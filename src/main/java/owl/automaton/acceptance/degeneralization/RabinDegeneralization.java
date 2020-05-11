@@ -283,17 +283,24 @@ public final class RabinDegeneralization {
     @Override
     public abstract S state();
 
-    abstract ImmutableIntArray awaitedSets();
+    public abstract ImmutableIntArray awaitedSets();
 
-    static <S> DegeneralizedRabinState<S> of(S state) {
+
+    @Override
+    public DegeneralizedRabinState<S> withState(S state) {
+      return new AutoValue_RabinDegeneralization_DegeneralizedRabinState<>(state, awaitedSets());
+    }
+
+    public static <S> DegeneralizedRabinState<S> of(S state) {
       return new AutoValue_RabinDegeneralization_DegeneralizedRabinState<>(
         state, ImmutableIntArray.of());
     }
 
-    static <S> DegeneralizedRabinState<S> of(S state, int[] awaitedSets) {
+    public static <S> DegeneralizedRabinState<S> of(S state, int[] awaitedSets) {
       return new AutoValue_RabinDegeneralization_DegeneralizedRabinState<>(
         state, ImmutableIntArray.copyOf(awaitedSets));
     }
+
 
     int awaitedInfSet(int generalizedPairIndex) {
       return awaitedSets().get(generalizedPairIndex);

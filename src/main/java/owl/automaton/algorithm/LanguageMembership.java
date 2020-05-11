@@ -48,7 +48,13 @@ public final class LanguageMembership {
     @Override
     public abstract S state();
 
-    static <S> IndexedState<S> of(int index, S state) {
+
+    @Override
+    public IndexedState<S> withState(S state) {
+      return of(index(), state);
+    }
+
+    public static <S> IndexedState<S> of(int index, S state) {
       return new AutoValue_LanguageMembership_IndexedState<>(index, state);
     }
   }
