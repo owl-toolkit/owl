@@ -245,8 +245,9 @@ public final class RabinDegeneralization {
       );
 
       var sccs = sccDecomposition2.sccs();
-      var bsccs = sccDecomposition2.bottomSccs();
-      var resultBscc = sccs.get(bsccs.nextSetBit(0));
+      var resultBscc = sccs.stream()
+        .filter(sccDecomposition2::isBottomScc)
+        .findFirst().orElseThrow();
 
       // Mark some state of the result BSCC initial.
       if (!resultBscc.isEmpty()) {
@@ -279,7 +280,7 @@ public final class RabinDegeneralization {
   }
 
   @AutoValue
-  abstract static class DegeneralizedRabinState<S> implements AnnotatedState<S> {
+  public abstract static class DegeneralizedRabinState<S> implements AnnotatedState<S> {
     @Override
     public abstract S state();
 

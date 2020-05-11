@@ -116,14 +116,16 @@ public final class Biconditional extends Formula.PropositionalOperator {
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    return Biconditional
-      .of(leftOperand().substitute(substitution), rightOperand().substitute(substitution));
+    Formula left = leftOperand().substitute(substitution);
+    Formula right = rightOperand().substitute(substitution);
+    return Biconditional.of(left, right);
   }
 
   @Override
   public Formula temporalStep(BitSet valuation) {
-    return Biconditional
-      .of(leftOperand().temporalStep(valuation), rightOperand().temporalStep(valuation));
+    Formula left = leftOperand().temporalStep(valuation);
+    Formula right = rightOperand().temporalStep(valuation);
+    return Biconditional.of(left, right);
   }
 
   @Override
