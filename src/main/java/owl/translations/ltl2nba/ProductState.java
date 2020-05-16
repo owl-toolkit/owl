@@ -32,9 +32,7 @@ public final class ProductState {
   @Nullable
   public final RoundRobinState<Formula> liveness;
 
-  @Nullable
   public final SymmetricEvaluatedFixpoints evaluatedFixpoints;
-  @Nullable
   public final SymmetricEvaluatedFixpoints.NonDeterministicAutomata automata;
 
   private final int hashCode;
@@ -42,12 +40,12 @@ public final class ProductState {
   ProductState(
     Formula safety,
     @Nullable RoundRobinState<Formula> liveness,
-    @Nullable SymmetricEvaluatedFixpoints evaluatedFixpoints,
-    @Nullable SymmetricEvaluatedFixpoints.NonDeterministicAutomata automata) {
+    SymmetricEvaluatedFixpoints evaluatedFixpoints,
+    SymmetricEvaluatedFixpoints.NonDeterministicAutomata automata) {
     this.liveness = liveness;
-    this.evaluatedFixpoints = evaluatedFixpoints;
-    this.safety = safety;
-    this.automata = automata;
+    this.evaluatedFixpoints = Objects.requireNonNull(evaluatedFixpoints);
+    this.safety = Objects.requireNonNull(safety);
+    this.automata = Objects.requireNonNull(automata);
     this.hashCode = Objects.hash(liveness, evaluatedFixpoints, safety);
   }
 

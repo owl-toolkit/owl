@@ -49,11 +49,6 @@ public final class LtlfToLtlTranslator {
     }
 
     @Override
-    public Formula apply(Formula formula) {
-      return formula.accept(this);
-    }
-
-    @Override
     public Formula visit(Biconditional biconditional) {
       return Biconditional.of(
         biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this));
@@ -213,10 +208,6 @@ public final class LtlfToLtlTranslator {
     }
 
     public static class PushNegOneDownVisitor implements Visitor<Formula> {
-      @Override
-      public Formula apply(Formula formula) {
-        return formula.accept(this);
-      }
 
       @Override
       public Formula visit(Biconditional biconditional) {

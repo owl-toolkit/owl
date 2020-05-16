@@ -49,11 +49,6 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   }
 
   @Override
-  public Formula apply(Formula formula) {
-    return formula.accept(this);
-  }
-
-  @Override
   public Formula visit(Biconditional biconditional) {
     checkSupportedCase(Biconditional.class);
     return Biconditional

@@ -93,8 +93,8 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
       edge -> edge.withSuccessor(Either.left(edge.successor())));
   }
 
-  private Set<Edge<Either<A, B>>> liftB(Set<Edge<B>> aEdges) {
-    return Collections3.transformSet(aEdges,
+  private Set<Edge<Either<A, B>>> liftB(Set<Edge<B>> bEdges) {
+    return Collections3.transformSet(bEdges,
       edge -> edge.withSuccessor(Either.right(edge.successor())));
   }
 
@@ -121,7 +121,7 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
     if (statesCache == null) {
       statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
     } else {
-      for (Either<A, B> state : statesCache) {
+      for (var state : statesCache) {
         visitor.enter(state);
         visitor.visit(state, edgeMap(state));
         visitor.exit(state);
@@ -134,7 +134,7 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
     if (statesCache == null) {
       statesCache = Set.copyOf(DefaultImplementations.visit(this, visitor));
     } else {
-      for (Either<A, B> state : statesCache) {
+      for (var state : statesCache) {
         visitor.enter(state);
         visitor.visit(state, edgeTree(state));
         visitor.exit(state);

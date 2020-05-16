@@ -26,7 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.util.Assertions.assertThat;
 
 import de.tum.in.naturals.bitset.BitSets;
+import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -35,8 +37,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.translations.TranslationAutomatonSummaryTest;
 
 abstract class EquivalenceClassTest {
   private static final List<String> formulaStrings = List
@@ -139,9 +143,63 @@ abstract class EquivalenceClassTest {
   }
 
   @Test
-  void testRepresentative() {
-    assertEquals(BooleanConstant.FALSE, factory.of(BooleanConstant.FALSE).representative());
+  void testDisjunctiveNormalForm() {
+    var formula = LtlParser.parse("(Fa & Gb) | (Fc & Ga)");
+    var clazz = factory.of(formula.formula());
+    assertEquals(
+      Set.of(
+        Set.of(
+          LtlParser.syntax("F a", formula.atomicPropositions()),
+          LtlParser.syntax("G b", formula.atomicPropositions())
+        ),
+        Set.of(
+          LtlParser.syntax("G a", formula.atomicPropositions()),
+          LtlParser.syntax("F c", formula.atomicPropositions())
+        )),
+      clazz.disjunctiveNormalForm());
   }
+
+  @Test
+  void testDisjunctiveNormalForm2() {
+    var formula = LtlParser.parse("(a & !b) | (c & !d)");
+    var clazz = factory.of(formula.formula());
+    assertEquals(
+      Set.of(
+        Set.of(
+          LtlParser.syntax("a", formula.atomicPropositions()),
+          LtlParser.syntax("!b", formula.atomicPropositions())
+        ),
+        Set.of(
+          LtlParser.syntax("c", formula.atomicPropositions()),
+          LtlParser.syntax("!d", formula.atomicPropositions())
+        )),
+      clazz.disjunctiveNormalForm());
+  }
+
+  @Test
+  void testCanonicalRepresentativeFormulaDatabase() throws IOException {
+    Set<LabelledFormula> formulas = new HashSet<>();
+
+    for (var x : TranslationAutomatonSummaryTest.FormulaSet.values()) {
+      formulas.addAll(x.loadAndDeduplicateFormulaSet());
+    }
+
+    for (var formula : formulas) {
+      var factory = obtainFactory(formula);
+      var clazz = factory.of(formula.formula());
+      var canonicalRepresentative = clazz.canonicalRepresentative();
+
+      assertEquals(clazz.disjunctiveNormalForm(),
+        NormalForms.toDnf(canonicalRepresentative));
+      assertEquals(clazz,
+        factory.of(canonicalRepresentative));
+      assertEquals(clazz.unfold(),
+        factory.of(canonicalRepresentative.unfold()));
+      assertEquals(clazz.temporalStep(new BitSet()),
+        factory.of(canonicalRepresentative.temporalStep(new BitSet())));
+    }
+  }
+
 
   @Test
   void testModalOperators() {

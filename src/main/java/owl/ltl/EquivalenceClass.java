@@ -27,11 +27,24 @@ import owl.factories.EquivalenceClassFactory;
 import owl.ltl.visitors.Visitor;
 
 /**
- * EquivalenceClass interface. The general contract of this interface is: If two implementing
- * objects were created from different factories, implies and equals have to return {@code false}.
+ * A propositional equivalence class of an LTL formula.
+ *
+ * @implSpec If two implementing objects were created by different factories, methods combining or
+ *     comparing these objects are allowed to throw exceptions.
  */
 public interface EquivalenceClass extends LtlLanguageExpressible {
-  Formula representative();
+
+  Set<Set<Formula>> disjunctiveNormalForm();
+
+  /**
+   * The canonical representative for this equivalence class, which is defined as the formula
+   * representation of the {@link EquivalenceClass#disjunctiveNormalForm}.
+   *
+   * @return The canonical representative.
+   */
+  default Formula canonicalRepresentative() {
+    return Disjunction.of(disjunctiveNormalForm().stream().map(Conjunction::of));
+  }
 
   EquivalenceClassFactory factory();
 
@@ -60,16 +73,18 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
 
   EquivalenceClass or(EquivalenceClass other);
 
+  default EquivalenceClass accept(Visitor<? extends Formula> visitor) {
+    return factory().of(canonicalRepresentative().accept(visitor));
+  }
+
   /**
    * See {@link Formula#substitute(Function)}.
    *
    * @param substitution
-   *   The substitution function. It is only called on modal operators.
+   *   The substitution function. It is only called on modal / temporal operators.
    */
   EquivalenceClass substitute(
     Function<? super Formula.TemporalOperator, ? extends Formula> substitution);
-
-  EquivalenceClass accept(Visitor<? extends Formula> visitor);
 
   /**
    * See {@link Formula#temporalStep(BitSet)}.

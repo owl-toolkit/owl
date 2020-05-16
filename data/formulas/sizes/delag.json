@@ -429,28 +429,6 @@
     }
   },
   {
-    "formula": "(Ga \u0026 XG!a)",
-    "properties": {
-      "size": 1,
-      "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
-      "complete": false,
-      "deterministic": true
-    }
-  },
-  {
-    "formula": "(G!a \u0026 XGa)",
-    "properties": {
-      "size": 1,
-      "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
-      "complete": false,
-      "deterministic": true
-    }
-  },
-  {
     "formula": "(FGa \u0026 FGb)",
     "properties": {
       "size": 1,

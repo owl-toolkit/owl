@@ -23,6 +23,8 @@ import com.google.common.collect.Sets;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 import java.util.function.Predicate;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -36,6 +38,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
@@ -43,16 +46,11 @@ import owl.ltl.XOperator;
 import owl.ltl.rewriter.SyntacticFairnessSimplifier.NormaliseX;
 import owl.ltl.visitors.Visitor;
 
-final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
+public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formula> {
 
   static final SyntacticSimplifier INSTANCE = new SyntacticSimplifier();
 
   private SyntacticSimplifier() {}
-
-  @Override
-  public Formula apply(Formula formula) {
-    return formula.accept(this);
-  }
 
   @Override
   public Formula visit(Biconditional biconditional) {
@@ -72,75 +70,12 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
 
   @Override
   public Formula visit(Conjunction conjunction) {
-    Set<Formula> newConjunction = new HashSet<>(conjunction.map(x -> x.accept(this)));
-
-    // Short-circuit conjunction if it contains x and !x.
-    if (newConjunction.stream().anyMatch(x -> newConjunction.contains(x.not()))) {
-      return BooleanConstant.FALSE;
-    }
-
-    // Reason about modal operators contained in the conjunction.
-    for (GOperator gOperator : filter(newConjunction, GOperator.class)) {
-      newConjunction.remove(gOperator.operand());
-
-      if (newConjunction.contains(gOperator.operand().not())) {
-        return BooleanConstant.FALSE;
-      }
-    }
-
-    for (FOperator fOperator : filter(newConjunction, FOperator.class)) {
-      if (newConjunction.contains(fOperator.operand())) {
-        newConjunction.remove(fOperator);
-      }
-
-      for (ROperator rOperator
-        : filter(newConjunction, ROperator.class,
-        x -> fOperator.operand().equals(x.leftOperand()))) {
-        newConjunction.remove(fOperator);
-        newConjunction.remove(rOperator);
-        newConjunction.add(MOperator.of(rOperator.leftOperand(), rOperator.rightOperand()));
-      }
-
-      for (WOperator wOperator
-        : filter(newConjunction, WOperator.class,
-        x -> fOperator.operand().equals(x.rightOperand()))) {
-        newConjunction.remove(fOperator);
-        newConjunction.remove(wOperator);
-        newConjunction.add(UOperator.of(wOperator.leftOperand(), wOperator.rightOperand()));
-      }
-    }
-
-    for (Formula.BinaryTemporalOperator operator
-      : filter(newConjunction, Formula.BinaryTemporalOperator.class,
-      x -> x instanceof UOperator || x instanceof WOperator)) {
-      if (newConjunction.contains(operator.rightOperand())) {
-        newConjunction.remove(operator);
-      }
-    }
-
-    for (Formula.BinaryTemporalOperator operator
-      : filter(newConjunction, Formula.BinaryTemporalOperator.class,
-      x -> x instanceof MOperator || x instanceof ROperator)) {
-      if (newConjunction.contains(operator.leftOperand())) {
-        newConjunction.remove(operator);
-        newConjunction.add(operator.rightOperand());
-      }
-    }
-
-    // Peek into contained disjunctions and simplify these.
-    for (Disjunction disjunction : filter(newConjunction, Disjunction.class)) {
-      Formula newDisjunction = Disjunction.of(disjunction.operands.stream()
-        .filter(x -> !newConjunction.contains(x.not())));
-      newConjunction.remove(disjunction);
-      newConjunction.add(newDisjunction);
-    }
-
-    return Conjunction.of(newConjunction);
+    return visitConjunction(conjunction.map(x -> x.accept(this)), true);
   }
 
   @Override
   public Formula visit(Disjunction disjunction) {
-    Set<Formula> newDisjunction = new HashSet<>(disjunction.map(x -> x.accept(this)));
+    var newDisjunction = new TreeSet<>(disjunction.map(x -> x.accept(this)));
 
     // Short-circuit disjunction if it contains x and !x.
     if (newDisjunction.stream().anyMatch(x -> newDisjunction.contains(x.not()))) {
@@ -382,6 +317,11 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
       return right;
     }
 
+    // a R F a -> F a
+    if (right instanceof FOperator && left.equals(((FOperator) right).operand())) {
+      return right;
+    }
+
     if (right instanceof Disjunction) {
       var pureUniversal = new HashSet<Formula>();
       var other = new HashSet<Formula>();
@@ -522,19 +462,226 @@ final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperator<Formu
     return XOperator.of(operand);
   }
 
-  private static <T> Set<T> filter(Collection<Formula> collection, Class<T> clazz) {
-    return filter(collection, clazz, x -> true);
+  public static Formula visitConjunction(Collection<Formula> oldConjunction,
+    boolean allowNewFormulas) {
+    var conjunction = new TreeSet<>(oldConjunction);
+
+    // a & !a -> false
+    if (conjunction.stream().anyMatch(x -> conjunction.contains(x.not()))) {
+      return BooleanConstant.FALSE;
+    }
+
+    for (GOperator gOperator : filter(conjunction, GOperator.class)) {
+      var operand = gOperator.operand();
+
+      // Ga & a -> Ga
+      conjunction.remove(operand);
+
+      // Ga &  !a  -> false
+      // Ga & F!a  -> false, Ga & X...XF!a -> false
+      // Ga & G!a  -> false, Ga & X...XG!a -> false
+      // Ga & bU!a -> false,
+      // ...
+      {
+        var visitor = new EventuallySatisfied(operand.not());
+
+        if (conjunction.stream().anyMatch(visitor::apply)) {
+          return BooleanConstant.FALSE;
+        }
+      }
+
+      // Ga & bRa -> Ga
+      conjunction.removeIf(formula ->
+        formula instanceof ROperator && ((ROperator) formula).rightOperand().equals(operand));
+
+      // Ga & aWb -> Ga
+      conjunction.removeIf(formula ->
+        formula instanceof WOperator && ((WOperator) formula).leftOperand().equals(operand));
+
+      // Ga & X...Xa -> Ga
+      conjunction.removeIf(formula ->
+        formula instanceof XOperator && unwrapX((XOperator) formula).equals(operand));
+
+      // Ga & X...XGa -> Ga
+      conjunction.removeIf(formula ->
+        formula instanceof XOperator && unwrapX((XOperator) formula).equals(gOperator));
+    }
+
+    for (FOperator fOperator : filter(conjunction, FOperator.class)) {
+      // Fa & a -> a
+      if (conjunction.contains(fOperator.operand())) {
+        conjunction.remove(fOperator);
+      }
+
+      if (!allowNewFormulas) {
+        continue;
+      }
+
+      // Fa & bRa -> bMa
+      for (ROperator rOperator
+        : filter(conjunction, ROperator.class,
+        x -> fOperator.operand().equals(x.leftOperand()))) {
+        conjunction.remove(fOperator);
+        conjunction.remove(rOperator);
+        conjunction.add(MOperator.of(rOperator.leftOperand(), rOperator.rightOperand()));
+      }
+
+      // Fa & bWa -> bUa
+      for (WOperator wOperator
+        : filter(conjunction, WOperator.class,
+        x -> fOperator.operand().equals(x.rightOperand()))) {
+        conjunction.remove(fOperator);
+        conjunction.remove(wOperator);
+        conjunction.add(UOperator.of(wOperator.leftOperand(), wOperator.rightOperand()));
+      }
+    }
+
+    for (Formula.BinaryTemporalOperator operator
+      : filter(conjunction, Formula.BinaryTemporalOperator.class,
+      x -> x instanceof UOperator || x instanceof WOperator)) {
+
+      // aWb & b -> b, aUb & b -> b
+      if (conjunction.contains(operator.rightOperand())) {
+        conjunction.remove(operator);
+      }
+    }
+
+    for (Formula.BinaryTemporalOperator operator
+      : filter(conjunction, Formula.BinaryTemporalOperator.class,
+      x -> x instanceof MOperator || x instanceof ROperator)) {
+
+      // aMb & a -> a & b, aRb & a -> a & b
+      if (conjunction.contains(operator.leftOperand())) {
+        conjunction.remove(operator);
+        conjunction.add(operator.rightOperand());
+      }
+    }
+
+    // Peek into contained disjunctions and simplify these.
+    for (Disjunction disjunction : filter(conjunction, Disjunction.class)) {
+      Formula newDisjunction = Disjunction.of(
+        disjunction.operands.stream().filter(x -> !conjunction.contains(x.not())));
+      conjunction.remove(disjunction);
+      conjunction.add(newDisjunction);
+    }
+
+    return Conjunction.of(conjunction);
   }
 
-  private static <T> Set<T> filter(Collection<Formula> iterator, Class<T> clazz,
-    Predicate<T> predicate) {
-    Set<T> operators = new HashSet<>();
-    iterator.forEach(x -> {
+  private static <T extends Formula> SortedSet<T> filter(SortedSet<Formula> sortedSet,
+    Class<T> clazz) {
+    return filter(sortedSet, clazz, x -> true);
+  }
+
+  private static <T extends Formula> SortedSet<T> filter(SortedSet<Formula> sortedSet,
+    Class<T> clazz, Predicate<T> predicate) {
+    var operators = new TreeSet<T>();
+
+    sortedSet.forEach(x -> {
       if (clazz.isInstance(x) && predicate.test(clazz.cast(x))) {
         operators.add(clazz.cast(x));
       }
     });
 
     return operators;
+  }
+
+  private static Formula unwrapX(XOperator xOperator) {
+    var returnValue = xOperator.operand();
+
+    while (returnValue instanceof XOperator) {
+      returnValue = ((XOperator) returnValue).operand();
+    }
+
+    return returnValue;
+  }
+
+  private static class EventuallySatisfied implements Visitor<Boolean> {
+    private final Formula targetFormula;
+
+    /**
+     * Determine if the given formula ({@param targetFormula}) is eventually satisfied by any
+     * word satisfying the visited formula.
+     *
+     * @param targetFormula the formula that should be eventually satisfied.
+     */
+    private EventuallySatisfied(Formula targetFormula) {
+      this.targetFormula = targetFormula;
+    }
+
+    @Override
+    public Boolean visit(Biconditional biconditional) {
+      return false;
+    }
+
+    @Override
+    public Boolean visit(BooleanConstant booleanConstant) {
+      return false;
+    }
+
+    @Override
+    public Boolean visit(Conjunction conjunction) {
+      return targetFormula.equals(conjunction)
+        || conjunction.operands.stream().anyMatch(this::apply);
+    }
+
+    @Override
+    public Boolean visit(Disjunction disjunction) {
+      return targetFormula.equals(disjunction)
+        || disjunction.operands.stream().allMatch(this::apply);
+    }
+
+    @Override
+    public Boolean visit(Literal literal) {
+      return targetFormula.equals(literal);
+    }
+
+    @Override
+    public Boolean visit(Negation negation) {
+      return false;
+    }
+
+    @Override
+    public Boolean visit(FOperator fOperator) {
+      return targetFormula.equals(fOperator)
+        || fOperator.operand().accept(this);
+    }
+
+    @Override
+    public Boolean visit(GOperator gOperator) {
+      return targetFormula.equals(gOperator)
+        || gOperator.operand().accept(this);
+    }
+
+    @Override
+    public Boolean visit(MOperator mOperator) {
+      return targetFormula.equals(mOperator)
+        || mOperator.leftOperand().accept(this)
+        || mOperator.rightOperand().accept(this);
+    }
+
+    @Override
+    public Boolean visit(ROperator rOperator) {
+      return targetFormula.equals(rOperator)
+        || rOperator.rightOperand().accept(this);
+    }
+
+    @Override
+    public Boolean visit(UOperator uOperator) {
+      return targetFormula.equals(uOperator)
+        || uOperator.rightOperand().accept(this);
+    }
+
+    @Override
+    public Boolean visit(WOperator wOperator) {
+      return targetFormula.equals(wOperator)
+        || (wOperator.leftOperand().accept(this) && wOperator.rightOperand().accept(this));
+    }
+
+    @Override
+    public Boolean visit(XOperator xOperator) {
+      return targetFormula.equals(xOperator)
+        || xOperator.operand().accept(this);
+    }
   }
 }
