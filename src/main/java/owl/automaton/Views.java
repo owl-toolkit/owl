@@ -23,10 +23,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -44,6 +46,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
+import owl.collections.ValuationTrees;
 import owl.factories.ValuationSetFactory;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
@@ -411,6 +414,81 @@ public final class Views {
       }
 
       return mapper == null ? edges : edges.map(mapper);
+    }
+  }
+
+  /**
+   * This is essentially {@code fmap :: (S -> T) -> Automaton<S,A> -> Automaton<T,A>}.
+   * When the function is injective, the effect is just replacing states of type S with states of
+   * type T. If it is not, the result will be a quotient wrt. the equivalence classes induced by
+   * the preimages.
+   *
+   * @param <S> input state type
+   * @param <T> output state type
+   * @param <A> acceptance condition
+   * @param automaton input automaton
+   * @param mappingFunction function from S to T
+   * @return Output automaton where states are mapped from S to T (and possibly quotiented)
+   */
+  public static <S, T, A extends OmegaAcceptance> Automaton<T,A>
+    quotientAutomaton(Automaton<S,A> automaton, Function<S,T> mappingFunction) {
+
+    Map<S, T> mapping = new HashMap<>();
+    ImmutableListMultimap.Builder<T, S> reverseMappingBuilder = ImmutableListMultimap.builder();
+
+    for (var state : automaton.states()) {
+      var mappedState = mappingFunction.apply(state);
+      mapping.put(state, mappedState);
+      reverseMappingBuilder.put(mappedState, state);
+    }
+
+    return new QuotientAutomaton<>(automaton, Map.copyOf(mapping), reverseMappingBuilder.build());
+  }
+
+  private static class QuotientAutomaton<S, T, A extends OmegaAcceptance>
+    extends AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<T, A> {
+
+    private final Automaton<S, A> automaton;
+    private final Map<S, T> mapping;
+    private final ImmutableListMultimap<T, S> reverseMapping;
+
+    private QuotientAutomaton(Automaton<S, A> automaton, Map<S, T> mapping,
+      ImmutableListMultimap<T, S> reverseMapping) {
+      super(automaton.factory(),
+        automaton.initialStates().stream().map(mapping::get).collect(Collectors.toSet()),
+        automaton.acceptance());
+
+      this.automaton = automaton;
+      this.mapping = Map.copyOf(mapping);
+      this.reverseMapping = reverseMapping;
+    }
+
+    @Override
+    public Set<Edge<T>> edges(T state, BitSet valuation) {
+      return reverseMapping.get(state).stream()
+        .flatMap((S sState) -> automaton.edges(sState, valuation).stream())
+        .map((Edge<S> sEdge) -> sEdge.withSuccessor(mapping.get(sEdge.successor())))
+        .collect(Collectors.toSet());
+    }
+
+    @Override
+    public ValuationTree<Edge<T>> edgeTree(T state) {
+      return ValuationTrees.cartesianProduct(
+        reverseMapping.get(state).stream().map(automaton::edgeTree).collect(Collectors.toList())
+      ).map(x -> {
+        Set<Edge<T>> set = new HashSet<>();
+        for (List<Edge<S>> edges : x) {
+          for (Edge<S> edge : edges) {
+            set.add(edge.withSuccessor(mapping.get(edge.successor())));
+          }
+        }
+        return set;
+      });
+    }
+
+    @Override
+    public List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return automaton.preferredEdgeAccess();
     }
   }
 }
