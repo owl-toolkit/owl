@@ -101,6 +101,25 @@
                 "optimize-aut"
             ]
         },
+        "ltl2dgra2dra": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dgra",
+            "flags": {
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric",
+                "disable-portfolio": "--disable-portfolio"
+            },
+            "pre": [
+                "simplify-ltl"
+            ],
+            "post": [
+                "optimize-aut",
+                "dgra2dra",
+                "optimize-aut"
+            ]
+        },
         "ltl2da": {
             "type": "owl",
             "input": "ltl",
@@ -169,7 +188,28 @@
             "post": [
                 "optimize-aut",
                 "dgra2dra",
-                "dra2dpa",
+                "optimize-aut",
+                ["dra2dpa", "--min"],
+                "optimize-aut"
+            ]
+        },
+        "iar": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "dra2dpa",
+            "flags": {
+                "odd": "--odd",
+                "min": "--min"
+            },
+            "pre": [
+                "simplify-ltl",
+                "ltl2dgra",
+                "optimize-aut",
+                "dgra2dra",
+                "optimize-aut"
+            ],
+            "post": [
                 "optimize-aut"
             ]
         },
@@ -211,7 +251,12 @@
                 "hoaf"
             ],
             "flags": {
-                "hoaf": "--hoaf=1.1"
+                "hoaf": "--hoaf=1.1",
+                "deterministic": "-D",
+                "any": "-a",
+                "buchi": "-B",
+                "complete": "-C",
+                "parity": "-P"
             }
         },
         "ltl2dpa-convert": {

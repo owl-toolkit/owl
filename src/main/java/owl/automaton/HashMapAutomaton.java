@@ -501,7 +501,10 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> copyOf(
     Automaton<S, A> source) {
     HashMapAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
+    source.initialStates().forEach(target::addInitialState);
     MutableAutomatonUtil.copyInto(source, target);
+    target.trim();
+    target.name(source.name());
     assert source.states().equals(target.states());
     return target;
   }

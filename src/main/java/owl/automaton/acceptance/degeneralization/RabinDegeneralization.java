@@ -237,7 +237,9 @@ public final class RabinDegeneralization {
           }
         };
 
+      resultAutomaton.addInitialState(initialSccState);
       MutableAutomatonUtil.copyInto(sourceAutomaton, resultAutomaton);
+      resultAutomaton.trim();
 
       var sccDecomposition2 = SccDecomposition.of(
         sourceAutomaton.states(),
