@@ -494,28 +494,6 @@
     "formula": "(Ga \u0026 GFb)"
   },
   {
-    "formula": "(Ga \u0026 XG!a)",
-    "properties": {
-      "size": 1,
-      "initialStatesSize": 1,
-      "acceptanceName": "AllAcceptance",
-      "acceptanceSets": 0,
-      "complete": false,
-      "deterministic": true
-    }
-  },
-  {
-    "formula": "(G!a \u0026 XGa)",
-    "properties": {
-      "size": 1,
-      "initialStatesSize": 1,
-      "acceptanceName": "AllAcceptance",
-      "acceptanceSets": 0,
-      "complete": false,
-      "deterministic": true
-    }
-  },
-  {
     "formula": "((Fa | Gb) \u0026 (Fb | Gc))"
   },
   {
@@ -541,9 +519,6 @@
   },
   {
     "formula": "(GFa \u0026 XGb)"
-  },
-  {
-    "formula": "(((a) R (Fa)) \u0026 ((b) R (Fb)))"
   },
   {
     "formula": "(Ga \u0026 Gb \u0026 GFc)"
@@ -2301,7 +2276,7 @@
   {
     "formula": "((a) R (X(b | XGa)))",
     "properties": {
-      "size": 7,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
@@ -2505,7 +2480,7 @@
   {
     "formula": "G(a | X(b | XGc))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
@@ -2574,7 +2549,7 @@
   {
     "formula": "((XXa) R ((b \u0026 (((c) R (XXd)) | ((e) R (XXf)) | ((g) R (XXh))))))",
     "properties": {
-      "size": 91,
+      "size": 184,
       "initialStatesSize": 1,
       "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
@@ -2611,17 +2586,6 @@
   },
   {
     "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb) \u0026 GF(!a \u0026 XXb) \u0026 GF(a \u0026 XXXb))"
-  },
-  {
-    "formula": "(Ga \u0026 G!b \u0026 Gc \u0026 XGb \u0026 X(Xa \u0026 ((!b) R (((b) R (((!b) R ((a \u0026 d)))))))))",
-    "properties": {
-      "size": 1,
-      "initialStatesSize": 1,
-      "acceptanceName": "AllAcceptance",
-      "acceptanceSets": 0,
-      "complete": false,
-      "deterministic": true
-    }
   },
   {
     "formula": "(G!a | (((b | ((!a) U ((!a \u0026 c \u0026 X((!a) U (d))))))) U (a)))"
@@ -2684,6 +2648,9 @@
     "formula": "F(!a \u0026 Xa \u0026 X((!a) R ((!a | b | X(!a | !b)))))"
   },
   {
+    "formula": "F(a \u0026 b \u0026 !c \u0026 Xc \u0026 X(Xb \u0026 ((c) R (((!c) R ((b \u0026 d)))))))"
+  },
+  {
     "formula": "G(a | G(b | (c \u0026 XFd)))"
   },
   {
@@ -2718,6 +2685,9 @@
   },
   {
     "formula": "G(a | G(b | XGc) | (((b | Fd | XG(c | d))) U ((d | e))))"
+  },
+  {
+    "formula": "G(a | b | c | X!c | X(Xb | ((!c) U (((c) U ((b | d)))))))"
   },
   {
     "formula": "((a) M ((!a | (((b) R (c)) \u0026 F(b \u0026 XFd)))))"
@@ -2782,6 +2752,9 @@
     "formula": "F(a \u0026 Fb \u0026 (((c \u0026 X((!b) U (d)) \u0026 X((b) R ((!d | Ge))))) R (!b)))"
   },
   {
+    "formula": "F(!a \u0026 Xa \u0026 X(Xb \u0026 ((!a) R (((a) R (((!a) R ((b \u0026 c)))))))))"
+  },
+  {
     "formula": "F(a \u0026 b \u0026 !c \u0026 Xc \u0026 X(Xb \u0026 ((!c) R (((c) R (((!c) R ((b \u0026 d)))))))))"
   },
   {
@@ -2795,6 +2768,9 @@
   },
   {
     "formula": "G(a | G!b | (((c | X((b) R (!d)) | X((!b) U ((d \u0026 Fe))))) U (b)))"
+  },
+  {
+    "formula": "G(a | X!a | X(Xb | ((a) U (((!a) U (((a) U ((b | c)))))))))"
   },
   {
     "formula": "G(a | b | c | X!c | X(Xb | ((c) U (((!c) U (((c) U ((b | d)))))))))"

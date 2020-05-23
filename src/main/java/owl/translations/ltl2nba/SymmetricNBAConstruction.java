@@ -187,13 +187,13 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     }
 
     @Override
-    protected ValuationTree<Edge<Formula>> edgeTreeA(Formula state) {
-      return trackingAutomaton.edgeTree(state).map(x -> buildEdgeA(Edges.successors(x)));
+    protected Set<Edge<Formula>> edgesA(Formula state, BitSet valuation) {
+      return buildEdgeA(trackingAutomaton.successors(state, valuation));
     }
 
     @Override
-    protected Set<Edge<Formula>> edgesA(Formula state, BitSet valuation) {
-      return buildEdgeA(trackingAutomaton.successors(state, valuation));
+    protected ValuationTree<Edge<Formula>> edgeTreeA(Formula state) {
+      return trackingAutomaton.edgeTree(state).map(x -> buildEdgeA(Edges.successors(x)));
     }
 
     private Set<Edge<Formula>> buildEdgeA(Set<Formula> successors) {

@@ -49,6 +49,12 @@ API:
 * Addition of utility classes for determinization of NCW and minimisation
   of DCW to good-for-games NCW.
 
+* Addition of `disjunctiveNormalForm` and `canonicalRepresentative` methods
+  to the `EquivalenceClass` interface for retrieving fixed and well-defined
+  representatives of an equivalence class.
+
+* Various LTL rewrite rules.
+
 * Various API simplifications in the automata package.
 
 Bugfixes:
@@ -59,6 +65,9 @@ Bugfixes:
 
 * Fixed a bug in the `UpwardClosedSet` class: sets that were subsumed by other
   sets have not been removed in all circumstances.
+
+* Fixes for non-deterministic behaviour of code implementing constructions of
+  non-deterministic automata (`NonDeterministicConstructions`).
 
 # 2019.06.03
 

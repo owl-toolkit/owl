@@ -243,7 +243,7 @@ public abstract class ValuationTree<E> {
 
     @Override
     public String toString() {
-      return String.format("(V: %d, tt: %s, ff: %s)", variable, falseChild, trueChild);
+      return String.format("(V: %d, tt: %s, ff: %s)", variable, trueChild, falseChild);
     }
   }
 }

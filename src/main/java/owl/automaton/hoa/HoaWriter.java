@@ -225,7 +225,7 @@ public final class HoaWriter {
           }
 
           IntArrayList acceptanceSets = new IntArrayList();
-          edge.acceptanceSetIterator().forEachRemaining((IntConsumer) acceptanceSets::add);
+          edge.forEachAcceptanceSet(acceptanceSets::add);
           addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
         });
       }

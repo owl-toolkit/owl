@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -23,10 +23,27 @@ import java.util.List;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
-// Design and performance notes: literals are different from unary and binary modal operators,
-// due to performance and consistency issues
+/**
+ * A factory for creating propositional equivalence classes for LTL formulas.
+ *
+ * @implNote Since at creation time the set of atomic propositions is fixed only formulas using
+ *     these atomic propositions might be used.
+ */
 public interface EquivalenceClassFactory {
+
+  /**
+   * The atomic propositions associated with this factory.
+   *
+   * @return the list of atomic propositions for all formulas.
+   */
   List<String> atomicPropositions();
 
+  /**
+   * Create or retrieve a (propositional) equivalence class for a LTL formula.
+   *
+   * @param formula The LTL formula. It is expected to be negation normal form.
+   *
+   * @return the corresponding equivalence class.
+   */
   EquivalenceClass of(Formula formula);
 }

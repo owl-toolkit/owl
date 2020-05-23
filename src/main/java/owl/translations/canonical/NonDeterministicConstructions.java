@@ -26,12 +26,13 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -60,8 +61,7 @@ import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
-import owl.ltl.rewriter.NormalForms;
-import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SyntacticSimplifier;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PropositionalVisitor;
 
@@ -97,136 +97,95 @@ public final class NonDeterministicConstructions {
       return successorsInternal(state, valuation, mapper, factory);
     }
 
-    static <T> Set<T> successorsInternal(Formula state, BitSet valuation,
-      Function<? super Set<Formula>, ? extends Set<T>> mapper, EquivalenceClassFactory factory) {
-      return mapper.apply(toCompactDnf(unfoldWithSuspension(state).temporalStep(valuation),
-        factory));
-    }
-
     <T> ValuationTree<T> successorTreeInternal(Formula state,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
       return successorTreeInternal(state, mapper, factory);
     }
 
-    static <T> ValuationTree<T> successorTreeInternal(Formula state,
+    static <T> Set<T> successorsInternal(Formula state, BitSet valuation,
       Function<? super Set<Formula>, ? extends Set<T>> mapper, EquivalenceClassFactory factory) {
-      var clazz = factory.of(unfoldWithSuspension(state));
-      return clazz.temporalStepTree(x -> mapper.apply(toCompactDnf(x.representative(), factory)));
+      return mapper.apply(
+        reducedDnf(factory.of(unfoldWithSuspension(state).temporalStep(valuation))));
     }
 
-    static Set<Formula> toCompactDnf(Formula formula, EquivalenceClassFactory factory) {
-      if (formula instanceof Disjunction) {
-        var dnf = formula.operands.stream()
-          .flatMap(x -> toCompactDnf(x, factory).stream()).collect(Collectors.toSet());
+    static <T> ValuationTree<T> successorTreeInternal(
+      Formula state,
+      Function<? super Set<Formula>, ? extends Set<T>> mapper,
+      EquivalenceClassFactory factory) {
 
-        var finiteLtl = new HashSet<Formula>();
-        dnf.removeIf(x -> {
-          if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
-            finiteLtl.add(x);
-            return true;
-          } else {
-            return false;
-          }
-        });
+      return factory.of(unfoldWithSuspension(state))
+        .temporalStepTree(x -> mapper.apply(reducedDnf(x)));
+    }
 
-        var finiteDisjunction = SimplifierFactory.apply(Disjunction.of(finiteLtl),
-          SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+    static Set<Formula> reducedDnf(EquivalenceClass equivalenceClass) {
+      var factory = equivalenceClass.factory();
 
-        if (finiteDisjunction.equals(BooleanConstant.TRUE)) {
+      if (equivalenceClass.isFalse()) {
+        return Set.of();
+      }
+
+      // Only a, !a, and X \psi are present. Thus we unfold deterministically.
+      if (equivalenceClass.temporalOperators().stream().allMatch(XOperator.class::isInstance)) {
+        return Set.of(equivalenceClass.canonicalRepresentative());
+      }
+
+      Map<Set<Formula>, Set<Set<Formula>>> groupedClauses = new HashMap<>();
+
+      for (Set<Formula> clause : equivalenceClass.disjunctiveNormalForm()) {
+        var simplifiedFormula = SyntacticSimplifier.visitConjunction(clause, false);
+
+        var simplifiedClause = simplifiedFormula instanceof Conjunction
+          ? simplifiedFormula.operands
+          : List.of(simplifiedFormula);
+
+        var simplifiedClauseClazz = factory.of(Conjunction.of(simplifiedClause).unfold());
+
+        if (simplifiedClauseClazz.isTrue()) {
           return Set.of(BooleanConstant.TRUE);
         }
 
-        if (finiteDisjunction.equals(BooleanConstant.FALSE)) {
-          return dnf;
+        if (simplifiedClauseClazz.isFalse()) {
+          continue;
         }
 
-        dnf.add(finiteDisjunction);
-        return dnf;
+        Set<Formula> literalOrX = new HashSet<>();
+        Set<Formula> reducedClause = new HashSet<>();
+
+        for (Formula formula : simplifiedClause) {
+          if (formula.accept(IsLiteralOrXVisitor.INSTANCE)) {
+            literalOrX.add(formula);
+          } else {
+            reducedClause.add(formula);
+          }
+        }
+
+        // Group clauses using reducedClause.
+        groupedClauses.compute(reducedClause, (oldKey, oldValue) -> {
+          if (oldValue == null) {
+            Set<Set<Formula>> set = new HashSet<>();
+            set.add(literalOrX);
+            return set;
+          }
+
+          oldValue.add(literalOrX);
+          return oldValue;
+        });
       }
 
-      Function<Formula.NaryPropositionalOperator, Set<Formula>> syntheticLiteralFactory = x -> {
-        if (x instanceof Conjunction) {
-          return Set.of();
-        }
+      Set<Formula> clauses = new HashSet<>();
 
-        var finiteLtl = new HashSet<Formula>(); // NOPMD
-        var nonFiniteLtl = new HashSet<Formula>(); // NOPMD
+      groupedClauses.forEach((reducedClause, literalOrX) -> {
+        var literalOrXFormula = Disjunction.of(literalOrX.stream().map(Conjunction::of));
+        reducedClause.add(literalOrXFormula);
+        clauses.add(Conjunction.of(reducedClause));
+      });
 
-        x.operands.forEach(y -> {
-          if (IsLiteralOrXVisitor.INSTANCE.apply(x)) {
-            finiteLtl.add(y);
-          } else {
-            nonFiniteLtl.add(y);
-          }
-        });
-
-        for (Formula finiteFormula : finiteLtl) {
-          if (nonFiniteLtl.stream().noneMatch(z -> z.anyMatch(finiteFormula::equals))) {
-            return Set.copyOf(x.operands);
-          }
-        }
-
-        return Set.of();
-      };
-
-      Set<Set<Formula>> compactDnf = NormalForms.toDnf(formula, syntheticLiteralFactory)
-        .stream()
-        .flatMap(x -> compact(x, factory))
-        .collect(Collectors.toSet());
-
-      // TODO: Here changes from dissertation
-      if (compactDnf.contains(Set.<Formula>of())) {
+      if (clauses.contains(BooleanConstant.TRUE)) {
         return Set.of(BooleanConstant.TRUE);
       }
 
-      return compactDnf.stream().map(Conjunction::of).collect(Collectors.toSet());
-    }
-
-    private static Stream<Set<Formula>> compact(Set<Formula> clause,
-      EquivalenceClassFactory factory) {
-      EquivalenceClass clauseClazz = factory.of(Conjunction.of(clause).unfold());
-
-      if (clauseClazz.isTrue()) {
-        return Stream.of(Set.of());
-      }
-
-      if (clauseClazz.isFalse()) {
-        return Stream.empty();
-      }
-
-      Set<GOperator> gOperators = clause.stream()
-        .filter(GOperator.class::isInstance)
-        .map(GOperator.class::cast)
-        .collect(Collectors.toSet());
-
-      Set<Formula> clause2 = clause.stream()
-        .filter(x -> !gOperators.contains(new GOperator(x)))
-        .collect(Collectors.toSet());
-
-      EquivalenceClass temporalOperatorsClazz = factory.of(Conjunction.of(
-        clause2.stream().filter(Formula.TemporalOperator.class::isInstance)));
-
-      Set<Formula> retainedFacts = new HashSet<>();
-
-      for (Formula literal : clause2) {
-        if (clause2.contains(literal.not())) {
-          return Stream.empty();
-        }
-
-        if (literal instanceof Formula.TemporalOperator) {
-          retainedFacts.add(literal);
-        } else if (temporalOperatorsClazz.implies(factory.of(literal))) {
-          assert literal instanceof Disjunction;
-        } else {
-          retainedFacts.add(literal);
-        }
-      }
-
-      if (clause2.size() == retainedFacts.size()) {
-        return Stream.of(clause2);
-      }
-
-      return Stream.of(Set.of(retainedFacts.toArray(Formula[]::new)));
+      clauses.remove(BooleanConstant.FALSE);
+      return clauses;
     }
 
     private static final class IsLiteralOrXVisitor extends PropositionalVisitor<Boolean> {
@@ -327,7 +286,7 @@ public final class NonDeterministicConstructions {
   // These automata are not looping in the initial state.
   private abstract static class NonLooping<A extends OmegaAcceptance> extends Terminal<A> {
     private NonLooping(Factories factories, Formula formula, A acceptance) {
-      super(factories, toCompactDnf(formula, factories.eqFactory), acceptance);
+      super(factories, reducedDnf(factories.eqFactory.of(formula)), acceptance);
     }
 
     @Override
@@ -379,7 +338,7 @@ public final class NonDeterministicConstructions {
 
     // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
     public Set<Formula> initialStatesWithRemainder(Formula remainder) {
-      return toCompactDnf(Conjunction.of(initialFormula, remainder), factory);
+      return reducedDnf(factory.of(Conjunction.of(initialFormula, remainder)));
     }
   }
 

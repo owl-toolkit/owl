@@ -149,7 +149,7 @@ public final class SyntacticFragments {
 
     public static FormulaClass classify(Formula formula) {
       if (formula instanceof Biconditional || formula instanceof Negation) {
-        throw new IllegalArgumentException("Formula not in negation-normal-form.");
+        throw new IllegalArgumentException("Formula not in negation normal form.");
       }
 
       var childrenClass = leastUpperBound(formula.operands.stream()

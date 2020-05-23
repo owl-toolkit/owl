@@ -366,11 +366,6 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
     }
 
     @Override
-    public Formula apply(Formula formula) {
-      return formula.accept(this);
-    }
-
-    @Override
     public Formula visit(BooleanConstant booleanConstant) {
       if (isApplicable.test(booleanConstant)) {
         return rewriter.apply(booleanConstant);

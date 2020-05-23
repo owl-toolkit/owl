@@ -132,4 +132,12 @@ class SyntacticSimplifierTest {
       SimplifierFactory.apply(LtlParser.syntax('!' + formulaString), Mode.SYNTACTIC);
     });
   }
+
+  @Test
+  void testBiconditional() {
+    assertDoesNotThrow(() -> {
+      var formula = LtlParser.parse("!((a <-> b) -> (F b))");
+      SimplifierFactory.apply(formula, Mode.SYNTACTIC);
+    });
+  }
 }

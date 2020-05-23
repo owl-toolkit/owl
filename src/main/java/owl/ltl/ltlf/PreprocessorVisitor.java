@@ -19,11 +19,6 @@ import owl.ltl.visitors.Visitor;
 public class PreprocessorVisitor implements Visitor<Formula> {
 
   @Override
-  public Formula apply(Formula formula) {
-    return formula.accept(this);
-  }
-
-  @Override
   public Formula visit(Biconditional biconditional) {
     return new Conjunction(
       new Disjunction(
