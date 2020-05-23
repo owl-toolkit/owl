@@ -20,7 +20,6 @@
 package owl.automaton.edge;
 
 import de.tum.in.naturals.NaturalsTransformer;
-import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.bitset.ImmutableBitSet;
 import java.util.BitSet;
 import java.util.Objects;
@@ -171,8 +170,9 @@ public abstract class Edge<S> {
       return Edge.of(successor(), first);
     }
 
-    BitSet acceptanceSet = BitSets.of(iter);
+    BitSet acceptanceSet = new BitSet();
     acceptanceSet.set(first);
+    iter.forEachRemaining((IntConsumer) acceptanceSet::set);
     return withAcceptance(acceptanceSet);
   }
 

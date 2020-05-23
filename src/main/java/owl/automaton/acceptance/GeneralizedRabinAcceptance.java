@@ -31,8 +31,8 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import javax.annotation.Nonnegative;
@@ -72,21 +72,21 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BitSet acceptingSet() {
+  public Optional<BitSet> acceptingSet() {
     if (pairs.isEmpty()) {
-      throw new NoSuchElementException();
+      return Optional.empty();
     }
 
     BitSet set = new BitSet();
     pairs.get(0).forEachInfSet(set::set);
-    return set;
+    return Optional.of(set);
   }
 
   @Override
-  public BitSet rejectingSet() {
+  public Optional<BitSet> rejectingSet() {
     BitSet set = new BitSet();
     pairs.forEach(x -> set.set(x.finIndex));
-    return set;
+    return Optional.of(set);
   }
 
   public static GeneralizedRabinAcceptance of(RabinPair... pairs) {

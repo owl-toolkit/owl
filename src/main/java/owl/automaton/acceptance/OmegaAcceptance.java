@@ -21,7 +21,7 @@ package owl.automaton.acceptance;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -45,20 +45,20 @@ public abstract class OmegaAcceptance {
   }
 
   /**
-   * Returns a set of indices which repeated infinitely often are accepting.
+   * Returns a set of indices which repeated infinitely often are accepting or
+   * {@link Optional#empty()} if no such set exists.
    *
    * @see #isAccepting(BitSet)
-   * @throws NoSuchElementException if there is no such set
    */
-  public abstract BitSet acceptingSet();
+  public abstract Optional<BitSet> acceptingSet();
 
   /**
-   * Returns a set of indices which repeated infinitely often are rejecting.
+   * Returns a set of indices which repeated infinitely often are rejecting or
+   * {@link Optional#empty()} if no such set exists.
    *
    * @see #isAccepting(BitSet)
-   * @throws NoSuchElementException if there is no such set
    */
-  public abstract BitSet rejectingSet();
+  public abstract Optional<BitSet> rejectingSet();
 
   /**
    * Returns whether repeating these acceptance indices infinitely often would be accepting.

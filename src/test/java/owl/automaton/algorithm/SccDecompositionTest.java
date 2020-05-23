@@ -179,10 +179,10 @@ class SccDecompositionTest {
     int n = decomposition.sccs().size();
     var bottomSccs = decomposition.bottomSccs();
 
-    assertEquals(-1, bottomSccs.nextSetBit(n));
+    assertTrue(bottomSccs.stream().noneMatch(i -> i >= n));
 
     for (int i = 0; i < n; i++) {
-      boolean isBottomScc = bottomSccs.get(i);
+      boolean isBottomScc = bottomSccs.contains(i);
 
       assertEquals(decomposition.isBottomScc(decomposition.sccs().get(i)), isBottomScc);
       assertEquals(Set.of(i).containsAll(decomposition.condensation().successors(i)), isBottomScc);
@@ -199,10 +199,10 @@ class SccDecompositionTest {
     int n = decomposition.sccs().size();
     var transientSccs = decomposition.transientSccs();
 
-    assertEquals(-1, transientSccs.nextSetBit(n));
+    assertTrue(transientSccs.stream().noneMatch(i -> i >= n));
 
     for (int i = 0; i < n; i++) {
-      boolean isTransientScc = transientSccs.get(i);
+      boolean isTransientScc = transientSccs.contains(i);
 
       assertEquals(decomposition.isTransientScc(decomposition.sccs().get(i)), isTransientScc);
       assertEquals(decomposition.condensation().hasEdgeConnecting(i, i), !isTransientScc);

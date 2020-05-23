@@ -23,7 +23,7 @@ import static jhoafparser.extensions.BooleanExpressions.createDisjunction;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
@@ -63,18 +63,14 @@ public class GeneralizedCoBuchiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BitSet acceptingSet() {
-    if (size == 0) {
-      throw new NoSuchElementException();
-    }
-
-    return new BitSet();
+  public Optional<BitSet> acceptingSet() {
+    return size == 0 ? Optional.empty() : Optional.of(new BitSet(0));
   }
 
   @Override
-  public BitSet rejectingSet() {
+  public Optional<BitSet> rejectingSet() {
     BitSet set = new BitSet();
     set.set(0, size);
-    return set;
+    return Optional.of(set);
   }
 }

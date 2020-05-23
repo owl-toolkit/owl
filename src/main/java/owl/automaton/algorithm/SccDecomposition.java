@@ -1,5 +1,6 @@
 package owl.automaton.algorithm;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Collections.disjoint;
 
 import com.google.auto.value.AutoValue;
@@ -10,9 +11,10 @@ import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.ImmutableGraph;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
@@ -129,19 +131,41 @@ public abstract class SccDecomposition<S> {
    * Find the index of the strongly connected component this state belongs to.
    *
    * @param state the state.
-   * @return the index {@code i} such that {@code sccs().get(i).contains(state)} is {@code true} or
-   * {@code -1} if there is no such {@code i}.
+   * @return the index {@code i} such that {@code sccs().get(i).contains(state)} is {@code true}
+   *     or {@code -1} if no such {@code i} exists (only if {@code state} is not part of the
+   *     automaton)
    */
   public int index(S state) {
+    return indexMap().getOrDefault(state, -1);
+  }
+
+  /**
+   * Find the the strongly connected component this state belongs to.
+   *
+   * @param state the state.
+   * @return scc {@code scc} such that {@code sccs.contains(state)} is {@code true}.
+   * @throws IllegalArgumentException if {@code state} is not part of the automaton
+   */
+  public Set<S> scc(S state) {
+    int index = indexMap().get(state);
+    checkArgument(index >= 0);
+    return sccs().get(index);
+  }
+
+  @Memoized
+  public Map<S, Integer> indexMap() {
+    var indexMap = new HashMap<S, Integer>();
     var sccs = sccs();
 
-    for (int i = 0; i < sccs.size(); i++) {
-      if (sccs.get(i).contains(state)) {
-        return i;
+    for (int i = 0, s = sccs.size(); i < s; i++) {
+      Integer iObject = i;
+
+      for (S state : sccs.get(i)) {
+        indexMap.put(state, iObject);
       }
     }
 
-    return -1;
+    return Map.copyOf(indexMap);
   }
 
   /**
@@ -153,6 +177,7 @@ public abstract class SccDecomposition<S> {
    */
   @Memoized
   public ImmutableGraph<Integer> condensation() {
+    // TODO: let Tarjan compute this.
     var builder = GraphBuilder.directed().allowsSelfLoops(true).<Integer>immutable();
 
     int i = 0;
@@ -174,21 +199,22 @@ public abstract class SccDecomposition<S> {
 
   /**
    * Return indices of all strongly connected components that are bottom. A SCC is considered
-   * bottom if there are no transitions leaving it.
+   * bottom if it is not transient and there are no transitions leaving it.
    *
    * @return indices of bottom strongly connected components.
    */
-  public BitSet bottomSccs() {
+  @Memoized
+  public Set<Integer> bottomSccs() {
     var graph = condensation();
-    var bottomSccs = new BitSet();
+    var bottomSccs = new HashSet<Integer>();
 
     for (Integer scc : graph.nodes()) {
       if (Set.of(scc).containsAll(graph.successors(scc))) {
-        bottomSccs.set(scc);
+        bottomSccs.add(scc);
       }
     }
 
-    return bottomSccs;
+    return Set.of(bottomSccs.toArray(Integer[]::new));
   }
 
   /**
@@ -204,26 +230,27 @@ public abstract class SccDecomposition<S> {
   }
 
   /**
-   * Return indices of all strongly connected components that are transient. A SCC is considered
+   * Return indices of all strongly connected components that are transient. An SCC is considered
    * transient if there are no transitions within in it.
    *
    * @return indices of transient strongly connected components.
    */
-  public BitSet transientSccs() {
+  @Memoized
+  public Set<Integer> transientSccs() {
     var graph = condensation();
-    var transientSccs = new BitSet();
+    var transientSccs = new HashSet<Integer>();
 
     for (Integer scc : graph.nodes()) {
       if (!graph.hasEdgeConnecting(scc, scc)) {
-        transientSccs.set(scc);
+        transientSccs.add(scc);
       }
     }
 
-    return transientSccs;
+    return Set.of(transientSccs.toArray(Integer[]::new));
   }
 
   /**
-   * Determine if a given strongly connected component is transient. A SCC is considered transient
+   * Determine if a given strongly connected component is transient. An SCC is considered transient
    * if there are no transitions within in it.
    *
    * @param scc a strongly connected component.
@@ -234,7 +261,7 @@ public abstract class SccDecomposition<S> {
       return false;
     }
 
-    S state = Iterables.getOnlyElement(scc);
-    return !successorFunction().apply(state).contains(state);
+    int index = index(Iterables.getOnlyElement(scc));
+    return !condensation().hasEdgeConnecting(index, index);
   }
 }

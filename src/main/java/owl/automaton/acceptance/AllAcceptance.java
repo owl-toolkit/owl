@@ -20,7 +20,7 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 
@@ -45,12 +45,12 @@ public final class AllAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BitSet acceptingSet() {
-    return new BitSet();
+  public Optional<BitSet> acceptingSet() {
+    return Optional.of(new BitSet(0));
   }
 
   @Override
-  public BitSet rejectingSet() {
-    throw new NoSuchElementException();
+  public Optional<BitSet> rejectingSet() {
+    return Optional.empty();
   }
 }

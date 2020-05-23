@@ -186,7 +186,7 @@ abstract class DependencyTree<T> {
       T fallbackState = state.productState.fallback().get(formula);
       var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
       var acceptanceSets = edge == null
-        ? automaton.acceptance().rejectingSet().stream().iterator()
+        ? automaton.acceptance().rejectingSet().orElseThrow().stream().iterator()
         : edge.acceptanceSetIterator();
 
       // Shift acceptance sets.

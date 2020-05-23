@@ -29,6 +29,7 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
@@ -38,6 +39,7 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.collections.ValuationSet;
@@ -63,10 +65,14 @@ public final class Views {
     // Patch acceptance, if necessary.
     if (acceptance instanceof AllAcceptance) {
       acceptance = CoBuchiAcceptance.INSTANCE;
+    } else if (acceptance instanceof ParityAcceptance && acceptance.acceptanceSets() <= 1) {
+      acceptance = ((ParityAcceptance) acceptance).withAcceptanceSets(2);
     }
 
-    var rejectingEdge = Edge.of(trapState, acceptance.rejectingSet());
-    return new Complete<>(automaton, rejectingEdge, acceptance);
+    OmegaAcceptance finalAcceptance = acceptance;
+    BitSet rejectingSet = acceptance.rejectingSet()
+      .orElseThrow(() -> new NoSuchElementException("No rejecting set for " + finalAcceptance));
+    return new Complete<>(automaton, Edge.of(trapState, rejectingSet), acceptance);
   }
 
   /**
