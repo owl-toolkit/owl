@@ -27,7 +27,7 @@ def _test(args, check):
     test_names = args[0].split(";")
     test_set_override = None
 
-    if len(args) is 2:
+    if len(args) == 2:
         test_set_override = args[1]
 
     test_config = owl_defaults.load_json(database)
@@ -284,7 +284,7 @@ def _benchmark(args):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) is 1:
+    if len(sys.argv) == 1:
         print("Usage: util.py <type> <args>")
         sys.exit(1)
 

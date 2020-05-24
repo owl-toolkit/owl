@@ -51,7 +51,7 @@ public final class InputReaders {
     "ltl",
     "Parses LTL formulas and converts them into NNF",
     (commandLine, environment) -> (reader, callback, stopSignal) ->
-      CharStreams.readLines(reader, new LineProcessor<>() {
+      CharStreams.readLines(reader, new LineProcessor<Void>() {
         @Override
         public boolean processLine(String line) {
           if (stopSignal.get()) {
