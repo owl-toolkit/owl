@@ -119,7 +119,11 @@
                 "ltl2dra#symmetric",
                 "ltl2dgra#symmetric",
                 "ltl2dra#symmetric,disable-portfolio",
-                "ltl2dgra#symmetric,disable-portfolio"
+                "ltl2dgra#symmetric,disable-portfolio",
+                "ltl2dra#normal-form",
+                "ltl2dgra#normal-form",
+                "ltl2dra#normal-form,disable-portfolio",
+                "ltl2dgra#normal-form,disable-portfolio"
             ],
             "data": "L"
         },
@@ -139,14 +143,17 @@
                 "ltl2dpa#asymmetric,disable-portfolio",
                 "ltl2dpa#asymmetric,disable-complement,disable-portfolio",
                 "ltl2dpa#symmetric,disable-portfolio",
-                "ltl2dpa#symmetric,disable-complement,disable-portfolio"
+                "ltl2dpa#symmetric,disable-complement,disable-portfolio",
+                "ltl2dpaZielonka",
+                "ltl2dpaZielonka#simple"
             ],
             "data": "L"
         },
         "ltl2dpa-random": {
             "tools": [
                 "ltl2dpa#asymmetric,disable-complement",
-                "ltl2dpa#symmetric,disable-complement"
+                "ltl2dpa#symmetric,disable-complement",
+                "ltl2dpaZielonka"
             ],
             "data": "RANDOM"
         },

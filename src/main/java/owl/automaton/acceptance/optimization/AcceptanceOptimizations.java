@@ -48,6 +48,8 @@ import owl.run.modules.OwlModule;
 public final class AcceptanceOptimizations {
   private static final Logger logger = Logger.getLogger(AcceptanceOptimizations.class.getName());
 
+  // TODO: collapse inf / fins?
+
   private static final List<Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>>>
     generalizedRabinDefaultAllList = List.of(
     GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
@@ -213,6 +215,10 @@ public final class AcceptanceOptimizations {
     IntUnaryOperator transformer = index -> indicesToRemove.get(index) ? -1 : index;
     automaton.updateEdges(states, (state, edge) -> edge.mapAcceptance(transformer));
     automaton.trim();
+  }
+
+  static <S> Automaton<S, ?> collapseFinInf(Automaton<S, ?> automaton) {
+    return null;
   }
 
   static void removeAndRemapIndices(MutableAutomaton<?, ?> automaton, IntSet indicesToRemove) {

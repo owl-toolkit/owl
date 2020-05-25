@@ -59,9 +59,6 @@ import owl.logic.propositional.PropositionalFormula;
  */
 public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
-  private static final String NOT_WELL_FORMED
-    = "Generalized-Rabin Acceptance not well-formed.";
-
   final List<RabinPair> pairs;
   @Nonnegative
   private final int setCount;
@@ -107,11 +104,15 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     return new GeneralizedRabinAcceptance(pairs);
   }
 
-  public static GeneralizedRabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
+  public static Optional<? extends GeneralizedRabinAcceptance> of(
+    BooleanExpression<AtomAcceptance> expression) {
+
     return of(BooleanExpressions.toPropositionalFormula(expression));
   }
 
-  public static GeneralizedRabinAcceptance of(PropositionalFormula<Integer> expression) {
+  public static Optional<? extends GeneralizedRabinAcceptance> of(
+    PropositionalFormula<Integer> expression) {
+
     SortedMap<Integer, Range<Integer>> rabinPairs = new TreeMap<>();
 
     for (PropositionalFormula<Integer> dis : PropositionalFormula.disjuncts(expression)) {
@@ -123,10 +124,13 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
         if (element instanceof Variable) { // TEMPORAL_INF
           infSets.set(((Variable<Integer>) element).variable);
         } else if (element instanceof Negation) { // TEMPORAL_FIN
-          checkArgument(fin == -1, NOT_WELL_FORMED);
+          if (fin != -1) {
+            return Optional.empty();
+          }
+
           fin = ((Variable<Integer>) ((Negation<Integer>) element).operand).variable;
         } else {
-          throw new IllegalArgumentException(NOT_WELL_FORMED);
+          return Optional.empty();
         }
       }
 
@@ -150,14 +154,15 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
       Range<Integer> infs = entry.getValue();
 
       assert infs.lowerBoundType() == BoundType.CLOSED && infs.upperBoundType() == BoundType.OPEN;
-      checkArgument(fin == setCount, NOT_WELL_FORMED);
-      checkArgument(infs.lowerEndpoint() == fin + 1, NOT_WELL_FORMED);
+      if (fin != setCount || infs.lowerEndpoint() != fin + 1) {
+        return Optional.empty();
+      }
 
       setCount = infs.upperEndpoint();
       builder.add(infs.upperEndpoint() - infs.lowerEndpoint());
     }
 
-    return builder.build();
+    return Optional.of(builder.build());
   }
 
   @Override

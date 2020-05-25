@@ -20,7 +20,6 @@
 package owl.translations.nbadet;
 
 import java.util.Set;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.Pair;

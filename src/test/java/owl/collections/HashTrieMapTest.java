@@ -25,20 +25,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.BiMap;
 import com.google.common.collect.Iterables;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Function;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.translations.nbadet.AutomatonSccDecompositionTest;
 import owl.translations.nbadet.AutomatonTestUtil;
 import owl.translations.nbadet.NbaDetArgs;
 import owl.translations.nbadet.NbaDetConf;
 import owl.translations.nbadet.NbaDetState;
-import owl.translations.nbadet.NbaSccInfoTest;
 import owl.translations.nbadet.RankedSlice;
 import owl.translations.nbadet.SmartSucc;
 
@@ -136,23 +133,23 @@ public class HashTrieMapTest {
 
   @Test
   void testTrieEncoding() throws ParseException {
-    var nba = AutomatonTestUtil.autFromString(NbaSccInfoTest.HOA_NBA_SCCS, BuchiAcceptance.class);
+    var nba = AutomatonTestUtil.autFromString(
+      AutomatonSccDecompositionTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
     var args = NbaDetArgs.getDefault().toBuilder()
       .setSepAcc(false).setSepRej(true).setSepDet(true).setSepMix(true).build();
-    var conf = NbaDetConf.prepare(nba, Set.of(), args);
-    Function<Set<Integer>, BitSet> toBS = s -> BitSet2.copyOf(s, conf.aut().stateMap()::get);
 
-    BiMap<Integer, Integer> stateMap = conf.aut().stateMap();
-    var state = NbaDetState.of(conf, BitSet2.copyOf(stateMap.keySet(), stateMap::get));
-    var expectedEncoding = List.of(
-      toBS.apply(Set.of(0,1,2,3,4,5,6,7,8,9,10,11)),
-      toBS.apply(Set.of(10,11)),
-      toBS.apply(Set.of(4,5)),
-      toBS.apply(Set.of(9)),
-      toBS.apply(Set.of(7,8))
-      );
-    assertEquals(expectedEncoding, state.toTrieEncoding());
+    var conf = NbaDetConf.prepare(nba, Set.of(), args);
+    var state = NbaDetState.of(conf, BitSet2.copyOf(conf.aut().stateMap().values()));
+
+    assertEquals(Set.of(
+        BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), conf.aut().stateMap()::get),
+        BitSet2.copyOf(Set.of(10, 11), conf.aut().stateMap()::get),
+        BitSet2.copyOf(Set.of(4, 5), conf.aut().stateMap()::get),
+        BitSet2.copyOf(Set.of(9), conf.aut().stateMap()::get),
+        BitSet2.copyOf(Set.of(7, 8), conf.aut().stateMap()::get)
+      ),
+      Set.copyOf(state.toTrieEncoding()));
   }
 
   @Test

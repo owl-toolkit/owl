@@ -156,10 +156,6 @@ class DeterministicConstructionsPortfolioTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> safetyCoSafety(environment, LtlParser.parse("G a")));
-      assertThrows(IllegalArgumentException.class,
-        () -> safetyCoSafety(environment, LtlParser.parse("G F a & G F b")));
-      assertThrows(IllegalArgumentException.class,
         () -> safetyCoSafety(environment, LtlParser.parse("G (a U (b R c))")));
     }
   }

@@ -22,7 +22,6 @@ package owl.translations.nbadet;
 import java.io.StringReader;
 import java.util.HashMap;
 import jhoafparser.parser.generated.ParseException;
-
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -47,5 +46,4 @@ public final class AutomatonTestUtil {
     aut.states().forEach(st -> stateMap.put(st, Integer.valueOf(st.toString())));
     return Views.quotientAutomaton(aut, stateMap::get);
   }
-
 }

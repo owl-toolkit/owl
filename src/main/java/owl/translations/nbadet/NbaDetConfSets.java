@@ -21,14 +21,14 @@ package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.BiMap;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import java.util.stream.IntStream;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.collections.BitSet2;
 
 /**
@@ -59,26 +59,29 @@ public abstract class NbaDetConfSets {
 
   public abstract ArrayList<BitSet> msccsStates();
 
-  public static <S> NbaDetConfSets of(NbaDetArgs args,
-                                      NbaSccInfo<S> scci, BiMap<S, Integer> stateMap) {
+  public static <S> NbaDetConfSets of(
+    NbaDetArgs args,
+    SccDecomposition<? extends S> scci,
+    BiMap<S, Integer> stateMap) {
+
     var handled = new HashSet<Integer>(); //keep track of already handled SCCs
 
     var rejStatesBS = new BitSet();
     if (args.sepRej()) {
       //collect all rejecting SCCs into a single buffer set
-      Set<S> rejStates = scci.rejSccs().stream()
-        .flatMap(i -> scci.sccDecomposition().sccs().get(i).stream())
+      Set<S> rejStates = scci.rejectingSccs().stream()
+        .flatMap(i -> scci.sccs().get(i).stream())
         .collect(Collectors.toUnmodifiableSet());
       rejStatesBS = BitSet2.copyOf(rejStates, stateMap::get);
 
-      handled.addAll(scci.rejSccs());
+      handled.addAll(scci.rejectingSccs());
     }
 
     var accStatesBS = new BitSet();
     var asccs = new ArrayList<BitSet>();
     if (args.sepAcc()) {
       //collect the accepting SCCs
-      var accSccs = scci.accSccs().stream().map(i -> scci.sccDecomposition().sccs().get(i))
+      var accSccs = scci.acceptingSccs().stream().map(i -> scci.sccs().get(i))
                                          .collect(Collectors.toUnmodifiableList());
       //and also their union
       var accStates = accSccs.stream().flatMap(Collection::stream)
@@ -94,17 +97,17 @@ public abstract class NbaDetConfSets {
         asccs.add(merged);
       }
 
-      handled.addAll(scci.accSccs());
+      handled.addAll(scci.acceptingSccs());
     }
 
     var dsccs = new ArrayList<BitSet>();
     if (args.sepDet()) {
       //collect deterministic SCCs (that are not already handled as acc./rej.)
-      var unhDetSccs = scci.detSccs().stream()
+      var unhDetSccs = scci.deterministicSccs().stream()
           .filter(i -> !handled.contains(i))
           .collect(Collectors.toUnmodifiableList());
 
-      var expDetSccs = unhDetSccs.stream().map(i -> scci.sccDecomposition().sccs().get(i))
+      var expDetSccs = unhDetSccs.stream().map(i -> scci.sccs().get(i))
                                        .collect(Collectors.toUnmodifiableList());
 
 
@@ -116,8 +119,8 @@ public abstract class NbaDetConfSets {
 
     //SCCs which are not handled specially yet are treated as mixed (generic determinization)
     var msccs = new ArrayList<BitSet>();
-    scci.ids().filter(i -> !handled.contains(i)).forEach(
-      i -> msccs.add(BitSet2.copyOf(scci.sccDecomposition().sccs().get(i), stateMap::get)));
+    IntStream.range(0, scci.sccs().size()).filter(i -> !handled.contains(i)).forEach(
+      i -> msccs.add(BitSet2.copyOf(scci.sccs().get(i), stateMap::get)));
 
     if (!args.sepMix()) {
       //if not requested to separate, put all states in single determinisation tuple component

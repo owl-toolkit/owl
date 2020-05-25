@@ -3030,11 +3030,6 @@
             0,
             1
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -3042,9 +3037,6 @@
           "temporalOperatorsProfile": [
             1
           ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ]
     ]

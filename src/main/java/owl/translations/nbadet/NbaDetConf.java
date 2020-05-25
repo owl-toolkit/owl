@@ -68,10 +68,12 @@ public abstract class NbaDetConf<S> {
   }
 
 
-  public static <S> Set<Pair<S,S>> filterInternalIncl(Set<Pair<S,S>> incl, NbaSccInfo<S> scci) {
+  public static <S> Set<Pair<S,S>> filterInternalIncl(
+    Set<? extends Pair<S, S>> incl, SccDecomposition<? super S> scci) {
+
     return incl.stream()
       .filter(p -> !p.fst().equals(p.snd()) // not equal, but in same SCC
-            && scci.sccDecomposition().index(p.fst()) == scci.sccDecomposition().index(p.snd()))
+            && scci.index(p.fst()) == scci.index(p.snd()))
       .collect(Collectors.toUnmodifiableSet());
 
     //NOTE: in principle, this can be made slightly more general, by keeping pairs p <= q if
@@ -82,11 +84,14 @@ public abstract class NbaDetConf<S> {
     //and also the DetConfSet partition is required for the check
   }
 
-  public static <S> Set<Pair<S,S>> filterExternalIncl(Set<Pair<S,S>> incl,
-                                                      NbaSccInfo<S> scci, BiMap<S,Integer> stm) {
+  public static <S> Set<Pair<S, S>> filterExternalIncl(
+    Set<? extends Pair<S, S>> incl,
+    SccDecomposition<? super S> scci,
+    BiMap<S, Integer> stm) {
+
     //can only use a < b if b -/> a
     var inclFilt = incl.stream()
-      .filter(p -> !scci.isStateReachable(p.snd(), p.fst()))
+      .filter(p -> !scci.pathExists(p.snd(), p.fst()))
       .collect(Collectors.toSet());
 
     //need to collapse remaining usable incl. to strict partial order and break symmetry inside
@@ -125,7 +130,7 @@ public abstract class NbaDetConf<S> {
   public static <S> NbaDetConf<S> prepare(
       Automaton<S,BuchiAcceptance> aut, Set<Pair<S,S>> incl, NbaDetArgs args) {
     //compute SCCs
-    var scci = NbaSccInfo.of(aut);
+    var scci = SccDecomposition.of(aut);
 
     //fix a bijection between bit indices <-> original NBA states:
     var states = aut.states();

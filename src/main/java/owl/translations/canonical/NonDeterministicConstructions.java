@@ -70,7 +70,7 @@ public final class NonDeterministicConstructions {
   }
 
   abstract static class Base<S, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<S, A> {
+    extends AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<S, A> {
 
     final EquivalenceClassFactory factory;
 
@@ -78,12 +78,6 @@ public final class NonDeterministicConstructions {
       super(factories.vsFactory, initialStates, acceptance);
       this.factory = factories.eqFactory;
     }
-
-    @Override
-    public abstract Set<Edge<S>> edges(S state, BitSet valuation);
-
-    @Override
-    public abstract ValuationTree<Edge<S>> edgeTree(S state);
 
     private static Formula unfoldWithSuspension(Formula formula) {
       return formula.accept(UnfoldWithSuspension.INSTANCE);
@@ -287,12 +281,7 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public final Set<Edge<Formula>> edges(Formula state, BitSet valuation) {
-      return successorsInternal(state, valuation, this::successorToEdge);
-    }
-
-    @Override
-    public final ValuationTree<Edge<Formula>> edgeTree(Formula state) {
+    public final ValuationTree<Edge<Formula>> edgeTreeImpl(Formula state) {
       return successorTreeInternal(state, this::successorToEdge);
     }
   }
@@ -367,20 +356,7 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public Set<Edge<Formula>> edges(Formula state, BitSet valuation) {
-      Set<Formula> successors;
-
-      if (initialState.equals(state)) {
-        successors = Sets.union(initialStateSuccessorTree.get(valuation), initialStates());
-      } else {
-        successors = successorsInternal(state, valuation, Function.identity());
-      }
-
-      return successorToEdge(successors);
-    }
-
-    @Override
-    public ValuationTree<Edge<Formula>> edgeTree(Formula state) {
+    public ValuationTree<Edge<Formula>> edgeTreeImpl(Formula state) {
       return initialState.equals(state)
         ? initialStateSuccessorTree.map(x -> successorToEdge(Sets.union(x, initialStates())))
         : successorTreeInternal(state, this::successorToEdge);
@@ -476,13 +452,8 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public Set<Edge<RoundRobinState<Formula>>> edges(
-      RoundRobinState<Formula> state, BitSet valuation) {
-      return edges(state, valuation, factory, initialStatesSuccessorTree, fallbackInitialState);
-    }
-
-    @Override
-    public ValuationTree<Edge<RoundRobinState<Formula>>> edgeTree(RoundRobinState<Formula> state) {
+    public ValuationTree<Edge<RoundRobinState<Formula>>> edgeTreeImpl(
+      RoundRobinState<Formula> state) {
       var successorTree = successorTreeInternal(state.state(), Function.identity());
       return cartesianProduct(successorTree, initialStatesSuccessorTree,
         (x, y) -> buildEdge(state.index(), x, y, fallbackInitialState));

@@ -279,7 +279,7 @@ public final class RabinizerBuilder {
     // TODO Here, we can perform skeleton analysis and, if a G set is not element of any set
     // after the analysis, we can remove it from the relevantSubFormulas set?
 
-    int partitionSize = masterSccPartition.partitionSize();
+    int partitionSize = masterSccPartition.sccs.size();
     @SuppressWarnings({"unchecked"})
     Set<GOperator>[] sccRelevantGList = new Set[partitionSize];
 
@@ -296,7 +296,6 @@ public final class RabinizerBuilder {
 
     // Assign arbitrary numbering to all relevant sub-formulas. Throughout the construction, we will
     // use this numbering to identify the sub-formulas.
-    int numberOfGFormulas = allRelevantGFormulas.size();
     GOperator[] gFormulas = allRelevantGFormulas.toArray(GOperator[]::new);
 
     /* Build monitors for all formulas which are relevant somewhere.
@@ -307,7 +306,7 @@ public final class RabinizerBuilder {
 
     // TODO We could detect effectively false G operators here (i.e. monitors never accept)
     // But this rarely happens
-    MonitorAutomaton[] monitors = new MonitorAutomaton[numberOfGFormulas];
+    MonitorAutomaton[] monitors = new MonitorAutomaton[gFormulas.length];
     Arrays.setAll(monitors, gIndex -> buildMonitor(gFormulas[gIndex]));
 
     /* Build the product
@@ -368,10 +367,10 @@ public final class RabinizerBuilder {
         relevantFormulas = new boolean[]{};
         logger.log(Level.FINE, "Suspending all Gs on SCC {0}", sccIndex);
       } else {
-        relevantFormulas = new boolean[numberOfGFormulas];
+        relevantFormulas = new boolean[gFormulas.length];
         sccMonitors = new MonitorAutomaton[sccRelevantOperators.size()];
         int subsetRelevantIndex = 0;
-        for (int gIndex = 0; gIndex < numberOfGFormulas; gIndex++) {
+        for (int gIndex = 0; gIndex < gFormulas.length; gIndex++) {
           boolean indexRelevant = sccRelevantOperators.contains(gFormulas[gIndex]);
           relevantFormulas[gIndex] = indexRelevant;
           if (indexRelevant) {

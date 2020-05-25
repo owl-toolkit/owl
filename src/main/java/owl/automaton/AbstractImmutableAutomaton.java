@@ -20,11 +20,16 @@
 package owl.automaton;
 
 import java.util.BitSet;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
+import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 
 /**
@@ -159,15 +164,66 @@ public abstract class AbstractImmutableAutomaton<S, A extends OmegaAcceptance>
   /**
    * This class provides a skeleton implementation to create a non-deterministic on-the-fly
    * constructed automaton that uses {@link owl.collections.ValuationTree} as the main
-   * representation of the transition relation.
+   * representation of the transition relation that memorizes constructed valuation trees.
    */
-  public abstract static class NonDeterministicEdgeTreeAutomaton<S, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton<S, A>
-    implements EdgeTreeAutomatonMixin<S, A> {
+  public abstract static class MemoizedNonDeterministicEdgeTreeAutomaton
+    <S, A extends OmegaAcceptance>
+    extends AbstractImmutableAutomaton<S, A> implements EdgeTreeAutomatonMixin<S, A> {
 
-    public NonDeterministicEdgeTreeAutomaton(ValuationSetFactory factory, Set<S> initialStates,
-      A acceptance) {
+    private final Map<S, ValuationTree<Edge<S>>> memoizedEdges = new HashMap<>();
+
+    public MemoizedNonDeterministicEdgeTreeAutomaton(ValuationSetFactory factory,
+      Set<S> initialStates, A acceptance) {
       super(factory, initialStates, acceptance);
+    }
+
+    @Nullable
+    @Override
+    public final Edge<S> edge(S state, BitSet valuation) {
+      return super.edge(state, valuation);
+    }
+
+    @Override
+    public final ValuationTree<Edge<S>> edgeTree(S state) {
+      return memoizedEdges.computeIfAbsent(state, this::edgeTreeImpl);
+    }
+
+    protected abstract ValuationTree<Edge<S>> edgeTreeImpl(S state);
+
+    @Override
+    public final Map<Edge<S>, ValuationSet> edgeMap(S state) {
+      return EdgeTreeAutomatonMixin.super.edgeMap(state);
+    }
+
+    @Override
+    public final Set<Edge<S>> edges(S state) {
+      return EdgeTreeAutomatonMixin.super.edges(state);
+    }
+
+    @Override
+    public final Set<Edge<S>> edges(S state, BitSet valuation) {
+      return EdgeTreeAutomatonMixin.super.edges(state, valuation);
+    }
+
+    @Override
+    public final Set<S> successors(S state) {
+      return EdgeTreeAutomatonMixin.super.successors(state);
+    }
+
+    @Override
+    public final Set<S> successors(S state, BitSet valuation) {
+      return EdgeTreeAutomatonMixin.super.successors(state, valuation);
+    }
+
+    @Nullable
+    @Override
+    public final S successor(S state, BitSet valuation) {
+      return EdgeTreeAutomatonMixin.super.successor(state, valuation);
+    }
+
+    @Override
+    public final List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return EdgeTreeAutomatonMixin.super.preferredEdgeAccess();
     }
   }
 

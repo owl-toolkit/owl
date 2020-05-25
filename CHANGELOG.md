@@ -1,5 +1,15 @@
 # 2021.?? (unreleased)
 
+Modules:
+
+* Add the LICS'20 DRA construction that is based on the normalisation
+  of LTL.
+
+* Add a translation of the Emerson-Lei acceptance condition to the
+  parity acceptance condition based on Zielonka split-trees.
+
+* Add a customised LTL-to-DPA translation based Zielonka split-trees.
+
 API:
 
 * Add rudimentary support for propositional logic and a SAT-solving
@@ -15,6 +25,9 @@ Bugfixes:
 
 * Resolve the Alias fields in transition labels. Thanks to Pierre Ganty for
   reporting the issue.
+
+* Fixed handling of rejecting sinks in the union operation implemented in
+  BooleanOperations.
 
 # 2020.06
 

@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
-
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;

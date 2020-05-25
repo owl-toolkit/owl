@@ -80,8 +80,8 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
 
   Set<Formula.TemporalOperator> temporalOperators();
 
-  default Set<Formula.TemporalOperator> temporalOperators(boolean includedNested) {
-    if (includedNested) {
+  default Set<Formula.TemporalOperator> temporalOperators(boolean includeNested) {
+    if (includeNested) {
       return temporalOperators().stream()
         .flatMap(x -> x.subformulas(Formula.TemporalOperator.class).stream())
         .collect(Collectors.toSet());

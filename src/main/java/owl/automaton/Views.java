@@ -446,7 +446,7 @@ public final class Views {
   }
 
   private static class QuotientAutomaton<S, T, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<T, A> {
+    extends AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<T, A> {
 
     private final Automaton<S, A> automaton;
     private final Map<S, T> mapping;
@@ -464,15 +464,7 @@ public final class Views {
     }
 
     @Override
-    public Set<Edge<T>> edges(T state, BitSet valuation) {
-      return reverseMapping.get(state).stream()
-        .flatMap((S sState) -> automaton.edges(sState, valuation).stream())
-        .map((Edge<S> sEdge) -> sEdge.mapSuccessor(mapping::get))
-        .collect(Collectors.toSet());
-    }
-
-    @Override
-    public ValuationTree<Edge<T>> edgeTree(T state) {
+    public ValuationTree<Edge<T>> edgeTreeImpl(T state) {
       return ValuationTrees.cartesianProduct(
         reverseMapping.get(state).stream().map(automaton::edgeTree).collect(Collectors.toList())
       ).map(x -> {
@@ -484,11 +476,6 @@ public final class Views {
         }
         return set;
       });
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return automaton.preferredEdgeAccess();
     }
   }
 }

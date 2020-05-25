@@ -192,13 +192,13 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         });
       };
 
-    var automaton = new AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<>(
+    var automaton = new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
       factories.vsFactory,
       Collections3.ofNullable(initialState),
       AllAcceptance.INSTANCE) {
 
       @Override
-      public ValuationTree<Edge<Map<Integer, EquivalenceClass>>> edgeTree(
+      public ValuationTree<Edge<Map<Integer, EquivalenceClass>>> edgeTreeImpl(
         Map<Integer, EquivalenceClass> state) {
         return edgeTree.apply(state);
       }
@@ -217,6 +217,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
       if (!Collections.disjoint(clazz.temporalOperators(),
           blockingCoSafetyOperators.get(entry.getKey()))
+        || BlockingElements.isBlockedByTransient(clazz)
         || BlockingElements.isBlockedByCoSafety(clazz)) {
         epsilonJumps.put(entry, Set.of());
         return;
@@ -449,11 +450,12 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     @Override
     public MutableAutomaton<SymmetricProductState, B> build() {
       return HashMapAutomaton.copyOf(
-        new AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<>(
+        new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
           factories.vsFactory, Set.copyOf(anchors), acceptance) {
 
           @Override
-          public ValuationTree<Edge<SymmetricProductState>> edgeTree(SymmetricProductState state) {
+          public ValuationTree<Edge<SymmetricProductState>> edgeTreeImpl(
+            SymmetricProductState state) {
             return AcceptingComponentBuilder.this.edgeTree(state);
           }
         });

@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.HashBiMap;
-
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
@@ -33,14 +32,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
-
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.hoa.HoaReader;
 import owl.collections.Pair;
 import owl.run.Environment;
 
-public class NbaSccInfoTest {
+public class AutomatonSccDecompositionTest {
 
   //hand-made automaton that should cover essentially all SCC classification cases
   public static final String HOA_NBA_SCCS = "HOA: v1\n"
@@ -102,38 +101,38 @@ public class NbaSccInfoTest {
     nba.states().forEach(st -> states.put(Integer.valueOf(st.toString()), st));
     assertEquals(0, states.inverse().get(nba.onlyInitialState()));
 
-    var scci = NbaSccInfo.of(nba);
+    var scci = SccDecomposition.of(nba);
     //scci.ids().forEach(i -> System.out.println(i + ": " + scci.sccDecomposition().sccs().get(i)));
 
     //helper to access SCC ids from HOA state IDs
-    Function<Integer, Integer> sccOf = st -> scci.sccDecomposition().index(states.get(st));
+    Function<Integer, Integer> sccOf = st -> scci.index(states.get(st));
 
     //does not contain states not reachable from initial st.
-    assertEquals(8, scci.sccDecomposition().sccs().size());
+    assertEquals(8, scci.sccs().size());
 
     //SCC of initial state should be first, and topologically ordered SCC ids
-    assertEquals(0, scci.sccDecomposition().index(nba.onlyInitialState()));
+    assertEquals(0, scci.index(nba.onlyInitialState()));
     assertTrue(sccOf.apply(3) < sccOf.apply(7));
     assertTrue(sccOf.apply(4) < sccOf.apply(6));
 
     var expTrv = Set.of(sccOf.apply(3), sccOf.apply(6));
-    assertEquals(expTrv, scci.trvSccs());
+    assertEquals(expTrv, scci.transientSccs());
 
     var expBot = Set.of(sccOf.apply(6), sccOf.apply(9), sccOf.apply(10));
-    assertEquals(expBot, scci.botSccs());
+    assertEquals(expBot, scci.bottomSccs());
 
     var expDet = Set.of(0, 3, 4, 6, 9, 10).stream().map(sccOf).collect(Collectors.toSet());
-    assertEquals(expDet, scci.detSccs());
+    assertEquals(expDet, scci.deterministicSccs());
 
     var expRej = Set.of(0, 1, 3, 6).stream().map(sccOf).collect(Collectors.toSet());
-    assertEquals(expRej, scci.rejSccs());
+    assertEquals(expRej, scci.rejectingSccs());
 
     var expAcc = Set.of(sccOf.apply(4), sccOf.apply(9));
-    assertEquals(expAcc, scci.accSccs());
+    assertEquals(expAcc, scci.acceptingSccs());
 
     //check state reachability, which is implemented using SCC reachability
     BiFunction<Integer, Integer, Boolean> reachable = (p, q) ->
-      scci.isStateReachable(states.get(p), states.get(q));
+      scci.pathExists(states.get(p), states.get(q));
 
     //reachMat[p][q] = true iff p reaches q.
     //This encodes relation completely for first 10 states of the NBA

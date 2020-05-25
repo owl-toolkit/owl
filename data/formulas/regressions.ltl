@@ -1,3 +1,4 @@
+a xor (G a)
 F (a R X a)
 F a & G F b
 G a | G F a

@@ -759,6 +759,17 @@
     }
   },
   {
+    "formula": "(FGa & GFa)",
+    "properties": {
+      "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(FGa & GFb)",
     "properties": {
       "size": 1,
@@ -1293,6 +1304,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(FGa | GFa)",
+    "properties": {
+      "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
     }
@@ -2354,6 +2376,17 @@
     }
   },
   {
+    "formula": "(GFa & G(a | Xa))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(GFa & G(a | Xb))",
     "properties": {
       "size": 2,
@@ -2800,6 +2833,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 4,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(FGa | F(a & Xa))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -4347,7 +4391,7 @@
   {
     "formula": "(((a) U (b)) | (Fc & ((G!a) M ((!b | X!a)))))",
     "properties": {
-      "size": 11,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,

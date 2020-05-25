@@ -24,10 +24,10 @@ import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import de.tum.in.naturals.bitset.BitSets;
+import com.google.common.collect.Comparators;
+import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.Comparator;
@@ -42,7 +42,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 import org.apache.commons.cli.Options;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
@@ -137,7 +136,7 @@ public final class ToParityTransformer {
 
     if (!sccAnalysis) {
       return AcceptanceTransformation.transform(
-        automaton, acceptance -> new ZielonkaTreeTransformer(acceptance, stutter, trueConstant()));
+        automaton, acceptance -> ZielonkaTreeRoot.of(acceptance, stutter));
     }
 
     // Make a copy for faster access.
@@ -266,7 +265,7 @@ public final class ToParityTransformer {
     A acceptance = automaton.acceptance();
 
     Map<S, Integer> indexMap = sccDecomposition.indexMap();
-    Map<Integer, ZielonkaTreeTransformer> sccTransformer = new HashMap<>();
+    Map<Integer, ZielonkaTreeRoot> sccTransformer = new HashMap<>();
     Map<Integer, Map<Integer, Integer>> colourRemapping = new HashMap<>();
 
     List<ParityAcceptance> localAcceptances = new ArrayList<>();
@@ -357,15 +356,15 @@ public final class ToParityTransformer {
       }
 
       PropositionalFormula<Integer> context = Conjunction.of(facts);
-      ZielonkaTreeTransformer localTransformer
-        = new ZielonkaTreeTransformer(simplifiedAcceptance, stutter, context);
+      ZielonkaTreeRoot localTransformer
+        = ZielonkaTreeRoot.of(simplifiedAcceptance, context, stutter);
       localAcceptances.add(localTransformer.transformedAcceptance());
       sccTransformer.put(index, localTransformer);
       colourRemapping.put(index, mapping);
     }
 
-    ZielonkaTreeTransformer defaultTransformer =
-      new ZielonkaTreeTransformer(AllAcceptance.INSTANCE, stutter, trueConstant());
+    ZielonkaTreeRoot defaultTransformer =
+      ZielonkaTreeRoot.of(AllAcceptance.INSTANCE, stutter);
     localAcceptances.add(defaultTransformer.transformedAcceptance());
     Preconditions.checkState(
       localAcceptances.stream().allMatch(x -> x.parity() == Parity.MIN_EVEN));
@@ -434,23 +433,40 @@ public final class ToParityTransformer {
     };
   }
 
-  private static class ZielonkaTreeTransformer
+  @AutoValue
+  public abstract static class ZielonkaTreeRoot
     implements AcceptanceTransformer<ParityAcceptance, Path> {
 
-    private final ZielonkaTree root;
-    private final boolean rootAccepting;
-    private final boolean skipChildren;
+    public abstract ZielonkaTree root();
 
-    private ZielonkaTreeTransformer(OmegaAcceptance acceptance, boolean skipChildren,
-      PropositionalFormula<Integer> context) {
-      root = ZielonkaTree.of(acceptance, context);
-      rootAccepting = acceptance.isAccepting(root.colours());
-      this.skipChildren = skipChildren;
+    public abstract boolean rootAccepting();
+
+    public abstract boolean stutter();
+
+    public static ZielonkaTreeRoot of(
+      OmegaAcceptance alpha, boolean stutter) {
+
+      return of(alpha, trueConstant(), stutter);
+    }
+
+    public static ZielonkaTreeRoot of(
+      OmegaAcceptance alpha, PropositionalFormula<Integer> beta, boolean stutter) {
+
+      return of(alpha.booleanExpression(), beta, stutter);
+    }
+
+    public static ZielonkaTreeRoot of(
+      PropositionalFormula<Integer> alpha, PropositionalFormula<Integer> beta, boolean stutter) {
+
+      Set<Integer> colours = alpha.variables();
+      ZielonkaTree root = ZielonkaTree.of(colours, alpha, beta);
+      boolean accepting = alpha.evaluate(root.colours());
+      return new AutoValue_ToParityTransformer_ZielonkaTreeRoot(root, accepting, stutter);
     }
 
     @Override
     public ParityAcceptance transformedAcceptance() {
-      return new ParityAcceptance(root.height() + 2, Parity.MIN_EVEN);
+      return new ParityAcceptance(root().height() + 2, Parity.MIN_EVEN);
     }
 
     @Override
@@ -460,19 +476,21 @@ public final class ToParityTransformer {
 
     @Override
     public Edge<Path> transformEdge(Edge<?> edge, Path currentPath) {
-      return transformEdge(edge.acceptanceSets(), currentPath);
+      return transformEdge(BitSet2.asSet(edge.acceptanceSets()), currentPath);
     }
 
-    private Edge<Path> transformEdge(BitSet colours, Path currentPath) {
+    public Edge<Path> transformEdge(Set<Integer> unfilteredColours, Path currentPath) {
+      Set<Integer> colours = new HashSet<>(Sets.intersection(unfilteredColours, root().colours()));
+
       int anchorLevel = 0;
-      var node = this.root;
+      var node = this.root();
       List<Integer> successorPathBuilder = new ArrayList<>();
       Path successorPath = null;
 
       for (Integer edgeIndex : currentPath.indices()) {
         var child = node.children().get(edgeIndex);
 
-        if (BitSets.isSubset(colours, child.colours())) {
+        if (child.colours().containsAll(colours)) {
           // follow current path
           node = child;
           successorPathBuilder.add(edgeIndex);
@@ -484,12 +502,12 @@ public final class ToParityTransformer {
             nextEdge = (nextEdge + 1) % node.children().size();
             child = node.children().get(nextEdge);
           } while (
-            skipChildren && nextEdge != edgeIndex
-              && !BitSets.isSubset(colours, child.colours())
+            stutter() && nextEdge != edgeIndex
+              && !child.colours().containsAll(colours)
           );
 
           // We did a full turn around, reset to a default value.
-          if (skipChildren && nextEdge == edgeIndex) {
+          if (stutter() && nextEdge == edgeIndex) {
             nextEdge = 0;
           }
 
@@ -498,10 +516,10 @@ public final class ToParityTransformer {
           successorPath = extendPathToLeaf(successorPathBuilder);
 
           // We did not fully cycle around.
-          if (BitSets.isSubset(colours, child.colours())) {
+          if (child.colours().containsAll(colours)) {
             // Recursively descend, but override acceptance mark.
             return transformEdge(colours, successorPath)
-              .withAcceptance(rootAccepting ? anchorLevel : anchorLevel + 1);
+              .withAcceptance(rootAccepting() ? anchorLevel : anchorLevel + 1);
           }
 
           break;
@@ -512,11 +530,11 @@ public final class ToParityTransformer {
         successorPath = Path.of(successorPathBuilder);
       }
 
-      return Edge.of(successorPath, rootAccepting ? anchorLevel : anchorLevel + 1);
+      return Edge.of(successorPath, rootAccepting() ? anchorLevel : anchorLevel + 1);
     }
 
     private Path extendPathToLeaf(List<Integer> path) {
-      var localNode = root.subtree(path);
+      var localNode = root().subtree(path);
 
       while (!localNode.children().isEmpty()) {
         localNode = localNode.children().get(0);
@@ -530,22 +548,23 @@ public final class ToParityTransformer {
   @AutoValue
   public abstract static class ZielonkaTree {
 
-    public abstract BitSet colours();
+    public abstract Set<Integer> colours();
 
     public abstract List<ZielonkaTree> children();
 
-    private static ZielonkaTree of(OmegaAcceptance acceptance,
-      PropositionalFormula<Integer> context) {
+    private static ZielonkaTree of(
+      Set<Integer> colours,
+      PropositionalFormula<Integer> alpha,
+      PropositionalFormula<Integer> beta) {
 
-      // construct Zielonka DAG by saving already explored nodes in map
-      BitSet rootColours = new BitSet();
-      rootColours.set(0, acceptance.acceptanceSets());
-      return of(acceptance, rootColours, context, new HashMap<>());
+      return of(colours, alpha, beta, new HashMap<>());
     }
 
     private static ZielonkaTree of(
-      OmegaAcceptance acceptance, BitSet colours, PropositionalFormula<Integer> context,
-      Map<BitSet, ZielonkaTree> cache) {
+      Set<Integer> colours,
+      PropositionalFormula<Integer> alpha,
+      PropositionalFormula<Integer> beta,
+      Map<Set<Integer>, ZielonkaTree> cache) {
 
       var zielonkaTree = cache.get(colours);
 
@@ -553,23 +572,22 @@ public final class ToParityTransformer {
         return zielonkaTree;
       }
 
-      // add acceptance condition in opposing polarity of current acceptance
-      var formula = acceptance.isAccepting(colours)
-        ? Negation.of(acceptance.booleanExpression())
-        : acceptance.booleanExpression();
+      // Invert acceptance condition (alpha) in order to obtain alternation in tree.
+      var maximalModels = Solver.maximalModels(
+        Conjunction.of(alpha.evaluate(colours) ? Negation.of(alpha) : alpha, beta), colours);
 
-      Stream<BitSet> maximalModels = Solver.maximalModels(
-          Conjunction.of(formula, context), BitSet2.asSet(colours))
-        .stream()
-        .map(BitSet2::copyOf)
-        // Sort sets by lexicographical order of removed elements. This ensures we always compute
-        // the same Zielonka tree for a given acceptance conditions
-        .sorted((x, y) -> Arrays.compare(x.stream().toArray(), y.stream().toArray()));
+      // Sort colour sets lexicographically. This ensures that we always compute
+      // the same Zielonka tree for a given acceptance condition.
+      maximalModels.sort(Comparators.lexicographical(Integer::compare));
 
-      zielonkaTree = new AutoValue_ToParityTransformer_ZielonkaTree(colours,
-        maximalModels
-          .map(childSet -> of(acceptance, childSet, context, cache))
-          .collect(Collectors.toUnmodifiableList()));
+      var children = new ArrayList<ZielonkaTree>();
+
+      for (Set<Integer> childColours : maximalModels) {
+        children.add(of(childColours, alpha, beta, cache));
+      }
+
+      zielonkaTree = new AutoValue_ToParityTransformer_ZielonkaTree(
+        Set.copyOf(colours), List.copyOf(children));
 
       cache.put(colours, zielonkaTree);
       return zielonkaTree;

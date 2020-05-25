@@ -41,30 +41,30 @@ import java.util.stream.Collectors;
  * A propositional formula.
  * JDK16: This class is going to be sealed and migrated to records once JDK16 is adopted.
  *
- * @param <V> the variable type.
+ * @param <T> the variable type.
  */
-public abstract class PropositionalFormula<V> {
+public abstract class PropositionalFormula<T> {
 
   public static PropositionalFormula<?> TRUE = new Conjunction<>(List.of());
   public static PropositionalFormula<?> FALSE = new Disjunction<>(List.of());
 
-  public abstract boolean evaluate(Set<V> assignment);
+  public abstract boolean evaluate(Set<T> assignment);
 
   /**
    * Construct an equivalent expression in negation normal form.
    *
    * @return A new expression
    */
-  public final PropositionalFormula<V> nnf() {
+  public final PropositionalFormula<T> nnf() {
     return nnf(false);
   }
 
-  public abstract PropositionalFormula<V> substitute(
-    Function<? super V, Optional<? extends PropositionalFormula<V>>> substitution);
+  public abstract PropositionalFormula<T> substitute(
+    Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution);
 
-  public abstract void visit(Consumer<? super PropositionalFormula<V>> consumer);
+  public abstract void visit(Consumer<? super PropositionalFormula<T>> consumer);
 
-  protected abstract PropositionalFormula<V> nnf(boolean negated);
+  protected abstract PropositionalFormula<T> nnf(boolean negated);
 
   public static <V> PropositionalFormula<V> constant(boolean constant) {
     return constant ? trueConstant() : falseConstant();
@@ -88,22 +88,24 @@ public abstract class PropositionalFormula<V> {
     return this.equals(TRUE);
   }
 
-  public abstract PropositionalFormula<V> normalise();
+  public abstract PropositionalFormula<T> normalise();
 
-  public final Set<V> variables() {
+  public final Set<T> variables() {
     return polarity().keySet();
   }
 
-  public abstract Map<V, Polarity> polarity();
+  public abstract Map<T, Polarity> polarity();
+
+  public abstract <R> PropositionalFormula<R> map(Function<? super T, R> mapper);
 
   public enum Polarity {
     POSITIVE, NEGATIVE, MIXED
   }
 
-  public static final class Conjunction<V> extends PropositionalFormula<V> {
-    public final List<PropositionalFormula<V>> conjuncts;
+  public static final class Conjunction<T> extends PropositionalFormula<T> {
+    public final List<PropositionalFormula<T>> conjuncts;
 
-    private Conjunction(List<? extends PropositionalFormula<V>> conjuncts) {
+    private Conjunction(List<? extends PropositionalFormula<T>> conjuncts) {
       this.conjuncts = List.copyOf(conjuncts);
     }
 
@@ -117,21 +119,21 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public boolean evaluate(Set<V> assignment) {
+    public boolean evaluate(Set<T> assignment) {
       return conjuncts.stream().allMatch(x -> x.evaluate(assignment));
     }
 
     @Override
-    protected PropositionalFormula<V> nnf(boolean negated) {
+    protected PropositionalFormula<T> nnf(boolean negated) {
       var nnfOperands = mapOperands(operand -> operand.nnf(negated));
       return negated ? new Disjunction<>(nnfOperands) : new Conjunction<>(nnfOperands);
     }
 
     @Override
-    public PropositionalFormula<V> normalise() {
+    public PropositionalFormula<T> normalise() {
       var normalisedConjuncts = new LinkedHashSet<>(conjuncts(conjuncts.stream()
         .map(PropositionalFormula::normalise)
-        .collect(Collectors.toList())));
+        .collect(Collectors.toUnmodifiableList())));
 
       switch (normalisedConjuncts.size()) {
         case 0:
@@ -146,10 +148,10 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public Map<V, Polarity> polarity() {
-      Map<V, Polarity> polarityMap = new HashMap<>();
+    public Map<T, Polarity> polarity() {
+      Map<T, Polarity> polarityMap = new HashMap<>();
 
-      for (PropositionalFormula<V> conjunct : conjuncts) {
+      for (PropositionalFormula<T> conjunct : conjuncts) {
         conjunct.polarity().forEach((variable, polarity) -> {
           polarityMap.compute(variable, (oldKey, oldPolarity) -> {
             if (polarity == oldPolarity || oldPolarity == null) {
@@ -162,6 +164,12 @@ public abstract class PropositionalFormula<V> {
       }
 
       return polarityMap;
+    }
+
+    @Override
+    public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
+      return Conjunction.of(
+        conjuncts.stream().map(x -> x.map(mapper)).collect(Collectors.toUnmodifiableList()));
     }
 
     @Override
@@ -185,58 +193,58 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public PropositionalFormula<V> substitute(
-      Function<? super V, Optional<? extends PropositionalFormula<V>>> substitution) {
+    public PropositionalFormula<T> substitute(
+      Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
       return new Conjunction<>(mapOperands(x -> x.substitute(substitution)));
     }
 
     @Override
-    public void visit(Consumer<? super PropositionalFormula<V>> consumer) {
+    public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
       conjuncts.forEach(operand -> operand.visit(consumer));
     }
 
-    protected List<PropositionalFormula<V>> mapOperands(
-      UnaryOperator<PropositionalFormula<V>> mapper) {
+    protected List<PropositionalFormula<T>> mapOperands(
+      UnaryOperator<PropositionalFormula<T>> mapper) {
       var operands = new ArrayList<>(this.conjuncts);
       operands.replaceAll(mapper);
       return operands;
     }
   }
 
-  public static final class Disjunction<V> extends PropositionalFormula<V> {
-    public final List<PropositionalFormula<V>> disjuncts;
+  public static final class Disjunction<T> extends PropositionalFormula<T> {
+    public final List<PropositionalFormula<T>> disjuncts;
 
-    public Disjunction(List<? extends PropositionalFormula<V>> disjuncts) {
+    public Disjunction(List<? extends PropositionalFormula<T>> disjuncts) {
       this.disjuncts = List.copyOf(disjuncts);
     }
 
     @SafeVarargs
-    public static <V> Disjunction<V> of(V... operands) {
+    public static <T> Disjunction<T> of(T... operands) {
       return of(Arrays.stream(operands).map(Variable::of).collect(Collectors.toUnmodifiableList()));
     }
 
     @SafeVarargs
-    public static <V> Disjunction<V> of(PropositionalFormula<V>... operands) {
+    public static <T> Disjunction<T> of(PropositionalFormula<T>... operands) {
       return of(List.of(operands));
     }
 
-    public static <V> Disjunction<V> of(Collection<? extends PropositionalFormula<V>> disjuncts) {
+    public static <T> Disjunction<T> of(Collection<? extends PropositionalFormula<T>> disjuncts) {
       return new Disjunction<>(List.copyOf(disjuncts));
     }
 
     @Override
-    public boolean evaluate(Set<V> assignment) {
+    public boolean evaluate(Set<T> assignment) {
       return disjuncts.stream().anyMatch(x -> x.evaluate(assignment));
     }
 
     @Override
-    protected PropositionalFormula<V> nnf(boolean negated) {
+    protected PropositionalFormula<T> nnf(boolean negated) {
       var nnfOperands = mapOperands(operand -> operand.nnf(negated));
       return negated ? new Conjunction<>(nnfOperands) : new Disjunction<>(nnfOperands);
     }
 
-    public PropositionalFormula<V> normalise() {
+    public PropositionalFormula<T> normalise() {
       var normalisedDisjuncts = new LinkedHashSet<>(disjuncts(disjuncts.stream()
         .map(PropositionalFormula::normalise)
         .collect(Collectors.toList())));
@@ -254,10 +262,10 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public Map<V, Polarity> polarity() {
-      Map<V, Polarity> polarityMap = new HashMap<>();
+    public Map<T, Polarity> polarity() {
+      Map<T, Polarity> polarityMap = new HashMap<>();
 
-      for (PropositionalFormula<V> disjunct : disjuncts) {
+      for (PropositionalFormula<T> disjunct : disjuncts) {
         disjunct.polarity().forEach((variable, polarity) -> {
           polarityMap.compute(variable, (oldKey, oldPolarity) -> {
             if (polarity == oldPolarity || oldPolarity == null) {
@@ -270,6 +278,12 @@ public abstract class PropositionalFormula<V> {
       }
 
       return polarityMap;
+    }
+
+    @Override
+    public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
+      return Disjunction.of(
+        disjuncts.stream().map(x -> x.map(mapper)).collect(Collectors.toUnmodifiableList()));
     }
 
     @Override
@@ -293,42 +307,42 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public PropositionalFormula<V> substitute(
-      Function<? super V, Optional<? extends PropositionalFormula<V>>> substitution) {
+    public PropositionalFormula<T> substitute(
+      Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
       return new Disjunction<>(mapOperands(x -> x.substitute(substitution)));
     }
 
     @Override
-    public void visit(Consumer<? super PropositionalFormula<V>> consumer) {
+    public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
       disjuncts.forEach(operand -> operand.visit(consumer));
     }
 
-    protected List<PropositionalFormula<V>> mapOperands(
-      UnaryOperator<PropositionalFormula<V>> mapper) {
+    protected List<PropositionalFormula<T>> mapOperands(
+      UnaryOperator<PropositionalFormula<T>> mapper) {
       var operands = new ArrayList<>(this.disjuncts);
       operands.replaceAll(mapper);
       return operands;
     }
   }
 
-  public static final class Negation<V> extends PropositionalFormula<V> {
-    public final PropositionalFormula<V> operand;
+  public static final class Negation<T> extends PropositionalFormula<T> {
+    public final PropositionalFormula<T> operand;
 
-    public Negation(PropositionalFormula<V> operand) {
+    public Negation(PropositionalFormula<T> operand) {
       this.operand = operand;
     }
 
-    public static <V> Negation<V> of(PropositionalFormula<V> operand) {
+    public static <T> Negation<T> of(PropositionalFormula<T> operand) {
       return new Negation<>(operand);
     }
 
     @Override
-    protected PropositionalFormula<V> nnf(boolean negated) {
+    protected PropositionalFormula<T> nnf(boolean negated) {
       return operand.nnf(!negated);
     }
 
-    public PropositionalFormula<V> normalise() {
+    public PropositionalFormula<T> normalise() {
       var normalisedOperand = operand.normalise();
 
       if (normalisedOperand.isTrue()) {
@@ -340,19 +354,19 @@ public abstract class PropositionalFormula<V> {
       }
 
       if (normalisedOperand instanceof Negation) {
-        return ((Negation<V>) normalisedOperand).operand;
+        return ((Negation<T>) normalisedOperand).operand;
       }
 
       return new Negation<>(normalisedOperand);
     }
 
     @Override
-    public boolean evaluate(Set<V> assignment) {
+    public boolean evaluate(Set<T> assignment) {
       return !operand.evaluate(assignment);
     }
 
     @Override
-    public Map<V, Polarity> polarity() {
+    public Map<T, Polarity> polarity() {
       return Maps.transformValues(operand.polarity(), x -> {
         switch (x) {
           case POSITIVE:
@@ -365,6 +379,11 @@ public abstract class PropositionalFormula<V> {
             return Polarity.MIXED;
         }
       });
+    }
+
+    @Override
+    public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
+      return Negation.of(operand.map(mapper));
     }
 
     @Override
@@ -388,33 +407,38 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public PropositionalFormula<V> substitute(
-      Function<? super V, Optional<? extends PropositionalFormula<V>>> substitution) {
+    public PropositionalFormula<T> substitute(
+      Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
       return new Negation<>(operand.substitute(substitution));
     }
 
     @Override
-    public void visit(Consumer<? super PropositionalFormula<V>> consumer) {
+    public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
       operand.visit(consumer);
     }
   }
 
   @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
-  public static final class Variable<V> extends PropositionalFormula<V> {
-    public final V variable;
+  public static final class Variable<T> extends PropositionalFormula<T> {
+    public final T variable;
 
-    public Variable(V variable) {
+    public Variable(T variable) {
       this.variable = Objects.requireNonNull(variable);
     }
 
-    public static <V> Variable<V> of(V variable) {
+    public static <T> Variable<T> of(T variable) {
       return new Variable<>(variable);
     }
 
     @Override
-    public Map<V, Polarity> polarity() {
+    public Map<T, Polarity> polarity() {
       return Map.of(variable, Polarity.POSITIVE);
+    }
+
+    @Override
+    public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
+      return Variable.of(mapper.apply(variable));
     }
 
     @Override
@@ -438,42 +462,42 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
-    public PropositionalFormula<V> normalise() {
+    public PropositionalFormula<T> normalise() {
       return this;
     }
 
     @Override
-    public PropositionalFormula<V> substitute(
-      Function<? super V, Optional<? extends PropositionalFormula<V>>> substitution) {
+    public PropositionalFormula<T> substitute(
+      Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
       var replacement = substitution.apply(variable);
       return replacement.isEmpty() ? this : replacement.get();
     }
 
     @Override
-    public void visit(Consumer<? super PropositionalFormula<V>> consumer) {
+    public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
     }
 
     @Override
-    protected PropositionalFormula<V> nnf(boolean negated) {
+    protected PropositionalFormula<T> nnf(boolean negated) {
       return negated ? new Negation<>(this) : this;
     }
 
     @Override
-    public boolean evaluate(Set<V> assignment) {
+    public boolean evaluate(Set<T> assignment) {
       return assignment.contains(variable);
     }
   }
 
-  public static <V> List<PropositionalFormula<V>> conjuncts(PropositionalFormula<V> formula) {
+  public static <T> List<PropositionalFormula<T>> conjuncts(PropositionalFormula<T> formula) {
     return conjuncts(List.of(formula));
   }
 
-  public static <V> List<PropositionalFormula<V>> conjuncts(
-    Collection<? extends PropositionalFormula<V>> formula) {
+  public static <T> List<PropositionalFormula<T>> conjuncts(
+    Collection<? extends PropositionalFormula<T>> formula) {
 
-    Deque<PropositionalFormula<V>> todo = new ArrayDeque<>(formula);
-    List<PropositionalFormula<V>> conjuncts = new ArrayList<>();
+    Deque<PropositionalFormula<T>> todo = new ArrayDeque<>(formula);
+    List<PropositionalFormula<T>> conjuncts = new ArrayList<>();
 
     while (!todo.isEmpty()) {
       var element = todo.removeFirst();
@@ -481,7 +505,7 @@ public abstract class PropositionalFormula<V> {
       if (element instanceof Negation || element instanceof Variable) {
         conjuncts.add(element);
       } else if (element instanceof Disjunction) {
-        var disjunction = (Disjunction<V>) element;
+        var disjunction = (Disjunction<T>) element;
 
         if (disjunction.disjuncts.isEmpty()) {
           return List.of(falseConstant());
@@ -489,22 +513,22 @@ public abstract class PropositionalFormula<V> {
           conjuncts.add(element);
         }
       } else {
-        todo.addAll(((Conjunction<V>) element).conjuncts);
+        todo.addAll(((Conjunction<T>) element).conjuncts);
       }
     }
 
     return conjuncts;
   }
 
-  public static <V> List<PropositionalFormula<V>> disjuncts(PropositionalFormula<V> formula) {
+  public static <T> List<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
     return disjuncts(List.of(formula));
   }
 
-  public static <V> List<PropositionalFormula<V>> disjuncts(
-    Collection<? extends PropositionalFormula<V>> formulas) {
+  public static <T> List<PropositionalFormula<T>> disjuncts(
+    Collection<? extends PropositionalFormula<T>> formulas) {
 
-    Deque<PropositionalFormula<V>> todo = new ArrayDeque<>(formulas);
-    List<PropositionalFormula<V>> disjuncts = new ArrayList<>();
+    Deque<PropositionalFormula<T>> todo = new ArrayDeque<>(formulas);
+    List<PropositionalFormula<T>> disjuncts = new ArrayList<>();
 
     while (!todo.isEmpty()) {
       var element = todo.removeFirst();
@@ -512,7 +536,7 @@ public abstract class PropositionalFormula<V> {
       if (element instanceof Negation || element instanceof Variable) {
         disjuncts.add(element);
       } else if (element instanceof Conjunction) {
-        var conjunction = (Conjunction<V>) element;
+        var conjunction = (Conjunction<T>) element;
 
         if (conjunction.conjuncts.isEmpty()) {
           return List.of(trueConstant());
@@ -520,7 +544,7 @@ public abstract class PropositionalFormula<V> {
           disjuncts.add(element);
         }
       } else {
-        todo.addAll(((Disjunction<V>) element).disjuncts);
+        todo.addAll(((Disjunction<T>) element).disjuncts);
       }
     }
 
