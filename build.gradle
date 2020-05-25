@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -20,26 +20,22 @@
 plugins {
     // https://github.com/tbroyer/gradle-errorprone-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.errorprone
+    // TODO: Reenable
     // id 'net.ltgt.errorprone' version '0.8.1'
-
-    // https://github.com/johnrengelman/shadow
-    // https://plugins.gradle.org/plugin/com.github.johnrengelman.shadow
-    id 'com.github.johnrengelman.shadow' version '5.2.0'
 }
 
 // Languages
 apply plugin: 'antlr'
 apply plugin: 'c'
-apply plugin: 'cpp'
 apply plugin: 'java'
 
 // Static Analysis
-apply plugin: 'pmd'
 apply plugin: 'checkstyle'
+apply plugin: 'pmd'
 
 // IDE Support
-apply plugin: 'idea'
 apply plugin: 'application'
+apply plugin: 'idea'
 
 project.group = 'de.tum.in'
 project.version = '20.XX-development'
@@ -62,11 +58,11 @@ tasks.withType(Javadoc) {
     options.encoding = defaultEncoding
 }
 
-def buildNatives = !project.hasProperty("disable-native")
+def disablePandoc = project.hasProperty("disable-pandoc")
+def disableNative = project.hasProperty("disable-native")
 
 apply from: 'gradle/analysis.gradle'
 apply from: 'gradle/antlr.gradle'
-apply from: 'gradle/natives.gradle'
 
 repositories {
     mavenCentral()
@@ -76,20 +72,30 @@ repositories {
 dependencies {
     // https://github.com/google/guava
     implementation 'com.google.guava:guava:29.0-jre'
+
     // https://commons.apache.org/proper/commons-cli/
     implementation 'commons-cli:commons-cli:1.4'
+
     // https://github.com/incaseoftrouble/jbdd
     implementation 'de.tum.in:jbdd:0.5.2'
+
     // https://github.com/incaseoftrouble/naturals-util
     implementation 'de.tum.in:naturals-util:0.15.0'
+
     // https://github.com/vigna/fastutil
     // https://mvnrepository.com/artifact/it.unimi.dsi/fastutil
     implementation 'it.unimi.dsi:fastutil:8.3.1'
+
     // http://www.antlr.org/
     // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
     implementation 'org.antlr:antlr4-runtime:4.8-1'
+
     // https://automata.tools/hoa/jhoafparser/
     implementation files('lib/jhoafparser-1.1.1-patched.jar')
+
+    // https://www.graalvm.org/
+    // https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk
+    implementation 'org.graalvm.sdk:graal-sdk:20.1.0'
 
     implementation group: 'com.zaxxer', name: 'SparseBitSet', version: '1.2'
 
@@ -101,8 +107,10 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 
     antlr 'org.antlr:antlr4:4.8-1' // Introduces unused runtime dependencies; fixed in antlr.gradle
+
     // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
-    // errorprone 'com.google.errorprone:error_prone_core:2.3.3'
+    // TODO: Reenable
+    // errorprone 'com.google.errorprone:error_prone_core:2.3.4'
 
 
     // https://mvnrepository.com/artifact/com.google.auto.value/auto-value
@@ -138,6 +146,23 @@ tasks.withType(Test) {
     maxHeapSize = "16G"
 }
 
+model {
+    components {
+        owlClient(NativeExecutableSpec) {
+            baseName "owl-client"
+
+            sources {
+                c {
+                    source {
+                        srcDir "src/main/c"
+                        include "owl-client.c"
+                    }
+                }
+            }
+        }
+    }
+}
+
 // ---------------- Startup Scripts ----------------
 
 // Create startup scripts for each tool
@@ -161,12 +186,10 @@ def scripts = [
     'delag'     : 'owl.translations.delag.DelagBuilder',
 
     // LTL -> **A
-    // TODO: Deprecate and replace by delag!
     'ltl2da'    : 'owl.translations.modules.LTL2DAModule',
     'ltl2na'    : 'owl.translations.modules.LTL2NAModule',
 
     // Miscellaneous
-    'synth'     : 'owl.translations.Synthesis',
     'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',
@@ -215,10 +238,6 @@ jar {
     }
 }
 
-shadowJar {
-    minimize()
-}
-
 task sourcesJar(type: Jar, dependsOn: classes) {
     archiveClassifier = 'sources'
     from sourceSets.main.allSource
@@ -231,6 +250,27 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 task mavenJars(dependsOn: [jar, sourcesJar, javadocJar])
 
+task buildCLibrary(type: Exec, dependsOn: [classes]) {
+    mkdir "${buildDir}/clibrary"
+    workingDir "${buildDir}/clibrary"
+
+    def graalHome = System.getenv("GRAAL_HOME")
+    def command = (graalHome != null ? graalHome + "/bin/" : "") + "native-image"
+
+    commandLine command,
+        "owl.cinterface.CInterface", "libowl",
+        "-cp", sourceSets.main.runtimeClasspath.asPath,
+        "-DowlHeader=${projectDir}/src/main/headers",
+        '--shared',
+        '--initialize-at-build-time=owl,it,com,org,jhoafparser',
+        '--no-fallback',
+        '--no-server',
+        '-H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy$BySpaceAndTime',
+        '-H:+PrintAnalysisCallTree',
+        '-H:+ReportExceptionStackTraces',
+        '-H:-UseServiceLoaderFeature'
+}
+
 // ---------------- Script Jobs ----------------
 
 def allStartScripts = createStartScriptTasks("", jar.outputs.files + project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME), scripts)
@@ -238,14 +278,9 @@ allStartScripts.each() {
     it.dependsOn(jar)
 }
 
-def shadedJarStartScripts = createStartScriptTasks("ShadedJar", shadowJar.outputs.files, scripts + ['owl': mainClassName])
-shadedJarStartScripts.each() {
-    it.dependsOn(shadowJar)
-}
-
-def rabinizerStartScripts = createStartScriptTasks("Rabinizer", shadowJar.outputs.files, rabinizerScripts)
+def rabinizerStartScripts = createStartScriptTasks("Rabinizer", jar.outputs.files + project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME), rabinizerScripts)
 rabinizerStartScripts.each() {
-    it.dependsOn(shadowJar)
+    it.dependsOn(jar)
 }
 
 // ---------------- Documentation ----------------
@@ -258,7 +293,7 @@ if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             logger.warn("Cannot compile markdown on windows, skipping")
         }
     }.onlyIf {
-        buildNatives
+        !disablePandoc
     }
 } else {
     tasks.create(name: "compileMarkdown", type: Exec) {
@@ -266,7 +301,7 @@ if (Os.isFamily(Os.FAMILY_WINDOWS)) {
         outputs.dir "$project.docsDir/markdown"
         args = ["$project.docsDir/markdown"]
     }.onlyIf {
-        buildNatives
+        !disablePandoc
     }
 }
 
@@ -297,44 +332,31 @@ distributions {
             into("bin") {
                 from allStartScripts
 
-                if (buildNatives) {
-                    from 'build/exe/owlClient/owl-client'
+                if (!disableNative) {
+                    from "${buildDir}/exe/owlClient/owl-client"
                 }
 
                 fileMode = 0755
             }
 
-            into("javadoc") {
-                from javadoc
-            }
-        }
-    }
-
-    minimized {
-        distributionBaseName = 'owl-minimized'
-
-        contents {
-            from "AUTHORS"
-            from "LICENSE"
-
-            into("bin") {
-                from shadedJarStartScripts
-
-                if (buildNatives) {
-                    from 'build/exe/owlClient/owl-client'
-                }
-
-                fileMode = 0755
+            if (!disableNative) {
+              into("clib") {
+                  from "$projectDir/src/main/headers"
+                  from "$buildDir/clibrary" include "*.h"
+                  from "$buildDir/clibrary" include "*.so"
+              }
             }
 
-            into("lib") {
-                from shadowJar
+            into("jars") {
+              from jar
+              from javadocJar
+              from sourcesJar
             }
         }
     }
 
     rabinizer {
-        baseName = 'rabinizer'
+        distributionBaseName = 'rabinizer'
 
         contents {
             from "AUTHORS"
@@ -344,19 +366,15 @@ distributions {
                 from rabinizerStartScripts
                 fileMode = 0755
             }
-
-            into("lib") {
-                from shadowJar
-            }
         }
     }
 }
 
-if (buildNatives) {
+if (!disableNative) {
     tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":owlClientExecutable"))
     tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":owlClientExecutable"))
-    tasks.getByPath(":minimizedDistZip").dependsOn(tasks.getByPath(":owlClientExecutable"))
-    tasks.getByPath(":minimizedDistTar").dependsOn(tasks.getByPath(":owlClientExecutable"))
+    tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildCLibrary"))
+    tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildCLibrary"))
 }
 
 apply from: 'gradle/idea.gradle'

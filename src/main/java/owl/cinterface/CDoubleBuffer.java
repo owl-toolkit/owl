@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,18 +19,24 @@
 
 package owl.cinterface;
 
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import owl.ltl.Formula;
-import owl.ltl.LabelledFormula;
+import org.graalvm.nativeimage.c.CContext;
+import org.graalvm.nativeimage.c.struct.CField;
+import org.graalvm.nativeimage.c.struct.CStruct;
+import org.graalvm.nativeimage.c.type.CDoublePointer;
+import org.graalvm.word.PointerBase;
 
-final class Hacks {
-  private Hacks() {}
+@CContext(CInterface.CDirectives.class)
+@CStruct("double_buffer_t")
+interface CDoubleBuffer extends PointerBase {
+  @CField
+  CDoublePointer buffer();
 
-  static LabelledFormula attachDummyAlphabet(Formula formula) {
-    return LabelledFormula.of(formula, IntStream
-      .range(0, formula.atomicPropositions(true).length())
-      .mapToObj(i -> "p" + i)
-      .collect(Collectors.toUnmodifiableList()));
-  }
+  @CField
+  int capacity();
+
+  @CField
+  int position();
+
+  @CField
+  void position(int position);
 }

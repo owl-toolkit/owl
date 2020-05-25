@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,6 +19,9 @@
 
 package owl.cinterface;
 
+import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.REALIZABLE;
+import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.UNKNOWN;
+import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.UNREALIZABLE;
 import static owl.ltl.SyntacticFragment.SINGLE_STEP;
 
 import com.google.common.primitives.ImmutableIntArray;
@@ -35,13 +38,22 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import owl.collections.LabelledTree;
+import java.util.stream.IntStream;
+import org.graalvm.nativeimage.c.CContext;
+import org.graalvm.nativeimage.c.constant.CEnum;
+import org.graalvm.nativeimage.c.constant.CEnumLookup;
+import org.graalvm.nativeimage.c.constant.CEnumValue;
+import org.graalvm.nativeimage.c.type.CIntPointer;
+import owl.cinterface.CAutomaton.Acceptance;
+import owl.cinterface.CDecomposedDPA.RealizabilityStatus;
+import owl.cinterface.CDecomposedDPA.Structure.NodeType;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
@@ -50,28 +62,25 @@ import owl.ltl.rewriter.LiteralMapper;
 import owl.ltl.rewriter.PullUpXVisitor;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.PropositionalVisitor;
-import owl.util.annotation.CEntryPoint;
 
-// This is a JNI entry point. No touching.
 public final class DecomposedDPA {
 
-  public final LabelledTree<Tag, Reference> structure;
-  public final List<FormulaPreprocessor.VariableStatus> variableStatuses;
-  public final List<DeterministicAutomaton<?, ?>> automata;
+  public final DecomposedDPAStructure structure;
+  public final List<VariableStatus> variableStatuses;
+  public final List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> automata;
 
-  private final List<Reference> leaves;
-  private final Map<ImmutableIntArray, Status> profiles = new HashMap<>();
+  private final ImmutableIntArray leaves;
+  private final Map<ImmutableIntArray, RealizabilityStatus> profiles = new HashMap<>();
 
-  private DecomposedDPA(LabelledTree<Tag, Reference> structure,
-    List<FormulaPreprocessor.VariableStatus> variableStatuses,
-    List<DeterministicAutomaton<?, ?>> automata) {
+  private DecomposedDPA(DecomposedDPAStructure structure,
+    List<VariableStatus> variableStatuses,
+    List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> automata) {
     this.automata = automata;
     this.variableStatuses = List.copyOf(variableStatuses);
-    this.leaves = structure.leavesStream().collect(Collectors.toUnmodifiableList());
+    this.leaves = ImmutableIntArray.copyOf(structure.leavesStream());
     this.structure = structure;
   }
 
-  @CEntryPoint
   public static DecomposedDPA of(Formula formula, boolean simplify, boolean monolithic,
     int firstOutputVariable) {
     var preprocessedFormula = FormulaPreprocessor.apply(formula, firstOutputVariable, simplify);
@@ -79,7 +88,7 @@ public final class DecomposedDPA {
     // Push X in front of
     Builder builder = new Builder(preprocessedFormula.formula.accept(Annotator.INSTANCE));
 
-    LabelledTree<Tag, Reference> structure = monolithic
+    DecomposedDPAStructure structure = monolithic
       ? builder.createLeaf(preprocessedFormula.formula)
       : preprocessedFormula.formula.accept(builder);
 
@@ -88,31 +97,27 @@ public final class DecomposedDPA {
       List.copyOf(builder.automata));
   }
 
-  @CEntryPoint
-  public boolean declare(int status, int... profile) {
-    var normalisedProfile = normalise(profile);
-    var newStatus = Status.values()[status];
-    assert newStatus == Status.REALIZABLE || newStatus == Status.UNREALIZABLE;
-    var oldStatus = profiles.put(normalisedProfile, newStatus);
+  public boolean declare(RealizabilityStatus newStatus, CIntPointer profile, int length) {
+    assert newStatus == REALIZABLE || newStatus == UNREALIZABLE;
+    var oldStatus = profiles.put(normalise(profile, length), newStatus);
     assert oldStatus == null || oldStatus == newStatus;
     return oldStatus == null;
   }
 
-  @CEntryPoint
-  public int query(int... profile) {
-    return profiles.getOrDefault(normalise(profile), Status.UNKNOWN).ordinal();
+  public RealizabilityStatus query(CIntPointer profile, int length) {
+    return profiles.getOrDefault(normalise(profile, length), UNKNOWN);
   }
 
-  private ImmutableIntArray normalise(int... stateIndices) {
-    var builder = ImmutableIntArray.builder(stateIndices.length);
+  private ImmutableIntArray normalise(CIntPointer profile, int length) {
+    var builder = ImmutableIntArray.builder(length);
     int i = 0;
 
-    for (Reference reference : leaves) {
-      builder.add(automata.get(reference.index).normalise(stateIndices[i]));
+    for (int reference : leaves.asList()) {
+      builder.add(automata.get(reference).normalise(profile.read(i)));
       i++;
     }
 
-    assert stateIndices.length == i : "Length mismatch.";
+    assert length == i : "Length mismatch.";
     return builder.build();
   }
 
@@ -124,12 +129,16 @@ public final class DecomposedDPA {
     return formula instanceof GOperator && SINGLE_STEP.contains(((GOperator) formula).operand());
   }
 
-  enum Status {
-    REALIZABLE, UNREALIZABLE, UNKNOWN
-  }
+  @CContext(CInterface.CDirectives.class)
+  @CEnum("variable_status_t")
+  public enum VariableStatus {
+    CONSTANT_TRUE, CONSTANT_FALSE, USED, UNUSED;
 
-  enum Tag {
-    BICONDITIONAL, CONJUNCTION, DISJUNCTION
+    @CEnumValue
+    public native int getCValue();
+
+    @CEnumLookup
+    public static native VariableStatus fromCValue(int value);
   }
 
   public static final class Reference {
@@ -137,37 +146,28 @@ public final class DecomposedDPA {
     public final int index;
     public final ImmutableIntArray alphabetMapping;
 
-    Reference(Formula formula, int index, ImmutableIntArray alphabetMapping) {
+    Reference(Formula formula, int index, int[] alphabetMapping) {
       this.formula = formula;
       this.index = index;
-      this.alphabetMapping = alphabetMapping;
-    }
-
-    Reference(Formula formula, int index, int[] alphabetMapping) {
-      this(formula, index, ImmutableIntArray.copyOf(alphabetMapping));
-    }
-
-    @CEntryPoint
-    public int[] alphabetMapping() {
-      return alphabetMapping.toArray();
+      this.alphabetMapping = ImmutableIntArray.copyOf(alphabetMapping);
     }
   }
 
-  static final class Builder extends PropositionalVisitor<LabelledTree<Tag, Reference>> {
+  static final class Builder extends PropositionalVisitor<DecomposedDPAStructure> {
     private final Map<Formula, Acceptance> annotatedTree;
-    private final List<DeterministicAutomaton<?, ?>> automata = new ArrayList<>();
+    private final List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> automata = new ArrayList<>();
     private final Map<Formula, Reference> lookup = new HashMap<>();
 
     Builder(Map<Formula, Acceptance> annotatedTree) {
       this.annotatedTree = new HashMap<>(annotatedTree);
     }
 
-    private LabelledTree<Tag, Reference> createLeaf(Formula formula) {
+    private DecomposedDPAStructure createLeaf(Formula formula) {
       assert SyntacticFragment.NNF.contains(formula);
       Reference reference = lookup.get(formula);
 
       if (reference != null) {
-        return new LabelledTree.Leaf<>(reference);
+        return new DecomposedDPAStructure.Leaf(reference);
       }
 
       for (Map.Entry<Formula, Reference> entry : lookup.entrySet()) {
@@ -188,18 +188,23 @@ public final class DecomposedDPA {
             }
           }
 
-          return new LabelledTree.Leaf<>(new Reference(formula, reference.index, newMapping));
+          return new DecomposedDPAStructure.Leaf(
+            new Reference(formula, reference.index, newMapping));
         }
       }
 
       LiteralMapper.ShiftedFormula shiftedFormula = LiteralMapper.shiftLiterals(formula);
       Reference newReference = new Reference(formula, automata.size(), shiftedFormula.mapping);
-      automata.add(DeterministicAutomaton.of(Hacks.attachDummyAlphabet(shiftedFormula.formula)));
+      automata.add(CAutomaton.DeterministicAutomatonWrapper.of(
+        LabelledFormula.of(shiftedFormula.formula, IntStream
+          .range(0, shiftedFormula.formula.atomicPropositions(true).length())
+          .mapToObj(i -> "p" + i)
+          .collect(Collectors.toUnmodifiableList()))));
       lookup.put(formula, newReference);
-      return new LabelledTree.Leaf<>(newReference);
+      return new DecomposedDPAStructure.Leaf(newReference);
     }
 
-    private List<LabelledTree<Tag, Reference>> createLeaves(
+    private List<DecomposedDPAStructure> createLeaves(
       Formula.NaryPropositionalOperator formula) {
       // Partition elements.
       var safety = new Clusters();
@@ -240,7 +245,7 @@ public final class DecomposedDPA {
       }
 
       // Process elements.
-      List<LabelledTree<Tag, Reference>> children = new ArrayList<>();
+      List<DecomposedDPAStructure> children = new ArrayList<>();
       Function<Collection<Formula>, Formula> merger = formula instanceof Conjunction
         ? Conjunction::of
         : Disjunction::of;
@@ -275,19 +280,19 @@ public final class DecomposedDPA {
     }
 
     @Override
-    protected LabelledTree<Tag, Reference> visit(Formula.TemporalOperator formula) {
+    protected DecomposedDPAStructure visit(Formula.TemporalOperator formula) {
       return createLeaf(formula);
     }
 
     @Override
-    public LabelledTree<Tag, Reference> visit(Literal literal) {
+    public DecomposedDPAStructure visit(Literal literal) {
       return createLeaf(literal);
     }
 
     private boolean keepTreeStructureBiconditional(Formula formula) {
       if (formula instanceof Conjunction || formula instanceof Disjunction) {
         if (formula.operands.stream()
-          .filter(x -> annotatedTree.get(x) == Acceptance.PARITY).count() > 1) {
+          .filter(x -> annotatedTree.get(x) == CAutomaton.Acceptance.PARITY).count() > 1) {
           return false;
         }
       } else {
@@ -326,14 +331,14 @@ public final class DecomposedDPA {
     }
 
     @Override
-    public LabelledTree<Tag, Reference> visit(Biconditional biconditional) {
-      if (annotatedTree.get(biconditional.leftOperand()) == Acceptance.PARITY
-        && annotatedTree.get(biconditional.rightOperand()) == Acceptance.PARITY) {
+    public DecomposedDPAStructure visit(Biconditional biconditional) {
+      if (annotatedTree.get(biconditional.leftOperand()) == CAutomaton.Acceptance.PARITY
+        && annotatedTree.get(biconditional.rightOperand()) == CAutomaton.Acceptance.PARITY) {
 
         if (keepTreeStructureBiconditional(biconditional.leftOperand())
           || keepTreeStructureBiconditional(biconditional.rightOperand())) {
 
-          return new LabelledTree.Node<>(Tag.BICONDITIONAL,
+          return new DecomposedDPAStructure.Node(NodeType.BICONDITIONAL,
             List.of(biconditional.leftOperand().accept(this),
               biconditional.rightOperand().accept(this)));
         }
@@ -343,26 +348,28 @@ public final class DecomposedDPA {
         return nnf.accept(this);
       }
 
-      return new LabelledTree.Node<>(Tag.BICONDITIONAL,
+      return new DecomposedDPAStructure.Node(NodeType.BICONDITIONAL,
         List
           .of(biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this)));
     }
 
     @Override
-    public LabelledTree<Tag, Reference> visit(BooleanConstant booleanConstant) {
+    public DecomposedDPAStructure visit(BooleanConstant booleanConstant) {
       return createLeaf(booleanConstant);
     }
 
     @Override
-    public LabelledTree<Tag, Reference> visit(Conjunction conjunction) {
+    public DecomposedDPAStructure visit(Conjunction conjunction) {
       var leaves = createLeaves(conjunction);
-      return leaves.size() == 1 ? leaves.get(0) : new LabelledTree.Node<>(Tag.CONJUNCTION, leaves);
+      return leaves.size() == 1 ? leaves.get(0) : new DecomposedDPAStructure.Node(
+        NodeType.CONJUNCTION, leaves);
     }
 
     @Override
-    public LabelledTree<Tag, Reference> visit(Disjunction disjunction) {
+    public DecomposedDPAStructure visit(Disjunction disjunction) {
       var leaves = createLeaves(disjunction);
-      return leaves.size() == 1 ? leaves.get(0) : new LabelledTree.Node<>(Tag.DISJUNCTION, leaves);
+      return leaves.size() == 1 ? leaves.get(0) : new DecomposedDPAStructure.Node(
+        NodeType.DISJUNCTION, leaves);
     }
   }
 
@@ -401,24 +408,24 @@ public final class DecomposedDPA {
     @Override
     protected Map<Formula, Acceptance> visit(Formula.TemporalOperator formula) {
       if (SyntacticFragments.isSafety(formula)) {
-        return Map.of(formula, Acceptance.SAFETY);
+        return Map.of(formula, CAutomaton.Acceptance.SAFETY);
       }
 
       if (SyntacticFragments.isCoSafety(formula)) {
-        return Map.of(formula, Acceptance.CO_SAFETY);
+        return Map.of(formula, CAutomaton.Acceptance.CO_SAFETY);
       }
 
       // GF(coSafety), G(coSafety), and arbitrary X-prefixes are also contained in the fragment.
       if (SyntacticFragments.isSafetyCoSafety(formula)) {
-        return Map.of(formula, Acceptance.BUCHI);
+        return Map.of(formula, CAutomaton.Acceptance.BUCHI);
       }
 
       // FG(Safety), F(Safety), and arbitrary X-prefixes are also contained in the fragment.
       if (SyntacticFragments.isCoSafetySafety(formula)) {
-        return Map.of(formula, Acceptance.CO_BUCHI);
+        return Map.of(formula, CAutomaton.Acceptance.CO_BUCHI);
       }
 
-      return Map.of(formula, Acceptance.PARITY);
+      return Map.of(formula, CAutomaton.Acceptance.PARITY);
     }
 
     @Override
@@ -432,9 +439,9 @@ public final class DecomposedDPA {
       Acceptance rightAcceptance = acceptanceMap.get(biconditional.rightOperand());
 
       if (leftAcceptance.lub(rightAcceptance).isLessOrEqualWeak()) {
-        acceptanceMap.put(biconditional, Acceptance.WEAK);
+        acceptanceMap.put(biconditional, CAutomaton.Acceptance.WEAK);
       } else {
-        acceptanceMap.put(biconditional, Acceptance.PARITY);
+        acceptanceMap.put(biconditional, CAutomaton.Acceptance.PARITY);
       }
 
       return acceptanceMap;
@@ -442,7 +449,7 @@ public final class DecomposedDPA {
 
     @Override
     public Map<Formula, Acceptance> visit(BooleanConstant booleanConstant) {
-      return Map.of(booleanConstant, Acceptance.BOTTOM);
+      return Map.of(booleanConstant, CAutomaton.Acceptance.BOTTOM);
     }
 
     @Override
@@ -457,11 +464,11 @@ public final class DecomposedDPA {
 
     @Override
     public Map<Formula, Acceptance> visit(Literal literal) {
-      return Map.of(literal, Acceptance.WEAK);
+      return Map.of(literal, CAutomaton.Acceptance.WEAK);
     }
 
     private Map<Formula, Acceptance> visitPropositional(Formula.NaryPropositionalOperator formula) {
-      Acceptance acceptance = Acceptance.BOTTOM;
+      Acceptance acceptance = CAutomaton.Acceptance.BOTTOM;
       Map<Formula, Acceptance> acceptanceMap = new HashMap<>();
 
       for (Formula child : formula.operands) {
@@ -472,6 +479,44 @@ public final class DecomposedDPA {
 
       acceptanceMap.put(formula, acceptance);
       return acceptanceMap;
+    }
+  }
+
+  abstract static class DecomposedDPAStructure {
+    final NodeType label;
+
+    private DecomposedDPAStructure(NodeType label) {
+      this.label = label;
+    }
+
+    abstract IntStream leavesStream();
+
+    static final class Leaf extends DecomposedDPAStructure {
+      final Reference reference;
+
+      Leaf(Reference reference) {
+        super(NodeType.AUTOMATON);
+        this.reference = reference;
+      }
+
+      @Override
+      IntStream leavesStream() {
+        return IntStream.of(reference.index);
+      }
+    }
+
+    static final class Node extends DecomposedDPAStructure {
+      final List<DecomposedDPAStructure> children;
+
+      Node(NodeType nodeType, List<DecomposedDPAStructure> children) {
+        super(nodeType);
+        this.children = List.copyOf(children);
+      }
+
+      @Override
+      IntStream leavesStream() {
+        return children.stream().flatMapToInt(DecomposedDPAStructure::leavesStream);
+      }
     }
   }
 }

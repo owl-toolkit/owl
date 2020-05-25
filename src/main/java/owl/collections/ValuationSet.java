@@ -85,7 +85,7 @@ public class ValuationSet {
       return "[]";
     }
 
-    StringBuilder builder = new StringBuilder(factory.alphabetSize() * 10 + 10);
+    StringBuilder builder = new StringBuilder(factory.alphabet().size() * 10 + 10);
     builder.append('[');
     forEach(bitSet -> builder.append(bitSet).append(", "));
     builder.setLength(builder.length() - 2);

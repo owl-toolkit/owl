@@ -33,7 +33,6 @@ import javax.annotation.Nullable;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.annotation.CEntryPoint;
 
 public final class Disjunction extends Formula.NaryPropositionalOperator {
 
@@ -51,7 +50,6 @@ public final class Disjunction extends Formula.NaryPropositionalOperator {
     super(Conjunction.class, List.copyOf(disjuncts));
   }
 
-  @CEntryPoint
   public static Formula of(Formula e1, Formula e2) {
     ArrayList<Formula> list = new ArrayList<>();
     list.add(e1);

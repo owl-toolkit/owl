@@ -352,6 +352,8 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     @Nullable
     private DisjunctionSetView disjunctiveNormalFormCache;
 
+    private double truenessCache = Double.NaN;
+
     private BddEquivalenceClass(EquivalenceFactory factory, int node,
       @Nullable Formula internalRepresentative) {
       this.factory = factory;
@@ -531,9 +533,22 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     @Override
     public double trueness() {
-      var satisfyingAssignments = new BigDecimal(factory.bdd.countSatisfyingAssignments(node));
-      var assignments = BigDecimal.valueOf(2).pow(factory.bdd.numberOfVariables());
-      return satisfyingAssignments.divide(assignments, 24, RoundingMode.HALF_DOWN).doubleValue();
+      if (isTrue()) {
+        return 1.0d;
+      }
+
+      if (isFalse()) {
+        return 0.0d;
+      }
+
+      if (Double.isNaN(truenessCache)) {
+        var satisfyingAssignments = new BigDecimal(factory.bdd.countSatisfyingAssignments(node));
+        var assignments = BigDecimal.valueOf(2).pow(factory.bdd.numberOfVariables());
+        truenessCache = satisfyingAssignments.divide(assignments, 24, RoundingMode.HALF_DOWN)
+          .doubleValue();
+      }
+
+      return truenessCache;
     }
   }
 }

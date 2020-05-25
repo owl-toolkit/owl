@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,10 +19,10 @@
 
 package owl.cinterface;
 
-import static owl.cinterface.FormulaPreprocessor.VariableStatus.CONSTANT_FALSE;
-import static owl.cinterface.FormulaPreprocessor.VariableStatus.CONSTANT_TRUE;
-import static owl.cinterface.FormulaPreprocessor.VariableStatus.UNUSED;
-import static owl.cinterface.FormulaPreprocessor.VariableStatus.USED;
+import static owl.cinterface.DecomposedDPA.VariableStatus.CONSTANT_FALSE;
+import static owl.cinterface.DecomposedDPA.VariableStatus.CONSTANT_TRUE;
+import static owl.cinterface.DecomposedDPA.VariableStatus.UNUSED;
+import static owl.cinterface.DecomposedDPA.VariableStatus.USED;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -47,7 +47,7 @@ final class FormulaPreprocessor {
     Formula processedFormula = restrictedNnf;
 
     int variables = restrictedNnf.atomicPropositions(true).length();
-    List<VariableStatus> variableStatuses = new ArrayList<>(
+    List<DecomposedDPA.VariableStatus> variableStatuses = new ArrayList<>(
       Collections.nCopies(variables, UNUSED));
 
     if (simplify) {
@@ -79,27 +79,23 @@ final class FormulaPreprocessor {
     return new PreprocessedFormula(processedFormula, variableStatuses);
   }
 
-  public enum VariableStatus {
-    CONSTANT_TRUE, CONSTANT_FALSE, USED, UNUSED
-  }
-
   static class PreprocessedFormula {
     final Formula formula;
-    final List<VariableStatus> variableStatuses;
+    final List<DecomposedDPA.VariableStatus> variableStatuses;
 
-    PreprocessedFormula(Formula formula, List<VariableStatus> variableStatuses) {
+    PreprocessedFormula(Formula formula, List<DecomposedDPA.VariableStatus> variableStatuses) {
       this.formula = formula;
       this.variableStatuses = List.copyOf(variableStatuses);
     }
   }
 
   private static class PolaritySimplifier extends Converter {
-    private final List<VariableStatus> variableStatuses;
+    private final List<DecomposedDPA.VariableStatus> variableStatuses;
     private final Set<Literal> singlePolarityInputVariables;
     private final Set<Literal> singlePolarityOutputVariables;
 
     private PolaritySimplifier(Formula formula,
-      List<VariableStatus> variableStatuses,
+      List<DecomposedDPA.VariableStatus> variableStatuses,
       int firstOutputVariable) {
       super(SyntacticFragment.ALL);
       this.variableStatuses = variableStatuses;

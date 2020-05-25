@@ -37,8 +37,6 @@ import owl.ltl.Literal;
 import owl.ltl.parser.TokenErrorListener;
 import owl.ltl.rewriter.SimplifierFactory;
 
-import owl.util.annotation.CEntryPoint;
-
 public final class LtlfParser {
   private LtlfParser() {}
 
@@ -62,7 +60,6 @@ public final class LtlfParser {
     return parse(input, literals).formula();
   }
 
-  @CEntryPoint
   public static Formula syntaxToLtl(String input, List<String> literals) {
     Formula ltlf = parse(input, literals).formula();
     Formula ltl = LtlfToLtlTranslator.translate(ltlf, Literal.of(literals.size()));

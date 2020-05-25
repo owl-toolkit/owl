@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -17,14 +17,26 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.util.annotation;
+package owl.cinterface;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import javax.annotation.meta.TypeQualifierDefault;
+import org.graalvm.nativeimage.c.CContext;
+import org.graalvm.nativeimage.c.struct.CField;
+import org.graalvm.nativeimage.c.struct.CStruct;
+import org.graalvm.nativeimage.c.type.CIntPointer;
+import org.graalvm.word.PointerBase;
 
-@TypeQualifierDefault({ElementType.METHOD, ElementType.CONSTRUCTOR})
-@Retention(RetentionPolicy.CLASS)
-public @interface CEntryPoint {
+@CContext(CInterface.CDirectives.class)
+@CStruct("int_buffer_t")
+interface CIntBuffer extends PointerBase {
+  @CField
+  CIntPointer buffer();
+
+  @CField
+  int capacity();
+
+  @CField
+  int position();
+
+  @CField
+  void position(int position);
 }

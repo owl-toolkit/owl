@@ -31,6 +31,9 @@ Modules:
 
 API:
 
+* Replace the hand-written C++ API by an automatically generated C API that
+  embeds Owl into a C application as a native library.
+
 * Removed unused and unmaintained `FrequencyG` class and forbid subclassing
   of `GOperator`.
 

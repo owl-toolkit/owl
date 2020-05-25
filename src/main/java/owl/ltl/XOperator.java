@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
-import owl.util.annotation.CEntryPoint;
 
 /**
  * Next.
@@ -43,7 +42,6 @@ public final class XOperator extends Formula.UnaryTemporalOperator {
    *
    * @return a formula equivalent to X(operand)
    */
-  @CEntryPoint
   public static Formula of(Formula operand) {
     return of(operand, 1);
   }

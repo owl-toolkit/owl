@@ -7,13 +7,11 @@ stages:
   - build
   - check
   - test
-  - deploy
 
 variables:
   GRADLE: ./.gradle
   GRADLE_HOME: $GRADLE
   GRADLE_USER_HOME: $GRADLE
-
 
 # Building
 
@@ -24,11 +22,13 @@ Build:
     paths:
     - $GRADLE
   script:
-    - java -version
-    - ./gradlew minimizedDistZip
+    - apt-get update && apt-get install -y --no-install-recommends build-essential zlib1g-dev # TODO: Remove this after Docker update
+    - ./gradlew distZip
   artifacts:
     paths:
-      - build/distributions/
+      - build/clibrary/reports
+      - build/distributions
+      - build/reports
     when: on_success
     expire_in: 1 week
 
@@ -54,24 +54,6 @@ Check:
     expire_in: 1 hour
   dependencies:
     - Build
-
-# Artifact
-
-Assemble:
-  stage:
-    deploy
-  cache:
-    paths:
-    - $GRADLE
-  script:
-    - ./gradlew distZip javadoc
-  dependencies:
-  - Build
-  artifacts:
-    paths:
-    - build/distributions/
-    expire_in: 1 week
-
 
 # Templates
 

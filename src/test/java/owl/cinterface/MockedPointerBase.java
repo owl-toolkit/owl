@@ -17,7 +17,33 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
 package owl.cinterface;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import org.graalvm.word.ComparableWord;
+import org.graalvm.word.PointerBase;
+
+class MockedPointerBase implements PointerBase {
+  public final boolean isNull() {
+    return false;
+  }
+
+  public final boolean isNonNull() {
+    return true;
+  }
+
+  public final boolean equal(ComparableWord val) {
+    throw MockedPointerBase.uoe();
+  }
+
+  public final boolean notEqual(ComparableWord val) {
+    throw MockedPointerBase.uoe();
+  }
+
+  public final long rawValue() {
+    throw MockedPointerBase.uoe();
+  }
+
+  protected static UnsupportedOperationException uoe() {
+    return new UnsupportedOperationException("not mocked");
+  }
+}

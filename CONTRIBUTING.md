@@ -49,8 +49,7 @@ Before implementing your own methods, double check that none of owl's utility li
 
 ## Immutable tuples
 
-For classes which are nothing more than immutable structs, i.e. data containers / tuples, [Immutables](http://immutables.github.io/) should be used.
-See `@Tuple` / `@HashedTuple` and their usages for examples.
+For classes that are simple structured carriers, i.e. data containers or tuples, [AutoValue](https://github.com/google/auto/tree/master/value) should be used.
 Hiding the implementation class (by, e.g., giving it package visibility) is recommended, since Java may support value types natively in the near future.
 Finally, for performance critical code, double-check that the generated code is doing what you expect from it (e.g., no superfluous copies are performed).
 

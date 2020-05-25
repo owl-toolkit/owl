@@ -54,7 +54,7 @@ public interface EdgesAutomatonMixin<S, A extends OmegaAcceptance> extends Autom
   default Set<Edge<S>> edges(S state) {
     Set<Edge<S>> edges = new HashSet<>();
 
-    for (BitSet valuation : BitSets.powerSet(factory().alphabetSize())) {
+    for (BitSet valuation : BitSets.powerSet(factory().alphabet().size())) {
       edges.addAll(edges(state, valuation));
     }
 
@@ -66,7 +66,7 @@ public interface EdgesAutomatonMixin<S, A extends OmegaAcceptance> extends Autom
     ValuationSetFactory factory = factory();
     Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
 
-    for (BitSet valuation : BitSets.powerSet(factory.alphabetSize())) {
+    for (BitSet valuation : BitSets.powerSet(factory.alphabet().size())) {
       for (Edge<S> edge : edges(state, valuation)) {
         labelledEdges.merge(edge, factory.of(valuation), ValuationSet::union);
       }

@@ -57,6 +57,7 @@ class LTL2DAModuleFunctionTest {
 
   @Test
   void performanceSafety() {
+    // TODO: assert timeout
     var formula = LtlParser.parse(LARGE);
     assertEquals(29, formula.atomicPropositions().size());
 

@@ -240,7 +240,7 @@ class DeterministicConstructionsPortfolioTest {
     for (S state : automaton.states()) {
       var expectedEdges = automaton.edgeTree(state);
 
-      for (var valuation : BitSets.powerSet(automaton.factory().alphabetSize())) {
+      for (var valuation : BitSets.powerSet(automaton.factory().alphabet().size())) {
         assertEquals(expectedEdges.get(valuation), automaton.edges(state, valuation));
       }
     }
