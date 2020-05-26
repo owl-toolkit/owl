@@ -26,17 +26,17 @@ import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.word.PointerBase;
 
 @CContext(CInterface.CDirectives.class)
-@CStruct("int_buffer_t")
-interface CIntBuffer extends PointerBase {
+@CStruct("sized_int_array_t")
+interface CIntArray extends PointerBase {
   @CField
-  CIntPointer buffer();
+  CIntPointer elements();
 
   @CField
-  int capacity();
+  void elements(CIntPointer elements);
 
   @CField
-  int position();
+  int length();
 
   @CField
-  void position(int position);
+  void length(int length);
 }

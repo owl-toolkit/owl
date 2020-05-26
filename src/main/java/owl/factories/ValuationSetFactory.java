@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,7 +19,6 @@
 
 package owl.factories;
 
-import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -33,11 +32,21 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 public interface ValuationSetFactory {
-  List<String> alphabet();
+  List<String> atomicPropositions();
 
   ValuationSet of(int literal);
 
   ValuationSet of(BitSet valuation);
+
+  default ValuationSet of(BitSet... valuations) {
+    ValuationSet valuationSet = empty();
+
+    for (BitSet valuation : valuations) {
+      valuationSet = valuationSet.union(of(valuation));
+    }
+
+    return valuationSet;
+  }
 
   ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
 
@@ -79,8 +88,6 @@ public interface ValuationSetFactory {
 
   ValuationSet universe();
 
-  ValuationSet complement(ValuationSet set);
-
   boolean contains(ValuationSet set, BitSet valuation);
 
   boolean implies(ValuationSet one, ValuationSet other);
@@ -100,6 +107,4 @@ public interface ValuationSetFactory {
   <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets);
 
   Iterator<BitSet> iterator(ValuationSet set);
-
-  BigInteger size(ValuationSet set);
 }

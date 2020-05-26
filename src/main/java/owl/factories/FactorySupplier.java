@@ -22,13 +22,13 @@ package owl.factories;
 import java.util.List;
 
 public interface FactorySupplier {
-  ValuationSetFactory getValuationSetFactory(List<String> alphabet);
+  ValuationSetFactory getValuationSetFactory(List<String> atomicPropositions);
 
-  EquivalenceClassFactory getEquivalenceClassFactory(List<String> alphabet);
+  EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions);
 
-  default Factories getFactories(List<String> alphabet) {
+  default Factories getFactories(List<String> atomicPropositions) {
     return new Factories(
-      getEquivalenceClassFactory(alphabet),
-      getValuationSetFactory(alphabet));
+      getEquivalenceClassFactory(atomicPropositions),
+      getValuationSetFactory(atomicPropositions));
   }
 }

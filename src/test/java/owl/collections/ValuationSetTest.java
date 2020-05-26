@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -22,20 +22,27 @@ package owl.collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
+import static owl.util.Assertions.assertThat;
 
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationSetTest {
+
+  private static final List<String> ATOMIC_PROPOSITIONS = List.of("a", "b", "c", "d", "e", "f");
+
   private ValuationSet abcd;
   private ValuationSet containsA;
   private ValuationSet empty;
@@ -43,8 +50,7 @@ public abstract class ValuationSetTest {
 
   @BeforeEach
   void beforeEach() {
-    List<String> aliases = List.of("a", "b", "c", "d");
-    ValuationSetFactory factory = setUpFactory(aliases);
+    ValuationSetFactory factory = factory(List.of("a", "b", "c", "d"));
 
     empty = factory.empty();
     universe = factory.universe();
@@ -58,7 +64,7 @@ public abstract class ValuationSetTest {
     containsA = factory.of(bs, bs);
   }
 
-  protected abstract ValuationSetFactory setUpFactory(List<String> aliases);
+  protected abstract ValuationSetFactory factory(List<String> atomicPropositions);
 
   @Test
   void testComplement() {
@@ -128,5 +134,98 @@ public abstract class ValuationSetTest {
     });
 
     empty.forEach(valuation -> fail("empty should be empty, but it contains " + valuation));
+  }
+
+
+  @Test
+  void testCreateEmptyValuationSet() {
+    var factory = factory(ATOMIC_PROPOSITIONS);
+    assertThat(factory.empty(), ValuationSet::isEmpty);
+  }
+
+  @Test
+  void testCreateUniverseValuationSet() {
+    var factory = factory(ATOMIC_PROPOSITIONS);
+    var empty = factory.empty();
+
+    for (BitSet element : BitSets.powerSet(ATOMIC_PROPOSITIONS.size())) {
+      assertTrue(factory.universe().contains(element));
+      empty = factory.union(empty, factory.of(element));
+    }
+
+    assertEquals(factory.universe(), empty);
+  }
+
+  @Test
+  void testGetAlphabet() {
+    var factory = factory(ATOMIC_PROPOSITIONS);
+    assertEquals(ATOMIC_PROPOSITIONS.size(), factory.atomicPropositions().size());
+  }
+
+  @Test
+  void testRelabel() {
+    var factory = factory(ATOMIC_PROPOSITIONS);
+
+    BitSet valuation1 = bitSetOf(false, true, true, false, false, true);
+    BitSet valuation2 = bitSetOf(false, true, false, true, false, true);
+    ValuationSet valuationSetBefore = factory.of(valuation1, valuation2);
+
+    BitSet valuation3 = bitSetOf(true, true, false, false, false, true);
+    BitSet valuation4 = bitSetOf(true, false, true, false, false, true);
+    ValuationSet valuationSetAfter = factory.of(valuation3, valuation4);
+
+    IntUnaryOperator mapping = i -> {
+      Objects.checkIndex(i, 6);
+
+      if (i == 0) {
+        return 3;
+      }
+
+      if (i <= 3) {
+        return i - 1;
+      }
+
+      return -1;
+    };
+
+    assertEquals(factory.empty(), factory.empty().relabel(mapping));
+    assertEquals(valuationSetAfter, valuationSetBefore.relabel(mapping));
+    assertEquals(factory.universe(), factory.universe().relabel(mapping));
+  }
+
+  @Test
+  void testRelabelThrows() {
+    var factory = factory(ATOMIC_PROPOSITIONS);
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      factory.universe().relabel(i -> -2);
+    });
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      factory.universe().relabel(i -> 10);
+    });
+  }
+
+  @Test
+  void testFilter() {
+    var factory = factory(ATOMIC_PROPOSITIONS);
+
+    var tree = ValuationTree.of(Set.of(true));
+    var filter = factory.of(0);
+
+    assertEquals(
+      ValuationTree.of(0, ValuationTree.of(Set.of(true)), ValuationTree.of()),
+      filter.filter(tree));
+  }
+
+  // Inefficient, but simple.
+  private static BitSet bitSetOf(boolean... bits) {
+    BitSet bitSet = new BitSet();
+
+    for (int i = 0; i < bits.length; i++) {
+      bitSet.set(i, bits[i]);
+    }
+
+    return bitSet;
   }
 }

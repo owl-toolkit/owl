@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -52,7 +52,7 @@ public interface EdgeTreeAutomatonMixin<S, A extends OmegaAcceptance> extends Au
 
   @Override
   default Set<Edge<S>> edges(S state) {
-    return edgeTree(state).values();
+    return edgeTree(state).flatValues();
   }
 
   @Override
@@ -62,7 +62,7 @@ public interface EdgeTreeAutomatonMixin<S, A extends OmegaAcceptance> extends Au
 
   @Override
   default Set<S> successors(S state) {
-    return edgeTree(state).values(Edge::successor);
+    return edgeTree(state).flatValues(Edge::successor);
   }
 
   @Override

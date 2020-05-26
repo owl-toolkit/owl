@@ -1,4 +1,23 @@
-package owl.ltl.ltlf;
+/*
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
+ *
+ * This file is part of Owl.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package owl.ltl.parser;
 
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -20,23 +39,22 @@ import owl.ltl.visitors.Visitor;
 
 public final class LtlfToLtlTranslator {
 
-  private LtlfToLtlTranslator() {
+  private LtlfToLtlTranslator() {}
 
-  }
-
-  public static Formula translate(Formula in, Literal Tail) {
-    LtlfToLtlVisitor bou = new LtlfToLtlVisitor(Tail);
+  public static Formula translate(Formula in, int tailAtomicProposition) {
+    Literal tail = Literal.of(tailAtomicProposition);
+    LtlfToLtlVisitor bou = new LtlfToLtlVisitor(tail);
     PreprocessorVisitor p = new PreprocessorVisitor();
-    // Tail & (Tail W (G !Tail)) & (F !Tail) & bou(in)
+    // tail & (tail W (G !tail)) & (F !tail) & bou(in)
     // |______Safety____________|  |____Co-Safety____|
     return Conjunction.of(
-      Tail,
+      tail,
       Conjunction.of(
         WOperator.of(
-          Tail,
-          GOperator.of(Tail.not())),
+          tail,
+          GOperator.of(tail.not())),
         Conjunction.of(
-          FOperator.of(Tail.not()),
+          FOperator.of(tail.not()),
           bou.apply(p.apply(in)))));
   }
 

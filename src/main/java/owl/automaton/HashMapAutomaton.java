@@ -460,7 +460,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     Set<S> exploredStates = new HashSet<>(initialStates);
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
-    int alphabetSize = vsFactory.alphabet().size();
+    int alphabetSize = vsFactory.atomicPropositions().size();
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();

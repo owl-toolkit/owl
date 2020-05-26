@@ -108,7 +108,7 @@ class AutomatonTest {
       var actualEdges = automaton.edgeMap(state);
       var expectedEdges = new HashMap<Edge<S>, ValuationSet>();
 
-      for (var valuation : BitSets.powerSet(automaton.factory().alphabet().size())) {
+      for (var valuation : BitSets.powerSet(automaton.factory().atomicPropositions().size())) {
         automaton.edges(state, valuation).forEach(
           x -> expectedEdges.merge(x, automaton.factory().of(valuation), ValuationSet::union));
       }
@@ -130,7 +130,7 @@ class AutomatonTest {
       var expectedEdges = automaton.edgeMap(state);
       var actualEdges = automaton.edgeTree(state);
 
-      for (var valuation : BitSets.powerSet(automaton.factory().alphabet().size())) {
+      for (var valuation : BitSets.powerSet(automaton.factory().atomicPropositions().size())) {
         assertEquals(actualEdges.get(valuation), automaton.edges(state, valuation));
       }
 

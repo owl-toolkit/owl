@@ -33,7 +33,7 @@ class SatisfactionRelationTest {
 
   @Test
   void modelsConjunction() {
-    Formula formula = LtlParser.syntax("a | (X b)");
+    Formula formula = LtlParser.parse("a | (X b)").formula();
     BitSet now = new BitSet();
     long[] pastArray = new long[1];
     History past = new History(pastArray);

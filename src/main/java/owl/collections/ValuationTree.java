@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -30,6 +30,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.IntUnaryOperator;
 import owl.factories.ValuationSetFactory;
 
 public abstract class ValuationTree<E> {
@@ -56,18 +57,28 @@ public abstract class ValuationTree<E> {
 
   public abstract Set<E> get(BitSet valuation);
 
-  public final Set<E> values() {
-    return values(Function.identity());
+  public final Set<E> flatValues() {
+    return flatValues(Function.identity());
   }
 
-  public final <T> Set<T> values(Function<E, T> mapper) {
+  public final <T> Set<T> flatValues(Function<E, T> mapper) {
     Set<T> values = new HashSet<>();
-    memoizedValues(values, Collections.newSetFromMap(new IdentityHashMap<>()), mapper);
+    memoizedFlatValues(values, Collections.newSetFromMap(new IdentityHashMap<>()), mapper);
+    return values;
+  }
+
+  public final Set<Set<E>> values() {
+    Set<Set<E>> values = new HashSet<>();
+    memoizedValues(values, Collections.newSetFromMap(new IdentityHashMap<>()));
     return values;
   }
 
   public final Map<E, ValuationSet> inverse(ValuationSetFactory factory) {
-    return memoizedInverse(factory, new HashMap<>());
+    return inverse(factory, IntUnaryOperator.identity());
+  }
+
+  public final Map<E, ValuationSet> inverse(ValuationSetFactory factory, IntUnaryOperator mapping) {
+    return memoizedInverse(factory, new HashMap<>(), mapping);
   }
 
   public final <T> ValuationTree<T> map(
@@ -81,10 +92,14 @@ public abstract class ValuationTree<E> {
 
   protected abstract Map<E, ValuationSet> memoizedInverse(
     ValuationSetFactory factory,
-    Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls);
+    Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls,
+    IntUnaryOperator mapping);
 
-  protected abstract <T> void memoizedValues(
+  protected abstract <T> void memoizedFlatValues(
     Set<T> values, Set<ValuationTree<E>> seenNodes, Function<E, T> mapper);
+
+  protected abstract void memoizedValues(
+    Set<Set<E>> values, Set<ValuationTree<E>> seenNodes);
 
   public static final class Leaf<E> extends ValuationTree<E> {
     private static final ValuationTree<Object> EMPTY = new Leaf<>(Set.of());
@@ -102,7 +117,7 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    protected <T> void memoizedValues(Set<T> values,
+    protected <T> void memoizedFlatValues(Set<T> values,
       Set<ValuationTree<E>> seenNodes, Function<E, T> mapper) {
       for (E x : value) {
         values.add(mapper.apply(x));
@@ -110,15 +125,24 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
+    protected void memoizedValues(Set<Set<E>> values, Set<ValuationTree<E>> seenNodes) {
+      values.add(value);
+    }
+
+    @Override
     protected <T> ValuationTree<T> memoizedMap(
       Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
       Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
+
       return memoizedCalls.computeIfAbsent(this, x -> of(mapper.apply(value)));
     }
 
     @Override
-    protected Map<E, ValuationSet> memoizedInverse(ValuationSetFactory factory,
-      Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls) {
+    protected Map<E, ValuationSet> memoizedInverse(
+      ValuationSetFactory factory,
+      Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls,
+      IntUnaryOperator mapping) {
+
       return memoizedCalls.computeIfAbsent(this, x -> Maps.asMap(value, y -> factory.universe()));
     }
 
@@ -169,14 +193,30 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    protected <T> void memoizedValues(Set<T> values, Set<ValuationTree<E>> seenNodes,
+    protected <T> void memoizedFlatValues(
+      Set<T> values,
+      Set<ValuationTree<E>> seenNodes,
       Function<E, T> mapper) {
+
       if (!seenNodes.add(this)) {
         return;
       }
 
-      trueChild.memoizedValues(values, seenNodes, mapper);
-      falseChild.memoizedValues(values, seenNodes, mapper);
+      trueChild.memoizedFlatValues(values, seenNodes, mapper);
+      falseChild.memoizedFlatValues(values, seenNodes, mapper);
+    }
+
+    @Override
+    protected void memoizedValues(
+      Set<Set<E>> values,
+      Set<ValuationTree<E>> seenNodes) {
+
+      if (!seenNodes.add(this)) {
+        return;
+      }
+
+      trueChild.memoizedValues(values, seenNodes);
+      falseChild.memoizedValues(values, seenNodes);
     }
 
     // Perfect for fork/join-parallesism
@@ -184,6 +224,7 @@ public abstract class ValuationTree<E> {
     protected <T> ValuationTree<T> memoizedMap(
       Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
       Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
+
       ValuationTree<T> mappedNode = memoizedCalls.get(this);
 
       if (mappedNode != null) {
@@ -198,21 +239,24 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    protected Map<E, ValuationSet> memoizedInverse(ValuationSetFactory factory,
-      Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls) {
+    protected Map<E, ValuationSet> memoizedInverse(
+      ValuationSetFactory factory,
+      Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls,
+      IntUnaryOperator mapping) {
+
       Map<E, ValuationSet> map = memoizedCalls.get(this);
 
       if (map != null) {
         return map;
       }
 
-      var trueMask = factory.of(variable);
+      var trueMask = factory.of(mapping.applyAsInt(variable));
       var falseMask = trueMask.complement();
       var newMap = new HashMap<E, ValuationSet>();
 
-      trueChild.memoizedInverse(factory, memoizedCalls).forEach(
+      trueChild.memoizedInverse(factory, memoizedCalls, mapping).forEach(
         (key, set) -> newMap.merge(key, set.intersection(trueMask), ValuationSet::union));
-      falseChild.memoizedInverse(factory, memoizedCalls).forEach(
+      falseChild.memoizedInverse(factory, memoizedCalls, mapping).forEach(
         (key, set) -> newMap.merge(key, set.intersection(falseMask), ValuationSet::union));
 
       memoizedCalls.put(this, newMap);

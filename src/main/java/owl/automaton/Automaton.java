@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -190,14 +190,14 @@ public interface Automaton<S, A extends OmegaAcceptance> {
       case EDGES:
         var edges = new HashSet<Edge<S>>();
 
-        for (BitSet valuation : BitSets.powerSet(factory().alphabet().size())) {
+        for (BitSet valuation : BitSets.powerSet(factory().atomicPropositions().size())) {
           edges.addAll(edges(state, valuation));
         }
 
         return edges;
 
       case EDGE_TREE:
-        return edgeTree(state).values();
+        return edgeTree(state).flatValues();
 
       case EDGE_MAP:
         return edgeMap(state).keySet();

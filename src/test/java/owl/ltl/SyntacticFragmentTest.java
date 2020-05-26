@@ -32,15 +32,15 @@ class SyntacticFragmentTest {
 
   static {
     FORMULAS = List.of(
-      LtlParser.syntax("true"),
-      LtlParser.syntax("false"),
-      LtlParser.syntax("a"),
-      LtlParser.syntax("F a"),
-      LtlParser.syntax("G a"),
-      LtlParser.syntax("X a"),
-      LtlParser.syntax("a U b"),
-      LtlParser.syntax("a R b"),
-      LtlParser.syntax("a & X F b")
+        LtlParser.parse("true").formula(),
+        LtlParser.parse("false").formula(),
+        LtlParser.parse("a").formula(),
+        LtlParser.parse("F a").formula(),
+        LtlParser.parse("G a").formula(),
+        LtlParser.parse("X a").formula(),
+        LtlParser.parse("a U b").formula(),
+        LtlParser.parse("a R b").formula(),
+        LtlParser.parse("a & X F b").formula()
     );
   }
 

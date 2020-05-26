@@ -38,34 +38,34 @@ import owl.ltl.parser.LtlParser;
 public class FormulaTest {
 
   private static final List<Formula> FORMULAS = List.of(
-    LtlParser.syntax("false"),
-    LtlParser.syntax("true"),
-    LtlParser.syntax("a"),
+      LtlParser.parse("false").formula(),
+      LtlParser.parse("true").formula(),
+      LtlParser.parse("a").formula(),
 
-    LtlParser.syntax("! a"),
-    LtlParser.syntax("a & b"),
-    LtlParser.syntax("a | b"),
-    LtlParser.syntax("a -> b"),
-    LtlParser.syntax("a <-> b"),
-    LtlParser.syntax("a xor b"),
+      LtlParser.parse("! a").formula(),
+      LtlParser.parse("a & b").formula(),
+      LtlParser.parse("a | b").formula(),
+      LtlParser.parse("a -> b").formula(),
+      LtlParser.parse("a <-> b").formula(),
+      LtlParser.parse("a xor b").formula(),
 
-    LtlParser.syntax("F a"),
-    LtlParser.syntax("G a"),
-    LtlParser.syntax("X a"),
+      LtlParser.parse("F a").formula(),
+      LtlParser.parse("G a").formula(),
+      LtlParser.parse("X a").formula(),
 
-    LtlParser.syntax("a M b"),
-    LtlParser.syntax("a R b"),
-    LtlParser.syntax("a U b"),
-    LtlParser.syntax("a W b"),
+      LtlParser.parse("a M b").formula(),
+      LtlParser.parse("a R b").formula(),
+      LtlParser.parse("a U b").formula(),
+      LtlParser.parse("a W b").formula(),
 
-    LtlParser.syntax("(a <-> b) xor (c <-> d)"),
+      LtlParser.parse("(a <-> b) xor (c <-> d)").formula(),
 
-    LtlParser.syntax("F ((a R b) & c)"),
-    LtlParser.syntax("F ((a W b) & c)"),
-    LtlParser.syntax("G ((a M b) | c)"),
-    LtlParser.syntax("G ((a U b) | c)"),
-    LtlParser.syntax("G (X (a <-> b))"),
-    LtlParser.syntax("G (X (a xor b))"));
+      LtlParser.parse("F ((a R b) & c)").formula(),
+      LtlParser.parse("F ((a W b) & c)").formula(),
+      LtlParser.parse("G ((a M b) | c)").formula(),
+      LtlParser.parse("G ((a U b) | c)").formula(),
+      LtlParser.parse("G (X (a <-> b))").formula(),
+      LtlParser.parse("G (X (a xor b))").formula());
 
   public static List<Formula> formulaProvider() {
     return FORMULAS;

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -33,9 +33,9 @@ import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
-import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.XDepthVisitor;
 import owl.translations.delag.ProductState.Builder;
 
@@ -237,7 +237,9 @@ abstract class DependencyTree<T> {
     @Override
     public String toString() {
       return String.format("Fallback{%s, %s %d}",
-        PrintVisitor.toString(formula, automaton.factory().alphabet()), acceptance, acceptanceSet);
+        LabelledFormula.of(formula, automaton.factory().atomicPropositions()),
+        acceptance,
+        acceptanceSet);
     }
   }
 

@@ -57,9 +57,6 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   implements EquivalenceClassFactory {
 
   private final List<String> atomicPropositions;
-
-  private final BddEquivalenceClass falseClass;
-  private final BddEquivalenceClass trueClass;
   private final BddVisitor visitor;
 
   private Formula.TemporalOperator[] reverseMapping;
@@ -73,7 +70,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   @Nullable
   private IdentityHashMap<EquivalenceClass, ValuationTree<?>> temporalStepTreeCache;
 
-  public EquivalenceFactory(Bdd bdd, List<String> atomicPropositions) {
+  EquivalenceFactory(Bdd bdd, List<String> atomicPropositions) {
     super(bdd);
     this.atomicPropositions = List.copyOf(atomicPropositions);
 
@@ -90,8 +87,6 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     trueNode = this.bdd.trueNode();
     falseNode = this.bdd.falseNode();
-    trueClass = new BddEquivalenceClass(this, trueNode, BooleanConstant.TRUE);
-    falseClass = new BddEquivalenceClass(this, falseNode, BooleanConstant.FALSE);
   }
 
   @Override
@@ -128,14 +123,6 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   }
 
   private BddEquivalenceClass of(@Nullable Formula representative, int node) {
-    if (node == trueNode) {
-      return trueClass;
-    }
-
-    if (node == falseNode) {
-      return falseClass;
-    }
-
     var clazz = canonicalize(new BddEquivalenceClass(this, node, representative));
 
     if (clazz.representative == null) {
@@ -337,7 +324,11 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     }
   }
 
-  public static final class BddEquivalenceClass implements BddNode, EquivalenceClass {
+  /**
+   * This class does not override `equals` and `hashCode`, since GcManagedFactory ensures
+   * uniqueness.
+   */
+  static final class BddEquivalenceClass implements BddNode, EquivalenceClass {
     private final EquivalenceFactory factory;
     private final int node;
 
@@ -393,12 +384,12 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     @Override
     public boolean isFalse() {
-      return this == factory.falseClass;
+      return node == factory.falseNode;
     }
 
     @Override
     public boolean isTrue() {
-      return this == factory.trueClass;
+      return node == factory.trueNode;
     }
 
     @Override

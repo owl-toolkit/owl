@@ -28,16 +28,16 @@ class LanguageContainmentTest {
 
   @Test
   void isSatisfiable() {
-    assertTrue(LanguageAnalysis.isSatisfiable(LtlParser.syntax("F a")));
+    assertTrue(LanguageAnalysis.isSatisfiable(LtlParser.parse("F a").formula()));
   }
 
   @Test
   void isUnsatisfiable() {
-    assertTrue(LanguageAnalysis.isUnsatisfiable(LtlParser.syntax("F a & !a & X G !a")));
+    assertTrue(LanguageAnalysis.isUnsatisfiable(LtlParser.parse("F a & !a & X G !a").formula()));
   }
 
   @Test
   void isUniversal() {
-    assertTrue(LanguageAnalysis.isUniversal(LtlParser.syntax("X X F a | X X F !a")));
+    assertTrue(LanguageAnalysis.isUniversal(LtlParser.parse("X X F a | X X F !a").formula()));
   }
 }

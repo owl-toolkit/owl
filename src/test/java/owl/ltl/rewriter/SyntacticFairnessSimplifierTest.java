@@ -26,7 +26,6 @@ import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 
@@ -46,16 +45,16 @@ class SyntacticFairnessSimplifierTest {
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testSyntacticFairnessSimplifier(List<String> pair) {
-    Formula actual = LtlParser.syntax(pair.get(0), variables);
-    Formula expected = LtlParser.syntax(pair.get(1), variables);
+    var actual = LtlParser.parse(pair.get(0), variables);
+    var expected = LtlParser.parse(pair.get(1), variables);
     assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC_FAIRNESS));
   }
 
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testSyntacticFairnessSimplifierNegation(List<String> pair) {
-    Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
-    Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
+    var actual = LtlParser.parse("! (" + pair.get(0) + ')', variables);
+    var expected = LtlParser.parse("! (" + pair.get(1) + ')', variables);
     assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC_FAIRNESS));
   }
 }

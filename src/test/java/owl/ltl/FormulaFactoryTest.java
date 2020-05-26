@@ -121,16 +121,16 @@ class FormulaFactoryTest {
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testOf(List<String> pair) {
-    Formula actual = LtlParser.syntax(pair.get(0), variables);
-    Formula expected = LtlParser.syntax(pair.get(1), variables);
+    Formula actual = LtlParser.parse(pair.get(0), variables).formula();
+    Formula expected = LtlParser.parse(pair.get(1), variables).formula();
     assertEquals(expected, actual);
   }
 
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testNegOf(List<String> pair) {
-    Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
-    Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
+    Formula actual = LtlParser.parse("! (" + pair.get(0) + ')', variables).formula();
+    Formula expected = LtlParser.parse("! (" + pair.get(1) + ')', variables).formula();
     assertEquals(expected, actual);
   }
 }

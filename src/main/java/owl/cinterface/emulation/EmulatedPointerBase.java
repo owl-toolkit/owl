@@ -17,7 +17,34 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
-package owl.cinterface.wrappers;
+package owl.cinterface.emulation;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import org.graalvm.word.ComparableWord;
+import org.graalvm.word.PointerBase;
+
+class EmulatedPointerBase implements PointerBase {
+
+  public final boolean isNull() {
+    return false;
+  }
+
+  public final boolean isNonNull() {
+    return true;
+  }
+
+  public final boolean equal(ComparableWord val) {
+    throw uoe();
+  }
+
+  public final boolean notEqual(ComparableWord val) {
+    throw uoe();
+  }
+
+  public final long rawValue() {
+    throw uoe();
+  }
+
+  protected static UnsupportedOperationException uoe() {
+    return new UnsupportedOperationException("not emulated");
+  }
+}

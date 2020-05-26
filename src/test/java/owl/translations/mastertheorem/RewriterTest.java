@@ -36,13 +36,13 @@ class RewriterTest {
   @Disabled
   @Test
   void testFgSubstitution() {
-    Formula formula = LtlParser.syntax("a U (X((G(F(G(b)))) & (F(X(X(G(b)))))))");
+    Formula formula = LtlParser.parse("a U (X((G(F(G(b)))) & (F(X(X(G(b)))))))").formula();
 
-    GOperator operator1 = (GOperator) LtlParser.syntax("G b", ALPHABET);
+    GOperator operator1 = (GOperator) LtlParser.parse("G b", ALPHABET).formula();
     Rewriter.ToCoSafety visitor1 = new Rewriter.ToCoSafety(Set.of(operator1));
     assertEquals(BooleanConstant.FALSE, formula.accept(visitor1));
 
-    GOperator operator2 = (GOperator) LtlParser.syntax("G F G b", ALPHABET);
+    GOperator operator2 = (GOperator) LtlParser.parse("G F G b", ALPHABET).formula();
     Rewriter.ToCoSafety visitor2 = new Rewriter.ToCoSafety(Set.of(operator1, operator2));
     assertEquals(BooleanConstant.TRUE, formula.accept(visitor2));
   }

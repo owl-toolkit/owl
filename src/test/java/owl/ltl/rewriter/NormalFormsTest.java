@@ -74,14 +74,14 @@ class NormalFormsTest {
   @Test
   void testMinimal() {
     var alphabet = List.of("a", "b", "c", "d", "e");
-    var formula = LtlParser.syntax("(a | (b & (c | (d & e))))", alphabet);
-    var formula2 = LtlParser.syntax("(a & (b | (c & (d | e))))", alphabet);
+    var formula = LtlParser.parse("(a | (b & (c | (d & e))))", alphabet).formula();
+    var formula2 = LtlParser.parse("(a & (b | (c & (d | e))))", alphabet).formula();
 
-    Formula a = LtlParser.syntax("a", alphabet);
-    Formula b = LtlParser.syntax("b", alphabet);
-    Formula c = LtlParser.syntax("c", alphabet);
-    Formula d = LtlParser.syntax("d", alphabet);
-    Formula e = LtlParser.syntax("e", alphabet);
+    Formula a = LtlParser.parse("a", alphabet).formula();
+    Formula b = LtlParser.parse("b", alphabet).formula();
+    Formula c = LtlParser.parse("c", alphabet).formula();
+    Formula d = LtlParser.parse("d", alphabet).formula();
+    Formula e = LtlParser.parse("e", alphabet).formula();
 
     var expectedDnf = Set.of(Set.of(a), Set.of(b, c), Set.of(b, d, e));
     assertEquals(expectedDnf, NormalForms.toDnf(formula));
@@ -93,10 +93,10 @@ class NormalFormsTest {
   @Test
   void testMinimalDnf() {
     var alphabet = List.of("a", "b", "c");
-    var formula = LtlParser.syntax("(Ga | Gb | ((Ga | GFc) & (Gb | GF!c)))", alphabet);
-    var clause1 = LtlParser.syntax("G a", alphabet);
-    var clause2 = LtlParser.syntax("G b", alphabet);
-    var clause3 = LtlParser.syntax("G F c & G F !c", alphabet);
+    var formula = LtlParser.parse("(Ga | Gb | ((Ga | GFc) & (Gb | GF!c)))", alphabet).formula();
+    var clause1 = LtlParser.parse("G a", alphabet).formula();
+    var clause2 = LtlParser.parse("G b", alphabet).formula();
+    var clause3 = LtlParser.parse("G F c & G F !c", alphabet).formula();
     var dnf = Collections3.transformSet(NormalForms.toDnf(formula), Conjunction::of);
 
     assertEquals(Set.of(clause1, clause2, clause3), dnf);
@@ -105,10 +105,10 @@ class NormalFormsTest {
   @Test
   void testMinimalCnf() {
     var alphabet = List.of("a", "b", "c");
-    var formula = LtlParser.syntax("(Ga & Gb & ((Ga & GFc) | (Gb & GF!c)))", alphabet);
-    var clause1 = LtlParser.syntax("G a", alphabet);
-    var clause2 = LtlParser.syntax("G b", alphabet);
-    var clause3 = LtlParser.syntax("G F c | G F !c", alphabet);
+    var formula = LtlParser.parse("(Ga & Gb & ((Ga & GFc) | (Gb & GF!c)))", alphabet).formula();
+    var clause1 = LtlParser.parse("G a", alphabet).formula();
+    var clause2 = LtlParser.parse("G b", alphabet).formula();
+    var clause3 = LtlParser.parse("G F c | G F !c", alphabet).formula();
     var cnf = Collections3.transformSet(NormalForms.toCnf(formula), Disjunction::of);
 
     assertEquals(Set.of(clause1, clause2, clause3), cnf);
@@ -153,8 +153,8 @@ class NormalFormsTest {
   @Test
   void testSyntheticLiteralFeature() {
     var labelledFormula = LtlParser.parse("(a | b | X c)", List.of("a", "b", "c"));
-    var clause1 = Set.of(LtlParser.syntax("a | b", labelledFormula.atomicPropositions()));
-    var clause2 = Set.of(LtlParser.syntax("X c", labelledFormula.atomicPropositions()));
+    var clause1 = Set.of(LtlParser.parse("a | b", labelledFormula.atomicPropositions()).formula());
+    var clause2 = Set.of(LtlParser.parse("X c", labelledFormula.atomicPropositions()).formula());
 
     assertEquals(Set.of(clause1, clause2), NormalForms.toDnf(labelledFormula.formula(),
       x -> x.operands.stream().filter(Literal.class::isInstance).collect(Collectors.toSet())));

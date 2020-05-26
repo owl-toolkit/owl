@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -422,8 +422,8 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       var livenessAutomaton = automata.gfCoSafetyAutomaton;
       var livenessEdgeTree = livenessAutomaton.edgeTree(livenessState);
 
-      assert safetyEdgeTree.values().stream().allMatch(x -> x.largestAcceptanceSet() == -1);
-      assert livenessEdgeTree.values().stream().allMatch(
+      assert safetyEdgeTree.flatValues().stream().allMatch(x -> x.largestAcceptanceSet() == -1);
+      assert livenessEdgeTree.flatValues().stream().allMatch(
         x -> x.largestAcceptanceSet() < this.acceptance.acceptanceSets());
 
       return cartesianProduct(safetyEdgeTree, livenessEdgeTree, (safetyEdge, livenessEdge) -> {

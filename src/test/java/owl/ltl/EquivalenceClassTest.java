@@ -149,12 +149,12 @@ abstract class EquivalenceClassTest {
     assertEquals(
       Set.of(
         Set.of(
-          LtlParser.syntax("F a", formula.atomicPropositions()),
-          LtlParser.syntax("G b", formula.atomicPropositions())
+          LtlParser.parse("F a", formula.atomicPropositions()).formula(),
+          LtlParser.parse("G b", formula.atomicPropositions()).formula()
         ),
         Set.of(
-          LtlParser.syntax("G a", formula.atomicPropositions()),
-          LtlParser.syntax("F c", formula.atomicPropositions())
+          LtlParser.parse("G a", formula.atomicPropositions()).formula(),
+          LtlParser.parse("F c", formula.atomicPropositions()).formula()
         )),
       clazz.disjunctiveNormalForm());
   }
@@ -166,12 +166,12 @@ abstract class EquivalenceClassTest {
     assertEquals(
       Set.of(
         Set.of(
-          LtlParser.syntax("a", formula.atomicPropositions()),
-          LtlParser.syntax("!b", formula.atomicPropositions())
+          LtlParser.parse("a", formula.atomicPropositions()).formula(),
+          LtlParser.parse("!b", formula.atomicPropositions()).formula()
         ),
         Set.of(
-          LtlParser.syntax("c", formula.atomicPropositions()),
-          LtlParser.syntax("!d", formula.atomicPropositions())
+          LtlParser.parse("c", formula.atomicPropositions()).formula(),
+          LtlParser.parse("!d", formula.atomicPropositions()).formula()
         )),
       clazz.disjunctiveNormalForm());
   }
@@ -204,9 +204,9 @@ abstract class EquivalenceClassTest {
   @Test
   void testModalOperators() {
     var formulas = List.of(
-      LtlParser.syntax("a"),
-      LtlParser.syntax("F a"),
-      LtlParser.syntax("G a"));
+      LtlParser.parse("a").formula(),
+      LtlParser.parse("F a").formula(),
+      LtlParser.parse("G a").formula());
 
     EquivalenceClass clazz = factory.of(Conjunction.of(formulas));
     assertEquals(Set.copyOf(formulas.subList(1, 3)), clazz.temporalOperators());
@@ -233,9 +233,9 @@ abstract class EquivalenceClassTest {
   @Test
   void testSubstitute() {
     EquivalenceClass[] formulas = {
-      factory.of(LtlParser.syntax("a")),
-      factory.of(LtlParser.syntax("G a")),
-      factory.of(LtlParser.syntax("G a & a"))
+      factory.of(LtlParser.parse("a").formula()),
+      factory.of(LtlParser.parse("G a").formula()),
+      factory.of(LtlParser.parse("G a & a").formula())
     };
 
     assertEquals(formulas[1].substitute(Formula::unfold), formulas[2]);
@@ -245,7 +245,7 @@ abstract class EquivalenceClassTest {
 
   @Test
   void testSubstitute2() {
-    Formula formula = LtlParser.syntax("G (a | X!b) | F c | c");
+    Formula formula = LtlParser.parse("G (a | X!b) | F c | c").formula();
     EquivalenceClass clazz = factory.of(formula).unfold();
 
     Function<Formula, Formula> substitution = x -> {
@@ -267,31 +267,31 @@ abstract class EquivalenceClassTest {
     BitSet stepSet = new BitSet();
     LabelledFormula formula = LtlParser.parse("a & X (! a)");
     EquivalenceClassFactory factory = obtainFactory(formula);
-    assertEquals(factory.of(LtlParser.syntax("! a")),
-      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.of(LtlParser.syntax("a")),
-      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("! a").formula()),
+      factory.of(LtlParser.parse("X ! a").formula()).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("a").formula()),
+      factory.of(LtlParser.parse("X a").formula()).temporalStep(stepSet));
 
     formula = LtlParser.parse("(! a) & X (a)");
     factory = obtainFactory(formula);
-    assertEquals(factory.of(LtlParser.syntax("! a")),
-      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.of(LtlParser.syntax("a")),
-      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("! a").formula()),
+      factory.of(LtlParser.parse("X ! a").formula()).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("a").formula()),
+      factory.of(LtlParser.parse("X a").formula()).temporalStep(stepSet));
 
     formula = LtlParser.parse("(a) & X (a)");
     factory = obtainFactory(formula);
-    assertEquals(factory.of(LtlParser.syntax("! a")),
-      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.of(LtlParser.syntax("a")),
-      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("! a").formula()),
+      factory.of(LtlParser.parse("X ! a").formula()).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("a").formula()),
+      factory.of(LtlParser.parse("X a").formula()).temporalStep(stepSet));
 
     formula = LtlParser.parse("(! a) & X (! a)");
     factory = obtainFactory(formula);
-    assertEquals(factory.of(LtlParser.syntax("! a")),
-      factory.of(LtlParser.syntax("X ! a")).temporalStep(stepSet));
-    assertEquals(factory.of(LtlParser.syntax("a")),
-      factory.of(LtlParser.syntax("X a")).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("! a").formula()),
+      factory.of(LtlParser.parse("X ! a").formula()).temporalStep(stepSet));
+    assertEquals(factory.of(LtlParser.parse("a").formula()),
+      factory.of(LtlParser.parse("X a").formula()).temporalStep(stepSet));
   }
 
   @Test
@@ -331,9 +331,9 @@ abstract class EquivalenceClassTest {
   void testTruthness() {
     double precision = 0.000_000_01d;
     assertEquals(1.0d, factory.of(BooleanConstant.TRUE).trueness(), precision);
-    assertEquals(0.75d, factory.of(LtlParser.syntax("a | b")).trueness(), precision);
-    assertEquals(0.5d, factory.of(LtlParser.syntax("a")).trueness(), precision);
-    assertEquals(0.25d, factory.of(LtlParser.syntax("a & b")).trueness(), precision);
+    assertEquals(0.75d, factory.of(LtlParser.parse("a | b").formula()).trueness(), precision);
+    assertEquals(0.5d, factory.of(LtlParser.parse("a").formula()).trueness(), precision);
+    assertEquals(0.25d, factory.of(LtlParser.parse("a & b").formula()).trueness(), precision);
     assertEquals(0.0d, factory.of(BooleanConstant.FALSE).trueness(), precision);
   }
 }

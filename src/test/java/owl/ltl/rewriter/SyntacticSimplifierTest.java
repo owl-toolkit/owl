@@ -28,7 +28,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 
@@ -103,24 +102,24 @@ class SyntacticSimplifierTest {
 
   @Test
   void testPullupX() {
-    Formula f1 = LtlParser.syntax("G F X b");
-    Formula f2 = LtlParser.syntax("X G F b");
+    var f1 = LtlParser.parse("G F X b");
+    var f2 = LtlParser.parse("X G F b");
     assertEquals(SimplifierFactory.apply(f1, Mode.PULL_UP_X), f2);
   }
 
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testSyntacticSimplifier(List<String> pair) {
-    Formula actual = LtlParser.syntax(pair.get(0), variables);
-    Formula expected = LtlParser.syntax(pair.get(1), variables);
+    var actual = LtlParser.parse(pair.get(0), variables);
+    var expected = LtlParser.parse(pair.get(1), variables);
     assertEquals(expected, SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC));
   }
 
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testSyntacticSimplifierNegation(List<String> pair) {
-    Formula actual = LtlParser.syntax("! (" + pair.get(0) + ')', variables);
-    Formula expected = LtlParser.syntax("! (" + pair.get(1) + ')', variables);
+    var actual = LtlParser.parse("! (" + pair.get(0) + ')', variables);
+    var expected = LtlParser.parse("! (" + pair.get(1) + ')', variables);
     assertEquals(expected, SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC));
   }
 
@@ -128,8 +127,8 @@ class SyntacticSimplifierTest {
   void testIssue189() {
     assertDoesNotThrow(() -> {
       String formulaString = "GF(G!b & (XG!b U ((a & XG!b))))";
-      SimplifierFactory.apply(LtlParser.syntax(formulaString), Mode.SYNTACTIC);
-      SimplifierFactory.apply(LtlParser.syntax('!' + formulaString), Mode.SYNTACTIC);
+      SimplifierFactory.apply(LtlParser.parse(formulaString), Mode.SYNTACTIC);
+      SimplifierFactory.apply(LtlParser.parse('!' + formulaString), Mode.SYNTACTIC);
     });
   }
 

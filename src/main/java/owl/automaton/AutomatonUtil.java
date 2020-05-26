@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -154,7 +154,7 @@ public final class AutomatonUtil {
         break;
 
       case EDGE_TREE:
-        automaton.accept((Automaton.EdgeTreeVisitor<S>) (state, tree) -> tree.values().forEach(
+        automaton.accept((Automaton.EdgeTreeVisitor<S>) (state, tree) -> tree.flatValues().forEach(
           edge -> edge.acceptanceSetIterator().forEachRemaining((IntConsumer) indices::set)));
         break;
 

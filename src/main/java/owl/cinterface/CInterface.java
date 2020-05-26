@@ -23,10 +23,12 @@ import java.util.List;
 import org.graalvm.nativeimage.IsolateThread;
 import org.graalvm.nativeimage.ObjectHandle;
 import org.graalvm.nativeimage.ObjectHandles;
+import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.function.CEntryPoint;
 import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
+import org.graalvm.word.PointerBase;
 import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
 import owl.run.Environment;
@@ -49,11 +51,16 @@ public final class CInterface {
     name = "destroy_object_handle",
     exceptionHandler = PrintStackTraceAndExit.ReturnVoid.class
   )
-  public static void destroyObjectHandle(
-    IsolateThread thread,
-    ObjectHandle handle) {
-
+  public static void destroyObjectHandle(IsolateThread thread, ObjectHandle handle) {
     ObjectHandles.getGlobal().destroy(handle);
+  }
+
+  @CEntryPoint(
+    name = "free_unmanaged_memory",
+    exceptionHandler = PrintStackTraceAndExit.ReturnVoid.class
+  )
+  public static void freeUnmanagedMemory(IsolateThread thread, PointerBase ptr) {
+    UnmanagedMemory.free(ptr);
   }
 
   @CEntryPoint(
@@ -61,10 +68,7 @@ public final class CInterface {
     exceptionHandler = PrintStackTraceAndExit.ReturnUnsignedWord.class
   )
   public static UnsignedWord printObjectHandle(
-    IsolateThread thread,
-    ObjectHandle handle,
-    CCharPointer buffer,
-    UnsignedWord bufferSize) {
+    IsolateThread thread, ObjectHandle handle, CCharPointer buffer, UnsignedWord bufferSize) {
 
     return CTypeConversion.toCString(
       ObjectHandles.getGlobal().get(handle).toString(), buffer, bufferSize);
@@ -117,6 +121,16 @@ public final class CInterface {
       }
     }
 
+    static final class ReturnBoolean {
+      private ReturnBoolean() {
+      }
+
+      static boolean handleException(Throwable throwable) {
+        PrintStackTraceAndExit.handleException(throwable);
+        return false;
+      }
+    }
+
     static final class ReturnInt {
       private ReturnInt() {
       }
@@ -154,16 +168,6 @@ public final class CInterface {
       static CDecomposedDPA.Structure.NodeType handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
         return CDecomposedDPA.Structure.NodeType.AUTOMATON;
-      }
-    }
-
-    static final class ReturnVariableStatus {
-      private ReturnVariableStatus() {
-      }
-
-      static DecomposedDPA.VariableStatus handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return DecomposedDPA.VariableStatus.USED;
       }
     }
 

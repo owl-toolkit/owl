@@ -25,18 +25,19 @@ import static owl.cinterface.CAutomaton.Acceptance.CO_BUCHI;
 import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_EVEN;
 import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_ODD;
 import static owl.cinterface.CAutomaton.Acceptance.SAFETY;
+import static owl.cinterface.DecomposedDPA.Tree;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 
 import com.google.common.collect.Iterables;
+import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -56,6 +57,7 @@ import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.word.UnsignedWord;
+import org.graalvm.word.WordFactory;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -67,8 +69,6 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
-import owl.cinterface.wrappers.CheckedCDoubleBuffer;
-import owl.cinterface.wrappers.CheckedCIntBuffer;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
@@ -141,7 +141,23 @@ public final class CAutomaton {
     return ObjectHandles.getGlobal().create(automaton);
   }
 
+  @CEntryPoint(
+    name = NAMESPACE + "of",
+    documentation = {
+      "Translate the given formula to deterministic parity automaton. For greater performance it ",
+      "is recommended to use the decomposed DPA construction and reassemble the DPA later.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula) {
 
+    var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
+    var automaton = DeterministicAutomatonWrapper.of(formula);
+    return ObjectHandles.getGlobal().create(automaton);
+  }
 
   @CEntryPoint(
     name = NAMESPACE + "acceptance_condition",
@@ -173,7 +189,7 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cDeterministicAutomaton) {
 
-    return get(cDeterministicAutomaton).automaton.factory().alphabet().size();
+    return get(cDeterministicAutomaton).automaton.factory().atomicPropositions().size();
   }
 
   @CEntryPoint(
@@ -202,7 +218,7 @@ public final class CAutomaton {
     UnsignedWord bufferSize){
 
     return CTypeConversion.toCString(
-      get(cDeterministicAutomaton).automaton.factory().alphabet().get(index), buffer, bufferSize);
+      get(cDeterministicAutomaton).automaton.factory().atomicPropositions().get(index), buffer, bufferSize);
   }
 
   @CEntryPoint(
@@ -221,71 +237,58 @@ public final class CAutomaton {
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "edge_tree_max_capacity_buffer",
-    documentation = {
-      "Compute the maximal required buffer capacity for the edge_tree() call.",
-      "Returns Integer.MAX_VALUE if there is an integer overflow computing the capacity."
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnVoid.class
-  )
-  public static void edgeTreeMaxCapacityBuffer(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton,
-    CIntPointer treeBufferCapacity,
-    CIntPointer edgeBufferCapacity,
-    CIntPointer scoreBufferCapacity) {
-
-    try {
-
-      int height = get(cDeterministicAutomaton).automaton.factory().alphabet().size();
-
-      int nodes = BigInteger.TWO.pow(height + 1).subtract(BigInteger.ONE).intValueExact();
-      int leaves = BigInteger.TWO.pow(height).intValueExact();
-
-      treeBufferCapacity.write(Math.multiplyExact(3, nodes));
-      edgeBufferCapacity.write(Math.multiplyExact(2, leaves));
-      scoreBufferCapacity.write(leaves);
-
-    } catch (ArithmeticException exception) {
-      treeBufferCapacity.write(Integer.MAX_VALUE);
-      edgeBufferCapacity.write(Integer.MAX_VALUE);
-      scoreBufferCapacity.write(Integer.MAX_VALUE);
-    }
-  }
-
-  @CEntryPoint(
     name = NAMESPACE + "edge_tree",
     documentation = {
       "Serialise the edges leaving the given state into a tree buffer, edge buffer, and an ",
       "optional score buffer. If the scores are not required, the pointer may be set to NULL.",
-      "If the buffers are too small the method returns fall.",
-      "After the call for all three buffers the position value is updated accordingly.",
-      "If the tree buffer position is positive then the tree is interpreted as a mask for ",
-      "constructing the returned automaton. Encoding of tree is ",
-      "[atomicProposition, falseChild, trueChild, atomicProposition, falseChild, trueChild, ...]",
-      "If a child is set to REJECTING (-1) the language of that node is assumed as empty.",
-      "If a child is set to ACCEPTING (-2) the language of that node is to be the universe.",
-      "The position field must be a a multiple of 3."
+      "The pointer returned via the sized_{int,double}_array_t structures must be freed using",
+      "the method `free_unmanaged_memory`."
     },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnInt.class
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnVoid.class
   )
-  public static boolean edgeTree(
+  public static void edgeTree(
     IsolateThread thread,
     ObjectHandle cDeterministicAutomaton,
     int state,
-    CIntBuffer cTreeBuffer,
-    CIntBuffer cEdgeBuffer,
-    CDoubleBuffer cScoreBuffer) {
+    CIntArray cTreeBuffer,
+    CIntArray cEdgeBuffer,
+    CDoubleArray cScoreBuffer) {
 
-    try {
-      get(cDeterministicAutomaton).edgeTree(state, cTreeBuffer, cEdgeBuffer, cScoreBuffer);
-      return true;
-    } catch (IndexOutOfBoundsException exception) {
-      // Buffers are too small.
-      return false;
+    boolean computeScores = cScoreBuffer.isNonNull();
+
+    cTreeBuffer.elements(WordFactory.nullPointer());
+    cTreeBuffer.length(Integer.MIN_VALUE);
+    cEdgeBuffer.elements(WordFactory.nullPointer());
+    cEdgeBuffer.length(Integer.MIN_VALUE);
+
+    if (cScoreBuffer.isNonNull()) {
+      cScoreBuffer.elements(WordFactory.nullPointer());
+      cScoreBuffer.length(Integer.MIN_VALUE);
+    }
+
+    var tree = get(cDeterministicAutomaton).edgeTree(state, computeScores);
+
+    tree.tree.moveToArray(cTreeBuffer);
+    tree.edges.moveToArray(cEdgeBuffer);
+
+    if (tree.scores != null) {
+      tree.scores.moveToArray(cScoreBuffer);
     }
   }
 
+  @CEntryPoint(
+    name = NAMESPACE + "is_singleton",
+    documentation = "Returns true if the automaton only has one state, the initial state.",
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnBoolean.class
+  )
+  public static boolean isSingleton(
+    IsolateThread thread,
+    ObjectHandle cDeterministicAutomaton) {
+
+    var initialStateSuccessors = get(cDeterministicAutomaton).initialStateSuccessors;
+    return initialStateSuccessors != null
+      && Tree.Leaf.ALLOWED_CONJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors);
+  }
 
   private static DeterministicAutomatonWrapper<?, ?> get(ObjectHandle cDeterministicAutomaton) {
     return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
@@ -361,8 +364,7 @@ public final class CAutomaton {
     }
 
     public boolean isLessThanParity() {
-      return this == BUCHI || this == CO_BUCHI || this == CO_SAFETY || this == SAFETY
-        || this == WEAK || this == BOTTOM;
+      return this == BUCHI || this == CO_BUCHI || isLessOrEqualWeak();
     }
 
     public boolean isLessOrEqualWeak() {
@@ -370,31 +372,45 @@ public final class CAutomaton {
     }
   }
 
-  public static final class DeterministicAutomatonWrapper<S, T> {
+  static final class DeterministicAutomatonWrapper<S, T> {
 
     static final int ACCEPTING = -2;
     static final int REJECTING = -1;
+    static final int INITIAL = 0;
     static final int UNKNOWN = Integer.MIN_VALUE;
 
-    public final Automaton<S, ?> automaton;
-    public final Acceptance acceptance;
+    final Automaton<S, ?> automaton;
+    final Acceptance acceptance;
+    final int uncontrollableApSize;
 
+    // Mapping information
     private final Predicate<S> acceptingSink;
     private final List<S> index2StateMap;
     private final Object2IntMap<S> state2indexMap;
+
+    // Additional features for C interface
     private final ToDoubleFunction<Edge<S>> qualityScore;
     private final Function<S, T> canonicalizer;
     private final Object2IntMap<T> canonicalObjectId;
-    private final int uncontrollableApSize;
 
-    @SuppressWarnings("PMD.UnusedFormalParameter")
-    private <A extends OmegaAcceptance> DeterministicAutomatonWrapper(Automaton<S, A> automaton,
+    // Initial state caching.
+    @Nullable
+    final ValuationTree<Edge<S>> initialStateEdgeTree;
+    @Nullable
+    final Set<Integer> initialStateSuccessors;
+
+    @Nullable
+    ValuationSet filter;
+
+    private <A extends OmegaAcceptance> DeterministicAutomatonWrapper(
+      Automaton<S, A> automaton,
       Acceptance acceptance,
       Class<A> acceptanceClassBound,
       Predicate<S> acceptingSink,
       Function<S, T> canonicalizer,
       ToDoubleFunction<Edge<S>> qualityScore,
       int uncontrollableApSize) {
+
       checkArgument(automaton.initialStates().size() == 1);
       checkArgument(acceptanceClassBound.isInstance(automaton.acceptance()));
       assert automaton.is(Automaton.Property.DETERMINISTIC);
@@ -404,21 +420,39 @@ public final class CAutomaton {
       this.acceptingSink = acceptingSink;
       this.qualityScore = qualityScore;
 
-      index2StateMap = new ArrayList<>();
-      index2StateMap.add(this.automaton.onlyInitialState());
+      this.index2StateMap = new ArrayList<>();
+      this.index2StateMap.add(this.automaton.onlyInitialState());
 
-      state2indexMap = new Object2IntOpenHashMap<>();
-      state2indexMap.put(this.automaton.onlyInitialState(), 0);
-      state2indexMap.defaultReturnValue(UNKNOWN);
+      this.state2indexMap = new Object2IntOpenHashMap<>();
+      this.state2indexMap.put(this.automaton.onlyInitialState(), INITIAL);
+      this.state2indexMap.defaultReturnValue(UNKNOWN);
 
-      canonicalObjectId = new Object2IntOpenHashMap<>();
-      canonicalObjectId.defaultReturnValue(UNKNOWN);
+      this.canonicalObjectId = new Object2IntOpenHashMap<>();
+      this.canonicalObjectId.defaultReturnValue(UNKNOWN);
 
       this.canonicalizer = canonicalizer;
       this.uncontrollableApSize = uncontrollableApSize;
+
+      if (automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_TREE) {
+        this.initialStateEdgeTree = automaton.edgeTree(this.automaton.onlyInitialState());
+
+        var reachableStatesIndices = new HashSet<Integer>();
+
+        for (Set<Edge<S>> edges : initialStateEdgeTree.values()) {
+          if (edges.isEmpty()) {
+            reachableStatesIndices.add(REJECTING);
+          } else {
+            reachableStatesIndices.add(index(Iterables.getOnlyElement(edges).successor()));
+          }
+        }
+
+        this.initialStateSuccessors = Set.of(reachableStatesIndices.toArray(Integer[]::new));
+      } else {
+        this.initialStateEdgeTree = null;
+        this.initialStateSuccessors = null;
+      }
     }
 
-    @SuppressWarnings("checkstyle")
     static <S, A extends OmegaAcceptance> DeterministicAutomatonWrapper<S, ?>
       of(Automaton<S, A> automaton, int uncontrollableApSize) {
       return new DeterministicAutomatonWrapper<S, S>(
@@ -432,7 +466,6 @@ public final class CAutomaton {
       );
     }
 
-    @SuppressWarnings("checkstyle")
     static DeterministicAutomatonWrapper<?, ?> of(LabelledFormula formula) {
       if (SyntacticFragments.isSafety(formula.formula())) {
         return new DeterministicAutomatonWrapper<>(
@@ -544,6 +577,7 @@ public final class CAutomaton {
         return REJECTING;
       }
 
+      // TODO: better caching...
       T canonicalObject = this.canonicalizer.apply(index2StateMap.get(stateIndex));
       return canonicalObjectId.computeIntIfAbsent(canonicalObject, x -> canonicalObjectId.size());
     }
@@ -570,58 +604,61 @@ public final class CAutomaton {
 
     private void serialise(
       ValuationTree<Edge<S>> edgeTree,
-      CheckedCIntBuffer treeBuffer,
-      CheckedCIntBuffer edgeBuffer,
-      @Nullable CheckedCDoubleBuffer scoreBuffer,
+      SerialisedEdgeTree buffers,
       int treeBufferWriteBackPosition,
       Object2IntMap<ValuationTree<Edge<S>>> cachedPositions) {
 
-      int cachedPosition = cachedPositions.getInt(edgeTree);
+      var treeBuffer = buffers.tree;
+      int position = cachedPositions.getInt(edgeTree);
 
-      if (cachedPosition == Integer.MIN_VALUE) {
+      if (position == Integer.MIN_VALUE) {
 
         if (edgeTree instanceof ValuationTree.Node) {
           var node = (ValuationTree.Node<Edge<S>>) edgeTree;
 
-          cachedPosition = treeBuffer.position();
-          treeBuffer.put(cachedPosition, node.variable);
-          treeBuffer.position(cachedPosition + 3);
+          position = treeBuffer.size();
+          treeBuffer.add(node.variable, -1, -1);
 
-          serialise(node.falseChild, treeBuffer,
-            edgeBuffer, scoreBuffer, cachedPosition + 1, cachedPositions);
-          serialise(node.trueChild, treeBuffer,
-            edgeBuffer, scoreBuffer, cachedPosition + 2, cachedPositions);
+          serialise(node.falseChild, buffers, position + 1, cachedPositions);
+          serialise(node.trueChild, buffers, position + 2, cachedPositions);
         } else {
           var edge = Iterables.getOnlyElement(((ValuationTree.Leaf<Edge<S>>) edgeTree).value, null);
 
-          cachedPosition = -((edgeBuffer.position() / 2) + 1);
-          edgeBuffer.put(edge == null ? REJECTING : index(edge.successor()));
-          edgeBuffer.put(edge == null ? REJECTING : edge.largestAcceptanceSet());
+          var edgeBuffer = buffers.edges;
+
+          position = -((edgeBuffer.size() / 2) + 1);
+
+          if (edge == null) {
+            edgeBuffer.add(REJECTING, REJECTING);
+          } else {
+            edgeBuffer.add(index(edge.successor()), edge.largestAcceptanceSet());
+          }
+
+          var scoreBuffer = buffers.scores;
 
           if (scoreBuffer != null) {
-            scoreBuffer.put(edge == null ? 0.0 : qualityScore.applyAsDouble(edge));
+            scoreBuffer.add(edge == null ? 0.0 : qualityScore.applyAsDouble(edge));
           }
         }
 
-        cachedPositions.put(edgeTree, cachedPosition);
+        cachedPositions.put(edgeTree, position);
       }
 
       if (treeBufferWriteBackPosition >= 0) {
-        treeBuffer.put(treeBufferWriteBackPosition, cachedPosition);
+        treeBuffer.set(treeBufferWriteBackPosition, position);
       }
     }
 
-    private ValuationSet deserialise(CheckedCIntBuffer tree) {
-      var cache = new ValuationSet[tree.position() / 3];
-      var factory = automaton.factory();
+    private static ValuationSet deserialise(CIntPointer tree, int length, ValuationSetFactory factory) {
+      var cache = new ValuationSet[length / 3];
 
-      assert 3 * cache.length == tree.position();
+      assert 3 * cache.length == length;
 
       // Scan backwards;
       for (int i = cache.length - 1; i >= 0; i--) {
-        int atomicProposition = tree.get(3 * i);
-        int falseChild = tree.get(3 * i + 1);
-        int trueChild = tree.get(3 * i + 2);
+        int atomicProposition = tree.read(3 * i);
+        int falseChild = tree.read(3 * i + 1);
+        int trueChild = tree.read(3 * i + 2);
 
         ValuationSet falseChildSet = falseChild >= 0
           ? cache[falseChild / 3]
@@ -641,55 +678,67 @@ public final class CAutomaton {
       return cache[0];
     }
 
-    void edgeTree(int stateIndex,
-      CIntBuffer cTreeBuffer, CIntBuffer cEdgeBuffer, CDoubleBuffer cScoreBuffer) {
+    SerialisedEdgeTree edgeTree(int stateIndex, boolean computeScores) {
 
-      var treeBuffer = new CheckedCIntBuffer(cTreeBuffer.buffer(), cTreeBuffer.capacity());
-      var edgeBuffer = new CheckedCIntBuffer(cEdgeBuffer.buffer(), cEdgeBuffer.capacity());
-      var scoreBuffer = cScoreBuffer.isNull()
-        ? null
-        : new CheckedCDoubleBuffer(cScoreBuffer.buffer(), cScoreBuffer.capacity());
-
+      // Load installed global filter.
+      var filter = this.filter;
       S state = index2StateMap.get(stateIndex);
-      ValuationTree<Edge<S>> tree;
+      ValuationTree<Edge<S>> edgeTree;
 
-      if (cTreeBuffer.position() > 0) {
-        var treeBufferSlice = treeBuffer.slice(0, cTreeBuffer.position());
-        treeBufferSlice.position(cTreeBuffer.position());
+      if (filter == null) {
 
-        if (automaton.preferredEdgeAccess().get(0) != Automaton.PreferredEdgeAccess.EDGES) {
-          System.err.println("Masking might not be needed here."); // NOPMD
-        }
+        edgeTree = stateIndex == 0 && initialStateEdgeTree != null
+          ? initialStateEdgeTree
+          : automaton.edgeTree(state);
 
-        Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
+      } else if (automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGES) {
 
-        deserialise(treeBufferSlice).forEach(valuation -> {
+        assert initialStateEdgeTree == null;
+
+        var factory = automaton.factory();
+        var labelledEdges = new HashMap<Edge<S>, ValuationSet>();
+
+        for (BitSet valuation : BitSets.powerSet(factory.atomicPropositions().size())) {
+          if (!filter.contains(valuation)) {
+            continue;
+          }
+
           var edge = automaton.edge(state, valuation);
 
           if (edge != null) {
-            labelledEdges.merge(edge, automaton.factory().of(valuation), ValuationSet::union);
+            labelledEdges.merge(edge, factory.of(valuation), ValuationSet::union);
           }
-        });
+        }
 
-        tree = automaton.factory().inverse(labelledEdges);
+        edgeTree = factory.inverse(labelledEdges);
+
       } else {
-        tree = automaton.edgeTree(state);
+
+        edgeTree = filter.filter(
+          stateIndex == 0 && initialStateEdgeTree != null
+            ? initialStateEdgeTree
+            : automaton.edgeTree(state));
+
       }
 
+      var serialisedEdgeTree = new SerialisedEdgeTree(computeScores);
       var cachedPositions = new Object2IntOpenHashMap<ValuationTree<Edge<S>>>();
       cachedPositions.defaultReturnValue(Integer.MIN_VALUE);
+      serialise(edgeTree, serialisedEdgeTree, -1, cachedPositions);
+      return serialisedEdgeTree;
+    }
+  }
 
-      treeBuffer.position(0);
-      edgeBuffer.position(0);
+  static class SerialisedEdgeTree {
+    final CIntArrayList tree;
+    final CIntArrayList edges;
+    @Nullable
+    final CDoubleArrayList scores;
 
-      serialise(tree, treeBuffer, edgeBuffer, scoreBuffer, -1, cachedPositions);
-
-      cTreeBuffer.position(treeBuffer.position());
-      cEdgeBuffer.position(edgeBuffer.position());
-
-      if (scoreBuffer != null) {
-        cScoreBuffer.position(scoreBuffer.position());
-      }
+    SerialisedEdgeTree(boolean computeScores) {
+      this.tree = new CIntArrayList();
+      this.edges = new CIntArrayList();
+      this.scores = computeScores ? new CDoubleArrayList() : null;
     }
   }
 }

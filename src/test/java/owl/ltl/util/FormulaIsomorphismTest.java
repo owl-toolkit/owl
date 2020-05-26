@@ -36,9 +36,9 @@ class FormulaIsomorphismTest {
 
   @Test
   void computeIsomorphism() {
-    Formula formula1 = LtlParser.syntax("(F a | G b) & (G c | X d)", VARIABLES);
-    Formula formula2 = LtlParser.syntax("(F a | X b) & (G c | X d)", VARIABLES);
-    Formula formula3 = LtlParser.syntax("(F a | G c) & (G b | X d)", VARIABLES);
+    Formula formula1 = LtlParser.parse("(F a | G b) & (G c | X d)", VARIABLES).formula();
+    Formula formula2 = LtlParser.parse("(F a | X b) & (G c | X d)", VARIABLES).formula();
+    Formula formula3 = LtlParser.parse("(F a | G c) & (G b | X d)", VARIABLES).formula();
 
     assertArrayEquals(new int[]{0, 1, 2, 3}, FormulaIsomorphism.compute(formula1, formula1));
     assertNull(FormulaIsomorphism.compute(formula1, formula2));
@@ -47,8 +47,10 @@ class FormulaIsomorphismTest {
 
   @Test
   void computeIsomorphism2() {
-    Formula formula1 = LtlParser.syntax("G (a | b | X c | d | X X e | (f & F g))", VARIABLES);
-    Formula formula2 = LtlParser.syntax("G ((a & F b) | X c | X X d | e | f | g)", VARIABLES);
+    Formula formula1 = LtlParser.parse("G (a | b | X c | d | X X e | (f & F g))", VARIABLES)
+        .formula();
+    Formula formula2 = LtlParser.parse("G ((a & F b) | X c | X X d | e | f | g)", VARIABLES)
+        .formula();
     assertArrayEquals(new int[]{5, 6, 2, 4, 3, 0, 1},
       FormulaIsomorphism.compute(formula1, formula2));
   }

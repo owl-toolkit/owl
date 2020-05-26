@@ -19,57 +19,66 @@
 
 package owl.ltl.rewriter;
 
-import java.util.Arrays;
-import java.util.BitSet;
+import com.google.common.primitives.ImmutableIntArray;
+import java.util.ArrayList;
 import owl.ltl.Formula;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.visitors.Converter;
 
 public final class LiteralMapper {
-  private static final int UNDEFINED = -1;
+  public static final int UNDEFINED = -1;
 
   private LiteralMapper() {}
 
-  public static ShiftedFormula shiftLiterals(Formula formula) {
-    BitSet atoms = formula.atomicPropositions(true);
+  // TODO: move this to LabelledFormula.
+  public static ShiftedLabelledFormula shiftLiterals(LabelledFormula labelledFormula) {
+    var formula = labelledFormula.formula();
+    var atomicPropositions = labelledFormula.atomicPropositions();
 
-    int[] mapping = new int[atoms.length()];
-    Arrays.fill(mapping, UNDEFINED);
+    var usedAtomicPropositions = formula.atomicPropositions(true);
+    int size = usedAtomicPropositions.length();
 
-    int nextAtom = 0;
+    var mappingBuilder = ImmutableIntArray.builder(size);
+    var mappedAtomicPropositions = new ArrayList<String>(size);
 
-    for (int i = atoms.nextSetBit(0); i >= 0; i = atoms.nextSetBit(i + 1)) {
-      mapping[i] = nextAtom;
-      nextAtom++;
+    for (int i = 0; i < size; i++) {
+      if (usedAtomicPropositions.get(i)) {
+        mappingBuilder.add(mappedAtomicPropositions.size());
+        mappedAtomicPropositions.add(atomicPropositions.get(i));
+      } else {
+        mappingBuilder.add(UNDEFINED);
+      }
     }
 
-    return new ShiftedFormula(formula.accept(new LiteralShifter(mapping)), mapping);
+    var mapping = mappingBuilder.build();
+
+    class LiteralShifter extends Converter {
+      private LiteralShifter() {
+        super(SyntacticFragment.ALL);
+      }
+
+      @Override
+      public Formula visit(Literal literal) {
+        int mappedAtom = mapping.get(literal.getAtom());
+        assert mappedAtom != UNDEFINED;
+        assert mappedAtom <= literal.getAtom();
+        return Literal.of(mappedAtom, literal.isNegated());
+      }
+    }
+
+    var shiftedLabelledFormula
+      = LabelledFormula.of(formula.accept(new LiteralShifter()), mappedAtomicPropositions);
+
+    return new ShiftedLabelledFormula(shiftedLabelledFormula, mapping);
   }
 
-  private static class LiteralShifter extends Converter {
-    private final int[] mapping;
+  public static final class ShiftedLabelledFormula {
+    public final LabelledFormula formula;
+    public final ImmutableIntArray mapping;
 
-    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
-    private LiteralShifter(int[] mapping) { // NOPMD
-      super(SyntacticFragment.ALL);
-      this.mapping = mapping;
-    }
-
-    @Override
-    public Formula visit(Literal literal) {
-      assert mapping[literal.getAtom()] != UNDEFINED;
-      assert mapping[literal.getAtom()] <= literal.getAtom();
-      return Literal.of(mapping[literal.getAtom()], literal.isNegated());
-    }
-  }
-
-  public static final class ShiftedFormula {
-    public final Formula formula;
-    public final int[] mapping;
-
-    @SuppressWarnings({"PMD.ArrayIsStoredDirectly", "AssignmentOrReturnOfFieldWithMutableType"})
-    ShiftedFormula(Formula formula, int[] mapping) {
+    private ShiftedLabelledFormula(LabelledFormula formula, ImmutableIntArray mapping) {
       this.formula = formula;
       this.mapping = mapping;
     }

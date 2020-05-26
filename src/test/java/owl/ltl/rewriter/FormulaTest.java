@@ -70,7 +70,7 @@ class FormulaTest {
     Formula f3 = f2.not();
     f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
 
-    assertEquals(f3, LtlParser.syntax("((F G !a) | F (!a & !b))"));
+    assertEquals(f3, LtlParser.parse("((F G !a) | F (!a & !b))").formula());
   }
 
   @Test
@@ -186,8 +186,8 @@ class FormulaTest {
 
   @Test
   void testSimplifyModal() {
-    Formula f1 = LtlParser.syntax("true U G(F(a))");
-    Formula f2 = LtlParser.syntax("G F a");
+    Formula f1 = LtlParser.parse("true U G(F(a))").formula();
+    Formula f2 = LtlParser.parse("G F a").formula();
     assertEquals(f2, SimplifierFactory.apply(f1, Mode.SYNTACTIC));
   }
 

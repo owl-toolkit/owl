@@ -60,6 +60,7 @@ tasks.withType(Javadoc) {
 
 def disablePandoc = project.hasProperty("disable-pandoc")
 def disableNative = project.hasProperty("disable-native")
+def enableNativeAssertions = project.hasProperty("enable-native-assertions")
 
 apply from: 'gradle/analysis.gradle'
 apply from: 'gradle/antlr.gradle'
@@ -260,6 +261,7 @@ task buildCLibrary(type: Exec, dependsOn: [classes]) {
     commandLine command,
         "owl.cinterface.CInterface", "libowl",
         "-cp", sourceSets.main.runtimeClasspath.asPath,
+        enableNativeAssertions ? '-ea' : '-da',
         "-DowlHeader=${projectDir}/src/main/headers",
         '--shared',
         '--initialize-at-build-time=owl,it,com,org,jhoafparser',

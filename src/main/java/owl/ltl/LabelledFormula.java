@@ -32,12 +32,12 @@ public abstract class LabelledFormula {
 
   public abstract Formula formula();
 
-  public static LabelledFormula of(Formula formula, List<String> atomicProposition) {
+  public static LabelledFormula of(Formula formula, List<String> atomicPropositions) {
     int atomicPropositionsSize = formula.atomicPropositions(true).length();
-    checkArgument(Collections3.isDistinct(atomicProposition));
-    checkArgument(atomicPropositionsSize <= atomicProposition.size());
+    checkArgument(Collections3.isDistinct(atomicPropositions));
+    checkArgument(atomicPropositionsSize <= atomicPropositions.size());
     return new AutoValue_LabelledFormula(
-      List.copyOf(atomicProposition.subList(0, atomicPropositionsSize)), formula);
+      List.copyOf(atomicPropositions.subList(0, atomicPropositionsSize)), formula);
   }
 
   public LabelledFormula wrap(Formula formula) {

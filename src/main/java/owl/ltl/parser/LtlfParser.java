@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,7 +19,9 @@
 
 package owl.ltl.parser;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import javax.annotation.Nullable;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStreams;
@@ -29,8 +31,8 @@ import owl.grammar.LTLLexer;
 import owl.grammar.LTLParser;
 import owl.ltl.LabelledFormula;
 
-public final class LtlParser {
-  private LtlParser() {}
+public final class LtlfParser {
+  private LtlfParser() {}
 
   public static LabelledFormula parse(String string) {
     return parse(string, null);
@@ -51,12 +53,39 @@ public final class LtlParser {
     parser.setErrorHandler(new BailErrorStrategy());
 
     // Convert the AST into a proper object
-    var treeVisitor = atomicPropositions == null
-      ? new LtlParseTreeVisitor()
-      : new LtlParseTreeVisitor(atomicPropositions);
+    var treeVisitor = atomicPropositions == null || atomicPropositions.isEmpty()
+      ? new LtlfParseTreeVisitor()
+      : new LtlfParseTreeVisitor(atomicPropositions);
 
     return LabelledFormula.of(
       treeVisitor.visit(parser.formula()),
       treeVisitor.atomicPropositions());
+  }
+
+  public static LabelledFormula parseAndTranslateToLtl(String string) {
+    return parseAndTranslateToLtl(string, null);
+  }
+
+  public static LabelledFormula parseAndTranslateToLtl(String string,
+    @Nullable List<String> atomicPropositions) {
+    var ltlf = parse(string, atomicPropositions);
+    var ltl = LtlfToLtlTranslator.translate(ltlf.formula(), ltlf.atomicPropositions().size());
+
+    var randomID = new Random();
+    var atomicPropositionsWithTail = new ArrayList<>(ltlf.atomicPropositions());
+
+    if (!atomicPropositionsWithTail.contains("tail")) {
+      atomicPropositionsWithTail.add("tail");
+    }
+
+    while (ltlf.atomicPropositions().size() == atomicPropositionsWithTail.size()) {
+      String tail = "tail_" + randomID.nextInt();
+
+      if (!atomicPropositionsWithTail.contains(tail)) {
+        atomicPropositionsWithTail.add(tail);
+      }
+    }
+
+    return LabelledFormula.of(ltl, atomicPropositionsWithTail);
   }
 }

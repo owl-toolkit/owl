@@ -42,7 +42,7 @@ class RequiredHistoryTest {
 
   @Test
   void getRequiredHistoryLarge() {
-    Formula formula = LtlParser.syntax("X (a | (X (b & X c)))");
+    Formula formula = LtlParser.parse("X (a | (X (b & X c)))").formula();
 
     History past = new History(new long[] {0, 1L, 3L});
 
@@ -57,7 +57,7 @@ class RequiredHistoryTest {
 
   @Test
   void getRequiredHistorySmall() {
-    Formula formula = LtlParser.syntax("a | (X b)");
+    Formula formula = LtlParser.parse("a | (X b)").formula();
 
     BitSet set = new BitSet();
     set.set(0);
