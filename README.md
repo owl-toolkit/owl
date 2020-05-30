@@ -28,7 +28,9 @@ PATH=/opt/graalvm-ce-java11-20.1.0/bin/:$PATH
 JAVA_HOME=/opt/graalvm-ce-java11-20.1.0/
 ```
 
-## Building
+If GraalVM (native-image) is not available, the project can also be built with a reduced set of features on any JDK that supports at least Java 11. See below for instructions.
+
+## Building on GraalVM
 
 The standard distribution can be obtained with:
 
@@ -36,7 +38,11 @@ The standard distribution can be obtained with:
 $ ./gradlew distZip
 ```
 
-The resulting `.zip` is located in `build/distributions`. It includes the scripts for the CLI tools, Jars usable as a Java library, and a C library. If only the Java components are required, you can exclude native code by executing:
+The resulting `.zip` is located in `build/distributions`. It includes the scripts for the CLI tools, Jars usable as a Java library, and a C library.
+
+## Building on OpenJDK
+
+If GraalVM is not available, building the native executable and library can be skipped by executing:
 
 ```
 $ ./gradlew distZip -Pdisable-native

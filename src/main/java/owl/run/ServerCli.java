@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -31,7 +31,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.DefaultParser;
@@ -39,7 +41,6 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import owl.run.modules.OwlModuleRegistry;
 import owl.run.parser.OwlParser;
-import owl.util.DaemonThreadFactory;
 
 public final class ServerCli {
   private static final Logger logger = Logger.getLogger(ServerCli.class.getName());
@@ -75,7 +76,7 @@ public final class ServerCli {
 
     logger.log(Level.INFO, "Starting server on {0}:{1}", new Object[] {address, port});
     ExecutorService connectionExecutor = Executors.newCachedThreadPool(
-      new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
+      new DaemonThreadFactory());
 
     try (var socket = ServerSocketChannel.open().bind(new InetSocketAddress(address, port))) {
       Runtime.getRuntime().addShutdownHook(new Thread(() -> {
@@ -128,6 +129,22 @@ public final class ServerCli {
     } catch (IOException e) {
       logger.log(Level.SEVERE, "Unexpected IO exception while waiting for connections", e);
       connectionExecutor.shutdownNow();
+    }
+  }
+
+  static final class DaemonThreadFactory implements ThreadFactory {
+    private static final AtomicInteger factoryNumber = new AtomicInteger(1);
+
+    private final ThreadGroup group = Thread.currentThread().getThreadGroup();
+    private final AtomicInteger threadNumber = new AtomicInteger(1);
+    private final int number = factoryNumber.getAndIncrement();
+
+    @Override
+    public Thread newThread(Runnable r) {
+      String name = String.format("owl-worker-%d-%d", number, threadNumber.getAndIncrement());
+      Thread t = new Thread(group, r, name);
+      t.setDaemon(true);
+      return t;
     }
   }
 }

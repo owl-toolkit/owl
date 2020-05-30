@@ -29,12 +29,11 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.EnumSet;
 import java.util.Map;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
-import javax.annotation.Nullable;
+import java.util.function.Supplier;
 import owl.automaton.AnnotatedStateOptimisation;
 import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
@@ -47,7 +46,6 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.translations.mastertheorem.Selector;
-import owl.util.DaemonThreadFactory;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
 
@@ -77,11 +75,9 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    var executor = Executors.newCachedThreadPool(
-      new DaemonThreadFactory(Thread.currentThread().getThreadGroup()));
 
-    Callable<Result<?>> automatonCallable;
-    Callable<Result<?>> complementCallable;
+    Supplier<Optional<Result<?>>> automatonSupplier;
+    Supplier<Optional<Result<?>>> complementSupplier;
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
       int fixpoints = configuration.contains(SYMMETRIC)
@@ -93,103 +89,60 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
         : Selector.selectAsymmetric(formula.formula().not(), false).size();
 
       if (fixpoints <= negationFixpoints) {
-        automatonCallable = configuration.contains(SYMMETRIC)
-          ? () -> symmetricConstruction(formula)
-          : () -> asymmetricConstruction(formula);
-        complementCallable = () -> null;
+        automatonSupplier = configuration.contains(SYMMETRIC)
+          ? () -> Optional.of(symmetricConstruction(formula))
+          : () -> Optional.of(asymmetricConstruction(formula));
+        complementSupplier = Optional::empty;
       } else {
-        automatonCallable = () -> null;
-        complementCallable = configuration.contains(SYMMETRIC)
-          ? () -> symmetricConstruction(formula.not())
-          : () -> asymmetricConstruction(formula.not());
+        automatonSupplier = Optional::empty;
+        complementSupplier = configuration.contains(SYMMETRIC)
+          ? () -> Optional.of(symmetricConstruction(formula.not()))
+          : () -> Optional.of(asymmetricConstruction(formula.not()));
       }
     } else {
-      automatonCallable = configuration.contains(SYMMETRIC)
-        ? () -> symmetricConstruction(formula)
-        : () -> asymmetricConstruction(formula);
+      automatonSupplier = configuration.contains(SYMMETRIC)
+        ? () -> Optional.of(symmetricConstruction(formula))
+        : () -> Optional.of(asymmetricConstruction(formula));
 
       if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
-        complementCallable = configuration.contains(SYMMETRIC)
-          ? () -> symmetricConstruction(formula.not())
-          : () -> asymmetricConstruction(formula.not());
+        complementSupplier = configuration.contains(SYMMETRIC)
+          ? () -> Optional.of(symmetricConstruction(formula.not()))
+          : () -> Optional.of(asymmetricConstruction(formula.not()));
       } else {
-        complementCallable = () -> null;
+        complementSupplier = Optional::empty;
       }
     }
 
-    Future<Result<?>> automatonFuture = executor.submit(automatonCallable);
-    Future<Result<?>> complementFuture = executor.submit(complementCallable);
+    // Setup Thread for complement construction.
+    var complementReference = new AtomicReference<Automaton<?, ParityAcceptance>>();
+    var complementThread = new Thread(
+    () -> complementSupplier.get().map(Result::complement).ifPresent(complementReference::set));
+    complementThread.setDaemon(true);
+    complementThread.start();
 
-    try {
-      Automaton<?, ParityAcceptance> automaton = null;
-      Automaton<?, ParityAcceptance> complement = null;
+    var automaton = automatonSupplier.get().map(x -> x.automaton).orElse(null);
+    Uninterruptibles.joinUninterruptibly(complementThread);
+    var complement = complementReference.get();
 
-      do {
-        if (automaton == null) {
-          automaton = getAutomaton(automatonFuture);
-        }
-
-        if (complement == null) {
-          complement = getComplement(complementFuture);
-        }
-      } while (!exitLoop(automaton, complement));
-
-      if (complement == null) {
-        assert automaton != null;
-        return automaton;
-      }
-
-      if (automaton == null) {
-        return complement;
-      }
-
-      // Select smaller automaton.
-      if (automaton.size() < complement.size()) {
-        return automaton;
-      }
-
-      if (automaton.size() > complement.size()) {
-        return complement;
-      }
-
-      return automaton.acceptance().acceptanceSets()
-        <= complement.acceptance().acceptanceSets() ? automaton : complement;
-    } catch (ExecutionException ex) {
-      // The translation broke down, it is unsafe to continue...
-      automatonFuture.cancel(true);
-      complementFuture.cancel(true);
-      //noinspection ProhibitedExceptionThrown
-      throw new RuntimeException(ex); // NOPMD
-    } finally {
-      executor.shutdown();
-    }
-  }
-
-  private boolean exitLoop(@Nullable Automaton<?, ?> automaton,
-    @Nullable Automaton<?, ?> complement) {
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
-      return automaton != null || complement != null;
+    if (complement == null) {
+      return Objects.requireNonNull(automaton);
     }
 
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
-      return automaton != null && complement != null;
+    if (automaton == null) {
+      return Objects.requireNonNull(complement);
     }
 
-    return automaton != null;
-  }
+    // Select smaller automaton.
+    if (automaton.size() < complement.size()) {
+      return automaton;
+    }
 
-  @Nullable
-  private static Automaton<?, ParityAcceptance> getAutomaton(Future<Result<?>> future)
-    throws ExecutionException {
-    var result = Uninterruptibles.getUninterruptibly(future);
-    return result == null ? null : result.automaton;
-  }
+    if (automaton.size() > complement.size()) {
+      return complement;
+    }
 
-  @Nullable
-  private static Automaton<?, ParityAcceptance> getComplement(Future<Result<?>> future)
-    throws ExecutionException {
-    var result = Uninterruptibles.getUninterruptibly(future);
-    return result == null ? null : result.complement();
+    return automaton.acceptance().acceptanceSets()
+      <= complement.acceptance().acceptanceSets() ? automaton : complement;
   }
 
   private Result<AsymmetricRankingState> asymmetricConstruction(LabelledFormula formula) {

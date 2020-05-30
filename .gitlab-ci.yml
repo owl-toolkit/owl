@@ -24,10 +24,12 @@ Build:
   script:
     - apt-get update && apt-get install -y --no-install-recommends build-essential zlib1g-dev # TODO: Remove this after Docker update
     - ./gradlew distZip
+    - build/native-executable/owl-native --version
   artifacts:
     paths:
-      - build/clibrary/reports
       - build/distributions
+      - build/native-executable/reports
+      - build/native-library/reports
       - build/reports
     when: on_success
     expire_in: 1 week

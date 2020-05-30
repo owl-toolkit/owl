@@ -103,9 +103,8 @@ class OwlTool(Tool):
         if os.name == 'nt':
             tool_execution = ["build\\bin\\owl.bat"]
         else:
-            tool_execution = ["build/bin/owl"]
-        # TODO Fix --worker flag
-        tool_execution.extend(["-i", static_input]) # , "--worker", "0"])
+            tool_execution = ["build/bin/owl-native"]
+        tool_execution.extend(["-i", static_input])
         tool_execution.extend(self.get_pipeline())
         return tool_execution
 
