@@ -55,10 +55,10 @@ public final class LanguageEmptiness {
         x -> hasAcceptingLasso(automaton, x, -1, -1, false));
     }
 
-    if (acceptance instanceof BuchiAcceptance) {
-      var casted = OmegaAcceptanceCast.cast(automaton, BuchiAcceptance.class);
-      return initialStates.stream().noneMatch(x -> Buchi.containsAcceptingLasso(casted, x));
-    }
+    //if (acceptance instanceof BuchiAcceptance) {
+    //  var casted = OmegaAcceptanceCast.cast(automaton, BuchiAcceptance.class);
+    //  return initialStates.stream().noneMatch(x -> Buchi.containsAcceptingScc(casted, x));
+    //}
 
     if (acceptance instanceof GeneralizedBuchiAcceptance) {
       var casted = OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class);

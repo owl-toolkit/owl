@@ -17,6 +17,7 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.parser.LtlfParser;
 
 public class LtlfParserTest {
   private static final List<String> INPUT = List.of(
@@ -52,8 +53,7 @@ public class LtlfParserTest {
   @Test
   void parserTest() {
     for (int i = 0;i < INPUT.size();i++) {
-      assertEquals(OUTPUT.get(i), LtlfParser.syntax(INPUT.get(i)));
+      assertEquals(OUTPUT.get(i), LtlfParser.parse(INPUT.get(i)).formula());
     }
   }
-
 }

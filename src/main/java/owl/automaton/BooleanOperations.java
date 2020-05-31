@@ -20,6 +20,7 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.automaton.Automaton.Property.COMPLETE;
 import static owl.automaton.Automaton.Property.DETERMINISTIC;
 import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 
@@ -121,7 +122,7 @@ public final class BooleanOperations {
     Class<A> expectedAcceptance) {
     var completeAutomaton = trapState == null ? automaton : Views.complete(automaton, trapState);
 
-    checkArgument(completeAutomaton.is(Automaton.Property.COMPLETE), "Automaton is not complete.");
+    checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
     checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
@@ -246,9 +247,13 @@ public final class BooleanOperations {
         throw new IllegalArgumentException("Symbolic factories are incompatible.");
       }
 
-      if (Collections.indexOfSubList(otherFactory.alphabet(), factory.alphabet()) == 0) {
+      if (Collections.indexOfSubList(
+        otherFactory.atomicPropositions(),
+        factory.atomicPropositions()) == 0) {
         factory = otherFactory;
-      } else if (Collections.indexOfSubList(factory.alphabet(), otherFactory.alphabet()) != 0) {
+      } else if (Collections.indexOfSubList(
+        factory.atomicPropositions(),
+        otherFactory.atomicPropositions()) != 0) {
         throw new IllegalArgumentException("Could not find shared alphabet.");
       }
     }
@@ -652,6 +657,31 @@ public final class BooleanOperations {
     @Override
     public Set<S> states() {
       return backingAutomaton.states();
+    }
+
+    @Override
+    public void accept(EdgeVisitor<S> visitor) {
+      backingAutomaton.accept(visitor);
+    }
+
+    @Override
+    public void accept(EdgeMapVisitor<S> visitor) {
+      backingAutomaton.accept(visitor);
+    }
+
+    @Override
+    public void accept(EdgeTreeVisitor<S> visitor) {
+      backingAutomaton.accept(visitor);
+    }
+
+    @Override
+    public void accept(Visitor<S> visitor) {
+      backingAutomaton.accept(visitor);
+    }
+
+    @Override
+    public boolean is(Property property) {
+      return backingAutomaton.is(property);
     }
   }
 }

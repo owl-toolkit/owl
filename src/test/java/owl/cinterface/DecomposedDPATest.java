@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,24 +19,28 @@
 
 package owl.cinterface;
 
-import static org.junit.jupiter.api.Assertions.assertAll;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static owl.cinterface.DecomposedDPA.VariableStatus.CONSTANT_FALSE;
-import static owl.cinterface.DecomposedDPA.VariableStatus.CONSTANT_TRUE;
-import static owl.cinterface.DecomposedDPA.VariableStatus.UNUSED;
-import static owl.cinterface.DecomposedDPA.VariableStatus.USED;
+import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.REALIZABLE;
+import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.UNKNOWN;
+import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.UNREALIZABLE;
 import static owl.cinterface.DecomposedDPA.of;
 import static owl.util.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
-import owl.ltl.Formula;
+import owl.automaton.Automaton;
+import owl.cinterface.emulation.EmulatedCIntPointer;
+import owl.ltl.BooleanConstant;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
 class DecomposedDPATest {
@@ -58,6 +62,14 @@ class DecomposedDPATest {
     + "(((((hgrant_0) | (hgrant_1))) & (((hgrant_2) | (((hgrant_0) & (hgrant_1)))))))))))))";
 
   @Test
+  void testTrivial() {
+    assertDoesNotThrow(() -> {
+      of(LabelledFormula.of(BooleanConstant.TRUE, List.of()));
+      of(LabelledFormula.of(BooleanConstant.FALSE, List.of()));
+    });
+  }
+
+  @Test
   void splitSimpleArbiter() {
     String simpleArbiter = "(((((((((G ((((((! (g_0)) && (! (g_1))) && (! "
       + "(g_2))) && (! (g_3))) && ((((! (g_4)) && (! (g_5))) && (((! (g_6)) && (true)) || ((true) "
@@ -69,108 +81,127 @@ class DecomposedDPATest {
       + " ((r_4) -> (F (g_4))))) && (G ((r_5) -> (F (g_5))))) && (G ((r_6) -> (F (g_6))))) && (G ("
       + "(r_7) -> (F (g_7)))))";
 
-    of(LtlParser.syntax(simpleArbiter), true, false, 0);
+    of(LtlParser.parse(simpleArbiter));
+  }
+
+  @Test
+  void testFilter() {
+    var specification
+      = "G a & (F b | (G ((a & !b) | X X X X X X X F c | !b U (c R d))))";
+    var decomposedDpa = of(LtlParser.parse(specification));
+
+    var dpa = decomposedDpa.automata.get(2);
+    assertEquals(Automaton.PreferredEdgeAccess.EDGES, dpa.automaton.preferredEdgeAccess().get(0));
+    assertEquals(1, reachableState(dpa).cardinality());
+  }
+
+  static BitSet reachableState(CAutomaton.DeterministicAutomatonWrapper<?, ?> wrapper) {
+    BitSet todo = new BitSet();
+    todo.set(0);
+    BitSet exploredStates = new BitSet();
+
+    while (!todo.isEmpty()) {
+      int state = todo.nextSetBit(0);
+
+
+
+      var foo = wrapper.edgeTree(state, false);
+
+      for (int i = 0; i < foo.edges.size(); i = i + 2) {
+        int successor = foo.edges.get(i);
+
+        if (successor < 0) {
+          continue;
+        }
+
+        if (!todo.get(successor) && !exploredStates.get(successor)) {
+          todo.set(successor);
+        }
+      }
+
+      todo.clear(state);
+      exploredStates.set(state);
+    }
+
+    return exploredStates;
   }
 
   @Test
   void splitSimpleArbiter2() {
     var specification
       = "(((G F i1 -> G F o1) && (G F o1 -> G F o2)) <-> ((G F o1 -> G F o3) && (G F o3)))";
-    of(LtlParser.syntax(specification), true, false, 1);
-  }
-
-  @Test
-  void splitFg() {
-    of(LtlParser.syntax("F G a"), true, true, 0);
-  }
-
-  @Test
-  void splitBuechi() {
-    of(LtlParser.syntax("G (a | X F a)"), true, true, 0);
+    of(LtlParser.parse(specification));
   }
 
   @Test
   void testCoSafetySplitting() {
-    var coSafetyFormula = LtlParser.syntax("(F (grant_1 && grant_2)) && (release_1 U grant_1) "
+    var coSafetyFormula = LtlParser.parse("(F (grant_1 && grant_2)) && (release_1 U grant_1) "
       + "&& X (release_1 U grant_1) && (release_2 U grant_2) && (F (x -> X y)) && F x");
-    var automaton = of(coSafetyFormula, false, false, 0).structure;
-    assertEquals(5, ((DecomposedDPA.DecomposedDPAStructure.Node) automaton).children.size());
+    var automaton = of(coSafetyFormula).structure;
+    assertEquals(5, ((DecomposedDPA.Tree.Node) automaton).children.size());
   }
 
   @Test
   void testSafetySplitting() {
-    var safetyFormula = LtlParser.syntax("(G (grant_1 || grant_2)) && (release_1 R grant_1) "
+    var safetyFormula = LtlParser.parse("(G (grant_1 || grant_2)) && (release_1 R grant_1) "
       + "&& X (release_1 R grant_1) && (release_2 R grant_2) && (G (request_1 -> X grant_1)) "
       + "&& G grant_1");
-    var automaton = of(safetyFormula, false, false, 0).structure;
-    assertEquals(5, ((DecomposedDPA.DecomposedDPAStructure.Node) automaton).children.size());
+    var automaton = of(safetyFormula).structure;
+    assertEquals(5, ((DecomposedDPA.Tree.Node) automaton).children.size());
   }
 
   @Test
   void testAbsenceOfAssertionError() {
     assertDoesNotThrow(() -> {
-      of(LtlParser.syntax("G (a | F a | F !b)"), false, false, 0);
-      of(LtlParser.syntax("G (a | F a | F !b) & G (b | F b | F !c)"), true, false, 0);
+      of(LtlParser.parse("G (a | F a | F !b)"));
+      of(LtlParser.parse("G (a | F a | F !b) & G (b | F b | F !c)"));
     });
   }
 
-  /*
   @Test
   void testDeclareQuery() {
-    var ambaEncode = LtlParser.syntax(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
-    var automaton = of(ambaEncode, true, false, 7);
+    var ambaEncode = LtlParser.parse(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
+    var automaton = of(simplify(ambaEncode, 7));
 
-    var initial = ImmutableIntArray
-      .copyOf(Collections.nCopies(3, 0));
-    var realizable = ImmutableIntArray
-      .copyOf(Collections.nCopies(3, DeterministicAutomaton.ACCEPTING));
-    var unrealizable = ImmutableIntArray
-      .copyOf(Collections.nCopies(3, DeterministicAutomaton.REJECTING));
+    var initial
+      = new EmulatedCIntPointer(3, 0);
+    var realizable
+      = new EmulatedCIntPointer(3, CAutomaton.DeterministicAutomatonWrapper.ACCEPTING);
+    var unrealizable
+      = new EmulatedCIntPointer(3, CAutomaton.DeterministicAutomatonWrapper.REJECTING);
 
-    assertEquals(automaton.query(initial.toArray()),
-      UNKNOWN);
-    assertEquals(automaton.query(realizable.toArray()),
-      UNKNOWN);
-    assertEquals(automaton.query(unrealizable.toArray()),
-      UNKNOWN);
+    assertEquals(automaton.query(initial, 3), UNKNOWN);
+    assertEquals(automaton.query(realizable, 3), UNKNOWN);
+    assertEquals(automaton.query(unrealizable, 3), UNKNOWN);
 
-    assertTrue(automaton.declare(
-      REALIZABLE, initial.toArray()));
-    assertTrue(automaton.declare(
-      REALIZABLE, realizable.toArray()));
-    assertTrue(automaton.declare(
-      UNREALIZABLE, unrealizable.toArray()));
+    assertTrue(automaton.declare(REALIZABLE, initial, 3));
+    assertTrue(automaton.declare(REALIZABLE, realizable, 3));
+    assertTrue(automaton.declare(UNREALIZABLE, unrealizable, 3));
 
-    assertEquals(automaton.query(initial.toArray()),
-      REALIZABLE);
-    assertEquals(automaton.query(realizable.toArray()),
-      REALIZABLE);
-    assertEquals(automaton.query(unrealizable.toArray()),
-      UNREALIZABLE);
+    assertEquals(automaton.query(initial, 3), REALIZABLE);
+    assertEquals(automaton.query(realizable, 3), REALIZABLE);
+    assertEquals(automaton.query(unrealizable, 3), UNREALIZABLE);
 
-    assertFalse(automaton.declare(
-      REALIZABLE, initial.toArray()));
-    assertFalse(automaton.declare(
-      REALIZABLE, realizable.toArray()));
-    assertFalse(automaton.declare(
-      UNREALIZABLE, unrealizable.toArray()));
+    assertFalse(automaton.declare(REALIZABLE, initial, 3));
+    assertFalse(automaton.declare(REALIZABLE, realizable, 3));
+    assertFalse(automaton.declare(UNREALIZABLE, unrealizable, 3));
   }
-   */
 
   @Test
   void testDecompositionError() {
-    var formula = LtlParser.syntax("((F G a) & (G F b)) | ((F G c) & X (G (!d | F e)))");
-    var automaton = of(formula, false, false, 0);
-    assertThat(automaton.structure, DecomposedDPA.DecomposedDPAStructure.Leaf.class::isInstance);
+    var formula = LtlParser.parse("((F G a) & (G F b)) | ((F G c) & X (G (!d | F e)))");
+    var automaton = of(formula);
+    assertThat(automaton.structure, DecomposedDPA.Tree.Leaf.class::isInstance);
   }
 
   @Test
   void testExtendedDecomposition() {
-    var formula = LtlParser.syntax("a U (b R c) | (a U b) R c");
-    var automaton = of(formula, false, false, 0);
-    assertThat(automaton.structure, DecomposedDPA.DecomposedDPAStructure.Node.class::isInstance);
-    assertThat(automaton.structure, x -> x.label == CDecomposedDPA.Structure.NodeType.DISJUNCTION);
-    assertEquals(automaton.automata.size(), 2);
+    var formula = LtlParser.parse("a U (b R c) | (a U b) R c");
+    var automaton = of(formula);
+    assertThat(automaton.structure, DecomposedDPA.Tree.Node.class::isInstance);
+    assertThat(automaton.structure, x ->
+      ((DecomposedDPA.Tree.Node) x).label == CDecomposedDPA.Structure.NodeType.DISJUNCTION);
+    assertEquals(2, automaton.automata.size());
   }
 
   @Test
@@ -180,7 +211,7 @@ class DecomposedDPATest {
     IntStream.range(0, 10).mapToObj(x -> "request_" + x).forEach(loadBalancerLiterals::add);
     IntStream.range(0, 10).mapToObj(x -> "grant_" + x).forEach(loadBalancerLiterals::add);
 
-    var loadBalancer = LtlParser.syntax("((F(G(!idle))) | (F(((idle) & (X(!idle)) & (X(("
+    var loadBalancer = LtlParser.parse("((F(G(!idle))) | (F(((idle) & (X(!idle)) & (X(("
       + "(!grant_0) & (!grant_1) & (!grant_2) & (!grant_3) & (!grant_4) & (!grant_5) & (!grant_6)"
       + " & (!grant_7) & (!grant_8) & (!grant_9))))))) | (F(((X(grant_0)) & (X(((((idle) | "
       + "(request_0))) R (((!idle) | (request_0))))))))) | (((G(((!request_0) | (grant_1)))) & (G"
@@ -204,9 +235,9 @@ class DecomposedDPATest {
       + "(!grant_6))))))))))))) | (((!grant_5) & (!grant_6) & (!grant_7) & (!grant_8) & "
       + "(!grant_9) & (((((!grant_0) & (!grant_1) & (!grant_2) & (((!grant_3) | (!grant_4))))) | "
       + "(((!grant_3) & (!grant_4) & (((((!grant_0) & (!grant_1))) | (((!grant_2) & (((!grant_0) "
-      + "| (!grant_1))))))))))))))))))))", List.copyOf(loadBalancerLiterals));
+      + "| (!grant_1))))))))))))))))))))", loadBalancerLiterals);
 
-    var automaton = of(loadBalancer, true, false, 10);
+    var automaton = of(simplify(loadBalancer, 10));
 
     assertEquals(9, automaton.automata.size());
 
@@ -218,20 +249,13 @@ class DecomposedDPATest {
   @Test
   void testPerformance() {
     assertTimeout(Duration.ofMillis(300), () -> {
-      var formula = LtlParser.syntax(
+      var formula = LtlParser.parse(
         "(G(X!p12|X(!p6&!p13)|!p0|X(p13&p6))&G(X!p8|X(p2&p13)|X(!p13&!p2)|!p0)&G(X(p5&p13)|!p0"
           + "|X(!p13&!p5)|X!p11)&G((Xp13&p13)|(!p13&X!p13)|p0)&G(X(!p13&!p4)|!p0|X!p10|X(p4&p13))"
           + "&G(X(p1&p13)|X(!p13&!p1)|X!p7|!p0)&G(X(p3&p13)|X(!p13&!p3)|!p0|X!p9))");
-      var automaton = of(formula, true, false, 0);
+      var automaton = of(simplify(formula, 0));
 
-      var intPointer1 = new MockedCIntPointer(100);
-      var intBuffer1 = new MockedCIntBuffer(intPointer1, 100);
-      var intPointer2 = new MockedCIntPointer(100);
-      var intBuffer2 = new MockedCIntBuffer(intPointer2, 100);
-      var doublePointer3 = new MockedCDoublePointer(100);
-      var doubleBuffer3 = new MockedCDoubleBuffer(doublePointer3, 100);
-
-      automaton.automata.get(0).edgeTree(0, intBuffer1, intBuffer2, doubleBuffer3);
+      automaton.automata.get(0).edgeTree(0, true);
     });
   }
 
@@ -239,9 +263,7 @@ class DecomposedDPATest {
   void testPerformanceComplementConstructionHeuristic() {
     // Computing the automaton without COMPLEMENT_CONSTRUCTION_HEURISTIC takes minutes.
     assertTimeout(Duration.ofSeconds(2), () -> {
-      var formula = LtlParser.syntax(
-        "((FGp2|GFp1)&(FGp3|GFp2)&(FGp4|GFp3)&(FGp5|GFp4)&(FGp6|GFp5))");
-      of(formula, true, false, 0);
+      of(LtlParser.parse("((FGp2|GFp1)&(FGp3|GFp2)&(FGp4|GFp3)&(FGp5|GFp4)&(FGp6|GFp5))"));
     });
   }
 
@@ -254,7 +276,7 @@ class DecomposedDPATest {
       IntStream.range(0, 12).mapToObj(x -> "hgrant_" + x).forEach(ambaDecomposedLockLiterals::add);
       ambaDecomposedLockLiterals.add("locked");
 
-      var ambaDecomposedLock = LtlParser.syntax("((F(((!hgrant_0) & (!hgrant_1) & (!hgrant_2) & "
+      var ambaDecomposedLock = LtlParser.parse("((F(((!hgrant_0) & (!hgrant_1) & (!hgrant_2) & "
         + "(!hgrant_3) & (!hgrant_4) & (!hgrant_5) & (!hgrant_6) & (!hgrant_7) & (!hgrant_8) & "
         + "(!hgrant_9) & (!hgrant_10) & (!hgrant_11)))) | (((G(((decide) | (((X(locked)) <-> "
         + "(locked)))))) & (G(((!decide) | (X(!hgrant_0)) | (((X(locked)) <-> (X(hlock_0))))))) &"
@@ -277,7 +299,7 @@ class DecomposedDPATest {
         + "(hgrant_3) | (hgrant_4) | (hgrant_5) | (((((hgrant_0) | (hgrant_1))) & (((hgrant_2) | "
         + "(((hgrant_0) & (hgrant_1)))))))))))))))))", List.copyOf(ambaDecomposedLockLiterals));
 
-      var automaton = of(ambaDecomposedLock, true, false, 25);
+      var automaton = of(simplify(ambaDecomposedLock, 25));
 
       assertEquals(3, automaton.automata.size());
       assertEquals(4, automaton.automata.get(0).automaton.size());
@@ -288,61 +310,43 @@ class DecomposedDPATest {
   @Test
   void testPerformanceAmbaEncode() {
     assertTimeout(Duration.ofSeconds(1), () -> {
-      var ambaEncode = LtlParser.syntax(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
-      var automaton = of(ambaEncode, true, false, 7);
+      var ambaEncode = LtlParser.parse(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
+      var decomposedDpa = of(simplify(ambaEncode, 7));
 
-      var intPointer1 = new MockedCIntPointer(100);
-      var intBuffer1 = new MockedCIntBuffer(intPointer1, 100);
-      var intPointer2 = new MockedCIntPointer(100);
-      var intBuffer2 = new MockedCIntBuffer(intPointer2, 100);
-      var doublePointer3 = new MockedCDoublePointer(100);
-      var doubleBuffer3 = new MockedCDoubleBuffer(doublePointer3, 100);
-
-      automaton.automata.get(0).edgeTree(0, intBuffer1, intBuffer2, doubleBuffer3);
+      decomposedDpa.automata.get(0).edgeTree(0, true);
     });
   }
 
   @Test
   void testThetaFormulaRegression() {
-    var literals = List.of("r", "q", "p_0", "p_1", "p_2", "p_3", "acc");
-    var formula = LtlParser.syntax(
+    var theta = LtlParser.parse(
       "((((GF p_0) & (GF p_1) & (GF p_2) & (GF p_3) & (F((q & G !r))))) <-> (GF acc))",
-      literals);
-    var automaton = of(formula, true, false, 6);
+      List.of("r", "q", "p_0", "p_1", "p_2", "p_3", "acc"));
+    var decomposedDpa = of(simplify(theta, 6));
 
-    assertEquals(2, automaton.automata.size());
-    assertEquals(1, automaton.automata.get(0).automaton.size());
-    assertEquals(2, automaton.automata.get(1).automaton.size());
+    assertEquals(2, decomposedDpa.automata.size());
+    assertEquals(1, decomposedDpa.automata.get(0).automaton.size());
+    assertEquals(2, decomposedDpa.automata.get(1).automaton.size());
   }
 
   @Test
-  void testVariableStatusesModal() {
-    Formula formula = LtlParser.syntax("G (req | F gra)", List.of("req", "gra"));
+  void testFilterRegression() {
+    var formula = LtlParser.parse("G(a|b) & G(!a|!b) & (F c <-> GF a)", List.of("c", "a", "b"));
+    var decomposedDpa = of(formula);
 
-    var automaton1 = of(formula, true, false, 0);
-    var automaton2 = of(formula, true, false, 1);
-    var automaton3 = of(formula, true, false, 2);
+    int[] tree0 = {0, 3, -2, 1, -1, -2};
+    int[] tree1 = {0, -1, 3, 1, -1, -2};
+    int[] tree2 = {0, -1, -2};
+    int[] tree3 = {0, -1, -2};
 
-    assertAll(
-      () -> assertTrue(automaton1.variableStatuses.contains(CONSTANT_TRUE)),
-      () -> assertTrue(automaton2.variableStatuses.contains(CONSTANT_TRUE)),
-      () -> assertEquals(List.of(CONSTANT_FALSE, CONSTANT_FALSE), automaton3.variableStatuses)
-    );
+    assertArrayEquals(tree0, decomposedDpa.automata.get(0).edgeTree(0, false).tree.toArray());
+    assertArrayEquals(tree1, decomposedDpa.automata.get(1).edgeTree(0, false).tree.toArray());
+    assertArrayEquals(tree2, decomposedDpa.automata.get(2).edgeTree(0, false).tree.toArray());
+    assertArrayEquals(tree3, decomposedDpa.automata.get(3).edgeTree(0, false).tree.toArray());
   }
 
-  @Test
-  void testVariableStatusesPropositional() {
-    Formula formula = LtlParser.syntax(
-      "i1 | !i2 | (o1 & !o2 & (i4 <-> o4))",
-      List.of("i1", "i2", "i3", "i4", "o1", "o2", "o3", "o4"));
-
-    var automaton = of(formula, true, false, 4);
-
-    assertEquals(List.of(
-      // Inputs:
-      CONSTANT_FALSE, CONSTANT_TRUE, UNUSED, USED,
-      // Outputs:
-      CONSTANT_TRUE, CONSTANT_FALSE, UNUSED, USED),
-      automaton.variableStatuses);
+  private static LabelledFormula simplify(LabelledFormula formula, int firstOutputVariable) {
+    return CLabelledFormula.simplify(formula, firstOutputVariable,
+      new EmulatedCIntPointer(100), 100);
   }
 }

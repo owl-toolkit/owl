@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -35,7 +35,7 @@ final class DefaultImplementations {
   static <S> Set<S> visit(Automaton<S, ?> automaton, Automaton.EdgeVisitor<S> visitor) {
     Set<S> exploredStates = new HashSet<>(automaton.initialStates());
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
-    Set<BitSet> powerSet = BitSets.powerSet(automaton.factory().alphabet().size());
+    Set<BitSet> powerSet = BitSets.powerSet(automaton.factory().atomicPropositions().size());
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();
@@ -91,7 +91,7 @@ final class DefaultImplementations {
       S state = workQueue.remove();
 
       var edges = automaton.edgeTree(state);
-      edges.values().forEach((edge) -> {
+      edges.flatValues().forEach((edge) -> {
         S successor = edge.successor();
 
         if (exploredStates.add(successor)) {

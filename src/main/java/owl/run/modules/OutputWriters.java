@@ -113,7 +113,7 @@ public final class OutputWriters {
 
       // Number of propositions
       Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(automaton.factory().alphabet().size()),
+      automaton -> String.valueOf(automaton.factory().atomicPropositions().size()),
 
       // Number of SCCs
       Pattern.compile("%C", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),

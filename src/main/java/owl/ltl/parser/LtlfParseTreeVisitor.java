@@ -1,7 +1,5 @@
-package owl.ltl.ltlf;
-
 /*
- * Copyright (C) 2016 - 2018  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,13 +17,15 @@ package owl.ltl.ltlf;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ListIterator;
+package owl.ltl.parser;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.stream.Collectors;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import owl.collections.Collections3;
 import owl.grammar.LTLParser.AndExpressionContext;
 import owl.grammar.LTLParser.BinaryOpContext;
 import owl.grammar.LTLParser.BinaryOperationContext;
@@ -58,35 +58,29 @@ import owl.ltl.XOperator;
 
 
 final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
+
+  private final List<String> atomicPropositions;
   private final List<Literal> literalCache;
-  private final List<String> variables;
-  private final boolean fixedVariables;
 
   LtlfParseTreeVisitor() {
-    literalCache = new ArrayList<>();
-    variables = new ArrayList<>();
-    fixedVariables = false;
+    this.atomicPropositions = new ArrayList<>();
+    this.literalCache = new ArrayList<>();
   }
 
-  LtlfParseTreeVisitor(List<String> literals) {
-    ListIterator<String> literalIterator = literals.listIterator();
-    List<Literal> literalList = new ArrayList<>();
-    List<String> variableList = new ArrayList<>();
+  LtlfParseTreeVisitor(List<String> atomicPropositions) {
+    this.atomicPropositions = List.copyOf(atomicPropositions);
 
-    while (literalIterator.hasNext()) {
-      int index = literalIterator.nextIndex();
-      String name = literalIterator.next();
-      literalList.add(Literal.of(index));
-      variableList.add(name);
+    if (!Collections3.isDistinct(this.atomicPropositions)) {
+      throw new IllegalArgumentException();
     }
 
-    literalCache = List.copyOf(literalList);
-    variables = List.copyOf(variableList);
-    fixedVariables = true;
+    Literal[] literalList = new Literal[this.atomicPropositions.size()];
+    Arrays.setAll(literalList, Literal::of);
+    this.literalCache = List.of(literalList);
   }
 
-  public List<String> variables() {
-    return List.copyOf(variables);
+  List<String> atomicPropositions() {
+    return List.copyOf(atomicPropositions);
   }
 
   @Override
@@ -218,34 +212,34 @@ final class LtlfParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitVariable(VariableContext ctx) {
     assert ctx.getChildCount() == 1;
-    return createVariable(ctx.getText());
+    return lookupLiteral(ctx.getText());
   }
 
   @Override
   public Formula visitSingleQuotedVariable(SingleQuotedVariableContext ctx) {
     assert ctx.getChildCount() == 3;
-    return createVariable(ctx.variable.getText());
+    return lookupLiteral(ctx.variable.getText());
   }
 
   @Override
   public Formula visitDoubleQuotedVariable(DoubleQuotedVariableContext ctx) {
     assert ctx.getChildCount() == 3;
-    return createVariable(ctx.variable.getText());
+    return lookupLiteral(ctx.variable.getText());
   }
 
-  private Formula createVariable(String name) {
-    assert variables.size() == literalCache.size();
-    int index = variables.indexOf(name);
+  private Literal lookupLiteral(String name) {
+    assert atomicPropositions.size() == literalCache.size();
+    int index = atomicPropositions.indexOf(name);
 
     if (index == -1) {
-      if (fixedVariables) {
+      if (!(atomicPropositions instanceof ArrayList)) {
         throw new IllegalStateException("Encountered unknown variable " + name
-          + " with fixed set " + variables);
+          + " with fixed set " + atomicPropositions);
       }
 
-      int newIndex = variables.size();
+      int newIndex = atomicPropositions.size();
       Literal literal = Literal.of(newIndex);
-      variables.add(name);
+      atomicPropositions.add(name);
       literalCache.add(literal);
       return literal;
     }

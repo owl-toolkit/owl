@@ -51,8 +51,9 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   @Override
   public Formula visit(Biconditional biconditional) {
     checkSupportedCase(Biconditional.class);
-    return Biconditional
-      .of(biconditional.leftOperand().accept(this), biconditional.rightOperand().accept(this));
+    return Biconditional.of(
+      biconditional.leftOperand().accept(this),
+      biconditional.rightOperand().accept(this));
   }
 
   @Override

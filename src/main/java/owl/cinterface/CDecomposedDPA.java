@@ -38,23 +38,19 @@ public final class CDecomposedDPA {
   private CDecomposedDPA() {}
 
   @CEntryPoint(
-    name = NAMESPACE + "create",
+    name = NAMESPACE + "of",
     documentation = {
       "Translate the given formula to a decomposed DPA.",
       CInterface.CALL_DESTROY
     },
     exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
   )
-  public static ObjectHandle create(
+  public static ObjectHandle of(
     IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    boolean simplify,
-    boolean monolithic,
-    int firstOutputAtomicProposition) {
+    ObjectHandle cLabelledFormula) {
 
-    var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula).formula();
-    var decomposedDPA = DecomposedDPA.of(
-      formula, simplify, monolithic, firstOutputAtomicProposition);
+    var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
+    var decomposedDPA = DecomposedDPA.of(formula);
     return ObjectHandles.getGlobal().create(decomposedDPA);
   }
 
@@ -86,24 +82,6 @@ public final class CDecomposedDPA {
     int index) {
 
     return ObjectHandles.getGlobal().create(get(cDecomposedDPA).automata.get(index));
-  }
-
-  @CEntryPoint(
-    name = NAMESPACE + "atomic_proposition_status",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnVariableStatus.class
-  )
-  public static DecomposedDPA.VariableStatus getAtomicPropositionStatus(
-    IsolateThread thread,
-    ObjectHandle cDecomposedDPA,
-    int atomicProposition) {
-
-    var decomposedDPA = ObjectHandles.getGlobal().<DecomposedDPA>get(cDecomposedDPA);
-
-    if (atomicProposition < decomposedDPA.variableStatuses.size()) {
-      return decomposedDPA.variableStatuses.get(atomicProposition);
-    } else {
-      return DecomposedDPA.VariableStatus.UNUSED;
-    }
   }
 
   @CEntryPoint(
@@ -150,7 +128,6 @@ public final class CDecomposedDPA {
     public static native RealizabilityStatus fromCValue(int value);
   }
 
-  @CContext(CInterface.CDirectives.class)
   public static final class Structure {
 
     private static final String NAMESPACE = "decomposed_dpa_structure_";
@@ -180,7 +157,13 @@ public final class CDecomposedDPA {
       IsolateThread thread,
       ObjectHandle cLabelledTree) {
 
-      return get(cLabelledTree).label;
+      var node = get(cLabelledTree);
+
+      if (node instanceof DecomposedDPA.Tree.Leaf) {
+        return NodeType.AUTOMATON;
+      } else {
+        return ((DecomposedDPA.Tree.Node) node).label;
+      }
     }
 
     @CEntryPoint(
@@ -217,7 +200,7 @@ public final class CDecomposedDPA {
       IsolateThread thread,
       ObjectHandle cLabelledTree) {
 
-      return getLeaf(cLabelledTree).reference.index;
+      return getLeaf(cLabelledTree).index;
     }
 
     @CEntryPoint(
@@ -231,7 +214,7 @@ public final class CDecomposedDPA {
       IsolateThread thread,
       ObjectHandle cLabelledTree) {
 
-      return ObjectHandles.getGlobal().create(getLeaf(cLabelledTree).reference.formula);
+      return ObjectHandles.getGlobal().create(getLeaf(cLabelledTree).formula);
     }
 
     @CEntryPoint(
@@ -243,7 +226,7 @@ public final class CDecomposedDPA {
       ObjectHandle cLabelledTree,
       int i) {
 
-      var mapping = getLeaf(cLabelledTree).reference.alphabetMapping;
+      var mapping = getLeaf(cLabelledTree).globalToLocalMapping;
 
       if (i < mapping.length()) {
         int value = mapping.get(i);
@@ -256,17 +239,17 @@ public final class CDecomposedDPA {
       return -1;
     }
 
-    private static DecomposedDPA.DecomposedDPAStructure get(
+    private static DecomposedDPA.Tree get(
       ObjectHandle cDeterministicAutomaton) {
       return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
     }
 
-    private static DecomposedDPA.DecomposedDPAStructure.Leaf getLeaf(
+    private static DecomposedDPA.Tree.Leaf getLeaf(
       ObjectHandle cDeterministicAutomaton) {
       return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
     }
 
-    private static DecomposedDPA.DecomposedDPAStructure.Node getNode(
+    private static DecomposedDPA.Tree.Node getNode(
       ObjectHandle cDeterministicAutomaton) {
       return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
     }

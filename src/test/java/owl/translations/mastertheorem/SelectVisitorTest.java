@@ -38,13 +38,13 @@ class SelectVisitorTest {
 
   @Test
   void testCoSafety() {
-    var fOperator = (FOperator) LtlParser.syntax("F ((a M b) & X (a U b) & X c)");
+    var fOperator = (FOperator) LtlParser.parse("F ((a M b) & X (a U b) & X c)").formula();
     assertEquals(Set.of(EMPTY), Selector.selectSymmetric(fOperator, false));
   }
 
   @Test
   void testCoSafetyInSafety() {
-    var rOperator = (ROperator) LtlParser.syntax("a R (X G ((a R b) | F c))");
+    var rOperator = (ROperator) LtlParser.parse("a R (X G ((a R b) | F c))").formula();
     var nestedFOperator = Iterables.getOnlyElement(rOperator.subformulas(FOperator.class));
     assertEquals(Set.of(EMPTY, Fixpoints.of(Set.of(nestedFOperator))),
       Selector.selectSymmetric(rOperator, false));
@@ -52,19 +52,19 @@ class SelectVisitorTest {
 
   @Test
   void testSafety() {
-    var gOperator = (GOperator) LtlParser.syntax("G ((a R b) | X (a W b) | X c)");
+    var gOperator = (GOperator) LtlParser.parse("G ((a R b) | X (a W b) | X c)").formula();
     assertEquals(Set.of(EMPTY), Selector.selectSymmetric(gOperator, false));
   }
 
   @Test
   void testSafetyInCoSafety() {
-    var uOperator = (UOperator) LtlParser.syntax("a U (X G ((a R b) | c))");
+    var uOperator = (UOperator) LtlParser.parse("a U (X G ((a R b) | c))").formula();
     assertEquals(Set.of(EMPTY), Selector.selectSymmetric(uOperator, false));
   }
 
   @Test
   void testRegression() {
-    var gOperator = (GOperator) LtlParser.syntax("G (G a | (F b & G b))");
+    var gOperator = (GOperator) LtlParser.parse("G (G a | (F b & G b))").formula();
     var fOperator = gOperator.subformulas(FOperator.class).iterator().next();
     var fixpoints = Selector.selectSymmetric(gOperator, false);
 

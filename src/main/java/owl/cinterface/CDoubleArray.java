@@ -26,17 +26,17 @@ import org.graalvm.nativeimage.c.type.CDoublePointer;
 import org.graalvm.word.PointerBase;
 
 @CContext(CInterface.CDirectives.class)
-@CStruct("double_buffer_t")
-interface CDoubleBuffer extends PointerBase {
+@CStruct("sized_double_array_t")
+interface CDoubleArray extends PointerBase {
   @CField
-  CDoublePointer buffer();
+  CDoublePointer elements();
 
   @CField
-  int capacity();
+  void elements(CDoublePointer elements);
 
   @CField
-  int position();
+  int length();
 
   @CField
-  void position(int position);
+  void length(int length);
 }

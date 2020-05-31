@@ -236,8 +236,9 @@ public class TranslationAutomatonSummaryTest {
       });
 
       // Close literal gaps.
-      var shiftedFormula = LiteralMapper.shiftLiterals(literalNormalizedFormula);
-      var labelledFormula = LabelledFormula.of(shiftedFormula.formula, COMMON_ALPHABET);
+      var shiftedFormula = LiteralMapper.shiftLiterals(
+        LabelledFormula.of(literalNormalizedFormula, COMMON_ALPHABET));
+      var labelledFormula = LabelledFormula.of(shiftedFormula.formula.formula(), COMMON_ALPHABET);
 
       if (containsIsomorphic(
         Collections2.transform(testCases, LabelledFormula::formula), labelledFormula.formula())) {
@@ -251,7 +252,7 @@ public class TranslationAutomatonSummaryTest {
       do {
         oldLabelledFormula = newLabelledFormula;
         newLabelledFormula = LabelledFormula.of(
-          LtlParser.syntax(oldLabelledFormula.toString()), COMMON_ALPHABET);
+            LtlParser.parse(oldLabelledFormula.toString()).formula(), COMMON_ALPHABET);
       } while (!newLabelledFormula.equals(oldLabelledFormula));
 
       testCases.add(newLabelledFormula);
@@ -298,7 +299,7 @@ public class TranslationAutomatonSummaryTest {
             return;
           }
 
-          var formula = LtlParser.syntax(formulaString).nnf();
+          var formula = LtlParser.parse(formulaString).formula().nnf();
           var simplifiedFormula
             = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
           var simplifiedFormulaNegated
@@ -364,7 +365,7 @@ public class TranslationAutomatonSummaryTest {
           }
 
           var formula = SimplifierFactory.apply(
-            LtlParser.syntax(formulaString).nnf(), Mode.SYNTACTIC_FIXPOINT);
+            LtlParser.parse(formulaString).formula().nnf(), Mode.SYNTACTIC_FIXPOINT);
           var negatedFormula = formula.not();
           var invertedFormula = negatedFormula.accept(new Converter(SyntacticFragment.NNF) {
             @Override

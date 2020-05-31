@@ -299,7 +299,7 @@ public final class GameViews {
     ForwardingGame(Automaton<S, A> automaton, Predicate<String> firstPlayer) {
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
-      ListIterator<String> iterator = automaton.factory().alphabet().listIterator();
+      ListIterator<String> iterator = automaton.factory().atomicPropositions().listIterator();
       while (iterator.hasNext()) {
         int index = iterator.nextIndex();
         String next = iterator.next();
@@ -308,7 +308,7 @@ public final class GameViews {
         }
       }
       secondPlayer = BitSets.copyOf(this.firstPlayer);
-      secondPlayer.flip(0, automaton.factory().alphabet().size());
+      secondPlayer.flip(0, automaton.factory().atomicPropositions().size());
     }
 
     @Override
@@ -418,7 +418,7 @@ public final class GameViews {
     public List<String> variables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
-      Indices.forEachIndexed(factory().alphabet(), (i, s) -> {
+      Indices.forEachIndexed(factory().atomicPropositions(), (i, s) -> {
         if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
           variables.add(s);
         }
@@ -443,7 +443,7 @@ public final class GameViews {
       }
 
       ValuationSet valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
-      return valuationSet.getFactory().iterator(valuationSet).next();
+      return valuationSet.factory().iterator(valuationSet).next();
     }
   }
 

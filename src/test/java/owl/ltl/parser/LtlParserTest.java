@@ -67,7 +67,7 @@ class LtlParserTest {
   @Test
   void testSyntax() {
     for (int i = 0; i < INPUT.size(); i++) {
-      assertEquals(OUTPUT.get(i), LtlParser.syntax(INPUT.get(i)));
+      assertEquals(OUTPUT.get(i), LtlParser.parse(INPUT.get(i)).formula());
     }
   }
 
@@ -87,7 +87,8 @@ class LtlParserTest {
 
   @Test
   void testUpperCaseLiteralParsing() {
-    Formula formula = LtlParser.syntax("\"A\" & X \"B\" & F \"C\"", List.of("A", "B", "C"));
+    Formula formula = LtlParser.parse("\"A\" & X \"B\" & F \"C\"", List.of("A", "B", "C"))
+      .formula();
     assertEquals(
       Conjunction.of(Literal.of(0), XOperator.of(Literal.of(1)), FOperator.of(Literal.of(2))),
       formula);
@@ -95,7 +96,8 @@ class LtlParserTest {
 
   @Test
   void testUpperCaseLiteralOverlappingParsing() {
-    Formula formula = LtlParser.syntax("'A' & X 'AA' & F 'AAA'", List.of("A", "AA", "AAA"));
+    Formula formula = LtlParser.parse("'A' & X 'AA' & F 'AAA'", List.of("A", "AA", "AAA"))
+      .formula();
     assertEquals(
       Conjunction.of(Literal.of(0), XOperator.of(Literal.of(1)), FOperator.of(Literal.of(2))),
       formula);

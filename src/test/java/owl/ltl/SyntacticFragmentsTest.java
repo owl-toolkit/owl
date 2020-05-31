@@ -55,7 +55,7 @@ class SyntacticFragmentsTest {
     List<Formula> parsedFormulas = new ArrayList<>();
 
     for (var formulaList : formulas) {
-      formulaList.forEach(formula -> parsedFormulas.add(LtlParser.syntax(formula)));
+      formulaList.forEach(formula -> parsedFormulas.add(LtlParser.parse(formula).formula()));
     }
 
     return parsedFormulas;

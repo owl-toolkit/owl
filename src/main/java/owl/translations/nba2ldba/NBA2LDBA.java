@@ -144,7 +144,7 @@ public final class NBA2LDBA
       ValuationSetFactory factory = factory();
       Map<Edge<BreakpointState<S>>, ValuationSet> labelledEdges = new HashMap<>();
 
-      for (BitSet valuation : BitSets.powerSet(factory.alphabet().size())) {
+      for (BitSet valuation : BitSets.powerSet(factory.atomicPropositions().size())) {
         for (Edge<BreakpointState<S>> edge : edgesB(state, valuation)) {
           labelledEdges.merge(edge, factory.of(valuation), ValuationSet::union);
         }

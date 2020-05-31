@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -19,77 +19,66 @@
 
 package owl.collections;
 
+import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.function.Consumer;
+import java.util.function.IntUnaryOperator;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import owl.factories.ValuationSetFactory;
 
-public class ValuationSet {
-  private final ValuationSetFactory factory;
+public abstract class ValuationSet {
 
-  protected ValuationSet(ValuationSetFactory factory) {
-    this.factory = factory;
-  }
-
-
-  public final ValuationSetFactory getFactory() {
-    return factory;
-  }
-
+  public abstract ValuationSetFactory factory();
 
   public final boolean isEmpty() {
-    return equals(factory.empty());
+    return equals(factory().empty());
   }
 
   public final boolean isUniverse() {
-    return equals(factory.universe());
+    return equals(factory().universe());
   }
 
   public final boolean contains(BitSet valuation) {
-    return factory.contains(this, valuation);
+    return factory().contains(this, valuation);
   }
 
   public final boolean intersects(ValuationSet other) {
-    return factory.intersects(this, other);
+    return factory().intersects(this, other);
   }
 
   public final void forEach(Consumer<? super BitSet> action) {
-    factory.forEach(this, action);
+    factory().forEach(this, action);
   }
 
   public final void forEach(BitSet restriction, Consumer<? super BitSet> action) {
-    factory.forEach(this, restriction, action);
+    factory().forEach(this, restriction, action);
   }
 
-
-  public final ValuationSet complement() {
-    return factory.complement(this);
-  }
+  public abstract ValuationSet complement();
 
   public final ValuationSet union(ValuationSet other) {
-    return factory.union(this, other);
+    return factory().union(this, other);
   }
 
   public final ValuationSet intersection(ValuationSet other) {
-    return factory.intersection(this, other);
+    return factory().intersection(this, other);
   }
 
   public final BooleanExpression<AtomLabel> toExpression() {
-    return factory.toExpression(this);
+    return factory().toExpression(this);
   }
+
+  public abstract <E> ValuationTree<E> filter(ValuationTree<E> tree);
+
+  public abstract ValuationSet project(BitSet quantifiedAtomicPropositions);
+
+  public abstract ValuationSet relabel(IntUnaryOperator mapping);
+
+  public abstract BigInteger size();
 
   @Override
   public String toString() {
-    if (isEmpty()) {
-      return "[]";
-    }
-
-    StringBuilder builder = new StringBuilder(factory.alphabet().size() * 10 + 10);
-    builder.append('[');
-    forEach(bitSet -> builder.append(bitSet).append(", "));
-    builder.setLength(builder.length() - 2);
-    builder.append(']');
-    return builder.toString();
+    return '[' + this.toExpression().toString() + ']';
   }
 }

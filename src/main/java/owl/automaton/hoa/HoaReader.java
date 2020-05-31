@@ -172,7 +172,7 @@ public final class HoaReader {
       this.storedHeader = storedAutomaton.getStoredHeader();
 
       List<String> variables = storedHeader.getAPs();
-      List<String> alphabet = vsFactory.alphabet();
+      List<String> alphabet = vsFactory.atomicPropositions();
 
       if (variables.equals(alphabet)) {
         remapping = null;

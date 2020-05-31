@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -183,7 +183,7 @@ public final class Views {
       }
 
       return preferredEdgeAccess().get(0) == EDGE_TREE
-         ? edgeTree(state).values()
+         ? edgeTree(state).flatValues()
          : edgeMap(state).keySet();
     }
 

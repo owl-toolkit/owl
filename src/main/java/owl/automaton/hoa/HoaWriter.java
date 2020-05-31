@@ -69,7 +69,7 @@ public final class HoaWriter {
 
   public static <S> void write(Automaton<S, ?> automaton, HOAConsumer consumer,
     EnumSet<HoaOption> options) {
-    Wrapper<S> hoa = new Wrapper<>(consumer, automaton.factory().alphabet(),
+    Wrapper<S> hoa = new Wrapper<>(consumer, automaton.factory().atomicPropositions(),
       automaton.acceptance(), automaton.initialStates(), options,
       automaton.is(Automaton.Property.DETERMINISTIC), automaton.name());
     automaton.accept((Automaton.Visitor<S>) hoa.visitor);

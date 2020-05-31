@@ -19,7 +19,7 @@ typedef enum {
   CONSTANT_FALSE,
   USED,
   UNUSED
-} variable_status_t;
+} atomic_proposition_status_t;
 
 typedef enum {
   BUCHI,
@@ -36,15 +36,13 @@ typedef enum {
 } acceptance_t;
 
 typedef struct {
-  int *buffer;
-  int capacity;
-  int position;
-} int_buffer_t;
+  int *elements;
+  int length;
+} sized_int_array_t;
 
 typedef struct {
-  double *buffer;
-  int capacity;
-  int position;
-} double_buffer_t;
+  double *elements;
+  int length;
+} sized_double_array_t;
 
 #endif

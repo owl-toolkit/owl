@@ -36,7 +36,7 @@ public class DeduplicationRewriterTest {
       "G a & F b & a M b & a R b & G b | F b & a U b | a => b | a <=> b | b <=> a | X a | X b",
       "a W b & b W a & a M b & a M b & b M a & a U b | a U b & a M b | a U b | a U c",
       "X X X X X X a & X X X X X a & X X X X X a & X X X X X b & a U X X X b | b"
-    }).map(LtlParser::syntax).collect(Collectors.toList());
+    }).map(input -> LtlParser.parse(input).formula()).collect(Collectors.toList());
   }
 
   @ParameterizedTest

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -25,8 +25,9 @@ import owl.collections.ValuationSetTest;
 import owl.factories.ValuationSetFactory;
 
 public class BddValuationSetTest extends ValuationSetTest {
+
   @Override
-  protected ValuationSetFactory setUpFactory(List<String> aliases) {
-    return new ValuationFactory(BddFactory.buildBdd(1024), aliases);
+  protected ValuationSetFactory factory(List<String> atomicPropositions) {
+    return new ValuationFactory(BddFactory.buildBdd(1024), atomicPropositions);
   }
 }
