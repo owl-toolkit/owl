@@ -23,6 +23,7 @@ import static owl.collections.ValuationTrees.cartesianProduct;
 import static owl.translations.mastertheorem.SymmetricEvaluatedFixpoints.DeterministicAutomata;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -132,14 +133,9 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
         for (Fixpoints fixpoints : sets) {
           var simplified = fixpoints.simplified();
-
-          if (evaluationMap.containsKey(simplified)) {
-            continue;
-          }
-
           var evaluatedSet = SymmetricEvaluatedFixpoints
             .build(initialFormula, simplified, factories);
-          evaluationMap.put(simplified, evaluatedSet);
+          evaluationMap.merge(simplified, evaluatedSet, Sets::union);
 
           for (var evaluated : evaluatedSet) {
             if (automataMap.containsKey(evaluated)) {
