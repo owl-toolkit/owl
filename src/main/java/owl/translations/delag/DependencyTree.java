@@ -32,6 +32,9 @@ import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
+import owl.automaton.acceptance.AllAcceptance;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
@@ -79,7 +82,13 @@ abstract class DependencyTree<T> {
       }
     }
 
-    return new FallbackLeaf<>(formula, acceptanceSet, fallback.get());
+    var fallbackAutomaton = fallback.get();
+
+    if (fallbackAutomaton.acceptance() instanceof AllAcceptance) {
+      fallbackAutomaton = OmegaAcceptanceCast.cast(fallbackAutomaton, BuchiAcceptance.class);
+    }
+    
+    return new FallbackLeaf<>(formula, acceptanceSet, fallbackAutomaton);
   }
 
   static <T> DependencyTree<T> createOr(List<DependencyTree<T>> children) {
