@@ -95,7 +95,7 @@ def _test(args, check):
         else:
             raise TypeError("Unknown tools type {0!s}".format(type(tools)))
 
-        enable_server = True
+        enable_server = False
         port = 6060
         servers = {}
         for test_tool in loaded_tools:

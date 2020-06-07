@@ -145,7 +145,7 @@
             "name": "delag",
             "flags": {
                 "strict": "--fallback=none",
-                "fallback-spot": "--fallback=ltl2tgba -H --deterministic --generic"
+                "fallback-spot": "--fallback='ltl2tgba -H --deterministic --generic'"
             },
             "exclusive-flags": [
                 [
@@ -223,7 +223,7 @@
                 [
                     "ltl2aut-ext",
                     "-t",
-                    "ltl2tgba -H"
+                    "'ltl2tgba -H'"
                 ]
             ]
         },
@@ -237,7 +237,7 @@
                 [
                     "ltl2aut-ext",
                     "-t",
-                    "ltl2tgba -H"
+                    "'ltl2tgba -H'"
                 ]
             ],
             "post": [

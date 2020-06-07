@@ -87,7 +87,7 @@ abstract class DependencyTree<T> {
     if (fallbackAutomaton.acceptance() instanceof AllAcceptance) {
       fallbackAutomaton = OmegaAcceptanceCast.cast(fallbackAutomaton, BuchiAcceptance.class);
     }
-    
+
     return new FallbackLeaf<>(formula, acceptanceSet, fallbackAutomaton);
   }
 

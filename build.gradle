@@ -50,12 +50,10 @@ project.targetCompatibility = JavaVersion.VERSION_11
 def defaultEncoding = 'UTF-8'
 
 tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.deprecation = true
     options.encoding = defaultEncoding
     // options.errorprone.disableWarningsInGeneratedCode = true
-}
-
-tasks.withType(Javadoc) {
-    options.encoding = defaultEncoding
 }
 
 def disablePandoc = project.hasProperty("disable-pandoc")
@@ -194,7 +192,8 @@ def scripts = [
     'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',
-    'owl-server': 'owl.run.ServerCli'
+
+    // 'owl-server': 'owl.run.ServerCli'
 ]
 
 def rabinizerScripts = [
@@ -251,9 +250,9 @@ task javadocJar(type: Jar, dependsOn: javadoc) {
 
 task mavenJars(dependsOn: [jar, sourcesJar, javadocJar])
 
-task buildCLibrary(type: Exec, dependsOn: [classes]) {
-    mkdir "${buildDir}/clibrary"
-    workingDir "${buildDir}/clibrary"
+task buildNativeLibrary(type: Exec, dependsOn: [classes]) {
+    mkdir "${buildDir}/native-library"
+    workingDir "${buildDir}/native-library"
 
     def graalHome = System.getenv("GRAAL_HOME")
     def command = (graalHome != null ? graalHome + "/bin/" : "") + "native-image"
@@ -264,6 +263,28 @@ task buildCLibrary(type: Exec, dependsOn: [classes]) {
         enableNativeAssertions ? '-ea' : '-da',
         "-DowlHeader=${projectDir}/src/main/headers",
         '--shared',
+        '--initialize-at-build-time=owl,it,com,org,jhoafparser',
+        '--no-fallback',
+        '--no-server',
+        '-H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy$BySpaceAndTime',
+        '-H:+PrintAnalysisCallTree',
+        '-H:+ReportExceptionStackTraces',
+        '-H:-UseServiceLoaderFeature'
+}
+
+task buildNativeExecutable(type: Exec, dependsOn: [classes]) {
+    mkdir "${buildDir}/native-executable"
+    workingDir "${buildDir}/native-executable"
+
+    def graalHome = System.getenv("GRAAL_HOME")
+    def command = (graalHome != null ? graalHome + "/bin/" : "") + "native-image"
+
+    // TODO: remove dependency on header files.
+    commandLine command,
+        "owl.run.DefaultCli", "owl-native",
+        "-cp", sourceSets.main.runtimeClasspath.asPath,
+        enableNativeAssertions ? '-ea' : '-da',
+        "-DowlHeader=${projectDir}/src/main/headers",
         '--initialize-at-build-time=owl,it,com,org,jhoafparser',
         '--no-fallback',
         '--no-server',
@@ -333,19 +354,18 @@ distributions {
 
             into("bin") {
                 from allStartScripts
-
-                if (!disableNative) {
-                    from "${buildDir}/exe/owlClient/owl-client"
-                }
-
                 fileMode = 0755
             }
 
             if (!disableNative) {
               into("clib") {
                   from "$projectDir/src/main/headers"
-                  from "$buildDir/clibrary" include "*.h"
-                  from "$buildDir/clibrary" include "*.so"
+                  from "$buildDir/native-library" include "*.h"
+                  from "$buildDir/native-library" include "*.so"
+              }
+
+              into("bin") {
+                from "$buildDir/native-executable" include "owl-native"
               }
             }
 
@@ -373,10 +393,10 @@ distributions {
 }
 
 if (!disableNative) {
-    tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":owlClientExecutable"))
-    tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":owlClientExecutable"))
-    tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildCLibrary"))
-    tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildCLibrary"))
+  tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildNativeExecutable"))
+  tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildNativeExecutable"))
+  tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildNativeLibrary"))
+  tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildNativeLibrary"))
 }
 
 apply from: 'gradle/idea.gradle'
