@@ -28,14 +28,14 @@ import owl.game.GameFactoryTest;
 import owl.game.GameViews;
 import owl.ltl.parser.LtlParser;
 
-class ParityGameSolverTest {
+class ZielonkaGameSolverTest {
 
   @Test
   void ltl2zielonkaTest1() {
     var formula = LtlParser.parse("F (a <-> X b)");
     var automaton = GameFactoryTest.translate(formula);
     var game = GameViews.split(automaton, List.of("a"));
-    assertTrue(ParityGameSolver.zielonkaRealizability(game));
+    assertTrue(ZielonkaGameSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -45,7 +45,7 @@ class ParityGameSolverTest {
         + "(G (! (g)))) && (true))))");
     var automaton = GameFactoryTest.translate(formula);
     var game = GameViews.split(automaton, List.of("r_0", "r_1"));
-    assertFalse(ParityGameSolver.zielonkaRealizability(game));
+    assertFalse(ZielonkaGameSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -56,7 +56,7 @@ class ParityGameSolverTest {
                       + "(X ((! (grant)) U (go))))))");
     var automaton = GameFactoryTest.translate(formula);
     var game = GameViews.split(automaton, List.of("go", "cancel", "req"));
-    assertFalse(ParityGameSolver.zielonkaRealizability(game));
+    assertFalse(ZielonkaGameSolver.zielonkaRealizability(game));
   }
 
   @Test
@@ -64,6 +64,6 @@ class ParityGameSolverTest {
     var formula = LtlParser.parse("(((G (F (r_0))) && (G (F (r_1)))) <-> (G (F (g))))");
     var automaton = GameFactoryTest.translate(formula);
     var game = GameViews.split(automaton, List.of("r_0", "r_1"));
-    assertTrue(ParityGameSolver.zielonkaRealizability(game));
+    assertTrue(ZielonkaGameSolver.zielonkaRealizability(game));
   }
 }

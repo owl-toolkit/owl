@@ -29,9 +29,10 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.degeneralization.BuchiDegeneralization;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.game.GameUtil;
 import owl.game.GameViews;
-import owl.game.algorithms.ParityGameSolver;
+import owl.game.algorithms.ZielonkaGameSolver;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.ltl.robust.RobustLtlInputReader;
 import owl.run.parser.PipelineParser;
@@ -50,6 +51,7 @@ import owl.translations.modules.LTL2NGBAModule;
 import owl.translations.modules.LTL2NormalFormModule;
 import owl.translations.nba2dpa.NBA2DPA;
 import owl.translations.nba2ldba.NBA2LDBA;
+import owl.translations.nbadet.NbaDet;
 
 /**
  * A registry holding all modules used to parse the command line. These can be dynamically
@@ -62,10 +64,6 @@ public class OwlModuleRegistry {
    * A preconfigured {@link OwlModuleRegistry registry}, holding commonly used utility modules.
    */
   public static final OwlModuleRegistry DEFAULT_REGISTRY;
-
-  private final Map<String, OwlModule<OwlModule.InputReader>> readers = new HashMap<>();
-  private final Map<String, OwlModule<OwlModule.Transformer>> transformers = new HashMap<>();
-  private final Map<String, OwlModule<OwlModule.OutputWriter>> writers = new HashMap<>();
 
   static {
     DEFAULT_REGISTRY = new OwlModuleRegistry();
@@ -117,10 +115,16 @@ public class OwlModuleRegistry {
       IARBuilder.MODULE,
       NBA2LDBA.MODULE,
       NBA2DPA.MODULE,
+      NbaDet.MODULE,
+      BuchiSimulation.MODULE,
       ParityUtil.COMPLEMENT_MODULE,
       ParityUtil.CONVERSION_MODULE,
-      ParityGameSolver.ZIELONKA_SOLVER));
+      ZielonkaGameSolver.ZIELONKA_SOLVER));
   }
+
+  private final Map<String, OwlModule<OwlModule.InputReader>> readers = new HashMap<>();
+  private final Map<String, OwlModule<OwlModule.Transformer>> transformers = new HashMap<>();
+  private final Map<String, OwlModule<OwlModule.OutputWriter>> writers = new HashMap<>();
 
   public OwlModule<OwlModule.InputReader> getReader(String name)
     throws OwlModuleNotFoundException {

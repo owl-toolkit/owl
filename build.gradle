@@ -188,7 +188,11 @@ def scripts = [
     'ltl2da'    : 'owl.translations.modules.LTL2DAModule',
     'ltl2na'    : 'owl.translations.modules.LTL2NAModule',
 
+    // NBA -> DPA
+    'nbadet'    : 'owl.translations.nbadet.NbaDet',
+
     // Miscellaneous
+    'nbasim'    : 'owl.automaton.algorithm.simulations.BuchiSimulation',
     'nba2dpa'   : 'owl.translations.nba2dpa.NBA2DPA',
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',

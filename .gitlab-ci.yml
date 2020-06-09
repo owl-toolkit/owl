@@ -197,6 +197,12 @@ NBA2DPA:
     TEST_NAME: "nba2dpa"
   <<: *ltlcross_template
 
+NBADet:
+  stage: test
+  variables:
+    TEST_NAME: "nbadet"
+  <<: *ltlcross_template
+
 ## Conversions
 
 DPA Conversion:

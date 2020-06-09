@@ -292,7 +292,7 @@ public final class BooleanOperations {
       Pair<ValuationSetFactory, Boolean> factory) {
 
       super(factory.fst(),
-        Pair.of(automaton1.initialStates(), automaton2.initialStates()),
+        Pair.allPairs(automaton1.initialStates(), automaton2.initialStates()),
         intersectionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
 
       this.automaton1 = automaton1;

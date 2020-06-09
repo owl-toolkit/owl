@@ -2,6 +2,17 @@
 
 Modules:
 
+* Added new general determinization construction for NBA based on papers
+  presented at ICALP'19 and ATVA'19. The construction supports multiple
+  optimizations and can be invoked using the `nbadet` tool.
+
+* Added simulations for NBA: direct, delayed, fair and also
+  some other variants like with multi-pebble and lookahead simulations.
+  The tool `nbasim` can be used to preprocess an automaton by quotienting
+  states equivalent wrt. a suitable simulation.
+
+* Added support for external parity game solver Oink.
+
 * Added `ltl2normalform` that rewrites LTL formulas into the restricted
   alternation normal form described in our LICS'20 submission.
 

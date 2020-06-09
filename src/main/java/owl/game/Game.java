@@ -180,5 +180,13 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
     public Owner opponent() {
       return this == PLAYER_1 ? PLAYER_2 : PLAYER_1;
     }
+
+    public boolean isEven() {
+      return PLAYER_2 == this;
+    }
+
+    public boolean isOdd() {
+      return PLAYER_1 == this;
+    }
   }
 }
