@@ -205,15 +205,22 @@ public final class Views {
 
     @Override
     public Set<S> initialStates() {
-      return automaton.initialStates();
+      Set<S> initialStates = automaton.initialStates();
+      return initialStates.isEmpty() ? sinkSet : initialStates;
     }
 
     @Override
     public Set<S> states() {
+      // Backing automaton is empty.
+      if (automaton.initialStates().isEmpty()) {
+        return sinkSet;
+      }
+
       if (incompleteStates == null) {
         incompleteStates = AutomatonUtil.getIncompleteStates(automaton);
       }
 
+      // Transition relation is already complete.
       if (incompleteStates.isEmpty()) {
         return automaton.states();
       } else {

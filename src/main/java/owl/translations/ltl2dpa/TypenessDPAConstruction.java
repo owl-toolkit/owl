@@ -19,6 +19,9 @@
 
 package owl.translations.ltl2dpa;
 
+import static owl.automaton.BooleanOperations.deterministicComplement;
+import static owl.automaton.BooleanOperations.deterministicProduct;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Maps;
@@ -41,7 +44,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.BooleanOperations;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
@@ -79,26 +81,44 @@ public class TypenessDPAConstruction<S> implements
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
 
-    // Compute in parallel. // Dra construction with parallel typeness?f
     var dra1 = draConstruction.apply(formula);
-    var dpa1 = typeness(dra1);
-
-    if (dpa1.isPresent()) {
-      return dpa1.get();
-    }
+    var dpa1Optional = typeness(dra1);
 
     var dra2 = draConstruction.apply(formula.not());
-    var dpa2 = typeness(dra2);
+    var dpa2Optional = typeness(dra2);
 
-    if (dpa2.isPresent()) {
-      return BooleanOperations.deterministicComplement(dpa2.get(), ParityAcceptance.class);
+    // Since none of the DRAs is DPA-type, we need the build product that is guaranteed to be
+    // DPA-type.
+    if (dpa1Optional.isEmpty() && dpa2Optional.isEmpty()) {
+      var product = deterministicProduct(
+        dra1, Views.transitionStructure(dra2), dra1.acceptance(), true);
+      return typeness(product).orElseThrow(() -> new AssertionError("Internal Error."));
     }
 
-    var product = BooleanOperations.deterministicProduct(dra1,
-      Views.transitionStructure(dra2), dra1.acceptance(), true);
-    var productDpa = typeness(product);
-    return productDpa.orElseThrow(
-      () -> new AssertionError("Impossible. Guarantess existance of such an object."));
+    if (dpa1Optional.isEmpty()) {
+      return deterministicComplement(dpa2Optional.get(), ParityAcceptance.class);
+    }
+
+    if (dpa2Optional.isEmpty()) {
+      return dpa1Optional.get();
+    }
+
+    var dpa1 = dpa1Optional.get();
+    var dpa2 = deterministicComplement(dpa2Optional.get(), ParityAcceptance.class);
+
+    if (dpa1.size() < dpa2.size()) {
+      return dpa1;
+    }
+
+    if (dpa2.size() < dpa1.size()) {
+      return dpa2;
+    }
+
+    if (dpa1.acceptance().acceptanceSets() <= dpa2.acceptance().acceptanceSets()) {
+      return dpa1;
+    }
+
+    return dpa2;
   }
 
   private static <S> Optional<Automaton<S, ParityAcceptance>> typeness(

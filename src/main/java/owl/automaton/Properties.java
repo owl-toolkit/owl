@@ -32,7 +32,7 @@ final class Properties {
    *
    */
   static <S> boolean isComplete(Automaton<S, ?> automaton) {
-    return automaton.size() >= 1
+    return automaton.initialStates().size() >= 1
       && AutomatonUtil.getIncompleteStates(automaton).isEmpty();
   }
 
