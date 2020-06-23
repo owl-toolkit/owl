@@ -64,7 +64,8 @@
                 "typeness-dra-symmetric":  "--typeness='--symmetric'",
                 "iar-dra-asymmetric":      "TBD",
                 "iar-dra-symmetric":       "TBD",
-                "disable-portfolio":       "--disable-portfolio"
+                "disable-portfolio":       "--disable-portfolio",
+                "disable-complement":      "--disable-complement"
             },
             "pre": [
                 "simplify-ltl"
