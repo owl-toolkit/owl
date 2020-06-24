@@ -157,6 +157,18 @@ Rabinizer:
     TEST_NAME: "rabinizer"
   <<: *ltlcross_template
 
+Rabinizer DPA:
+  stage: test
+  variables:
+    TEST_NAME: "rabinizer-dpa"
+  <<: *ltlcross_template
+
+IAR:
+  stage: test
+  variables:
+    TEST_NAME: "iar"
+  <<: *ltlcross_template
+
 ### Meta-constructions
 
 LTL2DA:

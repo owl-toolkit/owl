@@ -223,6 +223,13 @@
             ],
             "data": "M"
         },
+        "rabinizer-dpa": {
+            "tools": [
+                "rabinizer-dpa",
+                "rabinizer-dpa#asymmetric"
+            ],
+            "data": "M"
+        },
         "iar": {
             "tools": [
                 "iar",

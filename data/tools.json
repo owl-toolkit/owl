@@ -242,9 +242,6 @@
                 "optimize-aut",
                 "dgra2dra",
                 "optimize-aut"
-            ],
-            "post": [
-                "optimize-aut"
             ]
         },
         "spot-nba2ldba": {
