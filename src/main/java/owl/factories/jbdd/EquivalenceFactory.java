@@ -325,9 +325,10 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   }
 
   /**
-   * This class does not override `equals` and `hashCode`, since GcManagedFactory ensures
+   * This class does not implement a proper `equals` and `hashCode`, since GcManagedFactory ensures
    * uniqueness.
    */
+  @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode") // We only have a "bogus" assert equals
   static final class BddEquivalenceClass implements BddNode, EquivalenceClass {
     private final EquivalenceFactory factory;
     private final int node;
@@ -540,6 +541,14 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
       }
 
       return truenessCache;
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+      // Check that we are not comparing classes of different factories
+      assert !(obj instanceof EquivalenceClass) || ((EquivalenceClass) obj).factory() == factory();
+      return this == obj;
     }
   }
 }
