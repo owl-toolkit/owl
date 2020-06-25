@@ -357,9 +357,10 @@ final class ValuationFactory extends GcManagedFactory<BddValuationSet>
   }
 
   /**
-   * This class does not override `equals` and `hashCode`, since GcManagedFactory ensures
+   * This class does not implement a proper `equals` and `hashCode`, since GcManagedFactory ensures
    * uniqueness.
    */
+  @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode") // We only have a "bogus" assert equals
   static final class BddValuationSet extends ValuationSet implements BddNode {
     private final ValuationFactory factory;
     private final int node;
@@ -417,6 +418,14 @@ final class ValuationFactory extends GcManagedFactory<BddValuationSet>
     @Override
     public BigInteger size() {
       return factory.bdd.countSatisfyingAssignments(node);
+    }
+
+
+    @Override
+    public boolean equals(Object obj) {
+      // Check that we are not comparing classes of different factories
+      assert !(obj instanceof ValuationSet) || ((ValuationSet) obj).factory() == factory();
+      return this == obj;
     }
   }
 }
