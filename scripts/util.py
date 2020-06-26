@@ -5,14 +5,12 @@ import os
 import os.path as path
 import subprocess
 import sys
-import socket
-import time
-import signal
+from os.path import relpath
 
 import owlpy.defaults as owl_defaults
 import owlpy.formula as owl_formula
-import owlpy.tool as owl_tool
 import owlpy.run_servers as run_servers
+import owlpy.tool as owl_tool
 
 
 def _test(args, check):
@@ -66,13 +64,10 @@ def _test(args, check):
 
         if check:
             reference = test_json["reference"]
-            test_arguments = [owl_defaults.get_script_path("ltlcross-run.sh"),
-                              reference["name"], " ".join(reference["exec"])]
+            test_arguments = [str(relpath(owl_defaults.get_script_path("ltlcross-run.sh"))),
+                reference["name"], " ".join(reference["exec"])]
         else:
-            test_arguments = [owl_defaults.get_script_path("ltlcross-bench.sh")]
-
-        if os.name == 'nt':
-            test_arguments = ["bash"] + test_arguments
+            test_arguments = [str(relpath(owl_defaults.get_script_path("ltlcross-bench.sh")))]
 
         loaded_tools = []
 
@@ -95,7 +90,7 @@ def _test(args, check):
         else:
             raise TypeError("Unknown tools type {0!s}".format(type(tools)))
 
-        enable_server = False
+        enable_server = not owl_tool.is_native_available()
         port = 6060
         servers = {}
         for test_tool in loaded_tools:
@@ -112,8 +107,8 @@ def _test(args, check):
             if type(loaded_tool) is owl_tool.OwlTool:
                 if enable_server:
                     servers[port] = loaded_tool.get_server_execution(port)
-                    test_arguments.append("build/bin/owl-client"
-                                          + " localhost " + str(port) + " %f")
+                    test_arguments.append(f"{owl_tool.get_client_executable()} "
+                                          f"localhost {port} %f")
                     port += 1
                 else:
                     test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
@@ -159,7 +154,6 @@ def _test(args, check):
             sub_env["JAVA_OPTS"] = "-Xss64M"
 
         if servers:
-            from contextlib import closing
 
             print("Servers:")
             for server in servers.values():
@@ -259,9 +253,6 @@ def _benchmark(args):
 
     benchmark_script = [owl_defaults.get_script_path("benchmark.sh"), "--stdin",
                         "--repeat", str(repeat)]
-
-    if os.name == 'nt':
-        benchmark_script = ["bash"] + benchmark_script
 
     if update:
         benchmark_script += ["--update"]

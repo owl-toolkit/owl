@@ -1,8 +1,34 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import sys
 import os
+import sys
+from os.path import dirname, join, exists, relpath
+
+
+def get_bin_dir():
+    return join(dirname(dirname(dirname(__file__))), "build", "bin")
+
+
+def is_native_available():
+    return exists(join(get_bin_dir(), "owl-native"))
+
+
+def get_client_executable():
+    return relpath(join(dirname(dirname(__file__)), "client.py"))
+
+
+def get_owl_executable():
+    bin_dir = get_bin_dir()
+    native_path = join(bin_dir, "owl-native")
+    if os.path.exists(native_path):
+        return relpath(native_path)
+    return relpath(join(bin_dir, "owl"))
+
+
+def get_owl_server_executable():
+    return relpath(join(get_bin_dir(), "owl-server"))
+
 
 class Tool(object):
     def __init__(self, name, flags):
@@ -80,30 +106,20 @@ class OwlTool(Tool):
         return pipeline
 
     def get_server_execution(self, port=None):
-        if os.name == 'nt':
-            tool_execution = ["build\\bin\\owl-server.bat"]
-        else:
-            tool_execution = ["build/bin/owl-server"]
+        tool_execution = [get_owl_server_executable()]
         if port is not None:
             tool_execution.extend(["--port", str(port)])
-
         tool_execution.extend(self.get_pipeline())
         return tool_execution
 
     def get_file_execution(self, file):
-        if os.name == 'nt':
-            tool_execution = ["build\\bin\\owl.bat"]
-        else:
-            tool_execution = ["build/bin/owl"]
+        tool_execution = [get_owl_executable()]
         tool_execution.extend(["-I", file])
         tool_execution.extend(self.get_pipeline())
         return tool_execution
 
     def get_input_execution(self, static_input):
-        if os.name == 'nt':
-            tool_execution = ["build\\bin\\owl.bat"]
-        else:
-            tool_execution = ["build/bin/owl-native"]
+        tool_execution = [get_owl_executable()]
         tool_execution.extend(["-i", static_input])
         tool_execution.extend(self.get_pipeline())
         return tool_execution

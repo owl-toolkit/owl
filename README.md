@@ -30,7 +30,9 @@ JAVA_HOME=/opt/graalvm-ce-java11-20.1.0/
 
 If GraalVM (native-image) is not available, the project can also be built with a reduced set of features on any JDK that supports at least Java 11. See below for instructions.
 
-## Building on GraalVM
+## Building
+
+### GraalVM
 
 The standard distribution can be obtained with:
 
@@ -40,12 +42,33 @@ $ ./gradlew distZip
 
 The resulting `.zip` is located in `build/distributions`. It includes the scripts for the CLI tools, Jars usable as a Java library, and a C library.
 
-## Building on OpenJDK
+### OpenJDK
 
 If GraalVM is not available, building the native executable and library can be skipped by executing:
 
 ```
 $ ./gradlew distZip -Pdisable-native
+```
+
+### Docker
+
+In case you want to build or test locally using docker (recommended on Windows), first build the docker image with
+```
+  cd docker-build-environment && docker build -t owl .
+```
+Then, run the build process via
+```
+  docker run --rm -it -v <path>/owl:/dir -w /dir owl ./gradlew build
+```
+or similar. Optionally, you can pass `GRADLE_HOME=./.gradle` and `GRADLE_USER_HOME=./.gradle` to speed up subsequent builds.
+
+## Testing
+
+To test locally, run `gradle localEnvironment` to update the folder and then `python scripts/util.py test <name>` to run the respective test.
+On Windows, installing WSL is required and the testing commands (scripts in the `script` folder) should be run from within WSL.
+To test inside docker, run
+```
+  docker run -e GRADLE_HOME=./.gradle -e GRADLE_USER_HOME=./.gradle --rm -it -v <path>/owl:/dir -w /dir owl ./gradlew localEnvironment && python scripts/util.py test <name>
 ```
 
 ## Citing

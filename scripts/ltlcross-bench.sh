@@ -10,7 +10,7 @@ echo "Running bench with args $@"
 source "$(dirname "$0")/vars.sh"
 
 results_folder="${project_folder}/build/results"
-evaluation_script=$(win_path "${script_folder}/spotcross-eval.py")
+evaluation_script="${script_folder}/spotcross-eval.py"
 timeout_sec="300"
 
 declare -a tool_names
@@ -69,7 +69,7 @@ while [ ${#} -gt 0 ]; do
       "${tools_invocation[@]}" 2> >(tee "$ltlcross_output_file")
 
   dataset_names+=("$dataset_name")
-  csv_files+=("$(win_path "$csv_file")")
+  csv_files+=( "$csv_file" )
 done
 
 if [ ${num_datasets} -gt 1 ]; then

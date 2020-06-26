@@ -33,13 +33,18 @@ def run(servers, env=None):
                 pass
     if open_ports:
         print("Open ports: {0}".format(", ".join(map(str, open_ports))))
+        sys.exit(1)
 
     server_processes = dict()
     for port, server in servers.items():
-        server_process = subprocess.Popen(server, stdin=subprocess.DEVNULL,
-                                          stdout=subprocess.DEVNULL,
-                                          stderr=None, env=env)
-        server_processes[port] = server_process
+        try:
+            server_process = subprocess.Popen(server, stdin=subprocess.DEVNULL,
+                                              stdout=subprocess.DEVNULL,
+                                              stderr=None, env=env)
+            server_processes[port] = server_process
+        except FileNotFoundError as e:
+            print(f"Could not run process {' '.join(server)}")
+            raise e
 
     for port, process in server_processes.items():
         while not is_open(port):
@@ -52,10 +57,7 @@ def run(servers, env=None):
 
 def stop(server_processes):
     for server_process in server_processes.values():
-        if os.name == 'nt':
-            os.kill(server_process.pid, signal.CTRL_C_EVENT)
-        else:
-            server_process.terminate()
+        server_process.terminate()
 
     for server_process in server_processes.values():
         try:
