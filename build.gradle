@@ -17,6 +17,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import org.apache.tools.ant.taskdefs.condition.Os
+
 plugins {
     // https://github.com/tbroyer/gradle-errorprone-plugin
     // https://plugins.gradle.org/plugin/net.ltgt.errorprone
@@ -56,9 +58,22 @@ tasks.withType(JavaCompile) {
     // options.errorprone.disableWarningsInGeneratedCode = true
 }
 
-def disablePandoc = project.hasProperty("disable-pandoc")
-def disableNative = project.hasProperty("disable-native")
+
+def buildMarkdown = !project.hasProperty("disable-pandoc")
+def buildOwlNative = !project.hasProperty("disable-native")
+def includeJar = !project.hasProperty("exclude-jar")
 def enableNativeAssertions = project.hasProperty("enable-native-assertions")
+
+if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+    if (project.hasProperty("disable-default")) {
+        project.logger.quiet("Running on windows, disable native compilations with -Pdisable-native -Pdisable-pandoc")
+    } else {
+        project.logger.quiet("Running on windows, disabling unsupported native compilations, specify -Pdisable-default to override")
+        buildMarkdown = false;
+        buildOwlNative = false;
+    }
+}
+
 
 apply from: 'gradle/analysis.gradle'
 apply from: 'gradle/antlr.gradle'
@@ -113,7 +128,7 @@ dependencies {
 
 
     // https://mvnrepository.com/artifact/com.google.auto.value/auto-value
-    implementation      'com.google.auto.value:auto-value-annotations:1.7.1'
+    implementation 'com.google.auto.value:auto-value-annotations:1.7.1'
     annotationProcessor 'com.google.auto.value:auto-value:1.7.1'
 }
 
@@ -143,23 +158,6 @@ task sizeReport(type: Test) {
 
 tasks.withType(Test) {
     maxHeapSize = "16G"
-}
-
-model {
-    components {
-        owlClient(NativeExecutableSpec) {
-            baseName "owl-client"
-
-            sources {
-                c {
-                    source {
-                        srcDir "src/main/c"
-                        include "owl-client.c"
-                    }
-                }
-            }
-        }
-    }
 }
 
 // ---------------- Startup Scripts ----------------
@@ -197,23 +195,7 @@ def scripts = [
     'nba2ldba'  : 'owl.translations.nba2ldba.NBA2LDBA',
     'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder',
 
-    // 'owl-server': 'owl.run.ServerCli'
-]
-
-def rabinizerScripts = [
-    // LTL -> LDBA
-    'ltl2ldba'  : 'owl.translations.ltl2ldba.LTL2LDBAModule',
-    'ltl2ldgba' : 'owl.translations.ltl2ldba.LTL2LDGBAModule',
-
-    // LTL -> DRA
-    'ltl2dra'   : 'owl.translations.rabinizer.RabinizerDegeneralizeMain',
-    'ltl2dgra'  : 'owl.translations.rabinizer.RabinizerMain',
-
-    // LTL -> DPA
-    'ltl2dpa'   : 'owl.translations.LTL2DPA',
-
-    // DRA -> DPA
-    'dra2dpa'   : 'owl.translations.dra2dpa.IARBuilder'
+    'owl-server': 'owl.run.ServerCli'
 ]
 
 ext.createStartScriptTasks = { name, cp, map ->
@@ -223,7 +205,7 @@ ext.createStartScriptTasks = { name, cp, map ->
             mainClassName = className
             applicationName = scriptName
             // CreateStartScripts is stupid; it.outputs.files = outputDir, not the created scripts.
-            outputDir = file(project.buildDir.path  + '/scripts/' + scriptName)
+            outputDir = file(project.buildDir.path + '/scripts/' + scriptName)
             classpath = cp
         }
     }
@@ -257,9 +239,10 @@ task mavenJars(dependsOn: [jar, sourcesJar, javadocJar])
 task buildNativeLibrary(type: Exec, dependsOn: [classes]) {
     mkdir "${buildDir}/native-library"
     workingDir "${buildDir}/native-library"
+    onlyIf { buildOwlNative }
 
     def graalHome = System.getenv("GRAAL_HOME")
-    def command = (graalHome != null ? graalHome + "/bin/" : "") + "native-image"
+    def command = (graalHome == null ? "" : graalHome + "/bin/") + "native-image";
 
     commandLine command,
         "owl.cinterface.CInterface", "libowl",
@@ -279,9 +262,10 @@ task buildNativeLibrary(type: Exec, dependsOn: [classes]) {
 task buildNativeExecutable(type: Exec, dependsOn: [classes]) {
     mkdir "${buildDir}/native-executable"
     workingDir "${buildDir}/native-executable"
+    onlyIf { buildOwlNative }
 
     def graalHome = System.getenv("GRAAL_HOME")
-    def command = (graalHome != null ? graalHome + "/bin/" : "") + "native-image"
+    def command = (graalHome == null ? "" : graalHome + "/bin/") + "native-image";
 
     // TODO: remove dependency on header files.
     commandLine command,
@@ -300,36 +284,20 @@ task buildNativeExecutable(type: Exec, dependsOn: [classes]) {
 
 // ---------------- Script Jobs ----------------
 
-def allStartScripts = createStartScriptTasks("", jar.outputs.files + project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME), scripts)
-allStartScripts.each() {
-    it.dependsOn(jar)
-}
-
-def rabinizerStartScripts = createStartScriptTasks("Rabinizer", jar.outputs.files + project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME), rabinizerScripts)
-rabinizerStartScripts.each() {
+def otherStartScripts = createStartScriptTasks("", jar.outputs.files + project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME), scripts)
+otherStartScripts.each() {
     it.dependsOn(jar)
 }
 
 // ---------------- Documentation ----------------
 
 // Compile the markdown files
-import org.apache.tools.ant.taskdefs.condition.Os
-if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-    tasks.create(name: "compileMarkdown") {
-        doLast {
-            logger.warn("Cannot compile markdown on windows, skipping")
-        }
-    }.onlyIf {
-        !disablePandoc
-    }
-} else {
-    tasks.create(name: "compileMarkdown", type: Exec) {
-        executable = 'scripts/render-markdown.sh'
-        outputs.dir "$project.docsDir/markdown"
-        args = ["$project.docsDir/markdown"]
-    }.onlyIf {
-        !disablePandoc
-    }
+tasks.create(name: "compileMarkdown", type: Exec) {
+    executable = 'scripts/render-markdown.sh'
+    outputs.dir "$project.docsDir/markdown"
+    args = ["$project.docsDir/markdown"]
+}.onlyIf {
+    buildMarkdown
 }
 
 javadoc {
@@ -357,50 +325,67 @@ distributions {
             from compileMarkdown
 
             into("bin") {
-                from allStartScripts
+                from otherStartScripts
                 fileMode = 0755
             }
 
-            if (!disableNative) {
-              into("clib") {
-                  from "$projectDir/src/main/headers"
-                  from "$buildDir/native-library" include "*.h"
-                  from "$buildDir/native-library" include "*.so"
-              }
+            if (buildOwlNative) {
+                into("clib") {
+                    from "$projectDir/src/main/headers"
+                    from "$buildDir/native-library" include "*.h"
+                    from "$buildDir/native-library" include "*.so"
+                }
 
-              into("bin") {
-                from "$buildDir/native-executable" include "owl-native"
-              }
+                into("bin") {
+                    from "$buildDir/native-executable" include "owl-native"
+                }
             }
 
-            into("jars") {
-              from jar
-              from javadocJar
-              from sourcesJar
-            }
-        }
-    }
-
-    rabinizer {
-        distributionBaseName = 'rabinizer'
-
-        contents {
-            from "AUTHORS"
-            from "LICENSE"
-
-            into("bin") {
-                from rabinizerStartScripts
-                fileMode = 0755
+            if (includeJar) {
+                into("jars") {
+                    from jar
+                    from javadocJar
+                    from sourcesJar
+                }
             }
         }
     }
 }
 
-if (!disableNative) {
-  tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildNativeExecutable"))
-  tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildNativeExecutable"))
-  tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildNativeLibrary"))
-  tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildNativeLibrary"))
+task localEnvironment(type: Copy) {
+    destinationDir = project.buildDir
+    dependsOn(tasks.getByPath(":buildNativeLibrary"))
+    dependsOn(tasks.getByPath(":buildNativeExecutable"))
+
+    into("bin") {
+        from startScripts
+        from otherStartScripts
+        fileMode = 0755
+    }
+
+    into("lib") {
+        from configurations.default
+        from jar
+    }
+
+    if (buildOwlNative) {
+        into("clib") {
+            from "$projectDir/src/main/headers"
+            from "$buildDir/native-library" include "*.h"
+            from "$buildDir/native-library" include "*.so"
+        }
+
+        into("bin") {
+            from "$buildDir/native-executable" include "owl-native"
+        }
+    }
 }
+
+
+tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildNativeExecutable"))
+tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildNativeExecutable"))
+tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildNativeLibrary"))
+tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildNativeLibrary"))
+
 
 apply from: 'gradle/idea.gradle'

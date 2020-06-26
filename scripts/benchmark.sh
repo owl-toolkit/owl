@@ -72,7 +72,7 @@ if [ ${#} -eq 0 ]; then
 fi
 shift
 
-tool_executable="$(unix_path "$1")"
+tool_executable="$1"
 if ! [ -e "${tool_executable}" ] && ! command -v "${tool_executable}" 1>/dev/null 2>&1; then
   echo "Specified tool executable $tool_executable not found"
   exit 1
@@ -87,12 +87,7 @@ if [ "$update" = "1" ]; then
   echo "Updating binaries"
   (
     cd "${project_folder}"
-    if [[ $os == "windows" ]]; then
-      gradle="gradlew.bat"
-    else
-      gradle="./gradlew"
-    fi
-    if ! output=$($gradle --no-daemon buildBin); then
+    if ! output=$(./gradlew --no-daemon buildBin); then
       echo "Gradle failed, output:"
       echo "${output}"
       exit 1
@@ -147,7 +142,7 @@ echo    "(total of $(wc -l < "${formula_file}") formulas)"
 # shellcheck disable=SC2145
 echo    "Command: ${tool_executions[@]}"
 
-tool_executions=( "${tool_executions[@]/\%F/$(win_path "${formula_file}")}" )
+tool_executions=( "${tool_executions[@]/\%F/"${formula_file}"}" )
 
 
 if [ "$method" = "time" ]; then

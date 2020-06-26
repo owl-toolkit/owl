@@ -27,6 +27,7 @@ import com.google.common.base.Throwables;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.concurrent.ExecutorService;
@@ -47,9 +48,10 @@ public final class ServerCli {
 
   private ServerCli() {}
 
-  public static void main(String... args) {
+  public static void main(String... args) throws UnknownHostException {
     Options options = new Options()
       .addOption(new Option(null, "port", true, "Port to listen on (default: 5050)"))
+      .addOption(new Option(null, "bind", true, "Address to listen on (default: localhost)"))
       .addOption(getDefaultAnnotationOption());
 
     OwlParser parseResult = OwlParser.parse(args, new DefaultParser(), options,
@@ -61,9 +63,14 @@ public final class ServerCli {
     }
 
     var pipeline = parseResult.pipeline;
-    var address = InetAddress.getLoopbackAddress();
-    int port;
+    InetAddress address;
+    if (Strings.isNullOrEmpty(parseResult.globalSettings.getOptionValue("bind"))) {
+      address = InetAddress.getLoopbackAddress();
+    } else {
+      address = InetAddress.getByName(parseResult.globalSettings.getOptionValue("bind"));
+    }
 
+    int port;
     if (Strings.isNullOrEmpty(parseResult.globalSettings.getOptionValue("port"))) {
       port = 5050;
     } else {

@@ -10,7 +10,7 @@ echo "Running test with args $@"
 source "$(dirname "$0")/vars.sh"
 
 results_folder="${project_folder}/build/results"
-evaluation_script=$(win_path "${script_folder}/spotcross-eval.py")
+evaluation_script="${script_folder}/spotcross-eval.py"
 timeout_sec="300"
 any_error=0
 
@@ -104,8 +104,6 @@ while [ ${#} -gt 0 ]; do
   else
     any_error=1
 
-    [ "$os" == "windows" ] && dos2unix -q "$grind_file"
-
     faulty_formula="$(tail -n1 "$grind_file")"
     if [ -z "$faulty_formula" ]; then
       echo "Not generating automaton image as no faulty formula is present"
@@ -177,7 +175,8 @@ while [ ${#} -gt 0 ]; do
       function make_image() {
         formula="$1"
         destination="$2"
-        declare -a highlight=("${!3}")
+        shift 2
+        declare -a highlight=( "$@" )
 
         if ! destination_file=$(mktemp -t owl.tmp.XXXXXXXXXX); then
           echo "Failed to obtain temprorary file"
@@ -210,7 +209,7 @@ while [ ${#} -gt 0 ]; do
         export SPOT_DOTEXTRA="edge[arrowhead=vee, arrowsize=.7]"
 
         # highlight-word fails for fin acceptance, have to strip it
-        if [ ${#highlight[@]} -eq 0 ]; then
+        if [ ${#} -eq 0 ]; then
           autfilt --dot <"${destination_file}" >"$destination.dot"
         elif ! autfilt --dot "${highlight[@]}" <"${destination_file}" \
           >"$destination.dot" 2>/dev/null; then
@@ -228,8 +227,8 @@ while [ ${#} -gt 0 ]; do
       }
 
       if [ ${tool_error} = "1" ]; then
-        make_image "$faulty_formula" "$results_folder/error-pos" pos_highlight[@]
-        make_image "!($faulty_formula)" "$results_folder/error-neg" neg_highlight[@]
+        make_image "$faulty_formula" "$results_folder/error-pos" ${pos_highlight[@]}
+        make_image "!($faulty_formula)" "$results_folder/error-neg" ${neg_highlight[@]}
       fi
     done
   fi
@@ -237,12 +236,12 @@ while [ ${#} -gt 0 ]; do
   if [ ${num_datasets} -gt 1 ]; then
     echo ""
     echo "Stats for dataset $dataset_name"
-    ! ${python} "$evaluation_script" "ltl" "$(win_path "$csv_file")" |
+    ! ${python} "$evaluation_script" "ltl" "$csv_file" |
       tee "$results_folder/stats-$dataset_name.txt"
     echo ""
   fi
 
-  csv_files+=("$(win_path "$csv_file")")
+  csv_files+=( "$csv_file" )
 
   if [ "$dataset_error" = "1" ]; then
     # If this dataset failed, don't evaluate more sets

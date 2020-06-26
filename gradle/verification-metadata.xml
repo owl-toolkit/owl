@@ -6,6 +6,9 @@
       <trusted-artifacts>
          <trust file=".*-javadoc[.]jar" regex="true"/>
          <trust file=".*-sources[.]jar" regex="true"/>
+         <!-- These verifications fail on windows, probably due to line endings? -->
+         <trust file=".*[.]pom" regex="true"/>
+         <trust file=".*[.]module" regex="true"/>
       </trusted-artifacts>
    </configuration>
    <components>
