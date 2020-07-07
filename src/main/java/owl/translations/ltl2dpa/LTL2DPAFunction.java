@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import owl.automaton.AnnotatedStateOptimisation;
 import owl.automaton.Automaton;
@@ -81,12 +82,16 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
       int fixpoints = configuration.contains(SYMMETRIC)
-        ? Selector.selectSymmetric(formula.formula(), false).size()
-        : Selector.selectAsymmetric(formula.formula(), false).size();
+        ? getOrMaxInt(() -> Selector.selectSymmetric(formula.formula(), false).size())
+        : getOrMaxInt(() -> Selector.selectAsymmetric(formula.formula(), false).size());
 
       int negationFixpoints = configuration.contains(SYMMETRIC)
-        ? Selector.selectSymmetric(formula.formula().not(), false).size()
-        : Selector.selectAsymmetric(formula.formula().not(), false).size();
+        ? getOrMaxInt(() -> Selector.selectSymmetric(formula.formula().not(), false).size())
+        : getOrMaxInt(() -> Selector.selectAsymmetric(formula.formula().not(), false).size());
+
+      if (fixpoints == Integer.MAX_VALUE && negationFixpoints == Integer.MAX_VALUE) {
+        throw new IllegalStateException("Too many fixpoints.");
+      }
 
       if (fixpoints <= negationFixpoints) {
         automatonSupplier = configuration.contains(SYMMETRIC)
@@ -211,6 +216,14 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD;
       return BooleanOperations
         .deterministicComplement(automaton, sinkState, ParityAcceptance.class);
+    }
+  }
+
+  private static int getOrMaxInt(IntSupplier supplier) {
+    try {
+      return supplier.getAsInt();
+    } catch (IllegalArgumentException ex) {
+      return Integer.MAX_VALUE;
     }
   }
 }

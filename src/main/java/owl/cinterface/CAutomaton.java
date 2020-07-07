@@ -76,6 +76,7 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
+import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
@@ -467,9 +468,11 @@ public final class CAutomaton {
     }
 
     static DeterministicAutomatonWrapper<?, ?> of(LabelledFormula formula) {
-      if (SyntacticFragments.isSafety(formula.formula())) {
+      var nnfFormula = SyntacticFragment.NNF.contains(formula) ? formula : formula.nnf();
+
+      if (SyntacticFragments.isSafety(nnfFormula.formula())) {
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.safety(CInterface.ENVIRONMENT, formula),
+          DeterministicConstructionsPortfolio.safety(CInterface.ENVIRONMENT, nnfFormula),
           SAFETY, AllAcceptance.class,
           EquivalenceClass::isTrue,
           Function.identity(),
@@ -478,9 +481,9 @@ public final class CAutomaton {
         );
       }
 
-      if (SyntacticFragments.isCoSafety(formula.formula())) {
+      if (SyntacticFragments.isCoSafety(nnfFormula.formula())) {
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.coSafety(CInterface.ENVIRONMENT, formula),
+          DeterministicConstructionsPortfolio.coSafety(CInterface.ENVIRONMENT, nnfFormula),
           Acceptance.CO_SAFETY, BuchiAcceptance.class,
           EquivalenceClass::isTrue,
           Function.identity(),
@@ -489,39 +492,39 @@ public final class CAutomaton {
         );
       }
 
-      var formulasConj = formula.formula() instanceof Conjunction
-        ? formula.formula().operands
-        : Set.of(formula.formula());
+      var formulasConj = nnfFormula.formula() instanceof Conjunction
+        ? nnfFormula.formula().operands
+        : Set.of(nnfFormula.formula());
 
       if (formulasConj.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.gfCoSafety(CInterface.ENVIRONMENT, formula, false),
+          DeterministicConstructionsPortfolio.gfCoSafety(CInterface.ENVIRONMENT, nnfFormula, false),
           BUCHI, GeneralizedBuchiAcceptance.class,
           x -> false,
-          x -> formula,
+          x -> nnfFormula,
           x -> x.inSet(0) ? 1.0d : 0.5d,
           -1
         );
       }
 
-      var formulasDisj = formula.formula() instanceof Disjunction
-        ? formula.formula().operands
-        : Set.of(formula.formula());
+      var formulasDisj = nnfFormula.formula() instanceof Disjunction
+        ? nnfFormula.formula().operands
+        : Set.of(nnfFormula.formula());
 
       if (formulasDisj.stream().allMatch(SyntacticFragments::isFgSafety)) {
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.fgSafety(CInterface.ENVIRONMENT, formula, false),
+          DeterministicConstructionsPortfolio.fgSafety(CInterface.ENVIRONMENT, nnfFormula, false),
           CO_BUCHI, GeneralizedCoBuchiAcceptance.class,
           x -> false,
-          x -> formula,
+          x -> nnfFormula,
           x -> x.inSet(0) ? 0.0d : 0.5d,
           -1
         );
       }
 
-      if (SyntacticFragments.isSafetyCoSafety(formula.formula())) {
+      if (SyntacticFragments.isSafetyCoSafety(nnfFormula.formula())) {
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.safetyCoSafety(CInterface.ENVIRONMENT, formula),
+          DeterministicConstructionsPortfolio.safetyCoSafety(CInterface.ENVIRONMENT, nnfFormula),
           BUCHI, BuchiAcceptance.class,
           x -> x.all().isFalse() && x.all().isFalse(),
           DeterministicConstructions.BreakpointStateRejecting::all,
@@ -530,9 +533,9 @@ public final class CAutomaton {
         );
       }
 
-      if (SyntacticFragments.isCoSafetySafety(formula.formula())) {
+      if (SyntacticFragments.isCoSafetySafety(nnfFormula.formula())) {
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.coSafetySafety(CInterface.ENVIRONMENT, formula),
+          DeterministicConstructionsPortfolio.coSafetySafety(CInterface.ENVIRONMENT, nnfFormula),
           CO_BUCHI, CoBuchiAcceptance.class,
           x -> x.all().isTrue() && x.accepting().isTrue(),
           DeterministicConstructions.BreakpointStateAccepting::all,
@@ -544,7 +547,7 @@ public final class CAutomaton {
       var function = new LTL2DPAFunction(CInterface.ENVIRONMENT,
         EnumSet.of(COMPLEMENT_CONSTRUCTION_HEURISTIC));
       Automaton<AnnotatedState<EquivalenceClass>, ParityAcceptance> automaton =
-        (Automaton) function.apply(formula);
+        (Automaton) function.apply(nnfFormula);
 
       if (automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD) {
         return new DeterministicAutomatonWrapper<>(
