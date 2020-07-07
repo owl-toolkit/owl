@@ -19,6 +19,7 @@
 
 package owl.cinterface;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 
 import java.time.Duration;
@@ -27,13 +28,14 @@ import javax.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import owl.cinterface.CAutomaton.DeterministicAutomatonWrapper;
 import owl.ltl.parser.LtlParser;
 
 class DeterministicAutomatonWrapperTest {
 
   @SuppressWarnings("PMD.UnusedFormalParameter")
   private static void assertEquals(
-    CAutomaton.DeterministicAutomatonWrapper<?, ?> automaton,
+    DeterministicAutomatonWrapper<?, ?> automaton,
     int state,
     @Nullable int[] filter,
     int[] expectedTreeBuffer,
@@ -57,14 +59,14 @@ class DeterministicAutomatonWrapperTest {
     var formula6 = LtlParser.parse("G (r -> F g)", List.of("r", "g"));
     var formula7 = LtlParser.parse("(G F a) | (G F b)", List.of("a", "b"));
 
-    var automaton0 = CAutomaton.DeterministicAutomatonWrapper.of(formula0);
-    var automaton1 = CAutomaton.DeterministicAutomatonWrapper.of(formula1);
-    var automaton2 = CAutomaton.DeterministicAutomatonWrapper.of(formula2);
-    var automaton3 = CAutomaton.DeterministicAutomatonWrapper.of(formula3);
-    var automaton4 = CAutomaton.DeterministicAutomatonWrapper.of(formula4);
-    var automaton5 = CAutomaton.DeterministicAutomatonWrapper.of(formula5);
-    var automaton6 = CAutomaton.DeterministicAutomatonWrapper.of(formula6);
-    var automaton7 = CAutomaton.DeterministicAutomatonWrapper.of(formula7);
+    var automaton0 = DeterministicAutomatonWrapper.of(formula0);
+    var automaton1 = DeterministicAutomatonWrapper.of(formula1);
+    var automaton2 = DeterministicAutomatonWrapper.of(formula2);
+    var automaton3 = DeterministicAutomatonWrapper.of(formula3);
+    var automaton4 = DeterministicAutomatonWrapper.of(formula4);
+    var automaton5 = DeterministicAutomatonWrapper.of(formula5);
+    var automaton6 = DeterministicAutomatonWrapper.of(formula6);
+    var automaton7 = DeterministicAutomatonWrapper.of(formula7);
 
     assertEquals(automaton0, 0, null,
       new int[]{}, new int[]{-2, -1}, new double[]{1.0d});
@@ -95,7 +97,7 @@ class DeterministicAutomatonWrapperTest {
   @Disabled
   @Test
   void testMaskedEdges() {
-    var automaton = CAutomaton.DeterministicAutomatonWrapper
+    var automaton = DeterministicAutomatonWrapper
       .of(LtlParser.parse("a | b", List.of("a", "b")));
 
     assertEquals(automaton, 0, new int[]{0, -1, -2},
@@ -127,8 +129,8 @@ class DeterministicAutomatonWrapperTest {
         + "& X G (w | x | y)");
       Assertions.assertEquals(25, formula.atomicPropositions().size());
 
-      var instance1 = CAutomaton.DeterministicAutomatonWrapper.of(formula);
-      var instance2 = CAutomaton.DeterministicAutomatonWrapper.of(formula.not());
+      var instance1 = DeterministicAutomatonWrapper.of(formula);
+      var instance2 = DeterministicAutomatonWrapper.of(formula.not());
 
       var edgeTree = instance1.edgeTree(0, true);
       Assertions.assertEquals(66, edgeTree.tree.size());
@@ -136,5 +138,10 @@ class DeterministicAutomatonWrapperTest {
       edgeTree = instance2.edgeTree(0, true);
       Assertions.assertEquals(66, edgeTree.tree.size());
     });
+  }
+
+  @Test
+  void testFormulaNotInNnf() {
+    assertDoesNotThrow(() -> DeterministicAutomatonWrapper.of(LtlParser.parse("a <-> b")));
   }
 }
