@@ -93,7 +93,7 @@ public class MiscUtilTest {
   @Test
   void bitsetEncodeDecode() {
     //empty and all
-    assertEquals(new BitSet(), BitSetUtil.empty());
+    assertEquals(new BitSet(), new BitSet());
 
     HashBiMap<Integer,Integer> smap = HashBiMap.create();
     smap.put(1,2);

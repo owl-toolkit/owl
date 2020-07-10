@@ -32,6 +32,7 @@ import org.graalvm.word.PointerBase;
 import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
 import owl.run.Environment;
+import owl.util.OwlVersion;
 
 @CContext(CInterface.CDirectives.class)
 public final class CInterface {
@@ -72,6 +73,17 @@ public final class CInterface {
 
     return CTypeConversion.toCString(
       ObjectHandles.getGlobal().get(handle).toString(), buffer, bufferSize);
+  }
+
+  @CEntryPoint(
+    name = "owl_version",
+    exceptionHandler = PrintStackTraceAndExit.ReturnUnsignedWord.class
+  )
+  public static UnsignedWord owlVersion(
+    IsolateThread thread, CCharPointer buffer, UnsignedWord bufferSize) {
+
+    return CTypeConversion.toCString(
+      OwlVersion.getNameAndVersion().version(), buffer, bufferSize);
   }
 
   static class CDirectives implements CContext.Directives {
