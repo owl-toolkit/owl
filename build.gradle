@@ -215,6 +215,11 @@ startScripts.outputDir = file(project.buildDir.path + '/scripts/owl')
 
 // ---------------- Jars ----------------
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 jar {
     manifest {
         attributes(
@@ -224,19 +229,7 @@ jar {
     }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-    archiveClassifier = 'sources'
-    from sourceSets.main.allSource
-}
-
-task javadocJar(type: Jar, dependsOn: javadoc) {
-    archiveClassifier = 'javadoc'
-    from javadoc.destinationDir
-}
-
-task mavenJars(dependsOn: [jar, sourcesJar, javadocJar])
-
-task buildNativeLibrary(type: Exec, dependsOn: [classes]) {
+task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
     mkdir "${buildDir}/native-library"
     workingDir "${buildDir}/native-library"
     onlyIf { buildOwlNative }
@@ -259,7 +252,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [classes]) {
         '-H:-UseServiceLoaderFeature'
 }
 
-task buildNativeExecutable(type: Exec, dependsOn: [classes]) {
+task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
     mkdir "${buildDir}/native-executable"
     workingDir "${buildDir}/native-executable"
     onlyIf { buildOwlNative }
@@ -269,7 +262,8 @@ task buildNativeExecutable(type: Exec, dependsOn: [classes]) {
 
     // TODO: remove dependency on header files.
     commandLine command,
-        "owl.run.DefaultCli", "owl-native",
+        "owl-native",
+        "-jar", jar.archivePath,
         "-cp", sourceSets.main.runtimeClasspath.asPath,
         enableNativeAssertions ? '-ea' : '-da',
         "-DowlHeader=${projectDir}/src/main/headers",

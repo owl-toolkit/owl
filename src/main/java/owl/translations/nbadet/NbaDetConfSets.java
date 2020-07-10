@@ -89,7 +89,7 @@ public abstract class NbaDetConfSets {
 
       if (!args.sepAccCyc()) {
         //if not requested to separate, put all ASCCs in single determinisation tuple component
-        final var merged = asccs.stream().reduce(BitSetUtil::union).orElse(BitSetUtil.empty());
+        final var merged = asccs.stream().reduce(BitSetUtil::union).orElse(new BitSet());
         asccs.clear();
         asccs.add(merged);
       }
@@ -121,7 +121,7 @@ public abstract class NbaDetConfSets {
 
     if (!args.sepMix()) {
       //if not requested to separate, put all states in single determinisation tuple component
-      final var merged = msccs.stream().reduce(BitSetUtil::union).orElse(BitSetUtil.empty());
+      final var merged = msccs.stream().reduce(BitSetUtil::union).orElse(new BitSet());
       msccs.clear();
       if (!merged.isEmpty()) {
         msccs.add(merged);

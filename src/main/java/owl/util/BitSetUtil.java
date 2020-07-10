@@ -36,11 +36,6 @@ public final class BitSetUtil {
     return fromSet(stateMap.keySet(), stateMap);
   }
 
-  /** returns an empty BitSet. */
-  public static BitSet empty() {
-    return fromInt(0);
-  }
-
   /**
    * Converts a set into a bitset.
    * @param set set to be converted

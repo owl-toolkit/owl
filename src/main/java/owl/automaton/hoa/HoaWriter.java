@@ -47,6 +47,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
+import owl.util.OwlVersion;
 
 public final class HoaWriter {
 
@@ -103,7 +104,8 @@ public final class HoaWriter {
 
       try {
         consumer.notifyHeaderStart("v1");
-        consumer.setTool(tool(), version());
+        var nameAndVersion = OwlVersion.getNameAndVersion();
+        consumer.setTool(nameAndVersion.name(), nameAndVersion.version());
 
         if (options.contains(HoaOption.ANNOTATIONS)) {
           consumer.setName(name);
@@ -135,18 +137,6 @@ public final class HoaWriter {
       } catch (HOAConsumerException ex) {
         log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
       }
-    }
-
-    // TODO: global scope?
-    private static String tool() {
-      String title = Wrapper.class.getPackage().getImplementationTitle();
-      return title == null ? "owl" : title;
-    }
-
-    // TODO: global scope?
-    private static String version() {
-      String version = Wrapper.class.getPackage().getImplementationVersion();
-      return version == null ? "development" : version;
     }
 
     private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {

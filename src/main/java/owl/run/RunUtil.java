@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.cli.Option;
+import owl.util.OwlVersion;
 
 public final class RunUtil {
   private static final Logger logger = Logger.getLogger(RunUtil.class.getName());
@@ -62,23 +63,11 @@ public final class RunUtil {
   @SuppressWarnings({"PMD.SystemPrintln"})
   public static void checkForVersion(String[] args) {
     if (Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version")) {
-      Class<?> moduleClass;
+      var nameAndVersion = OwlVersion.getNameAndVersion();
 
-      try {
-        StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-        StackTraceElement main = stack[stack.length - 1];
-        moduleClass = Class.forName(main.getClassName());
-      } catch (ClassNotFoundException e) {
-        moduleClass = null;
-      }
+      System.out.println(
+        String.format("Name: %s \nVersion: %s", nameAndVersion.name(), nameAndVersion.version()));
 
-      String moduleName = moduleClass == null
-        ? "unknown"
-        : moduleClass.getSimpleName().toLowerCase().replace("module", "");
-      String name = String.format("Name: %s (%s)",
-        moduleName, RunUtil.class.getPackage().getImplementationTitle());
-      System.out.println(name);
-      System.out.println("Version: " + RunUtil.class.getPackage().getImplementationVersion());
       System.exit(0);
     }
   }
