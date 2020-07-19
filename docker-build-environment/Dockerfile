@@ -1,4 +1,4 @@
-FROM ubuntu:focal
+FROM ubuntu:latest
 
 MAINTAINER Salomon Sickert
 
@@ -35,16 +35,16 @@ RUN gu install native-image
 
 ## Download, verify, unpack, compile, and install
 
-RUN wget -q https://www.lrde.epita.fr/dload/spot/spot-2.8.7.tar.gz \
-    && echo 'bdbeb4454f0244b6b77e1b04458558ab62471aaa21918e104602e6da99969c1f spot-2.8.7.tar.gz' | sha256sum --check \
-    && tar -zxvf spot-2.8.7.tar.gz \
-    && rm spot-2.8.7.tar.gz \
-    && cd spot-2.8.7 \
+RUN wget -q https://www.lrde.epita.fr/dload/spot/spot-2.9.3.tar.gz \
+    && echo '02a348272329d4931905a586f7197b518ac6fa411aeeea2acac55d6d490ecd1e spot-2.9.3.tar.gz' | sha256sum --check \
+    && tar -zxvf spot-2.9.3.tar.gz \
+    && rm spot-2.9.3.tar.gz \
+    && cd spot-2.9.3 \
     && ./configure --disable-python --enable-max-accsets=1024 \
     && make -j 4 \
     && make install \
     && cd .. \
-    && rm -rf spot-2.8.7
+    && rm -rf spot-2.9.3
 
 ENV LD_LIBRARY_PATH=/usr/local/lib/
 
