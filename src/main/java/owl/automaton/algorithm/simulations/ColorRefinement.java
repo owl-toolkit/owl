@@ -20,7 +20,6 @@
 package owl.automaton.algorithm.simulations;
 
 import com.google.auto.value.AutoValue;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -30,7 +29,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.Pair;
@@ -45,14 +43,14 @@ import owl.util.BitSetUtil;
  * @param <S> Type of state for the underlying automaton.
  */
 public class ColorRefinement<S> {
-  Automaton<S, BuchiAcceptance> aut;
-  ValuationSetFactory factory;
+  final Automaton<S, BuchiAcceptance> aut;
+  final ValuationSetFactory factory;
 
-  Ordering po;
+  final Ordering po;
   Ordering oldPo;
-  Coloring<S> col;
+  final Coloring<S> col;
   Coloring<S> oldCol;
-  Map<S, Pair<Integer, Neighborhood>> intermediate;
+  final Map<S, Pair<Integer, Neighborhood>> intermediate;
 
   private ColorRefinement(Automaton<S, BuchiAcceptance> automaton) {
     aut = automaton;
@@ -155,7 +153,6 @@ public class ColorRefinement<S> {
     Map<Pair<ValuationSet, ValuationSet>, Integer> intermC = new HashMap<>();
     Map<ValuationSet, Integer> setColouring = new HashMap<>();
     Map<Integer, Pair<ValuationSet, ValuationSet>> rIntermC = new HashMap<>();
-    Map<Integer, ValuationSet> colouringSet = new HashMap<>();
 
     // we iterate over all states and possible valuations to create something like a transition
     // profile for each state. We collect all symbols on which an accepting transition is available
@@ -186,7 +183,6 @@ public class ColorRefinement<S> {
     int i = 0;
     for (var set : maxAcceptingVal.values()) {
       if (!setColouring.containsKey(set)) {
-        colouringSet.put(i, set);
         setColouring.put(set, i++);
       }
     }
@@ -203,9 +199,9 @@ public class ColorRefinement<S> {
     interm.forEach((key, value) -> col.set(key, intermC.get(value)));
 
     for (int c : col.values()) {
-      for (var key : rIntermC.keySet()) {
+      for (Map.Entry<Integer, Pair<ValuationSet, ValuationSet>> entry : rIntermC.entrySet()) {
         var p1 = rIntermC.get(c);
-        var p2 = rIntermC.get(key);
+        var p2 = entry.getValue();
         AtomicBoolean contained = new AtomicBoolean(true);
         p1.fst().forEach(val -> {
           if (!p2.fst().contains(val)) {
@@ -214,7 +210,7 @@ public class ColorRefinement<S> {
         });
         if (contained.get()
           && aut.factory().implies(p1.snd(), p2.snd())) {
-          po.set(c, key);
+          po.set(c, entry.getKey());
         }
       }
     }
@@ -480,8 +476,8 @@ public class ColorRefinement<S> {
     @Override
     public String toString() {
       StringBuilder sb = new StringBuilder();
-      for (var s : col.keySet()) {
-        sb.append(s).append(" -> ").append(col.get(s)).append('\n');
+      for (Map.Entry<S, Integer> entry : col.entrySet()) {
+        sb.append(entry.getKey()).append(" -> ").append(entry.getValue()).append('\n');
       }
       return sb.toString();
     }
@@ -559,8 +555,8 @@ public class ColorRefinement<S> {
     public String toString() {
       StringBuilder sb = new StringBuilder();
       sb.append("ordering size: ").append(size()).append('\n');
-      for (var key : ord.keySet()) {
-        sb.append(key).append(" <= ").append(ord.get(key)).append('\n');
+      for (Map.Entry<Integer, Set<Integer>> entry : ord.entrySet()) {
+        sb.append(entry.getKey()).append(" <= ").append(entry.getValue()).append('\n');
       }
       return sb.toString();
     }

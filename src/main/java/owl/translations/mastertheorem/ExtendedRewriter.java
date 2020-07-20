@@ -43,7 +43,7 @@ import owl.ltl.visitors.BinaryVisitor;
 
 class ExtendedRewriter {
 
-  private static Consumer<Formula> SENTINEL = x -> {
+  private static final Consumer<Formula> SENTINEL = x -> {
   };
 
   enum Mode {
@@ -72,7 +72,8 @@ class ExtendedRewriter {
 
     // Usage Detector
     private final Consumer<? super Formula.TemporalOperator> consumer;
-    private final @Nullable AdviceFunction prerunAdviceFunction;
+    @Nullable
+    private final AdviceFunction prerunAdviceFunction;
 
     private AdviceFunction(Mode mode,
       Iterable<? extends Formula.TemporalOperator> x,

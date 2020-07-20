@@ -20,7 +20,6 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
-
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -28,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-
 import owl.collections.Pair;
 import owl.util.BitSetUtil;
 
@@ -123,7 +121,7 @@ public abstract class RankedSlice {
       return RankedSlice.of(sl);
     }
     var curStates = (BitSet)slice().get(0).fst().clone();
-    var curRank = slice().get(0).snd();
+    int curRank = slice().get(0).snd();
     for (var i = 1; i < slice().size(); i++) {
       //accumulate as much as possible, collapsing everything that is permitted
       if (curRank > domRank && slice().get(i).snd() >= domRank) {

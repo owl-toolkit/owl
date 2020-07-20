@@ -92,7 +92,6 @@ public final class DefaultCli {
     }
 
     String destination = settings.getOptionValue("fileout");
-    @SuppressWarnings("resource")
     WritableByteChannel writer = destination == null || "-".equals(destination)
       ? Channels.newChannel(GuardedStream.sysout)
       : Files.newByteChannel(Paths.get(destination),
@@ -103,7 +102,6 @@ public final class DefaultCli {
     }
   }
 
-  @SuppressWarnings("resource")
   private static ReadableByteChannel createReader(List<String> inputs) {
     // Build the byte array now, since the inputs list may get cleared after this call.
     StringJoiner joiner = new StringJoiner(System.lineSeparator());

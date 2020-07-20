@@ -19,9 +19,8 @@
 
 package owl.translations.nbadet;
 
-import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import de.tum.in.naturals.bitset.BitSets;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -32,7 +31,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import owl.automaton.edge.Edge;
 import owl.collections.Pair;
 import owl.util.BitSetUtil;
@@ -43,7 +41,7 @@ final class NbaDetStateFactory<S> {
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());
 
   //these fields are the same as in NbaDetState
-  BiMap<Integer, S> states;
+  ImmutableBiMap<Integer, S> states;
   public BitSet powerSet;
   public BitSet rSccs;
   public BitSet aSccsBuffer;
@@ -53,7 +51,6 @@ final class NbaDetStateFactory<S> {
 
   //this is extra info used during successor calculation
   public ArrayList<ArrayList<Boolean>> dSccSeenGoodEdge;
-
 
   //create raw mutable copy ("import into factory")
   private static <S> NbaDetStateFactory<S> of(NbaDetState<S> st) {
@@ -78,7 +75,8 @@ final class NbaDetStateFactory<S> {
 
   //return result ("export from factory")
   private NbaDetState<S> freeze() {
-    var ret = new AutoValue_NbaDetState<S>(powerSet, rSccs, aSccsBuffer, aSccs, dSccs, mSccs);
+    NbaDetState<S> ret
+      = new AutoValue_NbaDetState<>(powerSet, rSccs, aSccsBuffer, aSccs, dSccs, mSccs);
     ret.states = states;
     return ret;
   }
@@ -144,9 +142,8 @@ final class NbaDetStateFactory<S> {
 
   // keep leftmost copy of each state
   void leftNormalize() {
-    if (aSccs.isPresent()) { //keep in buffer only ones not already reached in active
-      aSccsBuffer.andNot(aSccs.get().fst());
-    }
+    //keep in buffer only ones not already reached in active
+    aSccs.ifPresent(bitSetIntegerPair -> aSccsBuffer.andNot(bitSetIntegerPair.fst()));
     mapSlicesInplace(dSccs, RankedSlice::leftNormalized);
     mapSlicesInplace(mSccs, RankedSlice::leftNormalized);
   }
@@ -201,9 +198,9 @@ final class NbaDetStateFactory<S> {
     var switchers = new BitSet();
     relocateSwitchers(rSccs, c.sets().rsccStates(), switchers);
     relocateSwitchers(aSccsBuffer, c.sets().asccStates(), switchers);
-    if (aSccs.isPresent()) {
-      relocateSwitchers(aSccs.get().fst(), c.sets().asccStates(), switchers);
-    }
+    aSccs.ifPresent(
+      bitSetIntegerPair -> relocateSwitchers(bitSetIntegerPair.fst(), c.sets().asccStates(),
+        switchers));
     for (int i = 0; i < dSccs.size(); i++) {
       for (final var p : dSccs.get(i).slice()) {
         relocateSwitchers(p.fst(), c.sets().dsccsStates().get(i), switchers);
@@ -439,9 +436,7 @@ final class NbaDetStateFactory<S> {
   public void normalizeRanks() {
     //collect currently used ranks
     var used = new ArrayList<Integer>();
-    if (aSccs.isPresent()) {
-      used.add(aSccs.get().snd());
-    }
+    aSccs.ifPresent(bitSetIntegerPair -> used.add(bitSetIntegerPair.snd()));
     for (final var sl : dSccs) {
       for (final var p : sl.slice()) {
         used.add(p.snd());

@@ -20,7 +20,6 @@
 package owl.automaton.algorithm.simulations;
 
 import com.google.auto.value.AutoValue;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -93,7 +92,7 @@ public abstract class BuchiSimulationArguments {
     .desc("Use logging level FINE for more output")
     .build();
 
-  public static Options options = new Options()
+  public static final Options options = new Options()
     .addOption(optDirect)
     .addOption(optVerboseFine)
     .addOption(optDelayed)

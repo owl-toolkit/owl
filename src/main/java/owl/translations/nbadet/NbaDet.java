@@ -186,7 +186,7 @@ public final class NbaDet {
       conf.aut().original().factory(),
       Set.of(NbaDetState.of(conf, conf.aut().original().initialStates())),
       NbaDetState.getAcceptance(conf)) {
-      private boolean logOverridden = false;
+      private boolean logOverridden;
       @Override
       public Edge<NbaDetState<S>> edge(NbaDetState<S> state, BitSet val) {
         if (!logOverridden) {

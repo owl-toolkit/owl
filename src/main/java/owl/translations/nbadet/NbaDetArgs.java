@@ -20,7 +20,6 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
-
 import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Level;
@@ -29,60 +28,60 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
-
 import owl.collections.Pair;
 import owl.run.RunUtil;
 
 @AutoValue
 public abstract class NbaDetArgs {
 
-  private static Option optVerbosity = Option.builder("v").longOpt("verbosity")
+  private static final Option optVerbosity = Option.builder("v").longOpt("verbosity")
       .desc("Set nbadet log verbosity level (e.g. INFO, WARNING, FINE, FINER, FINEST)")
       .hasArg().argName("level").type(String.class).build();
 
 
-  private static Option optMergeMode = Option.builder("m").longOpt("merge-mode")
+  private static final Option optMergeMode = Option.builder("m").longOpt("merge-mode")
       .desc("Which merge method to use in construction (0=Muller-Schupp, 1=Safra, 2=Maximal merge)")
       .hasArg().argName("mode").type(Number.class).build();
 
-  private static Option optComputeSims = Option.builder("l").longOpt("compute-lang-inclusions")
+  private static final Option optComputeSims = Option.builder("l")
+      .longOpt("compute-lang-inclusions")
       .desc("List of algorithms to use on NBA to obtain language inclusions.")
       .hasArgs().argName("sims").valueSeparator(',').type(String.class).build();
 
-  private static Option optSimExt = Option.builder("e").longOpt("use-sim-external")
+  private static final Option optSimExt = Option.builder("e").longOpt("use-sim-external")
       .desc("Use results of simulation calculation for preprocessing and optimization.").build();
 
-  private static Option optSimInt = Option.builder("j").longOpt("use-sim-internal")
+  private static final Option optSimInt = Option.builder("j").longOpt("use-sim-internal")
       .desc("Use results of simulation calculation to prune the deterministic states.").build();
 
-  private static Option optUsePowersets = Option.builder("t").longOpt("use-powersets")
+  private static final Option optUsePowersets = Option.builder("t").longOpt("use-powersets")
       .desc("Use powerset structure of NBA to guide determinization").build();
 
-  private static Option optUseSmartSucc = Option.builder("s").longOpt("use-smart-succ")
+  private static final Option optUseSmartSucc = Option.builder("s").longOpt("use-smart-succ")
       .desc("Try to redirect edges to suitable already existing states on-the-fly").build();
 
-  private static Option optSepRej = Option.builder("r").longOpt("sep-rej")
+  private static final Option optSepRej = Option.builder("r").longOpt("sep-rej")
       .desc("Separate simplified handling for states in rejecting SCCs").build();
 
-  private static Option optSepAcc = Option.builder("A").longOpt("sep-acc")
+  private static final Option optSepAcc = Option.builder("A").longOpt("sep-acc")
       .desc("Separate simplified handling for states in accepting SCCs").build();
 
-  private static Option optSepAccCyc = Option.builder("b").longOpt("sep-acc-cycle")
+  private static final Option optSepAccCyc = Option.builder("b").longOpt("sep-acc-cycle")
       .desc("Cycle breakpoint construction for accepting SCCs").build();
 
-  private static Option optSepDet = Option.builder("d").longOpt("sep-det")
+  private static final Option optSepDet = Option.builder("d").longOpt("sep-det")
       .desc("Separate simplified handling for deterministic SCCs").build();
 
-  private static Option optSepMix = Option.builder("c").longOpt("sep-sccs")
+  private static final Option optSepMix = Option.builder("c").longOpt("sep-sccs")
       .desc("Separate handling of all SCCs (that are not already specially handled)").build();
 
-  private static Option optDefaultConfig = Option.builder("z").longOpt("default-config")
+  private static final Option optDefaultConfig = Option.builder("z").longOpt("default-config")
       .desc("Use a suggested configuration that works well most of the time, which is:\n"
           + getDefault().toString()).build();
 
 
   // exposed option structure to be included in the owl pipeline argument parser
-  public static Options options = new Options()
+  public static final Options options = new Options()
       .addOption(optVerbosity)
       .addOption(optMergeMode)
       .addOption(optComputeSims)
@@ -165,11 +164,6 @@ public abstract class NbaDetArgs {
   public abstract Builder toBuilder();
 
   // --------------------------------
-
-  /** A configuration that is completely unoptimized. */
-  public static NbaDetArgs getUnoptimized() {
-    return builder().build();
-  }
 
   /** A configuration with the suggested default optimizations. */
   public static NbaDetArgs getDefault() {

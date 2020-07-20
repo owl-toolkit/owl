@@ -48,7 +48,6 @@ public final class GameUtil {
     "pg-solver",
     "Writes the given max even parity game in PG Solver format",
     (commandLine, environment) -> (writer, input) -> {
-      //noinspection resource,IOResourceOpenedButNotSafelyClosed
       PrintWriter printStream = writer instanceof PrintWriter
         ? (PrintWriter) writer
         : new PrintWriter(writer, true);

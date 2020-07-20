@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -37,15 +36,15 @@ import owl.run.Environment;
 
 public class ForwardDirectLookaheadSimulation<S>
   implements SimulationType<S, LookaheadSimulationState<S>> {
-  Automaton<S, BuchiAcceptance> leftAutomaton;
-  Automaton<S, BuchiAcceptance> rightAutomaton;
-  ValuationSetFactory factory;
-  S leftState;
-  S rightState;
-  LookaheadSimulationState<S> initialState;
-  LookaheadSimulationState<S> sinkState;
-  Set<Pair<S, S>> knownPairs;
-  int maxLookahead;
+  final Automaton<S, BuchiAcceptance> leftAutomaton;
+  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final ValuationSetFactory factory;
+  final S leftState;
+  final S rightState;
+  final LookaheadSimulationState<S> initialState;
+  final LookaheadSimulationState<S> sinkState;
+  final Set<Pair<S, S>> knownPairs;
+  final int maxLookahead;
 
   public ForwardDirectLookaheadSimulation(
     Automaton<S, BuchiAcceptance> leftAutomaton,

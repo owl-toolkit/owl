@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -37,15 +36,16 @@ import owl.util.BitSetUtil;
 
 public class BackwardDirectSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
-  Automaton<S, BuchiAcceptance> leftAutomaton;
-  Automaton<S, BuchiAcceptance> rightAutomaton;
-  ValuationSetFactory factory;
-  S leftState;
-  S rightState;
-  MultipebbleSimulationState<S> initialState;
-  MultipebbleSimulationState<S> sinkState;
-  int pebbleCount;
-  Set<Pair<S, S>> knownPairs;
+
+  final Automaton<S, BuchiAcceptance> leftAutomaton;
+  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final ValuationSetFactory factory;
+  final S leftState;
+  final S rightState;
+  final MultipebbleSimulationState<S> initialState;
+  final MultipebbleSimulationState<S> sinkState;
+  final int pebbleCount;
+  final Set<Pair<S, S>> knownPairs;
 
   public BackwardDirectSimulation(
     Automaton<S, BuchiAcceptance> leftAutomaton,
@@ -127,20 +127,16 @@ public class BackwardDirectSimulation<S>
         return out;
       }
 
-      predecessors.forEach(pred -> {
-        leftAutomaton.edgeMap(pred).forEach((e, vS) -> {
-          if (e.successor().equals(state.odd().state())) {
-            vS.forEach(val -> {
-              state.odd().predecessors(leftAutomaton, val).forEach(p -> {
-                var target = MultipebbleSimulationState.of(
-                  p, state.even().setFlag(false), val
-                );
-                out.put(Edge.of(target, 0), factory.universe());
-              });
-            });
-          }
-        });
-      });
+      predecessors.forEach(pred -> leftAutomaton.edgeMap(pred).forEach((e, vS) -> {
+        if (e.successor().equals(state.odd().state())) {
+          vS.forEach(val -> state.odd().predecessors(leftAutomaton, val).forEach(p -> {
+            var target = MultipebbleSimulationState.of(
+              p, state.even().setFlag(false), val
+            );
+            out.put(Edge.of(target, 0), factory.universe());
+          }));
+        }
+      }));
     } else {
       var possibilities = state.even()
         .predecessors(leftAutomaton, BitSetUtil.fromInt(state.valuation()));

@@ -24,7 +24,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -43,15 +42,15 @@ import owl.util.BitSetUtil;
  */
 public class ForwardDirectSimulation<S>
   implements SimulationType<S, SimulationStates.MultipebbleSimulationState<S>> {
-  Automaton<S, BuchiAcceptance> leftAutomaton;
-  Automaton<S, BuchiAcceptance> rightAutomaton;
-  ValuationSetFactory factory;
-  S leftState;
-  S rightState;
-  MultipebbleSimulationState<S> initialState;
-  SimulationStates.MultipebbleSimulationState<S> sinkState;
-  int pebbleCount;
-  Set<Pair<S, S>> knownPairs;
+  final Automaton<S, BuchiAcceptance> leftAutomaton;
+  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final ValuationSetFactory factory;
+  final S leftState;
+  final S rightState;
+  final MultipebbleSimulationState<S> initialState;
+  final SimulationStates.MultipebbleSimulationState<S> sinkState;
+  final int pebbleCount;
+  final Set<Pair<S, S>> knownPairs;
 
   /**
    * Constructs a simulation game for two given automata and two states.

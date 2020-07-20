@@ -26,7 +26,6 @@ import javax.annotation.Nullable;
 
 @AutoValue
 public abstract class Aig {
-  @SuppressWarnings("StaticInitializerReferencesSubClass")
   public static final Aig FALSE = new AutoValue_Aig(0, null, false, null, false);
 
   public abstract int variable();

@@ -107,7 +107,6 @@ public final class GameFactory {
       Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
 
       graph.edges().stream().filter(x -> x.source().equals(state)).forEach(x -> {
-        //noinspection ConstantConditions
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
         Edge<S> edge = valueEdge.colour() == -1
           ? Edge.of(x.target())

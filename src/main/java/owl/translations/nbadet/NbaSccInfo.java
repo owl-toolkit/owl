@@ -21,12 +21,10 @@ package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.graph.Graphs;
-
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
@@ -60,7 +58,6 @@ public abstract class NbaSccInfo<S> {
   /** Weak accepting SCCs (non-trivial and only good cycles). */
   public abstract Set<Integer> accSccs();
 
-
   /** SCC IDs in some reverse topological order (bottom SCCs first, initial last). */
   public IntStream ids() {
     return IntStream.range(0, sccDecomposition().sccs().size());
@@ -89,7 +86,7 @@ public abstract class NbaSccInfo<S> {
   }
 
   String sccToString(int i) {
-    return sccDecomposition().sccs().get(i).toString() + ":"
+    return sccDecomposition().sccs().get(i).toString() + ':'
       + (trvSccs().contains(i) ? "T" : "")
       + (botSccs().contains(i) ? "B" : "")
       + (detSccs().contains(i) ? "D" : "")

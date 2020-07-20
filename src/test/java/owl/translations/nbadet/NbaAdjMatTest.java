@@ -22,15 +22,13 @@ package owl.translations.nbadet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
-
+import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
-
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.Pair;
 import owl.util.BitSetUtil;
@@ -41,8 +39,7 @@ public class NbaAdjMatTest {
   void testAdjMat() throws ParseException {
     var nba = AutomatonTestUtil.autFromString(NbaSccInfoTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
-    BiMap<Integer,Integer> idmap = HashBiMap.create();
-    nba.states().forEach(st -> idmap.put(st,st));
+    var idmap = ImmutableBiMap.copyOf(Maps.asMap(nba.states(), st -> st));
     Function<BitSet, Set<Integer>> fromBS = bs -> BitSetUtil.toSet(bs, Function.identity());
 
     var aSinks = NbaLangInclusions.getNbaAccPseudoSinks(nba);
@@ -51,7 +48,7 @@ public class NbaAdjMatTest {
     // "fake" state inclusions for state pruning test (we claim 2 <= 3, 7 <= 1, 8 <= 10)
     var subsumed = SubsumedStatesMap.of(idmap, Set.of(Pair.of(2,3), Pair.of(7,1), Pair.of(8,10)));
 
-    var mat = new NbaAdjMat<Integer>(nba, idmap, aSinks, subsumed);
+    var mat = new NbaAdjMat<>(nba, idmap, aSinks, subsumed);
 
     //sanity check for creation
     assertSame(nba, mat.original());

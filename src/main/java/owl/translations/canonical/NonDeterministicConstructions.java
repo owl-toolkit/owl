@@ -45,7 +45,6 @@ import owl.collections.Pair;
 import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -74,12 +73,10 @@ public final class NonDeterministicConstructions {
     extends AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<S, A> {
 
     final EquivalenceClassFactory factory;
-    final ValuationSetFactory valuationSetFactory;
 
     Base(Factories factories, Set<S> initialStates, A acceptance) {
       super(factories.vsFactory, initialStates, acceptance);
       this.factory = factories.eqFactory;
-      this.valuationSetFactory = factories.vsFactory;
     }
 
     @Override

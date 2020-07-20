@@ -21,9 +21,8 @@ package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
+import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Streams;
-
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -32,7 +31,6 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
@@ -133,8 +131,8 @@ public abstract class NbaDetConf<S> {
     var states = aut.states();
     //var states = new ArrayList<>(aut.states());
     //states.sort(Comparator.comparing(Object::toString)); //more predictable for debugging
-    var stateMap = HashBiMap.create(
-      Streams.mapWithIndex(states.stream(), (k,i) -> Pair.of(k,(int)i))
+    ImmutableBiMap<S, Integer> stateMap = ImmutableBiMap.copyOf(
+      Streams.mapWithIndex(states.stream(), (k, i) -> Pair.of(k, (int) i))
         .collect(Collectors.toUnmodifiableMap(Pair::fst, Pair::snd)));
 
     final var sccSets = NbaDetConfSets.of(args, scci, stateMap);
@@ -152,9 +150,11 @@ public abstract class NbaDetConf<S> {
     final SubsumedStatesMap intMask = args.simInt()
         ? SubsumedStatesMap.of(stateMap, intIncl) : SubsumedStatesMap.empty();
 
-    var adjMat = new NbaAdjMat<>(aut, stateMap, aSinks, extMask);
+    NbaAdjMat<S> adjMat = new NbaAdjMat<>(aut, stateMap, aSinks, extMask);
 
-    var ret =  new AutoValue_NbaDetConf<>(args, adjMat, aSinksBS, extMask, intMask, sccSets);
+    NbaDetConf<S> ret = new AutoValue_NbaDetConf<>(
+      args, adjMat, aSinksBS, extMask, intMask, sccSets);
+
     if (logger.getLevel() != null) {
       if (logger.getLevel().equals(Level.FINER)) {
         logger.log(Level.FINER, ret.toString());
@@ -163,6 +163,7 @@ public abstract class NbaDetConf<S> {
           + adjMat.toString());
       }
     }
+
     return ret;
   }
 

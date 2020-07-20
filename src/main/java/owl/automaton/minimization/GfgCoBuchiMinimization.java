@@ -304,7 +304,7 @@ public final class GfgCoBuchiMinimization {
   }
 
   enum EdgeType {
-    ACCEPTING, REJECTING, UNKNOWN;
+    ACCEPTING, REJECTING, UNKNOWN
   }
 
   private static <S> int componentId(S state, List<Set<S>> components) {

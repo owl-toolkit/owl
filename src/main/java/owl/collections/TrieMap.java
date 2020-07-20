@@ -32,9 +32,9 @@ import javax.annotation.Nullable;
  */
 public class TrieMap<K,V> {
   @Nullable
-  private V value = null;
+  private V value;
 
-  public Map<K, TrieMap<K,V>> suc = new HashMap<>();
+  public final Map<K, TrieMap<K,V>> suc = new HashMap<>();
 
   /** Returns a fresh empty trie. */
   public static <K,V> TrieMap<K,V> create() {
@@ -61,7 +61,7 @@ public class TrieMap<K,V> {
 
   /** Put value at provided key position. Will replace existing. */
   public void put(List<K> ks, V val) {
-    var curr = traverse(ks, true).get(); //safe to do, as we create if missing
+    var curr = traverse(ks, true).orElseThrow(); //safe to do, as we create if missing
     curr.value = val;
   }
 

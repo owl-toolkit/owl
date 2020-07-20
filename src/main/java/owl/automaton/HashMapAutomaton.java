@@ -64,7 +64,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   private Map<S, S> uniqueStates;
   private final ValuationSetFactory valuationSetFactory;
   @Nullable
-  private String name = null;
+  private String name;
   private State state = State.READ;
 
   HashMapAutomaton(ValuationSetFactory valuationSetFactory, A acceptance) {

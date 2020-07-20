@@ -77,7 +77,7 @@ public class DelagBuilder
   private final Environment environment;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
   @Nullable
-  private LoadingCache<ProductState<Object>, History> requiredHistoryCache = null;
+  private LoadingCache<ProductState<Object>, History> requiredHistoryCache;
 
   public DelagBuilder(Environment environment) {
     this.environment = environment;

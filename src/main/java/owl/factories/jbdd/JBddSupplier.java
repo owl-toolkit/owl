@@ -36,7 +36,7 @@ public final class JBddSupplier implements FactorySupplier {
     return INSTANCE;
   }
 
-  private Bdd create(int size) {
+  private static Bdd create(int size) {
     var configuration = ImmutableBddConfiguration.builder()
       .logStatisticsOnShutdown(false)
       .useGlobalComposeCache(false)

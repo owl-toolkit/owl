@@ -19,16 +19,14 @@
 
 package owl.translations.nbadet;
 
-import com.google.common.collect.BiMap;
+import com.google.common.collect.ImmutableBiMap;
 import de.tum.in.naturals.bitset.BitSets;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.Pair;
@@ -38,8 +36,7 @@ import owl.util.BitSetUtil;
 public final class NbaAdjMat<S> {
 
   private final Automaton<S,BuchiAcceptance> aut;
-  private final BiMap<S,Integer> stateMap;
-
+  private final ImmutableBiMap<S,Integer> stateMap;
   private final BitSet states;
 
   //those are used for optimization of the successor sets
@@ -50,12 +47,12 @@ public final class NbaAdjMat<S> {
   private final ArrayList<ArrayList<Pair<BitSet,BitSet>>> mat;
 
   //underlying NBA
-  public Automaton<S,BuchiAcceptance> original() {
+  public Automaton<S, BuchiAcceptance> original() {
     return this.aut;
   }
 
   //bijection between bits and states
-  public BiMap<S,Integer> stateMap() {
+  public ImmutableBiMap<S, Integer> stateMap() {
     return this.stateMap;
   }
 
@@ -65,7 +62,7 @@ public final class NbaAdjMat<S> {
   }
 
   //returns map from sym -> state -> (allSuccs, accSuccs)
-  public NbaAdjMat(Automaton<S,BuchiAcceptance> automaton, BiMap<S,Integer> sMap,
+  public NbaAdjMat(Automaton<S, BuchiAcceptance> automaton, ImmutableBiMap<S, Integer> sMap,
                    Set<S> aSinks, SubsumedStatesMap extIncl) {
     this.aut = automaton;
     this.stateMap = sMap;
@@ -102,14 +99,6 @@ public final class NbaAdjMat<S> {
 
   public Pair<BitSet,BitSet> succ(int st, int sym) {
     return mat.get(sym).get(st);
-  }
-
-  /**
-   * Returns pair with (all successors on sym, subset reached by accepting edge from st)
-   * from state st on valuation sym.
-   */
-  public Pair<BitSet,BitSet> succ(S st, BitSet sym) {
-    return succ(stateMap.get(st), BitSetUtil.toInt(sym));
   }
 
   /**
@@ -158,7 +147,7 @@ public final class NbaAdjMat<S> {
     if (aSuccs.isEmpty() && nSuccs.isEmpty()) {
       return "";
     }
-    return stateMap.inverse().get(st) + "\t-[" + symStr + "]>\t" + aSuccs + ", " + nSuccs + "\n";
+    return stateMap.inverse().get(st) + "\t-[" + symStr + "]>\t" + aSuccs + ", " + nSuccs + '\n';
   }
 
   @Override

@@ -284,7 +284,7 @@ public final class RabinizerBuilder {
     // after the analysis, we can remove it from the relevantSubFormulas set?
 
     int partitionSize = masterSccPartition.partitionSize();
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({"unchecked"})
     Set<GOperator>[] sccRelevantGList = new Set[partitionSize];
 
     Indices.forEachIndexed(masterSccPartition.sccs, (index, stateSubset) ->
@@ -825,8 +825,8 @@ public final class RabinizerBuilder {
     final Set<int[]> rankings;
     private final RabinPair[] rankingPairs;
 
-    @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
-                        "AssignmentToCollectionOrArrayFieldFromParameter"})
+    @SuppressWarnings({"PMD.ArrayIsStoredDirectly"
+                      })
     ActiveSet(GSet set, Set<int[]> rankings, RabinPair[] rankingPairs) {
       this.set = set;
       this.rankings = rankings;
@@ -878,8 +878,8 @@ public final class RabinizerBuilder {
     private final ValuationSet[][] monitorPriorities;
     private final boolean[] relevantFormulas;
 
-    @SuppressWarnings({"PMD.ArrayIsStoredDirectly",
-                        "AssignmentToCollectionOrArrayFieldFromParameter"})
+    @SuppressWarnings({"PMD.ArrayIsStoredDirectly"
+                      })
     GSetRanking(boolean[] relevantFormulas, boolean[] activeFormulas, GSet activeFormulaSet,
       RabinPair pair, int[] ranking, EquivalenceClassFactory eqFactory,
       ValuationSet[][] monitorPriorities) {
@@ -1070,7 +1070,8 @@ public final class RabinizerBuilder {
       this.factory = label.factory();
       this.environment = label.and(factory.of(
         Conjunction
-          .of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(x -> x.operand())))));
+          .of(Stream.concat(gMonitors.stream(), gMonitors.stream().map(
+            Formula.UnaryTemporalOperator::operand)))));
     }
 
     private boolean isImplied(Formula formula) {

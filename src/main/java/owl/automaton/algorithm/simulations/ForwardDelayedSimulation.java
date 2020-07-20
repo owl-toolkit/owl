@@ -23,7 +23,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -37,16 +36,17 @@ import owl.util.BitSetUtil;
 
 public class ForwardDelayedSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
-  Automaton<S, BuchiAcceptance> leftAutomaton;
-  Automaton<S, BuchiAcceptance> rightAutomaton;
-  ValuationSetFactory factory;
-  S leftState;
-  S rightState;
-  MultipebbleSimulationState<S> initialState;
-  MultipebbleSimulationState<S> sinkState;
-  int pebbleCount;
-  Set<Pair<S, S>> knownPairs;
-  Set<MultipebbleSimulationState<S>> stateSet;
+
+  final Automaton<S, BuchiAcceptance> leftAutomaton;
+  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final ValuationSetFactory factory;
+  final S leftState;
+  final S rightState;
+  final MultipebbleSimulationState<S> initialState;
+  final MultipebbleSimulationState<S> sinkState;
+  final int pebbleCount;
+  final Set<Pair<S, S>> knownPairs;
+  final Set<MultipebbleSimulationState<S>> stateSet;
 
   public ForwardDelayedSimulation(
     Automaton<S, BuchiAcceptance> leftAutomaton,

@@ -119,7 +119,7 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
 
   public static final class Builder {
     private final List<RabinPair> pairs = new ArrayList<>(); // NOPMD
-    private int sets = 0;
+    private int sets;
 
     public RabinPair add() {
       RabinPair pair = new RabinPair(sets, sets + 1);

@@ -20,6 +20,7 @@
 package owl.run.modules;
 
 import java.util.Collection;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -179,7 +180,7 @@ public class OwlModuleRegistry {
   }
 
   public Map<Type, OwlModule<?>> get(String name) {
-    Map<Type, OwlModule<?>> types = new HashMap<>();
+    Map<Type, OwlModule<?>> types = new EnumMap<>(Type.class);
 
     var reader = readers.get(name);
 
@@ -232,7 +233,7 @@ public class OwlModuleRegistry {
   }
 
   public enum Type {
-    READER, TRANSFORMER, WRITER;
+    READER, TRANSFORMER, WRITER
   }
 
   public static class OwlModuleNotFoundException extends Exception {

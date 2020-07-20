@@ -20,13 +20,11 @@
 package owl.translations.nbadet;
 
 import com.google.common.collect.BiMap;
-
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-
 import owl.collections.Pair;
 import owl.util.BitSetUtil;
 
@@ -89,7 +87,7 @@ final class SubsumedStatesMap {
   /**
    * get a dummy map with no relation encoded inside.
    */
-  public static <S> SubsumedStatesMap empty() {
+  public static SubsumedStatesMap empty() {
     return new SubsumedStatesMap(new HashMap<>());
   }
 
@@ -100,7 +98,7 @@ final class SubsumedStatesMap {
   public <S> String toString(Function<Integer, S> stmap) {
     var sb = new StringBuilder();
     mask.entrySet().stream().map(e ->
-      stmap.apply(e.getKey()) + " > " + BitSetUtil.toSet(e.getValue(), stmap) + "\n")
+      stmap.apply(e.getKey()) + " > " + BitSetUtil.toSet(e.getValue(), stmap) + '\n')
            .forEach(sb::append);
     return sb.toString();
   }

@@ -187,7 +187,7 @@ public final class SymmetricEvaluatedFixpoints
     for (List<FOperator> almostAlwaysFormulas
       : Sets.cartesianProduct(almostAlwaysFormulasAlternatives)) {
       var language = Conjunction.of(Stream.concat(
-        almostAlwaysFormulas.stream().map(x -> x.operand()),
+        almostAlwaysFormulas.stream().map(Formula.UnaryTemporalOperator::operand),
         infinitelyOftenFormulas.stream()));
       var languageClazz = factories.eqFactory.of(language.unfold());
 

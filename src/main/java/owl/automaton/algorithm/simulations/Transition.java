@@ -134,7 +134,7 @@ public abstract class Transition<S> {
 
   @Override
   public String toString() {
-    return "-" + (flag() ? ">>" : ">") + target();
+    return '-' + (flag() ? ">>" : ">") + target();
   }
 
   public boolean isValid(S base, Automaton<S, BuchiAcceptance> aut) {

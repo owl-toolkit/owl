@@ -23,7 +23,6 @@ import static owl.translations.nbadet.NbaDet.overrideLogLevel;
 import static owl.translations.nbadet.NbaDet.restoreLogLevel;
 
 import com.google.common.collect.Sets;
-
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -36,7 +35,6 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -529,8 +527,8 @@ public final class BuchiSimulation {
   }
 
   private static class SimulationStats {
-    public long computationTime;
-    public int graphSize;
+    public final long computationTime;
+    public final int graphSize;
 
     private SimulationStats(long ct, int gs) {
       computationTime = ct;

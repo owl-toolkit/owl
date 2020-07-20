@@ -42,7 +42,7 @@ import owl.game.Game;
 public class SimulationGame<S, T extends SimulationState<S>> implements
   Game<T, ParityAcceptance>,
   EdgeMapAutomatonMixin<T, ParityAcceptance> {
-  SimulationType<S, T> simulationType;
+  final SimulationType<S, T> simulationType;
 
   public SimulationGame(SimulationType<S, T> type) {
     simulationType = type;

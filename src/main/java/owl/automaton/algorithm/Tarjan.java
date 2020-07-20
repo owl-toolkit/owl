@@ -45,7 +45,7 @@ final class Tarjan<S> {
   private final Set<S> processedNodes = new HashSet<>();
   private final Map<S, TarjanState<S>> stateMap = new HashMap<>();
   private final SuccessorFunction<S> successorFunction;
-  private int index = 0;
+  private int index;
 
   Tarjan(SuccessorFunction<S> successorFunction, Predicate<? super Set<S>> earlyTermination) {
     this.successorFunction = successorFunction;

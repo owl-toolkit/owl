@@ -20,8 +20,7 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.BiMap;
-
+import com.google.common.collect.ImmutableBiMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -29,7 +28,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
+import javax.annotation.Nullable;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.Pair;
@@ -46,7 +45,8 @@ import owl.util.BitSetUtil;
 @SuppressWarnings("PMD.LooseCoupling")
 public abstract class NbaDetState<S> {
   //not handled by AutoValue, just carried around for meaningful toString function
-  BiMap<Integer, S> states;
+  @Nullable
+  ImmutableBiMap<Integer, S> states;
 
   // --------
 
@@ -69,11 +69,6 @@ public abstract class NbaDetState<S> {
   public abstract ArrayList<RankedSlice> mSccs();
 
   // --------
-
-  /** return an empty DetState. */
-  public static <S> NbaDetState<S> empty(NbaDetConf<S> conf) {
-    return of(conf, new BitSet());
-  }
 
   /**
    * Given a set and a configuration, create a DetState to be used as an initial state.
@@ -110,7 +105,8 @@ public abstract class NbaDetState<S> {
       }
     }
 
-    var ret = new AutoValue_NbaDetState<S>(nbaSet, rSccs, aSccsBuf, Optional.empty(), dSccs, mSccs);
+    NbaDetState<S> ret
+      = new AutoValue_NbaDetState<>(nbaSet, rSccs, aSccsBuf, Optional.empty(), dSccs, mSccs);
     ret.states = conf.aut().stateMap().inverse();
     return ret;
   }
@@ -181,7 +177,7 @@ public abstract class NbaDetState<S> {
       + ") D:(" + dSccs().stream().map(sl -> sl.toString(states::get))
                                 .collect(Collectors.joining(" | "))
       + ") M:(" + mSccs().stream().map(sl -> sl.toString(states::get))
-                                .collect(Collectors.joining(" | ")) + ")";
+                                .collect(Collectors.joining(" | ")) + ')';
   }
 
   // --------

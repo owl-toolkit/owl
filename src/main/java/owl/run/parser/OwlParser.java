@@ -50,7 +50,6 @@ public final class OwlParser {
     this.globalSettings = globalSettings;
   }
 
-  @SuppressWarnings("NestedTryStatement")
   @Nullable
   public static OwlParser parse(String[] arguments, CommandLineParser cliParser,
     Options globalOptions, OwlModuleRegistry registry) {

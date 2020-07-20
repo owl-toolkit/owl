@@ -47,7 +47,7 @@ public final class Disjunction extends Formula.NaryPropositionalOperator {
   // Internal constructor.
   @SuppressWarnings("PMD.UnusedFormalParameter")
   private Disjunction(List<? extends Formula> disjuncts, @Nullable Void internal) {
-    super(Conjunction.class, List.copyOf(disjuncts));
+    super(Disjunction.class, List.copyOf(disjuncts));
   }
 
   public static Formula of(Formula e1, Formula e2) {

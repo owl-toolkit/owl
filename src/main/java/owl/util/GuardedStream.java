@@ -33,7 +33,6 @@ import java.nio.charset.StandardCharsets;
  * <p><strong>Warning:</strong> Code using these writers should still use try-with-resource guards
  * or similar, as otherwise the output may not get flushed.</p>
  */
-@SuppressWarnings({"resource", "IOResourceOpenedButNotSafelyClosed"})
 public final class GuardedStream {
   @SuppressWarnings("SpellCheckingInspection")
   public static final Writer syserr = guard(new OutputStreamWriter(System.err,

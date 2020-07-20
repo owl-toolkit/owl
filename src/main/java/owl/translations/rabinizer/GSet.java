@@ -31,6 +31,7 @@ import javax.annotation.Nullable;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Formula;
 import owl.ltl.GOperator;
 
 final class GSet extends AbstractSet<GOperator> {
@@ -45,7 +46,7 @@ final class GSet extends AbstractSet<GOperator> {
     this.elements = Set.copyOf(elements);
     this.conjunction = factory.of(Conjunction.of(elements));
     this.operatorConjunction = factory
-      .of(Conjunction.of(elements.stream().map(x -> x.operand())));
+      .of(Conjunction.of(elements.stream().map(Formula.UnaryTemporalOperator::operand)));
     hashCode = this.elements.hashCode();
   }
 

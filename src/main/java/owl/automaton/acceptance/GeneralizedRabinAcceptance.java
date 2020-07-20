@@ -346,7 +346,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
   public static final class Builder {
     private final List<RabinPair> pairs = new ArrayList<>();
-    private int sets = 0;
+    private int sets;
 
     public RabinPair add(@Nonnegative int infSets) {
       RabinPair pair = new RabinPair(sets, sets + infSets);

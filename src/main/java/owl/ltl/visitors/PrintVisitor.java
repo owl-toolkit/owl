@@ -69,8 +69,8 @@ public final class PrintVisitor implements Visitor<String> {
 
   @Override
   public String visit(Biconditional biconditional) {
-    return "(" + visitParenthesized(biconditional.leftOperand())
-      + " <-> " + visitParenthesized(biconditional.rightOperand()) + ")";
+    return '(' + visitParenthesized(biconditional.leftOperand())
+      + " <-> " + visitParenthesized(biconditional.rightOperand()) + ')';
   }
 
   @Override

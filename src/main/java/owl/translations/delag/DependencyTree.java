@@ -209,7 +209,6 @@ abstract class DependencyTree<T> {
       return shift(automaton.acceptance().booleanExpression());
     }
 
-    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
       return LongArrays.EMPTY_ARRAY;
@@ -368,7 +367,6 @@ abstract class DependencyTree<T> {
       return new BooleanExpression<>(acceptance);
     }
 
-    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
       if (type == Type.CO_SAFETY || type == Type.SAFETY || XDepthVisitor.getDepth(formula) == 0) {

@@ -92,7 +92,7 @@ public final class HoaWriter {
     private final EnumSet<HoaOption> options;
     private final Object2IntMap<S> stateNumbers;
     @Nullable
-    private S currentState = null;
+    private S currentState;
     final Visitor visitor = new Visitor();
 
     Wrapper(HOAConsumer consumer, List<String> aliases, OmegaAcceptance acceptance,

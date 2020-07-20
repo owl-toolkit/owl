@@ -145,8 +145,8 @@ public final class Collections3 {
       @Override
       public Iterator<E> iterator() {
         return new Iterator<>() {
-          Iterator<E> iterator = set.iterator();
-          boolean elementReturned = false;
+          final Iterator<E> iterator = set.iterator();
+          boolean elementReturned;
 
           @Override
           public boolean hasNext() {

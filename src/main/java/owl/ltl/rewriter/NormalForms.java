@@ -235,7 +235,7 @@ public final class NormalForms {
     @Override
     public Iterator<Set<Formula>> iterator() {
       return new Iterator<>() {
-        Iterator<BitSet> internalIterator = clauses.iterator();
+        final Iterator<BitSet> internalIterator = clauses.iterator();
 
         @Override
         public boolean hasNext() {
