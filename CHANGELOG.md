@@ -1,4 +1,4 @@
-# 2020.XX (unreleased)
+# 2020.06
 
 Modules:
 
@@ -57,7 +57,7 @@ API:
   possible by major performance improvements in the EquivalenceClass
   implementation.
 
-* Addition of the `BooleanOperations` utility class that provides Boolean
+* Addition of the `BooleanOperations` utility class providing Boolean
   operations (complementation, union, and intersection) on automata.
 
 * Addition of utility classes for determinization of NCW and minimisation
@@ -75,7 +75,8 @@ Bugfixes:
 
 * Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions.
   The translations based on the LICS'18 Master theorem and its predecessors
-  have been affected.
+  have been affected. Thanks to Julian Brunner for reporting one of the
+  issues.
 
 * Fixed a bug in the `UpwardClosedSet` class: sets that were subsumed by other
   sets have not been removed in all circumstances.
