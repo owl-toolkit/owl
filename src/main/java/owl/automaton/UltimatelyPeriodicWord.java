@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -37,7 +37,7 @@ public final class UltimatelyPeriodicWord {
     this.period = period.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
     Preconditions.checkArgument(!this.period.isEmpty());
   }
-  
+
   @Override
   public boolean equals(Object o) {
     if (this == o) {
