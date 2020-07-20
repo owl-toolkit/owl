@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2019  (See AUTHORS)
+ * Copyright (C) 2016 - 2020  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -73,7 +73,7 @@ class EdgeTest {
         } else if (acceptanceSetArray.length == 1) {
           representatives.add(Edge.of(successor, acceptanceSetArray[0]));
         }
-        
+
         testCaseList.add(new TestCase(representatives, successor, acceptanceSet));
       }
     }
