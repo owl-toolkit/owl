@@ -1,4 +1,4 @@
-image: gitlab.lrz.de:5005/i7/owl:ba23e343
+image: gitlab.lrz.de:5005/i7/owl:986b7109
 
 before_script:
   - chmod +x gradlew
@@ -22,7 +22,6 @@ Build:
     paths:
     - $GRADLE
   script:
-    - apt-get update && apt-get install -y --no-install-recommends build-essential zlib1g-dev # TODO: Remove this after Docker update
     - ./gradlew distZip
     - unzip -d build/unzipped build/distributions/*.zip
     - mv build/unzipped/owl-*/bin build
