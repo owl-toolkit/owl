@@ -8,7 +8,7 @@ Functionality (e.g., translations, simplifiers) is available through command-lin
 
 The distribution contains the following:
 
-* `bin` - Startup scripts for the contained tools, which are described in [usage instructions](doc/USAGE.md). `owl-native` is a pre-compiled version for linux-amd64 with faster startup time compared to `owl`.
+* `bin` - Startup scripts for the contained tools, which are described in [usage instructions](doc/USAGE.md). `owl-native` is a pre-compiled version of `owl` for linux-amd64 with faster startup time compared to `owl`. All other tools require an installed [Java runtime environment capable of running Java 11](http://jdk.java.net/). 
 * `clib` - Owl pre-compiled for linux-amd64 as a C library.
 * `doc` - Additional documentation.
 * `jars` - Owl packaged as a Java library.
