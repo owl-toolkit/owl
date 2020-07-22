@@ -28,7 +28,6 @@ plugins {
 
 // Languages
 apply plugin: 'antlr'
-apply plugin: 'c'
 apply plugin: 'java'
 
 // Static Analysis
