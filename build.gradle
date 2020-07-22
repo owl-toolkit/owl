@@ -58,7 +58,6 @@ tasks.withType(JavaCompile) {
     // options.errorprone.disableWarningsInGeneratedCode = true
 }
 
-
 def buildMarkdown = !project.hasProperty("disable-pandoc")
 def buildOwlNative = !project.hasProperty("disable-native")
 def includeJar = !project.hasProperty("exclude-jar")
@@ -306,8 +305,6 @@ javadoc {
 // ---------------- Distributions ----------------
 
 // Configure the distribution to include basic documentation.
-// Javadoc is excluded and can be built from source release,
-// that is generated from the release tag.
 
 distributions {
     main {

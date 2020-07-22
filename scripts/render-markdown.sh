@@ -8,7 +8,7 @@ IFS=$'\n\t'
 # shellcheck source=./vars.sh
 source "$(dirname "$0")/vars.sh"
 
-files=("README.md" "CONTRIBUTING.md" "CHANGELOG.md" "doc/"*)
+files=("README_DISTRIBUTION.md" "CONTRIBUTING.md" "CHANGELOG.md" "doc/"*)
 destination="$1"
 
 for file_path in "${files[@]}"; do
@@ -20,6 +20,6 @@ for file_path in "${files[@]}"; do
   destination_path="$destination/${file_path%.md}.html"
   mkdir -p $(dirname "${destination_path}")
 
-  pandoc --standalone -f markdown_github -t html5 -o "$destination_path" "$source_path"
+  pandoc --standalone -f gfm -t html5 -o "$destination_path" "$source_path"
   sed -i -- 's/[.]md/.html/g' "$destination_path"
 done
