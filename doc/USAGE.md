@@ -55,7 +55,7 @@ __Global options:__
   * `-i INPUT`: Pass `INPUT` as input to the tool
   * `-I FILE`: Pass the contents of `FILE` to the tool
   * `-O FILE`: Write the output to `FILE`
-   
+
 See the [format descriptions](FORMATS.md) for a description of accepted inputs. Additionally, as soon as an unmatched argument is encountered, this and all following arguments will be interpreted as input. For example, `ltl2dpa "F G a"` is equivalent to `ltl2dpa -i "F G a"`.
 
 ## Extended command line syntax
@@ -116,50 +116,11 @@ For example, translation can be delegated to Rabinizer 3.1 by
 % owl  ltl --- simplify-ltl --- ltl2aut-ext --tool "run-rabinizer.sh %f" --- minimize-aut --- hoa
 ```
 
-The real strength of this framework comes from its flexibility.
-The command-line parser is completely pluggable and written without explicitly referencing any implementation.
-In order to add a new algorithm, one simply has to provide a name (as, e.g., `ltl2nba`), an optional set of command line options and a way of obtaining the configured translator from the parsed options.
-For example, to add a new construction called `ltl2nba` with a `--fast` flag, the whole description necessary is as follows:
+### Server Mode
 
-```java
-public static final TransformerParser CLI_SETTINGS = ImmutableTransformerParser.builder()
-    .key("ltl2nba")
-    .description("Translates LTL to NBA really fast")
-    .optionsDirect(new Options()
-      .addOption("f", "fast", false, "Turn on fast mode"))
-    .parser(settings -> {
-      boolean fast = settings.hasOption("fast");
-      return environment -> (input, context) ->
-        LTL2NBA.apply((LabelledFormula) input, fast, environment)
-    .build();
-```
-
-After registering these settings with a one-line call, the tool can now be used exactly as `ltl2dpa` before.
-Additionally, the tool is automatically integrated into the `--help` output of `Owl`, without requiring further interaction from the developer.
-Parsers and serializers can be registered with the same kind of specification.
-
-### Advanced Usage
-
-Some advanced features are:
-
-  * Dedicated tools can easily be created by delegating to the generic framework.
-    For example, `ltl2ldba` is created by the following snippet. This automatically sets up command line argument processing, input / output parsing, help printing, etc.
-
-```java
-public static void main(String... args) {
- PartialConfigurationParser.run(args, PartialModuleConfiguration.builder("ltl2ldba")
-   .reader(InputReaders.LTL)
-   .addTransformer(Transformers.LTL_SIMPLIFIER)
-   .addTransformer(LTL2LDBACliParser.INSTANCE)
-   .writer(OutputWriters.HOA)
-   .build());
-}
-```
-
-  * The *server mode* listens on a given address and port for incoming TCP connections.
-    Each of these connections then is handled as a separate pair of input source / output sink, i.e. the specified input parser reads from each connection and the resulting outputs are written back to the client, all completely transparent to the translation modules.
-    For example, a `ltl2dpa` server is started by writing
-    `% owl-server  ltl --- simplify-ltl --- ltl2dpa --- hoa`
-    Sending input is as easy as `nc localhost 5050` and starting to type.
-    We also provide a small C utility `owl-client` dedicated to this purpose for users without access to `netcat`.
-    This allows easy usage as a fast back-end server, since the JVM does not have to start for each input.
+The *server mode* listens on a given address and port for incoming TCP connections.
+Each of these connections then is handled as a separate pair of input source / output sink, i.e. the specified input parser reads from each connection and the resulting outputs are written back to the client, all completely transparent to the translation modules.
+For example, a `ltl2dpa` server is started by writing
+`% owl-server  ltl --- simplify-ltl --- ltl2dpa --- hoa`
+Sending input is as easy as `nc localhost 5050` and starting to type.
+This allows easy usage as a fast back-end server, since the JVM does not have to start for each input.

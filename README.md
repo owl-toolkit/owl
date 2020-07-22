@@ -2,12 +2,13 @@
 
 A tool collection and library for <b>O</b>mega-<b>w</b>ords, ω-automata and <b>L</b>inear Temporal Logic (LTL). Batteries included.
 
-Functionality (e.g., translations, simplifiers) is available through command-line tools and a Java and C-API. Details on how to use Owl are given in the [usage instructions](doc/USAGE.md). If you want to contribute to Owl, read the [contribution guidelines](CONTRIBUTING.md) which are mandatory if you want your changes to be merged into the main branch.
-Read the javadoc of the respective packages of the infrastructure you plan to use, e.g., `owl.automaton`. It contains links to the relevant classes and typical use cases.
+Functionality (e.g., translations, simplifiers) is available through command-line tools and a Java and C-API. Details on how to use Owl are given in the [usage instructions](doc/USAGE.md). If you want to contribute to Owl, read the [contribution guidelines](CONTRIBUTING.md) which are mandatory if you want your changes to be merged into the main branch. Read the javadoc of the respective packages of the infrastructure you plan to use, e.g., `owl.automaton`. It contains links to the relevant classes and typical use cases.
 
 For further information see the official [website](https://owl.model.in.tum.de/).
 
-## Prerequisites
+## Building
+
+### Prerequisites
 
 Building the project from the repository requires [GraalVM 20.1: JDK 11](https://www.graalvm.org/), a C build environment with the `glibc` and `zlib` header files installed, and [pandoc](https://pandoc.org/). On Ubuntu the required dependencies can be installed via the following commands:
 
@@ -29,8 +30,6 @@ JAVA_HOME=/opt/graalvm-ce-java11-20.1.0/
 ```
 
 If GraalVM (native-image) is not available, the project can also be built with a reduced set of features on any JDK that supports at least Java 11. See below for instructions.
-
-## Building
 
 ### GraalVM
 
