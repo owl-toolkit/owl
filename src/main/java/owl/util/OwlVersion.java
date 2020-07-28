@@ -20,14 +20,21 @@
 package owl.util;
 
 import com.google.auto.value.AutoValue;
+import picocli.CommandLine;
 
-public class OwlVersion {
+public final class OwlVersion implements CommandLine.IVersionProvider {
 
   // Fall-back strings if MANIFEST cannot be accessed correctly.
-  private static final String MAIN_NAME = "owl";
+  private static final String NAME = "owl";
   private static final String VERSION = "21.??-development";
 
   private OwlVersion() {}
+
+  @Override
+  public String[] getVersion() throws Exception {
+    var nameAndVersion = getNameAndVersion();
+    return new String[]{nameAndVersion.name() + " (version: " + nameAndVersion.version() + ')'};
+  }
 
   /**
    * Obtains the name and version of the currently running Owl component. This is done by searching
@@ -35,24 +42,13 @@ public class OwlVersion {
    * main thread.
    */
   public static NameAndVersion getNameAndVersion() {
-    String moduleName;
-
-    try {
-      StackTraceElement[] stack = Thread.currentThread().getStackTrace();
-      StackTraceElement main = stack[stack.length - 1];
-      moduleName = Class.forName(main.getClassName())
-        .getSimpleName().toLowerCase().replace("module", "");
-    } catch (ArrayIndexOutOfBoundsException | ClassNotFoundException e) {
-      moduleName = null;
-    }
-
     Package owlPackage = OwlVersion.class.getPackage();
 
     String mainName = owlPackage.getImplementationTitle();
 
     if (mainName == null) {
-      mainName = MAIN_NAME;
-    } else if (!mainName.equals(MAIN_NAME)) {
+      mainName = NAME;
+    } else if (!mainName.equals(NAME)) {
       throw new IllegalStateException("Conflicting main names.");
     }
 
@@ -64,11 +60,7 @@ public class OwlVersion {
       throw new IllegalStateException("Conflicting versions.");
     }
 
-    if (moduleName == null) {
-      return NameAndVersion.of(mainName, version);
-    }
-
-    return NameAndVersion.of(String.format("%s (%s)", moduleName, mainName), version);
+    return NameAndVersion.of(mainName, version);
   }
 
   @AutoValue

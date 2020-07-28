@@ -36,16 +36,15 @@ import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.visitors.UnabbreviateVisitor;
 
 class FormulaTest {
 
   @Test
   void simplify1() {
-    Formula f3 = SimplifierFactory.apply(
-      Disjunction.of(Literal.of(0, false), Literal.of(2, false)),
-      Mode.SYNTACTIC);
+    Formula f3 = SimplifierRepository.SYNTACTIC.apply(
+      Disjunction.of(Literal.of(0, false), Literal.of(2, false))
+    );
     assertThat(f3, Disjunction.class::isInstance);
   }
 
@@ -56,7 +55,7 @@ class FormulaTest {
 
     Formula f4 = Literal.of(1, true);
     Formula f5 = Literal.of(0, true);
-    Formula f6 = new UOperator(f5, SimplifierFactory.apply(Conjunction.of(f4, f5), Mode.SYNTACTIC));
+    Formula f6 = new UOperator(f5, SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f4, f5)));
     Formula f7 = Disjunction.of(new GOperator(f5), f6);
 
     assertEquals(f3, f7);
@@ -83,7 +82,7 @@ class FormulaTest {
   @Test
   void testAssertValuation3() {
     Formula f5 = GOperator.of(Literal.of(2, false)).unfold();
-    Formula f6 = SimplifierFactory.apply(f5.temporalStep(new BitSet()), Mode.SYNTACTIC);
+    Formula f6 = SimplifierRepository.SYNTACTIC.apply(f5.temporalStep(new BitSet()));
     assertEquals(f6, BooleanConstant.of(false));
   }
 
@@ -127,9 +126,9 @@ class FormulaTest {
     Formula f3 = new FOperator(f1);
     Formula f4 = new UOperator(f3, f2);
 
-    Formula f5 = SimplifierFactory.apply(Disjunction.of(f2,
-      new FOperator(SimplifierFactory.apply(Conjunction.of(XOperator.of(f2), f3), Mode.SYNTACTIC
-      ))), Mode.SYNTACTIC
+    Formula f5 = SimplifierRepository.SYNTACTIC.apply(Disjunction.of(f2,
+      new FOperator(SimplifierRepository.SYNTACTIC.apply(Conjunction.of(XOperator.of(f2), f3)
+      )))
     );
     assertNotEquals(f4, f5);
   }
@@ -140,16 +139,16 @@ class FormulaTest {
     Formula f2 = new GOperator(new FOperator(f1));
     Formula f3 = XOperator.of(f1);
     Formula f4 = new GOperator(new FOperator(f3));
-    assertEquals(SimplifierFactory.apply(f4, Mode.SYNTACTIC_FIXPOINT), f2);
+    assertEquals(SimplifierRepository.SYNTACTIC_FIXPOINT.apply(f4), f2);
   }
 
   @Test
   void testSimplifyAggressively3() {
     Formula f1 = Literal.of(1, false);
     Formula f2 = new FOperator(BooleanConstant.of(true));
-    Formula f3 = SimplifierFactory.apply(Conjunction.of(f1, f2), Mode.SYNTACTIC);
+    Formula f3 = SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f1, f2));
 
-    assertEquals(f1, SimplifierFactory.apply(f3, Mode.SYNTACTIC_FIXPOINT));
+    assertEquals(f1, SimplifierRepository.SYNTACTIC_FIXPOINT.apply(f3));
   }
 
   @Test
@@ -157,7 +156,7 @@ class FormulaTest {
     Formula f1 = Literal.of(1, false);
     Formula f2 = new UOperator(f1, f1);
 
-    assertEquals(f1, SimplifierFactory.apply(f2, Mode.SYNTACTIC_FIXPOINT));
+    assertEquals(f1, SimplifierRepository.SYNTACTIC_FIXPOINT.apply(f2));
   }
 
   @Test
@@ -166,9 +165,9 @@ class FormulaTest {
 
     Formula f4 = new GOperator(f1);
     Formula f5 = new GOperator(new FOperator(f1));
-    Formula f6 = SimplifierFactory.apply(Conjunction.of(f4, f5), Mode.SYNTACTIC);
+    Formula f6 = SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f4, f5));
     assertNotEquals(f6,
-      new GOperator(SimplifierFactory.apply(Conjunction.of(f1, new FOperator(f1)), Mode.SYNTACTIC
+      new GOperator(SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f1, new FOperator(f1))
       )));
   }
 
@@ -178,9 +177,9 @@ class FormulaTest {
 
     Formula f4 = XOperator.of(f1);
     Formula f5 = XOperator.of(new FOperator(f1));
-    Formula f6 = SimplifierFactory.apply(Disjunction.of(f4, f5), Mode.SYNTACTIC);
+    Formula f6 = SimplifierRepository.SYNTACTIC.apply(Disjunction.of(f4, f5));
     assertNotEquals(f6,
-      new XOperator(SimplifierFactory.apply(Disjunction.of(f1, new FOperator(f1)), Mode.SYNTACTIC
+      new XOperator(SimplifierRepository.SYNTACTIC.apply(Disjunction.of(f1, new FOperator(f1))
       )));
   }
 
@@ -188,7 +187,7 @@ class FormulaTest {
   void testSimplifyModal() {
     Formula f1 = LtlParser.parse("true U G(F(a))").formula();
     Formula f2 = LtlParser.parse("G F a").formula();
-    assertEquals(f2, SimplifierFactory.apply(f1, Mode.SYNTACTIC));
+    assertEquals(f2, SimplifierRepository.SYNTACTIC.apply(f1));
   }
 
   @Test
@@ -197,9 +196,8 @@ class FormulaTest {
     Formula f1 = Literal.of(0, false);
     Formula f2 = new UOperator(f0, f1);
     Formula f3 = f2.unfold();
-    Formula f4 = SimplifierFactory
-      .apply(Disjunction.of(f1, SimplifierFactory.apply(Conjunction.of(f0, f2), Mode.SYNTACTIC)),
-        Mode.SYNTACTIC
+    Formula f4 = SimplifierRepository.SYNTACTIC
+      .apply(Disjunction.of(f1, SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f0, f2)))
       );
     assertEquals(f3, f4);
   }
@@ -210,10 +208,10 @@ class FormulaTest {
     Formula f2 = Literal.of(0, false);
     Formula f3 = new GOperator(f1);
     Formula f4 = new GOperator(f2);
-    Formula f5 = SimplifierFactory.apply(Conjunction.of(f3, f4), Mode.SYNTACTIC);
-    Formula f6 = SimplifierFactory.apply(Conjunction.of(f5, f1, f2), Mode.SYNTACTIC);
+    Formula f5 = SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f3, f4));
+    Formula f6 = SimplifierRepository.SYNTACTIC.apply(Conjunction.of(f5, f1, f2));
 
-    assertEquals(f6, SimplifierFactory.apply(f5.unfold(), Mode.SYNTACTIC));
+    assertEquals(f6, SimplifierRepository.SYNTACTIC.apply(f5.unfold()));
   }
 
   @Test
@@ -221,9 +219,8 @@ class FormulaTest {
     Formula f0 = Literal.of(1, false);
     Formula f1 = Literal.of(0, false);
     Formula f2 = Literal.of(2, false);
-    Formula f3 = SimplifierFactory
-      .apply(Conjunction.of(SimplifierFactory.apply(Disjunction.of(f1, f2), Mode.SYNTACTIC), f1),
-        Mode.SYNTACTIC
+    Formula f3 = SimplifierRepository.SYNTACTIC
+      .apply(Conjunction.of(SimplifierRepository.SYNTACTIC.apply(Disjunction.of(f1, f2)), f1)
       );
     assertNotEquals(f0, f1);
     assertNotEquals(f0, f2);

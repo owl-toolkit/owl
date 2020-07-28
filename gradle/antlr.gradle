@@ -18,6 +18,7 @@
  */
 
 // Antlr
+
 import groovy.io.FileType
 
 generateGrammarSource {

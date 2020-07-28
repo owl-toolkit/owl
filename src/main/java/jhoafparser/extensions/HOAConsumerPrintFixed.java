@@ -41,6 +41,7 @@ import java.io.IOException;
 import java.io.Writer;
 import java.util.List;
 import java.util.regex.Pattern;
+import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -250,7 +251,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 
 	@Override
 	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr,
-    List<Integer> accSignature)
+    @Nullable List<Integer> accSignature)
     throws HOAConsumerException {
 
 	  try {
@@ -266,7 +267,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 				out.write(quoteString(info));
 			}
 
-			if (accSignature != null) {
+			if (accSignature != null && !accSignature.isEmpty()) {
 				out.write(" {");
 				boolean first = true;
 				for (Integer acc : accSignature) {
@@ -285,7 +286,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 
 	@Override
 	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors,
-    List<Integer> accSignature)
+    @Nullable List<Integer> accSignature)
     throws HOAConsumerException {
 
 	  try {
@@ -295,7 +296,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 				first = false;
 				out.write(succ.toString());
 			}
-			if (accSignature != null) {
+			if (accSignature != null && !accSignature.isEmpty()) {
 				out.write(" {");
 				first = true;
 				for (Integer acc : accSignature) {
@@ -313,7 +314,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 
 	@Override
 	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
-		List<Integer> conjSuccessors, List<Integer> accSignature)
+		List<Integer> conjSuccessors, @Nullable List<Integer> accSignature)
     throws HOAConsumerException {
 
 	  try {
@@ -330,7 +331,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 				out.write(succ.toString());
 			}
 
-			if (accSignature != null) {
+			if (accSignature != null && !accSignature.isEmpty()) {
 				out.write(" {");
 				first = true;
 				for (Integer acc : accSignature) {

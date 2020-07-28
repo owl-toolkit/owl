@@ -67,8 +67,6 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   private final IdentityHashMap<S, MtBdd<Edge<S>>> cachedTrees;
   private Map<S, S> uniqueStates;
   private final BddSetFactory valuationSetFactory;
-  @Nullable
-  private String name;
   private State state = State.READ;
 
   private HashMapAutomaton(
@@ -305,21 +303,6 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   }
 
   @Override
-  public String name() {
-    return name == null ? String.format("Automaton for %s", initialStates()) : name;
-  }
-
-  @Override
-  public void name(String name) {
-    this.name = name;
-  }
-
-  @Override
-  public String toString() {
-    return name == null ? super.toString() : name;
-  }
-
-  @Override
   public void trim() {
     cachedTrees.clear();
 
@@ -462,7 +445,6 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
     source.initialStates().forEach(target::addInitialState);
     MutableAutomatonUtil.copyInto(source, target);
     target.trim();
-    target.name(source.name());
     assert source.states().equals(target.states());
     return target;
   }

@@ -138,6 +138,11 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
         }
       }
 
+      // There is either no fin or it is already used.
+      if (fin < 0 || rabinPairs.containsKey(fin)) {
+        return Optional.empty();
+      }
+
       int lower = infSets.nextSetBit(0);
       int upper = infSets.previousSetBit(infSets.length());
 
@@ -145,7 +150,11 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
       if (lower == -1) {
         rabinPairs.put(fin, Range.closedOpen(fin + 1, fin + 1));
       } else { // Range contains at least one element.
-        assert lower <= upper;
+        // Range not continuous.
+        if (infSets.cardinality() != (upper + 1) - lower) {
+          return Optional.empty();
+        }
+
         rabinPairs.put(fin, Range.closedOpen(lower, upper + 1));
       }
     }

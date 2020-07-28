@@ -25,11 +25,13 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.collections.BitSet2;
+import owl.command.AutomatonConversionCommands;
 
 /**
  * these sets reflect the different determinisation components to be used in the DetState
@@ -53,14 +55,14 @@ public abstract class NbaDetConfSets {
   public abstract BitSet asccStates();
 
   //those are being cycled through if accSepCyc enabled
-  public abstract ArrayList<BitSet> asccsStates();
+  public abstract List<BitSet> asccsStates();
 
-  public abstract ArrayList<BitSet> dsccsStates();
+  public abstract List<BitSet> dsccsStates();
 
-  public abstract ArrayList<BitSet> msccsStates();
+  public abstract List<BitSet> msccsStates();
 
   public static <S> NbaDetConfSets of(
-    NbaDetArgs args,
+    AutomatonConversionCommands.Nba2DpaCommand args,
     SccDecomposition<? extends S> scci,
     BiMap<S, Integer> stateMap) {
 
@@ -131,6 +133,7 @@ public abstract class NbaDetConfSets {
       }
     }
 
-    return new AutoValue_NbaDetConfSets(rejStatesBS, accStatesBS, asccs, dsccs, msccs);
+    return new AutoValue_NbaDetConfSets(rejStatesBS, accStatesBS,
+      List.copyOf(asccs), List.copyOf(dsccs), List.copyOf(msccs));
   }
 }

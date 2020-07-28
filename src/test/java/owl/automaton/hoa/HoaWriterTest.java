@@ -19,32 +19,32 @@
 
 package owl.automaton.hoa;
 
-import java.io.Writer;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
+import jhoafparser.consumer.HOAConsumerException;
+import jhoafparser.consumer.HOAConsumerNull;
+import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import org.junit.jupiter.api.Test;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.run.modules.OutputWriters;
+import owl.bdd.MtBdd;
 
 public class HoaWriterTest {
 
   @Test
-  void testStateWithoutOutgoingEdgesBug() {
-    var automaton = new AbstractMemoizingAutomaton.EdgesImplementation<>(
+  void testStateWithoutOutgoingEdgesBug() throws HOAConsumerException {
+    var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       List.of("a"), Set.of(1, 2), BuchiAcceptance.INSTANCE) {
 
       @Override
-      public Set<Edge<Integer>> edgesImpl(Integer state, BitSet valuation) {
-        return state == 1 ? Set.of(Edge.of(2, 0)) : Set.of();
+      public MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
+        return state == 1 ? MtBdd.of(Set.of(Edge.of(2, 0))) : MtBdd.of();
       }
     };
 
-    var hoaWriter = new OutputWriters.ToHoa(false, true);
-
     // This call should complete without exception.
-    hoaWriter.write(Writer.nullWriter(), automaton);
+    HoaWriter.write(
+      automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
   }
 }

@@ -19,7 +19,6 @@
 
 package owl.ltl.rewriter;
 
-import java.util.function.UnaryOperator;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -36,9 +35,9 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.BinaryVisitor;
 
 final class PushDownXVisitor implements BinaryVisitor<Integer, Formula> {
-  private static final PushDownXVisitor INSTANCE = new PushDownXVisitor();
-  static final UnaryOperator<Formula> OPERATOR = f -> f.accept(INSTANCE, 0);
+  static final PushDownXVisitor INSTANCE = new PushDownXVisitor();
 
+  private PushDownXVisitor() {}
 
   @Override
   public Formula visit(Biconditional biconditional, Integer parameter) {

@@ -177,8 +177,8 @@ public class SymbolicDRA2DPAConstructionTest {
       var rabin = Views.complete(construction.apply(formula));
       var streett = Views.complete(construction.apply(formula.not()));
       var product = SymbolicBooleanOperations.deterministicStructureProduct(
-        SymbolicAutomaton.of(rabin, factory),
-        SymbolicAutomaton.of(streett, factory)
+        SymbolicAutomaton.of(rabin, factory, formula.atomicPropositions()),
+        SymbolicAutomaton.of(streett, factory, formula.atomicPropositions())
       );
       var dpw = SymbolicDRA2DPAConstruction
         .of(product)

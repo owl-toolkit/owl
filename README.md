@@ -1,88 +1,209 @@
 # Owl
 
-A tool collection and library for <b>O</b>mega-<b>w</b>ords, ω-automata and <b>L</b>inear Temporal Logic (LTL). Batteries included.
+A tool collection and library for <b>O</b>mega-<b>w</b>ords, ω-automata and <b>L</b>inear Temporal Logic (LTL).
 
-Functionality (e.g., translations, simplifiers) is available through command-line tools, as well as a Java API and a restricted C API.
-Details on how to use Owl are given in the [usage instructions](doc/USAGE.md).
-If you want to contribute to Owl, read the [contribution guidelines](CONTRIBUTING.md) which are mandatory if you want your changes to be merged into the main branch. Read the javadoc of the respective packages of the infrastructure you plan to use, e.g., `owl.automaton`.
-It contains links to the relevant classes and typical use cases.
 
-For further information see the official [website](https://owl.model.in.tum.de/).
 
-## Building
+### Quick Start
 
-### Prerequisites
+Download the latest release for your platform from the official [website](https://owl.model.in.tum.de/) and perform the following steps:
 
-#### Linux 64-bit
+1. Unzip the distribution with: `unzip -d <destination> owl-<platform>-<version>.zip`
+2. Change into the directory containing the executable with: `cd <destination>/bin`
 
-Building the project from the repository requires [GraalVM 21.0: JDK 11](https://www.graalvm.org/), a C build environment with the `glibc` and `zlib` header files installed, and [pandoc](https://pandoc.org/). On Ubuntu the required dependencies can be installed via the following commands:
+Usage Examples:
 
-```
-apt-get -q install -y --no-install-recommends build-essential zlib1g-dev pandoc gcc
-wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.0.0.2/graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
-    && echo 'bd3fbe796e803c4fe5cd089371588d3d716fa3cdb653fe8dd6dba31b57bef934 graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz' | sha256sum --check \
-    && tar -zxvf graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
-    && rm graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
-    && mv graalvm-ce-java11-21.0.0.2 /opt/
-gu install native-image
-```
+- Translate a formula to a deterministic automaton:
+  ```
+  $ ./owl ltl2dra -t SE20 -f 'F (a & G b)'
+  HOA: v1
+  tool: "owl ltl2dpa" "<version string>"
+  Start: 0
+  acc-name: parity min odd 2
+  Acceptance: 2 Fin(0) & Inf(1)
+  properties: trans-acc no-univ-branch
+  properties: deterministic unambiguous
+  properties: complete
+  AP: 2 "a" "b"
+  --BODY--
+  State: 0
+  [0 & !1 | !0] 0 {0}
+  [0 & 1] 1 {1}
+  State: 1
+  [!1] 0 {0}
+  [1] 1 {1}
+  --END--
+  ```
+- Access the bibliography using:
+  ```
+  $ ./owl bibliography SE20
+  [SE20]:
+  Salomon Sickert, Javier Esparza:
+  "An Efficient Normalisation Procedure for Linear Temporal Logic and Very Weak Alternating Automata". LICS 2020
+  DOI: https://doi.org/10.1145/3373718.3394743
+  BibTeX: https://dblp.uni-trier.de/rec/bibtex/conf/lics/SickertE20
+  ```
+- Display an overview of all available subcommands:
+  ```
+  $ ./owl --help
+  Usage: owl [-hV] COMMAND
+  A tool collection and library for ω-words, ω-automata and linear temporal logic.
+    -h, --help      Show this help message and exit.
+    -V, --version   Print version information and exit.
+  Commands:
+    ltl2nba           Translate a linear temporal logic (LTL) formula into a
+                        non-deterministic Büchi automaton (NBA).
+    ltl2ngba          Translate a linear temporal logic (LTL) formula into a
+                        non-deterministic generalized Büchi automaton (NGBA).
+    ltl2ldba          Translate a linear temporal logic (LTL) formula into a
+                        limit-deterministic Büchi automaton (LDBA).
+    ltl2ldgba         Translate a linear temporal logic (LTL) formula into a
+                        limit-deterministic generalized Büchi automaton (LDGBA).
+    ltl2dpa           Translate a linear temporal logic (LTL) formula into a deterministic
+                        parity automaton (DPA).
+    ltl2dra           Translate a linear temporal logic (LTL) formula into a deterministic
+                        Rabin automaton (DRA).
+    ltl2dgra          Translate a linear temporal logic (LTL) formula into a deterministic
+                        generalized Rabin automaton (DGRA).
+    ltl2dela          Translate a linear temporal logic (LTL) formula into a deterministic
+                        Emerson-Lei automaton (DELA).
+    ltl2delta2        Rewrite a linear temporal logic (LTL) formula into the Δ₂-normal-form
+                        using the construction of [SE20].
+    ngba2ldba         Convert a non-deterministic (generalised) Büchi automaton to a
+                        limit-deterministic Büchi automaton.
+    nba2dpa, nbadet   Convert a non-deterministic Büchi automaton to a deterministic parity
+                        automaton.
+    nbasim            Computes the quotient automaton based on a computed set of similar
+                        state pairs.
+    aut2parity        Convert any type of automaton into a parity automaton. The branching
+                        mode of the automaton is preserved, e.g., if the input automaton is
+                        deterministic then the output automaton is also deterministic.
+    gfg-minimisation  Compute the minimal, equivalent, transition-based Good-for-Games
+                        Co-Büchi automaton for the given deterministic Co-Büchi automaton.
+                        The polynomial construction is described in [AK19].
+    bibliography      Print the bibliography of all implemented algorithms and
+                        constructions. Single references can be looked up by listing them,
+                        e.g. 'owl bibliography SE20'. If you want to cite Owl as a whole,
+                        it is recommended to use reference [KMS18].
+    delag             The functionality of the 'delag' subcommand has been moved to the
+                        'ltl2dela' subcommand. You can use 'owl ltl2dela -t=MS17' to access
+                        the original 'delag' construction.
+    ltl-utilities     A collection of various linear temporal logic related rewriters.
+    rltl2ltl          Convert a robust linear temporal logic (rLTL) formula into a linear
+                        temporal logic formula.
+    aut-utilities     A collection of various automata related utilities.
+    dpa2pg            Converts a deterministic parity automaton into a parity game by
+                        splitting the transitions. This subcommand outputs the game in the
+                        PG-solver format and this command is only expected to be used for
+                        prototyping, since in practice the resulting files are too large.
+  ```
+- Display a specific help message for a subcommand:
+  ```
+  $ ./owl ltl2dpa --help
+  Usage: owl ltl2dpa [-hV] [--complete] [--EKRS17-skip-complement]
+                     [--skip-acceptance-simplifier] [--skip-formula-simplifier]
+                     [--skip-translation-portfolio] [--state-acceptance] [--state-labels]
+                     [-o=<automatonFile>] [--SLM21-lookahead=<lookahead>]
+                     [-t=<translation>] [-f=<formula> | -i=<formulaFile>]
+  Translate a linear temporal logic (LTL) formula into a deterministic parity automaton
+  (DPA).
+  Usage Examples:
+    owl ltl2dpa -f 'F (a & G b)'
+    owl ltl2dpa -t SEJK16_EKRS17 -i input-file -o output-file
+  To lookup a reference, e.g [SE20], used in this help message please use 'owl
+  bibliography'.
+        --complete            Output an automaton with a complete transition relation.
+        --EKRS17-skip-complement
+                              Bypass the parallel computation of a DPA for the negation of
+                                the formula. If the parallel computation is enabled, then
+                                two DPAs are computed and the smaller one (in terms of
+                                number of states) is returned.
+    -f, --formula=<formula>   Use the argument of the option as the input formula.
+    -h, --help                Show this help message and exit.
+    -i, --input-file=<formulaFile>
+                              Input file (default: read from stdin). The file is read
+                                line-by-line and it is assumed that each line contains a
+                                formula. Empty lines are skipped.
+    -o, --output-file=<automatonFile>
+                              Output file (default: write to stdout).
+        --skip-acceptance-simplifier
+                              Bypass the automatic simplification of automata acceptance
+                                conditions.
+        --skip-formula-simplifier
+                              Bypass the automatic simplification of formulas.
+        --skip-translation-portfolio
+                              Bypass the portfolio of constructions from [S19, SE20] that
+                                directly translates 'simple' fragments of LTL to automata.
+        --SLM21-lookahead=<lookahead>
+                              The number of successor states that are explored in order to
+                                (1) compute an exact semantic classification of a state, e.
+                                g., weak accepting, and (2) in order to compute the
+                                'Alternating Cycle Decomposition' [CCF21]. If the number of
+                                explored states exceeds this bound, a sound approximations
+                                are used as desribed in [SLM21]. If the value is 0, only
+                                approximations are used. If the value is negative, then all
+                                states are explored and exact semantic information is used.
+                                The value is by default -1. If the construction times out,
+                                try setting this value to 0 and then increase it again in
+                                order to obtain smaller automata. This option only affects
+                                the SLM21-translation.
+        --state-acceptance    Output an automaton with a state-based acceptance condition
+                                instead of one with a transition-based acceptance condition.
+        --state-labels        Annotate each state of the automaton with the 'toString()'
+                                method.
+    -t, --translation=<translation>
+                              The default translation is SLM21 and the following
+                                translations are available: SEJK16_EKRS17, EKS20_EKRS17,
+                                SYMBOLIC_SE20_BKS10, SLM21, SMALLEST_AUTOMATON.
+                              SEJK16_EKRS17: Translate the formula to a deterministic
+                                parity automaton by combining [SEJK16] with the LDBA-to-DPA
+                                translation of [EKRS17]. This translation used to be
+                                available through the '--asymmetric' option.
+                              EKS20_EKRS17: Translate the formula to a deterministic parity
+                                automaton by combining [EKS20] with the LDBA-to-DPA
+                                translation of [EKRS17]. This translation used to be
+                                available through the '--symmetric' option.
+                              SYMBOLIC_SE20_BKS10: Translate the formula to a deterministic
+                                parity automaton by combining the LTL-to-DRA translation of
+                                [SE20] with DRAxDSA-to-DPA result of [BKS10]. This
+                                translation has an _symbolic_ implementation and is
+                                provided for testing purposes through this interface. In
+                                order to benefit from the symbolic implementation users
+                                _must_ use the 'SymbolicAutomaton'-interface.
+                              SLM21: Translate the formula to a deterministic parity
+                                automaton by combining the LTL-to-DELA translation of
+                                [SLM21] with a DELW-to-DPW translation based on
+                                Zielonka-trees. Depending on the lookahead either [CCF21]
+                                or [SLM21] is used.
+                              SMALLEST_AUTOMATON: Run all available DPA-translations with
+                                all optimisations turned on in parallel and return the
+                                smallest automaton.
+    -V, --version             Print version information and exit.
+  ```
 
-Do not forget to add the installed tools to the search path:
+### Content of the Distribution
 
-```
-PATH=/opt/graalvm-ce-java11-21.0.0.2/bin/:$PATH
-JAVA_HOME=/opt/graalvm-ce-java11-21.0.0.2/
-```
+Owl is distributed as a native and as a JRE-distribution. It is recommended to use the native
+distribution, since it does not have any external dependencies, i.e., a
+[Java runtime environment capable of running Java 11](http://jdk.java.net/), and
+in practice runs considerably faster. Both distributions contain the following:
 
-If GraalVM (native-image) is not available, the project can also be built with a reduced set of features on any JDK that supports at least Java 11. See below for instructions.
+* `bin`  - the Owl Command-Line Tool.
+* `clib` - (native-only) the Owl C-Library.
+* `doc`  - Additional documentation.
+* `jar` - the Owl Java-library.
+* `lib`  - (JRE-only) Libraries used by Owl.
 
-#### macOS
+See the [format descriptions](docs/FORMATS.md) for a description of accepted inputs.
+Owl contains a variety of command-line tools originating from Rabinizer, Delag and nbadet.
 
-TBD.
+### Building a Distribution
 
-#### Windows 10
-
-TBD.
-
-### GraalVM
-
-The standard distribution can be obtained with:
-
-```
-./gradlew distZip
-```
-
-The resulting `.zip` is located in `build/distributions`. It includes the scripts for the CLI tools, Jars usable as a Java library, and a C library.
-
-### OpenJDK
-
-If GraalVM is not available, building the native executable and library can be skipped by executing:
-
-```
-./gradlew distZip -Pdisable-native
-```
-
-### Docker
-
-In case you want to build or test locally using docker (recommended on Windows), first build the docker image with
-```
-  cd docker-build-environment && docker build -t owl .
-```
-Then, run the build process via
-```
-  docker run --rm -it -v <path>/owl:/dir -w /dir owl ./gradlew build
-```
-or similar. Optionally, you can pass `GRADLE_HOME=./.gradle` and `GRADLE_USER_HOME=./.gradle` to speed up subsequent builds.
-
-## Testing
-
-To test locally, run `gradle localEnvironment` to update the folder and then `python scripts/util.py test <name>` to run the respective test.
-On Windows, installing WSL is required and the testing commands (scripts in the `script` folder) should be run from within WSL.
-To test inside docker, run
-```
-  docker run -e GRADLE_HOME=./.gradle -e GRADLE_USER_HOME=./.gradle --rm -it -v <path>/owl:/dir -w /dir owl ./gradlew localEnvironment && python scripts/util.py test <name>
-```
+If there is no precompiled distribution for your platform available or if you want to use the latest
+snapshot, follow the [build instructions](BUILDING.md) to build your own distribution.
 
 ## Citing
 
-Please see the [citing section of the official website for an updated list](https://owl.model.in.tum.de/#citing).
+If you want to cite Owl or one of the implemented constructions, then please refer to the help
+messages (`./owl <subcommand> --help`, `./owl bibliography --help`) to find the correct reference
+to cite.

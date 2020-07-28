@@ -2,8 +2,8 @@
   {
     "formula": "false",
     "properties": {
-      "size": 1,
-      "initialStatesSize": 1,
+      "size": 0,
+      "initialStatesSize": 0,
       "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
       "complete": false,

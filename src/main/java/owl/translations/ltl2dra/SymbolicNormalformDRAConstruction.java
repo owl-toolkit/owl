@@ -83,7 +83,7 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
         automata.add(SymbolicAutomaton.of(
           DeterministicConstructions.CoSafetySafety.of(
             explicitFactories, sigma2.formula(), true, false
-          ), factory));
+          ), factory, labelledFormula.atomicPropositions()));
       }
 
       var safetyCoSafetyIndex = safetyCoSafetyIndices.get(pi2);
@@ -94,7 +94,7 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
         automata.add(SymbolicAutomaton.of(
           DeterministicConstructions.SafetyCoSafety.of(
             explicitFactories, pi2.formula(), true, false
-          ), factory));
+          ), factory, labelledFormula.atomicPropositions()));
       }
 
       disjuncts.add(Conjunction.of(

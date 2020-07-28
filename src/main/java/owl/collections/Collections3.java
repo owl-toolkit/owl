@@ -261,6 +261,7 @@ public final class Collections3 {
     List<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
 
     Object[] maximalElements = elements.toArray();
+
     int removedElements = 0;
 
     for (int i = 0; i < maximalElements.length; i++) {

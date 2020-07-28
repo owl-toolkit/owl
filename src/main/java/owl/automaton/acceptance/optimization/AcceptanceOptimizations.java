@@ -28,12 +28,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
@@ -41,12 +39,9 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.hoa.HoaWriter;
 import owl.collections.ImmutableBitSet;
-import owl.run.modules.OwlModule;
 
 public final class AcceptanceOptimizations {
-  private static final Logger logger = Logger.getLogger(AcceptanceOptimizations.class.getName());
 
   // TODO: collapse inf / fins?
 
@@ -54,8 +49,6 @@ public final class AcceptanceOptimizations {
     generalizedRabinDefaultAllList = List.of(
     GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
     GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
-    AcceptanceOptimizations::removeTransientAcceptance,
-    // MinimizationUtil::removeDeadStates,
     GeneralizedRabinAcceptanceOptimizations::removeComplementaryInfSets,
     GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
     GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
@@ -72,8 +65,6 @@ public final class AcceptanceOptimizations {
     rabinDefaultAllList = List.of(
     GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
     GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
-    AcceptanceOptimizations::removeTransientAcceptance,
-    // MinimizationUtil::removeDeadStates,
     // GeneralizedRabinMinimizations::minimizeComplementaryInf,
     GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
     GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
@@ -86,75 +77,16 @@ public final class AcceptanceOptimizations {
     GeneralizedRabinAcceptanceOptimizations::mergeBuchiTypePairs
   );
 
-  private static final List<Consumer<MutableAutomaton<?, ParityAcceptance>>>
-    parityDefaultList = List.of(
-    AcceptanceOptimizations::removeTransientAcceptance,
-    AcceptanceOptimizations::removeDeadStates,
-    ParityAcceptanceOptimizations::minimizePriorities,
-    ParityAcceptanceOptimizations::setAcceptingSets
-  );
-
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "optimize-aut",
-    "Heuristically removes states and acceptance sets from the given automaton.",
-    (commandLine, environment) -> new AcceptanceOptimizationTransformer());
-
   private AcceptanceOptimizations() {}
 
-  @SuppressWarnings("unchecked")
-  public static <S, A extends EmersonLeiAcceptance> MutableAutomaton<S, A> optimize(
-    Automaton<S, A> automaton) {
-    var mutableAutomaton = MutableAutomatonUtil.asMutable(automaton);
-    var acceptance = mutableAutomaton.acceptance();
-
-    if (acceptance instanceof RabinAcceptance) {
-      apply(mutableAutomaton, rabinDefaultAllList);
-    } else if (acceptance instanceof GeneralizedRabinAcceptance) {
-      var dgra = (MutableAutomaton<Object, GeneralizedRabinAcceptance>) mutableAutomaton;
-      apply(dgra, generalizedRabinDefaultAllList);
-    } else if (acceptance instanceof ParityAcceptance) {
-      var dpa = (MutableAutomaton<Object, ParityAcceptance>) mutableAutomaton;
-      apply(dpa, parityDefaultList);
-    } else {
-      apply(mutableAutomaton, List.of(AcceptanceOptimizations::removeTransientAcceptance));
-      logger.log(Level.FINE, "Received unsupported acceptance type {0}", acceptance.getClass());
-    }
-
-    assert mutableAutomaton.acceptance().getClass().equals(automaton.acceptance().getClass());
-    return mutableAutomaton;
-  }
-
-  @SuppressWarnings({"unchecked", "rawtypes"})
-  private static <S, A extends EmersonLeiAcceptance> void apply(
-    MutableAutomaton<S, ?> automaton, List<Consumer<MutableAutomaton<?, A>>> optimizations) {
-    logger.log(Level.FINE, "Optimizing automaton with {0}", optimizations);
-
-    for (Consumer<MutableAutomaton<?, A>> optimization : optimizations) {
-      logger.log(Level.FINEST,
-        () -> String.format("Current automaton: %s", HoaWriter.toString(automaton)));
-      logger.log(Level.FINER, "Applying {0}", optimization);
-      optimization.accept((MutableAutomaton) automaton);
-      automaton.trim();
-    }
-
-    logger.log(Level.FINEST, () -> String.format("Automaton after optimization:%n%s",
-      HoaWriter.toString(automaton)));
-  }
-
-  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
-    removeDeadStates(automaton, true);
-  }
-
   /**
-   * Remove states from the automaton that cannot belong to an infinite accepting path.
+   * Remove states from the automaton that cannot belong to an infinite accepting path. Moreover,
+   * all transient edges are cleared of acceptance marks.
    *
    * @param automaton
    *   The automaton considered by the analysis.
-   * @param removeTransientEdges
-   *   Remove transient edges and normalise acceptance sets of rejecting sccs.
    */
-  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton,
-    boolean removeTransientEdges) {
+  public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
 
     var sccDecomposition = SccDecomposition.of(automaton);
     var sccs = sccDecomposition.sccs();
@@ -192,7 +124,7 @@ public final class AcceptanceOptimizations {
     automaton.updateEdges((state, edge) -> {
       int sccIndex = sccDecomposition.index(state);
 
-      if (removeTransientEdges && !sccs.get(sccIndex).contains(edge.successor())) {
+      if (!sccs.get(sccIndex).contains(edge.successor())) {
         return edge.withoutAcceptance();
       }
 
@@ -212,7 +144,6 @@ public final class AcceptanceOptimizations {
       return;
     }
 
-    logger.log(Level.FINER, "Removing acceptance indices {0} on subset", indicesToRemove);
     IntUnaryOperator transformer = index -> indicesToRemove.get(index) ? -1 : index;
     automaton.updateEdges(states, (state, edge) -> edge.mapAcceptance(transformer));
     automaton.trim();
@@ -235,44 +166,40 @@ public final class AcceptanceOptimizations {
       }
     }
 
-    logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
     automaton.updateEdges((state, edge) -> edge.mapAcceptance(x -> remapping.getOrDefault(x, -1)));
     automaton.trim();
   }
 
-  public static <S, A extends EmersonLeiAcceptance> MutableAutomaton<S, A>
-  removeTransientAcceptance(MutableAutomaton<S, A> automaton) {
-    SccDecomposition<S> sccDecomposition = SccDecomposition.of(automaton);
-    sccDecomposition.sccs(); // Force computation of SCCs before updating edges
-    sccDecomposition.condensation(); // Force computation of condensation
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> transform(
+    Automaton<S, A> automaton) {
 
-    automaton.updateEdges((state, edge) -> {
-      Set<S> scc = sccDecomposition.scc(state);
-      if (sccDecomposition.isTransientScc(scc)) {
-        return edge.withoutAcceptance();
-      }
-      return scc.contains(edge.successor()) ? edge : edge.withoutAcceptance();
-    });
+    var mutableAutomaton = HashMapAutomaton.copyOf(automaton);
+    removeDeadStates(mutableAutomaton);
 
-    automaton.trim();
-    return automaton;
-  }
+    if (mutableAutomaton.acceptance() instanceof RabinAcceptance) {
 
-  public static class AcceptanceOptimizationTransformer implements OwlModule.AutomatonTransformer {
-    @Override
-    public Object transform(Automaton<Object, ?> object) {
-      var mutableAutomaton = MutableAutomatonUtil.asMutable(object);
-
-      try {
-        AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
-      } catch (UnsupportedOperationException ex) {
-        // Ignore exception. Emptiness-check might not be implemented.
-        logger.log(Level.FINE,
-          "Unsupported acceptance type {0} for emptiness-check",
-          mutableAutomaton.acceptance().getClass());
+      for (Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>> optimization
+        : rabinDefaultAllList) {
+        optimization.accept((MutableAutomaton) mutableAutomaton);
+        mutableAutomaton.trim();
       }
 
-      return optimize(mutableAutomaton);
+    } else if (mutableAutomaton.acceptance() instanceof GeneralizedRabinAcceptance) {
+
+      for (Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>> optimization
+        : generalizedRabinDefaultAllList) {
+        optimization.accept((MutableAutomaton) mutableAutomaton);
+        mutableAutomaton.trim();
+      }
+
+    } else if (mutableAutomaton.acceptance() instanceof ParityAcceptance) {
+
+      var castedAutomaton = (HashMapAutomaton<S, ParityAcceptance>) mutableAutomaton;
+      ParityAcceptanceOptimizations.minimizePriorities(castedAutomaton);
+      ParityAcceptanceOptimizations.setAcceptingSets(castedAutomaton);
+
     }
+
+    return mutableAutomaton;
   }
 }

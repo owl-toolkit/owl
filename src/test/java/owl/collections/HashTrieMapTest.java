@@ -31,9 +31,9 @@ import java.util.Set;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.command.AutomatonConversionCommands;
 import owl.translations.nbadet.AutomatonSccDecompositionTest;
 import owl.translations.nbadet.AutomatonTestUtil;
-import owl.translations.nbadet.NbaDetArgs;
 import owl.translations.nbadet.NbaDetConf;
 import owl.translations.nbadet.NbaDetState;
 import owl.translations.nbadet.RankedSlice;
@@ -136,8 +136,7 @@ public class HashTrieMapTest {
     var nba = AutomatonTestUtil.autFromString(
       AutomatonSccDecompositionTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
-    var args = NbaDetArgs.getDefault().toBuilder()
-      .setSepAcc(false).setSepRej(true).setSepDet(true).setSepMix(true).build();
+    var args = new AutomatonConversionCommands.Nba2DpaCommand();
 
     var conf = NbaDetConf.prepare(nba, Set.of(), args);
     var state = NbaDetState.of(conf, BitSet2.copyOf(conf.aut().stateMap().values()));

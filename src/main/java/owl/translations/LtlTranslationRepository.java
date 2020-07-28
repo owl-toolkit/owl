@@ -39,6 +39,7 @@ import org.graalvm.nativeimage.c.constant.CEnumValue;
 import owl.Bibliography;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -50,13 +51,14 @@ import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.cinterface.CInterface;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
+import owl.translations.ltl2dpa.SymbolicDPAConstruction;
 import owl.translations.ltl2dra.NormalformDRAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
@@ -323,6 +325,17 @@ public final class LtlTranslationRepository {
 
     public static final LtlTranslationRepository.LtlToNbaTranslation DEFAULT = EKS20;
 
+    public static final String EKS20_DESCRIPTION = "Translate the formula to a non-deterministic "
+      + "(generalised) Büchi automaton by guessing and checking the set of greatest fixed-point "
+      + "operators, i.e. G, R, and W, that is satisfied by almost all suffixes of the word read by "
+      + "the automaton and the set of least fixed-point operators, i.e. F, M, and U, that is "
+      + "satisfied by infinitely many suffixes of the word read by the automaton. This construction"
+      + " has been initially proposed in [" + Bibliography.LICS_18_CITEKEY + "] and has been "
+      + "described in more detail and with optimisations in ["
+      + Bibliography.DISSERTATION_19_CITEKEY + "]. The preferred reference to cite is the journal "
+      + "article [" + Bibliography.JACM_20_CITEKEY + "]. The translation used to be available "
+      + "through the '--symmetric' option.";
+
     LtlToNbaTranslation(String citeKey) {
       assertCiteKey(citeKey, citeKey());
     }
@@ -362,6 +375,27 @@ public final class LtlTranslationRepository {
     SMALLEST_AUTOMATON(null);
 
     public static final LtlToLdbaTranslation DEFAULT = SEJK16;
+
+    public static final String SEJK16_DESCRIPTION = "Translate the formula to a "
+      + "limit-deterministic (generalised) Büchi automaton by guessing and checking the set of "
+      + "greatest fixed-point operators, i.e. G, R, and W, that is satisfied by almost all "
+      + "suffixes of the word read by the automaton. The construction is an optimised version of "
+      + "the construction appearing in [" + Bibliography.CAV_16_CITEKEY + "] and used to be "
+      + "available through the '--asymmetric' option.";
+
+    public static final String EKS20_DESCRIPTION = "Translate the formula to a limit-deterministic "
+      + "(generalised) Büchi automaton by guessing and checking the set of greatest fixed-point "
+      + "operators, i.e. G, R, and W, that is satisfied by almost all suffixes of the word read by "
+      + "the automaton and the set of least fixed-point operators, i.e. F, M, and U, that is "
+      + "satisfied by infinitely many suffixes of the word read by the automaton. This construction"
+      + " has been initially proposed in [" + Bibliography.LICS_18_CITEKEY + "] and has been "
+      + "described in more detail and with optimisations in ["
+      + Bibliography.DISSERTATION_19_CITEKEY + "]. The preferred reference to cite is the journal "
+      + "article [" + Bibliography.JACM_20_CITEKEY + "]. The translation used to be available "
+      + "through the '--symmetric' option.";
+
+    public static final String SMALLEST_AUTOMATON_DESCRIPTION
+      = "Run all available LD(G)BA-translations in parallel and return the smallest automaton.";
 
     LtlToLdbaTranslation(@Nullable String citeKey) {
       if (citeKey != null) {
@@ -434,12 +468,38 @@ public final class LtlTranslationRepository {
 
     SEJK16_EKRS17(Bibliography.TACAS_17_1_CITEKEY),
     EKS20_EKRS17(Bibliography.TACAS_17_1_CITEKEY),
-    UNPUBLISHED_ZIELONKA(null),
+    SYMBOLIC_SE20_BKS10(Bibliography.FSTTCS_10_CITEKEY),
+    SLM21(Bibliography.UNDER_SUBMISSION_21_CITEKEY),
     SMALLEST_AUTOMATON(null);
 
-    // TODO: Add constructions going through DRAs.
+    public static final LtlToDpaTranslation DEFAULT = SLM21;
 
-    public static final LtlToDpaTranslation DEFAULT = SEJK16_EKRS17;
+    public static final String SEJK16_EKRS17_DESCRIPTION = "Translate the formula to a "
+      + "deterministic parity automaton by combining [" + Bibliography.CAV_16_CITEKEY + "] with "
+      + "the LDBA-to-DPA translation of [" + Bibliography.TACAS_17_1_CITEKEY + "]. This "
+      + "translation used to be available through the '--asymmetric' option.";
+
+    public static final String EKS20_EKRS17_DESCRIPTION = "Translate the formula to a "
+      + "deterministic parity automaton by combining [" + Bibliography.JACM_20_CITEKEY + "] with "
+      + "the LDBA-to-DPA translation of [" + Bibliography.TACAS_17_1_CITEKEY + "]. This "
+      + "translation used to be available through the '--symmetric' option.";
+
+    public static final String SYMBOLIC_SE20_BKS10_DESCRIPTION = "Translate the formula to a "
+      + "deterministic parity automaton by combining the LTL-to-DRA translation of ["
+      + Bibliography.LICS_20_CITEKEY + "] with DRAxDSA-to-DPA result of ["
+      + Bibliography.FSTTCS_10_CITEKEY + "]. This translation has an _symbolic_ implementation and "
+      + "is provided for testing purposes through this interface. In order to benefit from the "
+      + "symbolic implementation users _must_ use the 'SymbolicAutomaton'-interface.";
+
+    public static final String SLM21_DESCRIPTION = "Translate the formula to a "
+      + "deterministic parity automaton by combining the LTL-to-DELA translation of ["
+      + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "] with a DELW-to-DPW translation based on "
+      + "Zielonka-trees. Depending on the lookahead either [" + Bibliography.ICALP_21_CITEKEY + "] "
+      + " or [" + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "] is used.";
+
+    public static final String SMALLEST_AUTOMATON_DESCRIPTION = "Run all available DPA-"
+      + "translations with all optimisations turned on in parallel and return the smallest "
+      + "automaton.";
 
     LtlToDpaTranslation(@Nullable String citeKey) {
       if (citeKey != null) {
@@ -496,7 +556,16 @@ public final class LtlTranslationRepository {
             acceptanceClass);
         }
 
-        case UNPUBLISHED_ZIELONKA: {
+        case SYMBOLIC_SE20_BKS10: {
+          return applyPreAndPostProcessing(
+            x -> OmegaAcceptanceCast.cast(
+              SymbolicDPAConstruction.of().apply(x).toAutomaton(), acceptanceClass),
+            BranchingMode.DETERMINISTIC,
+            translationOptions,
+            acceptanceClass);
+        }
+
+        case SLM21: {
           var translation = new NormalformDPAConstruction(lookahead);
 
           return applyPreAndPostProcessing(
@@ -524,8 +593,13 @@ public final class LtlTranslationRepository {
               EKS20_EKRS17.translation(acceptanceClass, copiedTranslationOptions)
                 .apply(labelledFormula));
 
-            Supplier<Optional<Automaton<?, ? extends A>>> translation = () -> Optional.of(
-              UNPUBLISHED_ZIELONKA.translation(acceptanceClass, copiedTranslationOptions)
+            Supplier<Optional<Automaton<?, ? extends A>>> se20bks10SymbolicTranslation =
+            () -> Optional.of(
+              SYMBOLIC_SE20_BKS10.translation(acceptanceClass, copiedTranslationOptions)
+                .apply(labelledFormula));
+
+            Supplier<Optional<Automaton<?, ? extends A>>> slm21translation = () -> Optional.of(
+              SLM21.translation(acceptanceClass, copiedTranslationOptions, OptionalInt.empty())
                 .apply(labelledFormula));
 
             return ParallelEvaluation.takeSmallestWildcardStateType(ParallelEvaluation.evaluate(
@@ -533,7 +607,8 @@ public final class LtlTranslationRepository {
                 () -> portfolioTranslation.apply(labelledFormula),
                 sejk16translation,
                 eks20translation,
-                translation
+                se20bks10SymbolicTranslation,
+                slm21translation
               )));
           };
 
@@ -558,6 +633,34 @@ public final class LtlTranslationRepository {
     SMALLEST_AUTOMATON(null);
 
     public static final LtlToDraTranslation DEFAULT = EKS20;
+
+    public static final String EKS16_DESCRIPTION = "Translate the formula to a deterministic "
+      + "(generalised) Rabin automaton by guessing and checking the set of greatest fixed-point "
+      + "operators, i.e. G, R, and W, that is satisfied by almost all suffixes of the word read by "
+      + "the automaton. This construction is also known as the original 'Rabinizer'-construction ["
+      + Bibliography.FMSD_16_CITEKEY + "] and used to be available through the '--asymmetric' "
+      + "option.";
+
+    public static final String EKS20_DESCRIPTION = "Translate the formula to a deterministic "
+      + "(generalised) Rabin automaton by guessing and checking the set of greatest fixed-point "
+      + "operators, i.e. G, R, and W, that is satisfied by almost all suffixes of the word read by "
+      + "the automaton and the set of least fixed-point operators, i.e. F, M, and U, that is "
+      + "satisfied by infinitely many suffixes of the word read by the automaton. This construction"
+      + " has been initially proposed in [" + Bibliography.LICS_18_CITEKEY + "] and has been "
+      + "described in more detail and with optimisations in ["
+      + Bibliography.DISSERTATION_19_CITEKEY + "]. The preferred reference to cite is the journal "
+      + "article [" + Bibliography.JACM_20_CITEKEY + "]. The translation used to be available "
+      + "through the '--symmetric' option.";
+
+    public static final String SE20_DESCRIPTION = "Translate the formula to a deterministic "
+      + "(generalised) Rabin automaton by rewriting the formula into the Δ₂-normalform using the "
+      + "procedure of [" + Bibliography.LICS_20_CITEKEY + "] and then by using the constructions "
+      + "for 'simple' LTL fragments from [" + Bibliography.LICS_20_CITEKEY + ", "
+      + Bibliography.DISSERTATION_19_CITEKEY + "].";
+
+    public static final String SMALLEST_AUTOMATON_DESCRIPTION = "Run all available "
+      + "D(G)RA-translations with all optimisations turned on in parallel and return the smallest "
+      + "automaton.";
 
     LtlToDraTranslation(@Nullable String citeKey) {
       if (citeKey != null) {
@@ -595,7 +698,7 @@ public final class LtlTranslationRepository {
             }
 
             return OmegaAcceptanceCast.cast(
-              RabinDegeneralization.degeneralize(AcceptanceOptimizations.optimize(dgra)),
+              RabinDegeneralization.degeneralize(AcceptanceOptimizations.transform(dgra)),
               acceptanceClass);
           };
 
@@ -623,7 +726,6 @@ public final class LtlTranslationRepository {
 
         case SMALLEST_AUTOMATON:
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
-          copiedTranslationOptions.add(Option.X_DPA_USE_COMPLEMENT);
           copiedTranslationOptions.add(Option.X_DRA_NORMAL_FORM_USE_DUAL);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
 
@@ -640,21 +742,12 @@ public final class LtlTranslationRepository {
             Supplier<Optional<Automaton<?, ? extends R>>> se20translation = () -> Optional.of(
               SE20.translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
 
-            Supplier<Optional<Automaton<?, ? extends R>>> dpaTranslation = () -> Optional.of(
-              OmegaAcceptanceCast.cast(
-                LtlToDpaTranslation.SMALLEST_AUTOMATON.translation(
-                  ParityAcceptance.class,
-                  copiedTranslationOptions).apply(labelledFormula),
-                acceptanceClass)
-            );
-
             return ParallelEvaluation.takeSmallestWildcardStateType(ParallelEvaluation.evaluate(
               List.of(
                 () -> portfolioTranslation.apply(labelledFormula),
                 sejk16translation,
                 eks20translation,
-                se20translation,
-                dpaTranslation
+                se20translation
               )));
           };
 
@@ -668,10 +761,30 @@ public final class LtlTranslationRepository {
     implements LtlTranslation<EmersonLeiAcceptance, EmersonLeiAcceptance> {
 
     MS17(Bibliography.GANDALF_17_CITEKEY),
-    UNPUBLISHED_SE20(null),
+    SLM21(Bibliography.UNDER_SUBMISSION_21_CITEKEY),
     SMALLEST_AUTOMATON(null);
 
-    public static final LtlToDelaTranslation DEFAULT = MS17;
+    public static final LtlToDelaTranslation DEFAULT = SLM21;
+
+    public static final String MS17_DESCRIPTION = "Translate the formula to a deterministic "
+      + "Emerson-Lei automaton using an specialised product construction and a portfolio of "
+      + "constructions for simple LTL fragments. This construction has been originally be "
+      + "implemented in 'delag' and presented in [" + Bibliography.GANDALF_17_CITEKEY + "]. If a "
+      + "subformula is not in a supported fragment then [" + Bibliography.JACM_20_CITEKEY + "] is "
+      + "used as a fallback.";
+
+    public static final String SLM21_DESCRIPTION = "Translate the formula to a deterministic "
+      + "Emerson-Lei automaton by rewriting the formula locally into the Δ₂-normalform using the "
+      + "procedure of [" + Bibliography.LICS_20_CITEKEY + "], i.e., only temporal subformulas that "
+      + "are not in Δ₂ are rewritten, and then use an specialised product construction ["
+      + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "] to obtain a deterministic automaton. After "
+      + "rewriting each temporal subformula is in Σ₂ or Π₂ and the direct translation to "
+      + "deterministic co-Büchi and Büchi automata from ["
+      + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "] is sufficient.";
+
+    public static final String SMALLEST_AUTOMATON_DESCRIPTION = "Run all available DELA- and DGRA-"
+      + "translations with all optimisations turned on in parallel and return the smallest "
+      + "automaton.";
 
     LtlToDelaTranslation(@Nullable String citeKey) {
       if (citeKey != null) {
@@ -697,7 +810,8 @@ public final class LtlTranslationRepository {
 
       switch (this) {
         case MS17:
-          var ms17construction = new DelagBuilder();
+          var ms17construction = new DelagBuilder(
+            LtlToDraTranslation.EKS20.translation(GeneralizedRabinAcceptance.class));
 
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(ms17construction.apply(x), acceptanceClass),
@@ -705,18 +819,18 @@ public final class LtlTranslationRepository {
             translationOptions,
             acceptanceClass);
 
-        case UNPUBLISHED_SE20:
-          var unpublishedSe20Construction = new NormalformDELAConstruction(lookahead);
+        case SLM21:
+          var slm21Construction = new NormalformDELAConstruction(lookahead);
 
           return applyPreAndPostProcessing(
-            x -> OmegaAcceptanceCast.cast(unpublishedSe20Construction.apply(x), acceptanceClass),
+            x -> OmegaAcceptanceCast.cast(slm21Construction.apply(x), acceptanceClass),
             BranchingMode.DETERMINISTIC,
             translationOptions,
             acceptanceClass);
 
         case SMALLEST_AUTOMATON:
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
-          copiedTranslationOptions.add(Option.X_DPA_USE_COMPLEMENT);
+          copiedTranslationOptions.add(Option.X_DRA_NORMAL_FORM_USE_DUAL);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
 
           var portfolioTranslation = portfolioWithPreAndPostProcessing(
@@ -726,9 +840,8 @@ public final class LtlTranslationRepository {
             Supplier<Optional<Automaton<?, ? extends A>>> ms17translation = () -> Optional.of(
               MS17.translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
 
-            Supplier<Optional<Automaton<?, ? extends A>>> unpublishedSe20translation =
-            () -> Optional.of(UNPUBLISHED_SE20
-              .translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
+            Supplier<Optional<Automaton<?, ? extends A>>> slm21translation = () -> Optional.of(
+              SLM21.translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
 
             Supplier<Optional<Automaton<?, ? extends A>>> dgraTranslation = () -> Optional.of(
               OmegaAcceptanceCast.cast(
@@ -742,7 +855,7 @@ public final class LtlTranslationRepository {
               List.of(
                 () -> portfolioTranslation.apply(labelledFormula),
                 ms17translation,
-                unpublishedSe20translation,
+                slm21translation,
                 dgraTranslation
               )));
           };
@@ -781,14 +894,25 @@ public final class LtlTranslationRepository {
 
     return unprocessedFormula -> {
       var formula = simplifyFormula
-        ? SimplifierFactory.apply(unprocessedFormula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
+        ? SimplifierRepository.SYNTACTIC_FIXPOINT.apply(unprocessedFormula)
         : unprocessedFormula;
       var automaton = simplifyAutomaton
-        ? AcceptanceOptimizations.optimize(wrappedFunction.apply(formula))
+        ? AcceptanceOptimizations.transform(wrappedFunction.apply(formula))
         : wrappedFunction.apply(formula);
-      return completeAutomaton
-        ? OmegaAcceptanceCast.cast(Views.complete(automaton), acceptanceCondition)
-        : automaton;
+
+      if (completeAutomaton) {
+        if (automaton.acceptance() instanceof AllAcceptance
+          && acceptanceCondition.equals(GeneralizedBuchiAcceptance.class)) {
+
+          return OmegaAcceptanceCast.cast(
+            Views.complete(OmegaAcceptanceCast.cast(automaton, BuchiAcceptance.class)),
+            acceptanceCondition);
+        } else {
+          return OmegaAcceptanceCast.cast(Views.complete(automaton), acceptanceCondition);
+        }
+      }
+
+      return automaton;
     };
   }
 
@@ -813,7 +937,7 @@ public final class LtlTranslationRepository {
 
     return unprocessedFormula -> {
       var formula = simplifyFormula
-        ? SimplifierFactory.apply(unprocessedFormula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
+        ? SimplifierRepository.SYNTACTIC_FIXPOINT.apply(unprocessedFormula)
         : unprocessedFormula;
       var automatonOptional = portfolio.apply(formula);
 
@@ -822,12 +946,23 @@ public final class LtlTranslationRepository {
       }
 
       var automaton = simplifyAutomaton
-        ? AcceptanceOptimizations.optimize(automatonOptional.get())
+        ? AcceptanceOptimizations.transform(automatonOptional.get())
         : automatonOptional.get();
 
-      return Optional.of(completeAutomaton
-        ? OmegaAcceptanceCast.cast(Views.complete(automaton), acceptanceCondition)
-        : automaton);
+      if (completeAutomaton) {
+        if (automaton.acceptance() instanceof AllAcceptance
+          && acceptanceCondition.equals(GeneralizedBuchiAcceptance.class)) {
+
+          return Optional.of(OmegaAcceptanceCast.cast(
+            Views.complete(OmegaAcceptanceCast.cast(automaton, BuchiAcceptance.class)),
+            acceptanceCondition));
+        } else {
+          return Optional.of(
+            OmegaAcceptanceCast.cast(Views.complete(automaton), acceptanceCondition));
+        }
+      }
+
+      return Optional.of(automaton);
     };
   }
 }

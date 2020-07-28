@@ -19,9 +19,7 @@
 
 package owl.translations.ltl2dpa;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.POST_PROCESS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
@@ -30,7 +28,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 import owl.automaton.AnnotatedState;
 import owl.automaton.AnnotatedStateOptimisation;
@@ -40,7 +37,6 @@ import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
-import owl.translations.mastertheorem.Selector;
 import owl.util.ParallelEvaluation;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
@@ -51,10 +47,6 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   private final SymmetricDPAConstruction symmetricDPAConstruction;
 
   public LTL2DPAFunction(Set<Configuration> configuration) {
-    checkArgument(!configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
-      || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
-      "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");
-
     this.configuration = EnumSet.copyOf(configuration);
 
     asymmetricDPAConstruction = new AsymmetricDPAConstruction();
@@ -66,54 +58,22 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     Supplier<Optional<Automaton<?, ? extends ParityAcceptance>>> automatonSupplier;
     Supplier<Optional<Automaton<?, ? extends ParityAcceptance>>> complementSupplier;
 
-    if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
-      int fixpoints = configuration.contains(SYMMETRIC)
-        ? getOrMaxInt(() -> Selector.selectSymmetric(formula.formula(), false).size())
-        : getOrMaxInt(() -> Selector.selectAsymmetric(formula.formula(), false).size());
+    automatonSupplier = configuration.contains(SYMMETRIC)
+      ? () -> Optional.of(postProcess(symmetricDPAConstruction.of(formula, false)))
+      : () -> Optional.of(postProcess(asymmetricDPAConstruction.of(formula, false)));
 
-      int negationFixpoints = configuration.contains(SYMMETRIC)
-        ? getOrMaxInt(() -> Selector.selectSymmetric(formula.formula().not(), false).size())
-        : getOrMaxInt(() -> Selector.selectAsymmetric(formula.formula().not(), false).size());
-
-      if (fixpoints == Integer.MAX_VALUE && negationFixpoints == Integer.MAX_VALUE) {
-        throw new IllegalStateException("Too many fixpoints.");
-      }
-
-      if (fixpoints <= negationFixpoints) {
-        automatonSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(postProcess(symmetricDPAConstruction.of(formula, false)))
-          : () -> Optional.of(postProcess(asymmetricDPAConstruction.of(formula, false)));
-        complementSupplier = Optional::empty;
-      } else {
-        automatonSupplier = Optional::empty;
-        complementSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(
-            BooleanOperations.deterministicComplementOfCompleteAutomaton(
-              postProcess(symmetricDPAConstruction.of(formula.not(), true)),
-              ParityAcceptance.class))
-          : () -> Optional.of(
-            BooleanOperations.deterministicComplementOfCompleteAutomaton(
-              postProcess(asymmetricDPAConstruction.of(formula.not(), true)),
-              ParityAcceptance.class));
-      }
+    if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
+      complementSupplier = configuration.contains(SYMMETRIC)
+        ? () -> Optional.of(
+          BooleanOperations.deterministicComplementOfCompleteAutomaton(
+            postProcess(symmetricDPAConstruction.of(formula.not(), true)),
+            ParityAcceptance.class))
+        : () -> Optional.of(
+          BooleanOperations.deterministicComplementOfCompleteAutomaton(
+            postProcess(asymmetricDPAConstruction.of(formula.not(), true)),
+            ParityAcceptance.class));
     } else {
-      automatonSupplier = configuration.contains(SYMMETRIC)
-        ? () -> Optional.of(postProcess(symmetricDPAConstruction.of(formula, false)))
-        : () -> Optional.of(postProcess(asymmetricDPAConstruction.of(formula, false)));
-
-      if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
-        complementSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(
-            BooleanOperations.deterministicComplementOfCompleteAutomaton(
-              postProcess(symmetricDPAConstruction.of(formula.not(), true)),
-              ParityAcceptance.class))
-          : () -> Optional.of(
-            BooleanOperations.deterministicComplementOfCompleteAutomaton(
-              postProcess(asymmetricDPAConstruction.of(formula.not(), true)),
-              ParityAcceptance.class));
-      } else {
-        complementSupplier = Optional::empty;
-      }
+      complementSupplier = Optional::empty;
     }
 
     return OmegaAcceptanceCast.cast(
@@ -136,20 +96,9 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
   public enum Configuration {
     // Underlying LDBA construction
     SYMMETRIC,
-
     // Parallel translation
     COMPLEMENT_CONSTRUCTION_EXACT,
-    COMPLEMENT_CONSTRUCTION_HEURISTIC,
-
     // Postprocessing (optimise initial state and compress colours)
     POST_PROCESS
-  }
-
-  private static int getOrMaxInt(IntSupplier supplier) {
-    try {
-      return supplier.getAsInt();
-    } catch (IllegalArgumentException ex) {
-      return Integer.MAX_VALUE;
-    }
   }
 }

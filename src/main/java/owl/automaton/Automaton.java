@@ -62,10 +62,6 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
 
   // Parameters
 
-  default String name() {
-    return this.getClass() + " for " + this.initialStates();
-  }
-
   /**
    * Returns the acceptance condition of this automaton.
    *

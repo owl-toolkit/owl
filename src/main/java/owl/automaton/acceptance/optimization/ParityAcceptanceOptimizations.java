@@ -62,6 +62,7 @@ public final class ParityAcceptanceOptimizations {
     ParityAcceptance acceptance = automaton.acceptance();
     List<Set<S>> sccs = SccDecomposition.of(automaton).sccs();
     int usedAcceptanceSets = 0;
+    boolean max = automaton.acceptance().parity().max();
 
     for (Set<S> scc : sccs) {
       Map<Integer, Integer> reductionMapping = new HashMap<>();
@@ -71,7 +72,11 @@ public final class ParityAcceptanceOptimizations {
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
           if (scc.contains(edge.successor())) {
-            edge.colours().first().ifPresent(usedPriorities::add);
+            if (max) {
+              edge.colours().last().ifPresent(usedPriorities::add);
+            } else {
+              edge.colours().first().ifPresent(usedPriorities::add);
+            }
           }
         }
       }

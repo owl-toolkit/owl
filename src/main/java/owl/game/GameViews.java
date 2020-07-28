@@ -27,7 +27,6 @@ import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
@@ -40,79 +39,19 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
-import owl.automaton.Automaton.Property;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
-import owl.run.modules.OwlModule;
-import owl.run.modules.OwlModule.AutomatonTransformer;
 
 public final class GameViews {
-  @SuppressWarnings("SpellCheckingInspection")
-  public static final OwlModule<OwlModule.Transformer> AUTOMATON_TO_GAME_MODULE =
-    OwlModule.<OwlModule.Transformer>of(
-      "aut2game",
-      "Converts an automaton into a game by splitting the transitions",
-      () -> {
-        Option environmentPropositions = new Option("e", "environment", true,
-          "List of atomic propositions controlled by the environment");
-        Option systemPropositions = new Option("s", "system", true,
-          "List of atomic propositions controlled by the system");
-        Option environmentPrefixes = new Option(null, "envprefix", true,
-          "Prefixes of environment APs (defaults to i)");
-        Option systemPrefixes = new Option(null, "sysprefix", true,
-          "Prefixes of system APs");
-
-        OptionGroup apGroup = new OptionGroup()
-          .addOption(environmentPropositions)
-          .addOption(environmentPrefixes)
-          .addOption(systemPropositions)
-          .addOption(systemPrefixes);
-        apGroup.getOptions().forEach(option -> option.setArgs(Option.UNLIMITED_VALUES));
-
-        return new Options()
-          .addOptionGroup(apGroup);
-      },
-      (commandLine, environment) -> {
-        // At most one of those is non-null
-        String[] environmentPropositions = commandLine.getOptionValues("environment");
-        String[] systemPropositions = commandLine.getOptionValues("system");
-        String[] environmentPrefixes = commandLine.getOptionValues("envprefix");
-        String[] systemPrefixes = commandLine.getOptionValues("sysprefix");
-
-        Predicate<String> isEnvironmentAp;
-        if (environmentPropositions != null) {
-          List<String> environmentAPs = List.of(environmentPropositions);
-          isEnvironmentAp = environmentAPs::contains;
-        } else if (systemPropositions != null) {
-          List<String> systemAPs = List.of(systemPropositions);
-          isEnvironmentAp = ((Predicate<String>) systemAPs::contains).negate();
-        } else if (environmentPrefixes != null) {
-          isEnvironmentAp = ap -> Arrays.stream(environmentPrefixes).anyMatch(ap::startsWith);
-        } else if (systemPrefixes != null) {
-          isEnvironmentAp = ap -> Arrays.stream(systemPrefixes).noneMatch(ap::startsWith);
-        } else {
-          isEnvironmentAp = ap -> ap.charAt(0) == 'i';
-        }
-
-        return AutomatonTransformer.of(
-          (Automaton<Object, ? extends ParityAcceptance> automaton) -> {
-            return GameViews.split(Views.complete(automaton), isEnvironmentAp);
-        }, ParityAcceptance.class);
-      });
-
 
   private GameViews() {}
 
@@ -127,13 +66,12 @@ public final class GameViews {
   }
 
   public static <S, A extends EmersonLeiAcceptance> Game<Node<S>, A>
-  split(Automaton<S, A> automaton, Collection<String> firstPropositions) {
+    split(Automaton<S, A> automaton, Collection<String> firstPropositions) {
     return new ForwardingGame<>(automaton, firstPropositions::contains);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Game<Node<S>, A>
-  split(Automaton<S, A> automaton, Predicate<String> firstPropositions) {
-    assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
+    split(Automaton<S, A> automaton, Predicate<String> firstPropositions) {
     return new ForwardingGame<>(automaton, firstPropositions);
   }
 
@@ -144,12 +82,19 @@ public final class GameViews {
     private final Function<Owner, List<String>> variableOwnership;
     private final BiFunction<S, Owner, BitSet> choice;
 
-    FilteredGame(Game<S, A> game, Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
+    @SuppressWarnings({"unchecked", "raw"})
+    private FilteredGame(Game<S, A> game, Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
       this.filteredAutomaton = Views
           .filtered(game, Views.Filter.of(states, (s, e) -> edgeFilter.test(e)));
-      this.ownership = game::owner;
-      this.variableOwnership = game::variables;
-      this.choice = game::choice;
+      this.ownership = game instanceof FilteredGame
+        ? ((FilteredGame) game).ownership
+        : game::owner;
+      this.variableOwnership = game instanceof FilteredGame
+        ? ((FilteredGame) game).variableOwnership
+        : game::variables;
+      this.choice = game instanceof FilteredGame
+        ? ((FilteredGame) game).choice
+        : game::choice;
     }
 
     @Override

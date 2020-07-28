@@ -96,14 +96,14 @@ public abstract class Pebble<S> {
    * @param valSet Set of valuations to advance the pebble by.
    * @return A set of possible successor pebbles for the given valuation set.
    */
-  public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
+  public Set<Pebble<S>> successors(Automaton<S, ? extends BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
     valSet.iterator(aut.atomicPropositions().size()).forEachRemaining(
       val -> out.addAll(successors(aut, val)));
     return out;
   }
 
-  public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
+  public Set<Pebble<S>> predecessors(Automaton<S, ? extends BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
     valSet.iterator(aut.atomicPropositions().size()).forEachRemaining(
       val -> out.addAll(predecessors(aut, val)));
@@ -117,14 +117,14 @@ public abstract class Pebble<S> {
    * @param val Valuation to advance the pebble by.
    * @return Set of possible successor pebbles.
    */
-  public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BitSet val) {
+  public Set<Pebble<S>> successors(Automaton<S, ? extends BuchiAcceptance> aut, BitSet val) {
     return aut.edges(state(), val)
       .stream()
       .map(s -> Pebble.of(s.successor(), aut.acceptance().isAcceptingEdge(s) || flag()))
       .collect(Collectors.toSet());
   }
 
-  public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BitSet val) {
+  public Set<Pebble<S>> predecessors(Automaton<S, ? extends BuchiAcceptance> aut, BitSet val) {
     return aut.states()
       .stream()
       // we are only interested in states that are predecessors

@@ -19,8 +19,9 @@
 
 /**
  * Contains the translation from non-deterministic Büchi automata to deterministic parity automata
- * described in {@value owl.Bibliography#ICALP_19_CITEKEY} ({@link owl.Bibliography#ICALP_19}) with
- * optimisations from {@value owl.Bibliography#ATVA_19_CITEKEY} ({@link owl.Bibliography#ATVA_19}).
+ * described in {@value owl.Bibliography#ICALP_19_1_CITEKEY} ({@link owl.Bibliography#ICALP_19_1})
+ * with optimisations from {@value owl.Bibliography#ATVA_19_CITEKEY}
+ * ({@link owl.Bibliography#ATVA_19}).
  */
 @EverythingIsNonnullByDefault
 package owl.translations.nbadet;

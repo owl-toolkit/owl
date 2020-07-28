@@ -27,7 +27,7 @@ IFS=$'\n\t'
 # shellcheck source=./vars.sh
 source "$(dirname "$0")/vars.sh"
 
-files=("README_DISTRIBUTION.md" "CONTRIBUTING.md" "CHANGELOG.md" "doc/"*)
+files=("README.md" "CHANGELOG.md" "doc/"*)
 destination="$1"
 
 for file_path in "${files[@]}"; do

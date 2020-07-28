@@ -132,7 +132,6 @@ while [ ${#} -gt 0 ]; do
     echo "Generating automaton image for $faulty_formula"
     for i in "${!tool_names[@]}"; do
       # Find the tool which caused the problem
-      # TODO For each tool, find the last problematic formula
       declare -a pos_highlight
       declare -a neg_highlight
       tool_error="0"

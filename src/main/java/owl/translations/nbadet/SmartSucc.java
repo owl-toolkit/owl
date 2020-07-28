@@ -68,15 +68,17 @@ public class SmartSucc<S> {
   // takes: reference successor, mask for restricting candidates, valid pointer to sub-trieMap node,
   // prefix up to sub-trieMap node, the prefix length and current depth
   // returns: suitable candidate(s)
-  List<NbaDetState<S>> trieDfs(NbaDetState<S> ref, Pair<BitSet,List<BitSet>> msk,
-                               TrieMap<BitSet,NbaDetState<S>> node, BitSet pref, int i,
+  List<NbaDetState<S>> trieDfs(NbaDetState<S> ref, Pair<BitSet, List<BitSet>> msk,
+                               TrieMap<BitSet, NbaDetState<S>> node, BitSet pref, int i,
                                boolean getAll) {
     if (node.isEmpty()) {
       return List.of(); //no states in this subtrie
     }
+
     if (pref.intersects(msk.fst())) {
       return List.of(); //seen forbidden states that have to stay high in the tree
     }
+
     if (i < msk.snd().size() && !BitSet2.without(msk.snd().get(i), pref).isEmpty()) {
       return List.of(); //some state missing that should have appeared by now
     }

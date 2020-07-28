@@ -49,17 +49,8 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.collections.ImmutableBitSet;
-import owl.run.modules.OwlModule;
-import owl.run.modules.OwlModule.AutomatonTransformer;
 
 public final class RabinDegeneralization {
-
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "dgra2dra",
-    "Converts deterministic generalized Rabin automata into Rabin automata.",
-    (commandLine, environment) ->
-      AutomatonTransformer.of(RabinDegeneralization::degeneralize, GeneralizedRabinAcceptance.class)
-  );
 
   private RabinDegeneralization() {}
 

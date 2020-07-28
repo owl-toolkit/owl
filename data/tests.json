@@ -65,214 +65,307 @@
             "random"
         ]
     },
-    "defaults": {
-        "reference": {
-            "name": "ltl2tgba",
-            "exec": [
-                "ltl2tgba",
-                "-H",
-                "-f",
-                "%f"
-            ]
-        },
-        "data": "XL"
-    },
     "tests": {
         "ltl2nba": {
             "tools": [
-                "ltl2nba",
-                "ltl2ngba",
-                "ltl2nba#disable-portfolio",
-                "ltl2ngba#disable-portfolio"
-            ]
+                "ltl2nba <input> -t EKS20",
+
+                "ltl2ngba <input> -t EKS20"
+            ],
+            "data": "XL"
         },
         "ltl2nba-random": {
             "tools": [
-                "ltl2nba#disable-portfolio",
-                "ltl2ngba#disable-portfolio"
+                "ltl2nba <input> -t EKS20",
+
+                "ltl2ngba <input> -t EKS20",
+
+                "ltl2nba <input> -t EKS20  --skip-translation-portfolio",
+
+                "ltl2ngba <input> -t EKS20 --skip-translation-portfolio"
             ],
             "data": "RANDOM"
         },
         "ltl2ldba": {
             "tools": [
-                "ltl2ldba#asymmetric",
-                "ltl2ldba#symmetric",
-                "ltl2ldgba#asymmetric",
-                "ltl2ldgba#symmetric",
-                "ltl2ldba#asymmetric,disable-portfolio",
-                "ltl2ldba#symmetric,disable-portfolio",
-                "ltl2ldgba#asymmetric,disable-portfolio",
-                "ltl2ldgba#symmetric,disable-portfolio"
-            ]
+                "ltl2ldba <input> -t SEJK16",
+                "ltl2ldba <input> -t EKS20",
+
+                "ltl2ldgba <input> -t SEJK16",
+                "ltl2ldgba <input> -t EKS20"
+            ],
+            "data": "XL"
         },
         "ltl2ldba-random": {
             "tools": [
-                "ltl2ldba#asymmetric,disable-portfolio",
-                "ltl2ldba#symmetric,disable-portfolio",
-                "ltl2ldgba#asymmetric,disable-portfolio",
-                "ltl2ldgba#symmetric,disable-portfolio"
-            ],
-            "data": "RANDOM"
-        },
-        "ltl2dra": {
-            "tools": [
-                "ltl2dra#symmetric",
-                "ltl2dgra#symmetric",
-                "ltl2dra#symmetric,disable-portfolio",
-                "ltl2dgra#symmetric,disable-portfolio",
-                "ltl2dra#normal-form",
-                "ltl2dgra#normal-form",
-                "ltl2dra#normal-form,disable-portfolio",
-                "ltl2dgra#normal-form,disable-portfolio"
-            ],
-            "data": "L"
-        },
-        "ltl2dra-random": {
-            "tools": [
-                "ltl2dra#symmetric,disable-portfolio",
-                "ltl2dgra#symmetric,disable-portfolio"
+                "ltl2ldba <input> -t SEJK16",
+                "ltl2ldba <input> -t EKS20",
+
+                "ltl2ldgba <input> -t SEJK16",
+                "ltl2ldgba <input> -t EKS20",
+
+                "ltl2ldba <input> -t SEJK16  --skip-translation-portfolio",
+                "ltl2ldba <input> -t EKS20   --skip-translation-portfolio",
+
+                "ltl2ldgba <input> -t SEJK16 --skip-translation-portfolio",
+                "ltl2ldgba <input> -t EKS20  --skip-translation-portfolio"
             ],
             "data": "RANDOM"
         },
         "ltl2dpa": {
             "tools": [
-                "ltl2dpa#asymmetric",
-                "ltl2dpa#asymmetric,disable-complement",
-                "ltl2dpa#symmetric",
-                "ltl2dpa#symmetric,disable-complement",
-                "ltl2dpa#asymmetric,disable-portfolio",
-                "ltl2dpa#asymmetric,disable-complement,disable-portfolio",
-                "ltl2dpa#symmetric,disable-portfolio",
-                "ltl2dpa#symmetric,disable-complement,disable-portfolio",
-                "ltl2dpaNormalform#conditional-zielonka",
-                "ltl2dpaNormalform#mixed-1",
-                "ltl2dpaNormalform#mixed-10",
-                "ltl2dpaNormalform#mixed-100",
-                "ltl2dpaNormalform#acd",
-                "ltl2dpa#symbolic"
+                "ltl2dpa <input> -t SEJK16_EKRS17",
+                "ltl2dpa <input> -t EKS20_EKRS17",
+                "ltl2dpa <input> -t SLM21",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=0"
             ],
-            "data": "L"
+            "data": "XL"
+        },
+        "ltl2dpa-symbolic": {
+            "tools": "ltl2dpa <input> -t SYMBOLIC_SE20_BKS10",
+            "data": "S"
         },
         "ltl2dpa-random": {
             "tools": [
-                "ltl2dpa#asymmetric,disable-complement",
-                "ltl2dpa#symmetric,disable-complement",
-                "ltl2dpaZielonka"
+                "ltl2dpa <input> -t SEJK16_EKRS17",
+                "ltl2dpa <input> -t EKS20_EKRS17",
+                "ltl2dpa <input> -t SYMBOLIC_SE20_BKS10",
+                "ltl2dpa <input> -t SLM21",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=0",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=1",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=10",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=100",
+
+                "ltl2dpa <input> -t SEJK16_EKRS17               --skip-translation-portfolio",
+                "ltl2dpa <input> -t EKS20_EKRS17                --skip-translation-portfolio",
+                "ltl2dpa <input> -t SYMBOLIC_SE20_BKS10         --skip-translation-portfolio",
+                "ltl2dpa <input> -t SLM21                       --skip-translation-portfolio",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=0   --skip-translation-portfolio",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=1   --skip-translation-portfolio",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=10  --skip-translation-portfolio",
+                "ltl2dpa <input> -t SLM21 --SLM21-lookahead=100 --skip-translation-portfolio"
             ],
             "data": "RANDOM"
         },
+        "ltl2dra": {
+            "tools": [
+                "ltl2dra <input> -t EKS16",
+                "ltl2dra <input> -t EKS20",
+                "ltl2dra <input> -t SE20",
+
+                "ltl2dgra <input> -t EKS16",
+                "ltl2dgra <input> -t EKS20",
+                "ltl2dgra <input> -t SE20"
+            ],
+            "data": "L"
+        },
+        "ltl2dra-random": {
+            "tools": [
+                "ltl2dra <input> -t EKS16",
+                "ltl2dra <input> -t EKS20",
+                "ltl2dra <input> -t SE20",
+
+                "ltl2dgra <input> -t EKS16",
+                "ltl2dgra <input> -t EKS20",
+                "ltl2dgra <input> -t SE20",
+
+                "ltl2dra <input> -t EKS16  --skip-translation-portfolio",
+                "ltl2dra <input> -t EKS20  --skip-translation-portfolio",
+                "ltl2dra <input> -t SE20   --skip-translation-portfolio",
+
+                "ltl2dgra <input> -t EKS16 --skip-translation-portfolio",
+                "ltl2dgra <input> -t EKS20 --skip-translation-portfolio",
+                "ltl2dgra <input> -t SE20  --skip-translation-portfolio"
+            ],
+            "data": "RANDOM"
+        },
+        "ltl2dela": {
+            "tools": [
+                "ltl2dela <input> -t MS17",
+                "ltl2dela <input> -t SLM21",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=0"
+            ],
+            "data": "XL"
+        },
+        "ltl2dela-random": {
+            "tools": [
+                "ltl2dela <input> -t MS17",
+                "ltl2dela <input> -t SLM21",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=0",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=1",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=10",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=100",
+
+                "ltl2dela <input> -t MS17                        --skip-translation-portfolio",
+                "ltl2dela <input> -t SLM21                       --skip-translation-portfolio",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=0   --skip-translation-portfolio",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=1   --skip-translation-portfolio",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=10  --skip-translation-portfolio",
+                "ltl2dela <input> -t SLM21 --SLM21-lookahead=100 --skip-translation-portfolio"
+            ],
+            "data": "RANDOM"
+        },
+        "ltl2aut-all-flags": {
+            "tools": [
+                "ltl2nba <input>",
+                "ltl2nba <input> --complete",
+                "ltl2nba <input> --skip-acceptance-simplifier",
+                "ltl2nba <input> --skip-formula-simplifier",
+                "ltl2nba <input> --skip-translation-portfolio",
+                "ltl2nba <input> --state-acceptance",
+                "ltl2nba <input> --state-labels",
+                "ltl2nba <input> --translation=EKS20 --skip-translation-portfolio",
+
+                "ltl2ngba <input>",
+                "ltl2ngba <input> --complete",
+                "ltl2ngba <input> --skip-acceptance-simplifier",
+                "ltl2ngba <input> --skip-formula-simplifier",
+                "ltl2ngba <input> --skip-translation-portfolio",
+                "ltl2ngba <input> --state-acceptance",
+                "ltl2ngba <input> --state-labels",
+                "ltl2ngba <input> --translation=EKS20 --skip-translation-portfolio",
+
+                "ltl2ldba <input>",
+                "ltl2ldba <input> --complete",
+                "ltl2ldba <input> --skip-acceptance-simplifier",
+                "ltl2ldba <input> --skip-formula-simplifier",
+                "ltl2ldba <input> --skip-translation-portfolio",
+                "ltl2ldba <input> --state-acceptance",
+                "ltl2ldba <input> --state-labels",
+                "ltl2ldba <input> --translation=SEJK16 --skip-translation-portfolio",
+                "ltl2ldba <input> --translation=EKS20  --skip-translation-portfolio",
+                "ltl2ldba <input> --translation=SMALLEST_AUTOMATON",
+
+                "ltl2ldgba <input>",
+                "ltl2ldgba <input> --complete",
+                "ltl2ldgba <input> --skip-acceptance-simplifier",
+                "ltl2ldgba <input> --skip-formula-simplifier",
+                "ltl2ldgba <input> --skip-translation-portfolio",
+                "ltl2ldgba <input> --state-acceptance",
+                "ltl2ldgba <input> --state-labels",
+                "ltl2ldgba <input> --translation=SEJK16 --skip-translation-portfolio",
+                "ltl2ldgba <input> --translation=EKS20  --skip-translation-portfolio",
+                "ltl2ldgba <input> --translation=SMALLEST_AUTOMATON",
+
+                "ltl2dpa <input>",
+                "ltl2dpa <input> --complete",
+                "ltl2dpa <input> --skip-acceptance-simplifier",
+                "ltl2dpa <input> --skip-formula-simplifier",
+                "ltl2dpa <input> --skip-translation-portfolio",
+                "ltl2dpa <input> --state-acceptance",
+                "ltl2dpa <input> --state-labels",
+                "ltl2dpa <input> --translation=SEJK16_EKRS17       --skip-translation-portfolio --EKRS17-skip-complement",
+                "ltl2dpa <input> --translation=EKS20_EKRS17        --skip-translation-portfolio --EKRS17-skip-complement",
+                "ltl2dpa <input> --translation=SYMBOLIC_SE20_BKS10 --skip-translation-portfolio --EKRS17-skip-complement",
+                "ltl2dpa <input> --translation=SLM21               --skip-translation-portfolio --SLM21-lookahead=-1",
+                "ltl2dpa <input> --translation=SLM21               --skip-translation-portfolio --SLM21-lookahead=0",
+                "ltl2dpa <input> --translation=SMALLEST_AUTOMATON",
+
+                "ltl2dra <input>",
+                "ltl2dra <input> --complete",
+                "ltl2dra <input> --skip-acceptance-simplifier",
+                "ltl2dra <input> --skip-formula-simplifier",
+                "ltl2dra <input> --skip-translation-portfolio",
+                "ltl2dra <input> --state-acceptance",
+                "ltl2dra <input> --state-labels",
+                "ltl2dra <input> --translation=EKS16 --skip-translation-portfolio",
+                "ltl2dra <input> --translation=EKS20 --skip-translation-portfolio",
+                "ltl2dra <input> --translation=SE20  --skip-translation-portfolio --SE20-no-dual-normal-form",
+                "ltl2dra <input> --translation=SMALLEST_AUTOMATON",
+
+                "ltl2dgra <input>",
+                "ltl2dgra <input> --complete",
+                "ltl2dgra <input> --skip-acceptance-simplifier",
+                "ltl2dgra <input> --skip-formula-simplifier",
+                "ltl2dgra <input> --skip-translation-portfolio",
+                "ltl2dgra <input> --state-acceptance",
+                "ltl2dgra <input> --state-labels",
+                "ltl2dgra <input> --translation=EKS16 --skip-translation-portfolio",
+                "ltl2dgra <input> --translation=EKS20 --skip-translation-portfolio",
+                "ltl2dgra <input> --translation=SE20  --skip-translation-portfolio --SE20-no-dual-normal-form",
+                "ltl2dgra <input> --translation=SMALLEST_AUTOMATON",
+
+                "ltl2dela <input>",
+                "ltl2dela <input> --complete",
+                "ltl2dela <input> --skip-acceptance-simplifier",
+                "ltl2dela <input> --skip-formula-simplifier",
+                "ltl2dela <input> --skip-translation-portfolio",
+                "ltl2dela <input> --state-acceptance",
+                "ltl2dela <input> --state-labels",
+                "ltl2dela <input> --translation=MS17                --skip-translation-portfolio",
+                "ltl2dela <input> --translation=SLM21               --skip-translation-portfolio --SLM21-lookahead=-1",
+                "ltl2dela <input> --translation=SLM21               --skip-translation-portfolio --SLM21-lookahead=0",
+                "ltl2dela <input> --translation=SMALLEST_AUTOMATON"
+            ],
+            "data": "base"
+        },
+        "ltl-to-delta2": {
+            "tools": [
+                "ltl2delta2 <input> --method=SE20_SIGMA_2_AND_GF_SIGMA_1          --verify | ./owl ltl2dela --translation=SLM21 --SLM21-lookahead=0",
+                "ltl2delta2 <input> --method=SE20_PI_2_AND_FG_PI_1                --verify | ./owl ltl2dela --translation=SLM21 --SLM21-lookahead=0",
+                "ltl2delta2 <input> --method=SE20_SIGMA_2_AND_GF_SIGMA_1 --strict --verify | ./owl ltl2dela --translation=SLM21 --SLM21-lookahead=0",
+                "ltl2delta2 <input> --method=SE20_PI_2_AND_FG_PI_1       --strict --verify | ./owl ltl2dela --translation=SLM21 --SLM21-lookahead=0"
+            ],
+            "data": "M"
+        },
+        "ngba2ldba": {
+            "tools": "ltl2ngba <input> | ./owl ngba2ldba",
+            "data": "base"
+        },
+        "aut2parity": {
+            "tools": [
+                "ltl2dela <input> | ./owl aut2parity",
+                "ltl2dra  <input> | ./owl aut2parity --iar"
+            ],
+            "data": "XL"
+        },
         "nbasim": {
             "tools": [
-                "nbasim#refinement",
-                "nbasim#direct",
-                "nbasim#delayed"
+                "ltl2nba <input> | ./owl nbasim -t DIRECT_REFINEMENT",
+                "ltl2nba <input> | ./owl nbasim -t DIRECT",
+                "ltl2nba <input> | ./owl nbasim -t DELAYED"
             ],
             "data": "L"
         },
-        "nbadet": {
-            "tools": [
-                "nbadet#default"
-            ],
-            "data": "L"
+        "nba2dpa-default": {
+            "tools": "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa",
+            "data": "M"
         },
-        "nbadet-intense": {
+        "nba2dpa-complete": {
             "tools": [
-                "nbadet#mullerschupp",
-                "nbadet#mullerschupp,powersets",
-                "nbadet#mullerschupp,powersets,smartsucc",
-                "nbadet#mullerschupp,powersets,smartsucc,uselangext,uselangint,directsim",
-                "nbadet#mullerschupp,powersets,smartsucc,uselangext,uselangint,directsim,ascc,ascccyc,rscc,optdet,optmix",
-                "nbadet#safra",
-                "nbadet#safra,powersets",
-                "nbadet#safra,powersets,smartsucc",
-                "nbadet#safra,powersets,smartsucc,uselangext,uselangint,directsim",
-                "nbadet#safra,powersets,smartsucc,uselangext,uselangint,directsim,ascc,ascccyc,rscc,optdet,optmix",
-                "nbadet#maxmerge",
-                "nbadet#maxmerge,powersets",
-                "nbadet#maxmerge,powersets,smartsucc",
-                "nbadet#maxmerge,powersets,smartsucc,uselangext,uselangint,directsim",
-                "nbadet#maxmerge,powersets,smartsucc,uselangext,uselangint,directsim,ascc,ascccyc,rscc,optdet,optmix"
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MUELLER_SCHUPP",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MUELLER_SCHUPP --use-powersets --no-use-smart-succ --no-use-sim-external --no-use-sim-internal                                      --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MUELLER_SCHUPP --use-powersets    --use-smart-succ --no-use-sim-external --no-use-sim-internal                                      --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MUELLER_SCHUPP --use-powersets    --use-smart-succ --no-use-sim-external    --use-sim-internal --compute-lang-inclusions=DIRECT_SIM --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MUELLER_SCHUPP --use-powersets    --use-smart-succ --no-use-sim-external    --use-sim-internal --compute-lang-inclusions=DIRECT_SIM    --sep-acc    --sep-acc-cycle    --sep-rej    --sep-det    --sep-sccs",
+
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m SAFRA",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m SAFRA --use-powersets --no-use-smart-succ --no-use-sim-external --no-use-sim-internal                                      --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m SAFRA --use-powersets    --use-smart-succ --no-use-sim-external --no-use-sim-internal                                      --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m SAFRA --use-powersets    --use-smart-succ --no-use-sim-external    --use-sim-internal --compute-lang-inclusions=DIRECT_SIM --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m SAFRA --use-powersets    --use-smart-succ --no-use-sim-external    --use-sim-internal --compute-lang-inclusions=DIRECT_SIM    --sep-acc    --sep-acc-cycle    --sep-rej    --sep-det    --sep-sccs",
+
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MAX_MERGE",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MAX_MERGE --use-powersets --no-use-smart-succ --no-use-sim-external --no-use-sim-internal                                      --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MAX_MERGE --use-powersets    --use-smart-succ --no-use-sim-external --no-use-sim-internal                                      --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MAX_MERGE --use-powersets    --use-smart-succ --no-use-sim-external    --use-sim-internal --compute-lang-inclusions=DIRECT_SIM --no-sep-acc --no-sep-acc-cycle --no-sep-rej --no-sep-det --no-sep-sccs",
+                "ltl2tgba <input> -H | ./owl aut-utilities --degeneralize | ./owl nba2dpa -m MAX_MERGE --use-powersets    --use-smart-succ --no-use-sim-external    --use-sim-internal --compute-lang-inclusions=DIRECT_SIM    --sep-acc    --sep-acc-cycle    --sep-rej    --sep-det    --sep-sccs"
             ],
             "data": "S"
         },
-        "ltl2da": "ltl2da",
-        "ltl2na": "ltl2na",
-        "buchi-degen": {
+        "aut-utilities": {
             "tools": [
-                "buchi-degen"
+                "ltl2ngba <input> | ./owl aut-utilities --degeneralize",
+                "ltl2dgra <input> | ./owl aut-utilities --degeneralize",
+
+                "ltl2dpa  <input> | ./owl aut-utilities --deterministic-complement | ./owl aut-utilities --deterministic-complement",
+                "ltl2dgra <input> | ./owl aut-utilities --deterministic-complement | ./owl aut-utilities --deterministic-complement",
+                "ltl2dela <input> | ./owl aut-utilities --deterministic-complement | ./owl aut-utilities --deterministic-complement",
+
+                "ltl2dpa  <input> | ./owl aut-utilities --convert-parity-condition=MIN_EVEN",
+                "ltl2dpa  <input> | ./owl aut-utilities --convert-parity-condition=MIN_ODD"
             ],
             "data": "M"
-        },
-        "nba2ldba": {
-            "tools": [
-                "spot-nba2ldba"
-            ],
-            "data": "S"
-        },
-        "nba2dpa": {
-            "tools": [
-                "spot-nba2dpa"
-            ],
-            "data": "S"
-        },
-        "delag": {
-            "tools": [
-                "delag",
-                "delag#fallback-spot",
-                "delag-normalform",
-                "delag-normalform#dual",
-                "delag-normalform#local",
-                "delag-normalform#dual,local",
-                "ltl2delaNormalform#syntactic-only",
-                "ltl2delaNormalform#mixed-1",
-                "ltl2delaNormalform#mixed-10",
-                "ltl2delaNormalform#mixed-100",
-                "ltl2delaNormalform#semantic-only"
-            ],
-            "data": "M"
-        },
-        "delag-to-parity": {
-            "tools": [
-                "to-parity#conditional-zielonka",
-                "to-parity#mixed-1",
-                "to-parity#mixed-10",
-                "to-parity#mixed-100",
-                "to-parity#acd"
-            ]
-        },
-        "rabinizer": {
-            "tools": [
-                "ltl2dgra#asymmetric,disable-portfolio",
-                "ltl2dra#asymmetric,disable-portfolio",
-                "rabinizer-dpa#asymmetric"
-            ],
-            "data": "M"
-        },
-        "rabinizer-dpa": {
-            "tools": [
-                "rabinizer-dpa",
-                "rabinizer-dpa#asymmetric"
-            ],
-            "data": "M"
-        },
-        "iar": {
-            "tools": [
-                "iar",
-                "iar#min",
-                "iar#odd",
-                "iar#min,odd"
-            ],
-            "data": "M"
-        },
-        "ltl2dpa-convert": {
-            "tools": [
-                "ltl2dpa-convert#min",
-                "ltl2dpa-convert#even",
-                "ltl2dpa-convert#odd",
-                "ltl2dpa-convert#min,even",
-                "ltl2dpa-convert#min,odd"
-            ],
-            "data": "S"
         }
     }
 }

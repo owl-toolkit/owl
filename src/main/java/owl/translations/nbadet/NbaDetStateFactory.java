@@ -347,7 +347,7 @@ final class NbaDetStateFactory<S> {
           if (nodeSaturated.get(i)) { //saturated
             fire.apply(mscc.slice().get(i), true);
             sb.append("strd ");
-            if (c.args().mergeMode().equals(NbaDetConf.UpdateMode.MUELLER_SCHUPP)) {
+            if (c.args().mergeMode() == NbaDetConf.UpdateMode.MUELLER_SCHUPP) {
               //classic muller/schupp update. we need to move the states from
               //the first nonempty child into current set.
               final var curPair = mscc.slice().get(i);
@@ -355,7 +355,7 @@ final class NbaDetStateFactory<S> {
               curPair.fst().or(rnePair.fst()); //add states
               rnePair.fst().clear();             //remove from child
 
-            } else if (c.args().mergeMode().equals(NbaDetConf.UpdateMode.SAFRA)) {
+            } else if (c.args().mergeMode() == NbaDetConf.UpdateMode.SAFRA) {
               //collect states of complete subtree and move to current set
               var subtree = new BitSet();
               for (var j = l.get(i) + 1; j < i; j++) {
@@ -385,7 +385,7 @@ final class NbaDetStateFactory<S> {
     }
 
     //now as we know the oldest active rank, we can perform aggressive collapse
-    if (c.args().mergeMode().equals(NbaDetConf.UpdateMode.MAX_MERGE)) {
+    if (c.args().mergeMode() == NbaDetConf.UpdateMode.MAX_MERGE) {
       var domEvent = NbaDetState.priorityToRank(domprio.getPlain());
       sb.append("dominating event: ").append(domEvent).append(" \n");
 

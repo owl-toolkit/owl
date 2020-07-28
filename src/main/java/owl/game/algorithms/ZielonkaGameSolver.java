@@ -19,7 +19,6 @@
 
 package owl.game.algorithms;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static owl.game.Game.Owner.PLAYER_1;
 import static owl.game.Game.Owner.PLAYER_2;
 
@@ -31,22 +30,8 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.game.Game;
 import owl.game.GameViews;
-import owl.run.modules.OwlModule;
 
 public final class ZielonkaGameSolver implements ParityGameSolver {
-  // TODO: should be returning a winning region or strategy
-  public static final OwlModule<OwlModule.Transformer> ZIELONKA_SOLVER = OwlModule.of(
-    "zielonka",
-    "Solves a game using Zielonka's algorithm",
-    (commandLine, environment) -> object -> {
-      checkArgument(object instanceof Game,
-        "Expected type %s, got type %s", Game.class, object.getClass());
-      Game x = (Game) object;
-      WinningRegions<?> winning = recursiveZielonka(x);
-      return winning.player2.contains(x.initialState())
-        ? "The specification is REALISABLE"
-        : "The specification is UNREALISABLE";
-    });
 
   // The convention here is that player 2 wants to satisfy the parity condition
   // that is, get a minimal colour appearing infinitely often to be accepting.

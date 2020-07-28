@@ -36,17 +36,28 @@ public class Bibliography {
 
   // Authors (sorted alphabetically)
 
+  private static final String ABU_RADI = "Bader|Abu Radi";
+  private static final String BOKER = "Udi Boker";
+  private static final String CASARES = "Antonio Casares";
+  private static final String COLCOMBET = "Thomas Colcombet";
+  private static final String COURCOUBETIS = "Costas Courcoubetis";
   private static final String ESPARZA = "Javier Esparza";
+  private static final String FIJALKOW = "Nathanaël Fijalkow";
   private static final String JAAX = "Stefan Jaax";
   private static final String KRETINSKY = "Jan Křetínský";
+  private static final String KUPFERMAN = "Orna Kupferman";
   private static final String LODING = "Christof Löding";
+  private static final String LUTTENBERGER = "Michael Luttenberger";
   private static final String MEGGENDORFER = "Tobias Meggendorfer";
+  private static final String MEYER = "Philipp J. Meyer";
   private static final String MULLER = "David Müller";
   private static final String PIROGOV = "Anton Pirogov";
   private static final String RASKIN = "Jean-François Raskin";
   private static final String SICKERT = "Salomon Sickert";
+  private static final String STEINITZ = "Avital Steinitz";
   private static final String WALDMANN = "Clara Waldmann";
   private static final String WEININGER = "Maximilian Weininger";
+  private static final String YANNAKAKIS = "Mihalis Yannakakis";
   private static final String ZIEGLER = "Christopher Ziegler";
 
   // Venues (sorted alphabetically)
@@ -54,6 +65,7 @@ public class Bibliography {
   private static final String ATVA = "ATVA";
   private static final String CAV = "CAV";
   private static final String FMSD = "Formal Methods in System Design";
+  private static final String FSTTCS = "FSTTCS";
   private static final String GANDALF = "GandALF";
   private static final String ICALP = "ICALP";
   private static final String JACM = "Journal of the ACM";
@@ -61,7 +73,31 @@ public class Bibliography {
   private static final String TACAS = "TACAS";
   private static final String TUM = "TUM";
 
+  private static final String UNDER_SUBMISSION = "Under Submission";
+
   // Publications (sorted chronologically)
+
+  public static final String JACM_95_CITEKEY = "CY95";
+
+  public static final Publication JACM_95 = Publication.of(
+    List.of(COURCOUBETIS, YANNAKAKIS),
+    "The Complexity of Probabilistic Verification",
+    JACM,
+    1995,
+    "10.1145/210332.210339",
+    "DBLP:journals/jacm/CourcoubetisY95"
+  );
+
+  public static final String FSTTCS_10_CITEKEY = "BKS10";
+
+  public static final Publication FSTTCS_10 = Publication.of(
+    List.of(BOKER, KUPFERMAN, STEINITZ),
+    "Parityizing Rabin and Streett",
+    FSTTCS,
+    2010,
+    "10.4230/LIPIcs.FSTTCS.2010.412",
+    "DBLP:conf/fsttcs/BokerKS10"
+  );
 
   public static final String CAV_16_CITEKEY = "SEJK16";
 
@@ -173,15 +209,26 @@ public class Bibliography {
     "DBLP:phd/dnb/Sickert19"
   );
 
-  public static final String ICALP_19_CITEKEY = "LP19b";
+  public static final String ICALP_19_1_CITEKEY = "LP19b";
 
-  public static final Publication ICALP_19 = Publication.of(
+  public static final Publication ICALP_19_1 = Publication.of(
     List.of(LODING, PIROGOV),
     "Determinization of Büchi Automata: Unifying the Approaches of Safra and Muller-Schupp",
     ICALP,
     2019,
     "10.4230/LIPIcs.ICALP.2019.120",
     "DBLP:conf/icalp/LodingP19"
+  );
+
+  public static final String ICALP_19_2_CITEKEY = "AK19";
+
+  public static final Publication ICALP_19_2 = Publication.of(
+    List.of(ABU_RADI, KUPFERMAN),
+    "Minimizing GFG Transition-Based Automata",
+    ICALP,
+    2019,
+    "10.4230/LIPIcs.ICALP.2019.100",
+    "DBLP:conf/icalp/RadiK19"
   );
 
   public static final String LICS_20_CITEKEY = "SE20";
@@ -205,6 +252,28 @@ public class Bibliography {
     2020,
     "10.1145/3417995",
     "DBLP:journals/jacm/EsparzaKS20"
+  );
+
+  public static final String ICALP_21_CITEKEY = "CCF21";
+
+  public static final Publication ICALP_21 = Publication.of(
+    List.of(CASARES, COLCOMBET, FIJALKOW),
+    "Optimal Transformations of Games and Automata Using Muller Conditions",
+    ICALP,
+    2021,
+    "10.4230/LIPIcs.ICALP.2021.123",
+    "DBLP:conf/icalp/CasaresCF21"
+  );
+
+  public static final String UNDER_SUBMISSION_21_CITEKEY = "SLM21";
+
+  public static final Publication UNDER_SUBMISSION_21 = Publication.of(
+    List.of(SICKERT, LUTTENBERGER, MEYER),
+    "(title not known yet)",
+    UNDER_SUBMISSION,
+    2021,
+    null,
+    null
   );
 
   // This field is initialised with values obtained through reflection.
@@ -300,7 +369,7 @@ public class Bibliography {
     @SuppressWarnings("PMD.UseStringBufferForStringAppends")
     public final String toString() {
       var publication = String.format("%s:\n\"%s\". %s %s\n",
-        String.join(", ", authors()),
+        String.join(", ", authors()).replace('|', ' '),
         title(),
         venue(),
         year()
@@ -321,7 +390,8 @@ public class Bibliography {
 
     private String citeKey() {
       return authors().stream()
-        .map(x -> String.valueOf(x.charAt(x.lastIndexOf(' ') + 1)))
+        .map(x -> String.valueOf(
+          x.charAt(x.contains("|") ? x.indexOf('|') + 1 : x.lastIndexOf(' ') + 1)))
         .collect(Collectors.joining())
         + Integer.toString(year()).substring(2);
     }

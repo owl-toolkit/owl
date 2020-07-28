@@ -28,7 +28,6 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,14 +42,12 @@ import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
@@ -60,85 +57,20 @@ import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.sat.Solver;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 
 public final class ZielonkaTreeTransformations {
 
-  /**
-   * Instantiation of the module. We give the name, a short description, and a function to be called
-   * for construction of an instance of the module. {@link OwlModule.AutomatonTransformer} checks
-   * the input passed to the instance of the module and does the necessary transformation to obtain
-   * a generalized B&uuml;chi automaton if possible. If this is not possible an exception is thrown.
-   *
-   * <p> This object has to be imported by the {@link owl.run.modules.OwlModuleRegistry} in order to
-   * be available on the Owl CLI interface. </p>
-   */
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "to-parity",
-    "Convert any automaton into an equivalent parity automaton.",
-    new Options()
-      .addOption(null, "X-lookahead", true,
-        "Only used for testing internal implementation."),
-    (commandLine, environment) -> {
-      OptionalInt lookahead;
-
-      if (commandLine.hasOption("X-lookahead")) {
-        String value = commandLine.getOptionValue("X-lookahead");
-        int intValue = Integer.parseInt(value);
-
-        if (intValue < -1) {
-          throw new IllegalArgumentException();
-        }
-
-        lookahead = intValue == -1 ? OptionalInt.empty() : OptionalInt.of(intValue);
-      } else {
-        lookahead = OptionalInt.empty();
-      }
-
-      return OwlModule.AutomatonTransformer.of(a -> transform(a, lookahead));
-    });
-
   private ZielonkaTreeTransformations() {}
-
-  /**
-   * Entry-point for standalone CLI tool. This class has be registered in build.gradle in the
-   * "Startup Scripts" section in order to get the necessary scripts for CLI invocation.
-   *
-   * @param args
-   *   the arguments
-   *
-   * @throws IOException
-   *   the exception
-   */
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.HOA_INPUT_MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE));
-  }
 
   public static <S> Automaton<ZielonkaState<S>, ParityAcceptance>
     transform(Automaton<S, ?> automaton) {
-
-    return transform(automaton, OptionalInt.empty());
-  }
-
-  // TODO: this is an internal, testing only method.
-  private static <S> Automaton<ZielonkaState<S>, ParityAcceptance>
-    transform(Automaton<S, ?> automaton, OptionalInt lookahead) {
 
     var cachedAutomaton = AbstractMemoizingAutomaton.memoizingAutomaton(automaton);
     var sccDecomposition = SccDecomposition.of(cachedAutomaton);
 
     return transform(
       cachedAutomaton,
-      lookahead,
+      OptionalInt.empty(),
       (x, y) -> sccDecomposition.index(x) != sccDecomposition.index(y),
       x -> cachedAutomaton.acceptance().booleanExpression(),
       x -> PropositionalFormula.trueConstant());
@@ -147,14 +79,12 @@ public final class ZielonkaTreeTransformations {
   // TODO: it might be the case that depending on the iteration order the sizes are different.
   public static <S> AutomatonWithZielonkaTreeLookup<ZielonkaState<S>, ParityAcceptance>
     transform(
-      Automaton<S, ?> uncachedAutomaton,
+      AbstractMemoizingAutomaton<S, ?> automaton,
       OptionalInt lookahead,
       BiPredicate<S, S> sccChange,
       Function<S, ? extends PropositionalFormula<Integer>> localAlpha,
       Function<S, ? extends PropositionalFormula<Integer>> localBeta) {
 
-    // Pass automaton through caching mechanism to guarantee fast retrieval after first computation.
-    var automaton = AbstractMemoizingAutomaton.memoizingAutomaton(uncachedAutomaton);
     // Fixed configuration flag.
     boolean stutter = true;
 

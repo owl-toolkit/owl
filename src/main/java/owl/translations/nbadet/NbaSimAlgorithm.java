@@ -23,14 +23,13 @@ import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.Pair;
-import owl.run.RunUtil;
 
 /**
  * Interface that all pluggable language inclusion / simulation algorithms should implement.
  *
  * @param <T> type of parsed CLI Argument
  */
-public interface NbaSimAlgorithm<S,T> {
+public interface NbaSimAlgorithm<S, T> {
 
   /**
    * This method should parse the provided argument into the right type (e.g. as Integer).
@@ -46,24 +45,19 @@ public interface NbaSimAlgorithm<S,T> {
    * @param parsedArg Argument provided to the simulation
    * @return Set of obtained language inclusions (i.e., (a,b) means L(a) subset of L(b))
    */
-  Set<Pair<S,S>> compute(Automaton<S,BuchiAcceptance> aut, T parsedArg);
+  Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, T parsedArg);
 
   /**
    * This method just parses the argument provided by the user and runs the algorithm.
    * @param aut input Büchi automaton
    * @param cliArg provided argument from the user (as String, unparsed)
    */
-  default Set<Pair<S,S>> run(Automaton<S,BuchiAcceptance> aut, String cliArg) {
-    T arg = null;
-
+  default Set<Pair<S, S>> run(Automaton<S, ? extends BuchiAcceptance> aut, String cliArg) {
     try {
-      arg = parseArg(cliArg);
+      return compute(aut, parseArg(cliArg));
     } catch (IllegalArgumentException e) {
-      RunUtil.failWithMessage("ERROR: failed parsing provided argument: " + cliArg);
+      throw new IllegalArgumentException("ERROR: failed parsing provided argument: " + cliArg, e);
     }
-
-    assert arg != null;
-    return compute(aut, arg);
   }
 
 }

@@ -21,7 +21,6 @@ package owl.ltl.rewriter;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
@@ -38,9 +37,11 @@ import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Visitor;
 
-public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
-  public static final PullUpXVisitor INSTANCE = new PullUpXVisitor();
-  public static final UnaryOperator<Formula> OPERATOR = f -> f.accept(INSTANCE).toFormula();
+final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
+
+  static final PullUpXVisitor INSTANCE = new PullUpXVisitor();
+
+  private PullUpXVisitor() {}
 
   @Override
   public XFormula visit(Biconditional biconditional) {
@@ -130,11 +131,11 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
     return formula;
   }
 
-  public static final class XFormula {
-    int depth;
-    Formula formula;
+  static final class XFormula {
+    private int depth;
+    private Formula formula;
 
-    XFormula(int depth, Formula formula) {
+    private XFormula(int depth, Formula formula) {
       this.depth = depth;
       this.formula = formula;
     }
@@ -152,14 +153,6 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
 
     Formula toFormula() {
       return toFormula(0);
-    }
-
-    public Formula rawFormula() {
-      return formula;
-    }
-
-    public int depth() {
-      return depth;
     }
   }
 }

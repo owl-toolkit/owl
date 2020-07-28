@@ -19,8 +19,16 @@
 
 package owl.translations.mastertheorem;
 
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
+
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -35,27 +43,61 @@ import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
+import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PropositionalVisitor;
+import owl.ltl.visitors.Visitor;
 
 /**
- * Δ₂-Normalisation according to {@link owl.Bibliography#LICS_20}.
+ * Δ₂-Normalisation according to {@link owl.Bibliography#LICS_20} with minor tweaks skipping
+ * unnecessary rewrite steps.
  */
-public class Normalisation implements UnaryOperator<LabelledFormula> {
+public final class Normalisation implements UnaryOperator<LabelledFormula> {
 
-  private final boolean dual;
-  private final boolean local;
-  private final boolean onlyStableWords;
-
-  private Normalisation(boolean dual, boolean local, boolean onlyStableWords) {
-    this.dual = dual;
-    this.local = local;
-    this.onlyStableWords = onlyStableWords;
+  public enum NormalisationMethod {
+    SE20_SIGMA_2_AND_GF_SIGMA_1, SE20_PI_2_AND_FG_PI_1
   }
 
-  public static Normalisation of(boolean dual, boolean local, boolean onlyStableWords) {
-    return new Normalisation(dual, local, onlyStableWords);
+  private final NormalisationMethod method;
+  private final NormalisationVisitor normalisationVisitor;
+  private final boolean strict;
+
+  private Normalisation(NormalisationMethod method, boolean strict) {
+    this.method = method;
+    this.strict = strict;
+    this.normalisationVisitor = new NormalisationVisitor();
+  }
+
+  public static Normalisation of(NormalisationMethod method, boolean strict) {
+    return new Normalisation(method, strict);
+  }
+
+
+  public static boolean isSigma2OrGfSigma1(Formula.TemporalOperator temporalOperator) {
+    if (SyntacticFragments.SIGMA_2.contains(temporalOperator)) {
+      return true;
+    }
+
+    if (temporalOperator instanceof GOperator
+      && ((GOperator) temporalOperator).operand() instanceof FOperator) {
+      return SyntacticFragments.SIGMA_1.contains(((GOperator) temporalOperator).operand());
+    }
+
+    return false;
+  }
+
+  public static boolean isPi2OrFgPi1(Formula.TemporalOperator temporalOperator) {
+    if (SyntacticFragments.PI_2.contains(temporalOperator)) {
+      return true;
+    }
+
+    if (temporalOperator instanceof FOperator
+      && ((FOperator) temporalOperator).operand() instanceof GOperator) {
+      return SyntacticFragments.PI_1.contains(((FOperator) temporalOperator).operand());
+    }
+
+    return false;
   }
 
   @Override
@@ -63,57 +105,13 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
     return labelledFormula.wrap(apply(labelledFormula.formula()));
   }
 
-  public Formula apply(Formula labelledFormula) {
-    var formula = labelledFormula.nnf();
-    var disjuncts = new ArrayList<Formula>();
-
-    if (local && !(formula instanceof Formula.TemporalOperator)) {
-      var localNormalForm = new LocalNormalisation();
-      return formula.accept(localNormalForm);
-    }
-
-    for (Fixpoints fixpoints : Selector.selectSymmetric(formula, true)) {
-      var conjuncts = new ArrayList<Formula>();
-      var toCoSafety = new Rewriter.ToCoSafety(fixpoints);
-      var toSafety = new Rewriter.ToSafety(fixpoints);
-
-      if (onlyStableWords) {
-        if (dual) {
-          conjuncts.add(toCoSafety.apply(formula));
-        } else {
-          conjuncts.add(toSafety.apply(formula));
-        }
-      } else {
-        if (dual) {
-          conjuncts.add(formula.accept(new ToPi2(fixpoints)));
-        } else {
-          conjuncts.add(formula.accept(new ToSigma2(fixpoints)));
-        }
-      }
-
-      for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
-        var rewrittenLeastFixpoint = FOperator.of(toCoSafety.apply(leastFixpoint));
-
-        if (rewrittenLeastFixpoint instanceof Disjunction) {
-          rewrittenLeastFixpoint = new FOperator(rewrittenLeastFixpoint);
-        }
-
-        conjuncts.add(GOperator.of(rewrittenLeastFixpoint));
-      }
-
-      for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
-        conjuncts.add(FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint))));
-      }
-
-      disjuncts.add(Conjunction.of(conjuncts));
-    }
-
-    var disjunction = NormalForms.toDnfFormula(Disjunction.of(disjuncts));
-    assert SyntacticFragments.DELTA_2.contains(disjunction);
-    return disjunction;
+  public Formula apply(Formula formula) {
+    return formula.nnf().accept(normalisationVisitor);
   }
 
-  private class LocalNormalisation extends PropositionalVisitor<Formula> {
+
+  private final class NormalisationVisitor extends PropositionalVisitor<Formula> {
+
     @Override
     public Formula visit(BooleanConstant booleanConstant) {
       return booleanConstant;
@@ -138,11 +136,65 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
     public Formula visit(Formula.TemporalOperator temporalOperator) {
       // Do not process formulas inside normal form.
       // a U b | b R c | G F d | F G e
-      if (SyntacticFragments.DELTA_2.contains(temporalOperator)) {
+      if (strict) {
+        if (method == SE20_SIGMA_2_AND_GF_SIGMA_1 && isSigma2OrGfSigma1(temporalOperator)) {
+          return temporalOperator;
+        } else if (method == SE20_PI_2_AND_FG_PI_1 && isPi2OrFgPi1(temporalOperator)) {
+          return temporalOperator;
+        }
+      } else if (SyntacticFragments.DELTA_2.contains(temporalOperator)) {
         return temporalOperator;
       }
 
-      return Normalisation.this.apply(temporalOperator);
+
+      var disjuncts = new ArrayList<Formula>();
+
+      AbstractSelector selector = method == SE20_PI_2_AND_FG_PI_1
+        ? new ToPi2Selector()
+        : new ToSigma2Selector();
+      selector.apply(temporalOperator);
+      List<Fixpoints> fixpointsList = Sets.powerSet(selector.fixpoints)
+        .stream()
+        .map(Fixpoints::of)
+        .collect(Collectors.toList());
+
+      for (Fixpoints fixpoints : fixpointsList) {
+        var conjuncts = new ArrayList<Formula>();
+        var toCoSafety = new Rewriter.ToCoSafety(fixpoints);
+        var toSafety = new Rewriter.ToSafety(fixpoints);
+
+        if (method == SE20_PI_2_AND_FG_PI_1) {
+          conjuncts.add(temporalOperator.accept(new ToPi2(fixpoints)));
+        } else {
+          conjuncts.add(temporalOperator.accept(new ToSigma2(fixpoints)));
+        }
+
+        for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
+          var rewrittenLeastFixpoint = FOperator.of(toCoSafety.apply(leastFixpoint));
+
+          if (rewrittenLeastFixpoint instanceof Disjunction) {
+            rewrittenLeastFixpoint = new FOperator(rewrittenLeastFixpoint);
+          }
+
+          conjuncts.add(GOperator.of(rewrittenLeastFixpoint));
+        }
+
+        for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
+          var rewrittenGreatestFixpoint = GOperator.of(toSafety.apply(greatestFixpoint));
+
+          if (rewrittenGreatestFixpoint instanceof Conjunction) {
+            rewrittenGreatestFixpoint = new GOperator(rewrittenGreatestFixpoint);
+          }
+
+          conjuncts.add(FOperator.of(rewrittenGreatestFixpoint));
+        }
+
+        disjuncts.add(Conjunction.of(conjuncts));
+      }
+
+      var disjunction = NormalForms.toDnfFormula(Disjunction.of(disjuncts));
+      assert SyntacticFragments.DELTA_2.contains(disjunction);
+      return disjunction;
     }
   }
 
@@ -156,6 +208,10 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     @Override
     public Formula visit(GOperator gOperator) {
+      if (SyntacticFragments.SIGMA_2.contains(gOperator)) {
+        return gOperator;
+      }
+
       return UOperator.of(
         gOperator.operand().accept(this),
         GOperator.of(toSafety.apply(gOperator.operand())));
@@ -163,6 +219,10 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     @Override
     public Formula visit(ROperator rOperator) {
+      if (SyntacticFragments.SIGMA_2.contains(rOperator)) {
+        return rOperator;
+      }
+
       return MOperator.of(
         Disjunction.of(
           rOperator.leftOperand().accept(this),
@@ -172,6 +232,10 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     @Override
     public Formula visit(WOperator wOperator) {
+      if (SyntacticFragments.SIGMA_2.contains(wOperator)) {
+        return wOperator;
+      }
+
       return UOperator.of(
         wOperator.leftOperand().accept(this),
         Disjunction.of(
@@ -190,6 +254,10 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     @Override
     public Formula visit(FOperator fOperator) {
+      if (SyntacticFragments.PI_2.contains(fOperator)) {
+        return fOperator;
+      }
+
       return WOperator.of(
         FOperator.of(toCoSafety.apply(fOperator.operand())),
         fOperator.operand().accept(this));
@@ -197,6 +265,10 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     @Override
     public Formula visit(MOperator mOperator) {
+      if (SyntacticFragments.PI_2.contains(mOperator)) {
+        return mOperator;
+      }
+
       return ROperator.of(
         mOperator.leftOperand().accept(this),
         Conjunction.of(
@@ -206,11 +278,137 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     @Override
     public Formula visit(UOperator uOperator) {
+      if (SyntacticFragments.PI_2.contains(uOperator)) {
+        return uOperator;
+      }
+
       return WOperator.of(
         Conjunction.of(
           uOperator.leftOperand().accept(this),
           FOperator.of(toCoSafety.apply(uOperator.rightOperand()))),
         uOperator.rightOperand().accept(this));
     }
+  }
+
+  private abstract static class AbstractSelector implements Visitor<Void> {
+
+    protected final Set<Formula.TemporalOperator> fixpoints = new HashSet<>();
+
+    @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
+    @Override
+    public Void visit(BooleanConstant booleanConstant) {
+      return null;
+    }
+
+    @Override
+    public Void visit(Conjunction conjunction) {
+      conjunction.operands.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @Override
+    public Void visit(Disjunction disjunction) {
+      disjunction.operands.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
+    @Override
+    public final Void visit(Literal literal) {
+      return null;
+    }
+
+    @Override
+    public final Void visit(XOperator xOperator) {
+      return xOperator.operand().accept(this);
+    }
+  }
+
+  private static final class ToSigma2Selector extends AbstractSelector {
+
+    @Override
+    public Void visit(FOperator fOperator) {
+      return fOperator.operand().accept(this);
+    }
+
+    @Override
+    public Void visit(GOperator gOperator) {
+      fixpoints.addAll(selectAllFixpoints(gOperator.operand()));
+      return null;
+    }
+
+    @Override
+    public Void visit(MOperator mOperator) {
+      mOperator.leftOperand().accept(this);
+      mOperator.rightOperand().accept(this);
+      return null;
+    }
+
+    @Override
+    public Void visit(ROperator rOperator) {
+      rOperator.leftOperand().accept(this);
+      fixpoints.addAll(selectAllFixpoints(rOperator.rightOperand()));
+      return null;
+    }
+
+    @Override
+    public Void visit(UOperator uOperator) {
+      uOperator.leftOperand().accept(this);
+      uOperator.rightOperand().accept(this);
+      return null;
+    }
+
+    @Override
+    public Void visit(WOperator wOperator) {
+      fixpoints.addAll(selectAllFixpoints(wOperator.leftOperand()));
+      wOperator.rightOperand().accept(this);
+      return null;
+    }
+  }
+
+  private static final class ToPi2Selector extends AbstractSelector {
+
+    @Override
+    public Void visit(FOperator fOperator) {
+      fixpoints.addAll(selectAllFixpoints(fOperator.operand()));
+      return null;
+    }
+
+    @Override
+    public Void visit(GOperator gOperator) {
+      return gOperator.operand().accept(this);
+    }
+
+    @Override
+    public Void visit(MOperator mOperator) {
+      fixpoints.addAll(selectAllFixpoints(mOperator.leftOperand()));
+      mOperator.rightOperand().accept(this);
+      return null;
+    }
+
+    @Override
+    public Void visit(ROperator rOperator) {
+      rOperator.leftOperand().accept(this);
+      rOperator.rightOperand().accept(this);
+      return null;
+    }
+
+    @Override
+    public Void visit(UOperator uOperator) {
+      uOperator.leftOperand().accept(this);
+      fixpoints.addAll(selectAllFixpoints(uOperator.rightOperand()));
+      return null;
+    }
+
+    @Override
+    public Void visit(WOperator wOperator) {
+      wOperator.leftOperand().accept(this);
+      wOperator.rightOperand().accept(this);
+      return null;
+    }
+  }
+
+  private static Set<Formula.TemporalOperator> selectAllFixpoints(Formula formula) {
+    return formula.subformulas(Predicates.IS_FIXPOINT, Formula.TemporalOperator.class::cast);
   }
 }

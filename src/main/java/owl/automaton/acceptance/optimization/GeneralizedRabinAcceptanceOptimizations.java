@@ -306,6 +306,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     List<RabinPair> pairs = acceptance.pairs().stream()
       .filter(RabinPair::hasInfSet)
       .collect(Collectors.toUnmodifiableList());
+
     if (pairs.isEmpty()) {
       return;
     }

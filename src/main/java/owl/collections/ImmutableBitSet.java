@@ -220,7 +220,13 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
   public abstract PrimitiveIterator.OfInt intIterator();
 
   @Override
-  public abstract void forEach(Consumer<? super Integer> action);
+  public final void forEach(Consumer<? super Integer> action) {
+    if (action instanceof IntConsumer) {
+      forEach((IntConsumer) action);
+    } else {
+      forEach((IntConsumer) action::accept);
+    }
+  }
 
   public abstract void forEach(IntConsumer action);
 
@@ -418,13 +424,6 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     }
 
     @Override
-    public void forEach(Consumer<? super Integer> action) {
-      if (!isEmpty()) {
-        action.accept(element);
-      }
-    }
-
-    @Override
     public void forEach(IntConsumer action) {
       if (!isEmpty()) {
         action.accept(element);
@@ -573,11 +572,6 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     @Override
     public PrimitiveIterator.OfInt intIterator() {
       return intStream().iterator();
-    }
-
-    @Override
-    public void forEach(Consumer<? super Integer> action) {
-      elements.stream().boxed().forEach(action);
     }
 
     @Override

@@ -42,20 +42,11 @@ import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.run.modules.OwlModule;
 
 /**
  * This class implements [ICALP'19] minimization of GFG automata.
  */
 public final class GfgCoBuchiMinimization {
-
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "gfg-minimisation",
-    "Minimize a deterministic coBüchi automaton. The resulting  ",
-    (commandLine, environment) ->
-      OwlModule.AutomatonTransformer
-        .of(GfgCoBuchiMinimization::minimize, CoBuchiAcceptance.class)
-  );
 
   private GfgCoBuchiMinimization() {}
 

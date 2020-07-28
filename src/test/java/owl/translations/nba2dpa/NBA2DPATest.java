@@ -299,10 +299,10 @@ class NBA2DPATest {
     var nba = OmegaAcceptanceCast.cast(HoaReader
         .read(input, FactorySupplier.defaultSupplier()::getBddSetFactory, null),
       GeneralizedBuchiAcceptance.class);
-    var dpa = new NBA2DPA().apply(nba);
+    var dpa = NBA2DPA.apply(nba);
 
     assertThat(dpa.acceptance(), ParityAcceptance.class::isInstance);
     assertEquals(size, dpa.states().size());
-    HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
   }
 }

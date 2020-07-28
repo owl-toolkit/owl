@@ -22,13 +22,8 @@ package owl.automaton;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
-import java.util.function.Supplier;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 
 public final class MutableAutomatonUtil {
 
@@ -42,38 +37,6 @@ public final class MutableAutomatonUtil {
     }
 
     return HashMapAutomaton.copyOf(automaton);
-  }
-
-  /**
-   * Completes the automaton by adding a sink state obtained from the {@code sinkSupplier} if
-   * necessary. The sink state will be obtained, i.e. {@link Supplier#get()} called exactly once, if
-   * and only if a sink is added. This state will be returned wrapped in an {@link Optional}, if
-   * instead no state was added {@link Optional#empty()} is returned. After adding the sink state,
-   * the {@code rejectingAcceptanceSupplier} is called to construct a rejecting self-loop.
-   *
-   * @param automaton
-   *     The automaton to complete.
-   * @param sinkState
-   *     A sink state.
-   *
-   * @return The added state or {@code empty} if none was added.
-   */
-  public static <S> Optional<S> complete(MutableAutomaton<S, ?> automaton, S sinkState) {
-    if (automaton.initialStates().isEmpty()) {
-      automaton.addInitialState(sinkState);
-    }
-
-    Map<S, BddSet> incompleteStates = AutomatonUtil.getIncompleteStates(automaton);
-
-    if (incompleteStates.isEmpty()) {
-      return Optional.empty();
-    }
-
-    // Add edges to the sink state.
-    Edge<S> sinkEdge = Edge.of(sinkState, automaton.acceptance().rejectingSet().orElseThrow());
-    incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
-    automaton.addEdge(sinkState, automaton.factory().of(true), sinkEdge);
-    return Optional.of(sinkState);
   }
 
   /**
@@ -93,13 +56,6 @@ public final class MutableAutomatonUtil {
           workList.add(x.successor());
         }
       });
-    }
-  }
-
-  public static final class Sink {
-    @Override
-    public String toString() {
-      return "Sink";
     }
   }
 }

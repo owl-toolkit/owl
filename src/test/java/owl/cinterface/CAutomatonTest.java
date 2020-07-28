@@ -79,6 +79,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.visitors.PrintVisitor;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 public class CAutomatonTest {
@@ -261,7 +262,7 @@ public class CAutomatonTest {
           var set = new TreeSet<List<Feature>>(Comparators.lexicographical(
             Feature::compareTo));
           set.addAll(featureMap.values());
-          features.add(new TestCase(formula.toString(), set));
+          features.add(new TestCase(PrintVisitor.toString(formula, false), set));
         } catch (IllegalArgumentException ex) {
           // We failed to extract features from the state type.
         }
@@ -292,7 +293,7 @@ public class CAutomatonTest {
 
   @Test
   void testAcceptingSink() {
-    var translation = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation();
+    var translation = LtlToDpaTranslation.SLM21.translation();
 
     var automaton1 = translation.apply(LtlParser.parse("a | G F b"));
     var cAutomaton1 = CAutomaton.DeterministicAutomatonWrapper.of(automaton1, -1);
@@ -333,10 +334,10 @@ public class CAutomatonTest {
 
   @Test
   public void testScoringZielonkaConstruction() {
-    var translationAcd = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA
+    var translationAcd = LtlToDpaTranslation.SLM21
       .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
 
-    var translationZlk = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA
+    var translationZlk = LtlToDpaTranslation.SLM21
       .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0));
 
     var automatonAcd1 = translationAcd.apply(LtlParser.parse("G F (a & X X a) | F G (b | X X b)"));

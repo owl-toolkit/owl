@@ -19,117 +19,29 @@
 
 package owl.automaton;
 
+import com.google.common.base.Preconditions;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
-import javax.annotation.Nullable;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.OptionGroup;
-import org.apache.commons.cli.Options;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
-import owl.run.Environment;
-import owl.run.modules.OwlModule;
-import owl.run.modules.OwlModule.AutomatonTransformer;
 
 public final class ParityUtil {
-  public static final OwlModule<OwlModule.Transformer> COMPLEMENT_MODULE = OwlModule.of(
-    "complement-parity",
-    "Complements a parity automaton",
-    (commandLine, environment) ->
-      AutomatonTransformer.of((Automaton<Object, ParityAcceptance> automaton) ->
-        ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton),
-          new MutableAutomatonUtil.Sink()),
-        ParityAcceptance.class));
-
-  public static final OwlModule<OwlModule.Transformer> CONVERSION_MODULE = OwlModule.of(
-    "convert-parity",
-    "Converts a parity automaton into the desired type",
-    new Options()
-      .addOptionGroup(new OptionGroup()
-        .addOption(new Option(null, "max", false, null))
-        .addOption(new Option(null, "min", false, null)))
-      .addOptionGroup(new OptionGroup()
-        .addOption(new Option(null, "even", false, null))
-        .addOption(new Option(null, "odd", false, null))),
-    ((CommandLine commandLine, Environment environment) -> {
-      @Nullable
-      Boolean toMax;
-      if (commandLine.hasOption("max")) {
-        toMax = Boolean.TRUE;
-      } else if (commandLine.hasOption("min")) {
-        toMax = Boolean.FALSE;
-      } else {
-        toMax = null;
-      }
-
-      @Nullable
-      Boolean toEven;
-      if (commandLine.hasOption("even")) {
-        toEven = Boolean.TRUE;
-      } else if (commandLine.hasOption("odd")) {
-        toEven = Boolean.FALSE;
-      } else {
-        toEven = null;
-      }
-
-      return AutomatonTransformer.of((Automaton<Object, ParityAcceptance> automaton) -> {
-        var target = automaton.acceptance().parity();
-
-        if (toEven != null) {
-          target = target.setEven(toEven);
-        }
-
-        if (toMax != null) {
-          target = target.setMax(toMax);
-        }
-
-        return ParityUtil.convert(automaton, target, new MutableAutomatonUtil.Sink());
-      }, ParityAcceptance.class);
-    })
-  );
 
   private ParityUtil() {}
 
-  public static <S> MutableAutomaton<S, ParityAcceptance> complement(
-    MutableAutomaton<S, ParityAcceptance> automaton, S sinkState) {
-    // TODO Similarly exists in Views
-    assert automaton.is(Automaton.Property.DETERMINISTIC);
-    ParityAcceptance acceptance = automaton.acceptance();
-
-    // Automaton currently accepts nothing
-    if (acceptance.acceptanceSets() == 0 && !acceptance.emptyIsAccepting()) {
-      var parityAcceptance = new ParityAcceptance(1, Parity.MIN_EVEN);
-      var universalAutomaton = SingletonAutomaton.of(
-        automaton.atomicPropositions(),
-        sinkState,
-        parityAcceptance,
-        parityAcceptance.acceptingSet().orElseThrow());
-      return HashMapAutomaton.copyOf(universalAutomaton);
-    }
-
-    if (acceptance.acceptanceSets() <= 1) {
-      acceptance = acceptance.withAcceptanceSets(2);
-      automaton.acceptance(acceptance);
-    }
-
-    MutableAutomatonUtil.complete(automaton, sinkState);
-    automaton.acceptance(acceptance.complement());
-    return automaton;
-  }
-
-  public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
-    Parity toParity, S sink) {
+  public static <S> Automaton<S, ? extends ParityAcceptance> convert(
+    Automaton<S, ? extends ParityAcceptance> automaton, Parity toParity) {
 
     if (automaton.acceptance().parity() == toParity) {
       return automaton;
     }
 
-    var mutableAutomaton = MutableAutomatonUtil.asMutable(automaton);
+    MutableAutomaton<S, ParityAcceptance> mutableAutomaton
+      = (MutableAutomaton<S, ParityAcceptance>) MutableAutomatonUtil.asMutable(automaton);
+    Preconditions.checkArgument(mutableAutomaton.is(Automaton.Property.COMPLETE));
 
     // Ensure that there are enough colours to have a rejecting state.
     mutableAutomaton.updateAcceptance(x -> x.withAcceptanceSets(Math.max(3, x.acceptanceSets())));
-    MutableAutomatonUtil.complete(mutableAutomaton, sink);
 
     ParityAcceptance fromAcceptance = mutableAutomaton.acceptance();
 

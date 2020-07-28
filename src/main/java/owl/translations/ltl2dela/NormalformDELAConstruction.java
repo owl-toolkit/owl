@@ -31,18 +31,18 @@ import static owl.translations.ltl2dela.NormalformDELAConstruction.Classificatio
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_ACCEPTING_SUSPENDED;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_REJECTING_NOT_SUSPENDED;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_REJECTING_SUSPENDED;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -54,13 +54,11 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
@@ -83,14 +81,8 @@ import owl.ltl.Literal;
 import owl.ltl.Negation;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierTransformer;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.ltl.visitors.PropositionalVisitor;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.BlockingElements;
 import owl.translations.mastertheorem.Normalisation;
 
@@ -103,56 +95,20 @@ import owl.translations.mastertheorem.Normalisation;
  *   fact that suspension collapse a SCC to a single state.
  * - Store round-robin chains for beta generation.
  * - Use non-trivial beta generation (using LTL Axioms.)
- * - Support iff directly!
  */
 public final class NormalformDELAConstruction
   implements Function<LabelledFormula, Automaton<NormalformDELAConstruction.State, ?>> {
 
   private static final Normalisation NORMALISATION
-    = Normalisation.of(false, false, false);
+    = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
 
   private static final Normalisation DUAL_NORMALISATION
-    = Normalisation.of(true, false, false);
-
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "ltl2delaNormalform",
-    "Translate LTL to DELA using the \\Delta2-normalform.",
-    new Options()
-      .addOption(null, "X-lookahead", true,
-      "Only used for testing internal implementation."),
-    (commandLine, environment) -> {
-      OptionalInt lookahead;
-
-      if (commandLine.hasOption("X-lookahead")) {
-        String value = commandLine.getOptionValue("X-lookahead");
-        int intValue = Integer.parseInt(value);
-
-        if (intValue < -1) {
-          throw new IllegalArgumentException();
-        }
-
-        lookahead = intValue == -1 ? OptionalInt.empty() : OptionalInt.of(intValue);
-      } else {
-        lookahead = OptionalInt.empty();
-      }
-
-      var construction = new NormalformDELAConstruction(lookahead);
-      return OwlModule.LabelledFormulaTransformer.of(construction::apply);
-    });
+    = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
 
   private final OptionalInt lookahead;
 
   public NormalformDELAConstruction(OptionalInt lookahead) {
     this.lookahead = lookahead;
-  }
-
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.LTL_INPUT_MODULE,
-      List.of(SimplifierTransformer.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   @Override
@@ -467,41 +423,8 @@ public final class NormalformDELAConstruction
         }
       }
 
-      // TODO: Remove code below. It should be unreachable.
-
-      BitSet notAlphaColours = BitSet2.copyOf(acceptanceCondition.variables());
-      notAlphaColours.andNot(alphaColours);
-
-      Set<PropositionalFormula<Integer>> attempts = new HashSet<>();
-
-      for (BitSet padding : BitSet2.powerSet(notAlphaColours)) {
-        var simplifiedAcceptance = acceptanceCondition.substitute(
-          x -> alphaColours.get(x)
-            ? PropositionalFormula.Variable.of(x)
-            : padding.get(x)
-              ? PropositionalFormula.trueConstant()
-              : PropositionalFormula.falseConstant());
-
-        // We have seen such a formula before, continue.
-        if (!attempts.add(simplifiedAcceptance)) {
-          continue;
-        }
-
-        // Quick, syntactic check
-        if (simplifiedAcceptance.equals(alpha)) {
-          return ImmutableBitSet.copyOf(padding);
-        }
-
-        // Complete, semantic check.
-        var xor = PropositionalFormula.Negation.of(
-          PropositionalFormula.Biconditional.of(alpha, simplifiedAcceptance));
-
-        if (Solver.model(xor).isEmpty()) {
-          return ImmutableBitSet.copyOf(padding);
-        }
-      }
-
-      throw new AssertionError("unreachable");
+      throw new AssertionError("This should not have been reached, since alpha is "
+        + "computed from acceptanceCondition by substituting variables by constants.");
     }
 
     private Map<Integer, BreakpointStateRejecting> successorMap(
@@ -1061,13 +984,13 @@ public final class NormalformDELAConstruction
 
       var normalForm1 =
         PushNextThroughPropositionalVisitor.apply(
-          SimplifierFactory.apply(
-            NORMALISATION.apply(formula), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
+          SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+            NORMALISATION.apply(formula)));
 
       var normalForm2 =
         PushNextThroughPropositionalVisitor.apply(
-          SimplifierFactory.apply(
-            DUAL_NORMALISATION.apply(formula), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
+          SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+            DUAL_NORMALISATION.apply(formula)));
 
       if (normalForm1 instanceof Disjunction) {
         if (normalForm2 instanceof Disjunction

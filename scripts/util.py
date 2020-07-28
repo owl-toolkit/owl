@@ -9,9 +9,6 @@ from os.path import relpath
 
 import owlpy.defaults as owl_defaults
 import owlpy.formula as owl_formula
-import owlpy.run_servers as run_servers
-import owlpy.tool as owl_tool
-
 
 def _test(args, check):
     if len(args) > 2:
@@ -23,18 +20,12 @@ def _test(args, check):
 
     database = owl_defaults.get_test_path()
     test_names = args[0].split(";")
-    test_set_override = None
-
-    if len(args) == 2:
-        test_set_override = args[1]
-
     test_config = owl_defaults.load_json(database)
 
     for test_name in test_names:
         if test_name not in test_config["tests"]:
             raise KeyError("Unknown test case {0!s}".format(test_name))
 
-    defaults_json = test_config["defaults"]
     dataset_json = test_config["dataset"]
 
     print("Running tests for datasets " + ", ".join(test_names))
@@ -44,133 +35,67 @@ def _test(args, check):
     for test_name in test_names:
         test_json = test_config["tests"][test_name]
 
-        if type(test_json) is str:
-            test_json = {"tools": [test_json]}
-
-        for key, value in defaults_json.items():
-            if key not in test_json:
-                test_json[key] = value
-
         if type(test_json["tools"]) is str:
             tools = [test_json["tools"]]
         else:
             tools = test_json["tools"]
+
         test_data_sets = test_json["data"]
-        if type(test_data_sets) is str:
-            if test_data_sets in dataset_json:
-                test_data_sets = dataset_json[test_data_sets]
-            else:
-                test_data_sets = [test_data_sets]
+
+        if test_data_sets in dataset_json:
+           test_data_sets = dataset_json[test_data_sets]
+        else:
+           test_data_sets = [test_data_sets]
 
         if check:
-            reference = test_json["reference"]
-            test_arguments = [str(relpath(owl_defaults.get_script_path("ltlcross-run.sh"))),
-                reference["name"], " ".join(reference["exec"])]
+            test_arguments = [str(relpath(owl_defaults.get_script_path("ltlcross-run.sh"))), "ltl2tgba (Spot)", "ltl2tgba -H -f %f"]
         else:
             test_arguments = [str(relpath(owl_defaults.get_script_path("ltlcross-bench.sh")))]
 
         loaded_tools = []
 
-        def load_tool(tool_name):
-            if type(tool_name) is not str:
-                raise TypeError("Unknown tool type {0!s}".format(type(tool_name)))
-            tool_database = owl_defaults.load_json(owl_defaults.get_tool_path())
-            return owl_tool.get_tool(tool_database, tool_name)
-
-        if type(tools) is dict:
-            for name, tool_description in tools.items():
-                loaded_tools.append((name, load_tool(tool_description)))
-        elif type(tools) is list:
+        if type(tools) is list:
             for tool_description in tools:
-                tool = load_tool(tool_description)
-                loaded_tools.append(tool)
+                loaded_tools.append(tool_description)
         elif type(tools) is str:
-            tool = load_tool(tools)
-            loaded_tools.append(tool)
+            loaded_tools.append(tools)
         else:
             raise TypeError("Unknown tools type {0!s}".format(type(tools)))
 
-        enable_server = not owl_tool.is_native_available()
-        port = 6060
-        servers = {}
-        for test_tool in loaded_tools:
-            if type(test_tool) is tuple:
-                tool_test_name, loaded_tool = test_tool
-            else:
-                loaded_tool = test_tool
-                tool_test_name = loaded_tool.get_name()
-                if loaded_tool.flags and len(loaded_tools) > 1:
-                    tool_test_name = tool_test_name + "#" + ",".join(loaded_tool.flags.keys())
-
+        for loaded_tool in loaded_tools:
             test_arguments.append("-t")
-            test_arguments.append(tool_test_name)
-            if type(loaded_tool) is owl_tool.OwlTool:
-                if enable_server:
-                    servers[port] = loaded_tool.get_server_execution(port)
-                    test_arguments.append(f"{owl_tool.get_client_executable()} "
-                                          f"localhost {port} %f")
-                    port += 1
-                else:
-                    test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
-            elif type(loaded_tool) is owl_tool.SpotTool:
-                test_arguments.append(" ".join(loaded_tool.get_input_execution("%f")))
+            test_arguments.append(loaded_tool.replace("<input>", "").replace("  ", " "))
+            if loaded_tool.startswith("ltl2tgba"):
+                test_arguments.append(loaded_tool.replace("<input>", "-f %f"))
             else:
-                raise TypeError("Unknown tool type {0!s}".format(type(loaded_tool)))
+                test_arguments.append("./owl " + loaded_tool.replace("<input>", "-f %f"))
 
         formulas_json = owl_defaults.load_json(owl_defaults.get_formula_path())
         formula_sets = owl_formula.read_formula_sets(formulas_json)
 
-        test_formula_sets = []
+        for data_set in test_data_sets:
+            if type(data_set) is dict:
+                if "name" not in data_set:
+                    raise KeyError("No dataset name provided")
+                formula_set_name = data_set["name"]
+                if data_set.get("determinize", False):
+                    test_arguments.append("-d")
+            elif type(data_set) is str:
+                formula_set_name = data_set
+            else:
+                raise TypeError("Unknown specification format")
 
-        if test_set_override is None:
-            for data_set in test_data_sets:
-                if type(data_set) is dict:
-                    if "name" not in data_set:
-                        raise KeyError("No dataset name provided")
-                    formula_set_name = data_set["name"]
-                    formula_set_det = data_set.get("determinize", False)
-                elif type(data_set) is str:
-                    formula_set_name = data_set
-                    formula_set_det = False
-                else:
-                    raise TypeError("Unknown specification format")
-
-                test_formula_sets.append((formula_set_name, formula_set_det))
-        else:
-            test_formula_sets.append((test_set_override, False))
-
-        for (formula_set_name, formula_set_det) in test_formula_sets:
             if formula_set_name not in formula_sets:
                 raise KeyError("Unknown formula set {0!s}".format(formula_set_name))
-
-            if formula_set_det:
-                test_arguments.append("-d")
             test_arguments.append(formula_set_name)
 
         sub_env = os.environ.copy()
-        if check:
-            sub_env["JAVA_OPTS"] = "-enableassertions -Xss64M"
-        else:
-            sub_env["JAVA_OPTS"] = "-Xss64M"
-
-        if servers:
-
-            print("Servers:")
-            for server in servers.values():
-                print(" ".join(server))
-            print()
-            print()
-            sys.stdout.flush()
-
-        server_processes = run_servers.run(servers, sub_env)
         process = subprocess.run(test_arguments, env=sub_env)
-        run_servers.stop(server_processes)
 
         if process.returncode:
             sys.exit(process.returncode)
 
     sys.exit(0)
-
 
 def _formula(args):
     if len(args) > 1 and path.exists(args[0]):

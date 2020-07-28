@@ -52,16 +52,6 @@ public final class PrintVisitor implements Visitor<String> {
     this.parenthesize = parenthesize;
   }
 
-  public static String toString(Formula formula, @Nullable List<String> atomicPropositions) {
-    return toString(formula, atomicPropositions, false);
-  }
-
-  public static String toString(Formula formula, @Nullable List<String> atomicPropositions,
-    boolean parenthesize) {
-    PrintVisitor visitor = new PrintVisitor(parenthesize, atomicPropositions);
-    return formula.accept(visitor);
-  }
-
   public static String toString(LabelledFormula formula, boolean parenthesize) {
     PrintVisitor visitor = new PrintVisitor(parenthesize, formula.atomicPropositions());
     return formula.formula().accept(visitor);

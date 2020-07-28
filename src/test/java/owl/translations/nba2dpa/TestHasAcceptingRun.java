@@ -26,7 +26,6 @@ import jhoafparser.consumer.HOAConsumerNull;
 import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
-import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -108,14 +107,15 @@ class TestHasAcceptingRun {
       HoaReader.read(
         new StringReader(input), FactorySupplier.defaultSupplier()::getBddSetFactory, null),
       GeneralizedBuchiAcceptance.class);
-    var dpa = new NBA2DPA().apply(nba);
 
-    HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+    var dpa = NBA2DPA.apply(nba);
+
+    HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
     assertEquals(LanguageEmptiness.isEmpty(dpa), !hasAcceptingRun);
 
     var complement = BooleanOperations.deterministicComplement(
-      (Automaton) dpa, EmersonLeiAcceptance.class);
-    HoaWriter.write(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+      dpa, EmersonLeiAcceptance.class);
+    HoaWriter.write(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
     assertEquals(LanguageEmptiness.isEmpty(complement), !complementHasAcceptingRun);
   }
 }

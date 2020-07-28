@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.fail;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.CONTROLLER;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.ENVIRONMENT;
-import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.UNPUBLISHED_ZIELONKA;
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.SLM21;
 import static owl.translations.LtlTranslationRepository.Option.SIMPLIFY_FORMULA;
 import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
 
@@ -82,7 +82,7 @@ public class SymbolicDPASolverTest {
             LabelledFormula formula = LtlParser.parse(testCase.formula);
             var dpa = SymbolicAutomaton.of(
               (Automaton<?, ParityAcceptance>) OmegaAcceptanceCast.cast(
-                Views.complete(UNPUBLISHED_ZIELONKA.translation(
+                Views.complete(SLM21.translation(
                   EnumSet.of(SIMPLIFY_FORMULA, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
                   .apply(formula)), ParityAcceptance.class));
             ImmutableBitSet controllable = controllable(formula.atomicPropositions(),

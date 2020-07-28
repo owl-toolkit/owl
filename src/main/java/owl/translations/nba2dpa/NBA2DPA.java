@@ -21,7 +21,6 @@ package owl.translations.nba2dpa;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -30,7 +29,6 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import owl.automaton.AbstractMemoizingAutomaton.EdgesImplementation;
 import owl.automaton.Automaton;
@@ -38,39 +36,20 @@ import owl.automaton.AutomatonUtil;
 import owl.automaton.BooleanOperations;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.edge.Edge;
 import owl.collections.Pair;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.nba2ldba.NBA2LDBA;
 
-public final class NBA2DPA
-  implements Function<Automaton<?, ?>, Automaton<?, ParityAcceptance>> {
+public final class NBA2DPA {
 
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "nba2dpa",
-    "Converts a non-deterministic generalized Büchi automaton "
-      + "into a deterministic parity automaton",
-    (commandLine, environment) ->
-      OwlModule.AutomatonTransformer.of(automaton -> new NBA2DPA().apply(automaton)));
+  private NBA2DPA() {}
 
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.HOA_INPUT_MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE));
-  }
+  public static Automaton<?, ParityAcceptance> apply(
+    Automaton<?, ? extends GeneralizedBuchiAcceptance> nba) {
 
-  @Override
-  public Automaton<?, ParityAcceptance> apply(Automaton<?, ?> nba) {
     var ldba = NBA2LDBA.applyLDBA(nba);
     var initialComponent = Set.copyOf(ldba.initialComponent());
     var acceptance = new ParityAcceptance(

@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
@@ -51,21 +50,9 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 import owl.collections.Either;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 
 public final class NBA2LDBA
   implements Function<Automaton<?, ?>, Automaton<?, ? extends BuchiAcceptance>> {
-
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "nba2ldba",
-    "Converts a non-deterministic Büchi automaton into a limit-deterministic Büchi "
-      + "automaton",
-    (commandLine, environment) -> OwlModule.AutomatonTransformer
-      .of(automaton -> new NBA2LDBA().apply(automaton)));
 
   @Override
   public Automaton<?, ? extends BuchiAcceptance> apply(Automaton<?, ?> automaton) {
@@ -76,6 +63,7 @@ public final class NBA2LDBA
     applyLDBA(Automaton<?, ?> automaton) {
     Automaton<?, ? extends GeneralizedBuchiAcceptance> ngba;
 
+    // TODO: check for size of generalisedBüchi.
     if (automaton.acceptance() instanceof AllAcceptance) {
       // Use subset construction to get a deterministic automaton and use double cast to take the
       // LDBA-shortcut.
@@ -101,15 +89,6 @@ public final class NBA2LDBA
     AcceptanceOptimizations.removeDeadStates(ldba);
     return LimitDeterministicGeneralizedBuchiAutomaton.of(ldba,
       ldba.states().stream().filter(x -> x.type() == Either.Type.LEFT).collect(toSet()));
-  }
-
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.HOA_INPUT_MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   static final class BreakpointAutomaton<S>

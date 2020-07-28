@@ -50,15 +50,8 @@ import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
-import owl.run.modules.OwlModule;
-import owl.run.modules.OwlModule.AutomatonTransformer;
 
-@SuppressWarnings("PMD.CouplingBetweenObjects")
 public final class Views {
-  public static final OwlModule<OwlModule.Transformer> COMPLETE_MODULE = OwlModule.of(
-    "complete",
-    "Make the transition relation of an automaton complete by adding a sink-state.",
-    (commandLine, environment) -> AutomatonTransformer.of(Views::complete));
 
   private Views() {}
 

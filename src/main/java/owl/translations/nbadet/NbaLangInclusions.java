@@ -20,6 +20,7 @@
 package owl.translations.nbadet;
 
 import com.google.common.collect.Sets;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
@@ -31,7 +32,6 @@ import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.algorithm.simulations.ColorRefinement;
 import owl.bdd.BddSet;
 import owl.collections.Pair;
-import owl.run.RunUtil;
 
 /**
  * This class glues available algorithms that can underapprox. or compute NBA language inclusions
@@ -40,7 +40,6 @@ import owl.run.RunUtil;
 public final class NbaLangInclusions {
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());
 
-  /** Make PMD silent. */
   private NbaLangInclusions() {}
 
   /** Register new simulation algorithms here. */
@@ -76,7 +75,7 @@ public final class NbaLangInclusions {
   }
 
   /** Register new simulation algorithms for argument parsing here. */
-  public static Map<String,SimType> getAlgoArgs() {
+  public static Map<String, SimType> getAlgoArgs() {
     return Map.of(
       "null", NbaLangInclusions.SimType.NULL_SIM,
       "direct", NbaLangInclusions.SimType.DIRECT_SIM,
@@ -89,17 +88,17 @@ public final class NbaLangInclusions {
 
   /** Calls all selected algorithms and takes the usion of their results. */
   public static <S> Set<Pair<S,S>> computeLangInclusions(
-      Automaton<S,BuchiAcceptance> aut, Set<Pair<SimType,String>> algset) {
+      Automaton<S, ? extends BuchiAcceptance> aut, List<SimType> algset) {
     final var algos = getAlgos();
     return algset.stream().map(sim -> {
-      logger.log(Level.FINE, "running simulation algorithm for " + sim.fst());
-      if (!algos.containsKey(sim.fst())) {
-        RunUtil.failWithMessage("ERROR: simulation not implemented yet: " + sim.fst());
+      logger.log(Level.FINE, "running simulation algorithm for " + sim);
+      if (!algos.containsKey(sim)) {
+        throw new IllegalArgumentException("ERROR: simulation not implemented yet: " + sim);
       }
 
       @SuppressWarnings("unchecked")
-      NbaSimAlgorithm<S,?> alg = (NbaSimAlgorithm<S, ?>) algos.get(sim.fst());
-      return alg.run(aut, sim.snd());
+      NbaSimAlgorithm<S,?> alg = (NbaSimAlgorithm<S, ?>) algos.get(sim);
+      return alg.run(aut, "");
     }).reduce(Set.of(), Sets::union);
   }
 
@@ -127,7 +126,7 @@ public final class NbaLangInclusions {
 
   static class NbaSimWithPebbles<S> implements NbaSimAlgorithm<S,Integer> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.log(Level.FINE, "running sim with arg: " + parsedArg.toString());
       return Set.of();
     }
@@ -151,7 +150,7 @@ public final class NbaLangInclusions {
 
   static class NbaSimDirectRefinement<S> extends  NbaSimWithPebbles<S> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.fine("running direct simulation based on color refinement.");
       return ColorRefinement.of(aut);
     }
@@ -159,7 +158,7 @@ public final class NbaLangInclusions {
 
   static class NbaSimDirect<S> extends NbaSimWithPebbles<S> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.fine("running direct simulation with " + parsedArg.toString() + " pebbles.");
       return new BuchiSimulation().directSimulation(aut, aut, parsedArg);
     }
@@ -167,7 +166,7 @@ public final class NbaLangInclusions {
 
   static class NbaSimDelayed<S> extends NbaSimWithPebbles<S> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.fine("running delayed simulation with " + parsedArg.toString() + " pebbles.");
       return new BuchiSimulation().delayedSimulation(aut, aut, parsedArg);
     }
@@ -175,7 +174,7 @@ public final class NbaLangInclusions {
 
   static class NbaSimFair<S> extends NbaSimWithPebbles<S> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.fine("running fair simulation with " + parsedArg.toString() + " pebbles.");
       return new BuchiSimulation().fairSimulation(aut, aut, parsedArg);
     }
@@ -183,7 +182,7 @@ public final class NbaLangInclusions {
 
   static class NbaSimLookaheadDirect<S> extends NbaSimWithPebbles<S> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.fine("running direct sim with lookahead " + parsedArg.toString());
       return new BuchiSimulation().directLookaheadSimulation(aut, aut, parsedArg);
     }
@@ -192,7 +191,7 @@ public final class NbaLangInclusions {
   //for debugging/testing purposes
   static class NbaSimNull<S> extends NbaSimWithPebbles<S> {
     @Override
-    public Set<Pair<S, S>> compute(Automaton<S, BuchiAcceptance> aut, Integer parsedArg) {
+    public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
       logger.fine("running null simulation with int argument " + parsedArg.toString());
       return Set.of();
     }

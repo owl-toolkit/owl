@@ -83,7 +83,7 @@ class TranslationReport {
     names = {"DWYER", "PARAMETRISED"})
   void generateLics20Comparison(FormulaSet set) throws IOException {
     Function<LabelledFormula, Automaton<?, ?>> draSymmetric = (LabelledFormula formula) ->
-      AcceptanceOptimizations.optimize(
+      AcceptanceOptimizations.transform(
         SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula));
 
     var normalform =
@@ -182,11 +182,11 @@ class TranslationReport {
     names = {"DWYER", "PARAMETRISED"})
   void generateJacmComparison(FormulaSet set) throws IOException {
     Function<LabelledFormula, Automaton<?, ?>> dgraAsymmetric = (LabelledFormula formula) ->
-      AcceptanceOptimizations.optimize(
+      AcceptanceOptimizations.transform(
         RabinizerBuilder.build(formula, RabinizerConfiguration.of(true, true, true)));
 
     Function<LabelledFormula, Automaton<?, ?>> dgraSymmetric = (LabelledFormula formula) ->
-      AcceptanceOptimizations.optimize(
+      AcceptanceOptimizations.transform(
         SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)
           .apply(formula));
 
@@ -241,12 +241,12 @@ class TranslationReport {
     );
 
     var dgraAsymmetric = new Translator("DGRA (asymmetric)", (formula) ->
-      AcceptanceOptimizations.optimize(
+      AcceptanceOptimizations.transform(
         RabinizerBuilder.build(formula,
           RabinizerConfiguration.of(true, true, true))));
 
     var dgraSymmetric = new Translator("DGRA (this paper)", formula ->
-      AcceptanceOptimizations.optimize(
+      AcceptanceOptimizations.transform(
         SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)
           .apply(formula)));
 
@@ -320,11 +320,11 @@ class TranslationReport {
     var dpa_iar_asymmetric = new Translator("\\Done", formula -> {
       var dgra = RabinizerBuilder.build(formula, configuration);
       var optimisedDgra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
+        AcceptanceOptimizations.transform(dgra), GeneralizedRabinAcceptance.class);
 
       var dra = RabinDegeneralization.degeneralize(optimisedDgra);
       var optimisedDra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+        AcceptanceOptimizations.transform(dra), RabinAcceptance.class);
 
       return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
     });
@@ -332,7 +332,7 @@ class TranslationReport {
     var dpa_iar_symmetric = new Translator("\\Dtwo", formula -> {
       var dra = SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula);
       var optimisedDra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+        AcceptanceOptimizations.transform(dra), RabinAcceptance.class);
       return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
     });
 
@@ -441,11 +441,11 @@ class TranslationReport {
     var dpa_iar_asymmetric = new Translator("\\Done", formula -> {
       var dgra = RabinizerBuilder.build(formula, configuration);
       var optimisedDgra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
+        AcceptanceOptimizations.transform(dgra), GeneralizedRabinAcceptance.class);
 
       var dra = RabinDegeneralization.degeneralize(optimisedDgra);
       var optimisedDra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+        AcceptanceOptimizations.transform(dra), RabinAcceptance.class);
 
       return optimisedDra;
     });
@@ -453,7 +453,7 @@ class TranslationReport {
     var dpa_iar_symmetric = new Translator("\\Dtwo", formula -> {
       var dra = SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula);
       var optimisedDra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
+        AcceptanceOptimizations.transform(dra), RabinAcceptance.class);
       return optimisedDra;
     });
 

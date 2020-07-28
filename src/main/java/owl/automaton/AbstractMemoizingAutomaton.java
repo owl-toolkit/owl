@@ -252,7 +252,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     states();
 
     if (property == Property.COMPLETE) {
-      return memoizedEdgeTrees.values().stream().allMatch(
+      return !initialStates.isEmpty() && memoizedEdgeTrees.values().stream().allMatch(
         x -> x.values().stream().allMatch(y -> y.size() >= 1));
     }
 

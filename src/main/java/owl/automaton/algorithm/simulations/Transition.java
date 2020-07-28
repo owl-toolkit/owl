@@ -49,7 +49,7 @@ public abstract class Transition<S> {
 
   static <S> Set<List<Transition<S>>> universe(
     S state,
-    Automaton<S, BuchiAcceptance> aut,
+    Automaton<S, ? extends BuchiAcceptance> aut,
     int k) {
 
     var out2 = new HashSet<Transition<S>>();
@@ -103,7 +103,7 @@ public abstract class Transition<S> {
 
   static <S> Set<List<Transition<S>>> directMatching(
     S state,
-    Automaton<S, BuchiAcceptance> aut,
+    Automaton<S, ? extends BuchiAcceptance> aut,
     List<Transition<S>> moves
   ) {
     var possible = Transition.universe(state, aut, moves.size());

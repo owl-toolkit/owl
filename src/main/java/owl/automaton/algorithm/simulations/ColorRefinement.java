@@ -52,8 +52,8 @@ public class ColorRefinement<S> {
   Coloring<S> oldCol;
   final Map<S, Pair<Integer, Neighborhood>> intermediate;
 
-  private ColorRefinement(Automaton<S, BuchiAcceptance> automaton) {
-    aut = automaton;
+  private ColorRefinement(Automaton<S, ? extends BuchiAcceptance> automaton) {
+    aut = (Automaton<S, BuchiAcceptance>) automaton;
     factory = aut.factory();
     intermediate = new HashMap<>();
     oldPo = new Ordering();
@@ -219,7 +219,7 @@ public class ColorRefinement<S> {
    * @param <S> The type of state in the automaton.
    * @return A set of direct-similar pairs of states.
    */
-  public static <S> Set<Pair<S, S>> of(Automaton<S, BuchiAcceptance> automaton) {
+  public static <S> Set<Pair<S, S>> of(Automaton<S, ? extends BuchiAcceptance> automaton) {
     return new ColorRefinement<>(automaton).refine();
   }
 

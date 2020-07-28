@@ -20,7 +20,7 @@
 package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertTimeout;
-import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.UNPUBLISHED_ZIELONKA;
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.SLM21;
 
 import java.time.Duration;
 import java.util.EnumSet;
@@ -52,7 +52,7 @@ class DeterministicAutomatonWrapperTest {
 
   @Test
   void testEdges() {
-    var translation = UNPUBLISHED_ZIELONKA.translation(
+    var translation = SLM21.translation(
       ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
 
     var formula0 = LtlParser.parse("true", List.of());
@@ -107,7 +107,7 @@ class DeterministicAutomatonWrapperTest {
   @Tag("performance")
   @Test
   void testEdgesPerformance() {
-    var translation = UNPUBLISHED_ZIELONKA.translation(
+    var translation = SLM21.translation(
       ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
 
     assertTimeout(Duration.ofMillis(100), () -> {

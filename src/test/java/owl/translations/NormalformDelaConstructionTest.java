@@ -34,7 +34,7 @@ import owl.translations.ltl2dela.NormalformDELAConstruction;
 public class NormalformDelaConstructionTest {
 
   private static final Function<LabelledFormula, Automaton<?, ?>> TRANSLATION
-    = LtlTranslationRepository.LtlToDelaTranslation.UNPUBLISHED_SE20.translation(
+    = LtlTranslationRepository.LtlToDelaTranslation.SLM21.translation(
       EnumSet.noneOf(LtlTranslationRepository.Option.class));
 
   @Test

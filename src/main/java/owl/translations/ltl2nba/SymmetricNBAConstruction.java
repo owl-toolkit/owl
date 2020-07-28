@@ -241,11 +241,6 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     }
 
     @Override
-    public String name() {
-      return name;
-    }
-
-    @Override
     protected MtBdd<Edge<Formula>> edgeTreeImplA(Formula state) {
       return trackingAutomaton.edgeTree(state).map(x -> buildEdgeA(Edges.successors(x)));
     }

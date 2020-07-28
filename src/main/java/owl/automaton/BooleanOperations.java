@@ -126,19 +126,8 @@ public final class BooleanOperations {
   public static <S, A extends EmersonLeiAcceptance> Automaton<Optional<S>, ? extends A>
     deterministicComplement(Automaton<S, ?> automaton, Class<? extends A> expectedAcceptance) {
 
-    Automaton<Optional<S>, ?> completeAutomaton;
-
-    if (automaton.initialStates().isEmpty()) {
-      completeAutomaton = SingletonAutomaton.of(
-        automaton.atomicPropositions(),
-        Optional.empty(),
-        automaton.acceptance(),
-        automaton.acceptance().rejectingSet().orElseThrow());
-    } else {
-      completeAutomaton = Views.complete(automaton);
-    }
-
-    return deterministicComplementOfCompleteAutomaton(completeAutomaton, expectedAcceptance);
+    return deterministicComplementOfCompleteAutomaton(
+      Views.complete(automaton), expectedAcceptance);
   }
 
   public static <S1, S2> Automaton<Pair<S1, S2>, ?>

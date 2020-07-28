@@ -52,7 +52,7 @@ import owl.ltl.SyntacticFragment;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.LtlfParser;
 import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
-import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.ltl.visitors.Converter;
 
 @CContext(CInterface.CDirectives.class)
@@ -179,9 +179,9 @@ public final class CLabelledFormula {
       oldFormula = newFormula;
       var polaritySimplifier = new PolaritySimplifier(
         oldFormula, atomicPropositionStatuses, firstOutputAtomicProposition);
-      newFormula = SimplifierFactory.apply(
-        oldFormula.accept(polaritySimplifier),
-        SimplifierFactory.Mode.SYNTACTIC_FIXPOINT);
+      newFormula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+        oldFormula.accept(polaritySimplifier)
+      );
       iterations++;
     } while (iterations < MAX_ITERATIONS && !oldFormula.equals(newFormula));
 

@@ -21,70 +21,22 @@ package owl.automaton.acceptance.degeneralization;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import java.io.IOException;
-import java.util.List;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 
 /**
  * This class provides a conversion from generalised Büchi automata into Büchi automata. The
  * conversion preserves determinism.
- *
- * <p>This class is also an example on how to do the following:</p>
- * <ul>
- *   <li>How to implement an OwlModule and derive a standalone tool.</li>
- *   <li>How to generate an automaton on-the-fly using the symbolic and explicit API.</li>
- * </ul>
  */
 public final class BuchiDegeneralization {
 
-  /**
-   * Instantiation of the module. We give the name, a short description, and a function to be
-   * called for construction of an instance of the module. {@link OwlModule.AutomatonTransformer}
-   * checks the input passed to the instance of the module and does the necessary transformation
-   * to obtain a generalized B&uuml;chi automaton if possible. If this is not possible an
-   * exception is thrown.
-   *
-   * <p> This object has to be imported by the {@link owl.run.modules.OwlModuleRegistry} in order to
-   * be available on the Owl CLI interface. </p>
-   */
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "buchi-degeneralization",
-    "Converts generalized Büchi automata into Büchi automata.",
-    (commandLine, environment) ->
-      OwlModule.AutomatonTransformer
-        .of(BuchiDegeneralization::degeneralize, GeneralizedBuchiAcceptance.class)
-  );
-
   private BuchiDegeneralization() {}
-
-  /**
-   * Entry-point for standalone CLI tool. This class has be registered in build.gradle
-   * in the "Startup Scripts" section in order to get the necessary scripts for CLI invocation.
-   *
-   * @param args the arguments
-   * @throws IOException the exception
-   */
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.HOA_INPUT_MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE));
-  }
 
   /**
    * Degeneralization procedure. This function returns an on-the-fly generated automaton and assumes
@@ -95,7 +47,7 @@ public final class BuchiDegeneralization {
    * @return an on-the-fly generated Büchi automaton
    */
   public static <S> Automaton<IndexedState<S>, BuchiAcceptance> degeneralize(
-    Automaton<S, GeneralizedBuchiAcceptance> automaton) {
+    Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton) {
 
     // Compute the set of initial states.
     var initialStates = Collections3.transformSet(automaton.initialStates(), IndexedState::of);
@@ -106,7 +58,7 @@ public final class BuchiDegeneralization {
       initialStates,
       BuchiAcceptance.INSTANCE) {
 
-      private final Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton = automaton;
+      private final Automaton<S, ? extends GeneralizedBuchiAcceptance> backingAutomaton = automaton;
       private final int sets = backingAutomaton.acceptance().acceptanceSets();
 
       // All possible edges are encoded in a binary decision diagram with multiple terminals.

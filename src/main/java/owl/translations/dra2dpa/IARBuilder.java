@@ -29,7 +29,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -41,8 +40,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
@@ -55,31 +52,14 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.IntPreOrder;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 
 public final class IARBuilder<R> {
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "dra2dpa",
-    "Converts a Rabin automaton into a parity automaton",
-    new Options()
-      .addOption(new Option(null, "odd", false, "Odd priority (default: even)"))
-      .addOption(new Option(null, "min", false, "Min priority (default: max)")),
-    (commandLine, environment) -> {
-      Parity parity = Parity.of(!commandLine.hasOption("min"), !commandLine.hasOption("odd"));
-      return OwlModule.AutomatonTransformer.of(automaton ->
-        new IARBuilder<>(automaton, parity).build(), RabinAcceptance.class);
-    });
 
   private final Automaton<R, ? extends RabinAcceptance> rabinAutomaton;
   private final Parity parity;
@@ -87,15 +67,6 @@ public final class IARBuilder<R> {
   public IARBuilder(Automaton<R, ? extends RabinAcceptance> rabinAutomaton, Parity parity) {
     this.rabinAutomaton = rabinAutomaton;
     this.parity = parity;
-  }
-
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.HOA_INPUT_MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE));
   }
 
   public Automaton<IARState<R>, ParityAcceptance> build() {
