@@ -36,6 +36,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
+import owl.Bibliography;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomatonUtil;
@@ -57,10 +58,9 @@ import owl.run.parser.PartialModuleConfiguration;
 import owl.util.BitSetUtil;
 
 /**
- * This class provides a conversion from non-deterministic Büchi automata
- * into deterministic parity automata. It is based on the following two papers:
- * https://doi.org/10.4230/LIPIcs.ICALP.2019.120
- * https://doi.org/10.1007/978-3-030-31784-3_18
+ * This class provides the entry-point for the translation from non-deterministic Büchi automata to
+ * deterministic parity automata described in {@link Bibliography#ICALP_19} with
+ * optimisations from {@link Bibliography#ATVA_19}.
  */
 public final class NbaDet {
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());

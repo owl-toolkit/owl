@@ -115,6 +115,6 @@ public final class CDoubleArrayList {
   }
 
   private static UnsignedWord toBytesLength(long length) {
-    return WordFactory.unsigned(8L * length);
+    return WordFactory.unsigned(((long) Long.BYTES) * length);
   }
 }

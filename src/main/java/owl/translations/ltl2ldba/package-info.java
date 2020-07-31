@@ -17,6 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Contains translations from linear temporal logic to limit-deterministic Büchi automata.
+ *
+ * <p>Classes containing 'Symmetric' in their name implement the translation described in
+ * {@value owl.Bibliography#DISSERTATION_19_CITEKEY} ({@link owl.Bibliography#DISSERTATION_19}).
+ * The construction has been sketched before in the preceding conference publication
+ * {@value owl.Bibliography#LICS_18_CITEKEY} ({@link owl.Bibliography#LICS_18}).</p>
+ *
+ * <p>Classes containing 'Asymmetric' in their name implement the translation described in
+ * {@value owl.Bibliography#CAV_16_CITEKEY} ({@link owl.Bibliography#CAV_16}).</p>
+ */
 @EverythingIsNonnullByDefault
 package owl.translations.ltl2ldba;
 

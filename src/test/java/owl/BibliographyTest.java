@@ -17,12 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Contains the translation from non-deterministic Büchi automata to deterministic parity automata
- * described in {@value owl.Bibliography#ICALP_19_CITEKEY} ({@link owl.Bibliography#ICALP_19}) with
- * optimisations from {@value owl.Bibliography#ATVA_19_CITEKEY} ({@link owl.Bibliography#ATVA_19}).
- */
-@EverythingIsNonnullByDefault
-package owl.translations.nbadet;
+package owl;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+class BibliographyTest {
+
+  @Test
+  public void testIndex() {
+    assertEquals(12, Bibliography.INDEX.size());
+  }
+}
