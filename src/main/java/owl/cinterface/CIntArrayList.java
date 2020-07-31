@@ -129,6 +129,6 @@ public final class CIntArrayList {
   }
 
   private static UnsignedWord toBytesLength(long length) {
-    return WordFactory.unsigned(4L * length);
+    return WordFactory.unsigned(((long) Integer.BYTES) * length);
   }
 }

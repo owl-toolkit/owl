@@ -17,6 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+/**
+ * Contains the translation from linear temporal logic to deterministic Rabin automata described in
+ * {@value owl.Bibliography#DISSERTATION_19_CITEKEY} ({@link owl.Bibliography#DISSERTATION_19}).
+ *
+ * <p>The construction has been sketched before in the preceding conference publication
+ * {@value owl.Bibliography#LICS_18_CITEKEY} ({@link owl.Bibliography#LICS_18}).</p>
+ */
 @EverythingIsNonnullByDefault
 package owl.translations.ltl2dra;
 
