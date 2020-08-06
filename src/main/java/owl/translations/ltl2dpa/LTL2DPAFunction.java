@@ -26,12 +26,10 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_CO
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -47,6 +45,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
 import owl.translations.mastertheorem.Selector;
+import owl.util.ParallelEvaluation;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
 
@@ -76,9 +75,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-
-    Supplier<Optional<Result<?>>> automatonSupplier;
-    Supplier<Optional<Result<?>>> complementSupplier;
+    Supplier<Optional<Automaton<?, ParityAcceptance>>> automatonSupplier;
+    Supplier<Optional<Automaton<?, ParityAcceptance>>> complementSupplier;
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
       int fixpoints = configuration.contains(SYMMETRIC)
@@ -95,59 +93,31 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
       if (fixpoints <= negationFixpoints) {
         automatonSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(symmetricConstruction(formula))
-          : () -> Optional.of(asymmetricConstruction(formula));
+          ? () -> Optional.of(symmetricConstruction(formula).automaton)
+          : () -> Optional.of(asymmetricConstruction(formula).automaton);
         complementSupplier = Optional::empty;
       } else {
         automatonSupplier = Optional::empty;
         complementSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(symmetricConstruction(formula.not()))
-          : () -> Optional.of(asymmetricConstruction(formula.not()));
+          ? () -> Optional.of(symmetricConstruction(formula.not()).complement())
+          : () -> Optional.of(asymmetricConstruction(formula.not()).complement());
       }
     } else {
       automatonSupplier = configuration.contains(SYMMETRIC)
-        ? () -> Optional.of(symmetricConstruction(formula))
-        : () -> Optional.of(asymmetricConstruction(formula));
+        ? () -> Optional.of(symmetricConstruction(formula).automaton)
+        : () -> Optional.of(asymmetricConstruction(formula).automaton);
 
       if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
         complementSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(symmetricConstruction(formula.not()))
-          : () -> Optional.of(asymmetricConstruction(formula.not()));
+          ? () -> Optional.of(symmetricConstruction(formula.not()).complement())
+          : () -> Optional.of(asymmetricConstruction(formula.not()).complement());
       } else {
         complementSupplier = Optional::empty;
       }
     }
 
-    // Setup Thread for complement construction.
-    var complementReference = new AtomicReference<Automaton<?, ParityAcceptance>>();
-    var complementThread = new Thread(
-    () -> complementSupplier.get().map(Result::complement).ifPresent(complementReference::set));
-    complementThread.setDaemon(true);
-    complementThread.start();
-
-    var automaton = automatonSupplier.get().map(x -> x.automaton).orElse(null);
-    Uninterruptibles.joinUninterruptibly(complementThread);
-    var complement = complementReference.get();
-
-    if (complement == null) {
-      return Objects.requireNonNull(automaton);
-    }
-
-    if (automaton == null) {
-      return Objects.requireNonNull(complement);
-    }
-
-    // Select smaller automaton.
-    if (automaton.size() < complement.size()) {
-      return automaton;
-    }
-
-    if (automaton.size() > complement.size()) {
-      return complement;
-    }
-
-    return automaton.acceptance().acceptanceSets()
-      <= complement.acceptance().acceptanceSets() ? automaton : complement;
+    return ParallelEvaluation.takeSmallestWildcardStateType(
+      ParallelEvaluation.evaluate(List.of(automatonSupplier, complementSupplier)));
   }
 
   private Result<AsymmetricRankingState> asymmetricConstruction(LabelledFormula formula) {
