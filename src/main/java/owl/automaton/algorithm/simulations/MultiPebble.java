@@ -156,14 +156,14 @@ public abstract class MultiPebble<S> {
   public Set<MultiPebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BitSet val) {
     // first we collect the set of possible successors for each of the contained pebbles
     Set<Pebble<S>> successors = pebbles()
-      .parallelStream()
+      .stream()
       .map(p -> p.successors(aut, val))
       .flatMap(Collection::stream)
       .collect(Collectors.toSet());
 
     // then a helper function is used to compute all possible k-combinations
     return kMultiplex(successors, size())
-      .parallelStream()
+      .stream()
       .map(peb -> MultiPebble.of(peb, size()))
       .collect(Collectors.toSet());
   }

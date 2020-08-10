@@ -20,7 +20,6 @@
 package owl.automaton.algorithm.simulations;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -110,22 +109,6 @@ public class ForwardDirectLookaheadSimulation<S>
   }
 
   @Override
-  public Set<SimulationStates.LookaheadSimulationState<S>> states() {
-    Set<LookaheadSimulationState<S>> out = new HashSet<>();
-
-    leftAutomaton.states().forEach(left -> {
-      rightAutomaton.states().forEach(right -> {
-        out.add(LookaheadSimulationState.of(left, right));
-        Transition.universe(left, leftAutomaton, maxLookahead).forEach(moves -> {
-          out.add(LookaheadSimulationState.of(left, right, moves));
-        });
-      });
-    });
-
-    return out;
-  }
-
-  @Override
   public ParityAcceptance acceptance() {
     return new ParityAcceptance(2, ParityAcceptance.Parity.MAX_EVEN);
   }
@@ -140,15 +123,4 @@ public class ForwardDirectLookaheadSimulation<S>
     return factory;
   }
 
-  public static <S> ForwardDirectLookaheadSimulation<S> of(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
-    S left,
-    S right,
-    int maxLookahead,
-    Set<Pair<S, S>> known
-  ) {
-    return new ForwardDirectLookaheadSimulation<>(
-      leftAutomaton, rightAutomaton, left, right, maxLookahead, known);
-  }
 }

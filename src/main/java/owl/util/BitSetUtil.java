@@ -67,7 +67,17 @@ public final class BitSetUtil {
    * @param bs bitset to be encoded (should be small enough to fit into int)
    */
   public static int toInt(BitSet bs) {
-    return bs.isEmpty() ? 0 : (int)bs.toLongArray()[0];
+    if (bs.isEmpty()) {
+      return 0;
+    }
+
+    long[] bits = bs.toLongArray();
+
+    if (bits.length != 1) {
+      throw new IllegalArgumentException();
+    }
+
+    return StrictMath.toIntExact(bits[0]);
   }
 
   /**
@@ -98,5 +108,4 @@ public final class BitSetUtil {
     ret.andNot(b);
     return ret;
   }
-
 }

@@ -24,6 +24,7 @@ import static owl.translations.nbadet.NbaDet.restoreLogLevel;
 
 import com.google.common.collect.Sets;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +43,7 @@ import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.collections.Pair;
 import owl.game.algorithms.OinkGameSolver;
 import owl.game.algorithms.ParityGameSolver;
+import owl.game.algorithms.ZielonkaGameSolver;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -62,7 +64,7 @@ public final class BuchiSimulation {
   private final ParityGameSolver solver;
 
   public BuchiSimulation() {
-    solver = new OinkGameSolver();
+    solver = OinkGameSolver.checkOinkExecutable() ? new OinkGameSolver() : new ZielonkaGameSolver();
   }
 
   public BuchiSimulation(ParityGameSolver pgSolver) {
@@ -257,7 +259,7 @@ public final class BuchiSimulation {
     Set<Pair<S, S>> known = ConcurrentHashMap.newKeySet();
     Set<Pair<S, S>> seen = ConcurrentHashMap.newKeySet();
 
-    var stats = buildCandidates(left, right)
+    var stats = Pair.allPairs(left.states(), right.states())
       .stream()
       .map(pair -> {
         if (seen.add(pair)) {
@@ -313,7 +315,7 @@ public final class BuchiSimulation {
     known.addAll(smallerRel);
     Set<Pair<S, S>> seen = ConcurrentHashMap.newKeySet();
 
-    var stats = buildCandidates(left, right)
+    var stats = Pair.allPairs(left.states(), right.states())
       .parallelStream()
       .filter(p -> !known.contains(p))
       .map(pair -> {
@@ -324,7 +326,7 @@ public final class BuchiSimulation {
           );
 
           var wrEven = solver.solve(game).playerEven();
-          var similar = wrEven.parallelStream()
+          var similar = wrEven.stream()
             .filter(s -> s.even().count() == 1 && s.owner().isOdd())
             .map(s -> Pair.of(s.odd().state(), s.even().onlyState()))
             .collect(Collectors.toSet());
@@ -338,7 +340,7 @@ public final class BuchiSimulation {
         } else {
           return null;
         }
-      }).filter(Objects::nonNull).collect(Collectors.toSet());
+      }).filter(Objects::nonNull).collect(Collectors.toList());
 
     logStats(stats);
     logger.fine("Obtained " + known.size() + " simulation pairs");
@@ -350,7 +352,7 @@ public final class BuchiSimulation {
     return known;
   }
 
-  private void logStats(Set<SimulationStats> stats) {
+  private void logStats(Collection<SimulationStats> stats) {
     if (!stats.isEmpty()) {
       var avgSize = stats
         .stream()
@@ -375,27 +377,15 @@ public final class BuchiSimulation {
    * @param <S> The type of state of the input automaton
    * @return true if and only if the automaton is trivial
    */
-  private <S> boolean automatonTrivial(
+  private static <S> boolean automatonTrivial(
     Automaton<S, BuchiAcceptance> aut
   ) {
-    // if no states or no initial state exists, then we can simply ignore the input
+    // if no initial state exists, then we can simply ignore the input
     // the last possible case is an inconvenience produced by autcross. If it is given an empty
     // automaton then it will introduce an initial state without outgoing edges, which would
     // bypass this this check to return false, producing an incomplete game and crashing oink
-    return aut.size() == 0 || aut.initialStates().size() == 0
-      || aut.initialStates().stream().noneMatch(is -> aut.edges(is).size() > 0);
-  }
-
-  private <S> Set<Pair<S, S>> buildCandidates(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right
-  ) {
-    return left
-      .states()
-      .parallelStream()
-      .flatMap(ai ->
-        right.states().stream().map(bi -> Pair.of(ai, bi)))
-      .collect(Collectors.toSet());
+    return aut.initialStates().size() == 0
+      || aut.initialStates().stream().allMatch(state -> aut.edges(state).isEmpty());
   }
 
   public <S> Set<Pair<S, S>> backwardSimulation(
@@ -406,7 +396,9 @@ public final class BuchiSimulation {
     return multipebbleSimulate(
       left, right, pebbleCount,
       (l1, r1, red, blue, pc, known) -> new SimulationGame<>(
-        BackwardDirectSimulation.of(l1, r1, red, blue, pc, known)
+        new BackwardDirectSimulation<S>(
+          l1, r1, red, blue, pc, known
+        )
       )
     );
   }
@@ -419,7 +411,9 @@ public final class BuchiSimulation {
     return multipebbleSimulate(
       left, right, pebbleCount,
       (l1, r1, red, blue, pc, known) -> new SimulationGame<>(
-        ForwardFairSimulation.of(l1, r1, red, blue, pc, known)
+        new ForwardFairSimulation<>(
+          l1, r1, red, blue, pc, known
+        )
       )
     );
   }
@@ -433,7 +427,7 @@ public final class BuchiSimulation {
     return multipebbleSimulate(
       left, right, pebbleCount,
       (left1, right1, red, blue, pebbleCount1, known) -> new SimulationGame<>(
-        ForwardDelayedSimulation.of(
+        new ForwardDelayedSimulation<>(
           left1, right1, red, blue, pebbleCount1, known
         )
       )
@@ -459,7 +453,7 @@ public final class BuchiSimulation {
     return multipebbleSimulate(
       left, right, pebbleCount,
       (left1, right1, red, blue, pebbleCount1, known) -> new SimulationGame<>(
-        ForwardDirectSimulation.of(
+        new ForwardDirectSimulation<>(
           left1, right1, red, blue, pebbleCount1, known
         )
       )
@@ -474,9 +468,8 @@ public final class BuchiSimulation {
     return lookaheadSimulate(
       left, right, maxLookahead,
       (l1, r1, red, blue, ml, known) -> new SimulationGame<>(
-        ForwardDirectLookaheadSimulation.of(
-          l1, r1, red, blue, ml, known
-        )
+        new ForwardDirectLookaheadSimulation<>(
+          l1, r1, red, blue, ml, known)
       )
     );
   }

@@ -21,18 +21,14 @@ package owl.automaton.algorithm.simulations;
 
 import java.util.Map;
 import java.util.Set;
-import owl.automaton.Automaton;
-import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.game.Game;
 
-public interface SimulationType<S, T extends SimulationType.SimulationState<S>> {
+public interface SimulationType<S, T extends SimulationType.SimulationState> {
   Map<Edge<T>, ValuationSet> edgeMap(T state);
-
-  Set<T> states();
 
   ParityAcceptance acceptance();
 
@@ -40,23 +36,7 @@ public interface SimulationType<S, T extends SimulationType.SimulationState<S>> 
 
   ValuationSetFactory factory();
 
-  abstract class SimulationState<S> {
-
+  abstract class SimulationState {
     public abstract Game.Owner owner();
-
   }
-
-  default void automataCompatible(
-    Automaton<S, BuchiAcceptance> a,
-    Automaton<S, BuchiAcceptance> b
-  ) {
-    a.factory().universe().forEach(set -> {
-      assert b.factory().universe().contains(set);
-    });
-
-    b.factory().universe().forEach(set -> {
-      assert a.factory().universe().contains(set);
-    });
-  }
-
 }

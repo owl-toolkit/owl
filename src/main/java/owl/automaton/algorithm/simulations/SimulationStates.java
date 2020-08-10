@@ -21,12 +21,9 @@ package owl.automaton.algorithm.simulations;
 
 import com.google.auto.value.AutoValue;
 import java.util.BitSet;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.collections.ValuationSet;
 import owl.game.Game;
 import owl.util.BitSetUtil;
 
@@ -35,7 +32,7 @@ public class SimulationStates {
 
   @AutoValue
   public abstract static class LookaheadSimulationState<S>
-    extends SimulationType.SimulationState<S> {
+    extends SimulationType.SimulationState {
     public abstract S odd();
 
     public abstract S even();
@@ -90,7 +87,7 @@ public class SimulationStates {
    */
   @AutoValue
   public abstract static class MultipebbleSimulationState<S>
-    extends SimulationType.SimulationState<S> {
+    extends SimulationType.SimulationState {
     public abstract Pebble<S> odd();
 
     public abstract MultiPebble<S> even();
@@ -110,25 +107,6 @@ public class SimulationStates {
       return new AutoValue_SimulationStates_MultipebbleSimulationState<>(
         Game.Owner.PLAYER_2, odd, even, BitSetUtil.toInt(val)
       );
-    }
-
-    static <S> Set<MultipebbleSimulationState<S>> universe(
-      Set<Pebble<S>> oddUniverse,
-      Set<MultiPebble<S>> evenUniverse,
-      ValuationSet valuationUniverse
-    ) {
-      Set<MultipebbleSimulationState<S>> out = new HashSet<>();
-
-      evenUniverse.forEach(even -> {
-        oddUniverse.forEach(odd -> {
-          valuationUniverse.forEach(valuation -> {
-            out.add(MultipebbleSimulationState.of(odd, even, valuation));
-          });
-          out.add(MultipebbleSimulationState.of(odd, even));
-        });
-      });
-
-      return out;
     }
 
     @Override

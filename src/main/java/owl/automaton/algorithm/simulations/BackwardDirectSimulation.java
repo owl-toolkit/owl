@@ -78,19 +78,6 @@ public class BackwardDirectSimulation<S>
     );
   }
 
-  public static <S> BackwardDirectSimulation<S> of(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
-    S leftState,
-    S rightState,
-    int pebbleCount,
-    Set<Pair<S, S>> known
-  ) {
-    return new BackwardDirectSimulation<>(
-      leftAutomaton, rightAutomaton, leftState, rightState, pebbleCount, known
-    );
-  }
-
   @Override
   public Map<Edge<MultipebbleSimulationState<S>>, ValuationSet> edgeMap(
     MultipebbleSimulationState<S> state
@@ -158,15 +145,6 @@ public class BackwardDirectSimulation<S>
     }
 
     return out;
-  }
-
-  @Override
-  public Set<MultipebbleSimulationState<S>> states() {
-    return MultipebbleSimulationState.universe(
-      Pebble.universe(leftAutomaton),
-      MultiPebble.universe(rightAutomaton, pebbleCount),
-      leftAutomaton.factory().universe()
-    );
   }
 
   @Override
