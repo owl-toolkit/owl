@@ -75,7 +75,7 @@ public class ForwardDirectSimulation<S>
     this.leftState = left;
     this.rightState = right;
     this.pebbleCount = pebbleCount;
-    this.knownPairs = known;
+    this.knownPairs = Set.copyOf(known);
 
     this.factory = Environment
       .annotated()
@@ -100,20 +100,18 @@ public class ForwardDirectSimulation<S>
     Map<Edge<SimulationStates.MultipebbleSimulationState<S>>, ValuationSet> out = new HashMap<>();
 
     if (state.equals(sinkState)) {
-      out.put(Edge.of(sinkState, 1), factory.universe());
-      return out;
+      return Map.of(Edge.of(sinkState, 1), factory.universe());
     }
 
     if (state.owner().isOdd()) {
       if (1 == state.even().count()
         && knownPairs.contains(Pair.of(state.odd().state(), state.even().onlyState()))) {
-        out.put(Edge.of(state, 0), factory.universe());
-        return out;
+
+        return Map.of(Edge.of(state, 0), factory.universe());
       }
 
       if (!state.even().flag() && state.odd().flag()) {
-        out.put(Edge.of(sinkState, 1), factory.universe());
-        return out;
+        return Map.of(Edge.of(sinkState, 1), factory.universe());
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
@@ -128,12 +126,16 @@ public class ForwardDirectSimulation<S>
       });
 
     } else {
+      if (state.valuation() < 0) {
+        throw new AssertionError("Valuation should not be negative here.");
+      }
+
       var possibilities = state
         .even()
         .successors(rightAutomaton, BitSetUtil.fromInt(state.valuation()));
-      if (possibilities.size() == 0) {
-        out.put(Edge.of(sinkState, 1), factory.universe());
-        return out;
+
+      if (possibilities.isEmpty()) {
+        return Map.of(Edge.of(sinkState, 1), factory.universe());
       }
 
       possibilities.forEach(p -> {
@@ -162,15 +164,6 @@ public class ForwardDirectSimulation<S>
   }
 
   @Override
-  public Set<MultipebbleSimulationState<S>> states() {
-    return SimulationStates.MultipebbleSimulationState.universe(
-      Pebble.universe(leftAutomaton),
-      MultiPebble.universe(rightAutomaton, pebbleCount),
-      leftAutomaton.factory().universe()
-    );
-  }
-
-  @Override
   public ParityAcceptance acceptance() {
     return new ParityAcceptance(2, ParityAcceptance.Parity.MAX_EVEN);
   }
@@ -183,18 +176,5 @@ public class ForwardDirectSimulation<S>
   @Override
   public ValuationSetFactory factory() {
     return factory;
-  }
-
-  public static <S> ForwardDirectSimulation<S> of(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
-    S leftState,
-    S rightState,
-    int pebbleCount,
-    Set<Pair<S, S>> known
-  ) {
-    return new ForwardDirectSimulation<>(
-      leftAutomaton, rightAutomaton, leftState, rightState, pebbleCount, known
-    );
   }
 }

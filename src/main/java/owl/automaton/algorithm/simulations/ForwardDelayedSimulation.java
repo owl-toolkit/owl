@@ -46,7 +46,6 @@ public class ForwardDelayedSimulation<S>
   final MultipebbleSimulationState<S> sinkState;
   final int pebbleCount;
   final Set<Pair<S, S>> knownPairs;
-  final Set<MultipebbleSimulationState<S>> stateSet;
 
   public ForwardDelayedSimulation(
     Automaton<S, BuchiAcceptance> leftAutomaton,
@@ -79,28 +78,6 @@ public class ForwardDelayedSimulation<S>
     this.sinkState = MultipebbleSimulationState.of(
       Pebble.of(left, true),
       MultiPebble.of(List.of(), pebbleCount)
-    );
-
-    // create the state set consisting of all possible pebble locations and flags for Spoiler,
-    // all possible multipebbles up to and including size pebbleCount and all valuations that
-    // can be chosen by Spoiler.
-    this.stateSet = MultipebbleSimulationState.universe(
-      Pebble.universe(leftAutomaton),
-      MultiPebble.universe(rightAutomaton, pebbleCount),
-      leftAutomaton.factory().universe()
-    );
-  }
-
-  public static <S> ForwardDelayedSimulation<S> of(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
-    S leftState,
-    S rightState,
-    int pebbleCount,
-    Set<Pair<S, S>> known
-  ) {
-    return new ForwardDelayedSimulation<>(
-      leftAutomaton, rightAutomaton, leftState, rightState, pebbleCount, known
     );
   }
 
@@ -164,11 +141,6 @@ public class ForwardDelayedSimulation<S>
     }
 
     return out;
-  }
-
-  @Override
-  public Set<MultipebbleSimulationState<S>> states() {
-    return stateSet;
   }
 
   @Override

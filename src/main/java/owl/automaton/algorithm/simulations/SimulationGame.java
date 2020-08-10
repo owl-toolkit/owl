@@ -22,14 +22,12 @@ package owl.automaton.algorithm.simulations;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import owl.automaton.EdgeMapAutomatonMixin;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationType.SimulationState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 import owl.game.Game;
 
 /**
@@ -39,12 +37,14 @@ import owl.game.Game;
  * @param <S> Type of state in the underlying automata.
  * @param <T> Type of simulation state that is used.
  */
-public class SimulationGame<S, T extends SimulationState<S>> implements
-  Game<T, ParityAcceptance>,
-  EdgeMapAutomatonMixin<T, ParityAcceptance> {
+public class SimulationGame<S, T extends SimulationState>
+  extends AbstractImmutableAutomaton.NonDeterministicEdgeMapAutomaton<T, ParityAcceptance>
+  implements Game<T, ParityAcceptance> {
+
   final SimulationType<S, T> simulationType;
 
   public SimulationGame(SimulationType<S, T> type) {
+    super(type.factory(), type.initialStates(), type.acceptance());
     simulationType = type;
   }
 
@@ -54,33 +54,13 @@ public class SimulationGame<S, T extends SimulationState<S>> implements
   }
 
   @Override
-  public Set<T> states() {
-    return simulationType.states();
-  }
-
-  @Override
   public Owner owner(T state) {
     return state.owner();
   }
 
   @Override
-  public ParityAcceptance acceptance() {
-    return simulationType.acceptance();
-  }
-
-  @Override
   public List<String> variables(Owner owner) {
     throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public ValuationSetFactory factory() {
-    return simulationType.factory();
-  }
-
-  @Override
-  public Set<T> initialStates() {
-    return simulationType.initialStates();
   }
 
   @Override

@@ -45,7 +45,6 @@ public class ForwardFairSimulation<S>
   final MultipebbleSimulationState<S> sinkState;
   final int pebbleCount;
   final Set<Pair<S, S>> knownPairs;
-  final Set<MultipebbleSimulationState<S>> stateSet;
 
   public ForwardFairSimulation(
     Automaton<S, BuchiAcceptance> leftAutomaton,
@@ -75,25 +74,6 @@ public class ForwardFairSimulation<S>
     this.sinkState = MultipebbleSimulationState.of(
       Pebble.of(left, true),
       MultiPebble.of(List.of(), pebbleCount)
-    );
-
-    stateSet = SimulationStates.MultipebbleSimulationState.universe(
-      Pebble.universe(leftAutomaton),
-      MultiPebble.universe(rightAutomaton, pebbleCount),
-      leftAutomaton.factory().universe()
-    );
-  }
-
-  public static <S> ForwardFairSimulation<S> of(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
-    S leftState,
-    S rightState,
-    int pebbleCount,
-    Set<Pair<S, S>> known
-  ) {
-    return new ForwardFairSimulation<>(
-      leftAutomaton, rightAutomaton, leftState, rightState, pebbleCount, known
     );
   }
 
@@ -145,11 +125,6 @@ public class ForwardFairSimulation<S>
     }
 
     return out;
-  }
-
-  @Override
-  public Set<MultipebbleSimulationState<S>> states() {
-    return stateSet;
   }
 
   @Override

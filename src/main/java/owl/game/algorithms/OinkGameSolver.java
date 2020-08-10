@@ -78,8 +78,8 @@ public final class OinkGameSolver implements ParityGameSolver {
         && Files.isExecutable(path.resolve(OINK_EXECUTABLE_NAME)));
   }
 
-  public <S> Map<Integer, S> toOinkInstance(Game<S, ParityAcceptance> game,
-                                             PrintWriter writer) {
+  public static <S> Map<Integer, S> toOinkInstance(
+    Game<S, ParityAcceptance> game, PrintWriter writer) {
     Object2IntMap<PriorityState<S>> oinkNumbering = new Object2IntLinkedOpenHashMap<>();
     oinkNumbering.defaultReturnValue(-1);
 
@@ -108,6 +108,7 @@ public final class OinkGameSolver implements ParityGameSolver {
       if (edges.isEmpty()) {
         throw new IllegalArgumentException("Game must not have dead ends.");
       }
+
       for (Edge<S> edge : edges) {
         S successor = edge.successor();
         int statePriority = edge.largestAcceptanceSet();
@@ -135,6 +136,7 @@ public final class OinkGameSolver implements ParityGameSolver {
       writer.print(game.owner(pair.state()).isEven() ? 0 : 1);
 
       Iterator<Edge<S>> it = game.edges(pair.state()).iterator();
+
       if (it.hasNext()) {
         writer.print(' ');
       }
@@ -241,7 +243,7 @@ public final class OinkGameSolver implements ParityGameSolver {
       oinkWriter.close();
     } catch (IOException e) {
       logger.severe("error closing pipe to oink process");
-      throw new OinkExecutionException("Pipe to oink process asscould not be closed", e);
+      throw new OinkExecutionException("Pipe to oink process could not be closed", e);
     }
 
     try {
@@ -281,8 +283,10 @@ public final class OinkGameSolver implements ParityGameSolver {
       if (elements.length < 2) {
         throw new OinkExecutionException("Got solution line with too few elements.");
       }
+
       int node = Integer.parseInt(elements[0]);
       int winner = Integer.parseInt(elements[1]);
+
       if (0 == winner) {
         if (!mapping.containsKey(node)) {
           throw new OinkExecutionException("Illegal node in solution.");

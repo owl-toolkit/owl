@@ -24,6 +24,7 @@ import static owl.game.Game.Owner.PLAYER_1;
 import static owl.game.Game.Owner.PLAYER_2;
 
 import com.google.common.collect.Sets;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
@@ -54,21 +55,25 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
   private static <S> WinningRegions<S> recursiveZielonka(Game<S, ParityAcceptance> game) {
     Set<S> states = game.states();
     ParityAcceptance acceptance = game.acceptance();
+    boolean max = acceptance.parity().max();
 
     // get the minimal colour in the game
-    AtomicInteger minimalColour = new AtomicInteger(acceptance.acceptanceSets());
+    AtomicInteger extremalColour = new AtomicInteger(max ? -1 : acceptance.acceptanceSets());
 
     for (S state : states) {
       game.edges(state).forEach(edge ->
-          minimalColour.getAndUpdate(c -> Math.min(c, edge.smallestAcceptanceSet())));
+        extremalColour.getAndUpdate(
+          c -> max
+            ? Math.max(c, edge.largestAcceptanceSet())
+            : Math.min(c, edge.smallestAcceptanceSet())));
     }
 
-    int theMinimalColour = minimalColour.get();
+    int theExtremalColour = extremalColour.get();
 
-    // if the min did not change, we have a winner
-    Game.Owner ourHorse = acceptance.isAccepting(theMinimalColour) ? PLAYER_2 : PLAYER_1;
+    // if the extremal colour did not change, we have a winner
+    Game.Owner ourHorse = acceptance.isAccepting(theExtremalColour) ? PLAYER_2 : PLAYER_1;
 
-    if (theMinimalColour == acceptance.acceptanceSets()) {
+    if (max ? theExtremalColour == -1 : theExtremalColour == acceptance.acceptanceSets()) {
       return new WinningRegions<>(states, ourHorse);
     }
 
@@ -76,17 +81,22 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
     // whether the minimal colour is winning for player 1 and on
     // which states have one (or all) successors of the minimal
     // colour
-    Predicate<Edge<S>> hasMinCol = y -> y.smallestAcceptanceSet() == theMinimalColour;
+    Predicate<Edge<S>> hasExtremalColour = y -> max
+      ? y.largestAcceptanceSet() == theExtremalColour
+      : y.smallestAcceptanceSet() == theExtremalColour;
 
-    Set<S> winningStates = Sets.filter(states, x -> {
-      if (game.owner(x) != PLAYER_2) {
+    Set<S> winningStates = Sets.filter(states, state -> {
+      Objects.requireNonNull(state);
+
+      if (game.owner(state) != PLAYER_2) {
         return false;
       }
 
       if (PLAYER_2 == ourHorse) {
-        return game.edges(x).stream().anyMatch(hasMinCol);
+        return game.edges(state).stream().anyMatch(hasExtremalColour);
       }
-      return game.edges(x).stream().allMatch(hasMinCol);
+
+      return game.edges(state).stream().allMatch(hasExtremalColour);
     });
 
     // NOTE: winningStates may be empty! this is because it is actually
@@ -99,7 +109,8 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
     Set<S> losingSet = Sets.difference(states,
       game.getAttractorFixpoint(winningStates, ourHorse));
 
-    var subGame = GameViews.filter(game, losingSet::contains, hasMinCol.negate());
+    var subGame = GameViews.filter(game,
+      losingSet::contains, hasExtremalColour.negate());
     WinningRegions<S> subWinning = recursiveZielonka(subGame);
 
     // if in the sub-game our horse wins everywhere, then he's the winner
