@@ -44,17 +44,19 @@ project.version = '20.10-development'
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
 
-// GraalVM only supports JDK 11.
-project.sourceCompatibility = JavaVersion.VERSION_11
-project.targetCompatibility = JavaVersion.VERSION_11
-
 def defaultEncoding = 'UTF-8'
 
 tasks.withType(JavaCompile) {
+    // GraalVM only supports JDK 11.
+    options.release = 11
+
+    // Linter
     options.compilerArgs << '-Xlint:unchecked'
     options.deprecation = true
-    options.encoding = defaultEncoding
     // options.errorprone.disableWarningsInGeneratedCode = true
+
+    // Encoding
+    options.encoding = defaultEncoding
 }
 
 def buildMarkdown = !project.hasProperty("disable-pandoc")
