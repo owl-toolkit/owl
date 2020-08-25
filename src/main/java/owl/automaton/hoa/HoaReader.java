@@ -22,7 +22,6 @@ package owl.automaton.hoa;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.Iterables;
-import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.Reader;
@@ -63,6 +62,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -206,7 +206,7 @@ public final class HoaReader {
       throws HOAConsumerException {
       Edge<HoaState> edge = storedEdgeAcceptance == null
         ? Edge.of(successor)
-        : Edge.of(successor, BitSets.of(storedEdgeAcceptance));
+        : Edge.of(successor, BitSet2.copyOf(storedEdgeAcceptance));
       check(automaton.acceptance().isWellFormedEdge(edge),
         "%s is not well-formed for %s", edge, automaton.acceptance());
       automaton.addEdge(source, valuationSet, edge);

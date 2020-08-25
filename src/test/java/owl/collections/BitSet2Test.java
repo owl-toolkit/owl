@@ -17,20 +17,16 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.util;
+package owl.collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import com.google.common.collect.HashBiMap;
 
 import java.util.BitSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
-import owl.collections.Pair;
-
-public class MiscUtilTest {
+public class BitSet2Test {
 
   @Test
   void testPair() {
@@ -67,24 +63,24 @@ public class MiscUtilTest {
     BitSet b = (BitSet)bo.clone();
 
     //test set operations and check that they do not change original bitset
-    var c = BitSetUtil.intersection(a,b);
+    var c = BitSet2.intersection(a,b);
     assertTrue(!c.get(1) && c.get(2) && !c.get(3));
     assertEquals(ao, a);
     assertEquals(bo, b);
 
-    var d = BitSetUtil.union(a,b);
+    var d = BitSet2.union(a,b);
     assertTrue(d.get(1) && d.get(2) && d.get(3));
     assertEquals(ao, a);
     assertEquals(bo, b);
 
 
-    var e = BitSetUtil.without(a,b);
+    var e = BitSet2.without(a,b);
     assertTrue(e.get(1) && !e.get(2) && !e.get(3));
     assertEquals(ao, a);
     assertEquals(bo, b);
 
 
-    var f = BitSetUtil.without(b,a);
+    var f = BitSet2.without(b,a);
     assertTrue(!f.get(1) && !f.get(2) && f.get(3));
     assertEquals(ao, a);
     assertEquals(bo, b);
@@ -92,34 +88,24 @@ public class MiscUtilTest {
 
   @Test
   void bitsetEncodeDecode() {
-    //empty and all
-    assertEquals(new BitSet(), new BitSet());
-
-    HashBiMap<Integer,Integer> smap = HashBiMap.create();
-    smap.put(1,2);
-    smap.put(2,4);
-    smap.put(3,6);
-    smap.put(4,8);
-
     //set all bits according to provided mapping
-    var bsAll = BitSetUtil.all(smap);
+    var bsAll = BitSet2.copyOf(Set.of(1, 2, 3, 4), x -> 2 * x);
     assertTrue(!bsAll.get(0) && !bsAll.get(1) && !bsAll.get(3)
       && !bsAll.get(5) && !bsAll.get(7));
     assertTrue(bsAll.get(2) && bsAll.get(4) && bsAll.get(6) && bsAll.get(8));
 
     //fromSet and toSet
     Set<Integer> subset = Set.of(2,4);
-    var bsSubset = BitSetUtil.fromSet(subset, smap);
+    var bsSubset = BitSet2.copyOf(subset, x -> 2 * x);
     assertTrue(bsSubset.get(4) && bsSubset.get(8) && !bsSubset.get(1)
       && !bsSubset.get(2) && !bsSubset.get(6));
-    assertEquals(subset, BitSetUtil.toSet(bsSubset, smap.inverse()::get));
+    assertEquals(subset, BitSet2.asSet(bsSubset, x -> x / 2));
 
     //fromInt and toInt
     int intSet = 2 + 8 + 32;
-    var bsFI = BitSetUtil.fromInt(intSet);
+    var bsFI = BitSet2.fromInt(intSet);
     assertTrue(!bsFI.get(0) && !bsFI.get(2) && !bsFI.get(4)  && !bsFI.get(6));
     assertTrue(bsFI.get(1) && bsFI.get(3) && bsFI.get(5));
-    assertEquals(intSet, BitSetUtil.toInt(bsFI));
+    assertEquals(intSet, BitSet2.toInt(bsFI));
   }
-
 }

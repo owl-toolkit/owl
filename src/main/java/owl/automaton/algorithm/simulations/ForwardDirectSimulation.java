@@ -29,11 +29,11 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.Environment;
-import owl.util.BitSetUtil;
 
 /**
  * Simulation type for forward-direct multipebble simulation games.
@@ -132,7 +132,7 @@ public class ForwardDirectSimulation<S>
 
       var possibilities = state
         .even()
-        .successors(rightAutomaton, BitSetUtil.fromInt(state.valuation()));
+        .successors(rightAutomaton, BitSet2.fromInt(state.valuation()));
 
       if (possibilities.isEmpty()) {
         return Map.of(Edge.of(sinkState, 1), factory.universe());

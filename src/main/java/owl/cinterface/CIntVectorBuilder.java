@@ -20,9 +20,9 @@
 package owl.cinterface;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import org.graalvm.nativeimage.ImageInfo;
-import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
@@ -47,25 +47,42 @@ public final class CIntVectorBuilder {
     }
   }
 
-  public void add(int value) {
+  public void add() {
+    // No operation, avoid construction of varargs-array.
+  }
+
+  public void add(int e0) {
     grow(size + 1);
-    elements.write(size, value);
+    elements.write(size, e0);
     size = size + 1;
   }
 
-  public void add(int value1, int value2) {
+  public void add(int e0, int e1) {
     grow(size + 2);
-    elements.write(size, value1);
-    elements.write(size + 1, value2);
+    elements.write(size, e0);
+    elements.write(size + 1, e1);
     size = size + 2;
   }
 
-  public void add(int value1, int value2, int value3) {
+  public void add(int e0, int e1, int e2) {
     grow(size + 3);
-    elements.write(size, value1);
-    elements.write(size + 1, value2);
-    elements.write(size + 2, value3);
+    elements.write(size, e0);
+    elements.write(size + 1, e1);
+    elements.write(size + 2, e2);
     size = size + 3;
+  }
+
+  public void add(int... es) {
+    grow(size + es.length);
+
+    for (int e : es) {
+      add(e);
+    }
+  }
+
+  public void addAll(Collection<Integer> collection) {
+    grow(size + collection.size());
+    collection.forEach(this::add);
   }
 
   public int get(int index) {
@@ -83,7 +100,7 @@ public final class CIntVectorBuilder {
   }
 
   public void moveTo(CIntVector cIntVector) {
-    if (size == Integer.MIN_VALUE) {
+    if (size < 0) {
       throw new IllegalStateException("already moved");
     }
 

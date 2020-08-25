@@ -19,29 +19,7 @@
 
 package owl.collections;
 
-import de.tum.in.naturals.bitset.BitSets;
-import java.util.BitSet;
-import org.junit.jupiter.api.Test;
-import owl.util.Assertions;
-
-class NaturalsBoundaryTest {
-
-  @Test
-  void isSubset() {
-    BitSet set1 = new BitSet();
-    BitSet set2 = new BitSet();
-
-    set1.set(1);
-    set2.set(1, 3);
-
-    Assertions.assertThat(set1, x -> BitSets.isSubset(x, set2));
-
-    set1.clear();
-    set2.clear();
-
-    set1.set(1);
-    set2.set(0);
-
-    Assertions.assertThat(set1, x -> !BitSets.isSubset(x, set2));
-  }
+@FunctionalInterface
+public interface TriFunction<T, U, V, R> {
+  R apply(T t, U u, V v);
 }

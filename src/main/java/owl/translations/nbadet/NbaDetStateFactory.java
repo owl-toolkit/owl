@@ -32,8 +32,8 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 /** auxiliary class to work with internally, to avoid overhead of AutoValue builder. */
 @SuppressWarnings("PMD.LooseCoupling")
@@ -102,7 +102,7 @@ final class NbaDetStateFactory<S> {
       //state set reached by acc. edge, gets new prio
       newSlice.add(Pair.of(succs.snd(), rg.fresh()));
       //state set not reached by any acc. edge, gets old prio
-      newSlice.add(Pair.of(BitSetUtil.without(succs.fst(), succs.snd()), entry.snd()));
+      newSlice.add(Pair.of(BitSet2.without(succs.fst(), succs.snd()), entry.snd()));
     }
     return RankedSlice.of(newSlice);
   }
@@ -153,7 +153,7 @@ final class NbaDetStateFactory<S> {
     if (!conf.extMask().isEmpty()) {
       //the external pruning has been already applied to powerset, so we need to intersect
       //to remove states that are supposed to be pruned
-      Function<BitSet, BitSet> andPowerset = s -> BitSetUtil.intersection(s, powerSet);
+      Function<BitSet, BitSet> andPowerset = s -> BitSet2.intersection(s, powerSet);
       rSccs.and(powerSet);
       aSccsBuffer.and(powerSet);
       aSccs = aSccs.map(p -> p.mapFst(andPowerset));
@@ -188,7 +188,7 @@ final class NbaDetStateFactory<S> {
   //helper function. takes source set and mask set of permitted states.
   //removes forbidden states from source and adds them to target.
   private void relocateSwitchers(BitSet src, BitSet allowed, BitSet target) {
-    target.or(BitSetUtil.without(src, allowed));
+    target.or(BitSet2.without(src, allowed));
     src.and(allowed);
   }
 
@@ -238,7 +238,7 @@ final class NbaDetStateFactory<S> {
       if (offset > -1 && aSccs.isPresent()) {
         final var curAScc = c.sets().asccsStates().get(offset);
         //move states that are in asccs but left the current ascc back into ascc buffer
-        aSccsBuffer.or(BitSetUtil.without(aSccs.get().fst(), curAScc));
+        aSccsBuffer.or(BitSet2.without(aSccs.get().fst(), curAScc));
         aSccs.get().fst().and(curAScc);
       }
     }
@@ -261,7 +261,7 @@ final class NbaDetStateFactory<S> {
         for (int i = 0; i < c.sets().asccsStates().size(); i++) {
           var candIndex = (offset + i + 1) % c.sets().asccsStates().size(); //wrap around
 
-          var cand = BitSetUtil.intersection(aSccsBuffer, c.sets().asccsStates().get(candIndex));
+          var cand = BitSet2.intersection(aSccsBuffer, c.sets().asccsStates().get(candIndex));
           if (!cand.isEmpty()) { //next currently inhabited successor SCC found
             aSccs = Optional.of(curAscc.mapFst(bs -> cand)); //add to active
             aSccsBuffer.andNot(cand); //remove from buffer
@@ -400,25 +400,25 @@ final class NbaDetStateFactory<S> {
 
   //given set of homeless states, add them to correct components.
   public void integrateSwitcherStates(NbaDetConf<S> c, BitSet switchers, RankGen rankgen) {
-    var tmp = BitSetUtil.intersection(switchers, c.sets().rsccStates());
+    var tmp = BitSet2.intersection(switchers, c.sets().rsccStates());
     if (!tmp.isEmpty()) {
       rSccs.or(tmp);
     }
 
-    tmp = BitSetUtil.intersection(switchers, c.sets().asccStates());
+    tmp = BitSet2.intersection(switchers, c.sets().asccStates());
     if (!tmp.isEmpty()) {
       aSccsBuffer.or(tmp);
     }
 
     for (int i = 0; i < dSccs.size(); i++) {
-      tmp = BitSetUtil.intersection(switchers, c.sets().dsccsStates().get(i));
+      tmp = BitSet2.intersection(switchers, c.sets().dsccsStates().get(i));
       if (!tmp.isEmpty()) {
         dSccs.get(i).slice().add(Pair.of(tmp, rankgen.fresh()));
       }
     }
 
     for (int i = 0; i < mSccs.size(); i++) {
-      tmp = BitSetUtil.intersection(switchers, c.sets().msccsStates().get(i));
+      tmp = BitSet2.intersection(switchers, c.sets().msccsStates().get(i));
       if (!tmp.isEmpty()) {
         mSccs.get(i).slice().add(Pair.of(tmp, rankgen.fresh()));
       }
@@ -465,7 +465,7 @@ final class NbaDetStateFactory<S> {
   public static <S> Edge<NbaDetState<S>> successor(
       NbaDetState<S> st, NbaDetConf<S> conf, BitSet val) {
     if (logger.getLevel().equals(Level.FINEST)) {
-      logger.log(Level.FINEST, "begin " + BitSetUtil.toInt(val) + " succ of: " + st);
+      logger.log(Level.FINEST, "begin " + BitSet2.toInt(val) + " succ of: " + st);
     }
 
     //get mutable copy

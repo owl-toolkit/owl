@@ -22,7 +22,6 @@ package owl.cinterface;
 import java.util.Arrays;
 import java.util.Objects;
 import org.graalvm.nativeimage.ImageInfo;
-import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.type.CDoublePointer;
 import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
@@ -39,8 +38,8 @@ public final class CDoubleVectorBuilder {
     this.size = 0;
 
     if (ImageInfo.inImageCode()) {
-      this.elements = UnmanagedMemory.malloc(toBytesLength(32));
-      this.capacity = 32;
+      this.elements = UnmanagedMemory.malloc(toBytesLength(64));
+      this.capacity = 64;
     } else {
       this.elements = new EmulatedCDoublePointer(1);
       this.capacity = 1;
@@ -68,7 +67,7 @@ public final class CDoubleVectorBuilder {
   }
 
   public void moveTo(CDoubleVector cDoubleVector) {
-    if (size == Integer.MIN_VALUE) {
+    if (size < 0) {
       throw new IllegalStateException("already moved");
     }
 

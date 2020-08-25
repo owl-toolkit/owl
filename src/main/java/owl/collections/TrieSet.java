@@ -21,25 +21,20 @@ package owl.collections;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
-/**
- * A trieMap maps sequences of keys to a value. Tries do no support 'null' keys and values.
- *
- * @param <K> the key type.
- * @param <V> the value type.
- */
-public interface TrieMap<K, V> extends Map<List<K>, V> {
+public interface TrieSet<E> extends Set<List<E>> {
 
   boolean containsKeyWithPrefix(List<?> prefix);
 
-  Map<K, ? extends TrieMap<K, V>> subTries();
+  Map<E, ? extends TrieSet<E>> subTries();
 
   /**
-   * Retrieves the trieMap associated with the given prefix. Any changes to the subtrie are
-   * reflected in the trieMap and vice-versa.
+   * Retrieves the trieSet associated with the given prefix. Any changes to the subtrie are
+   * reflected in the trie set and vice-versa.
    *
    * @param prefix the prefix of the key.
-   * @return the corresponding trie map.
+   * @return the corresponding trie set.
    */
-  TrieMap<K, V> subTrie(List<? extends K> prefix);
+  TrieSet<E> subTrie(List<? extends E> prefix);
 }

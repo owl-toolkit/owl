@@ -307,7 +307,7 @@ public final class GameViews {
           this.firstPlayer.set(index);
         }
       }
-      secondPlayer = BitSets.copyOf(this.firstPlayer);
+      secondPlayer = owl.collections.BitSet2.copyOf(this.firstPlayer);
       secondPlayer.flip(0, automaton.factory().atomicPropositions().size());
     }
 
@@ -350,7 +350,7 @@ public final class GameViews {
         for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
           ValuationSet vs = factory.of(valuation, secondPlayer);
 
-          BitSet joined = BitSets.copyOf(valuation);
+          BitSet joined = owl.collections.BitSet2.copyOf(valuation);
           joined.or(node.firstPlayerChoice());
           Edge<S> edge = automaton.edge(node.state(), joined);
           checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
@@ -381,7 +381,7 @@ public final class GameViews {
         automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
           if (successor.state().equals(edge.successor())) {
             valuations.forEach(set -> {
-              BitSet localSet = BitSets.copyOf(set);
+              BitSet localSet = owl.collections.BitSet2.copyOf(set);
               localSet.and(firstPlayer);
               predecessors.add(Node.of(predecessor, localSet));
             });
@@ -439,7 +439,7 @@ public final class GameViews {
       if (owner == Owner.PLAYER_1) {
         BitSet choice = state.firstPlayerChoice();
         assert choice != null;
-        return BitSets.copyOf(choice);
+        return owl.collections.BitSet2.copyOf(choice);
       }
 
       ValuationSet valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
@@ -464,7 +464,7 @@ public final class GameViews {
     }
 
     static <S> Node<S> of(S state, BitSet choice) {
-      return new AutoValue_GameViews_Node<>(state, BitSets.copyOf(choice));
+      return new AutoValue_GameViews_Node<>(state, owl.collections.BitSet2.copyOf(choice));
     }
 
     @Override

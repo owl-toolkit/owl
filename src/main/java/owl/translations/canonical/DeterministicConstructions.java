@@ -449,7 +449,7 @@ public final class DeterministicConstructions {
 
     public abstract EquivalenceClass accepting();
 
-    static BreakpointStateAccepting of(EquivalenceClass all, EquivalenceClass accepting) {
+    public static BreakpointStateAccepting of(EquivalenceClass all, EquivalenceClass accepting) {
       assert accepting.implies(all);
       return new AutoValue_DeterministicConstructions_BreakpointStateAccepting(all, accepting);
     }

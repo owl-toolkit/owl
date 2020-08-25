@@ -177,6 +177,40 @@ abstract class EquivalenceClassTest {
   }
 
   @Test
+  void testConjunctiveNormalForm() {
+    var formula = LtlParser.parse("(Fa | Gb) & (Fc | Ga)");
+    var clazz = factory.of(formula.formula());
+    assertEquals(
+      Set.of(
+        Set.of(
+          LtlParser.parse("F a", formula.atomicPropositions()).formula(),
+          LtlParser.parse("G b", formula.atomicPropositions()).formula()
+        ),
+        Set.of(
+          LtlParser.parse("G a", formula.atomicPropositions()).formula(),
+          LtlParser.parse("F c", formula.atomicPropositions()).formula()
+        )),
+      clazz.conjunctiveNormalForm());
+  }
+
+  @Test
+  void testConjunctiveNormalForm2() {
+    var formula = LtlParser.parse("(a | !b) & (c | !d)");
+    var clazz = factory.of(formula.formula());
+    assertEquals(
+      Set.of(
+        Set.of(
+          LtlParser.parse("a", formula.atomicPropositions()).formula(),
+          LtlParser.parse("!b", formula.atomicPropositions()).formula()
+        ),
+        Set.of(
+          LtlParser.parse("c", formula.atomicPropositions()).formula(),
+          LtlParser.parse("!d", formula.atomicPropositions()).formula()
+        )),
+      clazz.conjunctiveNormalForm());
+  }
+
+  @Test
   void testCanonicalRepresentativeFormulaDatabase() throws IOException {
     Set<LabelledFormula> formulas = new HashSet<>();
 
@@ -187,10 +221,35 @@ abstract class EquivalenceClassTest {
     for (var formula : formulas) {
       var factory = obtainFactory(formula);
       var clazz = factory.of(formula.formula());
-      var canonicalRepresentative = clazz.canonicalRepresentative();
+      var canonicalRepresentative = clazz.canonicalRepresentativeDnf();
 
       assertEquals(clazz.disjunctiveNormalForm(),
         NormalForms.toDnf(canonicalRepresentative));
+      assertEquals(clazz,
+        factory.of(canonicalRepresentative));
+      assertEquals(clazz.unfold(),
+        factory.of(canonicalRepresentative.unfold()));
+      assertEquals(clazz.temporalStep(new BitSet()),
+        factory.of(canonicalRepresentative.temporalStep(new BitSet())));
+    }
+  }
+
+  @Test
+  void testCnfFormulaDatabase() throws IOException {
+    Set<LabelledFormula> formulas = new HashSet<>();
+
+    for (var x : TranslationAutomatonSummaryTest.FormulaSet.values()) {
+      formulas.addAll(x.loadAndDeduplicateFormulaSet());
+    }
+
+    for (var formula : formulas) {
+      var factory = obtainFactory(formula);
+      var clazz = factory.of(formula.formula());
+
+      var canonicalRepresentative = clazz.canonicalRepresentativeCnf();
+
+      assertEquals(clazz.conjunctiveNormalForm(),
+        NormalForms.toCnf(canonicalRepresentative));
       assertEquals(clazz,
         factory.of(canonicalRepresentative));
       assertEquals(clazz.unfold(),

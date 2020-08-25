@@ -35,7 +35,6 @@ import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import owl.Bibliography;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
@@ -48,6 +47,7 @@ import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
 import owl.run.RunUtil;
 import owl.run.modules.InputReaders;
@@ -55,7 +55,6 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.util.BitSetUtil;
 
 /**
  * This class provides the entry-point for the translation from non-deterministic Büchi automata to
@@ -373,7 +372,7 @@ public final class NbaDet {
   public static <S> Automaton<BitSet, AllAcceptance> createPowerSetAutomaton(NbaAdjMat<S> adjMat) {
     return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
       adjMat.original().factory(),
-      Set.of(BitSetUtil.fromSet(adjMat.original().initialStates(), adjMat.stateMap())),
+      Set.of(BitSet2.copyOf(adjMat.original().initialStates(), adjMat.stateMap()::get)),
       AllAcceptance.INSTANCE) {
       @Override
       public Edge<BitSet> edge(BitSet state, BitSet val) {

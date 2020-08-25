@@ -20,6 +20,7 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -31,8 +32,8 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 /**
  * This is the state type of the deterministic parity automaton produced by nbadet.
@@ -75,19 +76,19 @@ public abstract class NbaDetState<S> {
    * The states are distributed in the set into the right components according to the config.
    */
   public static <S> NbaDetState<S> of(NbaDetConf<S> conf, Set<S> initialSet) {
-    return of(conf, BitSetUtil.fromSet(initialSet, conf.aut().stateMap()));
+    return of(conf, BitSet2.copyOf(initialSet, ((BiMap<S, Integer>) conf.aut().stateMap())::get));
   }
 
   public static <S> NbaDetState<S> of(NbaDetConf<S> conf, BitSet nbaSet) {
     final var rank = NbaDetStateFactory.RankGen.from(0);
 
-    final BitSet rSccs = BitSetUtil.intersection(nbaSet, conf.sets().rsccStates());
+    final BitSet rSccs = BitSet2.intersection(nbaSet, conf.sets().rsccStates());
 
-    final BitSet aSccsBuf = BitSetUtil.intersection(nbaSet, conf.sets().asccStates());
+    final BitSet aSccsBuf = BitSet2.intersection(nbaSet, conf.sets().asccStates());
 
     final var dSccs = new ArrayList<RankedSlice>();
     for (var s : conf.sets().dsccsStates()) {
-      var tmp = BitSetUtil.intersection(nbaSet, s);
+      var tmp = BitSet2.intersection(nbaSet, s);
       if (tmp.isEmpty()) {
         dSccs.add(RankedSlice.empty());
       } else {
@@ -97,7 +98,7 @@ public abstract class NbaDetState<S> {
 
     final var mSccs = new ArrayList<RankedSlice>();
     for (BitSet s : conf.sets().msccsStates()) {
-      var tmp = BitSetUtil.intersection(nbaSet, s);
+      var tmp = BitSet2.intersection(nbaSet, s);
       if (tmp.isEmpty()) {
         mSccs.add(RankedSlice.empty());
       } else {
@@ -116,7 +117,7 @@ public abstract class NbaDetState<S> {
   }
 
   /**
-   * Combined trie encoding
+   * Combined trieMap encoding
    * (the det. components are ignored here and are fully determined by configuration)
    */
   public List<BitSet> toTrieEncoding() {
@@ -170,9 +171,9 @@ public abstract class NbaDetState<S> {
    */
   @Override
   public final String toString() {
-    return "N:" + BitSetUtil.toSet(rSccs(), states::get)
-      + "\tAB:" + BitSetUtil.toSet(aSccsBuffer(), states::get)
-      + " AC: ("  + (aSccs().isPresent() ? BitSetUtil.toSet(aSccs().get().fst(), states::get)
+    return "N:" + BitSet2.asSet(rSccs(), states::get)
+      + "\tAB:" + BitSet2.asSet(aSccsBuffer(), states::get)
+      + " AC: ("  + (aSccs().isPresent() ? BitSet2.asSet(aSccs().get().fst(), states::get)
       + "=" + aSccs().get().snd() : "")
       + ") D:(" + dSccs().stream().map(sl -> sl.toString(states::get))
                                 .collect(Collectors.joining(" | "))

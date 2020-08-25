@@ -22,6 +22,7 @@ package owl.factories.jbdd;
 import static owl.factories.jbdd.EquivalenceFactory.BddEquivalenceClass;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import de.tum.in.jbdd.Bdd;
 import java.math.BigDecimal;
@@ -30,6 +31,7 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
@@ -49,6 +51,7 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Formula.TemporalOperator;
 import owl.ltl.Literal;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.PropositionalIntVisitor;
@@ -59,8 +62,8 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   private final List<String> atomicPropositions;
   private final BddVisitor visitor;
 
-  private Formula.TemporalOperator[] reverseMapping;
-  private final Map<Formula.TemporalOperator, Integer> mapping;
+  private TemporalOperator[] reverseMapping;
+  private final Map<TemporalOperator, Integer> mapping;
 
   private final int trueNode;
   private final int falseNode;
@@ -76,7 +79,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     int apSize = this.atomicPropositions.size();
     mapping = new HashMap<>();
-    reverseMapping = new Formula.TemporalOperator[apSize];
+    reverseMapping = new TemporalOperator[apSize];
     visitor = new BddVisitor();
 
     // Register literals.
@@ -102,7 +105,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   private BddEquivalenceClass of(Formula formula, boolean scanForUnknown) {
     if (scanForUnknown) {
       // Scan for unknown modal operators.
-      var newPropositions = formula.subformulas(Formula.TemporalOperator.class)
+      var newPropositions = formula.subformulas(TemporalOperator.class)
         .stream().filter(x -> !mapping.containsKey(x)).sorted().collect(Collectors.toList());
 
       if (!newPropositions.isEmpty()) {
@@ -111,7 +114,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
         int newSize = mapping.size() + newPropositions.size();
         reverseMapping = Arrays.copyOf(reverseMapping, newSize);
 
-        for (Formula.TemporalOperator proposition : newPropositions) {
+        for (TemporalOperator proposition : newPropositions) {
           int variable = bdd.variable(bdd.createVariable());
           mapping.put(proposition, variable);
           reverseMapping[variable - literalOffset] = proposition;
@@ -142,7 +145,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     }
 
     @Override
-    protected int visit(Formula.TemporalOperator formula) {
+    protected int visit(TemporalOperator formula) {
       int variable = mapping.get(formula);
       assert variable >= 0;
       return bdd.variableNode(variable);
@@ -189,139 +192,205 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   }
 
   /**
-   * Translate a BDD node into disjunctive normal form.
+   * Compute all paths to falseNode.
    */
-  private List<Map<Integer, Boolean>> nodeToDisjunctiveNormalForm(int node) {
+  private List<List<Integer>> zeroPaths(int node, Map<Integer, List<List<Integer>>> cache) {
+
+    List<List<Integer>> zeroPaths = cache.get(node);
+
+    if (zeroPaths != null) {
+      return zeroPaths;
+    }
+
+    BddEquivalenceClass wrapper = canonicalWrapper(node);
+
+    if (wrapper != null && wrapper.zeroPathsCache != null) {
+      zeroPaths = wrapper.zeroPathsCache;
+      cache.put(node, zeroPaths);
+      return zeroPaths;
+    }
+
     if (node == trueNode) {
-      var list = new ArrayList<Map<Integer, Boolean>>();
-      list.add(new HashMap<>());
-      return list;
+      zeroPaths = List.of();
+      cache.put(trueNode, zeroPaths);
+      return zeroPaths;
     }
 
     if (node == falseNode) {
-      return new ArrayList<>();
+      zeroPaths = List.of(List.of());
+      cache.put(falseNode, zeroPaths);
+      return zeroPaths;
     }
 
     int variable = bdd.variable(node);
     int highNode = bdd.high(node);
     int lowNode = bdd.low(node);
 
-    var trueList = nodeToDisjunctiveNormalForm(highNode);
-    var falseList = nodeToDisjunctiveNormalForm(lowNode);
+    var highZeroPaths = zeroPaths(highNode, cache);
+    var lowZeroPaths = new ArrayList<>(zeroPaths(lowNode, cache));
+
+    boolean highImpliesLow = bdd.implies(highNode, lowNode);
+    boolean lowImpliesHigh = bdd.implies(lowNode, highNode);
+
+    if (!highImpliesLow) {
+      lowZeroPaths.replaceAll(zeroPath -> {
+        List<Integer> extendedZeroPath = new ArrayList<>(zeroPath.size() + 1);
+        extendedZeroPath.add(-(variable + 1));
+        extendedZeroPath.addAll(zeroPath);
+        extendedZeroPath.sort(Integer::compare);
+        return List.copyOf(extendedZeroPath);
+      });
+    }
 
     if (variable < atomicPropositions.size()) {
       // high and low cannot be equivalent.
-      assert !bdd.implies(highNode, lowNode) || !bdd.implies(lowNode, highNode);
+      assert !highImpliesLow || !lowImpliesHigh;
 
-      if (!bdd.implies(highNode, lowNode)) {
-        trueList.forEach(x -> x.put(variable, Boolean.TRUE));
+      if (lowImpliesHigh) {
+        lowZeroPaths.addAll(highZeroPaths);
+      } else {
+        // Update and copy into lowZeroPaths.
+        highZeroPaths.forEach(zeroPath -> {
+          List<Integer> extendedZeroPath = new ArrayList<>(zeroPath.size() + 1);
+          extendedZeroPath.add(variable);
+          extendedZeroPath.addAll(zeroPath);
+          extendedZeroPath.sort(Integer::compare);
+          lowZeroPaths.add(List.copyOf(extendedZeroPath));
+        });
       }
 
-      if (!bdd.implies(lowNode, highNode)) {
-        falseList.forEach(x -> x.put(variable, Boolean.FALSE));
-      }
     } else {
       // The represented Boolean functions are monotone.
-      assert bdd.implies(lowNode, highNode);
-      trueList.forEach(x -> x.put(variable, Boolean.TRUE));
-      // No need to update falseList, since the Boolean function is monotone.
+      assert lowImpliesHigh;
+      lowZeroPaths.addAll(highZeroPaths);
     }
 
-    trueList.addAll(falseList);
-    assert Collections3.isDistinct(trueList);
+    lowZeroPaths.sort(Comparator.comparing(List::size));
+    zeroPaths = List.copyOf(Collections3.maximalElements(
+      lowZeroPaths, EquivalenceFactory::containsAll));
+    cache.put(node, zeroPaths);
 
-    return Collections3.maximalElements(trueList, (x, y) -> x.entrySet().containsAll(y.entrySet()));
+    // Cache zeroPaths in wrapper.
+    if (wrapper != null && wrapper.zeroPathsCache == null) {
+      wrapper.zeroPathsCache = zeroPaths;
+    }
+
+    return zeroPaths;
   }
 
-  private DisjunctionSetView dnf(int node) {
-    return new DisjunctionSetView(nodeToDisjunctiveNormalForm(node));
+  /**
+   * Compute all paths to trueNode.
+   */
+  private List<List<Integer>> onePaths(int node, Map<Integer, List<List<Integer>>> cache) {
+
+    List<List<Integer>> onePaths = cache.get(node);
+
+    if (onePaths != null) {
+      return onePaths;
+    }
+
+    BddEquivalenceClass wrapper = canonicalWrapper(node);
+
+    if (wrapper != null && wrapper.onePathsCache != null) {
+      onePaths = wrapper.onePathsCache;
+      cache.put(node, onePaths);
+      return onePaths;
+    }
+
+    if (node == trueNode) {
+      onePaths = List.of(List.of());
+      cache.put(trueNode, onePaths);
+      return onePaths;
+    }
+
+    if (node == falseNode) {
+      onePaths = List.of();
+      cache.put(falseNode, onePaths);
+      return onePaths;
+    }
+
+    int variable = bdd.variable(node);
+    int highNode = bdd.high(node);
+    int lowNode = bdd.low(node);
+
+    var highOnePaths = new ArrayList<>(onePaths(highNode, cache));
+    var lowOnePaths = onePaths(lowNode, cache);
+
+    boolean highImpliesLow = bdd.implies(highNode, lowNode);
+    boolean lowImpliesHigh = bdd.implies(lowNode, highNode);
+
+    if (!highImpliesLow) {
+      highOnePaths.replaceAll(onePath -> {
+        List<Integer> extendedOnePath = new ArrayList<>(onePath.size() + 1);
+        extendedOnePath.add(variable);
+        extendedOnePath.addAll(onePath);
+        extendedOnePath.sort(Integer::compare);
+        return List.copyOf(extendedOnePath);
+      });
+    }
+
+    if (variable < atomicPropositions.size()) {
+      // high and low cannot be equivalent.
+      assert !highImpliesLow || !lowImpliesHigh;
+
+      if (lowImpliesHigh) {
+        highOnePaths.addAll(lowOnePaths);
+      } else {
+        // Update and copy into highOnePaths.
+        lowOnePaths.forEach(onePath -> {
+          List<Integer> extendedOnePath = new ArrayList<>(onePath.size() + 1);
+          extendedOnePath.add(-(variable + 1));
+          extendedOnePath.addAll(onePath);
+          extendedOnePath.sort(Integer::compare);
+          highOnePaths.add(List.copyOf(extendedOnePath));
+        });
+      }
+
+    } else {
+      // The represented Boolean functions are monotone.
+      assert lowImpliesHigh;
+      highOnePaths.addAll(lowOnePaths);
+    }
+
+    highOnePaths.sort(Comparator.comparing(List::size));
+    onePaths = List.copyOf(Collections3.maximalElements(
+      highOnePaths, EquivalenceFactory::containsAll));
+    cache.put(node, onePaths);
+
+    // Cache onePaths in wrapper.
+    if (wrapper != null && wrapper.onePathsCache == null) {
+      wrapper.onePathsCache = onePaths;
+    }
+
+    return onePaths;
   }
 
-  private class DisjunctionSetView extends AbstractSet<Set<Formula>> {
-    private final List<Map<Integer, Boolean>> disjunctiveNormalForm;
+  private static boolean containsAll(List<Integer> path, List<Integer> otherPath) {
+    // Index in the path list.
+    int j = 0;
+    int pathSize = path.size();
 
-    private DisjunctionSetView(List<Map<Integer, Boolean>> disjunctiveNormalForm) {
-      this.disjunctiveNormalForm = disjunctiveNormalForm.stream()
-        .map(Map::copyOf)
-        .collect(Collectors.toUnmodifiableList());
-    }
+    for (int i = 0, otherPathSize = otherPath.size(); i < otherPathSize; i++) {
 
-    @Override
-    public Iterator<Set<Formula>> iterator() {
-      class Iter implements Iterator<Set<Formula>> {
-        private final Iterator<Map<Integer, Boolean>> iterator = disjunctiveNormalForm.iterator();
-
-        @Override
-        public boolean hasNext() {
-          return iterator.hasNext();
-        }
-
-        @Override
-        public Set<Formula> next() {
-          return new ConjunctionSetView(iterator.next());
-        }
+      // There are too many elements left in otherPath, path cannot contain all elements of it.
+      if (pathSize - j < otherPathSize - i) {
+        return false;
       }
 
-      return new Iter();
-    }
+      int value = Integer.MIN_VALUE;
+      int otherValue = otherPath.get(i);
 
-    @Override
-    public Stream<Set<Formula>> stream() {
-      return disjunctiveNormalForm.stream().map(ConjunctionSetView::new);
-    }
-
-    @Override
-    public int size() {
-      return disjunctiveNormalForm.size();
-    }
-  }
-
-  private class ConjunctionSetView extends AbstractSet<Formula> {
-    private final Map<Integer, Boolean> clause;
-
-    private ConjunctionSetView(Map<Integer, Boolean> clause) {
-      this.clause = clause;
-    }
-
-    @Override
-    public Iterator<Formula> iterator() {
-      class Iter implements Iterator<Formula> {
-        private final Iterator<Map.Entry<Integer, Boolean>> iterator = clause.entrySet().iterator();
-
-        @Override
-        public boolean hasNext() {
-          return iterator.hasNext();
-        }
-
-        @Override
-        public Formula next() {
-          return toFormula(iterator.next());
-        }
+      // Search in the sorted list for a matching value
+      for (; value < otherValue && j < pathSize; j++) {
+        value = path.get(j);
       }
 
-      return new Iter();
-    }
-
-    @Override
-    public Stream<Formula> stream() {
-      return clause.entrySet().stream().map(this::toFormula);
-    }
-
-    @Override
-    public int size() {
-      return clause.size();
-    }
-
-    private Formula toFormula(Map.Entry<Integer, Boolean> entry) {
-      int literalOffset = EquivalenceFactory.this.atomicPropositions.size();
-
-      if (entry.getKey() < literalOffset) {
-        return Literal.of(entry.getKey(), !entry.getValue());
+      if (value != otherValue) {
+        return false;
       }
-
-      assert entry.getValue() : "Only positive temporal operators expected.";
-      return reverseMapping[entry.getKey() - literalOffset];
     }
+
+    return true;
   }
 
   /**
@@ -338,11 +407,13 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     // Caches
     @Nullable
-    private Set<Formula.TemporalOperator> temporalOperatorsCache;
+    private Set<TemporalOperator> temporalOperatorsCache;
     @Nullable
     private BddEquivalenceClass unfoldCache;
     @Nullable
-    private DisjunctionSetView disjunctiveNormalFormCache;
+    private List<List<Integer>> zeroPathsCache;
+    @Nullable
+    private List<List<Integer>> onePathsCache;
 
     private double truenessCache = Double.NaN;
 
@@ -354,12 +425,21 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     }
 
     @Override
-    public Set<Set<Formula>> disjunctiveNormalForm() {
-      if (disjunctiveNormalFormCache == null) {
-        disjunctiveNormalFormCache = factory.dnf(node);
+    public Set<Set<Formula>> conjunctiveNormalForm() {
+      if (zeroPathsCache == null) {
+        zeroPathsCache = List.copyOf(factory.zeroPaths(node, new HashMap<>()));
       }
 
-      return Objects.requireNonNull(disjunctiveNormalFormCache);
+      return new CnfView(factory.atomicPropositions.size(), factory.reverseMapping, zeroPathsCache);
+    }
+
+    @Override
+    public Set<Set<Formula>> disjunctiveNormalForm() {
+      if (onePathsCache == null) {
+        onePathsCache = List.copyOf(factory.onePaths(node, new HashMap<>()));
+      }
+
+      return new DnfView(factory.atomicPropositions.size(), onePathsCache, factory.reverseMapping);
     }
 
     private Formula representative() {
@@ -413,7 +493,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     }
 
     @Override
-    public Set<Formula.TemporalOperator> temporalOperators() {
+    public Set<TemporalOperator> temporalOperators() {
       if (temporalOperatorsCache == null) {
         BitSet support = factory.bdd.support(node);
         int literalOffset = factory.atomicPropositions.size();
@@ -449,7 +529,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     @Override
     public EquivalenceClass substitute(
-      Function<? super Formula.TemporalOperator, ? extends Formula> substitution) {
+      Function<? super TemporalOperator, ? extends Formula> substitution) {
       return factory.of(representative().substitute(substitution), true);
     }
 
@@ -543,12 +623,185 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
       return truenessCache;
     }
 
-
     @Override
     public boolean equals(Object obj) {
       // Check that we are not comparing classes of different factories
       assert !(obj instanceof EquivalenceClass) || ((EquivalenceClass) obj).factory() == factory();
       return this == obj;
+    }
+  }
+
+  private static class CnfView extends AbstractSet<Set<Formula>> {
+    private final int atomicPropositions;
+    private final TemporalOperator[] reverseMapping;
+    private final List<List<Integer>> zeroPaths;
+
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
+    private CnfView(
+      int atomicPropositions, TemporalOperator[] reverseMapping, List<List<Integer>> zeroPaths) {
+      this.atomicPropositions = atomicPropositions;
+      this.reverseMapping = reverseMapping;
+      this.zeroPaths = zeroPaths;
+    }
+
+    @Override
+    public Iterator<Set<Formula>> iterator() {
+      return Iterators.transform(zeroPaths.iterator(), this::transform);
+    }
+
+    @Override
+    public Stream<Set<Formula>> stream() {
+      return zeroPaths.stream().map(this::transform);
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return zeroPaths.isEmpty();
+    }
+
+    @Override
+    public int size() {
+      return zeroPaths.size();
+    }
+
+    private CnfClauseView transform(List<Integer> zeroPath) {
+      return new CnfClauseView(atomicPropositions, reverseMapping, zeroPath);
+    }
+  }
+
+  private static class DnfView extends AbstractSet<Set<Formula>> {
+    private final int atomicPropositions;
+    private final List<List<Integer>> onePaths;
+    private final TemporalOperator[] reverseMapping;
+
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
+    private DnfView(
+      int atomicPropositions, List<List<Integer>> onePaths, TemporalOperator[] reverseMapping) {
+      this.atomicPropositions = atomicPropositions;
+      this.onePaths = onePaths;
+      this.reverseMapping = reverseMapping;
+    }
+
+    @Override
+    public Iterator<Set<Formula>> iterator() {
+      return Iterators.transform(onePaths.iterator(), this::transform);
+    }
+
+    @Override
+    public Stream<Set<Formula>> stream() {
+      return onePaths.stream().map(this::transform);
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return onePaths.isEmpty();
+    }
+
+    @Override
+    public int size() {
+      return onePaths.size();
+    }
+
+    private DnfClauseView transform(List<Integer> onePath) {
+      return new DnfClauseView(atomicPropositions, onePath, reverseMapping);
+    }
+  }
+
+  private static class CnfClauseView extends AbstractSet<Formula> {
+    private final int atomicPropositions;
+    private final TemporalOperator[] reverseMapping;
+    private final List<Integer> zeroPath;
+
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
+    private CnfClauseView(
+      int atomicPropositions, TemporalOperator[] reverseMapping, List<Integer> zeroPath) {
+      this.atomicPropositions = atomicPropositions;
+      this.reverseMapping = reverseMapping;
+      this.zeroPath = zeroPath;
+    }
+
+    @Override
+    public Iterator<Formula> iterator() {
+      return Iterators.transform(zeroPath.iterator(), this::transform);
+    }
+
+    @Override
+    public Stream<Formula> stream() {
+      return zeroPath.stream().map(this::transform);
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return zeroPath.isEmpty();
+    }
+
+    @Override
+    public int size() {
+      return zeroPath.size();
+    }
+
+    private Formula transform(int zeroPathNode) {
+      assert zeroPathNode < atomicPropositions : "Node encodes non-negated TemporalOperator";
+
+      if (0 <= zeroPathNode) {
+        return Literal.of(zeroPathNode, true);
+      }
+
+      int negatedNode = -(zeroPathNode + 1);
+
+      if (negatedNode < atomicPropositions) {
+        return Literal.of(negatedNode);
+      }
+
+      return reverseMapping[negatedNode - atomicPropositions];
+    }
+  }
+
+  private static class DnfClauseView extends AbstractSet<Formula> {
+    private final int atomicPropositions;
+    private final List<Integer> onePath;
+    private final TemporalOperator[] reverseMapping;
+
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
+    private DnfClauseView(
+      int atomicPropositions, List<Integer> onePath, TemporalOperator[] reverseMapping) {
+      this.atomicPropositions = atomicPropositions;
+      this.onePath = onePath;
+      this.reverseMapping = reverseMapping;
+    }
+
+    @Override
+    public Iterator<Formula> iterator() {
+      return Iterators.transform(onePath.iterator(), this::transform);
+    }
+
+    @Override
+    public Stream<Formula> stream() {
+      return onePath.stream().map(this::transform);
+    }
+
+    @Override
+    public boolean isEmpty() {
+      return onePath.isEmpty();
+    }
+
+    @Override
+    public int size() {
+      return onePath.size();
+    }
+
+    private Formula transform(int onePathNode) {
+      assert -(atomicPropositions + 1) <= onePathNode : "Node encodes negation of TemporalOperator";
+
+      if (onePathNode < 0) {
+        return Literal.of(-(onePathNode + 1), true);
+      }
+
+      if (onePathNode < atomicPropositions) {
+        return Literal.of(onePathNode);
+      }
+
+      return reverseMapping[onePathNode - atomicPropositions];
     }
   }
 }

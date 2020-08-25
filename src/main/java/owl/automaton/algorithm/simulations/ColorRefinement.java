@@ -31,10 +31,10 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
-import owl.util.BitSetUtil;
 
 /**
  * Computes direct simulation relation of an automaton based on the color refinement algorithm. See
@@ -246,7 +246,7 @@ public class ColorRefinement<S> {
 
     public static NeighborType of(int colour, BitSet set, ValuationSetFactory factory, boolean a) {
       return new AutoValue_ColorRefinement_NeighborType(
-        colour, BitSetUtil.toInt(set), a, factory
+        colour, BitSet2.toInt(set), a, factory
       );
     }
 
@@ -274,7 +274,7 @@ public class ColorRefinement<S> {
       return "("
         + colour()
         + ", \""
-        + factory().toExpression(factory().of(BitSetUtil.fromInt(valuation())))
+        + factory().toExpression(factory().of(BitSet2.fromInt(valuation())))
         + "\") ";
     }
   }

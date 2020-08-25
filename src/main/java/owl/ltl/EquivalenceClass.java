@@ -34,6 +34,8 @@ import owl.ltl.visitors.Visitor;
  */
 public interface EquivalenceClass extends LtlLanguageExpressible {
 
+  Set<Set<Formula>> conjunctiveNormalForm();
+
   Set<Set<Formula>> disjunctiveNormalForm();
 
   /**
@@ -42,8 +44,18 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
    *
    * @return The canonical representative.
    */
-  default Formula canonicalRepresentative() {
+  default Formula canonicalRepresentativeDnf() {
     return Disjunction.of(disjunctiveNormalForm().stream().map(Conjunction::of));
+  }
+
+  /**
+   * The canonical representative for this equivalence class, which is defined as the formula
+   * representation of the {@link EquivalenceClass#conjunctiveNormalForm()}.
+   *
+   * @return The canonical representative.
+   */
+  default Formula canonicalRepresentativeCnf() {
+    return Conjunction.of(conjunctiveNormalForm().stream().map(Disjunction::of));
   }
 
   EquivalenceClassFactory factory();
@@ -74,7 +86,7 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   EquivalenceClass or(EquivalenceClass other);
 
   default EquivalenceClass accept(Visitor<? extends Formula> visitor) {
-    return factory().of(canonicalRepresentative().accept(visitor));
+    return factory().of(canonicalRepresentativeDnf().accept(visitor));
   }
 
   /**

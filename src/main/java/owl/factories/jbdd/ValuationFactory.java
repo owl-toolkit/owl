@@ -116,7 +116,7 @@ final class ValuationFactory extends GcManagedFactory<BddValuationSet>
     // TODO Make this native to the bdd?
     int variables = bdd.numberOfVariables();
 
-    BitSet restrictedVariables = BitSets.copyOf(restriction);
+    BitSet restrictedVariables = owl.collections.BitSet2.copyOf(restriction);
     restrictedVariables.flip(0, variables);
 
     int restrict = bdd.restrict(getNode(set), restrictedVariables, new BitSet());

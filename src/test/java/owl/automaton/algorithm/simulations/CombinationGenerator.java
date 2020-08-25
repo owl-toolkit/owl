@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.util;
+package owl.automaton.algorithm.simulations;
 
 import com.google.common.collect.Lists;
 import java.util.ArrayList;
@@ -27,7 +27,7 @@ public final class CombinationGenerator {
 
   private CombinationGenerator() {}
 
-  public static int count(int mask) {
+  private static int count(int mask) {
     int n;
     int m = mask;
     for (n = 0; m > 0; ++n) {

@@ -24,9 +24,9 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.IntFunction;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 /**
  * This module wraps some implementation details of how to apply known language inclusions
@@ -95,10 +95,10 @@ final class SubsumedStatesMap {
     return mask.isEmpty();
   }
 
-  public <S> String toString(Function<Integer, S> stmap) {
+  public <S> String toString(IntFunction<S> stmap) {
     var sb = new StringBuilder();
     mask.entrySet().stream().map(e ->
-      stmap.apply(e.getKey()) + " > " + BitSetUtil.toSet(e.getValue(), stmap) + '\n')
+      stmap.apply(e.getKey()) + " > " + BitSet2.asSet(e.getValue(), stmap) + '\n')
            .forEach(sb::append);
     return sb.toString();
   }

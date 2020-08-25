@@ -1,0 +1,1629 @@
+[
+  {
+    "formula": "false",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "a",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(a & b)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(a | b)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a & b) | (!a & !b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a & !b) | (!a & b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "Fa",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "Xa",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) M (b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) R (b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa & Fb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa & Gb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa & Xb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | Fb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | Xb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "X(a & b)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa & XF!a)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | XF!a)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "XFa",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "XXFa",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "FGa",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "(FGa & FGb)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "(GFa & GFb)",
+    "properties": [
+      [
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "roundRobinCounter": 1
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa & GFb)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "FG(a | Xb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "FG(a | Xb | XXc)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa & FGb & FGc)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "F(a & Gb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | FGb)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(a & b)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(F(a & b) | FGb)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "XF(a & b)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa | XF(a & b))",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa | XFb)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(a & Xb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa | F(a & Xb))",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa | F(b & Xa))",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(a & ((b) M (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(a & ((b) R (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(a & ((b) U (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(a & ((b) W (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | F(b & c))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | F(b & c) | FGc)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | Fb | FGc)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(Ga & ((b) M (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(Ga & ((b) R (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(Ga & ((b) U (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "F(Ga & ((b) W (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(F(a & b) | FGc)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(F(a & b) | FGb | FGc)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | FGb | FGc)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  }
+]

@@ -21,14 +21,13 @@ package owl.collections;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
-import com.google.common.collect.Iterables;
 import java.util.AbstractList;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.BitSet;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -47,7 +46,7 @@ import javax.annotation.Nullable;
 public final class Collections3 {
   private Collections3() {}
 
-  public static <E> List<E> add(List<E> list, E element) {
+  public static <E> List<E> add(List<? extends E> list, E element) {
     if (list.isEmpty()) {
       return List.of(element);
     }
@@ -75,6 +74,35 @@ public final class Collections3 {
         return list.size() + 1;
       }
     };
+  }
+
+  /**
+   * This method is null-hostile.
+   */
+  public static <K, V> boolean containsAll(
+    Map<? extends K, ? extends V> map1, Map<? extends K, ? extends V> map2) {
+
+    if (map2.size() > map1.size()) {
+      return false;
+    }
+
+    for (var entry2 : map2.entrySet()) {
+      K key = Objects.requireNonNull(entry2.getKey());
+      V value1 = map1.get(key);
+      V value2 = Objects.requireNonNull(entry2.getValue());
+
+      if (!value2.equals(value1)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public static <E extends Comparable<E>> boolean sorted(List<E> list) {
+    var sortedCopy = new ArrayList<>(list);
+    sortedCopy.sort(Comparator.naturalOrder());
+    return list.equals(sortedCopy);
   }
 
   public static <K, V> Map<K, V> add(Map<K, V> map, K key, V value) {
@@ -178,7 +206,7 @@ public final class Collections3 {
   }
 
   public static <E1, E2> void forEachPair(Iterable<E1> iterable1, Iterable<E2> iterable2,
-    BiConsumer<E1, E2> action) {
+    BiConsumer<? super E1, ? super E2> action) {
     Iterator<E1> iterator1 = iterable1.iterator();
     Iterator<E2> iterator2 = iterable2.iterator();
 
@@ -189,11 +217,36 @@ public final class Collections3 {
     checkArgument(!iterator1.hasNext() && !iterator2.hasNext(), "Length mismatch.");
   }
 
-  public static <E> boolean isDistinct(List<E> distinctList) {
-    Set<E> set = new HashSet<>(distinctList.size());
+  public static <K, V1, V2> void forEachJointKey(
+    Map<? extends K, ? extends V1> map1,
+    Map<? extends K, ? extends V2> map2,
+    TriConsumer<? super K, ? super V1, ? super V2> consumer) {
 
-    for (E element : distinctList) {
+    map1.forEach((K key, V1 value1) -> {
+      V2 value2 = map2.get(key);
+      if (value2 != null) {
+        consumer.accept(key, value1, value2);
+      }
+    });
+  }
+
+  public static <E> boolean isDistinct(List<E> list) {
+    Set<E> set = new HashSet<>(list.size());
+
+    for (E element : list) {
       if (!set.add(element)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public static <K, V> boolean hasDistinctValues(Map<K, V> map) {
+    Set<V> uniqueValues = new HashSet<>(map.size());
+
+    for (V value : map.values()) {
+      if (!uniqueValues.add(value)) {
         return false;
       }
     }
@@ -214,36 +267,34 @@ public final class Collections3 {
    * @param <E> the type
    * @return a sublist only containing maximal elements.
    */
-  public static <E> List<E> maximalElements(List<E> elements, BiPredicate<E, E> isLessThan) {
+  public static <E> List<E> maximalElements(
+    List<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
+
+    // To-Do: This is a performance-sensitive method.
+    // To-Do: Migrate to array, remove lambda expressions for better performance.
     var maximalElements = new ArrayList<E>(elements.size());
     var seenElements = new HashSet<E>();
-    elements.forEach(x -> {
-      if (seenElements.add(x)) {
-        maximalElements.add(x);
+
+    for (E element : elements) {
+      Objects.requireNonNull(element);
+
+      if (seenElements.add(element)) {
+        maximalElements.add(element);
       }
-    });
+    }
 
-    boolean continueIteration;
-
-    do {
+    boolean continueIteration = true;
+    while (continueIteration) {
       continueIteration = false;
-      var iterator = maximalElements.listIterator();
 
-      while (iterator.hasNext()) {
-        E element = iterator.next();
-
-        for (E otherElement : Iterables.concat(
-          maximalElements.subList(0, iterator.previousIndex()),
-          maximalElements.subList(iterator.nextIndex(), maximalElements.size()))) {
-
-          if (isLessThan.test(element, otherElement)) {
-            iterator.remove();
-            continueIteration = true;
-            break;
-          }
-        }
+      for (int j = 0; j < maximalElements.size(); j++) {
+        E element = maximalElements.get(j);
+        // To-Do: Drop removeIf predicate, since it calls isLessThan twice for each pair!
+        continueIteration |= maximalElements.removeIf(
+          otherElement -> element != otherElement // We de-duplicated before using a HashSet.
+            && isLessThan.test(otherElement, element));
       }
-    } while (continueIteration);
+    }
 
     return maximalElements;
   }
@@ -390,41 +441,8 @@ public final class Collections3 {
     var a2 = s2.toArray(Comparable[]::new);
     Arrays.sort(a1);
     Arrays.sort(a2);
-    return Arrays.compare(a1, a2);
-  }
-
-  public static BitSet toBitSet(Set<Integer> set) {
-    BitSet bitSet = new BitSet(set.size());
-    set.forEach(bitSet::set);
-    return bitSet;
-  }
-
-  public static Set<Integer> asSet(BitSet bitSet) {
-    return new AbstractSet<>() {
-      @Override
-      public boolean isEmpty() {
-        return bitSet.isEmpty();
-      }
-
-      @Override
-      public boolean contains(Object o) {
-        if (o instanceof Integer) {
-          int element = (Integer) o;
-          return bitSet.get(element);
-        }
-
-        return false;
-      }
-
-      @Override
-      public Iterator<Integer> iterator() {
-        return bitSet.stream().iterator();
-      }
-
-      @Override
-      public int size() {
-        return bitSet.cardinality();
-      }
-    };
+    @SuppressWarnings("unchecked")
+    int value = Arrays.compare(a1, a2);
+    return value;
   }
 }

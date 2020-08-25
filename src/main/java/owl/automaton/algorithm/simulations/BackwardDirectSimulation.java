@@ -28,11 +28,11 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.Environment;
-import owl.util.BitSetUtil;
 
 public class BackwardDirectSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
@@ -126,7 +126,7 @@ public class BackwardDirectSimulation<S>
       }));
     } else {
       var possibilities = state.even()
-        .predecessors(leftAutomaton, BitSetUtil.fromInt(state.valuation()));
+        .predecessors(leftAutomaton, BitSet2.fromInt(state.valuation()));
       if (possibilities.isEmpty()) {
         out.put(Edge.of(sinkState, 1), factory.universe());
         return out;

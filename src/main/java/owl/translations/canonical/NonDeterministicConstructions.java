@@ -123,7 +123,7 @@ public final class NonDeterministicConstructions {
 
       // Only a, !a, and X \psi are present. Thus we unfold deterministically.
       if (equivalenceClass.temporalOperators().stream().allMatch(XOperator.class::isInstance)) {
-        return Set.of(equivalenceClass.canonicalRepresentative());
+        return Set.of(equivalenceClass.canonicalRepresentativeDnf());
       }
 
       Map<Set<Formula>, Set<Set<Formula>>> groupedClauses = new HashMap<>();

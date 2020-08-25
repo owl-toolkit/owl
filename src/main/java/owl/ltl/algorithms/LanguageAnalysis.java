@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
+import owl.ltl.Biconditional;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -49,6 +50,10 @@ public final class LanguageAnalysis {
 
   public static boolean isUniversal(Formula formula) {
     return isUnsatisfiable(formula.not());
+  }
+
+  public static boolean isEqual(Formula formula1, Formula formula2) {
+    return !isSatisfiable(Biconditional.of(formula1, formula2.not()));
   }
 
   private static LabelledFormula attachDummyAlphabet(Formula formula) {

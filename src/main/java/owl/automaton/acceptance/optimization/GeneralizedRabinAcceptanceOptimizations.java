@@ -58,6 +58,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 
 public final class GeneralizedRabinAcceptanceOptimizations {
   private static final Logger logger = Logger.getLogger(GeneralizedRabinAcceptance.class.getName());
@@ -127,7 +128,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     BitSet defaultConsequent = new BitSet(acceptanceSets);
     defaultConsequent.set(0, acceptanceSets);
     BitSet[] impliesMap = new BitSet[acceptanceSets];
-    Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
+    Arrays.setAll(impliesMap, i -> BitSet2.copyOf(defaultConsequent));
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) ->
       edge.forEachAcceptanceSet((int index) -> {
@@ -360,7 +361,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
     for (int sccIndex = 0; sccIndex < sccs.size(); sccIndex++) {
       Set<S> scc = sccs.get(sccIndex);
-      Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
+      Arrays.setAll(impliesMap, i -> BitSet2.copyOf(defaultConsequent));
 
       // Build implication matrix on this SCC, including vacuous implications (!)
       for (S state : scc) {

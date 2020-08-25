@@ -28,11 +28,11 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 import owl.run.Environment;
-import owl.util.BitSetUtil;
 
 public class ForwardDelayedSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
@@ -121,7 +121,7 @@ public class ForwardDelayedSimulation<S>
     } else {
       var possible = state
         .even()
-        .successors(rightAutomaton, BitSetUtil.fromInt(state.valuation()));
+        .successors(rightAutomaton, BitSet2.fromInt(state.valuation()));
 
       // if no successor is possible for Duplicator, we go to the sink
       if (possible.size() == 0) {

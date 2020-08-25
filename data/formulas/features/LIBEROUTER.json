@@ -1,0 +1,3210 @@
+[
+  {
+    "formula": "(GFa & GF!a)",
+    "properties": [
+      [
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "roundRobinCounter": 1
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(GF(a & X!a) | GF(!a & Xa) | GF(b & X!b) | GF(!b & Xb))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(GF(a & X!a) | GF(!a & Xa) | GF(b & X!b) | GF(!b & Xb) | GF(c & X!c) | GF(!c & Xc) | GF(d & X!d) | GF(!d & Xd))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "Ga",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(!a | F(a & b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "true",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | Fb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | Fb | Fc)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | Fb | Fc | Fd)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G(a | Fb) & G(c | Fd) & G(e | Ff) & G(g | Fh))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            10,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            10,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            7,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            9,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            6,
+            9,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            7,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            7,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            8,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            6,
+            8,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            7,
+            8,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            7,
+            8,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5,
+            8,
+            10,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            6,
+            8,
+            9,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 2
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Ga & Gb)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | (b & !c) | (!b & c))",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b | (c & d & e))",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b | c | d | e)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b | c | d | e | F(f & g & h & i))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            6
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | c | d | e | f)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | (b & !c) | (!b & c) | (d & e & f & g))",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b | c | d | e | f | g)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b | c | d | e | f | g | h)",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "G(a | b | c | X!c | X(d | X(b | d)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | c | X!c | X(Xb | ((c) U (((!c) U (((c) U ((b | d)))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Fa | Fb | Fc | XF!b | X(Xa | ((b) U (((!b) U (((b) U ((a | d)))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | ((b) U (((!b) U ((c | d))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | Xc)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(!a | X(a | b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | X(!e & (((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d)))) U (e))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            32,
+            33,
+            34,
+            35,
+            36,
+            37,
+            38,
+            39,
+            40,
+            41,
+            42,
+            43,
+            44,
+            45,
+            46,
+            47
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            32,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            33,
+            49,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            34,
+            49,
+            51,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            35,
+            49,
+            51,
+            53,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            4,
+            36,
+            49,
+            51,
+            53,
+            55,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            5,
+            37,
+            49,
+            51,
+            53,
+            55,
+            57,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            6,
+            38,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            7,
+            39,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            8,
+            40,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            9,
+            41,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            69,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            10,
+            42,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            71,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            11,
+            43,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            73,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            12,
+            44,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            75,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            13,
+            45,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            77,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            14,
+            46,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            79
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            15,
+            47,
+            49,
+            51,
+            53,
+            55,
+            57,
+            59,
+            61,
+            63,
+            65,
+            67,
+            69,
+            71,
+            73,
+            75,
+            77
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            16,
+            32,
+            48
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            17,
+            33,
+            50
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            18,
+            34,
+            52
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            19,
+            35,
+            54
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            20,
+            36,
+            56
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            21,
+            37,
+            58
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            22,
+            38,
+            60
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            23,
+            39,
+            62
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            24,
+            40,
+            64
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            25,
+            41,
+            66
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            26,
+            42,
+            68
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            27,
+            43,
+            70
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            28,
+            44,
+            72
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            29,
+            45,
+            74
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            30,
+            46,
+            76
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            31,
+            47,
+            78
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | c | Xa | X!b | Xd)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | X((a) U (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | X!a | X((a) W (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | X!a | X((a) U ((a & !b & X(a & b)))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            7
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | X!a | X((a) U ((a & !b & X(a & b & ((a) U ((a & !b & X(a & b)))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            5,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            7,
+            8,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(!a | Xa | X((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b)))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(!a | Xa | X((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b)))))))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | X!a | X(((a | X!a)) U ((!b & Xb))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | Xa)))))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            9
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            11
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G((!a & Xa) | (b & Xb) | (!b & X!b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G((!a & Xa) | ((b | X!b) & (!b | Xb)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) U ((G(b | c) & G(b | d) & G(b | e) & G(c | d) & G(c | e) & G(d | e))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) U (b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) W (b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(a & XG!a)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "XG(a | b | ((!b) W (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "XG(a | !b | ((b) W (c)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(Xa & G(a | X!a | XXa))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ]
+    ]
+  }
+]

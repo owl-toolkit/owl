@@ -1,0 +1,10996 @@
+[
+  {
+    "formula": "Ga",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "(G!a | ((b) U (a)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | Gb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | G!b | ((c) U (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | ((c) W (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) W ((a & b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | F(a & Fb))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | ((!b) W ((!b & c))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | ((!b) U ((!b & c))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((!a) W (((a) W (((!a) W (((a) W (G!a))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | (((!a & !b)) U ((a | (((!a & b)) U ((a | (((!a & !b)) U ((a | (((!a & b)) U ((a | ((!b) U (a)))))))))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((!a) W ((a & ((!b) W (((b) W (((!b) W (((b) W (G!b)))))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G!b | (((!b & !c)) U ((b | (((!b & c)) U ((b | (((!b & !c)) U ((b | (((!b & c)) U ((b | ((!c) U (b)))))))))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | (((!b & !c)) U ((c | (((b & !c)) U ((c | (((!b & !c)) U ((c | (((b & !c)) U ((c | Gb | ((!b) W (c)))))))))))))))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 3
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) W (b))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | ((b) U ((a | c))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | F(a & ((b) W (c))))",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | G!b | ((c) U ((b | d))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | ((c) W ((b | d))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | Fb)",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | (((b | ((!a) U ((!a & c))))) U (a)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G(b | Fc))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | G!b | (((c | ((!b) U ((!b & d))))) U (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            6
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | b | (((c | ((!b) U ((!b & d))))) W (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) W ((a & b & X((a) U (c)))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | ((b) U ((a | (b & c & X((b) U (d)))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((a) W ((a | ((b) W ((b & c & X((b) U (d))))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G!b | ((c) U ((b | (c & d & X((c) U (e)))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            5,
+            6,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | ((b) W ((c | (b & d & X((b) U (e)))))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(((a) U (b)) | G(a | XGc))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | (((a | b | X((a) R ((a | c))))) U ((a | d))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "((!a) W ((a & (((b) U (c)) | G(b | XGd)))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G!b | (((b | c | X((b) R ((b | d))))) U ((b | e))))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G(b | XGc) | (((b | d | X((d) R ((c | d))))) U ((d | e))))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 9
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 9
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            4,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            4,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            4,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            4,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            2,
+            4,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 9
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": 9
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 12
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | XG!b | XF(b & Fc))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | (((b | X((a) R (!c)) | X((!a) U ((c & Fd))))) U (a)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            7,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            6,
+            8,
+            9,
+            10,
+            11
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G(b | XG!c | XF(c & Fd)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            7,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            7,
+            8,
+            9
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            11
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            5,
+            6,
+            9,
+            10,
+            12,
+            13
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G!b | (((c | X((b) R (!d)) | X((!b) U ((d & Fe))))) U (b)))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            7,
+            15
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            10,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            10,
+            12,
+            13
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            8,
+            9,
+            11,
+            13,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            6,
+            7,
+            8,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            6,
+            7,
+            8,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | (((b | X((c) R (!d)) | X((!c) U ((d & Fe))))) U ((c | G(b | X((c) R (!d)) | X((!c) U ((d & Fe))))))))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4,
+            15
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4,
+            15
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4,
+            15
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            3,
+            5,
+            6,
+            7,
+            8,
+            12,
+            13,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            3,
+            5,
+            6,
+            7,
+            8,
+            12,
+            13,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            5
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            5
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            6
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            12
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5,
+            6
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 6
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            4,
+            5,
+            6,
+            7,
+            9,
+            10,
+            11,
+            13,
+            14
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            7
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | F(b & XFc))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | (((b | ((!a) U ((!a & c & X((!a) U (d))))))) U (a)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            3,
+            6,
+            7,
+            8,
+            9
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            6,
+            7
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G(b | (c & XFd)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G!b | (((c | ((!b) U ((!b & d & X((!b) U (e))))))) U (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            5,
+            6,
+            8,
+            9
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            9
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | (((b | ((!c) U ((!c & d & X((!c) U (e))))))) U ((c | G(b | (d & XFe))))))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            7,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            7,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            6,
+            7,
+            10,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            6,
+            7,
+            10,
+            12,
+            13,
+            14,
+            15,
+            16
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            6,
+            12,
+            13,
+            14,
+            16
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | F(b & c & X((c) U (d))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G!a | (((b | ((!a) U ((!a & c & d & X(((!a & d)) U (e))))))) U (a)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            7,
+            10
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            8,
+            9,
+            11
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            5,
+            6,
+            11
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G(b | (c & d & X((d) U (e)))))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            4,
+            5
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | G!b | (((c | ((!b) U ((!b & d & e & X(((!b & e)) U (f))))))) U (b)))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            4,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            8
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            5,
+            6,
+            7,
+            9
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            9
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "G(a | (((b | ((!c) U ((!c & d & e & X(((!c & e)) U (f))))))) U ((c | G(b | (d & e & X((e) U (f))))))))",
+    "properties": [
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            12,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            8,
+            9,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            8,
+            9,
+            13,
+            14,
+            15,
+            16,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            13,
+            14,
+            15,
+            17
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
+  }
+]
