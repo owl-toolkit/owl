@@ -316,7 +316,7 @@ public class TranslationAutomatonSummaryTest {
     var testCases = formulaSet.stream().map(x -> TestCase.of(x, translatorFunction)).toArray();
 
     try (BufferedWriter writer = Files.newBufferedWriter(translator.referenceFile())) {
-      var gson = new GsonBuilder().setPrettyPrinting().create();
+      var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
       gson.toJson(testCases, writer);
     } catch (IOException exception) {
       fail(exception);

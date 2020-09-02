@@ -9,7 +9,7 @@
     "formula": "a"
   },
   {
-    "formula": "(a \u0026 b)"
+    "formula": "(a & b)"
   },
   {
     "formula": "(a | b)"
@@ -36,46 +36,46 @@
     "formula": "((a) W (b))"
   },
   {
-    "formula": "(a \u0026 ((b) R (a)))"
+    "formula": "(a & ((b) R (a)))"
   },
   {
-    "formula": "((a | b) \u0026 (!a | !b))"
+    "formula": "((a | b) & (!a | !b))"
   },
   {
-    "formula": "((a | !b) \u0026 (!a | b))"
+    "formula": "((a | !b) & (!a | b))"
   },
   {
-    "formula": "(Fa \u0026 F!a)"
+    "formula": "(Fa & F!a)"
   },
   {
-    "formula": "(Fa \u0026 Fb)"
+    "formula": "(Fa & Fb)"
   },
   {
-    "formula": "(Fa \u0026 Gb)"
+    "formula": "(Fa & Gb)"
   },
   {
-    "formula": "(Fa \u0026 Xb)"
+    "formula": "(Fa & Xb)"
   },
   {
-    "formula": "(Fa \u0026 ((b) R (!a)))"
+    "formula": "(Fa & ((b) R (!a)))"
   },
   {
-    "formula": "(Ga \u0026 Gb)"
+    "formula": "(Ga & Gb)"
   },
   {
-    "formula": "(Ga \u0026 Xb)"
+    "formula": "(Ga & Xb)"
   },
   {
-    "formula": "(((a) M (b)) \u0026 ((c) U (d)))"
+    "formula": "(((a) M (b)) & ((c) U (d)))"
   },
   {
     "formula": "(a | ((b) U (a)))"
   },
   {
-    "formula": "((a \u0026 b) | (!a \u0026 !b))"
+    "formula": "((a & b) | (!a & !b))"
   },
   {
-    "formula": "((a \u0026 !b) | (!a \u0026 b))"
+    "formula": "((a & !b) | (!a & b))"
   },
   {
     "formula": "(Fa | Fb)"
@@ -102,19 +102,19 @@
     "formula": "(((a) R (b)) | ((c) W (d)))"
   },
   {
-    "formula": "F(a \u0026 b)"
+    "formula": "F(a & b)"
   },
   {
-    "formula": "F(a \u0026 b \u0026 c \u0026 d \u0026 e)"
+    "formula": "F(a & b & c & d & e)"
   },
   {
-    "formula": "F(a \u0026 b \u0026 c \u0026 d \u0026 e \u0026 f)"
+    "formula": "F(a & b & c & d & e & f)"
   },
   {
-    "formula": "F(a \u0026 b \u0026 c \u0026 d \u0026 e \u0026 f \u0026 g)"
+    "formula": "F(a & b & c & d & e & f & g)"
   },
   {
-    "formula": "F(a \u0026 b \u0026 c \u0026 d \u0026 e \u0026 f \u0026 g \u0026 h)"
+    "formula": "F(a & b & c & d & e & f & g & h)"
   },
   {
     "formula": "FGa",
@@ -146,7 +146,7 @@
     "formula": "GFa"
   },
   {
-    "formula": "X(a \u0026 b)"
+    "formula": "X(a & b)"
   },
   {
     "formula": "X(a | b)"
@@ -173,7 +173,7 @@
     "formula": "((((a) R (b))) R (c))"
   },
   {
-    "formula": "((a) U ((a \u0026 b)))"
+    "formula": "((a) U ((a & b)))"
   },
   {
     "formula": "((a) U (((b) U (c))))"
@@ -185,148 +185,148 @@
     "formula": "((((a) U (b))) U (c))"
   },
   {
-    "formula": "((a) W ((a \u0026 b)))"
+    "formula": "((a) W ((a & b)))"
   },
   {
-    "formula": "(a \u0026 (Fb | Ga))"
+    "formula": "(a & (Fb | Ga))"
   },
   {
-    "formula": "(a \u0026 FGa)"
+    "formula": "(a & FGa)"
   },
   {
-    "formula": "(a \u0026 XG!a)"
+    "formula": "(a & XG!a)"
   },
   {
-    "formula": "(Fa \u0026 (a | Gb))"
+    "formula": "(Fa & (a | Gb))"
   },
   {
-    "formula": "(Fa \u0026 FGa)"
+    "formula": "(Fa & FGa)"
   },
   {
-    "formula": "(Fa \u0026 GFb)"
+    "formula": "(Fa & GFb)"
   },
   {
-    "formula": "(Fa \u0026 XF!a)"
+    "formula": "(Fa & XF!a)"
   },
   {
-    "formula": "(Fa \u0026 XFb)"
+    "formula": "(Fa & XFb)"
   },
   {
-    "formula": "(Fa \u0026 ((((a) R (b))) M (!a)))"
+    "formula": "(Fa & ((((a) R (b))) M (!a)))"
   },
   {
-    "formula": "(Fa \u0026 ((b) R ((!a \u0026 c))))"
+    "formula": "(Fa & ((b) R ((!a & c))))"
   },
   {
-    "formula": "(Fa \u0026 (((a \u0026 b)) R (b)))"
+    "formula": "(Fa & (((a & b)) R (b)))"
   },
   {
-    "formula": "(F!a \u0026 XFa)"
+    "formula": "(F!a & XFa)"
   },
   {
-    "formula": "(Ga \u0026 G(b | c))"
+    "formula": "(Ga & G(b | c))"
   },
   {
-    "formula": "(Ga \u0026 GFb)"
+    "formula": "(Ga & GFb)"
   },
   {
-    "formula": "(G!a \u0026 ((a \u0026 b) | (!a \u0026 !b)))"
+    "formula": "(G!a & ((a & b) | (!a & !b)))"
   },
   {
-    "formula": "((Fa | Gb) \u0026 (Fb | Gc))"
+    "formula": "((Fa | Gb) & (Fb | Gc))"
   },
   {
-    "formula": "((Fa | G!b) \u0026 (Fb | G!a))"
+    "formula": "((Fa | G!b) & (Fb | G!a))"
   },
   {
-    "formula": "(FGa \u0026 FGb)"
+    "formula": "(FGa & FGb)"
   },
   {
-    "formula": "(FGa \u0026 GFb)"
+    "formula": "(FGa & GFb)"
   },
   {
-    "formula": "(G(a | b) \u0026 GFb)"
+    "formula": "(G(a | b) & GFb)"
   },
   {
-    "formula": "(G(a | b) \u0026 GFc)"
+    "formula": "(G(a | b) & GFc)"
   },
   {
-    "formula": "(GFa \u0026 GF!a)"
+    "formula": "(GFa & GF!a)"
   },
   {
-    "formula": "(GFa \u0026 GFb)"
+    "formula": "(GFa & GFb)"
   },
   {
-    "formula": "(GFa \u0026 XGb)"
+    "formula": "(GFa & XGb)"
   },
   {
-    "formula": "(Ga \u0026 Gb \u0026 GFc)"
+    "formula": "(Ga & Gb & GFc)"
   },
   {
-    "formula": "(Ga \u0026 G(b | c) \u0026 GFc)"
+    "formula": "(Ga & G(b | c) & GFc)"
   },
   {
-    "formula": "(Ga \u0026 GFb \u0026 GFc)"
+    "formula": "(Ga & GFb & GFc)"
   },
   {
-    "formula": "((Fa | Gb) \u0026 (Fb | Gc) \u0026 (Fc | Gd))"
+    "formula": "((Fa | Gb) & (Fb | Gc) & (Fc | Gd))"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 FGc)"
+    "formula": "(FGa & FGb & FGc)"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 GFc)"
+    "formula": "(FGa & FGb & GFc)"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 GFc)"
+    "formula": "(FGa & GFb & GFc)"
   },
   {
-    "formula": "(G(a | b) \u0026 GFb \u0026 GFc)"
+    "formula": "(G(a | b) & GFb & GFc)"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc)"
+    "formula": "(GFa & GFb & GFc)"
   },
   {
-    "formula": "(((a) R (((b) R (c)))) \u0026 ((b) R (((c) R (a)))) \u0026 ((c) R (((a) R (b)))))"
+    "formula": "(((a) R (((b) R (c)))) & ((b) R (((c) R (a)))) & ((c) R (((a) R (b)))))"
   },
   {
-    "formula": "(Fa \u0026 Fb \u0026 GFc \u0026 GFd)"
+    "formula": "(Fa & Fb & GFc & GFd)"
   },
   {
-    "formula": "(Ga \u0026 GFb \u0026 GFc \u0026 GFd)"
+    "formula": "(Ga & GFb & GFc & GFd)"
   },
   {
-    "formula": "((Fa | Gb) \u0026 (Fb | Gc) \u0026 (Fc | Gd) \u0026 (Fd | Ge))"
+    "formula": "((Fa | Gb) & (Fb | Gc) & (Fc | Gd) & (Fd | Ge))"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 FGc \u0026 FGd)"
+    "formula": "(FGa & FGb & FGc & FGd)"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 GFc \u0026 GFd)"
+    "formula": "(FGa & GFb & GFc & GFd)"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc \u0026 GFd)"
+    "formula": "(GFa & GFb & GFc & GFd)"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 FGc \u0026 FGd \u0026 FGe)"
+    "formula": "(FGa & FGb & FGc & FGd & FGe)"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe)"
+    "formula": "(FGa & GFb & GFc & GFd & GFe)"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe)"
+    "formula": "(GFa & GFb & GFc & GFd & GFe)"
   },
   {
-    "formula": "(Fa \u0026 Fb \u0026 Fc \u0026 GFd \u0026 GFe \u0026 GFf)"
+    "formula": "(Fa & Fb & Fc & GFd & GFe & GFf)"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe \u0026 GFf)"
+    "formula": "(FGa & GFb & GFc & GFd & GFe & GFf)"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe \u0026 GFf \u0026 GFg \u0026 GFh \u0026 GFi)"
+    "formula": "(GFa & GFb & GFc & GFd & GFe & GFf & GFg & GFh & GFi)"
   },
   {
-    "formula": "(a | (Fa \u0026 Gb))"
+    "formula": "(a | (Fa & Gb))"
   },
   {
     "formula": "(a | GFa)"
@@ -335,10 +335,10 @@
     "formula": "(!a | XFa)"
   },
   {
-    "formula": "(Fa | ((a | b) \u0026 (!a | !b)))"
+    "formula": "(Fa | ((a | b) & (!a | !b)))"
   },
   {
-    "formula": "(Fa | F(b \u0026 c))"
+    "formula": "(Fa | F(b & c))"
   },
   {
     "formula": "(Fa | FGb)"
@@ -350,7 +350,7 @@
     "formula": "(F!a | XFa)"
   },
   {
-    "formula": "(Ga | (a \u0026 Fb))"
+    "formula": "(Ga | (a & Fb))"
   },
   {
     "formula": "(Ga | FGb)"
@@ -377,16 +377,16 @@
     "formula": "(G!a | ((((!a) U (b))) W (a)))"
   },
   {
-    "formula": "((Fa \u0026 Gb) | (Fc \u0026 Ga))"
+    "formula": "((Fa & Gb) | (Fc & Ga))"
   },
   {
-    "formula": "((Fa \u0026 G!b) | (Fb \u0026 G!a))"
+    "formula": "((Fa & G!b) | (Fb & G!a))"
   },
   {
-    "formula": "(F(a \u0026 b) | FGb)"
+    "formula": "(F(a & b) | FGb)"
   },
   {
-    "formula": "(F(a \u0026 b) | FGc)"
+    "formula": "(F(a & b) | FGc)"
   },
   {
     "formula": "(FGa | FG!a)",
@@ -426,16 +426,16 @@
     "formula": "(Fa | Fb | FGc)"
   },
   {
-    "formula": "(Fa | F(b \u0026 c) | FGc)"
+    "formula": "(Fa | F(b & c) | FGc)"
   },
   {
     "formula": "(Fa | FGb | FGc)"
   },
   {
-    "formula": "((Fa \u0026 Gb) | (Fc \u0026 Ga) | (Fd \u0026 Gc))"
+    "formula": "((Fa & Gb) | (Fc & Ga) | (Fd & Gc))"
   },
   {
-    "formula": "(F(a \u0026 b) | FGb | FGc)"
+    "formula": "(F(a & b) | FGb | FGc)"
   },
   {
     "formula": "(FGa | FGb | FGc)",
@@ -467,7 +467,7 @@
     "formula": "(Ga | Gb | FGc | FGd)"
   },
   {
-    "formula": "((Fa \u0026 Gb) | (Fc \u0026 Ga) | (Fd \u0026 Gc) | (Fe \u0026 Gd))"
+    "formula": "((Fa & Gb) | (Fc & Ga) | (Fd & Gc) | (Fe & Gd))"
   },
   {
     "formula": "(FGa | FGb | FGc | FGd)",
@@ -521,73 +521,73 @@
     }
   },
   {
-    "formula": "F(a \u0026 (a | b))"
+    "formula": "F(a & (a | b))"
   },
   {
-    "formula": "F(a \u0026 Fb)"
+    "formula": "F(a & Fb)"
   },
   {
-    "formula": "F(a \u0026 Gb)"
+    "formula": "F(a & Gb)"
   },
   {
-    "formula": "F(a \u0026 Xb)"
+    "formula": "F(a & Xb)"
   },
   {
-    "formula": "F(a \u0026 ((b) M (c)))"
+    "formula": "F(a & ((b) M (c)))"
   },
   {
-    "formula": "F(a \u0026 ((!a) R (b)))"
+    "formula": "F(a & ((!a) R (b)))"
   },
   {
-    "formula": "F(a \u0026 ((b) R (c)))"
+    "formula": "F(a & ((b) R (c)))"
   },
   {
-    "formula": "F(a \u0026 ((b) U (c)))"
+    "formula": "F(a & ((b) U (c)))"
   },
   {
-    "formula": "F(a \u0026 ((b) W (c)))"
+    "formula": "F(a & ((b) W (c)))"
   },
   {
-    "formula": "F(Ga \u0026 ((b) M (c)))"
+    "formula": "F(Ga & ((b) M (c)))"
   },
   {
-    "formula": "F(Ga \u0026 ((b) R (c)))"
+    "formula": "F(Ga & ((b) R (c)))"
   },
   {
-    "formula": "F(Ga \u0026 ((b) U (c)))"
+    "formula": "F(Ga & ((b) U (c)))"
   },
   {
-    "formula": "F(Ga \u0026 ((b) W (c)))"
+    "formula": "F(Ga & ((b) W (c)))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 (c | d | e))"
+    "formula": "F(a & b & (c | d | e))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 Xc)"
+    "formula": "F(a & b & Xc)"
   },
   {
-    "formula": "F(a \u0026 b \u0026 ((c) M (b)))"
+    "formula": "F(a & b & ((c) M (b)))"
   },
   {
-    "formula": "F(a \u0026 (b | !c) \u0026 (!b | c))"
+    "formula": "F(a & (b | !c) & (!b | c))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 ((c) R (!b)))"
+    "formula": "F(a & Fb & ((c) R (!b)))"
   },
   {
-    "formula": "F(a \u0026 Gb \u0026 Gc)"
+    "formula": "F(a & Gb & Gc)"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 Fb \u0026 ((c) R (!b)))"
+    "formula": "F(a & !b & Fb & ((c) R (!b)))"
   },
   {
-    "formula": "F(a \u0026 (b | !c) \u0026 (!b | c) \u0026 (d | e | f | g))"
+    "formula": "F(a & (b | !c) & (!b | c) & (d | e | f | g))"
   },
   {
-    "formula": "F(a \u0026 Gb \u0026 Gc \u0026 Gd)"
+    "formula": "F(a & Gb & Gc & Gd)"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 c \u0026 Xa \u0026 Xb \u0026 Xd)"
+    "formula": "F(a & !b & c & Xa & Xb & Xd)"
   },
   {
     "formula": "FG(a | b)",
@@ -601,7 +601,7 @@
     }
   },
   {
-    "formula": "G(a | (a \u0026 b))"
+    "formula": "G(a | (a & b))"
   },
   {
     "formula": "G(a | Fb)"
@@ -640,7 +640,7 @@
     "formula": "G(Fa | ((b) W (c)))"
   },
   {
-    "formula": "G(a | b | (c \u0026 d \u0026 e))"
+    "formula": "G(a | b | (c & d & e))"
   },
   {
     "formula": "G(a | b | Xc)"
@@ -649,7 +649,7 @@
     "formula": "G(a | b | ((c) W (b)))"
   },
   {
-    "formula": "G(a | (b \u0026 !c) | (!b \u0026 c))"
+    "formula": "G(a | (b & !c) | (!b & c))"
   },
   {
     "formula": "G(a | Fb | Fc)"
@@ -661,7 +661,7 @@
     "formula": "G(a | b | G!b | ((c) U (b)))"
   },
   {
-    "formula": "G(a | (b \u0026 !c) | (!b \u0026 c) | (d \u0026 e \u0026 f \u0026 g))"
+    "formula": "G(a | (b & !c) | (!b & c) | (d & e & f & g))"
   },
   {
     "formula": "G(a | Fb | Fc | Fd)"
@@ -670,10 +670,10 @@
     "formula": "G(a | b | c | Xa | X!b | Xd)"
   },
   {
-    "formula": "GF(a \u0026 b)"
+    "formula": "GF(a & b)"
   },
   {
-    "formula": "XF(a \u0026 b)"
+    "formula": "XF(a & b)"
   },
   {
     "formula": "XG(a | b)"
@@ -697,25 +697,25 @@
     "formula": "((a) R (((b) R (((c) R (d))))))"
   },
   {
-    "formula": "(((Ga \u0026 Xb)) R (b))"
+    "formula": "(((Ga & Xb)) R (b))"
   },
   {
-    "formula": "(((F!a | Xb)) R ((Fc \u0026 Xa)))"
+    "formula": "(((F!a | Xb)) R ((Fc & Xa)))"
   },
   {
     "formula": "((((((a) R (b))) R (c))) R (d))"
   },
   {
-    "formula": "((a) U ((b \u0026 Fa)))"
+    "formula": "((a) U ((b & Fa)))"
   },
   {
-    "formula": "((a) U ((b \u0026 Gc)))"
+    "formula": "((a) U ((b & Gc)))"
   },
   {
     "formula": "((a) U (((b) U (((c) U (d))))))"
   },
   {
-    "formula": "(((Ga \u0026 Xb)) U ((Gc | X!a)))"
+    "formula": "(((Ga & Xb)) U ((Gc | X!a)))"
   },
   {
     "formula": "(((Fa | Xb)) U (b))"
@@ -727,151 +727,151 @@
     "formula": "((((a) U (Gb))) W (a))"
   },
   {
-    "formula": "(!a \u0026 ((b) M ((!a \u0026 ((b) M (a))))))"
+    "formula": "(!a & ((b) M ((!a & ((b) M (a))))))"
   },
   {
-    "formula": "(Fa \u0026 (a | GFb))"
+    "formula": "(Fa & (a | GFb))"
   },
   {
-    "formula": "(Fa \u0026 (FGb | GFa))"
+    "formula": "(Fa & (FGb | GFa))"
   },
   {
-    "formula": "(Fa \u0026 G(!a | Gb))"
+    "formula": "(Fa & G(!a | Gb))"
   },
   {
-    "formula": "(Fa \u0026 G(!a | ((b) M (c))))"
+    "formula": "(Fa & G(!a | ((b) M (c))))"
   },
   {
-    "formula": "(Fa \u0026 XXXb)"
+    "formula": "(Fa & XXXb)"
   },
   {
-    "formula": "(Fa \u0026 ((Gb) M ((b | Xb))))"
+    "formula": "(Fa & ((Gb) M ((b | Xb))))"
   },
   {
-    "formula": "(Fa \u0026 ((((a) R ((a | b)))) R (!a)))"
+    "formula": "(Fa & ((((a) R ((a | b)))) R (!a)))"
   },
   {
-    "formula": "(Ga \u0026 F(b \u0026 Xc))"
+    "formula": "(Ga & F(b & Xc))"
   },
   {
-    "formula": "(X!a \u0026 (b | Fc | ((((d) R (!b))) U (Xa))))"
+    "formula": "(X!a & (b | Fc | ((((d) R (!b))) U (Xa))))"
   },
   {
-    "formula": "(((a) R (b)) \u0026 F(c \u0026 Xa))"
+    "formula": "(((a) R (b)) & F(c & Xa))"
   },
   {
-    "formula": "(FGa \u0026 (Ga | ((b) U (Ga))))"
+    "formula": "(FGa & (Ga | ((b) U (Ga))))"
   },
   {
-    "formula": "(GFa \u0026 (F!a | FGb))"
+    "formula": "(GFa & (F!a | FGb))"
   },
   {
-    "formula": "(GFa \u0026 (FGb | FGc))"
+    "formula": "(GFa & (FGb | FGc))"
   },
   {
-    "formula": "(GFa \u0026 (FGb | GFc))"
+    "formula": "(GFa & (FGb | GFc))"
   },
   {
-    "formula": "(GFa \u0026 FG(b | c))"
+    "formula": "(GFa & FG(b | c))"
   },
   {
-    "formula": "(GFa \u0026 G(a | Xb))"
+    "formula": "(GFa & G(a | Xb))"
   },
   {
-    "formula": "(GFa \u0026 G(b | Xa))"
+    "formula": "(GFa & G(b | Xa))"
   },
   {
-    "formula": "(GFa \u0026 XG(a | b))"
+    "formula": "(GFa & XG(a | b))"
   },
   {
-    "formula": "(((X!a) R (!b)) \u0026 X((a) U ((a \u0026 b))))"
+    "formula": "(((X!a) R (!b)) & X((a) U ((a & b))))"
   },
   {
-    "formula": "((!a | ((b) U (Xa))) \u0026 (Fc | ((b) R (X!a))))"
+    "formula": "((!a | ((b) U (Xa))) & (Fc | ((b) R (X!a))))"
   },
   {
-    "formula": "((FGa | FG!b) \u0026 (FG!a | GFb))"
+    "formula": "((FGa | FG!b) & (FG!a | GFb))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (FGc | GFa))"
+    "formula": "((FGa | GFb) & (FGc | GFa))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (FGc | GFd))"
+    "formula": "((FGa | GFb) & (FGc | GFd))"
   },
   {
-    "formula": "((FG!a | GFb) \u0026 (FG!b | GFa))"
+    "formula": "((FG!a | GFb) & (FG!b | GFa))"
   },
   {
-    "formula": "((FG!a | GF!b) \u0026 (FGb | GFa))"
+    "formula": "((FG!a | GF!b) & (FGb | GFa))"
   },
   {
-    "formula": "((GFa | GFb) \u0026 (GFa | GFc))"
+    "formula": "((GFa | GFb) & (GFa | GFc))"
   },
   {
-    "formula": "(G(a | Xa) \u0026 G(!a | X!a))"
+    "formula": "(G(a | Xa) & G(!a | X!a))"
   },
   {
-    "formula": "(G(a | Xb) \u0026 G(!a | X!b))"
+    "formula": "(G(a | Xb) & G(!a | X!b))"
   },
   {
-    "formula": "(G(a | Xb) \u0026 G(c | Xd))"
+    "formula": "(G(a | Xb) & G(c | Xd))"
   },
   {
-    "formula": "(Fa \u0026 FGb \u0026 (Ga | GFb))"
+    "formula": "(Fa & FGb & (Ga | GFb))"
   },
   {
-    "formula": "(Ga \u0026 FGb \u0026 (Fc | XFd))"
+    "formula": "(Ga & FGb & (Fc | XFd))"
   },
   {
-    "formula": "(G!a \u0026 GFb \u0026 G(b | Xa))"
+    "formula": "(G!a & GFb & G(b | Xa))"
   },
   {
-    "formula": "((Ga | Gb | Gc) \u0026 (FG!d | GFe | GF!f) \u0026 (FGf | GFd | GFe))"
+    "formula": "((Ga | Gb | Gc) & (FG!d | GFe | GF!f) & (FGf | GFd | GFe))"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 GF(a \u0026 b))"
+    "formula": "(FGa & FGb & GF(a & b))"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 (FGc | GFd))"
+    "formula": "(FGa & GFb & (FGc | GFd))"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 (FGc | FGd))"
+    "formula": "(GFa & GFb & (FGc | FGd))"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 FG(a | b))"
+    "formula": "(GFa & GFb & FG(a | b))"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GF(c \u0026 d))"
+    "formula": "(GFa & GFb & GF(c & d))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (FGc | GFa) \u0026 (FGd | GFc))"
+    "formula": "((FGa | GFb) & (FGc | GFa) & (FGd | GFc))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (FGc | GFd) \u0026 (FGe | GFf))"
+    "formula": "((FGa | GFb) & (FGc | GFd) & (FGe | GFf))"
   },
   {
-    "formula": "(FG(a | b) \u0026 FG(c | d) \u0026 FG(e | f))"
+    "formula": "(FG(a | b) & FG(c | d) & FG(e | f))"
   },
   {
-    "formula": "(G(a | Xb) \u0026 G(c | Xd) \u0026 G(e | Xf))"
+    "formula": "(G(a | Xb) & G(c | Xd) & G(e | Xf))"
   },
   {
-    "formula": "(GF(a \u0026 b) \u0026 GF(c \u0026 d) \u0026 GF(e \u0026 f))"
+    "formula": "(GF(a & b) & GF(c & d) & GF(e & f))"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 FGc \u0026 (FGa | GFa | GFb))"
+    "formula": "(FGa & FGb & FGc & (FGa | GFa | GFb))"
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 GFb \u0026 GF(a \u0026 b))"
+    "formula": "(FGa & FGb & GFb & GF(a & b))"
   },
   {
-    "formula": "(GFa \u0026 (a | GFb) \u0026 (c | GFd) \u0026 (FGa | GFc))"
+    "formula": "(GFa & (a | GFb) & (c | GFd) & (FGa | GFc))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (FGc | GFa) \u0026 (FGd | GFc) \u0026 (FGe | GFd))"
+    "formula": "((FGa | GFb) & (FGc | GFa) & (FGd | GFc) & (FGe | GFd))"
   },
   {
-    "formula": "(G(a | Fb) \u0026 G(c | Fd) \u0026 G(e | Ff) \u0026 G(g | Fh))"
+    "formula": "(G(a | Fb) & G(c | Fd) & G(e | Ff) & G(g | Fh))"
   },
   {
     "formula": "(a | ((b) W ((a | ((b) W (!a))))))"
@@ -880,103 +880,103 @@
     "formula": "(Fa | G(b | Xc))"
   },
   {
-    "formula": "(Ga | (a \u0026 FGb))"
+    "formula": "(Ga | (a & FGb))"
   },
   {
-    "formula": "(Ga | (FGa \u0026 GFb))"
+    "formula": "(Ga | (FGa & GFb))"
   },
   {
     "formula": "(Ga | XXXb)"
   },
   {
-    "formula": "(Ga | ((Fb) W ((b \u0026 Xb))))"
+    "formula": "(Ga | ((Fb) W ((b & Xb))))"
   },
   {
-    "formula": "(G!a | F(a \u0026 Fb))"
+    "formula": "(G!a | F(a & Fb))"
   },
   {
-    "formula": "(G!a | F(a \u0026 ((b) W (c))))"
+    "formula": "(G!a | F(a & ((b) W (c))))"
   },
   {
-    "formula": "(G!a | ((((!a) U ((!a \u0026 b)))) U (a)))"
+    "formula": "(G!a | ((((!a) U ((!a & b)))) U (a)))"
   },
   {
-    "formula": "(Xa | (!b \u0026 Gc \u0026 ((((d) U (b))) R (X!a))))"
+    "formula": "(Xa | (!b & Gc & ((((d) U (b))) R (X!a))))"
   },
   {
     "formula": "(((a) U (b)) | G(c | Xa))"
   },
   {
-    "formula": "(FGa | (FGb \u0026 GFc))"
+    "formula": "(FGa | (FGb & GFc))"
   },
   {
-    "formula": "(FGa | (GFb \u0026 GFc))"
+    "formula": "(FGa | (GFb & GFc))"
   },
   {
-    "formula": "(FGa | F(a \u0026 Xb))"
+    "formula": "(FGa | F(a & Xb))"
   },
   {
-    "formula": "(FGa | F(b \u0026 Xa))"
+    "formula": "(FGa | F(b & Xa))"
   },
   {
-    "formula": "(FGa | GF(b \u0026 c))"
+    "formula": "(FGa | GF(b & c))"
   },
   {
-    "formula": "(FGa | XF(a \u0026 b))"
+    "formula": "(FGa | XF(a & b))"
   },
   {
-    "formula": "(FG!a | (Ga \u0026 GFb))"
+    "formula": "(FG!a | (Ga & GFb))"
   },
   {
-    "formula": "(GFa | (Fa \u0026 ((b) R (Fa))))"
+    "formula": "(GFa | (Fa & ((b) R (Fa))))"
   },
   {
     "formula": "(((Xa) U (b)) | X((!a) R ((!a | !b))))"
   },
   {
-    "formula": "((a \u0026 ((b) R (X!a))) | (Gc \u0026 ((b) U (Xa))))"
+    "formula": "((a & ((b) R (X!a))) | (Gc & ((b) U (Xa))))"
   },
   {
-    "formula": "((FGa \u0026 FGb) | (FGa \u0026 FGc))"
+    "formula": "((FGa & FGb) | (FGa & FGc))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGc \u0026 GFa))"
+    "formula": "((FGa & GFb) | (FGc & GFa))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGc \u0026 GFd))"
+    "formula": "((FGa & GFb) | (FGc & GFd))"
   },
   {
-    "formula": "((FG!a \u0026 GFb) | (FG!b \u0026 GFa))"
+    "formula": "((FG!a & GFb) | (FG!b & GFa))"
   },
   {
-    "formula": "((FG!a \u0026 GFb) | (GFa \u0026 GF!b))"
+    "formula": "((FG!a & GFb) | (GFa & GF!b))"
   },
   {
-    "formula": "((FG!a \u0026 GF!b) | (FGb \u0026 GFa))"
+    "formula": "((FG!a & GF!b) | (FGb & GFa))"
   },
   {
-    "formula": "(F(a \u0026 Xa) | F(!a \u0026 X!a))"
+    "formula": "(F(a & Xa) | F(!a & X!a))"
   },
   {
-    "formula": "(F(a \u0026 Xb) | F(!a \u0026 X!b))"
+    "formula": "(F(a & Xb) | F(!a & X!b))"
   },
   {
-    "formula": "(F(a \u0026 Xb) | F(c \u0026 Xd))"
+    "formula": "(F(a & Xb) | F(c & Xd))"
   },
   {
-    "formula": "(Fa | FGb | F(b \u0026 X!a))"
+    "formula": "(Fa | FGb | F(b & X!a))"
   },
   {
-    "formula": "(Fa | GFb | (Gc \u0026 XGd))"
+    "formula": "(Fa | GFb | (Gc & XGd))"
   },
   {
-    "formula": "(Ga | GFb | (Fa \u0026 FGb))"
+    "formula": "(Ga | GFb | (Fa & FGb))"
   },
   {
-    "formula": "((Fa \u0026 Fb \u0026 Fc) | (FG!d \u0026 FGe \u0026 GF!f) | (FGe \u0026 FGf \u0026 GFd))"
+    "formula": "((Fa & Fb & Fc) | (FG!d & FGe & GF!f) | (FGe & FGf & GFd))"
   },
   {
-    "formula": "(FGa | FGb | (GFc \u0026 GFd))"
+    "formula": "(FGa | FGb | (GFc & GFd))"
   },
   {
     "formula": "(FGa | FGb | FG(c | d))",
@@ -990,22 +990,22 @@
     }
   },
   {
-    "formula": "(FGa | FGb | GF(a \u0026 b))"
+    "formula": "(FGa | FGb | GF(a & b))"
   },
   {
-    "formula": "(FGa | GFb | (FGc \u0026 GFd))"
+    "formula": "(FGa | GFb | (FGc & GFd))"
   },
   {
     "formula": "(GFa | GFb | FG(a | b))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGb \u0026 GFc) | (FGd \u0026 GFa))"
+    "formula": "((FGa & GFb) | (FGb & GFc) | (FGd & GFa))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGc \u0026 GFd) | (FGe \u0026 GFf))"
+    "formula": "((FGa & GFb) | (FGc & GFd) | (FGe & GFf))"
   },
   {
-    "formula": "(F(a \u0026 Xb) | F(c \u0026 Xd) | F(e \u0026 Xf))"
+    "formula": "(F(a & Xb) | F(c & Xd) | F(e & Xf))"
   },
   {
     "formula": "(FG(a | b) | FG(c | d) | FG(e | f))",
@@ -1019,112 +1019,112 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 b) | GF(c \u0026 d) | GF(e \u0026 f))"
+    "formula": "(GF(a & b) | GF(c & d) | GF(e & f))"
   },
   {
     "formula": "(FGa | GFa | GFb | FG(a | b))"
   },
   {
-    "formula": "(FGa | (a \u0026 FGb) | (c \u0026 FGd) | (FGc \u0026 GFa))"
+    "formula": "(FGa | (a & FGb) | (c & FGd) | (FGc & GFa))"
   },
   {
-    "formula": "(GFa | GFb | GFc | (FGa \u0026 FGb \u0026 GFa))"
+    "formula": "(GFa | GFb | GFc | (FGa & FGb & GFa))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGb \u0026 GFc) | (FGc \u0026 GFd) | (FGe \u0026 GFa))"
+    "formula": "((FGa & GFb) | (FGb & GFc) | (FGc & GFd) | (FGe & GFa))"
   },
   {
-    "formula": "(F(a \u0026 Gb) | F(c \u0026 Gd) | F(e \u0026 Gf) | F(g \u0026 Gh))"
+    "formula": "(F(a & Gb) | F(c & Gd) | F(e & Gf) | F(g & Gh))"
   },
   {
-    "formula": "F(a \u0026 (b | ((c) R (d))))"
+    "formula": "F(a & (b | ((c) R (d))))"
   },
   {
-    "formula": "F(a \u0026 G(!a | b))"
+    "formula": "F(a & G(!a | b))"
   },
   {
-    "formula": "F(a \u0026 G(b | c))"
+    "formula": "F(a & G(b | c))"
   },
   {
-    "formula": "F(a \u0026 X(!a \u0026 b))"
+    "formula": "F(a & X(!a & b))"
   },
   {
-    "formula": "F(a \u0026 XGb)"
+    "formula": "F(a & XGb)"
   },
   {
-    "formula": "F(a \u0026 XXb)"
+    "formula": "F(a & XXb)"
   },
   {
-    "formula": "F(a \u0026 X((a) R (b)))"
+    "formula": "F(a & X((a) R (b)))"
   },
   {
-    "formula": "F(a \u0026 X((b) U (c)))"
+    "formula": "F(a & X((b) U (c)))"
   },
   {
-    "formula": "F(a \u0026 ((b) U ((b \u0026 c))))"
+    "formula": "F(a & ((b) U ((b & c))))"
   },
   {
-    "formula": "F(!a \u0026 ((a) R (X!a)))"
+    "formula": "F(!a & ((a) R (X!a)))"
   },
   {
-    "formula": "F((a | !b) \u0026 (Ga | Gb | Gc))"
+    "formula": "F((a | !b) & (Ga | Gb | Gc))"
   },
   {
-    "formula": "F(Fa \u0026 (Fb | Gb))"
+    "formula": "F(Fa & (Fb | Gb))"
   },
   {
-    "formula": "F(((a) U (b)) \u0026 (Fc | Ga))"
+    "formula": "F(((a) U (b)) & (Fc | Ga))"
   },
   {
-    "formula": "F((a | Fb) \u0026 (c | Fd))"
+    "formula": "F((a | Fb) & (c | Fd))"
   },
   {
-    "formula": "F((a | Gb) \u0026 (c | Gd))"
+    "formula": "F((a | Gb) & (c | Gd))"
   },
   {
-    "formula": "F((a | ((b) M (!c))) \u0026 (!a | ((!b) W (c))))"
+    "formula": "F((a | ((b) M (!c))) & (!a | ((!b) W (c))))"
   },
   {
-    "formula": "F((Fa | Gb) \u0026 (((b) M (c)) | ((c) M (d))))"
+    "formula": "F((Fa | Gb) & (((b) M (c)) | ((c) M (d))))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 ((c) M ((b \u0026 d))))"
+    "formula": "F(a & b & ((c) M ((b & d))))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 ((b) U ((!a \u0026 b))))"
+    "formula": "F(a & b & ((b) U ((!a & b))))"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 ((b) M ((b | c))))"
+    "formula": "F(a & !b & ((b) M ((b | c))))"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 ((b) R ((b | c))))"
+    "formula": "F(a & !b & ((b) R ((b | c))))"
   },
   {
-    "formula": "F(a \u0026 Gb \u0026 XGc)"
+    "formula": "F(a & Gb & XGc)"
   },
   {
-    "formula": "F(!a \u0026 Xa \u0026 X((!a) M (b)))"
+    "formula": "F(!a & Xa & X((!a) M (b)))"
   },
   {
-    "formula": "F((a | Fb) \u0026 (c | Fd) \u0026 (e | Ff))"
+    "formula": "F((a | Fb) & (c | Fd) & (e | Ff))"
   },
   {
-    "formula": "F((a | Gb) \u0026 (b | Ga) \u0026 (c | Gd))"
+    "formula": "F((a | Gb) & (b | Ga) & (c | Gd))"
   },
   {
-    "formula": "F((a | Gb) \u0026 (c | Gd) \u0026 (e | Gf))"
+    "formula": "F((a | Gb) & (c | Gd) & (e | Gf))"
   },
   {
-    "formula": "F((a | X!a) \u0026 (b | Xb) \u0026 (!b | X!b))"
+    "formula": "F((a | X!a) & (b | Xb) & (!b | X!b))"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 Fb \u0026 ((c) R ((!b \u0026 d))))"
+    "formula": "F(a & !b & Fb & ((c) R ((!b & d))))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 c \u0026 d \u0026 e \u0026 G(f | g | h | i))"
+    "formula": "F(a & b & c & d & e & G(f | g | h | i))"
   },
   {
-    "formula": "FG(a | (b \u0026 c))",
+    "formula": "FG(a | (b & c))",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -1157,10 +1157,10 @@
     }
   },
   {
-    "formula": "G(a | (b \u0026 ((c) U (d))))"
+    "formula": "G(a | (b & ((c) U (d))))"
   },
   {
-    "formula": "G(a | F(b \u0026 c))"
+    "formula": "G(a | F(b & c))"
   },
   {
     "formula": "G(a | XFb)"
@@ -1181,37 +1181,37 @@
     "formula": "G(a | ((!a) U (Xa)))"
   },
   {
-    "formula": "G(!a | F(a \u0026 b))"
+    "formula": "G(!a | F(a & b))"
   },
   {
     "formula": "G(!a | X(a | b))"
   },
   {
-    "formula": "G((a \u0026 b) | (Fa \u0026 F!b \u0026 Fc))"
+    "formula": "G((a & b) | (Fa & F!b & Fc))"
   },
   {
-    "formula": "G(Ga | (Fb \u0026 Gb))"
+    "formula": "G(Ga | (Fb & Gb))"
   },
   {
-    "formula": "G(((a) R (b)) | (Fa \u0026 Gc))"
+    "formula": "G(((a) R (b)) | (Fa & Gc))"
   },
   {
-    "formula": "G((a \u0026 Fb) | (c \u0026 Fd))"
+    "formula": "G((a & Fb) | (c & Fd))"
   },
   {
-    "formula": "G((a \u0026 Gb) | (c \u0026 Gd))"
+    "formula": "G((a & Gb) | (c & Gd))"
   },
   {
-    "formula": "G((a \u0026 ((b) M (!c))) | (!a \u0026 ((!b) W (c))))"
+    "formula": "G((a & ((b) M (!c))) | (!a & ((!b) W (c))))"
   },
   {
-    "formula": "G((Fa \u0026 Gb) | (((a) W (c)) \u0026 ((c) W (d))))"
+    "formula": "G((Fa & Gb) | (((a) W (c)) & ((c) W (d))))"
   },
   {
-    "formula": "G(a | b | ((!b) U ((!b \u0026 c))))"
+    "formula": "G(a | b | ((!b) U ((!b & c))))"
   },
   {
-    "formula": "G(a | b | ((!b) W ((!b \u0026 c))))"
+    "formula": "G(a | b | ((!b) W ((!b & c))))"
   },
   {
     "formula": "G(a | b | ((c) W ((b | d))))"
@@ -1226,40 +1226,40 @@
     "formula": "G(!a | b | ((b) R ((a | b))))"
   },
   {
-    "formula": "G((a \u0026 Fb) | (b \u0026 Fa) | (c \u0026 Fd))"
+    "formula": "G((a & Fb) | (b & Fa) | (c & Fd))"
   },
   {
-    "formula": "G((a \u0026 Fb) | (c \u0026 Fd) | (e \u0026 Ff))"
+    "formula": "G((a & Fb) | (c & Fd) | (e & Ff))"
   },
   {
-    "formula": "G((a \u0026 Gb) | (c \u0026 Gd) | (e \u0026 Gf))"
+    "formula": "G((a & Gb) | (c & Gd) | (e & Gf))"
   },
   {
-    "formula": "G((!a \u0026 Xa) | (b \u0026 Xb) | (!b \u0026 X!b))"
+    "formula": "G((!a & Xa) | (b & Xb) | (!b & X!b))"
   },
   {
     "formula": "G(a | b | G!b | ((c) U ((b | d))))"
   },
   {
-    "formula": "G(a | b | c | d | e | F(f \u0026 g \u0026 h \u0026 i))"
+    "formula": "G(a | b | c | d | e | F(f & g & h & i))"
   },
   {
-    "formula": "GF(a \u0026 (b | c))"
+    "formula": "GF(a & (b | c))"
   },
   {
-    "formula": "GF(a \u0026 Xb)"
+    "formula": "GF(a & Xb)"
   },
   {
-    "formula": "GF(a \u0026 ((a) U (b)))"
+    "formula": "GF(a & ((a) U (b)))"
   },
   {
-    "formula": "XF(a \u0026 Gb)"
+    "formula": "XF(a & Gb)"
   },
   {
-    "formula": "XF(a \u0026 b \u0026 ((!b) M (c)))"
+    "formula": "XF(a & b & ((!b) M (c)))"
   },
   {
-    "formula": "XF(a \u0026 !b \u0026 ((b) M (c)))"
+    "formula": "XF(a & !b & ((b) M (c)))"
   },
   {
     "formula": "XG(a | Fb)"
@@ -1277,7 +1277,7 @@
     "formula": "((a) R ((b | X((c) R (d)))))"
   },
   {
-    "formula": "((a) R ((F(b \u0026 c) | F(b \u0026 d) | F(b \u0026 e) | F(c \u0026 d) | F(c \u0026 e) | F(d \u0026 e))))"
+    "formula": "((a) R ((F(b & c) | F(b & d) | F(b & e) | F(c & d) | F(c & e) | F(d & e))))"
   },
   {
     "formula": "((a) R (((b) R (((c) R (((d) R (e))))))))"
@@ -1286,7 +1286,7 @@
     "formula": "((Xa) R (((((Gb) R (c))) W (d))))"
   },
   {
-    "formula": "((((F!a \u0026 X!b) | (Ga \u0026 Xb))) R ((Fc \u0026 Xa)))"
+    "formula": "((((F!a & X!b) | (Ga & Xb))) R ((Fc & Xa)))"
   },
   {
     "formula": "((X((((a) R (b))) U (c))) R (((a) U (c))))"
@@ -1295,10 +1295,10 @@
     "formula": "((((((((a) R (b))) R (c))) R (d))) R (e))"
   },
   {
-    "formula": "((a) U ((b \u0026 X((c) U (d)))))"
+    "formula": "((a) U ((b & X((c) U (d)))))"
   },
   {
-    "formula": "((a) U ((G(b | c) \u0026 G(b | d) \u0026 G(b | e) \u0026 G(c | d) \u0026 G(c | e) \u0026 G(d | e))))"
+    "formula": "((a) U ((G(b | c) & G(b | d) & G(b | e) & G(c | d) & G(c | e) & G(d | e))))"
   },
   {
     "formula": "((a) U (((b) U (((c) U (((d) U (e))))))))"
@@ -1307,7 +1307,7 @@
     "formula": "((Xa) U (((((Fb) U (c))) M (d))))"
   },
   {
-    "formula": "((((F!a | X!b) \u0026 (Ga | Xb))) U ((Gc | X!a)))"
+    "formula": "((((F!a | X!b) & (Ga | Xb))) U ((Gc | X!a)))"
   },
   {
     "formula": "((X((((a) U (b))) R (c))) U (((a) R (c))))"
@@ -1316,199 +1316,199 @@
     "formula": "((((((((a) U (b))) U (c))) U (d))) U (e))"
   },
   {
-    "formula": "((a) W ((a \u0026 b \u0026 X((a) U (c)))))"
+    "formula": "((a) W ((a & b & X((a) U (c)))))"
   },
   {
-    "formula": "(a \u0026 F(b \u0026 (a | Gb)))"
+    "formula": "(a & F(b & (a | Gb)))"
   },
   {
-    "formula": "(Fa \u0026 (FGb | (FGa \u0026 FGc)))"
+    "formula": "(Fa & (FGb | (FGa & FGc)))"
   },
   {
-    "formula": "(Fa \u0026 XF(b \u0026 Xc))"
+    "formula": "(Fa & XF(b & Xc))"
   },
   {
-    "formula": "(Fa \u0026 (((b \u0026 ((a) R ((a | c))))) R (!a)))"
+    "formula": "(Fa & (((b & ((a) R ((a | c))))) R (!a)))"
   },
   {
-    "formula": "(Xa \u0026 G(a | X!a | XXa))"
+    "formula": "(Xa & G(a | X!a | XXa))"
   },
   {
-    "formula": "(((a) R (b)) \u0026 F(a \u0026 XFc))"
+    "formula": "(((a) R (b)) & F(a & XFc))"
   },
   {
-    "formula": "(((!a) R (!b)) \u0026 (Gc | ((Fa) W ((b \u0026 Xa)))))"
+    "formula": "(((!a) R (!b)) & (Gc | ((Fa) W ((b & Xa)))))"
   },
   {
-    "formula": "((Fa | Gb) \u0026 (Fa | G(Fa | Gb)))"
+    "formula": "((Fa | Gb) & (Fa | G(Fa | Gb)))"
   },
   {
-    "formula": "(FGa \u0026 G(a | XGa))"
+    "formula": "(FGa & G(a | XGa))"
   },
   {
-    "formula": "(FGa \u0026 GF(a \u0026 Xa))"
+    "formula": "(FGa & GF(a & Xa))"
   },
   {
-    "formula": "(FG!a \u0026 (F(b \u0026 X!a) | F(!b \u0026 Xa)))"
+    "formula": "(FG!a & (F(b & X!a) | F(!b & Xa)))"
   },
   {
-    "formula": "(GFa \u0026 (Gb | (a \u0026 GFa)))"
+    "formula": "(GFa & (Gb | (a & GFa)))"
   },
   {
-    "formula": "(GFa \u0026 FG(b | Xc))"
+    "formula": "(GFa & FG(b | Xc))"
   },
   {
-    "formula": "(GFa \u0026 G(b | F(b \u0026 c)))"
+    "formula": "(GFa & G(b | F(b & c)))"
   },
   {
-    "formula": "((((a | b)) R (c)) \u0026 G(d | (((a | b)) R (c))))"
+    "formula": "((((a | b)) R (c)) & G(d | (((a | b)) R (c))))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (GFc | (FGd \u0026 FGe)))"
+    "formula": "((FGa | GFb) & (GFc | (FGd & FGe)))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (FGc | GFd | (FGe \u0026 GFf)))"
+    "formula": "((FGa | GFb) & (FGc | GFd | (FGe & GFf)))"
   },
   {
-    "formula": "((FGa | GFb | GFc) \u0026 (GFc | (FGa \u0026 FGb \u0026 FGd)))"
+    "formula": "((FGa | GFb | GFc) & (GFc | (FGa & FGb & FGd)))"
   },
   {
-    "formula": "((FG!a | FG!b | FG!c) \u0026 (GFc | (GFa \u0026 GFb)))"
+    "formula": "((FG!a | FG!b | FG!c) & (GFc | (GFa & GFb)))"
   },
   {
-    "formula": "((FG!a | FG!b | FG!c | FG!d) \u0026 (GFc | (GFa \u0026 GFb \u0026 GFd)))"
+    "formula": "((FG!a | FG!b | FG!c | FG!d) & (GFc | (GFa & GFb & GFd)))"
   },
   {
-    "formula": "((FG!a | FG!b | FG!c | FG!d | FG!e) \u0026 (GFc | (GFa \u0026 GFb \u0026 GFd \u0026 GFe)))"
+    "formula": "((FG!a | FG!b | FG!c | FG!d | FG!e) & (GFc | (GFa & GFb & GFd & GFe)))"
   },
   {
-    "formula": "(G(!a | Fb) \u0026 (((Xa) U (b)) | X((!a) R ((!a | !b)))))"
+    "formula": "(G(!a | Fb) & (((Xa) U (b)) | X((!a) R ((!a | !b)))))"
   },
   {
-    "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb))"
+    "formula": "(GF(!a & b) & GF(a & Xb))"
   },
   {
-    "formula": "((Fa | X(F!b \u0026 G!a)) \u0026 (G!a | X(Fa | Gb)))"
+    "formula": "((Fa | X(F!b & G!a)) & (G!a | X(Fa | Gb)))"
   },
   {
-    "formula": "((((a) R (b)) | (FGa \u0026 GFb) | (FGc \u0026 GFd)) \u0026 (((a) R (c)) | (FGa \u0026 GFd) | (FGc \u0026 GFb)))"
+    "formula": "((((a) R (b)) | (FGa & GFb) | (FGc & GFd)) & (((a) R (c)) | (FGa & GFd) | (FGc & GFb)))"
   },
   {
-    "formula": "((FGa | XFb | GF(a \u0026 c)) \u0026 (FGd | XXe | GF(d \u0026 f)))"
+    "formula": "((FGa | XFb | GF(a & c)) & (FGd | XXe | GF(d & f)))"
   },
   {
-    "formula": "(FG(a | ((!b) M (!a))) \u0026 FG(!a | ((b) W (a))))"
+    "formula": "(FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a))))"
   },
   {
-    "formula": "(G(a | XGb) \u0026 G(c | XG!b))"
+    "formula": "(G(a | XGb) & G(c | XG!b))"
   },
   {
-    "formula": "(G(a | XXb) \u0026 G(c | XXd))"
+    "formula": "(G(a | XXb) & G(c | XXd))"
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd))"
+    "formula": "(GF(a & Xb) & GF(c & Xd))"
   },
   {
-    "formula": "(Fa \u0026 Fb \u0026 ((Fa \u0026 FG!c) | (Fb \u0026 FGc)))"
+    "formula": "(Fa & Fb & ((Fa & FG!c) | (Fb & FGc)))"
   },
   {
-    "formula": "(Fa \u0026 Fb \u0026 ((Fa \u0026 GF!c) | (Fb \u0026 GFc)))"
+    "formula": "(Fa & Fb & ((Fa & GF!c) | (Fb & GFc)))"
   },
   {
-    "formula": "(Ga \u0026 (GFb | GFc) \u0026 G(d | ((!d) U ((b | c)))))"
+    "formula": "(Ga & (GFb | GFc) & G(d | ((!d) U ((b | c)))))"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 FG(b | X!a))"
+    "formula": "(FGa & GFb & FG(b | X!a))"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 GF(a \u0026 Xb))"
+    "formula": "(FGa & GFb & GF(a & Xb))"
   },
   {
-    "formula": "(GFa \u0026 GF!a \u0026 G(a | XFb))"
+    "formula": "(GFa & GF!a & G(a | XFb))"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GF(c \u0026 Xd))"
+    "formula": "(GFa & GFb & GF(c & Xd))"
   },
   {
-    "formula": "(G(a | XXb) \u0026 G(c | XXd) \u0026 G(e | XXf))"
+    "formula": "(G(a | XXb) & G(c | XXd) & G(e | XXf))"
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd) \u0026 GF(e \u0026 Xf))"
+    "formula": "(GF(a & Xb) & GF(c & Xd) & GF(e & Xf))"
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 (FGc | GFd) \u0026 GF(d \u0026 X!c))"
+    "formula": "(GFa & GFb & (FGc | GFd) & GF(d & X!c))"
   },
   {
-    "formula": "(FG(a | X!a) \u0026 FG(!a | Xa) \u0026 FG(b | X!b) \u0026 FG(!b | Xb))"
+    "formula": "(FG(a | X!a) & FG(!a | Xa) & FG(b | X!b) & FG(!b | Xb))"
   },
   {
-    "formula": "(FG(a | X!a) \u0026 FG(!a | Xa) \u0026 FG(b | X!b) \u0026 FG(!b | Xb) \u0026 FG(c | X!c) \u0026 FG(!c | Xc) \u0026 FG(d | X!d) \u0026 FG(!d | Xd))"
+    "formula": "(FG(a | X!a) & FG(!a | Xa) & FG(b | X!b) & FG(!b | Xb) & FG(c | X!c) & FG(!c | Xc) & FG(d | X!d) & FG(!d | Xd))"
   },
   {
-    "formula": "(a | G(b | (a \u0026 Fb)))"
+    "formula": "(a | G(b | (a & Fb)))"
   },
   {
-    "formula": "(Ga | (GFb \u0026 (GFa | GFc)))"
+    "formula": "(Ga | (GFb & (GFa | GFc)))"
   },
   {
     "formula": "(Ga | XG(b | Xc))"
   },
   {
-    "formula": "(G!a | (((b | ((!a) U ((!a \u0026 c))))) U (a)))"
+    "formula": "(G!a | (((b | ((!a) U ((!a & c))))) U (a)))"
   },
   {
-    "formula": "(X!a | F(!a \u0026 Xa \u0026 XX!a))"
+    "formula": "(X!a | F(!a & Xa & XX!a))"
   },
   {
-    "formula": "(((a) U (b)) | (Fc \u0026 ((G!a) M ((!b | X!a)))))"
+    "formula": "(((a) U (b)) | (Fc & ((G!a) M ((!b | X!a)))))"
   },
   {
     "formula": "(((a) U (b)) | G(a | XGc))"
   },
   {
-    "formula": "((Fa \u0026 Gb) | (Gb \u0026 F(Fa \u0026 Gb)))"
+    "formula": "((Fa & Gb) | (Gb & F(Fa & Gb)))"
   },
   {
-    "formula": "(FGa | (Fb \u0026 (a | FGa)))"
+    "formula": "(FGa | (Fb & (a | FGa)))"
   },
   {
-    "formula": "(FGa | F(b \u0026 G(b | c)))"
+    "formula": "(FGa | F(b & G(b | c)))"
   },
   {
-    "formula": "(FGa | GF(b \u0026 Xc))"
+    "formula": "(FGa | GF(b & Xc))"
   },
   {
-    "formula": "(GFa | (G(b | X!a) \u0026 G(!b | Xa)))"
+    "formula": "(GFa | (G(b | X!a) & G(!b | Xa)))"
   },
   {
-    "formula": "(GFa | F(a \u0026 XFa))"
+    "formula": "(GFa | F(a & XFa))"
   },
   {
     "formula": "(GFa | FG(a | Xa))"
   },
   {
-    "formula": "((((a \u0026 b)) U (c)) | F(d \u0026 (((a \u0026 b)) U (c))))"
+    "formula": "((((a & b)) U (c)) | F(d & (((a & b)) U (c))))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGc \u0026 (GFd | GFe)))"
+    "formula": "((FGa & GFb) | (FGc & (GFd | GFe)))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGc \u0026 GFd \u0026 (FGe | GFf)))"
+    "formula": "((FGa & GFb) | (FGc & GFd & (FGe | GFf)))"
   },
   {
-    "formula": "((FGa \u0026 FGb \u0026 GFc) | (FGb \u0026 (GFa | GFc | GFd)))"
+    "formula": "((FGa & FGb & GFc) | (FGb & (GFa | GFc | GFd)))"
   },
   {
-    "formula": "((GFa \u0026 GFb \u0026 GFc) | (FG!c \u0026 (FG!a | FG!b)))"
+    "formula": "((GFa & GFb & GFc) | (FG!c & (FG!a | FG!b)))"
   },
   {
-    "formula": "((GFa \u0026 GFb \u0026 GFc \u0026 GFd) | (FG!c \u0026 (FG!a | FG!b | FG!d)))"
+    "formula": "((GFa & GFb & GFc & GFd) | (FG!c & (FG!a | FG!b | FG!d)))"
   },
   {
-    "formula": "((GFa \u0026 GFb \u0026 GFc \u0026 GFd \u0026 GFe) | (FG!c \u0026 (FG!a | FG!b | FG!d | FG!e)))"
+    "formula": "((GFa & GFb & GFc & GFd & GFe) | (FG!c & (FG!a | FG!b | FG!d | FG!e)))"
   },
   {
-    "formula": "(F(a \u0026 G!b) | (((X!a) R (!b)) \u0026 X((a) U ((a \u0026 b)))))"
+    "formula": "(F(a & G!b) | (((X!a) R (!b)) & X((a) U ((a & b)))))"
   },
   {
     "formula": "(FG(a | b) | FG(!a | Xb))",
@@ -1522,19 +1522,19 @@
     }
   },
   {
-    "formula": "((Fa \u0026 X(F!b \u0026 G!a)) | (G!a \u0026 X(Fa | Gb)))"
+    "formula": "((Fa & X(F!b & G!a)) | (G!a & X(Fa | Gb)))"
   },
   {
-    "formula": "((((a) U (b)) \u0026 (FGb | GFa) \u0026 (FGc | GFd)) | (((a) U (d)) \u0026 (FGb | GFd) \u0026 (FGc | GFa)))"
+    "formula": "((((a) U (b)) & (FGb | GFa) & (FGc | GFd)) | (((a) U (d)) & (FGb | GFd) & (FGc | GFa)))"
   },
   {
-    "formula": "((GFa \u0026 XGb \u0026 FG(a | c)) | (GFd \u0026 XXe \u0026 FG(d | f)))"
+    "formula": "((GFa & XGb & FG(a | c)) | (GFd & XXe & FG(d | f)))"
   },
   {
-    "formula": "(F(a \u0026 XF!b) | F(c \u0026 XFb))"
+    "formula": "(F(a & XF!b) | F(c & XFb))"
   },
   {
-    "formula": "(F(a \u0026 XXb) | F(c \u0026 XXd))"
+    "formula": "(F(a & XXb) | F(c & XXd))"
   },
   {
     "formula": "(FG(a | Xb) | FG(c | Xd))",
@@ -1548,19 +1548,19 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 ((!b) M (!a))) | GF(!a \u0026 ((b) W (a))))"
+    "formula": "(GF(a & ((!b) M (!a))) | GF(!a & ((b) W (a))))"
   },
   {
-    "formula": "(Fa | (FGb \u0026 FGc) | F(!d \u0026 ((d) R ((b \u0026 c)))))"
+    "formula": "(Fa | (FGb & FGc) | F(!d & ((d) R ((b & c)))))"
   },
   {
-    "formula": "(Ga | Gb | ((Ga | FGc) \u0026 (Gb | FG!c)))"
+    "formula": "(Ga | Gb | ((Ga | FGc) & (Gb | FG!c)))"
   },
   {
-    "formula": "(Ga | Gb | ((Ga | GFc) \u0026 (Gb | GF!c)))"
+    "formula": "(Ga | Gb | ((Ga | GFc) & (Gb | GF!c)))"
   },
   {
-    "formula": "(FGa | FG!a | F(!a \u0026 XGb))"
+    "formula": "(FGa | FG!a | F(!a & XGb))"
   },
   {
     "formula": "(FGa | FGb | FG(c | Xd))",
@@ -1577,10 +1577,10 @@
     "formula": "(FGa | GFb | FG(b | Xa))"
   },
   {
-    "formula": "(FGa | GF!b | GF(a \u0026 Xb))"
+    "formula": "(FGa | GF!b | GF(a & Xb))"
   },
   {
-    "formula": "(F(a \u0026 XXb) | F(c \u0026 XXd) | F(e \u0026 XXf))"
+    "formula": "(F(a & XXb) | F(c & XXd) | F(e & XXf))"
   },
   {
     "formula": "(FG(a | Xb) | FG(c | Xd) | FG(e | Xf))",
@@ -1594,67 +1594,67 @@
     }
   },
   {
-    "formula": "(FGa | FGb | (FGc \u0026 GF!d) | FG(c | Xd))"
+    "formula": "(FGa | FGb | (FGc & GF!d) | FG(c | Xd))"
   },
   {
-    "formula": "(GF(a \u0026 X!a) | GF(!a \u0026 Xa) | GF(b \u0026 X!b) | GF(!b \u0026 Xb))"
+    "formula": "(GF(a & X!a) | GF(!a & Xa) | GF(b & X!b) | GF(!b & Xb))"
   },
   {
-    "formula": "(GF(a \u0026 X!a) | GF(!a \u0026 Xa) | GF(b \u0026 X!b) | GF(!b \u0026 Xb) | GF(c \u0026 X!c) | GF(!c \u0026 Xc) | GF(d \u0026 X!d) | GF(!d \u0026 Xd))"
+    "formula": "(GF(a & X!a) | GF(!a & Xa) | GF(b & X!b) | GF(!b & Xb) | GF(c & X!c) | GF(!c & Xc) | GF(d & X!d) | GF(!d & Xd))"
   },
   {
-    "formula": "F(a \u0026 ((!a \u0026 !b) | GFb))"
+    "formula": "F(a & ((!a & !b) | GFb))"
   },
   {
-    "formula": "F(a \u0026 (Ga | Gb | (c \u0026 Gd)))"
+    "formula": "F(a & (Ga | Gb | (c & Gd)))"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 Gc))"
+    "formula": "F(a & F(b & Gc))"
   },
   {
-    "formula": "F(a \u0026 G(a | Xb))"
+    "formula": "F(a & G(a | Xb))"
   },
   {
-    "formula": "F(a \u0026 G(b | Ga))"
+    "formula": "F(a & G(b | Ga))"
   },
   {
-    "formula": "F(a \u0026 G(b | Xc))"
+    "formula": "F(a & G(b | Xc))"
   },
   {
-    "formula": "F(a \u0026 ((!a) R ((b | ((b) R (c))))))"
+    "formula": "F(a & ((!a) R ((b | ((b) R (c))))))"
   },
   {
-    "formula": "F(a \u0026 ((b) R ((Fc \u0026 Fd))))"
+    "formula": "F(a & ((b) R ((Fc & Fd))))"
   },
   {
-    "formula": "F(a \u0026 ((b) R (((!b) R ((!b | c))))))"
+    "formula": "F(a & ((b) R (((!b) R ((!b | c))))))"
   },
   {
-    "formula": "F(a \u0026 ((!b) R (((b) R ((c \u0026 d))))))"
+    "formula": "F(a & ((!b) R (((b) R ((c & d))))))"
   },
   {
-    "formula": "F(a \u0026 ((a) W ((b \u0026 ((b) W (a))))))"
+    "formula": "F(a & ((a) W ((b & ((b) W (a))))))"
   },
   {
-    "formula": "F(a \u0026 ((a) W ((b \u0026 ((c) W (a))))))"
+    "formula": "F(a & ((a) W ((b & ((c) W (a))))))"
   },
   {
-    "formula": "F(Fa \u0026 (Gb | F(b \u0026 c)))"
+    "formula": "F(Fa & (Gb | F(b & c)))"
   },
   {
-    "formula": "F(Fa \u0026 (!a | b | X(!a \u0026 b)))"
+    "formula": "F(Fa & (!a | b | X(!a & b)))"
   },
   {
-    "formula": "F(F!a \u0026 (a | XF!a))"
+    "formula": "F(F!a & (a | XF!a))"
   },
   {
-    "formula": "F((a | X!a) \u0026 ((b \u0026 X!b) | (!b \u0026 Xb)))"
+    "formula": "F((a | X!a) & ((b & X!b) | (!b & Xb)))"
   },
   {
-    "formula": "F((a | Xb) \u0026 (b | XGc))"
+    "formula": "F((a | Xb) & (b | XGc))"
   },
   {
-    "formula": "F((a | XXb) \u0026 (b | XXc) \u0026 (c | XGd))"
+    "formula": "F((a | XXb) & (b | XXc) & (c | XGd))"
   },
   {
     "formula": "FG(a | XXb)",
@@ -1690,16 +1690,16 @@
     }
   },
   {
-    "formula": "G(a | (Fa \u0026 Fb \u0026 (c | Fd)))"
+    "formula": "G(a | (Fa & Fb & (c | Fd)))"
   },
   {
-    "formula": "G(a | F(a \u0026 Xb))"
+    "formula": "G(a | F(a & Xb))"
   },
   {
-    "formula": "G(a | F(b \u0026 Fa))"
+    "formula": "G(a | F(b & Fa))"
   },
   {
-    "formula": "G(a | F(b \u0026 Xc))"
+    "formula": "G(a | F(b & Xc))"
   },
   {
     "formula": "G(a | G(b | Fc))"
@@ -1717,43 +1717,43 @@
     "formula": "G(a | ((b) U (((!b) U ((c | d))))))"
   },
   {
-    "formula": "G(a | ((!b) U (((b) U ((b \u0026 c))))))"
+    "formula": "G(a | ((!b) U (((b) U ((b & c))))))"
   },
   {
-    "formula": "G(!a | ((a | b) \u0026 FG!b))"
+    "formula": "G(!a | ((a | b) & FG!b))"
   },
   {
-    "formula": "G(!a | ((a) U ((b \u0026 ((b) U (c))))))"
+    "formula": "G(!a | ((a) U ((b & ((b) U (c))))))"
   },
   {
-    "formula": "G(Ga | (!a \u0026 XGa))"
+    "formula": "G(Ga | (!a & XGa))"
   },
   {
-    "formula": "G(Ga | (Fb \u0026 G(b | c)))"
+    "formula": "G(Ga | (Fb & G(b | c)))"
   },
   {
-    "formula": "G(G!a | (a \u0026 b \u0026 X(a | b)))"
+    "formula": "G(G!a | (a & b & X(a | b)))"
   },
   {
-    "formula": "G((a \u0026 Xb) | (b \u0026 XFc))"
+    "formula": "G((a & Xb) | (b & XFc))"
   },
   {
-    "formula": "G((!a \u0026 Xa) | ((b | X!b) \u0026 (!b | Xb)))"
+    "formula": "G((!a & Xa) | ((b | X!b) & (!b | Xb)))"
   },
   {
-    "formula": "G((a \u0026 XXb) | (b \u0026 XXc) | (c \u0026 XFd))"
+    "formula": "G((a & XXb) | (b & XXc) | (c & XFd))"
   },
   {
-    "formula": "GF(a \u0026 XXb)"
+    "formula": "GF(a & XXb)"
   },
   {
-    "formula": "GF(Xa \u0026 ((a) M (Xa)))"
+    "formula": "GF(Xa & ((a) M (Xa)))"
   },
   {
-    "formula": "GF(a \u0026 Xb \u0026 XXc)"
+    "formula": "GF(a & Xb & XXc)"
   },
   {
-    "formula": "XF(a \u0026 Fb \u0026 ((Xb) R (c)))"
+    "formula": "XF(a & Fb & ((Xb) R (c)))"
   },
   {
     "formula": "XG(a | Gb | ((Xb) U (c)))"
@@ -1765,10 +1765,10 @@
     "formula": "((a) R (X(b | XGa)))"
   },
   {
-    "formula": "(((a \u0026 Xb)) R (X((((((c) U (d))) R (a))) U (((c) R (a))))))"
+    "formula": "(((a & Xb)) R (X((((((c) U (d))) R (a))) U (((c) R (a))))))"
   },
   {
-    "formula": "((a) U (X(b \u0026 XFa)))"
+    "formula": "((a) U (X(b & XFa)))"
   },
   {
     "formula": "(((a | Xb)) U (X((((((c) R (d))) U (a))) R (((c) U (a))))))"
@@ -1777,64 +1777,64 @@
     "formula": "((!a) W (((a) W (((!a) W (((a) W (G!a))))))))"
   },
   {
-    "formula": "(a \u0026 ((FG!a \u0026 GFb) | (FGa \u0026 (GFa | GFb))))"
+    "formula": "(a & ((FG!a & GFb) | (FGa & (GFa | GFb))))"
   },
   {
-    "formula": "(Fa \u0026 ((b) M ((G!a \u0026 ((XXb) M (!a))))))"
+    "formula": "(Fa & ((b) M ((G!a & ((XXb) M (!a))))))"
   },
   {
-    "formula": "(Fa \u0026 ((b) R ((!a \u0026 (b | c | X((b) R (d)))))))"
+    "formula": "(Fa & ((b) R ((!a & (b | c | X((b) R (d)))))))"
   },
   {
-    "formula": "(Fa \u0026 (((!a \u0026 b \u0026 X((!a) U ((!a \u0026 c))))) R ((!a \u0026 d))))"
+    "formula": "(Fa & (((!a & b & X((!a) U ((!a & c))))) R ((!a & d))))"
   },
   {
-    "formula": "(FGa \u0026 (Ga | G(Xb | (a \u0026 Xa) | (!a \u0026 X!a))))"
+    "formula": "(FGa & (Ga | G(Xb | (a & Xa) | (!a & X!a))))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 (GFc | FG(d | Xe)))"
+    "formula": "((FGa | GFb) & (GFc | FG(d | Xe)))"
   },
   {
-    "formula": "((FGa | GFb) \u0026 ((FGc \u0026 GFd) | (FGe \u0026 GFf \u0026 (FGg | GFh))))"
+    "formula": "((FGa | GFb) & ((FGc & GFd) | (FGe & GFf & (FGg | GFh))))"
   },
   {
-    "formula": "((FG!a | FG!b) \u0026 (GFb | (FGa \u0026 (FGc | GFa))))"
+    "formula": "((FG!a | FG!b) & (GFb | (FGa & (FGc | GFa))))"
   },
   {
-    "formula": "((GFa | GFb) \u0026 GF(c \u0026 XXa))"
+    "formula": "((GFa | GFb) & GF(c & XXa))"
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 XXa))"
+    "formula": "(GF(a & Xb) & GF(c & XXa))"
   },
   {
-    "formula": "((G(a | Fb) | (b \u0026 G(a | Fb))) \u0026 F(b \u0026 G(a | Fb)))"
+    "formula": "((G(a | Fb) | (b & G(a | Fb))) & F(b & G(a | Fb)))"
   },
   {
-    "formula": "(FG(a | XXa) \u0026 FG(!a | XX!a))"
+    "formula": "(FG(a | XXa) & FG(!a | XX!a))"
   },
   {
-    "formula": "(G(F(a \u0026 b) | (Ga \u0026 XGc)) \u0026 G(F(d \u0026 e) | (Gd \u0026 XGf)))"
+    "formula": "(G(F(a & b) | (Ga & XGc)) & G(F(d & e) | (Gd & XGf)))"
   },
   {
-    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd))"
+    "formula": "(GF(a & XXb) & GF(c & XXd))"
   },
   {
-    "formula": "(FGa \u0026 GFb \u0026 GF(a \u0026 XXb))"
+    "formula": "(FGa & GFb & GF(a & XXb))"
   },
   {
-    "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb) \u0026 GF(!a \u0026 XXb))"
+    "formula": "(GF(!a & b) & GF(a & Xb) & GF(!a & XXb))"
   },
   {
-    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd) \u0026 GF(e \u0026 XXf))"
+    "formula": "(GF(a & XXb) & GF(c & XXd) & GF(e & XXf))"
   },
   {
-    "formula": "(a \u0026 Xb \u0026 XXc \u0026 XXXd \u0026 XXXXGe)"
+    "formula": "(a & Xb & XXc & XXXd & XXXXGe)"
   },
   {
-    "formula": "(!a | ((FGb | GFa) \u0026 (GF!a | (FG!a \u0026 FGb))))"
+    "formula": "(!a | ((FGb | GFa) & (GF!a | (FG!a & FGb))))"
   },
   {
-    "formula": "(G!a | ((b) U ((a | (b \u0026 c \u0026 X((b) U (d)))))))"
+    "formula": "(G!a | ((b) U ((a | (b & c & X((b) U (d)))))))"
   },
   {
     "formula": "(G!a | (((a | b | X((a) R ((a | c))))) U ((a | d))))"
@@ -1843,19 +1843,19 @@
     "formula": "(G!a | ((b) W ((Fa | ((XXb) W (a))))))"
   },
   {
-    "formula": "(GF!a | (F!a \u0026 F(Xb \u0026 (a | Xa) \u0026 (!a | X!a))))"
+    "formula": "(GF!a | (F!a & F(Xb & (a | Xa) & (!a | X!a))))"
   },
   {
-    "formula": "((FGa \u0026 FGb) | FG(c | XXa))"
+    "formula": "((FGa & FGb) | FG(c | XXa))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | (FGc \u0026 GF(d \u0026 Xe)))"
+    "formula": "((FGa & GFb) | (FGc & GF(d & Xe)))"
   },
   {
-    "formula": "((FGa \u0026 GFb) | ((FGc | GFd) \u0026 (FGe | GFf | (FGg \u0026 GFh))))"
+    "formula": "((FGa & GFb) | ((FGc | GFd) & (FGe | GFf | (FGg & GFh))))"
   },
   {
-    "formula": "((GFa \u0026 GFb) | (FG!b \u0026 (GF!a | (FG!a \u0026 GFc))))"
+    "formula": "((GFa & GFb) | (FG!b & (GF!a | (FG!a & GFc))))"
   },
   {
     "formula": "(FG(a | Xb) | FG(c | XXa))",
@@ -1869,10 +1869,10 @@
     }
   },
   {
-    "formula": "((F(a \u0026 Gb) \u0026 (b | F(a \u0026 Gb))) | G(b | F(a \u0026 Gb)))"
+    "formula": "((F(a & Gb) & (b | F(a & Gb))) | G(b | F(a & Gb)))"
   },
   {
-    "formula": "(F(G(a | b) \u0026 (Fa | XFc)) | F(G(d | e) \u0026 (Fd | XFf)))"
+    "formula": "(F(G(a | b) & (Fa | XFc)) | F(G(d | e) & (Fd | XFf)))"
   },
   {
     "formula": "(FG(a | XXb) | FG(c | XXd))",
@@ -1886,7 +1886,7 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 XXa) | GF(!a \u0026 XX!a))"
+    "formula": "(GF(a & XXa) | GF(!a & XX!a))"
   },
   {
     "formula": "(FGa | GFb | FG(b | XXa))"
@@ -1917,40 +1917,40 @@
     "formula": "(a | Xb | XXc | XXXd | XXXXFe)"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 (a | Gc)))"
+    "formula": "F(a & F(b & (a | Gc)))"
   },
   {
-    "formula": "F(a \u0026 G(b | XGc))"
+    "formula": "F(a & G(b | XGc))"
   },
   {
-    "formula": "F(a \u0026 G(b | c | X((c) R (d))))"
+    "formula": "F(a & G(b | c | X((c) R (d))))"
   },
   {
-    "formula": "F(a \u0026 G(b | Fc | (Fd \u0026 Ge)))"
+    "formula": "F(a & G(b | Fc | (Fd & Ge)))"
   },
   {
-    "formula": "F(a \u0026 X(b \u0026 XFc))"
+    "formula": "F(a & X(b & XFc))"
   },
   {
-    "formula": "F(a \u0026 ((b) R (((!b) R ((b | ((c) U (b))))))))"
+    "formula": "F(a & ((b) R (((!b) R ((b | ((c) U (b))))))))"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 (((c \u0026 ((b) R ((b | d))))) M (!b)))"
+    "formula": "F(a & !b & (((c & ((b) R ((b | d))))) M (!b)))"
   },
   {
-    "formula": "F(a \u0026 XFb \u0026 XG(!b | Gc))"
+    "formula": "F(a & XFb & XG(!b | Gc))"
   },
   {
-    "formula": "F(!a \u0026 Xa \u0026 X(((!a \u0026 Xa)) R ((b | X!b))))"
+    "formula": "F(!a & Xa & X(((!a & Xa)) R ((b | X!b))))"
   },
   {
-    "formula": "F(((a) W (Gb)) \u0026 (!a | F(!a \u0026 !b) | FG!b) \u0026 (a | (G(a | b) \u0026 GFb)))"
+    "formula": "F(((a) W (Gb)) & (!a | F(!a & !b) | FG!b) & (a | (G(a | b) & GFb)))"
   },
   {
-    "formula": "F(a \u0026 !b \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d))))) R (!b)))"
+    "formula": "F(a & !b & Fb & (((c & ((b) R ((b | d))))) R (!b)))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 !c \u0026 Xc \u0026 X(d \u0026 X(b \u0026 d)))"
+    "formula": "F(a & b & !c & Xc & X(d & X(b & d)))"
   },
   {
     "formula": "FG(a | XXXb)",
@@ -1964,124 +1964,124 @@
     }
   },
   {
-    "formula": "FG((a \u0026 Fb) | ((Fc) U ((a \u0026 Fc))))"
+    "formula": "FG((a & Fb) | ((Fc) U ((a & Fc))))"
   },
   {
     "formula": "FG(((a) U (XXb)) | ((c) U (XXd)))"
   },
   {
-    "formula": "G(a | F(b \u0026 XFc))"
+    "formula": "G(a | F(b & XFc))"
   },
   {
-    "formula": "G(a | F(b \u0026 c \u0026 X((c) U (d))))"
+    "formula": "G(a | F(b & c & X((c) U (d))))"
   },
   {
-    "formula": "G(a | F(b \u0026 Gc \u0026 (Fd | Ge)))"
+    "formula": "G(a | F(b & Gc & (Fd | Ge)))"
   },
   {
-    "formula": "G(a | G(b | (a \u0026 Fc)))"
+    "formula": "G(a | G(b | (a & Fc)))"
   },
   {
     "formula": "G(a | X(b | XGc))"
   },
   {
-    "formula": "G(a | ((!b) U (((b) U ((!b \u0026 ((c) R (!b))))))))"
+    "formula": "G(a | ((!b) U (((b) U ((!b & ((c) R (!b))))))))"
   },
   {
-    "formula": "G(a | b | (((c | ((!b) U ((!b \u0026 d))))) W (b)))"
+    "formula": "G(a | b | (((c | ((!b) U ((!b & d))))) W (b)))"
   },
   {
-    "formula": "G(a | X!a | X(((a | X!a)) U ((!b \u0026 Xb))))"
+    "formula": "G(a | X!a | X(((a | X!a)) U ((!b & Xb))))"
   },
   {
-    "formula": "G(a | XG!b | XF(b \u0026 Fc))"
+    "formula": "G(a | XG!b | XF(b & Fc))"
   },
   {
-    "formula": "G(((!a) M (F!b)) | (a \u0026 G(a | b) \u0026 GFb) | (!a \u0026 (F(!a \u0026 !b) | FG!b)))"
+    "formula": "G(((!a) M (F!b)) | (a & G(a | b) & GFb) | (!a & (F(!a & !b) | FG!b)))"
   },
   {
-    "formula": "G(a | b | G!b | (((c | ((!b) U ((!b \u0026 d))))) U (b)))"
+    "formula": "G(a | b | G!b | (((c | ((!b) U ((!b & d))))) U (b)))"
   },
   {
     "formula": "G(a | b | c | X!c | X(d | X(b | d)))"
   },
   {
-    "formula": "GF(a \u0026 XXXb)"
+    "formula": "GF(a & XXXb)"
   },
   {
-    "formula": "GF((a | Gb) \u0026 ((Gc) R ((a | Gc))))"
+    "formula": "GF((a | Gb) & ((Gc) R ((a | Gc))))"
   },
   {
-    "formula": "GF(((a) R (XXb)) \u0026 ((c) R (XXd)))"
+    "formula": "GF(((a) R (XXb)) & ((c) R (XXd)))"
   },
   {
-    "formula": "X(a \u0026 X(b \u0026 XGc))"
+    "formula": "X(a & X(b & XGc))"
   },
   {
     "formula": "X(a | X(b | XFc))"
   },
   {
-    "formula": "((a) M ((a \u0026 ((b) M ((b | c | X((b) R (d))))))))"
+    "formula": "((a) M ((a & ((b) M ((b | c | X((b) R (d))))))))"
   },
   {
-    "formula": "((((!a) M (((b | XGa) \u0026 (!b | XF!a))))) M (!a))"
+    "formula": "((((!a) M (((b | XGa) & (!b | XF!a))))) M (!a))"
   },
   {
-    "formula": "((XXa) R ((b \u0026 (((c) R (XXd)) | ((e) R (XXf)) | ((g) R (XXh))))))"
+    "formula": "((XXa) R ((b & (((c) R (XXd)) | ((e) R (XXf)) | ((g) R (XXh))))))"
   },
   {
-    "formula": "((XXa) U ((b | (((c) U (XXd)) \u0026 ((e) U (XXf)) \u0026 ((g) U (XXh))))))"
+    "formula": "((XXa) U ((b | (((c) U (XXd)) & ((e) U (XXf)) & ((g) U (XXh))))))"
   },
   {
-    "formula": "((a) W ((a | ((b) W ((b \u0026 c \u0026 X((b) U (d))))))))"
+    "formula": "((a) W ((a | ((b) W ((b & c & X((b) U (d))))))))"
   },
   {
-    "formula": "((((a) W (((b \u0026 XGa) | (!b \u0026 XF!a))))) W (a))"
+    "formula": "((((a) W (((b & XGa) | (!b & XF!a))))) W (a))"
   },
   {
-    "formula": "(Fa \u0026 (((b \u0026 ((a) R ((a | c | X((a) R (d))))))) R (!a)))"
+    "formula": "(Fa & (((b & ((a) R ((a | c | X((a) R (d))))))) R (!a)))"
   },
   {
-    "formula": "(Fa \u0026 (((b \u0026 X((!a) U (c)) \u0026 X((a) R ((!c | Gd))))) R (!a)))"
+    "formula": "(Fa & (((b & X((!a) U (c)) & X((a) R ((!c | Gd))))) R (!a)))"
   },
   {
-    "formula": "((FGa | GFb | GFc) \u0026 G(b | d | G(a | XFc)))"
+    "formula": "((FGa | GFb | GFc) & G(b | d | G(a | XFc)))"
   },
   {
-    "formula": "((!a | GF(a \u0026 ((!b) M (!a))) | GF(!a \u0026 ((b) W (a)))) \u0026 (a | (FG(a | ((!b) M (!a))) \u0026 FG(!a | ((b) W (a))))))"
+    "formula": "((!a | GF(a & ((!b) M (!a))) | GF(!a & ((b) W (a)))) & (a | (FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a))))))"
   },
   {
-    "formula": "((FGa | GF(b \u0026 XXa)) \u0026 FG(c | X(b \u0026 Xa)))"
+    "formula": "((FGa | GF(b & XXa)) & FG(c | X(b & Xa)))"
   },
   {
-    "formula": "(FG(a | XXXa) \u0026 FG(!a | XXX!a))"
+    "formula": "(FG(a | XXXa) & FG(!a | XXX!a))"
   },
   {
-    "formula": "(GFa \u0026 FG(b | Xc) \u0026 GF(d \u0026 XXXe))"
+    "formula": "(GFa & FG(b | Xc) & GF(d & XXXe))"
   },
   {
-    "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb) \u0026 GF(!a \u0026 XXb) \u0026 GF(a \u0026 XXXb))"
+    "formula": "(GF(!a & b) & GF(a & Xb) & GF(!a & XXb) & GF(a & XXXb))"
   },
   {
-    "formula": "(G!a | (((b | ((!a) U ((!a \u0026 c \u0026 X((!a) U (d))))))) U (a)))"
+    "formula": "(G!a | (((b | ((!a) U ((!a & c & X((!a) U (d))))))) U (a)))"
   },
   {
-    "formula": "(G!a | (((b | X((a) R (!c)) | X((!a) U ((c \u0026 Fd))))) U (a)))"
+    "formula": "(G!a | (((b | X((a) R (!c)) | X((!a) U ((c & Fd))))) U (a)))"
   },
   {
-    "formula": "((FGa \u0026 FGb \u0026 GFc) | F(a \u0026 d \u0026 F(c \u0026 XGb)))"
+    "formula": "((FGa & FGb & GFc) | F(a & d & F(c & XGb)))"
   },
   {
-    "formula": "((a \u0026 FG(a | ((!b) M (!a))) \u0026 FG(!a | ((b) W (a)))) | (!a \u0026 (GF(a \u0026 ((!b) M (!a))) | GF(!a \u0026 ((b) W (a))))))"
+    "formula": "((a & FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a)))) | (!a & (GF(a & ((!b) M (!a))) | GF(!a & ((b) W (a))))))"
   },
   {
-    "formula": "((GFa \u0026 FG(b | XXa)) | GF(c \u0026 X(b | Xa)))"
+    "formula": "((GFa & FG(b | XXa)) | GF(c & X(b | Xa)))"
   },
   {
-    "formula": "(GF(a \u0026 XXXa) | GF(!a \u0026 XXX!a))"
+    "formula": "(GF(a & XXXa) | GF(!a & XXX!a))"
   },
   {
-    "formula": "(FGa | GF(b \u0026 Xc) | FG(d | XXXe))"
+    "formula": "(FGa | GF(b & Xc) | FG(d | XXXe))"
   },
   {
     "formula": "(FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb))",
@@ -2098,73 +2098,73 @@
     "formula": "(Fa | Fb | Fc | XF!b | X(Xa | ((b) U (((!b) U (((b) U ((a | d)))))))))"
   },
   {
-    "formula": "F(a \u0026 ((a \u0026 G(b | c) \u0026 GFc) | (!a \u0026 (F(!b \u0026 !c) | FG!c))))"
+    "formula": "F(a & ((a & G(b | c) & GFc) | (!a & (F(!b & !c) | FG!c))))"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 (c | XGd)))"
+    "formula": "F(a & F(b & (c | XGd)))"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 (c | d | X((d) R (e)))))"
+    "formula": "F(a & F(b & (c | d | X((d) R (e)))))"
   },
   {
-    "formula": "F(a \u0026 ((b) M ((c \u0026 (b | d | X((b) R (e)))))))"
+    "formula": "F(a & ((b) M ((c & (b | d | X((b) R (e)))))))"
   },
   {
-    "formula": "F(a \u0026 ((!a) R ((b | ((b) R ((c | ((c) R (d)))))))))"
+    "formula": "F(a & ((!a) R ((b | ((b) R ((c | ((c) R (d)))))))))"
   },
   {
-    "formula": "F(a \u0026 ((b) R (((!b) R (((b) R (((!b) R ((!b | c))))))))))"
+    "formula": "F(a & ((b) R (((!b) R (((b) R (((!b) R ((!b | c))))))))))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 ((c) R ((!b \u0026 (c | d | X((c) R (e)))))))"
+    "formula": "F(a & Fb & ((c) R ((!b & (c | d | X((c) R (e)))))))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 (((!b \u0026 c \u0026 X((!b) U ((!b \u0026 d))))) R ((!b \u0026 e))))"
+    "formula": "F(a & Fb & (((!b & c & X((!b) U ((!b & d))))) R ((!b & e))))"
   },
   {
-    "formula": "F(a \u0026 F!b \u0026 ((b) R ((c \u0026 (b | d | X((b) R (e)))))))"
+    "formula": "F(a & F!b & ((b) R ((c & (b | d | X((b) R (e)))))))"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 XFc) \u0026 (((b \u0026 d \u0026 X((d) U ((c \u0026 d))))) R ((d \u0026 e))))"
+    "formula": "F(a & F(b & XFc) & (((b & d & X((d) U ((c & d))))) R ((d & e))))"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 XFc) \u0026 (((b \u0026 Gd \u0026 XF(c \u0026 d))) R ((d \u0026 e))))"
+    "formula": "F(a & F(b & XFc) & (((b & Gd & XF(c & d))) R ((d & e))))"
   },
   {
-    "formula": "F(!a \u0026 Xa \u0026 X((!a) R ((!a | b | X(!a | !b)))))"
+    "formula": "F(!a & Xa & X((!a) R ((!a | b | X(!a | !b)))))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 !c \u0026 Xc \u0026 X(Xb \u0026 ((c) R (((!c) R ((b \u0026 d)))))))"
+    "formula": "F(a & b & !c & Xc & X(Xb & ((c) R (((!c) R ((b & d)))))))"
   },
   {
-    "formula": "G(a | G(b | (c \u0026 XFd)))"
+    "formula": "G(a | G(b | (c & XFd)))"
   },
   {
-    "formula": "G(a | G(b | (c \u0026 d \u0026 X((d) U (e)))))"
+    "formula": "G(a | G(b | (c & d & X((d) U (e)))))"
   },
   {
-    "formula": "G(a | ((!b) U (((b) U (((!b) U (((b) U ((b \u0026 c))))))))))"
+    "formula": "G(a | ((!b) U (((b) U (((!b) U (((b) U ((b & c))))))))))"
   },
   {
-    "formula": "G(a | ((b) W ((c | (b \u0026 d \u0026 X((b) U (e)))))))"
+    "formula": "G(a | ((b) W ((c | (b & d & X((b) U (e)))))))"
   },
   {
-    "formula": "G(!a | ((!a | F(!b \u0026 !c) | FG!c) \u0026 (a | (G(b | c) \u0026 GFc))))"
+    "formula": "G(!a | ((!a | F(!b & !c) | FG!c) & (a | (G(b | c) & GFc))))"
   },
   {
-    "formula": "G(!a | ((a) U ((b \u0026 ((b) U ((c \u0026 ((c) U (d)))))))))"
+    "formula": "G(!a | ((a) U ((b & ((b) U ((c & ((c) U (d)))))))))"
   },
   {
-    "formula": "G(a | Gb | ((!b) U ((c | (!b \u0026 d \u0026 X((!b) U (e)))))))"
+    "formula": "G(a | Gb | ((!b) U ((c | (!b & d & X((!b) U (e)))))))"
   },
   {
-    "formula": "G(a | G!b | ((c) U ((b | (c \u0026 d \u0026 X((c) U (e)))))))"
+    "formula": "G(a | G!b | ((c) U ((b | (c & d & X((c) U (e)))))))"
   },
   {
     "formula": "G(a | G!b | (((b | c | X((b) R ((b | d))))) U ((b | e))))"
   },
   {
-    "formula": "G(a | X!a | X((a) U ((a \u0026 !b \u0026 X(a \u0026 b)))))"
+    "formula": "G(a | X!a | X((a) U ((a & !b & X(a & b)))))"
   },
   {
     "formula": "G(a | G(b | XGc) | (((b | d | X((d) R ((c | d))))) U ((d | e))))"
@@ -2176,76 +2176,76 @@
     "formula": "G(a | b | c | X!c | X(Xb | ((!c) U (((c) U ((b | d)))))))"
   },
   {
-    "formula": "((a) M ((!a | (((b) R (c)) \u0026 F(b \u0026 XFd)))))"
+    "formula": "((a) M ((!a | (((b) R (c)) & F(b & XFd)))))"
   },
   {
     "formula": "((a) M ((!a | ((b) M (((!b) M (((b) M (((!b) M (Fb)))))))))))"
   },
   {
-    "formula": "((((a) M (b))) M ((((c | Gd)) R (((!e \u0026 G!c) | (e \u0026 ((e \u0026 G!c) | (!e \u0026 Fc))))))))"
+    "formula": "((((a) M (b))) M ((((c | Gd)) R (((!e & G!c) | (e & ((e & G!c) | (!e & Fc))))))))"
   },
   {
-    "formula": "((a) R ((!b | !c | ((Gb) M (((c | d) \u0026 (!d | ((!c) R ((a | !c))))))))))"
+    "formula": "((a) R ((!b | !c | ((Gb) M (((c | d) & (!d | ((!c) R ((a | !c))))))))))"
   },
   {
-    "formula": "((a) U ((b \u0026 c \u0026 ((F!b) W (((!c \u0026 !d) | (d \u0026 ((c) U ((a \u0026 c))))))))))"
+    "formula": "((a) U ((b & c & ((F!b) W (((!c & !d) | (d & ((c) U ((a & c))))))))))"
   },
   {
-    "formula": "((!a) W ((a \u0026 (((b) U (c)) | G(b | XGd)))))"
+    "formula": "((!a) W ((a & (((b) U (c)) | G(b | XGd)))))"
   },
   {
-    "formula": "((!a) W ((a \u0026 ((!b) W (((b) W (((!b) W (((b) W (G!b)))))))))))"
+    "formula": "((!a) W ((a & ((!b) W (((b) W (((!b) W (((b) W (G!b)))))))))))"
   },
   {
-    "formula": "((((a) W (b))) W ((((!c \u0026 Fd)) U (((e | Fc) \u0026 (!e | ((e | G!c) \u0026 (!e | Fc))))))))"
+    "formula": "((((a) W (b))) W ((((!c & Fd)) U (((e | Fc) & (!e | ((e | G!c) & (!e | Fc))))))))"
   },
   {
-    "formula": "(Fa \u0026 (((b \u0026 ((a) R ((a | c | d | X(((a | d)) R (e))))))) R (!a)))"
+    "formula": "(Fa & (((b & ((a) R ((a | c | d | X(((a | d)) R (e))))))) R (!a)))"
   },
   {
-    "formula": "((FGa | GF(b \u0026 XXc)) \u0026 (GFc | FG(d | X(b \u0026 Xa))))"
+    "formula": "((FGa | GF(b & XXc)) & (GFc | FG(d | X(b & Xa))))"
   },
   {
-    "formula": "(FG(a | XXXXa) \u0026 FG(!a | XXXX!a))"
+    "formula": "(FG(a | XXXXa) & FG(!a | XXXX!a))"
   },
   {
-    "formula": "(G!a | (((b | ((!a) U ((!a \u0026 c \u0026 d \u0026 X(((!a \u0026 d)) U (e))))))) U (a)))"
+    "formula": "(G!a | (((b | ((!a) U ((!a & c & d & X(((!a & d)) U (e))))))) U (a)))"
   },
   {
-    "formula": "((GFa \u0026 FG(b | XXc)) | (FGc \u0026 GF(d \u0026 X(b | Xa))))"
+    "formula": "((GFa & FG(b | XXc)) | (FGc & GF(d & X(b | Xa))))"
   },
   {
-    "formula": "(GF(a \u0026 XXXXa) | GF(!a \u0026 XXXX!a))"
+    "formula": "(GF(a & XXXXa) | GF(!a & XXXX!a))"
   },
   {
-    "formula": "F(a \u0026 F(b \u0026 XFc \u0026 XG(!c | Gd)))"
+    "formula": "F(a & F(b & XFc & XG(!c | Gd)))"
   },
   {
-    "formula": "F(a \u0026 ((!a) R (((b) R ((!a | ((!a) R ((c | ((c) R (!a)))))))))))"
+    "formula": "F(a & ((!a) R (((b) R ((!a | ((!a) R ((c | ((c) R (!a)))))))))))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d | X((b) R (e))))))) R (!b)))"
+    "formula": "F(a & Fb & (((c & ((b) R ((b | d | X((b) R (e))))))) R (!b)))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 (((c \u0026 X((!b) U (d)) \u0026 X((b) R ((!d | Ge))))) R (!b)))"
+    "formula": "F(a & Fb & (((c & X((!b) U (d)) & X((b) R ((!d | Ge))))) R (!b)))"
   },
   {
-    "formula": "F(!a \u0026 Xa \u0026 X(Xb \u0026 ((!a) R (((a) R (((!a) R ((b \u0026 c)))))))))"
+    "formula": "F(!a & Xa & X(Xb & ((!a) R (((a) R (((!a) R ((b & c)))))))))"
   },
   {
-    "formula": "F(a \u0026 b \u0026 !c \u0026 Xc \u0026 X(Xb \u0026 ((!c) R (((c) R (((!c) R ((b \u0026 d)))))))))"
+    "formula": "F(a & b & !c & Xc & X(Xb & ((!c) R (((c) R (((!c) R ((b & d)))))))))"
   },
   {
-    "formula": "G(a | G(b | XG!c | XF(c \u0026 Fd)))"
+    "formula": "G(a | G(b | XG!c | XF(c & Fd)))"
   },
   {
-    "formula": "G(!a | ((a) U (((b) U ((a \u0026 ((a) U ((c \u0026 ((c) U (a)))))))))))"
+    "formula": "G(!a | ((a) U (((b) U ((a & ((a) U ((c & ((c) U (a)))))))))))"
   },
   {
-    "formula": "G(a | G!b | (((c | ((!b) U ((!b \u0026 d \u0026 X((!b) U (e))))))) U (b)))"
+    "formula": "G(a | G!b | (((c | ((!b) U ((!b & d & X((!b) U (e))))))) U (b)))"
   },
   {
-    "formula": "G(a | G!b | (((c | X((b) R (!d)) | X((!b) U ((d \u0026 Fe))))) U (b)))"
+    "formula": "G(a | G!b | (((c | X((b) R (!d)) | X((!b) U ((d & Fe))))) U (b)))"
   },
   {
     "formula": "G(a | X!a | X(Xb | ((a) U (((!a) U (((a) U ((b | c)))))))))"
@@ -2254,109 +2254,109 @@
     "formula": "G(a | b | c | X!c | X(Xb | ((c) U (((!c) U (((c) U ((b | d)))))))))"
   },
   {
-    "formula": "((!a | GF(a \u0026 !b \u0026 ((!c) M (!a))) | GF(!a \u0026 (b | ((c) W (a)))) | (F!c \u0026 (F(a \u0026 !b \u0026 ((!c) M (!a))) | F(!a \u0026 (b | ((c) W (a))))))) \u0026 (a | (FG(!a | b | ((c) W (a))) \u0026 FG(a | (!b \u0026 ((!c) M (!a)))) \u0026 (Gc | (G(!a | b | ((c) W (a))) \u0026 G(a | (!b \u0026 ((!c) M (!a)))))))))"
+    "formula": "((!a | GF(a & !b & ((!c) M (!a))) | GF(!a & (b | ((c) W (a)))) | (F!c & (F(a & !b & ((!c) M (!a))) | F(!a & (b | ((c) W (a))))))) & (a | (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a)))))))))"
   },
   {
-    "formula": "((a \u0026 FG(!a | b | ((c) W (a))) \u0026 FG(a | (!b \u0026 ((!c) M (!a)))) \u0026 (Gc | (G(!a | b | ((c) W (a))) \u0026 G(a | (!b \u0026 ((!c) M (!a))))))) | (!a \u0026 (GF(a \u0026 !b \u0026 ((!c) M (!a))) | GF(!a \u0026 (b | ((c) W (a)))) | (F!c \u0026 (F(a \u0026 !b \u0026 ((!c) M (!a))) | F(!a \u0026 (b | ((c) W (a)))))))))"
+    "formula": "((a & FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))) | (!a & (GF(a & !b & ((!c) M (!a))) | GF(!a & (b | ((c) W (a)))) | (F!c & (F(a & !b & ((!c) M (!a))) | F(!a & (b | ((c) W (a)))))))))"
   },
   {
-    "formula": "F(a \u0026 (((b \u0026 ((c) R ((c | d | X((c) R (e))))))) R ((!c \u0026 F(b \u0026 (d | XGe))))))"
+    "formula": "F(a & (((b & ((c) R ((c | d | X((c) R (e))))))) R ((!c & F(b & (d | XGe))))))"
   },
   {
-    "formula": "F(a \u0026 (((b \u0026 (((c | X((d) R (e)))) W (d)))) R ((!d \u0026 F(b \u0026 (c | XGe))))))"
+    "formula": "F(a & (((b & (((c | X((d) R (e)))) W (d)))) R ((!d & F(b & (c | XGe))))))"
   },
   {
-    "formula": "F(a \u0026 (((b \u0026 ((c) R ((c | d | e | X(((c | e)) R (f))))))) R ((!c \u0026 F(b \u0026 (d | e | X((e) R (f))))))))"
+    "formula": "F(a & (((b & ((c) R ((c | d | e | X(((c | e)) R (f))))))) R ((!c & F(b & (d | e | X((e) R (f))))))))"
   },
   {
-    "formula": "F(a \u0026 (((b \u0026 (((c | d | X(((d | e)) R (f)))) W (e)))) R ((!e \u0026 F(b \u0026 (c | d | X((d) R (f))))))))"
+    "formula": "F(a & (((b & (((c | d | X(((d | e)) R (f)))) W (e)))) R ((!e & F(b & (c | d | X((d) R (f))))))))"
   },
   {
-    "formula": "F((((a | Xa) \u0026 (!a | X!a)) | ((b | Xb) \u0026 (!b | X!b)) | ((c | Xc) \u0026 (!c | X!c)) | ((d | Xd) \u0026 (!d | X!d))) \u0026 X(e | (((((a | Xa) \u0026 (!a | X!a)) | ((b | Xb) \u0026 (!b | X!b)) | ((c | Xc) \u0026 (!c | X!c)) | ((d | Xd) \u0026 (!d | X!d)))) R (!e))))"
+    "formula": "F((((a | Xa) & (!a | X!a)) | ((b | Xb) & (!b | X!b)) | ((c | Xc) & (!c | X!c)) | ((d | Xd) & (!d | X!d))) & X(e | (((((a | Xa) & (!a | X!a)) | ((b | Xb) & (!b | X!b)) | ((c | Xc) & (!c | X!c)) | ((d | Xd) & (!d | X!d)))) R (!e))))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 (((c \u0026 ((b) R ((b | d | e | X(((b | e)) R (f))))))) R (!b)))"
+    "formula": "F(a & Fb & (((c & ((b) R ((b | d | e | X(((b | e)) R (f))))))) R (!b)))"
   },
   {
-    "formula": "G(a | (((b | (((c \u0026 X((!d) U (e)))) M (!d)))) U ((d | G(b | (c \u0026 XFe))))))"
+    "formula": "G(a | (((b | (((c & X((!d) U (e)))) M (!d)))) U ((d | G(b | (c & XFe))))))"
   },
   {
-    "formula": "G(a | (((b | ((!c) U ((!c \u0026 d \u0026 X((!c) U (e))))))) U ((c | G(b | (d \u0026 XFe))))))"
+    "formula": "G(a | (((b | ((!c) U ((!c & d & X((!c) U (e))))))) U ((c | G(b | (d & XFe))))))"
   },
   {
-    "formula": "G(a | (((b | (((c \u0026 d \u0026 X(((d \u0026 !e)) U (f)))) M (!e)))) U ((e | G(b | (c \u0026 d \u0026 X((d) U (f))))))))"
+    "formula": "G(a | (((b | (((c & d & X(((d & !e)) U (f)))) M (!e)))) U ((e | G(b | (c & d & X((d) U (f))))))))"
   },
   {
-    "formula": "G(a | (((b | ((!c) U ((!c \u0026 d \u0026 e \u0026 X(((!c \u0026 e)) U (f))))))) U ((c | G(b | (d \u0026 e \u0026 X((e) U (f))))))))"
+    "formula": "G(a | (((b | ((!c) U ((!c & d & e & X(((!c & e)) U (f))))))) U ((c | G(b | (d & e & X((e) U (f))))))))"
   },
   {
-    "formula": "G((((a \u0026 Xa) | (!a \u0026 X!a)) \u0026 ((b \u0026 Xb) | (!b \u0026 X!b)) \u0026 ((c \u0026 Xc) | (!c \u0026 X!c)) \u0026 ((d \u0026 Xd) | (!d \u0026 X!d))) | X(!e \u0026 (((((a \u0026 Xa) | (!a \u0026 X!a)) \u0026 ((b \u0026 Xb) | (!b \u0026 X!b)) \u0026 ((c \u0026 Xc) | (!c \u0026 X!c)) \u0026 ((d \u0026 Xd) | (!d \u0026 X!d)))) U (e))))"
+    "formula": "G((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d))) | X(!e & (((((a & Xa) | (!a & X!a)) & ((b & Xb) | (!b & X!b)) & ((c & Xc) | (!c & X!c)) & ((d & Xd) | (!d & X!d)))) U (e))))"
   },
   {
-    "formula": "G(a | G!b | (((c | ((!b) U ((!b \u0026 d \u0026 e \u0026 X(((!b \u0026 e)) U (f))))))) U (b)))"
+    "formula": "G(a | G!b | (((c | ((!b) U ((!b & d & e & X(((!b & e)) U (f))))))) U (b)))"
   },
   {
-    "formula": "(Fa \u0026 (((a | b)) R ((!a \u0026 (((a | !b)) R ((!a \u0026 (((a | b)) R ((!a \u0026 (((a | !b)) R ((!a \u0026 ((b) R (!a)))))))))))))))"
+    "formula": "(Fa & (((a | b)) R ((!a & (((a | !b)) R ((!a & (((a | b)) R ((!a & (((a | !b)) R ((!a & ((b) R (!a)))))))))))))))"
   },
   {
-    "formula": "(G!a | (((!a \u0026 !b)) U ((a | (((!a \u0026 b)) U ((a | (((!a \u0026 !b)) U ((a | (((!a \u0026 b)) U ((a | ((!b) U (a)))))))))))))))"
+    "formula": "(G!a | (((!a & !b)) U ((a | (((!a & b)) U ((a | (((!a & !b)) U ((a | (((!a & b)) U ((a | ((!b) U (a)))))))))))))))"
   },
   {
-    "formula": "F(a \u0026 (((b \u0026 X((!c) U (d)) \u0026 X((c) R ((!d | Ge))))) R ((!c \u0026 F(b \u0026 X((!c) U (d)) \u0026 X((c) R ((!d | Ge))))))))"
+    "formula": "F(a & (((b & X((!c) U (d)) & X((c) R ((!d | Ge))))) R ((!c & F(b & X((!c) U (d)) & X((c) R ((!d | Ge))))))))"
   },
   {
-    "formula": "G(a | (((b | X((c) R (!d)) | X((!c) U ((d \u0026 Fe))))) U ((c | G(b | X((c) R (!d)) | X((!c) U ((d \u0026 Fe))))))))"
+    "formula": "G(a | (((b | X((c) R (!d)) | X((!c) U ((d & Fe))))) U ((c | G(b | X((c) R (!d)) | X((!c) U ((d & Fe))))))))"
   },
   {
-    "formula": "F(a \u0026 (((b | c)) R ((!c \u0026 (((!b | c)) R ((!c \u0026 (((b | c)) R ((!c \u0026 (((!b | c)) R ((!c \u0026 F!b \u0026 ((b) M (!c)))))))))))))))"
+    "formula": "F(a & (((b | c)) R ((!c & (((!b | c)) R ((!c & (((b | c)) R ((!c & (((!b | c)) R ((!c & F!b & ((b) M (!c)))))))))))))))"
   },
   {
-    "formula": "F((!a | Xa) \u0026 X((!a) R ((!a | b | X(!a | !b | ((!a) R ((!a | b | X(!a | !b)))))))))"
+    "formula": "F((!a | Xa) & X((!a) R ((!a | b | X(!a | !b | ((!a) R ((!a | b | X(!a | !b)))))))))"
   },
   {
-    "formula": "F((!a | Xa) \u0026 X(((b | X(!b | (((b | X(!a | !b))) W (!a))))) W (!a)))"
+    "formula": "F((!a | Xa) & X(((b | X(!b | (((b | X(!a | !b))) W (!a))))) W (!a)))"
   },
   {
-    "formula": "F(a \u0026 Fb \u0026 (((b | c)) R ((!b \u0026 (((b | !c)) R ((!b \u0026 (((b | c)) R ((!b \u0026 (((b | !c)) R ((!b \u0026 ((c) R (!b)))))))))))))))"
+    "formula": "F(a & Fb & (((b | c)) R ((!b & (((b | !c)) R ((!b & (((b | c)) R ((!b & (((b | !c)) R ((!b & ((c) R (!b)))))))))))))))"
   },
   {
-    "formula": "F(a \u0026 X!a \u0026 X((a) R ((a | b | X(a | !b | ((a) R ((a | b | X(a | !b)))))))))"
+    "formula": "F(a & X!a & X((a) R ((a | b | X(a | !b | ((a) R ((a | b | X(a | !b)))))))))"
   },
   {
-    "formula": "F(!a \u0026 Xa \u0026 X((!a) R ((!a | b | X(!a | !b | ((!a) R ((!a | b | X(!a | !b)))))))))"
+    "formula": "F(!a & Xa & X((!a) R ((!a | b | X(!a | !b | ((!a) R ((!a | b | X(!a | !b)))))))))"
   },
   {
-    "formula": "G(a | (((!b \u0026 !c)) U ((c | (((b \u0026 !c)) U ((c | (((!b \u0026 !c)) U ((c | (((b \u0026 !c)) U ((c | Gb | ((!b) W (c)))))))))))))))"
+    "formula": "G(a | (((!b & !c)) U ((c | (((b & !c)) U ((c | (((!b & !c)) U ((c | (((b & !c)) U ((c | Gb | ((!b) W (c)))))))))))))))"
   },
   {
-    "formula": "G((a \u0026 X!a) | X(((!b \u0026 X(b \u0026 (((!b \u0026 X(a \u0026 b))) M (a))))) M (a)))"
+    "formula": "G((a & X!a) | X(((!b & X(b & (((!b & X(a & b))) M (a))))) M (a)))"
   },
   {
-    "formula": "G((a \u0026 X!a) | X((a) U ((a \u0026 !b \u0026 X(a \u0026 b \u0026 ((a) U ((a \u0026 !b \u0026 X(a \u0026 b)))))))))"
+    "formula": "G((a & X!a) | X((a) U ((a & !b & X(a & b & ((a) U ((a & !b & X(a & b)))))))))"
   },
   {
-    "formula": "G(a | G!b | (((!b \u0026 !c)) U ((b | (((!b \u0026 c)) U ((b | (((!b \u0026 !c)) U ((b | (((!b \u0026 c)) U ((b | ((!c) U (b)))))))))))))))"
+    "formula": "G(a | G!b | (((!b & !c)) U ((b | (((!b & c)) U ((b | (((!b & !c)) U ((b | (((!b & c)) U ((b | ((!c) U (b)))))))))))))))"
   },
   {
-    "formula": "G(a | X!a | X((a) U ((a \u0026 !b \u0026 X(a \u0026 b \u0026 ((a) U ((a \u0026 !b \u0026 X(a \u0026 b)))))))))"
+    "formula": "G(a | X!a | X((a) U ((a & !b & X(a & b & ((a) U ((a & !b & X(a & b)))))))))"
   },
   {
-    "formula": "G(!a | Xa | X((!a) U ((!a \u0026 !b \u0026 X(!a \u0026 b \u0026 ((!a) U ((!a \u0026 !b \u0026 X(!a \u0026 b)))))))))"
+    "formula": "G(!a | Xa | X((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b)))))))))"
   },
   {
     "formula": "((a) R ((b | X(c | G(d | XG(e | XG(f | XGg)))))))"
   },
   {
-    "formula": "((a) U ((b \u0026 X(c \u0026 F(d \u0026 XF(e \u0026 XF(f \u0026 XFg)))))))"
+    "formula": "((a) U ((b & X(c & F(d & XF(e & XF(f & XFg)))))))"
   },
   {
-    "formula": "F(a \u0026 X!a \u0026 X((a) R ((a | b | X(a | !b | ((a) R ((a | b | X(a | !b | ((a) R ((a | b | X(a | !b)))))))))))))"
+    "formula": "F(a & X!a & X((a) R ((a | b | X(a | !b | ((a) R ((a | b | X(a | !b | ((a) R ((a | b | X(a | !b)))))))))))))"
   },
   {
-    "formula": "G(!a | Xa | X((!a) U ((!a \u0026 !b \u0026 X(!a \u0026 b \u0026 ((!a) U ((!a \u0026 !b \u0026 X(!a \u0026 b \u0026 ((!a) U ((!a \u0026 !b \u0026 X(!a \u0026 b)))))))))))))"
+    "formula": "G(!a | Xa | X((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b)))))))))))))"
   },
   {
-    "formula": "F(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 X(a \u0026 Xa)))))))))))"
+    "formula": "F(a & X(a & X(a & X(a & X(a & X(a & X(a & X(a & X(a & X(a & X(a & Xa)))))))))))"
   },
   {
     "formula": "G(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | X(a | Xa)))))))))))"

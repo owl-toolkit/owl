@@ -33,7 +33,7 @@
     }
   },
   {
-    "formula": "(a \u0026 b)",
+    "formula": "(a & b)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -132,7 +132,7 @@
     }
   },
   {
-    "formula": "((a | b) \u0026 (!a | !b))",
+    "formula": "((a | b) & (!a | !b))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -143,7 +143,7 @@
     }
   },
   {
-    "formula": "((a | !b) \u0026 (!a | b))",
+    "formula": "((a | !b) & (!a | b))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -154,7 +154,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 Fb)",
+    "formula": "(Fa & Fb)",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -165,7 +165,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 Gb)",
+    "formula": "(Fa & Gb)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -176,7 +176,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 Xb)",
+    "formula": "(Fa & Xb)",
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
@@ -187,7 +187,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 Gb)",
+    "formula": "(Ga & Gb)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -198,7 +198,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 Xb)",
+    "formula": "(Ga & Xb)",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -209,7 +209,7 @@
     }
   },
   {
-    "formula": "((a \u0026 b) | (!a \u0026 !b))",
+    "formula": "((a & b) | (!a & !b))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -220,7 +220,7 @@
     }
   },
   {
-    "formula": "((a \u0026 !b) | (!a \u0026 b))",
+    "formula": "((a & !b) | (!a & b))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -286,7 +286,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 b)",
+    "formula": "F(a & b)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -330,7 +330,7 @@
     }
   },
   {
-    "formula": "X(a \u0026 b)",
+    "formula": "X(a & b)",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -374,7 +374,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 GFb)",
+    "formula": "(Fa & GFb)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -385,7 +385,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 XF!a)",
+    "formula": "(Fa & XF!a)",
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
@@ -396,7 +396,7 @@
     }
   },
   {
-    "formula": "(F!a \u0026 XFa)",
+    "formula": "(F!a & XFa)",
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
@@ -407,7 +407,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 G(b | c))",
+    "formula": "(Ga & G(b | c))",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -418,7 +418,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 GFb)",
+    "formula": "(Ga & GFb)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -429,7 +429,7 @@
     }
   },
   {
-    "formula": "(FGa \u0026 FGb)",
+    "formula": "(FGa & FGb)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -440,7 +440,7 @@
     }
   },
   {
-    "formula": "(FGa \u0026 GFb)",
+    "formula": "(FGa & GFb)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -451,7 +451,7 @@
     }
   },
   {
-    "formula": "(G(a | b) \u0026 GFb)",
+    "formula": "(G(a | b) & GFb)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -462,7 +462,7 @@
     }
   },
   {
-    "formula": "(G(a | b) \u0026 GFc)",
+    "formula": "(G(a | b) & GFc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -473,7 +473,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 GFb)",
+    "formula": "(GFa & GFb)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -484,7 +484,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 XGb)",
+    "formula": "(GFa & XGb)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -495,7 +495,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 Gb \u0026 GFc)",
+    "formula": "(Ga & Gb & GFc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -506,7 +506,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 G(b | c) \u0026 GFc)",
+    "formula": "(Ga & G(b | c) & GFc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -517,7 +517,7 @@
     }
   },
   {
-    "formula": "(Ga \u0026 GFb \u0026 GFc)",
+    "formula": "(Ga & GFb & GFc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -528,7 +528,7 @@
     }
   },
   {
-    "formula": "(FGa \u0026 FGb \u0026 FGc)",
+    "formula": "(FGa & FGb & FGc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -539,7 +539,7 @@
     }
   },
   {
-    "formula": "(G(a | b) \u0026 GFb \u0026 GFc)",
+    "formula": "(G(a | b) & GFb & GFc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -550,7 +550,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc)",
+    "formula": "(GFa & GFb & GFc)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -561,7 +561,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 Fb \u0026 GFc \u0026 GFd)",
+    "formula": "(Fa & Fb & GFc & GFd)",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -572,7 +572,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 GFb \u0026 GFc \u0026 GFd)",
+    "formula": "(GFa & GFb & GFc & GFd)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -583,7 +583,7 @@
     }
   },
   {
-    "formula": "(Fa \u0026 Fb \u0026 Fc \u0026 GFd \u0026 GFe \u0026 GFf)",
+    "formula": "(Fa & Fb & Fc & GFd & GFe & GFf)",
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
@@ -594,7 +594,7 @@
     }
   },
   {
-    "formula": "(Fa | F(b \u0026 c))",
+    "formula": "(Fa | F(b & c))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -671,7 +671,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 b) | FGb)",
+    "formula": "(F(a & b) | FGb)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -682,7 +682,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 b) | FGc)",
+    "formula": "(F(a & b) | FGc)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -748,7 +748,7 @@
     }
   },
   {
-    "formula": "(Fa | F(b \u0026 c) | FGc)",
+    "formula": "(Fa | F(b & c) | FGc)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -770,7 +770,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 b) | FGb | FGc)",
+    "formula": "(F(a & b) | FGb | FGc)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -836,7 +836,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 Gb)",
+    "formula": "F(a & Gb)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -847,7 +847,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 Xb)",
+    "formula": "F(a & Xb)",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -858,7 +858,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 ((b) M (c)))",
+    "formula": "F(a & ((b) M (c)))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -869,7 +869,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 ((b) R (c)))",
+    "formula": "F(a & ((b) R (c)))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -880,7 +880,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 ((b) U (c)))",
+    "formula": "F(a & ((b) U (c)))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -891,7 +891,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 ((b) W (c)))",
+    "formula": "F(a & ((b) W (c)))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -902,7 +902,7 @@
     }
   },
   {
-    "formula": "F(Ga \u0026 ((b) M (c)))",
+    "formula": "F(Ga & ((b) M (c)))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -913,7 +913,7 @@
     }
   },
   {
-    "formula": "F(Ga \u0026 ((b) R (c)))",
+    "formula": "F(Ga & ((b) R (c)))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -924,7 +924,7 @@
     }
   },
   {
-    "formula": "F(Ga \u0026 ((b) U (c)))",
+    "formula": "F(Ga & ((b) U (c)))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -935,7 +935,7 @@
     }
   },
   {
-    "formula": "F(Ga \u0026 ((b) W (c)))",
+    "formula": "F(Ga & ((b) W (c)))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -1067,7 +1067,7 @@
     }
   },
   {
-    "formula": "GF(a \u0026 b)",
+    "formula": "GF(a & b)",
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
@@ -1078,7 +1078,7 @@
     }
   },
   {
-    "formula": "XF(a \u0026 b)",
+    "formula": "XF(a & b)",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -1122,7 +1122,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 G(a | Xb))",
+    "formula": "(GFa & G(a | Xb))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -1133,7 +1133,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 G(b | Xa))",
+    "formula": "(GFa & G(b | Xa))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -1144,7 +1144,7 @@
     }
   },
   {
-    "formula": "(GFa \u0026 XG(a | b))",
+    "formula": "(GFa & XG(a | b))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -1155,7 +1155,7 @@
     }
   },
   {
-    "formula": "(G(a | Xa) \u0026 G(!a | X!a))",
+    "formula": "(G(a | Xa) & G(!a | X!a))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -1166,7 +1166,7 @@
     }
   },
   {
-    "formula": "(G(a | Xb) \u0026 G(!a | X!b))",
+    "formula": "(G(a | Xb) & G(!a | X!b))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -1177,7 +1177,7 @@
     }
   },
   {
-    "formula": "(G(a | Xb) \u0026 G(c | Xd))",
+    "formula": "(G(a | Xb) & G(c | Xd))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -1188,7 +1188,7 @@
     }
   },
   {
-    "formula": "(G(a | Xb) \u0026 G(c | Xd) \u0026 G(e | Xf))",
+    "formula": "(G(a | Xb) & G(c | Xd) & G(e | Xf))",
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
@@ -1199,7 +1199,7 @@
     }
   },
   {
-    "formula": "(FGa | F(a \u0026 Xb))",
+    "formula": "(FGa | F(a & Xb))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -1210,7 +1210,7 @@
     }
   },
   {
-    "formula": "(FGa | F(b \u0026 Xa))",
+    "formula": "(FGa | F(b & Xa))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -1221,7 +1221,7 @@
     }
   },
   {
-    "formula": "(FGa | XF(a \u0026 b))",
+    "formula": "(FGa | XF(a & b))",
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
@@ -1232,7 +1232,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 Xa) | F(!a \u0026 X!a))",
+    "formula": "(F(a & Xa) | F(!a & X!a))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -1243,7 +1243,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 Xb) | F(!a \u0026 X!b))",
+    "formula": "(F(a & Xb) | F(!a & X!b))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -1254,7 +1254,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 Xb) | F(c \u0026 Xd))",
+    "formula": "(F(a & Xb) | F(c & Xd))",
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
@@ -1265,7 +1265,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 Xb) | F(c \u0026 Xd) | F(e \u0026 Xf))",
+    "formula": "(F(a & Xb) | F(c & Xd) | F(e & Xf))",
     "properties": {
       "size": 9,
       "initialStatesSize": 1,
@@ -1276,7 +1276,7 @@
     }
   },
   {
-    "formula": "F(a \u0026 XXb)",
+    "formula": "F(a & XXb)",
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
@@ -1309,7 +1309,7 @@
     }
   },
   {
-    "formula": "GF(a \u0026 Xb)",
+    "formula": "GF(a & Xb)",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -1320,7 +1320,7 @@
     }
   },
   {
-    "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb))",
+    "formula": "(GF(!a & b) & GF(a & Xb))",
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
@@ -1331,7 +1331,7 @@
     }
   },
   {
-    "formula": "(G(a | XXb) \u0026 G(c | XXd))",
+    "formula": "(G(a | XXb) & G(c | XXd))",
     "properties": {
       "size": 16,
       "initialStatesSize": 1,
@@ -1342,7 +1342,7 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd))",
+    "formula": "(GF(a & Xb) & GF(c & Xd))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -1353,7 +1353,7 @@
     }
   },
   {
-    "formula": "(G(a | XXb) \u0026 G(c | XXd) \u0026 G(e | XXf))",
+    "formula": "(G(a | XXb) & G(c | XXd) & G(e | XXf))",
     "properties": {
       "size": 64,
       "initialStatesSize": 1,
@@ -1364,7 +1364,7 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 Xb) \u0026 GF(c \u0026 Xd) \u0026 GF(e \u0026 Xf))",
+    "formula": "(GF(a & Xb) & GF(c & Xd) & GF(e & Xf))",
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
@@ -1386,7 +1386,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 XXb) | F(c \u0026 XXd))",
+    "formula": "(F(a & XXb) | F(c & XXd))",
     "properties": {
       "size": 17,
       "initialStatesSize": 1,
@@ -1408,7 +1408,7 @@
     }
   },
   {
-    "formula": "(F(a \u0026 XXb) | F(c \u0026 XXd) | F(e \u0026 XXf))",
+    "formula": "(F(a & XXb) | F(c & XXd) | F(e & XXf))",
     "properties": {
       "size": 65,
       "initialStatesSize": 1,
@@ -1452,7 +1452,7 @@
     }
   },
   {
-    "formula": "GF(a \u0026 XXb)",
+    "formula": "GF(a & XXb)",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -1463,7 +1463,7 @@
     }
   },
   {
-    "formula": "GF(a \u0026 Xb \u0026 XXc)",
+    "formula": "GF(a & Xb & XXc)",
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
@@ -1474,7 +1474,7 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd))",
+    "formula": "(GF(a & XXb) & GF(c & XXd))",
     "properties": {
       "size": 16,
       "initialStatesSize": 1,
@@ -1485,7 +1485,7 @@
     }
   },
   {
-    "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb) \u0026 GF(!a \u0026 XXb))",
+    "formula": "(GF(!a & b) & GF(a & Xb) & GF(!a & XXb))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
@@ -1496,7 +1496,7 @@
     }
   },
   {
-    "formula": "(GF(a \u0026 XXb) \u0026 GF(c \u0026 XXd) \u0026 GF(e \u0026 XXf))",
+    "formula": "(GF(a & XXb) & GF(c & XXd) & GF(e & XXf))",
     "properties": {
       "size": 64,
       "initialStatesSize": 1,
@@ -1507,7 +1507,7 @@
     }
   },
   {
-    "formula": "(a \u0026 Xb \u0026 XXc \u0026 XXXd \u0026 XXXXGe)",
+    "formula": "(a & Xb & XXc & XXXd & XXXXGe)",
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
@@ -1562,7 +1562,7 @@
     }
   },
   {
-    "formula": "(GF(!a \u0026 b) \u0026 GF(a \u0026 Xb) \u0026 GF(!a \u0026 XXb) \u0026 GF(a \u0026 XXXb))",
+    "formula": "(GF(!a & b) & GF(a & Xb) & GF(!a & XXb) & GF(a & XXXb))",
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
