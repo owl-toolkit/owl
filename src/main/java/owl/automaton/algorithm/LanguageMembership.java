@@ -91,7 +91,7 @@ public final class LanguageMembership {
       }
 
       return edges.stream()
-        .map(x -> x.withSuccessor(IndexedState.of(nextIndex, x.successor())))
+        .map(x -> x.mapSuccessor(y -> IndexedState.of(nextIndex, y)))
         .collect(Collectors.toUnmodifiableSet());
     }
   }

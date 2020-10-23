@@ -54,7 +54,7 @@ public interface SuccessorFunction<S> extends Function<S, Collection<S>> {
   }
 
   static <S> SuccessorFunction<S> filter(Automaton<S, ?> automaton,
-    Set<S> states, Predicate<Edge<S>> edgeFilter) {
+    Set<S> states, Predicate<? super Edge<S>> edgeFilter) {
     return state -> {
       if (!states.contains(state)) {
         return List.of();

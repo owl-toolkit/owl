@@ -382,7 +382,7 @@ final class NbaDetStateFactory<S> {
     }
 
     if (logger.getLevel().equals(Level.FINEST)) {
-      logger.log(Level.FINEST, "Events: " + sb.toString());
+      logger.log(Level.FINEST, "Events: " + sb);
     }
 
     //now as we know the oldest active rank, we can perform aggressive collapse

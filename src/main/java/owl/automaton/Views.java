@@ -430,8 +430,8 @@ public final class Views {
    * @param mappingFunction function from S to T
    * @return Output automaton where states are mapped from S to T (and possibly quotiented)
    */
-  public static <S, T, A extends OmegaAcceptance> Automaton<T,A>
-    quotientAutomaton(Automaton<S,A> automaton, Function<S,T> mappingFunction) {
+  public static <S, T, A extends OmegaAcceptance> Automaton<T, A>
+    quotientAutomaton(Automaton<S, A> automaton, Function<? super S, ? extends T> mappingFunction) {
 
     Map<S, T> mapping = new HashMap<>();
     ImmutableListMultimap.Builder<T, S> reverseMappingBuilder = ImmutableListMultimap.builder();
@@ -467,7 +467,7 @@ public final class Views {
     public Set<Edge<T>> edges(T state, BitSet valuation) {
       return reverseMapping.get(state).stream()
         .flatMap((S sState) -> automaton.edges(sState, valuation).stream())
-        .map((Edge<S> sEdge) -> sEdge.withSuccessor(mapping.get(sEdge.successor())))
+        .map((Edge<S> sEdge) -> sEdge.mapSuccessor(mapping::get))
         .collect(Collectors.toSet());
     }
 
@@ -479,7 +479,7 @@ public final class Views {
         Set<Edge<T>> set = new HashSet<>();
         for (List<Edge<S>> edges : x) {
           for (Edge<S> edge : edges) {
-            set.add(edge.withSuccessor(mapping.get(edge.successor())));
+            set.add(edge.mapSuccessor(mapping::get));
           }
         }
         return set;

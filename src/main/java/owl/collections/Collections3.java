@@ -338,6 +338,45 @@ public final class Collections3 {
   }
 
   /**
+   * Compute the equivalence relation the elements using the given relation.
+   *
+   * @param elements the collection containing the elements that are group into partitions.
+   * @param equivalenceRelation the equivalance relation.
+   * @param <E> the element type.
+   * @return the partition.
+   */
+  public static <E> List<Set<E>> quotient(
+    Collection<? extends E> elements, BiPredicate<? super E, ? super E> equivalenceRelation) {
+
+    List<Set<E>> partitions = new ArrayList<>(elements.size());
+    elements.forEach(x -> partitions.add(new HashSet<>(Set.of(x))));
+
+    boolean continueMerging = true;
+
+    while (continueMerging) {
+      continueMerging = false;
+
+      for (int i = 0; i < partitions.size() - 1; i++) {
+        var partition = partitions.get(i);
+        var otherPartitions = partitions.subList(i + 1, partitions.size());
+
+        continueMerging |= otherPartitions.removeIf(otherPartition -> {
+          boolean related =
+            equivalenceRelation.test(partition.iterator().next(), otherPartition.iterator().next());
+
+          if (related) {
+            partition.addAll(otherPartition);
+          }
+
+          return related;
+        });
+      }
+    }
+
+    return partitions;
+  }
+
+  /**
    * Creates a new {@link List} by applying the {@code transformer} on each element of {@code list}.
    *
    * <p>The implementation does not access {@link Collection#isEmpty()} or

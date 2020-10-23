@@ -339,6 +339,43 @@
                     "'ltl2tgba -B -H'"
                 ]
             ]
+        },
+        "to-parity": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "to-parity",
+            "flags": {
+                "stutter": "--stutter",
+                "scc-analysis": "--scc-analysis",
+                "scc-analysis-jump-to-bottom": "--scc-analysis-jump-to-bottom"
+            },
+            "pre": [
+                "simplify-ltl",
+                "delag",
+                "optimize-aut"
+            ]
+        },
+        "to-parity-normalform": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "to-parity",
+            "flags": {
+                "stutter": "--stutter",
+                "scc-analysis": "--scc-analysis",
+                "scc-analysis-jump-to-bottom": "--scc-analysis-jump-to-bottom"
+            },
+            "pre": [
+                "simplify-ltl",
+                [
+                    "ltl2normalform",
+                    "--local"
+                ],
+                "simplify-ltl",
+                "delag",
+                "optimize-aut"
+            ]
         }
     },
     "aliases": {

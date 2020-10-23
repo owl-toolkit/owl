@@ -27,9 +27,10 @@ import java.util.Map;
 import javax.annotation.Nullable;
 import owl.automaton.ParityUtil;
 import owl.automaton.Views;
-import owl.automaton.acceptance.degeneralization.BuchiDegeneralization;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.acceptance.transformer.BuchiDegeneralization;
+import owl.automaton.acceptance.transformer.ToParityTransformer;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.game.GameUtil;
 import owl.game.GameViews;
@@ -90,6 +91,7 @@ public class OwlModuleRegistry {
       AcceptanceOptimizations.MODULE,
       BuchiDegeneralization.MODULE,
       RabinDegeneralization.MODULE,
+      ToParityTransformer.MODULE,
       Views.COMPLETE_MODULE));
 
     // LTL translations
@@ -163,16 +165,16 @@ public class OwlModuleRegistry {
     return module;
   }
 
-  public Collection<OwlModule<?>> get(Type type) {
+  public Collection<? extends OwlModule<?>> get(Type type) {
     switch (type) {
       case READER:
-        return (Collection) readers.values();
+        return readers.values();
 
       case WRITER:
-        return (Collection) writers.values();
+        return writers.values();
 
       case TRANSFORMER:
-        return (Collection) transformers.values();
+        return transformers.values();
 
       default:
         throw new AssertionError("Unreachable.");
@@ -191,13 +193,13 @@ public class OwlModuleRegistry {
     var transformer = transformers.get(name);
 
     if (transformer != null) {
-      types.put(Type.TRANSFORMER, reader);
+      types.put(Type.TRANSFORMER, transformer);
     }
 
-    var writer = transformers.get(name);
+    var writer = writers.get(name);
 
     if (writer != null) {
-      types.put(Type.WRITER, reader);
+      types.put(Type.WRITER, writer);
     }
 
     return types;

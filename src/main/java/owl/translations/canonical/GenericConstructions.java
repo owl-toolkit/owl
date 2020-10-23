@@ -104,13 +104,11 @@ public final class GenericConstructions {
       }
 
       private Set<Edge<Either<Integer, S>>> lift(Set<Edge<S>> edges) {
-        return Collections3.transformSet(edges,
-          edge -> edge.withSuccessor(Either.right(edge.successor())));
+        return Collections3.transformSet(edges, edge -> edge.mapSuccessor(Either::right));
       }
 
       private Map<Edge<Either<Integer, S>>, ValuationSet> lift(Map<Edge<S>, ValuationSet> edgeMap) {
-        return Collections3.transformMap(edgeMap,
-          edge -> edge.withSuccessor(Either.right(edge.successor())));
+        return Collections3.transformMap(edgeMap, edge -> edge.mapSuccessor(Either::right));
       }
 
       private ValuationTree<Edge<Either<Integer, S>>> lift(ValuationTree<Edge<S>> edgeTree) {

@@ -19,6 +19,7 @@
 
 package owl.automaton.algorithm;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import java.util.ArrayDeque;
 import java.util.Deque;
@@ -45,14 +46,15 @@ final class Tarjan<S> {
   private final Set<S> processedNodes = new HashSet<>();
   private final Map<S, TarjanState<S>> stateMap = new HashMap<>();
   private final SuccessorFunction<S> successorFunction;
-  private int index;
+  private int index = 0;
+  private boolean earlyTerminationOccurred = false;
 
   Tarjan(SuccessorFunction<S> successorFunction, Predicate<? super Set<S>> earlyTermination) {
     this.successorFunction = successorFunction;
     this.earlyTermination = earlyTermination;
   }
 
-  private boolean isTransient(Set<S> scc) {
+  private boolean isTransient(Set<? extends S> scc) {
     if (scc.size() > 1) {
       return false;
     }
@@ -77,6 +79,8 @@ final class Tarjan<S> {
   }
 
   boolean run(S initial) {
+    Preconditions.checkState(!earlyTerminationOccurred,
+      "An early termination occurred. Internal data-structures are inconsistent.");
     assert path.isEmpty();
 
     if (stateMap.containsKey(initial) || processedNodes.contains(initial)) {
@@ -143,6 +147,7 @@ final class Tarjan<S> {
         assert isTransient(Set.of(node));
 
         if (earlyTermination.test(Set.of(node))) {
+          earlyTerminationOccurred = true;
           return true;
         }
 
@@ -177,6 +182,7 @@ final class Tarjan<S> {
         processedNodes.addAll(scc);
 
         if (earlyTermination.test(scc)) {
+          earlyTerminationOccurred = true;
           return true;
         }
       } else {

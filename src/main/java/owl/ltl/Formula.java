@@ -197,7 +197,7 @@ public abstract class Formula implements Comparable<Formula> {
    */
   public abstract Formula not();
 
-  public final <E extends Formula> Set<E> subformulas(Class<E> clazz) {
+  public final <E extends Formula> Set<E> subformulas(Class<? extends E> clazz) {
     return subformulas(clazz::isInstance, clazz::cast);
   }
 

@@ -629,7 +629,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
     // Remap Rabin pairs to be removed to the representativePair.
     automaton.updateEdges((state, edge) ->
-      edge.withAcceptance(x -> {
+      edge.mapAcceptance(x -> {
         Preconditions.checkState(!indicesToRemoveFin.get(x));
         return indicesToRemoveInf.get(x) ? representativePair.infSet() : x;
       }));

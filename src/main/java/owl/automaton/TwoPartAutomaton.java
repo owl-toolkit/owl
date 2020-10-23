@@ -89,13 +89,11 @@ public abstract class TwoPartAutomaton<A, B, C extends OmegaAcceptance>
   }
 
   private Set<Edge<Either<A, B>>> liftA(Set<Edge<A>> aEdges) {
-    return Collections3.transformSet(aEdges,
-      edge -> edge.withSuccessor(Either.left(edge.successor())));
+    return Collections3.transformSet(aEdges, edge -> edge.mapSuccessor(Either::left));
   }
 
   private Set<Edge<Either<A, B>>> liftB(Set<Edge<B>> bEdges) {
-    return Collections3.transformSet(bEdges,
-      edge -> edge.withSuccessor(Either.right(edge.successor())));
+    return Collections3.transformSet(bEdges, edge -> edge.mapSuccessor(Either::right));
   }
 
   @Override

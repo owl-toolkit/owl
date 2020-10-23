@@ -498,7 +498,7 @@ class TranslationReport {
       tableHeader.forEach(groupHeader ->
         groupHeader.forEach(tool -> {
           String renderedValue = computation.apply(extract_size(tool));
-          int index = renderedValue.indexOf(".");
+          int index = renderedValue.indexOf('.');
 
           if (index < 0) {
             row.append("& n/a & ");

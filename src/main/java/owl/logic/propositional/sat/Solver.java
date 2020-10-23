@@ -19,11 +19,19 @@
 
 package owl.logic.propositional.sat;
 
+import static java.util.Objects.requireNonNull;
+
+import com.google.common.collect.Sets;
 import com.google.common.primitives.ImmutableIntArray;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import owl.collections.Collections3;
 import owl.logic.propositional.ConjunctiveNormalForm;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -83,11 +91,122 @@ public final class Solver {
 
     // Translate into equisatisfiable CNF.
     var conjunctiveNormalForm = new ConjunctiveNormalForm<>(formula);
-    return model(conjunctiveNormalForm.clauses).map(bitSet -> bitSet.stream()
+    return model(conjunctiveNormalForm.clauses, engine).map(bitSet -> bitSet.stream()
       .map(x -> x + 1) // shift indices
       .filter(conjunctiveNormalForm.variableMapping::containsValue) // skip Tsetin variables
       .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i))
       .collect(Collectors.toSet()));
+  }
+
+  public static <V> List<Set<V>> maximalModels(
+    PropositionalFormula<V> formula, Set<V> upperBound) {
+
+    return maximalModels(formula, upperBound, DEFAULT_ENGINE);
+  }
+
+  @SuppressWarnings("PMD.AssignmentInOperand")
+  public static <V> List<Set<V>> maximalModels(
+    PropositionalFormula<V> formula, Set<V> upperBound, Engine engine) {
+
+    PropositionalFormula<V> normalisedFormula = formula.substitute(
+      variable -> upperBound.contains(variable)
+        ? Optional.empty()
+        : Optional.of(PropositionalFormula.falseConstant()))
+      .nnf().normalise();
+
+    // Preprocessing to reduce enumeration of models using the SAT solver.
+
+    // 1. Check trivial model.
+    if (normalisedFormula.evaluate(upperBound)) {
+      return List.of(upperBound);
+    }
+
+    // 2. Compute lower-bound and replace positive variables by true.
+    {
+      Set<V> lowerBound = new HashSet<>(upperBound);
+
+      normalisedFormula.polarity().forEach((variable, variablePolarity) -> {
+        if (variablePolarity != PropositionalFormula.Polarity.POSITIVE) {
+          lowerBound.remove(variable);
+        }
+      });
+
+      if (!lowerBound.isEmpty()) {
+        PropositionalFormula<V> restrictedFormula = normalisedFormula.substitute(
+          variable -> lowerBound.contains(variable)
+            ? Optional.of(PropositionalFormula.trueConstant())
+            : Optional.empty());
+
+        List<Set<V>> restrictedMaximalModels = maximalModels(
+          restrictedFormula, new HashSet<>(Sets.difference(upperBound, lowerBound)));
+
+        restrictedMaximalModels.forEach(model -> model.addAll(lowerBound));
+        return restrictedMaximalModels;
+      }
+    }
+
+    // 3. If the formula is in DNF, extract information
+    List<Set<V>> maximalModels = new ArrayList<>();
+
+    for (var disjunct : PropositionalFormula.disjuncts(normalisedFormula)) {
+      var potentialModel = new HashSet<>(upperBound);
+
+      for (var conjunct : PropositionalFormula.conjuncts(disjunct)) {
+        if ((conjunct instanceof PropositionalFormula.Negation)) {
+          var negation = (PropositionalFormula.Negation<V>) conjunct;
+          potentialModel.remove(((PropositionalFormula.Variable<V>) (negation.operand)).variable);
+        }
+      }
+
+      if (normalisedFormula.evaluate(potentialModel)) {
+        assert !potentialModel.equals(upperBound);
+        assert upperBound.containsAll(potentialModel);
+        maximalModels.add(potentialModel);
+      }
+    }
+
+    maximalModels = Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x));
+
+    // Enumerate models using a sat solver.
+    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(normalisedFormula);
+    var incrementalSolver = incrementalSolver(engine);
+
+    incrementalSolver.pushClauses(conjunctiveNormalForm.clauses);
+    maximalModels
+      .forEach(x -> blockModelAndAllSubsets(incrementalSolver, conjunctiveNormalForm, x));
+
+    // single subset optimisation
+    Optional<BitSet> model;
+
+    while ((model = incrementalSolver.model()).isPresent()) {
+      // Model
+      BitSet prunedModel = model.get();
+      prunedModel.clear(conjunctiveNormalForm.tsetinVariablesLowerBound - 1, prunedModel.length());
+
+      // Map model to Set<V>.
+      Set<V> mappedModel = prunedModel.stream()
+        .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i + 1))
+        .collect(Collectors.toSet());
+
+      assert normalisedFormula.evaluate(mappedModel);
+      maximalModels.add(mappedModel);
+      maximalModels = Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x));
+
+      // Block and continue.
+      blockModelAndAllSubsets(incrementalSolver, conjunctiveNormalForm, mappedModel);
+    }
+
+    return maximalModels;
+  }
+
+  private static <V> void blockModelAndAllSubsets(
+    IncrementalSolver solver, ConjunctiveNormalForm<V> encoding, Set<V> model) {
+
+    int[] blockingClause = IntStream.range(1, encoding.tsetinVariablesLowerBound)
+      .filter(i -> !model.contains(requireNonNull(encoding.variableMapping.inverse().get(i))))
+      .toArray();
+
+    solver.pushClauses(blockingClause);
   }
 
   enum Engine {

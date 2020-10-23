@@ -162,6 +162,12 @@ BUCHI-DEGEN:
     TEST_NAME: "buchi-degen"
   <<: *ltlcross_template
 
+TO-PARITY:
+  stage: test
+  variables:
+    TEST_NAME: "delag-to-parity"
+  <<: *ltlcross_template
+
 NBA2LDBA:
   stage: test
   variables:

@@ -19,13 +19,16 @@
 
 package owl.logic.propositional;
 
+import com.google.common.collect.Maps;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -87,6 +90,16 @@ public abstract class PropositionalFormula<V> {
 
   public abstract PropositionalFormula<V> normalise();
 
+  public final Set<V> variables() {
+    return polarity().keySet();
+  }
+
+  public abstract Map<V, Polarity> polarity();
+
+  public enum Polarity {
+    POSITIVE, NEGATIVE, MIXED
+  }
+
   public static final class Conjunction<V> extends PropositionalFormula<V> {
     public final List<PropositionalFormula<V>> conjuncts;
 
@@ -130,6 +143,25 @@ public abstract class PropositionalFormula<V> {
         default:
           return Conjunction.of(normalisedConjuncts);
       }
+    }
+
+    @Override
+    public Map<V, Polarity> polarity() {
+      Map<V, Polarity> polarityMap = new HashMap<>();
+
+      for (PropositionalFormula<V> conjunct : conjuncts) {
+        conjunct.polarity().forEach((variable, polarity) -> {
+          polarityMap.compute(variable, (oldKey, oldPolarity) -> {
+            if (polarity == oldPolarity || oldPolarity == null) {
+              return polarity;
+            }
+
+            return Polarity.MIXED;
+          });
+        });
+      }
+
+      return polarityMap;
     }
 
     @Override
@@ -180,6 +212,11 @@ public abstract class PropositionalFormula<V> {
     }
 
     @SafeVarargs
+    public static <V> Disjunction<V> of(V... operands) {
+      return of(Arrays.stream(operands).map(Variable::of).collect(Collectors.toUnmodifiableList()));
+    }
+
+    @SafeVarargs
     public static <V> Disjunction<V> of(PropositionalFormula<V>... operands) {
       return of(List.of(operands));
     }
@@ -214,6 +251,25 @@ public abstract class PropositionalFormula<V> {
         default:
           return Disjunction.of(normalisedDisjuncts);
       }
+    }
+
+    @Override
+    public Map<V, Polarity> polarity() {
+      Map<V, Polarity> polarityMap = new HashMap<>();
+
+      for (PropositionalFormula<V> disjunct : disjuncts) {
+        disjunct.polarity().forEach((variable, polarity) -> {
+          polarityMap.compute(variable, (oldKey, oldPolarity) -> {
+            if (polarity == oldPolarity || oldPolarity == null) {
+              return polarity;
+            }
+
+            return Polarity.MIXED;
+          });
+        });
+      }
+
+      return polarityMap;
     }
 
     @Override
@@ -296,6 +352,22 @@ public abstract class PropositionalFormula<V> {
     }
 
     @Override
+    public Map<V, Polarity> polarity() {
+      return Maps.transformValues(operand.polarity(), x -> {
+        switch (x) {
+          case POSITIVE:
+            return Polarity.NEGATIVE;
+
+          case NEGATIVE:
+            return Polarity.POSITIVE;
+
+          default:
+            return Polarity.MIXED;
+        }
+      });
+    }
+
+    @Override
     public boolean equals(Object obj) {
       if (!(obj instanceof Negation)) {
         return false;
@@ -338,6 +410,11 @@ public abstract class PropositionalFormula<V> {
 
     public static <V> Variable<V> of(V variable) {
       return new Variable<>(variable);
+    }
+
+    @Override
+    public Map<V, Polarity> polarity() {
+      return Map.of(variable, Polarity.POSITIVE);
     }
 
     @Override
