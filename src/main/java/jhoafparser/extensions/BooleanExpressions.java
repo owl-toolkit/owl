@@ -19,6 +19,13 @@
 
 package jhoafparser.extensions;
 
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.falseConstant;
+import static owl.logic.propositional.PropositionalFormula.trueConstant;
+
+import com.google.common.collect.Iterables;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -26,10 +33,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Conjunction;
+import owl.logic.propositional.PropositionalFormula.Negation;
 
 public final class BooleanExpressions {
   private BooleanExpressions() {
@@ -243,5 +254,102 @@ public final class BooleanExpressions {
   public static List<BooleanExpression<AtomAcceptance>> toDnf(
     BooleanExpression<AtomAcceptance> acc) {
     return toDnf(acc, new HashMap<>());
+  }
+
+  public static PropositionalFormula<Integer> toPropositionalFormula(
+    BooleanExpression<? extends AtomAcceptance> expression) {
+
+    switch (expression.getType()) {
+      case EXP_FALSE:
+        return falseConstant();
+
+      case EXP_TRUE:
+        return trueConstant();
+
+      case EXP_ATOM:
+        var atom = expression.getAtom();
+        if (atom.getType() == AtomAcceptance.Type.TEMPORAL_INF) {
+          return atom.isNegated()
+            ? Negation.of(Variable.of(atom.getAcceptanceSet()))
+            : Variable.of(atom.getAcceptanceSet());
+        } else {
+          assert atom.getType() == AtomAcceptance.Type.TEMPORAL_FIN;
+          return atom.isNegated()
+            ? Variable.of(atom.getAcceptanceSet())
+            : Negation.of(Variable.of(atom.getAcceptanceSet()));
+        }
+
+      case EXP_AND:
+        return Conjunction.of(
+          toPropositionalFormula(expression.getLeft()),
+          toPropositionalFormula(expression.getRight()));
+
+      case EXP_OR:
+        return Disjunction.of(
+          toPropositionalFormula(expression.getLeft()),
+          toPropositionalFormula(expression.getRight()));
+
+      case EXP_NOT:
+        return Negation.of(toPropositionalFormula(expression.getLeft()));
+
+      default:
+        throw new AssertionError("Encountered unknown expression " + expression);
+    }
+  }
+
+  public static BooleanExpression<AtomAcceptance> fromPropositionalFormula(
+    PropositionalFormula<Integer> formula) {
+
+    if (formula instanceof Variable) {
+      return mkInf(((Variable<Integer>) formula).variable);
+    }
+
+    if (formula instanceof Negation) {
+      var operand = ((Negation<Integer>) formula).operand;
+
+      if (operand instanceof Variable) {
+        return mkFin(((Variable<Integer>) operand).variable);
+      }
+
+      return fromPropositionalFormula(operand).not();
+    }
+
+    if (formula instanceof Conjunction) {
+      var conjuncts = ((Conjunction<Integer>) formula).conjuncts.stream()
+        .map(BooleanExpressions::fromPropositionalFormula)
+        .collect(Collectors.toCollection(ArrayDeque::new));
+
+      if (conjuncts.isEmpty()) {
+        return new BooleanExpression<>(true);
+      }
+
+      while (conjuncts.size() > 1) {
+        var right = conjuncts.removeLast();
+        var left = conjuncts.removeLast();
+        conjuncts.addLast(left.and(right));
+      }
+
+      return Iterables.getOnlyElement(conjuncts);
+    }
+
+    if (formula instanceof Disjunction) {
+      var disjuncts = ((Disjunction<Integer>) formula).disjuncts.stream()
+        .map(BooleanExpressions::fromPropositionalFormula)
+        .collect(Collectors.toCollection(ArrayDeque::new));
+
+      if (disjuncts.isEmpty()) {
+        return new BooleanExpression<>(false);
+      }
+
+      while (disjuncts.size() > 1) {
+        var right = disjuncts.removeLast();
+        var left = disjuncts.removeLast();
+        disjuncts.addLast(left.or(right));
+      }
+
+      return Iterables.getOnlyElement(disjuncts);
+    }
+
+    throw new AssertionError("Encountered unknown type of " + formula);
   }
 }

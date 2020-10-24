@@ -19,16 +19,17 @@
 
 package owl.automaton.acceptance;
 
-import static jhoafparser.extensions.BooleanExpressions.createConjunction;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.conjuncts;
 
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
+import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Conjunction;
 
 public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   @Nonnegative
@@ -42,14 +43,36 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
     return size == 1 ? BuchiAcceptance.INSTANCE : new GeneralizedBuchiAcceptance(size);
   }
 
+  public static Optional<? extends GeneralizedBuchiAcceptance> of(
+    PropositionalFormula<Integer> formula) {
+
+    var usedSets = new BitSet();
+
+    for (var conjunct : conjuncts(formula)) {
+      if (!(conjunct instanceof Variable)) {
+        return Optional.empty();
+      }
+
+      usedSets.set(((Variable<Integer>) conjunct).variable);
+    }
+
+    if (usedSets.cardinality() == usedSets.length()) {
+      return Optional.of(of(usedSets.length()));
+    }
+
+    return Optional.empty();
+  }
+
   @Override
   public final int acceptanceSets() {
     return size;
   }
 
   @Override
-  public final BooleanExpression<AtomAcceptance> booleanExpression() {
-    return createConjunction(IntStream.range(0, size).mapToObj(BooleanExpressions::mkInf));
+  public final PropositionalFormula<Integer> booleanExpression() {
+    return Conjunction.of(IntStream.range(0, size)
+      .mapToObj(Variable::of)
+      .collect(Collectors.toList()));
   }
 
   @Override

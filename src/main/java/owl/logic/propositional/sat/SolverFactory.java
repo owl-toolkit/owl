@@ -17,31 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.acceptance;
+package owl.logic.propositional.sat;
 
-import java.util.List;
-import java.util.Optional;
-import owl.logic.propositional.PropositionalFormula;
-import owl.logic.propositional.PropositionalFormula.Variable;
+public final class SolverFactory {
 
-public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
-  public static final BuchiAcceptance INSTANCE = new BuchiAcceptance();
+  private SolverFactory() {}
 
-  private BuchiAcceptance() {
-    super(1);
+  public static Solver create() {
+    return new JbddSolver();
   }
 
-  public static Optional<BuchiAcceptance> of(PropositionalFormula<Integer> formula) {
-    return formula.equals(Variable.of(0)) ? Optional.of(INSTANCE) : Optional.empty();
-  }
-
-  @Override
-  public String name() {
-    return "Buchi";
-  }
-
-  @Override
-  public List<Object> nameExtra() {
-    return List.of();
-  }
 }

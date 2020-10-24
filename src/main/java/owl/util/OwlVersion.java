@@ -25,13 +25,13 @@ public class OwlVersion {
 
   // Fall-back strings if MANIFEST cannot be accessed correctly.
   private static final String MAIN_NAME = "owl";
-  private static final String VERSION = "20.10-development";
+  private static final String VERSION = "21.??-development";
 
   private OwlVersion() {}
 
   /**
    * Obtains the name and version of the currently running Owl component. This is done by searching
-   * the current stack trace for initial entry point. It is assumed that this is called from the
+   * the current stack trace for the initial entry point. It is assumed that this is called from the
    * main thread.
    */
   public static NameAndVersion getNameAndVersion() {

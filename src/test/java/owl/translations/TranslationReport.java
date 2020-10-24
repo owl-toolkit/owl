@@ -189,7 +189,8 @@ class TranslationReport {
       set.name().toLowerCase(),
       formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
       resultTable,
-      z -> BooleanExpressions.toDnf(z.booleanExpression()).size(), 25, true);
+      z -> BooleanExpressions.toDnf(
+        BooleanExpressions.fromPropositionalFormula(z.booleanExpression())).size(), 25, true);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {

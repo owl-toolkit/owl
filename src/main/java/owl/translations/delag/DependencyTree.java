@@ -19,22 +19,26 @@
 
 package owl.translations.delag;
 
+import static owl.logic.propositional.PropositionalFormula.Conjunction;
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+
 import com.google.common.collect.Iterables;
 import it.unimi.dsi.fastutil.longs.LongArrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Stream;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
@@ -55,7 +59,7 @@ abstract class DependencyTree<T> {
   @SuppressWarnings("ClassReferencesSubclass")
   static <T> Leaf<T> createLeaf(Formula formula, @Nonnegative int acceptanceSet,
     Supplier<Automaton<T, ?>> fallback,
-    @Nullable AtomAcceptance piggyback) {
+    @Nullable PropositionalFormula<Integer> piggyback) {
     if (SyntacticFragments.isCoSafety(formula)) {
       if (piggyback == null) {
         return new Leaf<>(formula, Type.CO_SAFETY, acceptanceSet);
@@ -124,7 +128,7 @@ abstract class DependencyTree<T> {
 
   abstract BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean acceptance);
 
-  abstract BooleanExpression<AtomAcceptance> getAcceptanceExpression();
+  abstract PropositionalFormula<Integer> getAcceptanceExpression();
 
   abstract long[] getRequiredHistory(ProductState<T> successor);
 
@@ -138,9 +142,8 @@ abstract class DependencyTree<T> {
     }
 
     @Override
-    BooleanExpression<AtomAcceptance> getAcceptanceExpression() {
-      return getAcceptanceExpressionStream().distinct().reduce(BooleanExpression::and)
-        .orElse(new BooleanExpression<>(true));
+    PropositionalFormula<Integer> getAcceptanceExpression() {
+      return Conjunction.of(getAcceptanceExpressionList());
     }
 
     @Override
@@ -205,7 +208,7 @@ abstract class DependencyTree<T> {
     }
 
     @Override
-    BooleanExpression<AtomAcceptance> getAcceptanceExpression() {
+    PropositionalFormula<Integer> getAcceptanceExpression() {
       return shift(automaton.acceptance().booleanExpression());
     }
 
@@ -214,32 +217,8 @@ abstract class DependencyTree<T> {
       return LongArrays.EMPTY_ARRAY;
     }
 
-    private BooleanExpression<AtomAcceptance> shift(BooleanExpression<AtomAcceptance> expression) {
-      switch (expression.getType()) {
-        case EXP_AND:
-          return shift(expression.getLeft()).and(shift(expression.getRight()));
-
-        case EXP_OR:
-          return shift(expression.getLeft()).or(shift(expression.getRight()));
-
-        case EXP_NOT:
-          return shift(expression.getLeft()).not();
-
-        case EXP_TRUE:
-        case EXP_FALSE:
-          return expression;
-
-        case EXP_ATOM:
-          return new BooleanExpression<>(shift(expression.getAtom()));
-
-        default:
-          throw new AssertionError("Unreachable");
-      }
-    }
-
-    private AtomAcceptance shift(AtomAcceptance atom) {
-      return new AtomAcceptance(atom.getType(), atom.getAcceptanceSet() + acceptanceSet,
-        atom.isNegated());
+    private PropositionalFormula<Integer> shift(PropositionalFormula<Integer> expression) {
+      return expression.substitute(i -> Optional.of(Variable.of(i + acceptanceSet)));
     }
 
     @Override
@@ -252,7 +231,7 @@ abstract class DependencyTree<T> {
   }
 
   static class Leaf<T> extends DependencyTree<T> {
-    final AtomAcceptance acceptance;
+    final PropositionalFormula<Integer> acceptance;
     final Formula formula;
     final Type type;
 
@@ -261,13 +240,13 @@ abstract class DependencyTree<T> {
       this.type = type;
 
       if (type == Type.LIMIT_GF || type == Type.SAFETY) {
-        this.acceptance = AtomAcceptance.Inf(acceptanceSet);
+        this.acceptance = Variable.of(acceptanceSet);
       } else {
-        this.acceptance = AtomAcceptance.Fin(acceptanceSet);
+        this.acceptance = Negation.of(Variable.of(acceptanceSet));
       }
     }
 
-    Leaf(Formula formula, Type type, AtomAcceptance piggyback) {
+    Leaf(Formula formula, Type type, PropositionalFormula<Integer> piggyback) {
       assert type == Type.CO_SAFETY || type == Type.SAFETY;
       this.formula = formula;
       this.type = type;
@@ -314,7 +293,7 @@ abstract class DependencyTree<T> {
         case CO_SAFETY:
           // We use a FIN acceptance condition. If it is INF, we piggybacked on another leaf.
           // The other leaf is waiting for us. Thus we don't need to anything.
-          if (acceptance.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
+          if (isFin()) {
             value = state.productState.finished().get(this);
             inSet = (value == null) || !value;
           }
@@ -324,7 +303,7 @@ abstract class DependencyTree<T> {
         case SAFETY:
           // We use a INF acceptance condition. If it is FIN, we piggybacked on another leaf.
           // The other leaf is waiting for us. Thus we don't need to anything.
-          if (acceptance.getType() == AtomAcceptance.Type.TEMPORAL_INF) {
+          if (isInf()) {
             value = state.productState.finished().get(this);
             inSet = (value == null) || value;
           }
@@ -348,7 +327,7 @@ abstract class DependencyTree<T> {
 
       // Parent Overrides Acceptance.
       if (parentAcceptance != null) {
-        if (acceptance.getType() == AtomAcceptance.Type.TEMPORAL_INF) {
+        if (isInf()) {
           inSet = parentAcceptance;
         } else {
           inSet = !parentAcceptance;
@@ -356,15 +335,31 @@ abstract class DependencyTree<T> {
       }
 
       if (inSet) {
-        set.set(acceptance.getAcceptanceSet());
+        set.set(getAcceptanceSet());
       }
 
       return set;
     }
 
     @Override
-    BooleanExpression<AtomAcceptance> getAcceptanceExpression() {
-      return new BooleanExpression<>(acceptance);
+    PropositionalFormula<Integer> getAcceptanceExpression() {
+      return acceptance;
+    }
+
+    private boolean isInf() {
+      return acceptance instanceof Variable;
+    }
+
+    private boolean isFin() {
+      return acceptance instanceof Negation;
+    }
+
+    private int getAcceptanceSet() {
+      if (acceptance instanceof Variable) {
+        return ((Variable<Integer>) acceptance).variable;
+      }
+
+      return ((Variable<Integer>) (((Negation<Integer>) acceptance).operand)).variable;
     }
 
     @Override
@@ -460,8 +455,11 @@ abstract class DependencyTree<T> {
       return set;
     }
 
-    Stream<BooleanExpression<AtomAcceptance>> getAcceptanceExpressionStream() {
-      return children.stream().map(DependencyTree::getAcceptanceExpression);
+    List<PropositionalFormula<Integer>> getAcceptanceExpressionList() {
+      return children.stream()
+        .map(DependencyTree::getAcceptanceExpression)
+        .distinct()
+        .collect(Collectors.toList());
     }
 
     @Override
@@ -494,9 +492,8 @@ abstract class DependencyTree<T> {
     }
 
     @Override
-    BooleanExpression<AtomAcceptance> getAcceptanceExpression() {
-      return getAcceptanceExpressionStream().distinct().reduce(BooleanExpression::or)
-        .orElse(new BooleanExpression<>(false));
+    PropositionalFormula<Integer> getAcceptanceExpression() {
+      return Disjunction.of(getAcceptanceExpressionList());
     }
 
     @Override

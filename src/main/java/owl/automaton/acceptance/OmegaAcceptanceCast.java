@@ -19,6 +19,10 @@
 
 package owl.automaton.acceptance;
 
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.conjuncts;
+
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
@@ -30,9 +34,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.edge.Edge;
@@ -40,6 +41,7 @@ import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
+import owl.logic.propositional.PropositionalFormula;
 
 /**
  * This class provides functionality to cast an automaton to an automaton with a more generic
@@ -205,40 +207,39 @@ public final class OmegaAcceptanceCast {
    * @return A view on the given automaton with the necessary changes.
    */
   public static <S> Automaton<S, ?> castHeuristically(Automaton<S, ?> automaton) {
-    var expression = automaton.acceptance().booleanExpression();
+    var formula = automaton.acceptance().booleanExpression().nnf().normalise();
 
-    if (expression.isFALSE()) {
+    if (formula.isFalse()) {
       return EmptyAutomaton.of(automaton.factory(), AllAcceptance.INSTANCE);
     }
 
-    if (detectAllAcceptance(expression)) {
-      return new CastedAutomaton<>(automaton, AllAcceptance.INSTANCE, null);
+    var allAcceptance = AllAcceptance.of(formula);
+    if (allAcceptance.isPresent()) {
+      return castHeuristically(automaton, allAcceptance.get());
     }
 
-    if (detectBuechi(expression)) {
-      return new CastedAutomaton<>(automaton, BuchiAcceptance.INSTANCE, null);
+    var buchiAcceptance = BuchiAcceptance.of(formula);
+    if (buchiAcceptance.isPresent()) {
+      return castHeuristically(automaton, buchiAcceptance.get());
     }
 
-    if (detectCoBuechi(expression)) {
-      return new CastedAutomaton<>(automaton, CoBuchiAcceptance.INSTANCE, null);
+    var coBuchiAcceptance = CoBuchiAcceptance.of(formula);
+    if (coBuchiAcceptance.isPresent()) {
+      return castHeuristically(automaton, coBuchiAcceptance.get());
     }
 
-    var size1 = detectGeneralizedBuechi(expression);
-
-    if (size1.isPresent()) {
-      return new CastedAutomaton<>(automaton,
-        GeneralizedBuchiAcceptance.of(size1.getAsInt()), null);
+    var generalizedBuchiAcceptance = GeneralizedBuchiAcceptance.of(formula);
+    if (generalizedBuchiAcceptance.isPresent()) {
+      return castHeuristically(automaton, generalizedBuchiAcceptance.get());
     }
 
-    var size2 = detectGeneralizedCoBuechi(expression);
-
-    if (size2.isPresent()) {
-      return new CastedAutomaton<>(automaton,
-        GeneralizedCoBuchiAcceptance.of(size2.getAsInt()), null);
+    var generalizedCoBuchiAcceptance = GeneralizedCoBuchiAcceptance.of(formula);
+    if (generalizedCoBuchiAcceptance.isPresent()) {
+      return castHeuristically(automaton, generalizedCoBuchiAcceptance.get());
     }
 
     var mapping = new int[automaton.acceptance().acceptanceSets()];
-    var size3 = detectRabin(expression, mapping);
+    var size3 = detectRabin(formula, mapping);
 
     if (size3.isPresent()) {
       return new CastedAutomaton<>(automaton, RabinAcceptance.of(size3.getAsInt()),
@@ -246,6 +247,15 @@ public final class OmegaAcceptanceCast {
     }
 
     return automaton;
+  }
+
+  private static <S, A extends OmegaAcceptance> Automaton<S, A> castHeuristically(
+    Automaton<S, ?> automaton, A acceptance) {
+
+    int sets = acceptance.acceptanceSets();
+    return new CastedAutomaton<>(automaton, acceptance,
+    // Remove unused acceptance marks.
+    edge -> edge.withAcceptance(x -> x >= sets ? -1 : x));
   }
 
   public static <A extends OmegaAcceptance, B extends OmegaAcceptance> B
@@ -353,108 +363,30 @@ public final class OmegaAcceptanceCast {
     return Map.of();
   }
 
-  private static boolean detectAllAcceptance(BooleanExpression<AtomAcceptance> expression) {
-    return expression.isTRUE();
-  }
-
-  private static boolean detectBuechi(BooleanExpression<AtomAcceptance> expression) {
-    if (!expression.isAtom()) {
-      return false;
-    }
-
-    var atom = expression.getAtom();
-    return !atom.isNegated() && atom.getType() == AtomAcceptance.Type.TEMPORAL_INF;
-  }
-
-  private static OptionalInt detectGeneralizedBuechi(BooleanExpression<AtomAcceptance> expression) {
-    var usedSets = new BitSet();
-    var conjuncts = BooleanExpressions.getConjuncts(expression);
-
-    for (var conjunct : conjuncts) {
-      if (!detectBuechi(conjunct)) {
-        return OptionalInt.empty();
-      }
-
-      var set = conjunct.getAtom().getAcceptanceSet();
-
-      if (usedSets.get(set)) {
-        return OptionalInt.empty();
-      }
-
-      usedSets.set(set);
-    }
-
-    if (usedSets.cardinality() == usedSets.length()) {
-      return OptionalInt.of(usedSets.length());
-    }
-
-    return OptionalInt.empty();
-  }
-
-  private static boolean detectCoBuechi(BooleanExpression<AtomAcceptance> expression) {
-    if (!expression.isAtom()) {
-      return false;
-    }
-
-    var atom = expression.getAtom();
-    return !atom.isNegated() && atom.getType() == AtomAcceptance.Type.TEMPORAL_FIN;
-  }
-
-  private static OptionalInt detectGeneralizedCoBuechi(
-    BooleanExpression<AtomAcceptance> expression) {
-
-    var usedSets = new BitSet();
-    var disjuncts = BooleanExpressions.getDisjuncts(expression);
-
-    for (var disjunct : disjuncts) {
-      if (!detectCoBuechi(disjunct)) {
-        return OptionalInt.empty();
-      }
-
-      var set = disjunct.getAtom().getAcceptanceSet();
-
-      if (usedSets.get(set)) {
-        return OptionalInt.empty();
-      }
-
-      usedSets.set(set);
-    }
-
-    if (usedSets.cardinality() == usedSets.length()) {
-      return OptionalInt.of(usedSets.length());
-    }
-
-    return OptionalInt.empty();
-  }
-
-  private static OptionalInt detectRabinPair(BooleanExpression<AtomAcceptance> expression,
+  private static OptionalInt detectRabinPair(PropositionalFormula<Integer> expression,
     int[] mapping, int base) {
-    var conjuncts = BooleanExpressions.getConjuncts(expression);
 
     int infIndex = -1;
     int finIndex = -1;
 
-    for (var conjunct : conjuncts) {
-      var atom = conjunct.getAtom();
+    for (var conjunct : conjuncts(expression)) {
+      // TEMPORAL_FIN
+      if (conjunct instanceof Negation) {
+        var negatedOperand = ((Negation<Integer>) conjunct).operand;
 
-      if (atom == null || atom.isNegated()) {
-        return OptionalInt.empty();
-      }
-
-      if (atom.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
-        if (finIndex >= 0) {
+        if (finIndex >= 0 || !(negatedOperand instanceof Variable)) {
           return OptionalInt.empty();
         }
 
-        finIndex = atom.getAcceptanceSet();
-      } else {
-        assert atom.getType() == AtomAcceptance.Type.TEMPORAL_INF;
-
+        finIndex = ((Variable<Integer>) negatedOperand).variable;
+      } else if (conjunct instanceof Variable) {
         if (infIndex >= 0) {
           return OptionalInt.empty();
         }
 
-        infIndex = atom.getAcceptanceSet();
+        infIndex = ((Variable<Integer>) conjunct).variable;
+      } else {
+        return OptionalInt.empty();
       }
     }
 
@@ -476,12 +408,11 @@ public final class OmegaAcceptanceCast {
     return OptionalInt.empty();
   }
 
-  private static OptionalInt detectRabin(
-    BooleanExpression<AtomAcceptance> expression, int[] mapping) {
+  private static OptionalInt detectRabin(PropositionalFormula<Integer> expression, int[] mapping) {
 
     Arrays.fill(mapping, -1);
     int base = 0;
-    var disjuncts = BooleanExpressions.getDisjuncts(expression);
+    var disjuncts = PropositionalFormula.disjuncts(expression);
 
     for (var disjunct : disjuncts) {
       var offset = detectRabinPair(disjunct, mapping, base);

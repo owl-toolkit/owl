@@ -31,8 +31,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
 import org.apache.commons.cli.Options;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
@@ -42,6 +40,7 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.factories.Factories;
+import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
@@ -105,20 +104,20 @@ public class DelagBuilder
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
       return EmptyAutomaton.of(factories.vsFactory,
-        new EmersonLeiAcceptance(0, new BooleanExpression<>(false)));
+        new EmersonLeiAcceptance(0, PropositionalFormula.falseConstant()));
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
       return SingletonAutomaton.of(factories.vsFactory,
         new State<>(),
-        new EmersonLeiAcceptance(0, new BooleanExpression<>(true)),
+        new EmersonLeiAcceptance(0, PropositionalFormula.trueConstant()),
         Set.of());
     }
 
     DependencyTreeFactory<Object> treeConverter =
       new DependencyTreeFactory<>(factories, x -> (Automaton<Object, ?>) fallback.apply(x));
     DependencyTree<Object> tree = formula.formula().accept(treeConverter);
-    BooleanExpression<AtomAcceptance> expression = tree.getAcceptanceExpression();
+    var expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 
     //noinspection ConstantConditions

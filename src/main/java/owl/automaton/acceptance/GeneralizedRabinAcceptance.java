@@ -21,25 +21,33 @@ package owl.automaton.acceptance;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
-import static jhoafparser.extensions.BooleanExpressions.createDisjunction;
-import static jhoafparser.extensions.BooleanExpressions.getConjuncts;
-import static jhoafparser.extensions.BooleanExpressions.getDisjuncts;
+import static owl.logic.propositional.PropositionalFormula.Conjunction;
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
 
+import com.google.common.collect.BoundType;
+import com.google.common.collect.Range;
 import it.unimi.dsi.fastutil.ints.IntIterator;
 import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.SortedMap;
+import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.edge.Edge;
+import owl.logic.propositional.PropositionalFormula;
 
 /**
  * Generalized Rabin Acceptance - OR (Fin(i) and AND Inf(j)).
@@ -51,6 +59,9 @@ import owl.automaton.edge.Edge;
  * exactly one Fin/Inf atom.</p>
  */
 public class GeneralizedRabinAcceptance extends OmegaAcceptance {
+
+  private static final String NOT_WELL_FORMED
+    = "Generalized-Rabin Acceptance not well-formed.";
 
   final List<RabinPair> pairs;
   @Nonnegative
@@ -98,37 +109,53 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   public static GeneralizedRabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
+    return of(BooleanExpressions.toPropositionalFormula(expression));
+  }
+
+  public static GeneralizedRabinAcceptance of(PropositionalFormula<Integer> expression) {
+    SortedMap<Integer, Range<Integer>> rabinPairs = new TreeMap<>();
+
+    for (PropositionalFormula<Integer> dis : PropositionalFormula.disjuncts(expression)) {
+      int fin = -1;
+      var infSets = new BitSet();
+
+      for (PropositionalFormula<Integer> element : PropositionalFormula.conjuncts(dis)) {
+
+        if (element instanceof Variable) { // TEMPORAL_INF
+          infSets.set(((Variable<Integer>) element).variable);
+        } else if (element instanceof Negation) { // TEMPORAL_FIN
+          checkArgument(fin == -1, NOT_WELL_FORMED);
+          fin = ((Variable<Integer>) ((Negation<Integer>) element).operand).variable;
+        } else {
+          throw new IllegalArgumentException(NOT_WELL_FORMED);
+        }
+      }
+
+      int lower = infSets.nextSetBit(0);
+      int upper = infSets.previousSetBit(infSets.length());
+
+      // Range is empty.
+      if (lower == -1) {
+        rabinPairs.put(fin, Range.closedOpen(fin + 1, fin + 1));
+      } else { // Range contains at least one element.
+        assert lower <= upper;
+        rabinPairs.put(fin, Range.closedOpen(lower, upper + 1));
+      }
+    }
+
     Builder builder = new Builder();
     int setCount = 0;
 
-    for (BooleanExpression<AtomAcceptance> dis : getDisjuncts(expression)) {
-      int fin = -1;
-      int infSets = 0;
+    for (Map.Entry<Integer, Range<Integer>> entry : rabinPairs.entrySet()) {
+      int fin = entry.getKey();
+      Range<Integer> infs = entry.getValue();
 
-      for (BooleanExpression<AtomAcceptance> element : getConjuncts(dis)) {
-        AtomAcceptance atom = element.getAtom();
+      assert infs.lowerBoundType() == BoundType.CLOSED && infs.upperBoundType() == BoundType.OPEN;
+      checkArgument(fin == setCount, NOT_WELL_FORMED);
+      checkArgument(infs.lowerEndpoint() == fin + 1, NOT_WELL_FORMED);
 
-        switch (atom.getType()) {
-          case TEMPORAL_FIN:
-            checkArgument(fin == -1);
-            fin = atom.getAcceptanceSet();
-            checkArgument(fin == setCount);
-            break;
-
-          case TEMPORAL_INF:
-            checkArgument(fin + infSets + 1 == atom.getAcceptanceSet());
-            infSets++;
-            break;
-
-          default:
-            throw new IllegalArgumentException("Generalized-Rabin Acceptance not well-formed.");
-        }
-
-        setCount++;
-      }
-
-      checkArgument(fin != -1);
-      builder.add(infSets);
+      setCount = infs.upperEndpoint();
+      builder.add(infs.upperEndpoint() - infs.lowerEndpoint());
     }
 
     return builder.build();
@@ -140,8 +167,9 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
-    return createDisjunction(pairs.stream().map(RabinPair::booleanExpression));
+  public PropositionalFormula<Integer> booleanExpression() {
+    return Disjunction.of(
+      pairs.stream().map(RabinPair::booleanExpression).collect(Collectors.toList()));
   }
 
   @Override
@@ -269,14 +297,15 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
       }
     }
 
-    private BooleanExpression<AtomAcceptance> booleanExpression() {
-      BooleanExpression<AtomAcceptance> acceptance = BooleanExpressions.mkFin(finIndex);
+    private PropositionalFormula<Integer> booleanExpression() {
+      List<PropositionalFormula<Integer>> conjuncts = new ArrayList<>();
 
+      conjuncts.add(Negation.of(Variable.of(finIndex)));
       for (int index = finIndex + 1; index <= infIndex; index++) {
-        acceptance = acceptance.and(BooleanExpressions.mkInf(index));
+        conjuncts.add(Variable.of(index));
       }
 
-      return acceptance;
+      return Conjunction.of(conjuncts);
     }
 
     @Nonnegative

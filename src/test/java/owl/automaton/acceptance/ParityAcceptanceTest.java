@@ -26,6 +26,7 @@ import static owl.util.Assertions.assertThat;
 
 import java.util.List;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.extensions.BooleanExpressions;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 
@@ -37,7 +38,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 0);
-    assertThat(minEven.booleanExpression(), new BooleanExpression<>(false)::equals);
+    assertEquals(new BooleanExpression<>(false),
+      BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()));
   }
 
   @Test
@@ -47,7 +49,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 1);
-    assertThat(minEven.booleanExpression(), mkFin(0)::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      mkFin(0)::equals);
   }
 
   @Test
@@ -57,7 +60,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 2);
-    assertThat(minEven.booleanExpression(), mkFin(0).and(mkInf(1))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      mkFin(0).and(mkInf(1))::equals);
   }
 
   @Test
@@ -67,7 +71,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 3);
-    assertThat(minEven.booleanExpression(), mkFin(0).and(mkInf(1).or(mkFin(2)))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      mkFin(0).and(mkInf(1).or(mkFin(2)))::equals);
   }
 
   @Test
@@ -77,7 +82,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 4);
-    assertThat(minEven.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
       mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3))))::equals);
   }
 
@@ -88,7 +93,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 5);
-    assertThat(minEven.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
       mkFin(0).and(mkInf(1).or(mkFin(2).and(mkInf(3).or(mkFin(4)))))::equals);
   }
 
@@ -99,7 +104,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 0);
-    assertThat(minEven.booleanExpression(), new BooleanExpression<>(true)::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      new BooleanExpression<>(true)::equals);
   }
 
   @Test
@@ -109,7 +115,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 1);
-    assertThat(minEven.booleanExpression(), mkInf(0)::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      mkInf(0)::equals);
   }
 
   @Test
@@ -119,7 +126,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 2);
-    assertThat(minEven.booleanExpression(), mkInf(0).or(mkFin(1))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      mkInf(0).or(mkFin(1))::equals);
   }
 
   @Test
@@ -129,7 +137,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 3);
-    assertThat(minEven.booleanExpression(), mkInf(0).or(mkFin(1).and(mkInf(2)))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
+      mkInf(0).or(mkFin(1).and(mkInf(2)))::equals);
   }
 
   @Test
@@ -139,7 +148,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 4);
-    assertThat(minEven.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
       mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3))))::equals);
   }
 
@@ -150,7 +159,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(minEven);
 
     assertThat(minEven.acceptanceSets(), x -> x == 5);
-    assertThat(minEven.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(minEven.booleanExpression()),
       mkInf(0).or(mkFin(1).and(mkInf(2).or(mkFin(3).and(mkInf(4)))))::equals);
   }
 
@@ -161,7 +170,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxOdd);
 
     assertThat(maxOdd.acceptanceSets(), x -> x == 0);
-    assertThat(maxOdd.booleanExpression(), new BooleanExpression<>(true)::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxOdd.booleanExpression()),
+      new BooleanExpression<>(true)::equals);
   }
 
   @Test
@@ -171,7 +181,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxOdd);
 
     assertThat(maxOdd.acceptanceSets(), x -> x == 1);
-    assertThat(maxOdd.booleanExpression(), mkFin(0)::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxOdd.booleanExpression()),
+      mkFin(0)::equals);
   }
 
   @Test
@@ -181,7 +192,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxOdd);
 
     assertThat(maxOdd.acceptanceSets(), x -> x == 2);
-    assertThat(maxOdd.booleanExpression(), mkInf(1).or(mkFin(0))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxOdd.booleanExpression()),
+      mkInf(1).or(mkFin(0))::equals);
   }
 
   @Test
@@ -191,7 +203,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxOdd);
 
     assertThat(maxOdd.acceptanceSets(), x -> x == 3);
-    assertThat(maxOdd.booleanExpression(), mkFin(2).and(mkInf(1).or(mkFin(0)))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxOdd.booleanExpression()),
+      mkFin(2).and(mkInf(1).or(mkFin(0)))::equals);
   }
 
   @Test
@@ -201,7 +214,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxOdd);
 
     assertThat(maxOdd.acceptanceSets(), x -> x == 4);
-    assertThat(maxOdd.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxOdd.booleanExpression()),
       mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0))))::equals);
   }
 
@@ -212,7 +225,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxOdd);
 
     assertThat(maxOdd.acceptanceSets(), x -> x == 5);
-    assertThat(maxOdd.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxOdd.booleanExpression()),
       mkFin(4).and(mkInf(3).or(mkFin(2).and(mkInf(1).or(mkFin(0)))))::equals);
   }
 
@@ -223,7 +236,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxEven);
 
     assertThat(maxEven.acceptanceSets(), x -> x == 0);
-    assertThat(maxEven.booleanExpression(), new BooleanExpression<>(false)::equals);
+    assertEquals(new BooleanExpression<>(false),
+      BooleanExpressions.fromPropositionalFormula(maxEven.booleanExpression()));
   }
 
   @Test
@@ -233,7 +247,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxEven);
 
     assertThat(maxEven.acceptanceSets(), x -> x == 1);
-    assertThat(maxEven.booleanExpression(), mkInf(0)::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxEven.booleanExpression()),
+      mkInf(0)::equals);
   }
 
   @Test
@@ -243,7 +258,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxEven);
 
     assertThat(maxEven.acceptanceSets(), x -> x == 2);
-    assertThat(maxEven.booleanExpression(), mkFin(1).and(mkInf(0))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxEven.booleanExpression()),
+      mkFin(1).and(mkInf(0))::equals);
   }
 
   @Test
@@ -253,7 +269,8 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxEven);
 
     assertThat(maxEven.acceptanceSets(), x -> x == 3);
-    assertThat(maxEven.booleanExpression(), mkInf(2).or(mkFin(1).and(mkInf(0)))::equals);
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxEven.booleanExpression()),
+      mkInf(2).or(mkFin(1).and(mkInf(0)))::equals);
   }
 
   @Test
@@ -263,7 +280,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxEven);
 
     assertThat(maxEven.acceptanceSets(), x -> x == 4);
-    assertThat(maxEven.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxEven.booleanExpression()),
       mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0))))::equals);
   }
 
@@ -274,7 +291,7 @@ class ParityAcceptanceTest {
     checkNameExtraTypes(maxEven);
 
     assertThat(maxEven.acceptanceSets(), x -> x == 5);
-    assertThat(maxEven.booleanExpression(),
+    assertThat(BooleanExpressions.fromPropositionalFormula(maxEven.booleanExpression()),
       mkInf(4).or(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0)))))::equals);
   }
 

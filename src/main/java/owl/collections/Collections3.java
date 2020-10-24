@@ -27,6 +27,7 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -390,5 +391,40 @@ public final class Collections3 {
     Arrays.sort(a1);
     Arrays.sort(a2);
     return Arrays.compare(a1, a2);
+  }
+
+  public static BitSet toBitSet(Set<Integer> set) {
+    BitSet bitSet = new BitSet(set.size());
+    set.forEach(bitSet::set);
+    return bitSet;
+  }
+
+  public static Set<Integer> asSet(BitSet bitSet) {
+    return new AbstractSet<>() {
+      @Override
+      public boolean isEmpty() {
+        return bitSet.isEmpty();
+      }
+
+      @Override
+      public boolean contains(Object o) {
+        if (o instanceof Integer) {
+          int element = (Integer) o;
+          return bitSet.get(element);
+        }
+
+        return false;
+      }
+
+      @Override
+      public Iterator<Integer> iterator() {
+        return bitSet.stream().iterator();
+      }
+
+      @Override
+      public int size() {
+        return bitSet.cardinality();
+      }
+    };
   }
 }
