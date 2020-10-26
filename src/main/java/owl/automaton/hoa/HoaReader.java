@@ -40,6 +40,7 @@ import javax.annotation.Nullable;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerStore;
+import jhoafparser.extensions.BooleanExpressions;
 import jhoafparser.parser.HOAFParser;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.storage.StoredAutomaton;
@@ -215,14 +216,15 @@ public final class HoaReader {
     private static OmegaAcceptance acceptance(StoredHeader header) throws HOAConsumerException {
       var name = Iterables.getOnlyElement(header.getAcceptanceNames(), null);
       var expression = header.getAcceptanceCondition();
+      var formula = BooleanExpressions.toPropositionalFormula(expression);
       int sets = header.getNumberOfAcceptanceSets();
 
       switch (name == null ? "default" : name.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
-          return AllAcceptance.INSTANCE;
+          return AllAcceptance.of(formula).orElseThrow();
 
         case "buchi":
-          return BuchiAcceptance.INSTANCE;
+          return BuchiAcceptance.of(formula).orElseThrow();
 
         case "parity":
           check(name.extra.size() == 3, "Malformed parity condition.");
@@ -271,22 +273,23 @@ public final class HoaReader {
         case "co-buchi":
           // acc-name: co-Buchi
           // Acceptance: 1 Fin(0)
-          return CoBuchiAcceptance.INSTANCE;
+          return CoBuchiAcceptance.of(formula).orElseThrow();
 
         case "generalized-buchi":
           // acc-name: generalized-Buchi 3
           // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
-          return GeneralizedBuchiAcceptance.of(Integer.parseInt(name.extra.get(0).toString()));
+          int size1 = Integer.parseInt(name.extra.get(0).toString());
+          var generalizedBuchiAcceptance = GeneralizedBuchiAcceptance.of(formula).orElseThrow();
+          check(generalizedBuchiAcceptance.acceptanceSets() == size1, "Mismatch.");
+          return generalizedBuchiAcceptance;
 
         case "generalized-co-buchi":
           // acc-name: generalized-co-Buchi 3
           // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
-          return GeneralizedCoBuchiAcceptance.of(Integer.parseInt(name.extra.get(0).toString()));
-
-        case "streett":
-          // acc-name: Streett 3
-          // Acceptance: 6 (Fin(0)|Inf(1))&(Fin(2)|Inf(3))&(Fin(4)|Inf(5))
-          return new EmersonLeiAcceptance(sets, expression);
+          int size2 = Integer.parseInt(name.extra.get(0).toString());
+          var generalizedCoBuchiAcceptance = GeneralizedCoBuchiAcceptance.of(formula).orElseThrow();
+          check(generalizedCoBuchiAcceptance.acceptanceSets() == size2, "Mismatch.");
+          return generalizedCoBuchiAcceptance;
 
         case "rabin":
           // acc-name: Rabin 3
@@ -297,6 +300,11 @@ public final class HoaReader {
           // acc-name: generalized-Rabin 2 3 2
           // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
           return GeneralizedRabinAcceptance.of(expression);
+
+        case "streett":
+          // acc-name: Streett 3
+          // Acceptance: 6 (Fin(0)|Inf(1))&(Fin(2)|Inf(3))&(Fin(4)|Inf(5))
+          return new EmersonLeiAcceptance(sets, expression);
 
         default:
           if (expression.isFALSE()) {

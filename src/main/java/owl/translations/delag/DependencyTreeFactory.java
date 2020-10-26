@@ -26,11 +26,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
+import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -76,7 +76,8 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     return defaultAction(literal, null);
   }
 
-  private DependencyTree<T> defaultAction(Formula formula, @Nullable AtomAcceptance piggyback) {
+  private DependencyTree<T> defaultAction(Formula formula,
+    @Nullable PropositionalFormula<Integer> piggyback) {
     Leaf<T> leaf = DependencyTree.createLeaf(formula, setNumber, () -> constructor.apply(formula),
       piggyback);
 
@@ -103,11 +104,11 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
   }
 
   @Nullable
-  private AtomAcceptance findPiggybackableLeaf(List<DependencyTree<T>> leafs) {
+  private PropositionalFormula<Integer> findPiggybackableLeaf(List<DependencyTree<T>> leafs) {
     for (DependencyTree<T> leaf : leafs) {
       if ((leaf instanceof Leaf)
         && (((Leaf<?>) leaf).type == Type.LIMIT_GF || ((Leaf<?>) leaf).type == Type.LIMIT_FG)) {
-        return leaf.getAcceptanceExpression().getAtom();
+        return leaf.getAcceptanceExpression();
       }
     }
 

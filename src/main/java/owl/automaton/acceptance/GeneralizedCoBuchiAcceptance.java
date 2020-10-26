@@ -19,16 +19,17 @@
 
 package owl.automaton.acceptance;
 
-import static jhoafparser.extensions.BooleanExpressions.createDisjunction;
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
+import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Negation;
 
 public class GeneralizedCoBuchiAcceptance extends OmegaAcceptance {
   @Nonnegative
@@ -42,14 +43,37 @@ public class GeneralizedCoBuchiAcceptance extends OmegaAcceptance {
     return size == 1 ? CoBuchiAcceptance.INSTANCE : new GeneralizedCoBuchiAcceptance(size);
   }
 
+  public static Optional<? extends GeneralizedCoBuchiAcceptance> of(
+    PropositionalFormula<Integer> formula) {
+
+    var usedSets = new BitSet();
+
+    for (var disjunct : PropositionalFormula.disjuncts(formula)) {
+      if (!(disjunct instanceof Negation
+        && ((Negation<Integer>) disjunct).operand instanceof Variable)) {
+        return Optional.empty();
+      }
+
+      usedSets.set(((Variable<Integer>) ((Negation<Integer>) disjunct).operand).variable);
+    }
+
+    if (usedSets.cardinality() == usedSets.length()) {
+      return Optional.of(of(usedSets.length()));
+    }
+
+    return Optional.empty();
+  }
+
   @Override
   public final int acceptanceSets() {
     return size;
   }
 
   @Override
-  public final BooleanExpression<AtomAcceptance> booleanExpression() {
-    return createDisjunction(IntStream.range(0, size).mapToObj(BooleanExpressions::mkFin));
+  public final PropositionalFormula<Integer> booleanExpression() {
+    return Disjunction.of(IntStream.range(0, size)
+      .mapToObj(x -> Negation.of(Variable.of(x)))
+      .collect(Collectors.toList()));
   }
 
   @Override

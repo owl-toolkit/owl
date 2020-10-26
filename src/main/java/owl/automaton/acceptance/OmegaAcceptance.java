@@ -23,19 +23,18 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
+import owl.collections.Collections3;
+import owl.logic.propositional.PropositionalFormula;
 
 public abstract class OmegaAcceptance {
   public abstract int acceptanceSets();
 
   /**
-   * Get the canonical representation as {@link BooleanExpression}.
+   * Get the canonical representation as {@link PropositionalFormula}.
    */
-  public abstract BooleanExpression<AtomAcceptance> booleanExpression();
+  public abstract PropositionalFormula<Integer> booleanExpression();
 
   @Nullable
   public abstract String name();
@@ -64,18 +63,7 @@ public abstract class OmegaAcceptance {
    * Returns whether repeating these acceptance indices infinitely often would be accepting.
    */
   public boolean isAccepting(BitSet set) {
-    return BooleanExpressions.evaluate(booleanExpression(),
-      atom -> {
-        boolean inEdge = set.get(atom.getAcceptanceSet());
-        switch (atom.getType()) {
-          case TEMPORAL_FIN:
-            return !inEdge;
-          case TEMPORAL_INF:
-            return inEdge;
-          default:
-            throw new AssertionError();
-        }
-      });
+    return booleanExpression().evaluate(Collections3.asSet(set));
   }
 
   /**

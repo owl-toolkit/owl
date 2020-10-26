@@ -122,7 +122,7 @@ public final class HoaWriter {
         }
 
         consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
-          acceptance.booleanExpression());
+          BooleanExpressions.fromPropositionalFormula(acceptance.booleanExpression()));
 
         // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
         // states deterministic, the serializer will throw an exception.

@@ -19,14 +19,22 @@
 
 package owl.automaton.acceptance;
 
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+
 import java.util.BitSet;
 import java.util.Optional;
+import owl.logic.propositional.PropositionalFormula;
 
 public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
   public static final CoBuchiAcceptance INSTANCE = new CoBuchiAcceptance();
 
   private CoBuchiAcceptance() {
     super(1);
+  }
+
+  public static Optional<CoBuchiAcceptance> of(PropositionalFormula<Integer> formula) {
+    return formula.equals(Negation.of(Variable.of(0))) ? Optional.of(INSTANCE) : Optional.empty();
   }
 
   @Override

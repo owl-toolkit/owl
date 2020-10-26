@@ -19,15 +19,19 @@
 
 package owl.automaton.acceptance;
 
+import static owl.logic.propositional.PropositionalFormula.Conjunction;
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.constant;
+
 import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnegative;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.edge.Edge;
+import owl.logic.propositional.PropositionalFormula;
 
 public final class ParityAcceptance extends OmegaAcceptance {
   @Nonnegative
@@ -97,32 +101,32 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
+  public PropositionalFormula<Integer> booleanExpression() {
     if (colours == 0) {
-      return new BooleanExpression<>(emptyIsAccepting());
+      return constant(emptyIsAccepting());
     }
 
-    BooleanExpression<AtomAcceptance> exp;
+    PropositionalFormula<Integer> exp;
 
     if (parity.max()) {
       exp = mkColor(0);
       for (int i = 1; i < colours; i++) {
-        exp = isAccepting(i) ? mkColor(i).or(exp) : mkColor(i).and(exp);
+        exp = isAccepting(i) ? Disjunction.of(mkColor(i), exp) : Conjunction.of(mkColor(i), exp);
       }
     } else {
       exp = mkColor(colours - 1);
       for (int i = colours - 2; i >= 0; i--) {
-        exp = isAccepting(i) ? mkColor(i).or(exp) : mkColor(i).and(exp);
+        exp = isAccepting(i) ? Disjunction.of(mkColor(i), exp) : Conjunction.of(mkColor(i), exp);
       }
     }
 
     return exp;
   }
 
-  private BooleanExpression<AtomAcceptance> mkColor(int priority) {
+  private PropositionalFormula<Integer> mkColor(int priority) {
     return isAccepting(priority)
-      ? BooleanExpressions.mkInf(priority)
-      : BooleanExpressions.mkFin(priority);
+      ? Variable.of(priority)
+      : Negation.of(Variable.of(priority));
   }
 
   public boolean isAccepting(int priority) {

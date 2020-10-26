@@ -23,10 +23,15 @@ import java.util.BitSet;
 import java.util.Optional;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
+import jhoafparser.extensions.BooleanExpressions;
+import owl.collections.Collections3;
+import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Negation;
+import owl.logic.propositional.sat.SolverFactory;
 
 public final class EmersonLeiAcceptance extends OmegaAcceptance {
 
-  private final BooleanExpression<AtomAcceptance> expression;
+  private final PropositionalFormula<Integer> expression;
   private final int sets;
 
   EmersonLeiAcceptance(OmegaAcceptance acceptance) {
@@ -34,7 +39,11 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   }
 
   public EmersonLeiAcceptance(int sets, BooleanExpression<AtomAcceptance> expression) {
-    this.expression = expression;
+    this(sets, BooleanExpressions.toPropositionalFormula(expression));
+  }
+
+  public EmersonLeiAcceptance(int sets, PropositionalFormula<Integer> expression) {
+    this.expression = expression.nnf().normalise();
     this.sets = sets;
   }
 
@@ -44,7 +53,7 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
+  public PropositionalFormula<Integer> booleanExpression() {
     return expression;
   }
 
@@ -55,11 +64,15 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
 
   @Override
   public Optional<BitSet> acceptingSet() {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return SolverFactory.create()
+      .isSatisfiable(booleanExpression())
+      .map(Collections3::toBitSet);
   }
 
   @Override
   public Optional<BitSet> rejectingSet() {
-    throw new UnsupportedOperationException("Not yet implemented");
+    return SolverFactory.create()
+      .isSatisfiable(Negation.of(booleanExpression()))
+      .map(Collections3::toBitSet);
   }
 }

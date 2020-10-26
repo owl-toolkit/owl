@@ -23,6 +23,8 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
 import static owl.automaton.Automaton.Property.DETERMINISTIC;
 import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
+import static owl.logic.propositional.PropositionalFormula.Conjunction;
+import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -34,12 +36,10 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -56,6 +56,8 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
 import owl.factories.ValuationSetFactory;
+import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Disjunction;
 
 /**
  * This class provides standard boolean operations (union, intersection) on automata. The returned
@@ -264,17 +266,18 @@ public final class BooleanOperations {
   private static <A extends OmegaAcceptance> EmersonLeiAcceptance
     intersectionAcceptance(List<A> acceptanceConditions) {
 
-    var intersectionConjuncts = new ArrayList<BooleanExpression<AtomAcceptance>>();
+    var intersectionConjuncts = new ArrayList<PropositionalFormula<Integer>>();
     int intersectionAcceptanceSets = 0;
 
     for (A acceptance : acceptanceConditions) {
-      var shifted =
-        BooleanExpressions.shift(acceptance.booleanExpression(), intersectionAcceptanceSets);
-      intersectionConjuncts.addAll(BooleanExpressions.getConjuncts(shifted));
+      var fIntersectionAcceptanceSets = intersectionAcceptanceSets;
+      var shiftedExpression = acceptance.booleanExpression()
+        .substitute(x -> Optional.of(Variable.of(x + fIntersectionAcceptanceSets)));
+      intersectionConjuncts.add(shiftedExpression);
       intersectionAcceptanceSets += acceptance.acceptanceSets();
     }
 
-    var intersectionExpression = BooleanExpressions.createConjunction(intersectionConjuncts);
+    var intersectionExpression = Conjunction.of(intersectionConjuncts);
     return new EmersonLeiAcceptance(intersectionAcceptanceSets, intersectionExpression);
   }
 
@@ -466,16 +469,18 @@ public final class BooleanOperations {
   private static <A extends OmegaAcceptance> EmersonLeiAcceptance
     unionAcceptance(List<A> acceptanceConditions) {
 
-    var unionDisjuncts = new ArrayList<BooleanExpression<AtomAcceptance>>();
+    var unionDisjuncts = new ArrayList<PropositionalFormula<Integer>>();
     int unionAcceptanceSets = 0;
 
     for (A acceptance : acceptanceConditions) {
-      var shifted = BooleanExpressions.shift(acceptance.booleanExpression(), unionAcceptanceSets);
-      unionDisjuncts.addAll(BooleanExpressions.getDisjuncts(shifted));
+      var fUnionAcceptanceSets = unionAcceptanceSets;
+      var shiftedExpression = acceptance.booleanExpression()
+        .substitute(x -> Optional.of(Variable.of(x + fUnionAcceptanceSets)));
+      unionDisjuncts.add(shiftedExpression);
       unionAcceptanceSets += acceptance.acceptanceSets();
     }
 
-    var unionExpression = BooleanExpressions.createDisjunction(unionDisjuncts);
+    var unionExpression = Disjunction.of(unionDisjuncts);
     return new EmersonLeiAcceptance(unionAcceptanceSets, unionExpression);
   }
 

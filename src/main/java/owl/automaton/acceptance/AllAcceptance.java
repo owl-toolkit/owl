@@ -21,13 +21,16 @@ package owl.automaton.acceptance;
 
 import java.util.BitSet;
 import java.util.Optional;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
+import owl.logic.propositional.PropositionalFormula;
 
 public final class AllAcceptance extends OmegaAcceptance {
   public static final AllAcceptance INSTANCE = new AllAcceptance();
 
   private AllAcceptance() {}
+
+  public static Optional<AllAcceptance> of(PropositionalFormula<Integer> formula) {
+    return formula.isTrue() ? Optional.of(INSTANCE) : Optional.empty();
+  }
 
   @Override
   public int acceptanceSets() {
@@ -35,8 +38,8 @@ public final class AllAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public BooleanExpression<AtomAcceptance> booleanExpression() {
-    return new BooleanExpression<>(true);
+  public PropositionalFormula<Integer> booleanExpression() {
+    return PropositionalFormula.trueConstant();
   }
 
   @Override

@@ -1,4 +1,11 @@
-# 2020.10 (unreleased)
+# 2021.?? (unreleased)
+
+API:
+
+* Add rudimentary support for propositional logic and a SAT-solving
+  infrastructure.
+
+* Migrate OmegaAcceptance to new propositional logic datatype.
 
 # 2020.06
 
