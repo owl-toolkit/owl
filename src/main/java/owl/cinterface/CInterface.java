@@ -25,6 +25,7 @@ import org.graalvm.nativeimage.ObjectHandle;
 import org.graalvm.nativeimage.ObjectHandles;
 import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.CContext;
+import org.graalvm.nativeimage.c.constant.CConstant;
 import org.graalvm.nativeimage.c.function.CEntryPoint;
 import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
@@ -192,6 +193,15 @@ public final class CInterface {
       }
     }
   }
+
+  @CConstant("OWL_INITIAL_STATE")
+  public static native int owlInitialState();
+
+  @CConstant("OWL_ACCEPTING_SINK")
+  public static native int owlAcceptingSink();
+
+  @CConstant("OWL_REJECTING_SINK")
+  public static native int owlRejectingSink();
 
   public static void main(String... args) {
     // Empty method for native-image.

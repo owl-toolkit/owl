@@ -22,21 +22,22 @@ package owl.cinterface;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.struct.CField;
 import org.graalvm.nativeimage.c.struct.CStruct;
-import org.graalvm.nativeimage.c.type.CIntPointer;
+import org.graalvm.nativeimage.c.type.CDoublePointer;
 import org.graalvm.word.PointerBase;
 
 @CContext(CInterface.CDirectives.class)
-@CStruct("sized_int_array_t")
-interface CIntArray extends PointerBase {
-  @CField
-  CIntPointer elements();
+@CStruct("vector_double_t")
+interface CDoubleVector extends PointerBase {
 
   @CField
-  void elements(CIntPointer elements);
+  CDoublePointer elements();
 
   @CField
-  int length();
+  void elements(CDoublePointer elements);
 
   @CField
-  void length(int length);
+  int size();
+
+  @CField
+  void size(int size);
 }

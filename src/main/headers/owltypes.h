@@ -1,6 +1,10 @@
 #ifndef __OWLTYPES_H
 #define __OWLTYPES_H
 
+#define OWL_INITIAL_STATE 0
+#define OWL_REJECTING_SINK -1
+#define OWL_ACCEPTING_SINK -2
+
 typedef enum {
   AUTOMATON,
   BICONDITIONAL,
@@ -37,12 +41,12 @@ typedef enum {
 
 typedef struct {
   int *elements;
-  int length;
-} sized_int_array_t;
+  int size;
+} vector_int_t;
 
 typedef struct {
   double *elements;
-  int length;
-} sized_double_array_t;
+  int size;
+} vector_double_t;
 
 #endif
