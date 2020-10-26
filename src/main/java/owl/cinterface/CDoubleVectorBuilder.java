@@ -29,13 +29,15 @@ import org.graalvm.word.WordFactory;
 import owl.cinterface.emulation.EmulatedCDoublePointer;
 import owl.util.ArraysSupport;
 
-public final class CDoubleArrayList {
+public final class CDoubleVectorBuilder {
 
   private CDoublePointer elements;
   private int capacity;
   private int size;
 
-  public CDoubleArrayList() {
+  public CDoubleVectorBuilder() {
+    this.size = 0;
+
     if (ImageInfo.inImageCode()) {
       this.elements = UnmanagedMemory.malloc(toBytesLength(32));
       this.capacity = 32;
@@ -43,8 +45,6 @@ public final class CDoubleArrayList {
       this.elements = new EmulatedCDoublePointer(1);
       this.capacity = 1;
     }
-
-    this.size = 0;
   }
 
   public void add(double value) {
@@ -67,13 +67,13 @@ public final class CDoubleArrayList {
     return size;
   }
 
-  public void moveToArray(CDoubleArray cDoubleArray) {
+  public void moveTo(CDoubleVector cDoubleVector) {
     if (size == Integer.MIN_VALUE) {
       throw new IllegalStateException("already moved");
     }
 
-    cDoubleArray.elements(UnmanagedMemory.realloc(elements, toBytesLength(size)));
-    cDoubleArray.length(size);
+    cDoubleVector.elements(UnmanagedMemory.realloc(elements, toBytesLength(size)));
+    cDoubleVector.size(size);
 
     elements = WordFactory.nullPointer();
     size = Integer.MIN_VALUE;
@@ -115,6 +115,6 @@ public final class CDoubleArrayList {
   }
 
   private static UnsignedWord toBytesLength(long length) {
-    return WordFactory.unsigned(((long) Long.BYTES) * length);
+    return WordFactory.unsigned(((long) Double.BYTES) * length);
   }
 }

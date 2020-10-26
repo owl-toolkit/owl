@@ -29,13 +29,15 @@ import org.graalvm.word.WordFactory;
 import owl.cinterface.emulation.EmulatedCIntPointer;
 import owl.util.ArraysSupport;
 
-public final class CIntArrayList {
+public final class CIntVectorBuilder {
 
   private CIntPointer elements;
   private int capacity;
   private int size;
 
-  public CIntArrayList() {
+  public CIntVectorBuilder() {
+    this.size = 0;
+
     if (ImageInfo.inImageCode()) {
       this.elements = UnmanagedMemory.malloc(toBytesLength(64));
       this.capacity = 64;
@@ -43,8 +45,6 @@ public final class CIntArrayList {
       this.elements = new EmulatedCIntPointer(1);
       this.capacity = 1;
     }
-
-    this.size = 0;
   }
 
   public void add(int value) {
@@ -82,13 +82,13 @@ public final class CIntArrayList {
     return size;
   }
 
-  public void moveToArray(CIntArray cIntArray) {
+  public void moveTo(CIntVector cIntVector) {
     if (size == Integer.MIN_VALUE) {
       throw new IllegalStateException("already moved");
     }
 
-    cIntArray.elements(UnmanagedMemory.realloc(elements, toBytesLength(size)));
-    cIntArray.length(size);
+    cIntVector.elements(UnmanagedMemory.realloc(elements, toBytesLength(size)));
+    cIntVector.size(size);
 
     elements = WordFactory.nullPointer();
     size = Integer.MIN_VALUE;

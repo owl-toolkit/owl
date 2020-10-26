@@ -45,6 +45,7 @@ import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import jhoafparser.parser.generated.ParseException;
+import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.IsolateThread;
 import org.graalvm.nativeimage.ObjectHandle;
 import org.graalvm.nativeimage.ObjectHandles;
@@ -57,7 +58,6 @@ import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.word.UnsignedWord;
-import org.graalvm.word.WordFactory;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -251,29 +251,18 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cDeterministicAutomaton,
     int state,
-    CIntArray cTreeBuffer,
-    CIntArray cEdgeBuffer,
-    CDoubleArray cScoreBuffer) {
+    CIntVector cTreeBuffer,
+    CIntVector cEdgeBuffer,
+    CDoubleVector cScoreBuffer) {
 
     boolean computeScores = cScoreBuffer.isNonNull();
-
-    cTreeBuffer.elements(WordFactory.nullPointer());
-    cTreeBuffer.length(Integer.MIN_VALUE);
-    cEdgeBuffer.elements(WordFactory.nullPointer());
-    cEdgeBuffer.length(Integer.MIN_VALUE);
-
-    if (cScoreBuffer.isNonNull()) {
-      cScoreBuffer.elements(WordFactory.nullPointer());
-      cScoreBuffer.length(Integer.MIN_VALUE);
-    }
-
     var tree = get(cDeterministicAutomaton).edgeTree(state, computeScores);
 
-    tree.tree.moveToArray(cTreeBuffer);
-    tree.edges.moveToArray(cEdgeBuffer);
+    tree.tree.moveTo(cTreeBuffer);
+    tree.edges.moveTo(cEdgeBuffer);
 
     if (tree.scores != null) {
-      tree.scores.moveToArray(cScoreBuffer);
+      tree.scores.moveTo(cScoreBuffer);
     }
   }
 
@@ -375,10 +364,13 @@ public final class CAutomaton {
 
   static final class DeterministicAutomatonWrapper<S, T> {
 
+    // Public constants
     static final int ACCEPTING = -2;
     static final int REJECTING = -1;
     static final int INITIAL = 0;
-    static final int UNKNOWN = Integer.MIN_VALUE;
+
+    // Internal constants
+    private static final int UNKNOWN = Integer.MIN_VALUE;
 
     final Automaton<S, ?> automaton;
     final Acceptance acceptance;
@@ -451,6 +443,16 @@ public final class CAutomaton {
       } else {
         this.initialStateEdgeTree = null;
         this.initialStateSuccessors = null;
+      }
+
+      if (ImageInfo.inImageCode()) {
+        boolean consistentDeclarations = INITIAL == CInterface.owlInitialState()
+          && ACCEPTING == CInterface.owlAcceptingSink()
+          && REJECTING == CInterface.owlRejectingSink();
+
+        if (!consistentDeclarations) {
+          throw new AssertionError("C headers declare conflicting constants.");
+        }
       }
     }
 
@@ -733,15 +735,15 @@ public final class CAutomaton {
   }
 
   static class SerialisedEdgeTree {
-    final CIntArrayList tree;
-    final CIntArrayList edges;
+    final CIntVectorBuilder tree;
+    final CIntVectorBuilder edges;
     @Nullable
-    final CDoubleArrayList scores;
+    final CDoubleVectorBuilder scores;
 
     SerialisedEdgeTree(boolean computeScores) {
-      this.tree = new CIntArrayList();
-      this.edges = new CIntArrayList();
-      this.scores = computeScores ? new CDoubleArrayList() : null;
+      this.tree = new CIntVectorBuilder();
+      this.edges = new CIntVectorBuilder();
+      this.scores = computeScores ? new CDoubleVectorBuilder() : null;
     }
   }
 }
