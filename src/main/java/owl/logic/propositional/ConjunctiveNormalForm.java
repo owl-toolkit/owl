@@ -32,7 +32,6 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.annotation.Nullable;
 
 public class ConjunctiveNormalForm<V> {
 
@@ -44,14 +43,12 @@ public class ConjunctiveNormalForm<V> {
    * -1 -2 0 1 2 0 2 3 0 ...
    */
   public final ImmutableIntArray clauses;
-  @Nullable
   public final ImmutableBiMap<V, Integer> variableMapping;
 
-  public ConjunctiveNormalForm(int[] clauses) {
-    this.clauses = ImmutableIntArray.copyOf(clauses);
-    this.variableMapping = null;
-  }
-
+  /**
+   * Construct an equisatisfiable CNF-representation of the given formula.
+   * @param formula the formula.
+   */
   public ConjunctiveNormalForm(PropositionalFormula<V> formula) {
     var temporaryMapping = new VariableMapping<>(formula);
     clauses = encodeFormula(formula, temporaryMapping);
