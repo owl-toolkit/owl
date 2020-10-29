@@ -19,20 +19,23 @@
 
 package owl.logic.propositional.sat;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.EnumSource;
 
 class SolverTest {
 
-  @Test
-  void testSatisfyingAssignment() {
-    var solver = SolverFactory.create();
-
+  @ParameterizedTest
+  @EnumSource(
+    value = Solver.Engine.class,
+    names = {"JBDD"})
+  void testModel(Solver.Engine engine) {
     var formula1 = Conjunction.of(
       Negation.of(Variable.of(1)),
       Disjunction.of(
@@ -45,9 +48,13 @@ class SolverTest {
         Negation.of(Variable.of(3))
       ));
 
-    var satisfyingAssignment1 = solver.isSatisfiable(formula1);
-    Assertions.assertTrue(satisfyingAssignment1.isPresent());
-    Assertions.assertTrue(formula1.evaluate(satisfyingAssignment1.get()));
+    var model1a = Solver.model(formula1, engine);
+    assertTrue(model1a.isPresent());
+    assertTrue(formula1.evaluate(model1a.get()));
+
+    var model1b = Solver.model(Negation.of(formula1), engine);
+    assertTrue(model1b.isPresent());
+    assertFalse(formula1.evaluate(model1b.get()));
 
     var formula2 = Conjunction.of(
       Negation.of(Variable.of(1)),
@@ -65,7 +72,33 @@ class SolverTest {
         Variable.of(2)
       ));
 
-    var satisfyingAssignment2 = solver.isSatisfiable(formula2);
-    Assertions.assertTrue(satisfyingAssignment2.isEmpty());
+    var model2a = Solver.model(formula2, engine);
+    assertTrue(model2a.isEmpty());
+
+    var model2b = Solver.model(Negation.of(formula2), engine);
+    assertTrue(model2b.isPresent());
+    assertFalse(formula2.evaluate(model2b.get()));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = Solver.Engine.class,
+    names = {"JBDD"})
+  void testIncrementalSolver(Solver.Engine engine) {
+    var incrementalSolver = Solver.incrementalSolver(engine);
+    assertTrue(incrementalSolver.model().isPresent());
+
+    incrementalSolver.pushClauses(-1);
+    assertTrue(incrementalSolver.model().isPresent());
+
+    incrementalSolver.pushClauses(1, 2, 3);
+    assertTrue(incrementalSolver.model().isPresent());
+
+    incrementalSolver.pushClauses(0);
+    assertTrue(incrementalSolver.model().isEmpty());
+
+    incrementalSolver.popClauses();
+    incrementalSolver.pushClauses(1, 2, 3, 4, 0, -2, -3);
+    assertTrue(incrementalSolver.model().isPresent());
   }
 }

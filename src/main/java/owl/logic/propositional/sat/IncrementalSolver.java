@@ -19,12 +19,18 @@
 
 package owl.logic.propositional.sat;
 
-public final class SolverFactory {
+import com.google.common.primitives.ImmutableIntArray;
+import java.util.BitSet;
+import java.util.Optional;
 
-  private SolverFactory() {}
+public interface IncrementalSolver {
 
-  public static Solver create() {
-    return new JbddSolver();
-  }
+  Optional<BitSet> model();
+
+  void popClauses();
+
+  void pushClauses(int... clauses);
+  
+  void pushClauses(ImmutableIntArray clauses);
 
 }
