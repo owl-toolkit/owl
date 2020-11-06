@@ -25,7 +25,6 @@ import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFacto
 
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
-import it.unimi.dsi.fastutil.booleans.BooleanArrays;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -137,7 +136,7 @@ final class MonitorBuilder {
         initialAccepting[gIndex] = isAccepting(initialClass, relevantSets[gIndex]);
       }
     } else {
-      initialAccepting = BooleanArrays.EMPTY_ARRAY;
+      initialAccepting = new boolean[]{};
     }
 
     // Tracks the maximal priority used by each relevant set

@@ -29,7 +29,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.set.NatCartesianProductIterator;
 import de.tum.in.naturals.set.NatCartesianProductSet;
 import de.tum.in.naturals.set.PowerSetIterator;
-import it.unimi.dsi.fastutil.booleans.BooleanArrays;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
@@ -369,7 +368,7 @@ public final class RabinizerBuilder {
 
       if (suspendable) {
         sccMonitors = EMPTY_MONITORS;
-        relevantFormulas = BooleanArrays.EMPTY_ARRAY;
+        relevantFormulas = new boolean[]{};
         logger.log(Level.FINE, "Suspending all Gs on SCC {0}", sccIndex);
       } else {
         relevantFormulas = new boolean[numberOfGFormulas];

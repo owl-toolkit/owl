@@ -64,7 +64,7 @@ final class EdgeLong<S> extends Edge<S> {
   @Override
   public BitSet acceptanceSets() {
     BitSet bitSet = new BitSet();
-    acceptanceSetIterator().forEachRemaining((IntConsumer) bitSet::set);
+    forEachAcceptanceSet(bitSet::set);
     return bitSet;
   }
 

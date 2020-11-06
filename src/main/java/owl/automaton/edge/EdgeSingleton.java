@@ -19,10 +19,10 @@
 
 package owl.automaton.edge;
 
-import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.PrimitiveIterator;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -46,8 +46,8 @@ final class EdgeSingleton<S> extends Edge<S> {
   @Override
   public PrimitiveIterator.OfInt acceptanceSetIterator() {
     return hasAcceptanceSets()
-      ? IntIterators.singleton(acceptance)
-      : IntIterators.EMPTY_ITERATOR;
+      ? IntStream.of(acceptance).iterator()
+      : IntStream.empty().iterator();
   }
 
   @Override

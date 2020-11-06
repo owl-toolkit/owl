@@ -28,8 +28,6 @@ import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import com.google.common.collect.BoundType;
 import com.google.common.collect.Range;
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntIterators;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -42,6 +40,7 @@ import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -328,8 +327,8 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
       return infSetCount() > 0;
     }
 
-    public IntIterator infSetIterator() {
-      return IntIterators.fromTo(finIndex + 1, infIndex + 1);
+    public IntStream infSetStream() {
+      return IntStream.rangeClosed(finIndex + 1, infIndex);
     }
 
     public boolean isInfinite(int i) {

@@ -30,17 +30,17 @@ import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
-import it.unimi.dsi.fastutil.ints.IntIterator;
-import it.unimi.dsi.fastutil.ints.IntIterators;
 import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
 import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.SortedSet;
@@ -130,7 +130,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     Arrays.setAll(impliesMap, i -> BitSets.copyOf(defaultConsequent));
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) ->
-      edge.acceptanceSetIterator().forEachRemaining((int index) -> {
+      edge.forEachAcceptanceSet((int index) -> {
         BitSet consequences = impliesMap[index];
         BitSets.forEach(consequences, consequent -> {
           if (!edge.inSet(consequent)) {
@@ -246,7 +246,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
         int mergedInfiniteCount = mergedPair.infSetCount();
         assert mergedInfiniteCount <= representativeInfCount;
-        IntIterator infIterator = representativeInf.iterator();
+        PrimitiveIterator.OfInt infIterator = representativeInf.iterator();
         for (int infiniteNumber = 0; infiniteNumber < mergedInfiniteCount - 1; infiniteNumber++) {
           remapping.put(mergedPair.infSet(infiniteNumber),
             IntSets.singleton(infIterator.nextInt()));
@@ -270,7 +270,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     automaton.updateEdges((state, edge) -> {
       BitSet newAcceptance = new BitSet();
 
-      edge.acceptanceSetIterator().forEachRemaining(
+      edge.forEachAcceptanceSet(
         (int index) -> {
           IntSet indexRemapping = remapping.get(index);
           if (indexRemapping == null) {
@@ -323,7 +323,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       }
 
       BitSet modifiedAcceptance = new BitSet(edge.largestAcceptanceSet());
-      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) modifiedAcceptance::set);
+      edge.forEachAcceptanceSet((IntConsumer) modifiedAcceptance::set);
       pairs.get(overlapIndex).forEachInfSet(modifiedAcceptance::clear);
 
       for (int index = overlapIndex + 1; index < pairs.size(); index++) {
@@ -366,7 +366,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
           if (scc.contains(edge.successor())) {
-            edge.acceptanceSetIterator().forEachRemaining((int index) ->
+            edge.forEachAcceptanceSet((int index) ->
               BitSets.forEach(impliesMap[index], consequent -> {
                 if (!edge.inSet(consequent)) {
                   impliesMap[index].clear(consequent);
@@ -429,16 +429,17 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       if (logBuilder != null) {
         logBuilder.append("\n ").append(sccIndex).append(" - ").append(sccs.get(sccIndex))
           .append("\n  Indices:");
-        IntIterators.fromTo(0, acceptanceSets).forEachRemaining((int index) -> {
+
+        for (int i = 0; i < acceptanceSets; i++) {
+          int index = i;
           logBuilder.append("\n   ").append(index).append(" => ");
-          BitSet antecedent = impliesMap[index];
-          IntConsumer consumer = otherIndex -> {
+          impliesMap[index].stream().forEach(otherIndex -> {
             if (index != otherIndex) {
               logBuilder.append(otherIndex).append(' ');
             }
-          };
-          BitSets.forEach(antecedent, consumer);
-        });
+          });
+        }
+
         logBuilder.append("\n  Pairs:");
         if (sccImplications.isEmpty()) {
           logBuilder.append("\n   ").append("None");
@@ -567,7 +568,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     IntSet occurringIndices = new IntOpenHashSet();
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> {
-      edge.acceptanceSetIterator().forEachRemaining((IntConsumer) occurringIndices::add);
+      edge.forEachAcceptanceSet((IntConsumer) occurringIndices::add);
       indicesOnEveryEdge.removeIf((int index) -> !edge.inSet(index));
     });
 
@@ -670,7 +671,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
       assert Sets.intersection(pairs, other.pairs).isEmpty();
 
-      if (IntIterators.any(activeSccIndices.iterator(), other.activeSccIndices::contains)) {
+      if (!Collections.disjoint(activeSccIndices, other.activeSccIndices)) {
         return false;
       }
 

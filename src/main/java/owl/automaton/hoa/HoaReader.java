@@ -23,7 +23,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
-import it.unimi.dsi.fastutil.HashCommon;
 import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.Reader;
@@ -146,7 +145,7 @@ public final class HoaReader {
 
     @Override
     public int hashCode() {
-      return HashCommon.mix(id);
+      return Integer.hashCode(id);
     }
 
     @Override

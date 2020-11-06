@@ -189,7 +189,7 @@ public final class LanguageEmptiness {
               continue;
             }
 
-            successorEdge.acceptanceSetIterator().forEachRemaining((IntConsumer) remaining::clear);
+            successorEdge.forEachAcceptanceSet((IntConsumer) remaining::clear);
 
             if (remaining.isEmpty()) {
               return true;
@@ -282,8 +282,7 @@ public final class LanguageEmptiness {
                   continue;
                 }
 
-                edge.acceptanceSetIterator()
-                  .forEachRemaining((IntConsumer) awaitedIndices::clear);
+                edge.forEachAcceptanceSet(awaitedIndices::clear);
 
                 if (awaitedIndices.isEmpty()) {
                   // This edge yields an accepting cycle
