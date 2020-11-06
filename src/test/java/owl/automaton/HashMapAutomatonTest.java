@@ -214,9 +214,9 @@ class HashMapAutomatonTest {
 
     assertAll(
       () -> automaton.edgeMap("1").forEach((x, y)
-      -> x.acceptanceSetIterator().forEachRemaining((int z) -> assertEquals(0, z))),
+      -> x.forEachAcceptanceSet((int z) -> assertEquals(0, z))),
       () -> automaton.edgeMap("2").forEach((x, y)
-      -> x.acceptanceSetIterator().forEachRemaining((int z) -> assertEquals(1, z)))
+      -> x.forEachAcceptanceSet((int z) -> assertEquals(1, z)))
     );
 
     assertTrue(automaton.checkConsistency(), "Automaton is inconsistent.");

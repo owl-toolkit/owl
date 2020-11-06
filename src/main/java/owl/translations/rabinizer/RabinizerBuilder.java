@@ -29,10 +29,6 @@ import de.tum.in.naturals.bitset.BitSets;
 import de.tum.in.naturals.set.NatCartesianProductIterator;
 import de.tum.in.naturals.set.NatCartesianProductSet;
 import de.tum.in.naturals.set.PowerSetIterator;
-import it.unimi.dsi.fastutil.booleans.BooleanArrays;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.ints.IntSets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -369,7 +365,7 @@ public final class RabinizerBuilder {
 
       if (suspendable) {
         sccMonitors = EMPTY_MONITORS;
-        relevantFormulas = BooleanArrays.EMPTY_ARRAY;
+        relevantFormulas = new boolean[]{};
         logger.log(Level.FINE, "Suspending all Gs on SCC {0}", sccIndex);
       } else {
         relevantFormulas = new boolean[numberOfGFormulas];
@@ -470,8 +466,8 @@ public final class RabinizerBuilder {
                 if (configuration.eager() && !rankingPair.monitorsEntailEager(state, valuation)) {
                   transition.addAcceptance(edgeValuation, pair.finSet());
                 } else {
-                  IntSet edgeAcceptance = rankingPair.getAcceptance(valuation);
-                  transition.addAcceptance(edgeValuation, edgeAcceptance);
+                  rankingPair.getAcceptance(valuation).stream().forEach(
+                    acceptance -> transition.addAcceptance(edgeValuation, acceptance));
                 }
               });
             });
@@ -894,12 +890,11 @@ public final class RabinizerBuilder {
       this.relevantFormulas = relevantFormulas;
     }
 
-    IntSet getAcceptance(BitSet valuation) {
+    BitSet getAcceptance(BitSet valuation) {
       // TODO Pre-compute into a Map<IntSet, ValuationSet>
 
       // Lazy allocate the acceptance set, often we don't need it
-      @Nullable
-      IntSet edgeAcceptanceSet = null;
+      BitSet edgeAcceptanceSet = new BitSet();
 
       // Iterate over all enabled sub formulas and check acceptance for each monitor
       int relevantIndex = -1;
@@ -936,7 +931,8 @@ public final class RabinizerBuilder {
         }
         if (priority == 0) {
           // This edge is fail - definitely Fin
-          return IntSets.singleton(pair.finSet());
+          edgeAcceptanceSet.set(pair.finSet());
+          return edgeAcceptanceSet;
         }
         int succeedPriority = 2 * ranking[activeIndex] + 1;
         if (priority > succeedPriority) {
@@ -945,18 +941,16 @@ public final class RabinizerBuilder {
         }
         if (priority % 2 == 0) {
           // Merged at some lower rank
-          return IntSets.singleton(pair.finSet());
+          edgeAcceptanceSet.set(pair.finSet());
+          return edgeAcceptanceSet;
         }
         if (priority == succeedPriority) {
           // Succeeded at the current rank
-          if (edgeAcceptanceSet == null) {
-            edgeAcceptanceSet = new IntOpenHashSet();
-          }
-          edgeAcceptanceSet.add(pair.infSet(activeIndex));
+          edgeAcceptanceSet.set(pair.infSet(activeIndex));
         }
       }
 
-      return edgeAcceptanceSet == null ? IntSets.EMPTY_SET : edgeAcceptanceSet;
+      return edgeAcceptanceSet;
     }
 
     boolean monitorsEntail(RabinizerState state) {

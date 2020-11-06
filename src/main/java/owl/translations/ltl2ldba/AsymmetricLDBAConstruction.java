@@ -399,7 +399,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
         var automaton = automata.gfCoSafetyAutomaton;
         var edge = automaton.edge(automaton.onlyInitialState(), valuation);
         assert edge.successor().equals(automaton.onlyInitialState());
-        edge.acceptanceSetIterator().forEachRemaining((int x) -> acceptance.set(x + 1));
+        edge.forEachAcceptanceSet((int x) -> acceptance.set(x + 1));
       }
 
       int usedAcceptanceSets = acceptanceSets(automata);

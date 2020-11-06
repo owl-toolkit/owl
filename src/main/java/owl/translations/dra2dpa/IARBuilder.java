@@ -30,8 +30,6 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import de.tum.in.naturals.IntPreOrder;
-import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import it.unimi.dsi.fastutil.ints.IntSets;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -416,7 +414,7 @@ public final class IARBuilder<R> {
       int matchOffset = 0;
       boolean infMatch = false;
       // If without preorder fix ascending order arbitrarily to resolve ties equally
-      IntSet seenFin = new IntAVLTreeSet();
+      BitSet seenFin = new BitSet();
       int currentOffset = 0;
       for (int currentClass = 0; currentClass < classCount; currentClass++) {
         int[] classes = record.equivalenceClass(currentClass);
@@ -426,7 +424,7 @@ public final class IARBuilder<R> {
           if (rabinEdge.inSet(rabinPair.finSet())) {
             matchOffset = currentOffset;
             infMatch = false;
-            seenFin.add(rabinIndex);
+            seenFin.set(rabinIndex);
           } else if (matchOffset < currentOffset
             && rabinEdge.inSet(rabinPair.infSet())) {
             matchOffset = currentOffset;
@@ -474,9 +472,15 @@ public final class IARBuilder<R> {
       IntPreOrder successorRecord;
       // TODO Pick existing?
       successorRecord = record;
-      for (int index : seenFin) {
-        successorRecord = successorRecord.generation(IntSets.singleton(index));
+
+      for (int i = seenFin.nextSetBit(0); i >= 0; i = seenFin.nextSetBit(i + 1)) {
+        successorRecord = successorRecord.generation(IntSets.singleton(i));
+
+        if (i == Integer.MAX_VALUE) {
+          break; // or (i+1) would overflow
+        }
       }
+
       IARState<S> successorState = IARState.of(rabinSuccessor, successorRecord);
       return Edge.of(successorState, priority);
     }

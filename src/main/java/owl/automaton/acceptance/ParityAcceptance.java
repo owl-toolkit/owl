@@ -25,7 +25,6 @@ import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 import static owl.logic.propositional.PropositionalFormula.constant;
 
-import it.unimi.dsi.fastutil.HashCommon;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
@@ -160,7 +159,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
 
   @Override
   public int hashCode() {
-    return HashCommon.mix(colours) ^ parity.hashCode();
+    return (31 * (31 + colours)) + parity.hashCode();
   }
 
   @SuppressWarnings("MethodReturnAlwaysConstant")

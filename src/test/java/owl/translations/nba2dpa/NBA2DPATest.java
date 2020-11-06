@@ -274,11 +274,12 @@ class NBA2DPATest {
     + "[0 & 1] 1\n"
     + "--END--";
 
+  // Some of the values depend on the iteration order of HashSets and thus on hashCode().
   private static Stream<Arguments> testCases() {
     return Stream.of(
       Arguments.of(INPUT, 5),
       Arguments.of(INPUT2, 1),
-      Arguments.of(INPUT3, 4),
+      Arguments.of(INPUT3, 3),
       Arguments.of(INPUT4, 2),
       Arguments.of(INPUT5, 2),
       Arguments.of(INPUT6, 1),

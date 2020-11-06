@@ -22,6 +22,7 @@ package owl.automaton.edge;
 import java.util.BitSet;
 import java.util.Objects;
 import java.util.PrimitiveIterator.OfInt;
+import java.util.function.IntConsumer;
 import javax.annotation.Nonnegative;
 import javax.annotation.concurrent.Immutable;
 
@@ -41,7 +42,7 @@ final class EdgeGeneric<S> extends Edge<S> {
   }
 
   @Override
-  public void forEachAcceptanceSet(java.util.function.IntConsumer action) {
+  public void forEachAcceptanceSet(IntConsumer action) {
     Objects.requireNonNull(action);
     acceptance.stream().forEach(action);
   }

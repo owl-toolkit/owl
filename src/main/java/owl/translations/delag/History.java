@@ -22,7 +22,6 @@ package owl.translations.delag;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.primitives.ImmutableLongArray;
-import it.unimi.dsi.fastutil.longs.LongArrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
@@ -36,7 +35,7 @@ final class History {
   private final ImmutableLongArray longs;
 
   History() {
-    this.longs = makeUnique(LongArrays.EMPTY_ARRAY);
+    this.longs = makeUnique(new long[] {});
   }
 
   History(long[] longs) {
