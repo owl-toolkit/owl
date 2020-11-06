@@ -19,8 +19,8 @@
 
 package owl.ltl.visitors;
 
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
+import java.util.HashMap;
+import java.util.Map;
 import javax.annotation.Nonnegative;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -33,7 +33,7 @@ import owl.ltl.XOperator;
 
 public class XDepthVisitor implements IntVisitor {
 
-  private static final Object2IntMap<Formula> CACHE = new Object2IntOpenHashMap<>();
+  private static final Map<Formula, Integer> CACHE = new HashMap<>();
   private static final XDepthVisitor INSTANCE = new XDepthVisitor();
 
   @Nonnegative

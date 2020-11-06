@@ -19,9 +19,7 @@
 
 package owl.translations.rabinizer;
 
-import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.Arrays;
-import java.util.function.IntConsumer;
 import owl.collections.ValuationSet;
 
 /**
@@ -49,10 +47,6 @@ final class RabinizerProductEdge {
     successorAcceptance[acceptance] = successorAcceptance[acceptance] == null
       ? valuations
       : valuations.union(successorAcceptance[acceptance]);
-  }
-
-  void addAcceptance(ValuationSet valuations, IntSet acceptanceSet) {
-    acceptanceSet.forEach((IntConsumer) acceptance -> addAcceptance(valuations, acceptance));
   }
 
   @Override

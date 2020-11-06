@@ -21,19 +21,15 @@ package owl.automaton.hoa;
 
 import static com.google.common.base.Preconditions.checkState;
 
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -90,7 +86,7 @@ public final class HoaWriter {
     private final int alphabetSize;
     private final HOAConsumer consumer;
     private final EnumSet<HoaOption> options;
-    private final Object2IntMap<S> stateNumbers;
+    private final Map<S, Integer> stateNumbers;
     @Nullable
     private S currentState;
     final Visitor visitor = new Visitor();
@@ -99,7 +95,7 @@ public final class HoaWriter {
       Set<S> initialStates, EnumSet<HoaOption> options, boolean isDeterministic, String name) {
       this.consumer = consumer;
       this.options = EnumSet.copyOf(options);
-      this.stateNumbers = new Object2IntOpenHashMap<>();
+      this.stateNumbers = new HashMap<>();
       alphabetSize = aliases.size();
 
       try {
@@ -139,7 +135,7 @@ public final class HoaWriter {
       }
     }
 
-    private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, IntList accSets) {
+    private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, List<Integer> accSets) {
       try {
         consumer.addEdgeWithLabel(getStateId(currentState), label, List.of(getStateId(end)),
           accSets.isEmpty() ? null : accSets);
@@ -150,7 +146,7 @@ public final class HoaWriter {
 
     private int getStateId(@Nullable S state) {
       checkState(state != null);
-      return stateNumbers.computeIntIfAbsent(state, k -> stateNumbers.size());
+      return stateNumbers.computeIfAbsent(state, k -> stateNumbers.size());
     }
 
     void done() {
@@ -188,8 +184,8 @@ public final class HoaWriter {
 
       @Override
       public void visit(S state, BitSet valuation, Edge<S> edge) {
-        IntArrayList accSets = new IntArrayList();
-        edge.forEachAcceptanceSet((IntConsumer) accSets::add);
+        List<Integer> accSets = new ArrayList<>();
+        edge.forEachAcceptanceSet(accSets::add);
         List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
 
         for (int i = 0; i < alphabetSize; i++) {
@@ -214,7 +210,7 @@ public final class HoaWriter {
             return;
           }
 
-          IntArrayList acceptanceSets = new IntArrayList();
+          List<Integer> acceptanceSets = new ArrayList<>();
           edge.forEachAcceptanceSet(acceptanceSets::add);
           addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
         });

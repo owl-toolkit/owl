@@ -25,8 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
@@ -93,8 +91,8 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void inSet(TestCase testCase) {
-    IntList acceptance = testCase.getAcceptance();
-    for (Edge<?> edge : testCase.getEdges()) {
+    var acceptance = testCase.acceptance;
+    for (Edge<?> edge : testCase.edges) {
       for (int i = 0; i < 200; i++) {
         assertEquals(acceptance.contains(i), edge.inSet(i));
       }
@@ -104,7 +102,7 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void inSetConsistent(TestCase testCase) {
-    for (Edge<?> edge : testCase.getEdges()) {
+    for (Edge<?> edge : testCase.edges) {
       OfInt iterator = edge.acceptanceSetIterator();
       while (iterator.hasNext()) {
         assertTrue(edge.inSet(iterator.nextInt()));
@@ -115,9 +113,9 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void iterator(TestCase testCase) {
-    IntList acceptance = testCase.getAcceptance();
+    var acceptance = testCase.acceptance;
 
-    for (Edge<?> edge : testCase.getEdges()) {
+    for (Edge<?> edge : testCase.edges) {
       assertTrue(Iterators.elementsEqual(acceptance.iterator(),
         edge.acceptanceSetIterator()));
     }
@@ -126,8 +124,8 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgePairProvider")
   void testEqualsAndHashCodeDifferent(TestCase first, TestCase second) {
-    for (Edge<?> firstEdge : first.getEdges()) {
-      for (Edge<?> secondEdge : second.getEdges()) {
+    for (Edge<?> firstEdge : first.edges) {
+      for (Edge<?> secondEdge : second.edges) {
         assertNotEquals(firstEdge, secondEdge);
       }
     }
@@ -136,8 +134,8 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void testEqualsAndHashCodeSame(TestCase testCase) {
-    for (Edge<?> edge : testCase.getEdges()) {
-      for (Edge<?> otherEdge : testCase.getEdges()) {
+    for (Edge<?> edge : testCase.edges) {
+      for (Edge<?> otherEdge : testCase.edges) {
         assertEquals(edge, otherEdge);
         assertEquals(edge.hashCode(), otherEdge.hashCode());
       }
@@ -147,15 +145,15 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void testSuccessor(TestCase testCase) {
-    for (Edge<?> edge : testCase.getEdges()) {
-      assertEquals(edge.successor(), testCase.getSuccessor());
+    for (Edge<?> edge : testCase.edges) {
+      assertEquals(edge.successor(), testCase.successor);
     }
   }
 
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void testLargestAcceptanceSet(TestCase testCase) {
-    for (Edge<?> edge : testCase.getEdges()) {
+    for (Edge<?> edge : testCase.edges) {
       if (testCase.acceptance.isEmpty()) {
         assertEquals(-1, edge.largestAcceptanceSet());
       } else {
@@ -167,38 +165,26 @@ class EdgeTest {
   @ParameterizedTest
   @MethodSource("edgeProvider")
   void testSmallestAcceptanceSet(TestCase testCase) {
-    for (Edge<?> edge : testCase.getEdges()) {
+    for (Edge<?> edge : testCase.edges) {
       if (testCase.acceptance.isEmpty()) {
         assertEquals(Integer.MAX_VALUE, edge.smallestAcceptanceSet());
       } else {
-        assertEquals(testCase.acceptance.getInt(0), edge.smallestAcceptanceSet());
+        assertEquals(testCase.acceptance.get(0), edge.smallestAcceptanceSet());
       }
     }
   }
 
   private static final class TestCase {
-    final IntList acceptance;
+    final List<Integer> acceptance;
     final List<Edge<?>> edges;
     final Object successor;
 
     TestCase(List<Edge<String>> edges, Object successor, BitSet acceptance) {
       this.edges = List.copyOf(edges);
       this.successor = successor;
-      this.acceptance = new IntArrayList(acceptance.cardinality());
-      acceptance.stream().forEachOrdered(this.acceptance::add);
-    }
-
-    @SuppressWarnings("AssignmentOrReturnOfFieldWithMutableType")
-    IntList getAcceptance() {
-      return acceptance;
-    }
-
-    List<Edge<?>> getEdges() {
-      return edges;
-    }
-
-    Object getSuccessor() {
-      return successor;
+      List<Integer> acceptanceList = new ArrayList<>(acceptance.cardinality());
+      acceptance.stream().forEachOrdered(acceptanceList::add);
+      this.acceptance = List.copyOf(acceptanceList);
     }
   }
 }

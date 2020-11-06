@@ -27,8 +27,6 @@ import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
 import de.tum.in.naturals.Indices;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -125,7 +123,7 @@ public final class RabinDegeneralization {
       // Determine the pairs which can accept in this SCC (i.e. those which have all their Inf in
       // this SCC)
       BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
-      IntList sccTrackedPairs = new IntArrayList(trackedPairsCount);
+      List<Integer> sccTrackedPairs = new ArrayList<>(trackedPairsCount);
       Indices.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfSet();
         if (pair.infSetStream().allMatch(indices::get)) {
@@ -186,7 +184,7 @@ public final class RabinDegeneralization {
 
               // First handle the non-trivial case of pairs with Fin and Inf sets.
               for (int sccPairIndex = 0; sccPairIndex < sccTrackedPairs.size(); sccPairIndex++) {
-                int currentPairIndex = sccTrackedPairs.getInt(sccPairIndex);
+                int currentPairIndex = sccTrackedPairs.get(sccPairIndex);
                 RabinPair currentPair = trackedPairs.get(currentPairIndex);
                 int awaitedInfSet = state.awaitedInfSet(sccPairIndex);
 

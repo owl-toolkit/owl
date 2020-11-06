@@ -25,7 +25,6 @@ import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import com.google.common.collect.Iterables;
-import it.unimi.dsi.fastutil.longs.LongArrays;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
@@ -214,7 +213,7 @@ abstract class DependencyTree<T> {
 
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
-      return LongArrays.EMPTY_ARRAY;
+      return new long[] {};
     }
 
     private PropositionalFormula<Integer> shift(PropositionalFormula<Integer> expression) {
@@ -365,7 +364,7 @@ abstract class DependencyTree<T> {
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
       if (type == Type.CO_SAFETY || type == Type.SAFETY || XDepthVisitor.getDepth(formula) == 0) {
-        return LongArrays.EMPTY_ARRAY;
+        return new long[] {};
       }
 
       return RequiredHistory.getRequiredHistory(unwrap(formula));
@@ -464,7 +463,7 @@ abstract class DependencyTree<T> {
 
     @Override
     long[] getRequiredHistory(ProductState<T> successor) {
-      long[] requiredHistory = LongArrays.EMPTY_ARRAY;
+      long[] requiredHistory = {};
 
       if (successor.finished().containsKey(this)) {
         return requiredHistory;
@@ -472,7 +471,7 @@ abstract class DependencyTree<T> {
 
       for (DependencyTree<T> child : children) {
         if (child instanceof Leaf && suspend(successor, (Leaf<T>) child)) {
-          return LongArrays.EMPTY_ARRAY;
+          return new long[]{};
         }
 
         requiredHistory = unionTail(requiredHistory, child.getRequiredHistory(successor));
