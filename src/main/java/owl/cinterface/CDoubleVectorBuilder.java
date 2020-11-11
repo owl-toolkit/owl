@@ -21,11 +21,8 @@ package owl.cinterface;
 
 import java.util.Arrays;
 import java.util.Objects;
-import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.c.type.CDoublePointer;
-import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
-import owl.cinterface.emulation.EmulatedCDoublePointer;
 import owl.util.ArraysSupport;
 
 public final class CDoubleVectorBuilder {
@@ -36,14 +33,8 @@ public final class CDoubleVectorBuilder {
 
   public CDoubleVectorBuilder() {
     this.size = 0;
-
-    if (ImageInfo.inImageCode()) {
-      this.elements = UnmanagedMemory.malloc(toBytesLength(64));
-      this.capacity = 64;
-    } else {
-      this.elements = new EmulatedCDoublePointer(1);
-      this.capacity = 1;
-    }
+    this.elements = UnmanagedMemory.mallocCDoublePointer(64);
+    this.capacity = 64;
   }
 
   public void add(double value) {
@@ -71,7 +62,7 @@ public final class CDoubleVectorBuilder {
       throw new IllegalStateException("already moved");
     }
 
-    cDoubleVector.elements(UnmanagedMemory.realloc(elements, toBytesLength(size)));
+    cDoubleVector.elements(UnmanagedMemory.reallocCDoublePointer(elements, size));
     cDoubleVector.size(size);
 
     elements = WordFactory.nullPointer();
@@ -103,17 +94,7 @@ public final class CDoubleVectorBuilder {
       minCapacity - capacity, /* minimum growth */
       capacity >> 1);
 
-    if (ImageInfo.inImageCode()) {
-      this.elements = UnmanagedMemory.realloc(elements, toBytesLength(newCapacity));
-    } else {
-      this.elements = new EmulatedCDoublePointer(
-        (EmulatedCDoublePointer) this.elements, newCapacity);
-    }
-
+    this.elements = UnmanagedMemory.reallocCDoublePointer(elements, newCapacity);
     this.capacity = newCapacity;
-  }
-
-  private static UnsignedWord toBytesLength(long length) {
-    return WordFactory.unsigned(((long) Double.BYTES) * length);
   }
 }

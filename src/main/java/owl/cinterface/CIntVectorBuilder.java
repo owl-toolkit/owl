@@ -22,11 +22,8 @@ package owl.cinterface;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Objects;
-import org.graalvm.nativeimage.ImageInfo;
 import org.graalvm.nativeimage.c.type.CIntPointer;
-import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
-import owl.cinterface.emulation.EmulatedCIntPointer;
 import owl.util.ArraysSupport;
 
 public final class CIntVectorBuilder {
@@ -37,14 +34,8 @@ public final class CIntVectorBuilder {
 
   public CIntVectorBuilder() {
     this.size = 0;
-
-    if (ImageInfo.inImageCode()) {
-      this.elements = UnmanagedMemory.malloc(toBytesLength(64));
-      this.capacity = 64;
-    } else {
-      this.elements = new EmulatedCIntPointer(1);
-      this.capacity = 1;
-    }
+    this.elements = UnmanagedMemory.mallocCIntPointer(64);
+    this.capacity = 64;
   }
 
   public void add() {
@@ -104,7 +95,7 @@ public final class CIntVectorBuilder {
       throw new IllegalStateException("already moved");
     }
 
-    cIntVector.elements(UnmanagedMemory.realloc(elements, toBytesLength(size)));
+    cIntVector.elements(UnmanagedMemory.reallocCIntPointer(elements, size));
     cIntVector.size(size);
 
     elements = WordFactory.nullPointer();
@@ -136,16 +127,7 @@ public final class CIntVectorBuilder {
       minCapacity - capacity, /* minimum growth */
       capacity >> 1);
 
-    if (ImageInfo.inImageCode()) {
-      this.elements = UnmanagedMemory.realloc(elements, toBytesLength(newCapacity));
-    } else {
-      this.elements = new EmulatedCIntPointer((EmulatedCIntPointer) this.elements, newCapacity);
-    }
-
+    this.elements = UnmanagedMemory.reallocCIntPointer(elements, newCapacity);
     this.capacity = newCapacity;
-  }
-
-  private static UnsignedWord toBytesLength(long length) {
-    return WordFactory.unsigned(((long) Integer.BYTES) * length);
   }
 }
