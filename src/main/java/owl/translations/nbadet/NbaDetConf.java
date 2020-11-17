@@ -27,15 +27,15 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 /** This is the structure containing all required information that is used in the
  * determinization process and is obtained based on an NbaDetArgs instance.
@@ -144,7 +144,7 @@ public abstract class NbaDetConf<S> {
     var extIncl = filterExternalIncl(incl, scci, stateMap);
     var intIncl = filterInternalIncl(incl, scci);
 
-    final BitSet aSinksBS = BitSetUtil.fromSet(aSinks, stateMap);
+    final BitSet aSinksBS = BitSet2.copyOf(aSinks, ((BiMap<S, Integer>) stateMap)::get);
     final SubsumedStatesMap extMask = args.simExt()
         ? SubsumedStatesMap.of(stateMap, extIncl) : SubsumedStatesMap.empty();
     final SubsumedStatesMap intMask = args.simInt()
@@ -168,20 +168,20 @@ public abstract class NbaDetConf<S> {
   }
 
   public String toString() {
-    final Function<Integer, S> inv =  aut().stateMap().inverse()::get;
+    IntFunction<S> inv = aut().stateMap().inverse()::get;
     var sb = new StringBuilder();
     sb.append("assembled NBA determinization configuration:")
       .append("\nstate to bit mapping: ")
       .append(aut().stateMap().inverse().toString())
       .append("\ndetected accepting pseudo-sinks: ")
-      .append(BitSetUtil.toSet(accSinks(), inv).toString())
+      .append(BitSet2.asSet(accSinks(), inv).toString())
       .append("\nused external language inclusions:\n").append(extMask().toString(inv))
       .append("used internal language inclusions:\n").append(intMask().toString(inv))
       .append("determinization components:")
-      .append("\nrScc(s): ").append(BitSetUtil.toSet(sets().rsccStates(), inv));
-    sets().asccsStates().forEach(s -> sb.append("\naScc: ").append(BitSetUtil.toSet(s, inv)));
-    sets().dsccsStates().forEach(s -> sb.append("\ndScc: ").append(BitSetUtil.toSet(s, inv)));
-    sets().msccsStates().forEach(s -> sb.append("\nmScc: ").append(BitSetUtil.toSet(s, inv)));
+      .append("\nrScc(s): ").append(BitSet2.asSet(sets().rsccStates(), inv));
+    sets().asccsStates().forEach(s -> sb.append("\naScc: ").append(BitSet2.asSet(s, inv)));
+    sets().dsccsStates().forEach(s -> sb.append("\ndScc: ").append(BitSet2.asSet(s, inv)));
+    sets().msccsStates().forEach(s -> sb.append("\nmScc: ").append(BitSet2.asSet(s, inv)));
     return sb.toString();
   }
 

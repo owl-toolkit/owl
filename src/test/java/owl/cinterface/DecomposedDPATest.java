@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
-import owl.cinterface.emulation.EmulatedCIntPointer;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -163,12 +162,16 @@ class DecomposedDPATest {
     var ambaEncode = LtlParser.parse(AMBA_ENCODE, AMBE_ENCODE_LITERALS);
     var automaton = of(simplify(ambaEncode, 7));
 
-    var initial
-      = new EmulatedCIntPointer(3, 0);
-    var realizable
-      = new EmulatedCIntPointer(3, CAutomaton.DeterministicAutomatonWrapper.ACCEPTING);
-    var unrealizable
-      = new EmulatedCIntPointer(3, CAutomaton.DeterministicAutomatonWrapper.REJECTING);
+    var initial = UnmanagedMemory.mallocCIntPointer(3);
+    IntStream.range(0, 3).forEach(i -> initial.write(i, 0));
+
+    var realizable = UnmanagedMemory.mallocCIntPointer(3);
+    IntStream.range(0, 3).forEach(i -> realizable.write(i,
+      CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+
+    var unrealizable = UnmanagedMemory.mallocCIntPointer(3);
+    IntStream.range(0, 3).forEach(i -> unrealizable.write(i,
+      CAutomaton.DeterministicAutomatonWrapper.REJECTING));
 
     assertEquals(automaton.query(initial, 3), UNKNOWN);
     assertEquals(automaton.query(realizable, 3), UNKNOWN);
@@ -347,6 +350,6 @@ class DecomposedDPATest {
 
   private static LabelledFormula simplify(LabelledFormula formula, int firstOutputVariable) {
     return CLabelledFormula.simplify(formula, firstOutputVariable,
-      new EmulatedCIntPointer(100), 100);
+      UnmanagedMemory.mallocCIntPointer(100), 100);
   }
 }

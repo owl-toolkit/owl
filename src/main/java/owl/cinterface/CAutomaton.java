@@ -25,6 +25,8 @@ import static owl.cinterface.CAutomaton.Acceptance.CO_BUCHI;
 import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_EVEN;
 import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_ODD;
 import static owl.cinterface.CAutomaton.Acceptance.SAFETY;
+import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.ACCEPTING;
+import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.REJECTING;
 import static owl.cinterface.DecomposedDPA.Tree;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 
@@ -69,6 +71,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
+import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
@@ -78,7 +81,8 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
-import owl.translations.canonical.DeterministicConstructions;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateAccepting;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
@@ -266,6 +270,120 @@ public final class CAutomaton {
     }
   }
 
+  // CHECKSTYLE: OFF
+  @CEntryPoint(
+    name = CAutomaton.NAMESPACE + "extract_features",
+    documentation = { "Signature: ",
+      "boolean (void* automaton, vector_int_t* states, vector_int_t* features)",
+      "Extract features from the given set of states of an automaton. This method returns `true` "
+        + "if the features disambiguate the given state set. If `false` is returned, the caller of"
+        + " the method needs to disambiguate two states with the same set of features by "
+        + "additional means, e.g. by adding extra bits. The caller might request the inclusion of "
+        + "the accepting and rejecting sink by adding OWL_ACCEPTING_SINK and OWL_REJECTING_SINK to "
+        + "the state set. These states are then added on a best-effort basis. [Some automata do "
+        + "not have a canonical accepting and rejecting sinks]",
+      "The encoding of the feature vector is as follows:",
+      "",
+      "|---------------------------------------------------------------------------------------------------------------------|",
+      "| int (state) | feature_type_t | ... | OWL_FEATURE_SEPARATOR | feature_type | ... | OWL_SEPARATOR | int (state) | ... |",
+      "|---------------------------------------------------------------------------------------------------------------------|",
+      "",
+      "Features are then encoded as follows.",
+      "- PERMUTATION: an int sequence of variable length with no duplicates.",
+      "- ROUND_ROBIN_COUNTER: a single int.",
+      "- TEMPORAL_OPERATORS_PROFILE: an int sequence of variable length with no duplicates."
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnBoolean.class
+  )
+  // CHECKSTYLE: ON
+  public static boolean extractFeatures(
+    IsolateThread thread,
+    ObjectHandle automatonObjectHandle,
+    CIntVector states,
+    CIntVector features) {
+
+    if (ImageInfo.inImageCode()) {
+      boolean consistentDeclarations = CInterface.SEPARATOR == CInterface.owlSeparator()
+        && CInterface.FEATURE_SEPARATOR == CInterface.owlFeatureSeparator();
+
+      if (!consistentDeclarations) {
+        throw new AssertionError("C headers declare conflicting constants.");
+      }
+    }
+
+    var automaton = CAutomaton.get(automatonObjectHandle);
+
+    // Resolve state ids to state objects.
+    var stateObjects = new HashSet<>();
+
+    for (int i = 0, s = states.size(); i < s; i++) {
+      int state = states.elements().read(i);
+      boolean changed;
+
+      if (state >= 0) {
+        changed = stateObjects.add(automaton.index2StateMap.get(state));
+      } else if (state == ACCEPTING && automaton.canonicalAcceptingState != null) {
+        changed = stateObjects.add(automaton.canonicalAcceptingState);
+      } else if (state == REJECTING && automaton.canonicalRejectingState != null) {
+        changed = stateObjects.add(automaton.canonicalRejectingState);
+      } else {
+        changed = true;
+      }
+
+      checkArgument(changed, "'states' vector contains duplicates.");
+    }
+
+    var featuresBuilder = new CIntVectorBuilder();
+
+    try {
+      var featuresMap = StateFeatures.extract(stateObjects);
+
+      featuresMap.forEach((state, stateFeatures) -> {
+
+        if (state.equals(automaton.canonicalAcceptingState)) {
+          featuresBuilder.add(ACCEPTING);
+        } else if (state.equals(automaton.canonicalRejectingState)) {
+          featuresBuilder.add(REJECTING);
+        } else {
+          featuresBuilder.add(automaton.state2indexMap.getInt(state));
+        }
+
+        for (StateFeatures.Feature feature : stateFeatures) {
+          featuresBuilder.add(feature.type().getCValue());
+
+          switch (feature.type()) {
+            case PERMUTATION:
+              featuresBuilder.addAll(feature.permutation());
+              break;
+
+            case ROUND_ROBIN_COUNTER:
+              featuresBuilder.add(feature.roundRobinCounter());
+              break;
+
+            case TEMPORAL_OPERATORS_PROFILE:
+              featuresBuilder.addAll(feature.temporalOperatorsProfile());
+              break;
+
+            default:
+              throw new AssertionError("not reachable.");
+          }
+
+          featuresBuilder.add(CInterface.FEATURE_SEPARATOR);
+        }
+
+        featuresBuilder.add(CInterface.SEPARATOR);
+      });
+
+      featuresBuilder.moveTo(features);
+      return Collections3.hasDistinctValues(featuresMap);
+    } catch (IllegalArgumentException ex) {
+      // We do no support this state type. Return empty vector and indicate that it is unambiguous.
+      featuresBuilder.moveTo(features);
+      return false;
+    }
+  }
+
+
   @CEntryPoint(
     name = NAMESPACE + "is_singleton",
     documentation = "Returns true if the automaton only has one state, the initial state.",
@@ -279,6 +397,8 @@ public final class CAutomaton {
     return initialStateSuccessors != null
       && Tree.Leaf.ALLOWED_CONJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors);
   }
+
+
 
   private static DeterministicAutomatonWrapper<?, ?> get(ObjectHandle cDeterministicAutomaton) {
     return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
@@ -377,13 +497,13 @@ public final class CAutomaton {
     final int uncontrollableApSize;
 
     // Mapping information
-    private final Predicate<S> acceptingSink;
+    private final Predicate<? super S> acceptingSink;
     private final List<S> index2StateMap;
     private final Object2IntMap<S> state2indexMap;
 
     // Additional features for C interface
-    private final ToDoubleFunction<Edge<S>> qualityScore;
-    private final Function<S, T> canonicalizer;
+    private final ToDoubleFunction<? super Edge<S>> qualityScore;
+    private final Function<? super S, ? extends T> canonicalizer;
     private final Object2IntMap<T> canonicalObjectId;
 
     // Initial state caching.
@@ -395,14 +515,22 @@ public final class CAutomaton {
     @Nullable
     ValuationSet filter;
 
+    @Nullable
+    final S canonicalAcceptingState;
+
+    @Nullable
+    final S canonicalRejectingState;
+
     private <A extends OmegaAcceptance> DeterministicAutomatonWrapper(
       Automaton<S, A> automaton,
       Acceptance acceptance,
       Class<A> acceptanceClassBound,
-      Predicate<S> acceptingSink,
-      Function<S, T> canonicalizer,
-      ToDoubleFunction<Edge<S>> qualityScore,
-      int uncontrollableApSize) {
+      Predicate<? super S> acceptingSink,
+      Function<? super S, ? extends T> canonicalizer,
+      ToDoubleFunction<? super Edge<S>> qualityScore,
+      int uncontrollableApSize,
+      @Nullable S canonicalAcceptingState,
+      @Nullable S canonicalRejectingState) {
 
       checkArgument(automaton.initialStates().size() == 1);
       checkArgument(acceptanceClassBound.isInstance(automaton.acceptance()));
@@ -445,6 +573,12 @@ public final class CAutomaton {
         this.initialStateSuccessors = null;
       }
 
+      this.canonicalAcceptingState = canonicalAcceptingState;
+      this.canonicalRejectingState = canonicalRejectingState;
+
+      assert this.canonicalAcceptingState == null
+        || this.acceptingSink.test(this.canonicalAcceptingState);
+
       if (ImageInfo.inImageCode()) {
         boolean consistentDeclarations = INITIAL == CInterface.owlInitialState()
           && ACCEPTING == CInterface.owlAcceptingSink()
@@ -465,7 +599,9 @@ public final class CAutomaton {
         x -> false,
         Function.identity(),
         x -> 0.5d,
-        uncontrollableApSize
+        uncontrollableApSize,
+        null,
+        null
       );
     }
 
@@ -473,24 +609,36 @@ public final class CAutomaton {
       var nnfFormula = SyntacticFragment.NNF.contains(formula) ? formula : formula.nnf();
 
       if (SyntacticFragments.isSafety(nnfFormula.formula())) {
+        var automaton
+          = DeterministicConstructionsPortfolio.safety(CInterface.ENVIRONMENT, nnfFormula);
+        var factory = automaton.onlyInitialState().factory();
+
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.safety(CInterface.ENVIRONMENT, nnfFormula),
+          automaton,
           SAFETY, AllAcceptance.class,
           EquivalenceClass::isTrue,
           Function.identity(),
           edge -> edge.successor().trueness(),
-          -1
+          -1,
+          factory.of(true),
+          factory.of(false)
         );
       }
 
       if (SyntacticFragments.isCoSafety(nnfFormula.formula())) {
+        var automaton
+          = DeterministicConstructionsPortfolio.coSafety(CInterface.ENVIRONMENT, nnfFormula);
+        var factory = automaton.onlyInitialState().factory();
+
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.coSafety(CInterface.ENVIRONMENT, nnfFormula),
+          automaton,
           Acceptance.CO_SAFETY, BuchiAcceptance.class,
           EquivalenceClass::isTrue,
           Function.identity(),
           edge -> edge.successor().trueness(),
-          -1
+          -1,
+          factory.of(true),
+          factory.of(false)
         );
       }
 
@@ -505,7 +653,9 @@ public final class CAutomaton {
           x -> false,
           x -> nnfFormula,
           x -> x.inSet(0) ? 1.0d : 0.5d,
-          -1
+          -1,
+          null,
+          null
         );
       }
 
@@ -520,29 +670,43 @@ public final class CAutomaton {
           x -> false,
           x -> nnfFormula,
           x -> x.inSet(0) ? 0.0d : 0.5d,
-          -1
+          -1,
+          null,
+          null
         );
       }
 
       if (SyntacticFragments.isSafetyCoSafety(nnfFormula.formula())) {
+        var automaton
+          = DeterministicConstructionsPortfolio.safetyCoSafety(CInterface.ENVIRONMENT, nnfFormula);
+        var factory = automaton.onlyInitialState().all().factory();
+
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.safetyCoSafety(CInterface.ENVIRONMENT, nnfFormula),
+          automaton,
           BUCHI, BuchiAcceptance.class,
-          x -> x.all().isFalse() && x.all().isFalse(),
-          DeterministicConstructions.BreakpointStateRejecting::all,
+          x -> x.all().isTrue() && x.rejecting().isTrue(),
+          BreakpointStateRejecting::all,
           x -> x.inSet(0) ? 1.0d : x.successor().rejecting().trueness(),
-          -1
+          -1,
+          BreakpointStateRejecting.of(factory.of(true), factory.of(true)),
+          BreakpointStateRejecting.of(factory.of(false), factory.of(false))
         );
       }
 
       if (SyntacticFragments.isCoSafetySafety(nnfFormula.formula())) {
+        var automaton
+          = DeterministicConstructionsPortfolio.coSafetySafety(CInterface.ENVIRONMENT, nnfFormula);
+        var factory = automaton.onlyInitialState().all().factory();
+
         return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.coSafetySafety(CInterface.ENVIRONMENT, nnfFormula),
+          automaton,
           CO_BUCHI, CoBuchiAcceptance.class,
-          x -> x.all().isTrue() && x.accepting().isTrue(),
-          DeterministicConstructions.BreakpointStateAccepting::all,
+          x -> x.all().isTrue(),
+          BreakpointStateAccepting::all,
           x -> x.inSet(0) ? 0.0d : x.successor().accepting().trueness(),
-          -1
+          -1,
+          BreakpointStateAccepting.of(factory.of(true), factory.of(true)),
+          BreakpointStateAccepting.of(factory.of(false), factory.of(false))
         );
       }
 
@@ -558,7 +722,9 @@ public final class CAutomaton {
           x -> x.state().isTrue(),
           AnnotatedState::state,
           x -> x.successor().state().trueness(),
-          -1
+          -1,
+          null,
+          null
         );
       } else {
         assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_EVEN;
@@ -568,7 +734,9 @@ public final class CAutomaton {
           x -> x.state().isFalse(),
           AnnotatedState::state,
           x -> 1 - x.successor().state().trueness(),
-          -1
+          -1,
+          null,
+          null
         );
       }
     }

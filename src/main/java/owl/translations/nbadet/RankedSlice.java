@@ -26,9 +26,10 @@ import java.util.BitSet;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 /**
  *  type/wrapper of ranked slices, which are just tuples of disjoint sets, with entries that are
@@ -105,7 +106,7 @@ public abstract class RankedSlice {
     BitSet useless = new BitSet();
     var sl = new ArrayList<Pair<BitSet, Integer>>();
     for (var p : slice()) {
-      var upd = BitSetUtil.without(p.fst(), useless);
+      var upd = BitSet2.without(p.fst(), useless);
       sl.add(Pair.of(upd, p.snd())); //add pruned back
       //update list of bits to prune, i.e. the ones we've seen up to now and all "smaller" states
       useless.or(upd);
@@ -140,13 +141,13 @@ public abstract class RankedSlice {
   @Override
   public final String toString() {
     //default printer: prints just set bits
-    return toString(Function.identity());
+    return toString(x -> x);
   }
 
   //custom printer takes a mapping from bits to states
-  public final String toString(Function<Integer, ?> stateMap) {
+  public final String toString(IntFunction<?> stateMap) {
     return slice().stream()
-                  .map(e -> BitSetUtil.toSet(e.fst(), stateMap) + ":" + e.snd())
+                  .map(e -> BitSet2.asSet(e.fst(), stateMap) + ":" + e.snd())
                   .collect(Collectors.joining(", "));
   }
 

@@ -19,29 +19,22 @@
 
 package owl.collections;
 
-import de.tum.in.naturals.bitset.BitSets;
-import java.util.BitSet;
-import org.junit.jupiter.api.Test;
-import owl.util.Assertions;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-class NaturalsBoundaryTest {
+public interface TrieSet<E> extends Set<List<E>> {
 
-  @Test
-  void isSubset() {
-    BitSet set1 = new BitSet();
-    BitSet set2 = new BitSet();
+  boolean containsKeyWithPrefix(List<?> prefix);
 
-    set1.set(1);
-    set2.set(1, 3);
+  Map<E, ? extends TrieSet<E>> subTries();
 
-    Assertions.assertThat(set1, x -> BitSets.isSubset(x, set2));
-
-    set1.clear();
-    set2.clear();
-
-    set1.set(1);
-    set2.set(0);
-
-    Assertions.assertThat(set1, x -> !BitSets.isSubset(x, set2));
-  }
+  /**
+   * Retrieves the trieSet associated with the given prefix. Any changes to the subtrie are
+   * reflected in the trie set and vice-versa.
+   *
+   * @param prefix the prefix of the key.
+   * @return the corresponding trie set.
+   */
+  TrieSet<E> subTrie(List<? extends E> prefix);
 }

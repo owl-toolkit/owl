@@ -17,9 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.util;
+package owl.collections;
 
 @FunctionalInterface
-public interface TriFunction<A, B, C, R> {
-  R apply(A a, B b, C c);
+public interface TriFunction<T, U, V, R> {
+  R apply(T t, U u, V v);
 }

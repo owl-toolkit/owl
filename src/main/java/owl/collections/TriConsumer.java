@@ -17,7 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
-package owl.cinterface.emulation;
+package owl.collections;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+@FunctionalInterface
+public interface TriConsumer<T, U, V> {
+  void accept(T t, U u, V v);
+}

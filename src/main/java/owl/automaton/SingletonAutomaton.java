@@ -20,13 +20,13 @@
 package owl.automaton;
 
 import com.google.common.base.Preconditions;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
 import owl.collections.ValuationSet;
 import owl.factories.ValuationSetFactory;
 
@@ -51,7 +51,7 @@ public final class SingletonAutomaton<S, A extends OmegaAcceptance>
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
     ValuationSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
-    return new SingletonAutomaton<>(state, factory, BitSets.of(acceptanceSet), acceptance);
+    return new SingletonAutomaton<>(state, factory, BitSet2.copyOf(acceptanceSet), acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(

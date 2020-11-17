@@ -21,6 +21,7 @@ package owl.translations.mastertheorem;
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -42,6 +43,7 @@ import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.translations.canonical.DeterministicConstructions;
 
+// TODO: migrate to record / AutoValue.
 public final class AsymmetricEvaluatedFixpoints
   implements Comparable<AsymmetricEvaluatedFixpoints>, LtlLanguageExpressible {
 
@@ -51,7 +53,7 @@ public final class AsymmetricEvaluatedFixpoints
   public final Set<GOperator> gCoSafety;
   public final Set<GOperator> gfCoSafety;
 
-  private final EquivalenceClass language;
+  public final EquivalenceClass language;
 
   private AsymmetricEvaluatedFixpoints(Fixpoints fixpoints, Set<GOperator> gSafety,
     Set<GOperator> gCoSafety, Set<GOperator> gfCoSafety, EquivalenceClass language) {
@@ -116,8 +118,10 @@ public final class AsymmetricEvaluatedFixpoints
       }
     }
 
-    var language = factories.eqFactory.of(Conjunction.of(Stream.concat(gSafety.stream(),
-      Stream.concat(gCoSafety.stream(), gfCoSafety.stream())))).unfold();
+    var language = factories.eqFactory.of(
+      Conjunction.of(
+        Stream.of(gSafety, gCoSafety, gfCoSafety).flatMap(Collection::stream)))
+      .unfold();
 
     if (language.isFalse() || gOperatorsRewritten.isEmpty()) {
       return null;
@@ -186,8 +190,8 @@ public final class AsymmetricEvaluatedFixpoints
 
   @Override
   public String toString() {
-    return String.format("(%s, %s, %s)",
-      new TreeSet<>(gSafety), new TreeSet<>(gCoSafety), new TreeSet<>(gfCoSafety));
+    return String.format("(%s, %s, %s, %s)",
+      new TreeSet<>(gSafety), new TreeSet<>(gCoSafety), new TreeSet<>(gfCoSafety), fixpoints);
   }
 
   // Automata Classes

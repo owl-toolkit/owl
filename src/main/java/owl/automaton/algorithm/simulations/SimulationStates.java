@@ -24,8 +24,8 @@ import java.util.BitSet;
 import java.util.List;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.collections.BitSet2;
 import owl.game.Game;
-import owl.util.BitSetUtil;
 
 public class SimulationStates {
   private SimulationStates() {}
@@ -105,7 +105,7 @@ public class SimulationStates {
     static <S> MultipebbleSimulationState<S> of(Pebble<S> odd, MultiPebble<S> even,
                                                 BitSet val) {
       return new AutoValue_SimulationStates_MultipebbleSimulationState<>(
-        Game.Owner.PLAYER_2, odd, even, BitSetUtil.toInt(val)
+        Game.Owner.PLAYER_2, odd, even, BitSet2.toInt(val)
       );
     }
 

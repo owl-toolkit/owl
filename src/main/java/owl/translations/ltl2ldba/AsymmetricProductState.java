@@ -21,11 +21,13 @@ package owl.translations.ltl2ldba;
 
 import java.util.List;
 import java.util.Objects;
+import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LtlLanguageExpressible;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 import owl.util.StringUtil;
 
+@SuppressWarnings("PMD.DataClass")
 public final class AsymmetricProductState implements LtlLanguageExpressible {
 
   // Index of the current checked cosafety formula
@@ -41,13 +43,16 @@ public final class AsymmetricProductState implements LtlLanguageExpressible {
   private final int hashCode;
 
   public final AsymmetricEvaluatedFixpoints evaluatedFixpoints;
+  @Nullable
   public final AsymmetricEvaluatedFixpoints.DeterministicAutomata automata;
 
-  AsymmetricProductState(int index, EquivalenceClass safety,
+  public AsymmetricProductState(int index, EquivalenceClass safety,
     EquivalenceClass currentCoSafety, List<EquivalenceClass> nextCoSafety,
     AsymmetricEvaluatedFixpoints evaluatedFixpoints,
+    @Nullable
     AsymmetricEvaluatedFixpoints.DeterministicAutomata automata) {
-    assert (0 <= index && index < automata.coSafety.size())
+    assert automata == null
+      || (0 <= index && index < automata.coSafety.size())
       || (index < 0 && -index <= automata.fCoSafety.size())
       || (automata.coSafety.isEmpty() && automata.fCoSafety.isEmpty() && index == 0);
 

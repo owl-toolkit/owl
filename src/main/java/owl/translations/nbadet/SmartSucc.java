@@ -22,7 +22,6 @@ package owl.translations.nbadet;
 import com.google.common.graph.SuccessorsFunction;
 import com.google.common.graph.Traverser;
 import de.tum.in.naturals.bitset.BitSets;
-
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -33,11 +32,11 @@ import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
+import owl.collections.HashTrieMap;
 import owl.collections.Pair;
 import owl.collections.TrieMap;
-import owl.util.BitSetUtil;
 
 /**
  * This class acts like a "smart cache" for the states produced during NBA determinization.
@@ -62,13 +61,13 @@ public class SmartSucc<S> {
   public SmartSucc(NbaDetConf<S> conf) {
     this.detConf = conf;
     this.refConf = conf.withUpdateMode(NbaDetConf.UpdateMode.MUELLER_SCHUPP);
-    existing = TrieMap.create();
+    existing = new HashTrieMap<>();
     cache = new HashMap<>();
     smartSuccEnabled = conf.args().useSmartSucc();
   }
 
-  // takes: reference successor, mask for restricting candidates, valid pointer to sub-trie node,
-  // prefix up to sub-trie node, the prefix length and current depth
+  // takes: reference successor, mask for restricting candidates, valid pointer to sub-trieMap node,
+  // prefix up to sub-trieMap node, the prefix length and current depth
   // returns: suitable candidate(s)
   List<NbaDetState<S>> trieDfs(NbaDetState<S> ref, Pair<BitSet,List<BitSet>> msk,
                                TrieMap<BitSet,NbaDetState<S>> node, BitSet pref, int i,
@@ -79,32 +78,32 @@ public class SmartSucc<S> {
     if (!BitSets.isDisjoint(pref, msk.fst())) {
       return List.of(); //seen forbidden states that have to stay high in the tree
     }
-    if (i < msk.snd().size() && !BitSetUtil.without(msk.snd().get(i), pref).isEmpty()) {
+    if (i < msk.snd().size() && !BitSet2.without(msk.snd().get(i), pref).isEmpty()) {
       return List.of(); //some state missing that should have appeared by now
     }
 
     var ret = new ArrayList<NbaDetState<S>>();
 
-    //check current trie node for an existing state
-    var cand = node.getRootValue();
-    if (cand.isPresent()) {
+    //check current trieMap node for an existing state
+    var cand = node.get(List.of());
+    if (cand != null) {
       //here is a possible candidate state. need to check that all states that should
       //move down are actually moved down and that tuple order is weakly preserved
       var lastMask = msk.snd().get(msk.snd().size() - 1);
-      boolean allDown = BitSetUtil.without(lastMask, pref).isEmpty();
-      boolean validMerge = ref.finerOrEqual(cand.get());
+      boolean allDown = BitSet2.without(lastMask, pref).isEmpty();
+      boolean validMerge = ref.finerOrEqual(cand);
       if (allDown && validMerge) {
-        ret.add(cand.get());
+        ret.add(cand);
       }
       if (!getAll && !ret.isEmpty()) {
         return ret; //we have found at least one, can abort
       }
     }
 
-    //recursively try children in trie
-    for (var sucnod : node.suc.entrySet()) {
+    //recursively try children in trieMap
+    for (var sucnod : node.subTries().entrySet()) {
       ret.addAll(trieDfs(ref, msk, sucnod.getValue(),
-                         BitSetUtil.union(pref, sucnod.getKey()), i + 1, getAll));
+                         BitSet2.union(pref, sucnod.getKey()), i + 1, getAll));
       if (!getAll && !ret.isEmpty()) {
         return ret; //we have found at least one, can abort
       }
@@ -114,7 +113,7 @@ public class SmartSucc<S> {
   }
 
   public List<Edge<NbaDetState<S>>> getSuitable(NbaDetState<S> cur, BitSet sym, boolean getAll) {
-    // Get MullerSchupp successor to span largest trie subtree possible
+    // Get MullerSchupp successor to span largest trieMap subtree possible
     var refSuc = cur.successor(refConf, sym);
     var ev = NbaDetState.priorityToRank(refSuc.smallestAcceptanceSet()); //get dominant rank event
     var th = refSuc.successor().toTrieEncoding(); //get encoded slice as word
@@ -125,14 +124,15 @@ public class SmartSucc<S> {
       k = th.size();
     }
 
-    //keep ranks 0 to k -> path to maximal collapsed k-equiv state in trie
+    //keep ranks 0 to k -> path to maximal collapsed k-equiv state in trieMap
     var msk = kCutMask(th, k - 1);
     var tht = th.subList(0, k); //prefix of length k
 
-    var ini = existing.traverse(tht, false);
+    var ini = existing.containsKeyWithPrefix(tht);
     var ret = new ArrayList<Edge<NbaDetState<S>>>();
-    if (ini.isPresent()) { //if the corresponding trie subtree exists, search for successors
-      var cnds = trieDfs(refSuc.successor(), msk, ini.get(), tht.get(tht.size() - 1), 0, getAll);
+    if (ini) { //if the corresponding trieMap subtree exists, search for successors
+      var subtrie = existing.subTrie(tht);
+      var cnds = trieDfs(refSuc.successor(), msk, subtrie, tht.get(tht.size() - 1), 0, getAll);
       for (var cnd : cnds) { //lift to edges
         ret.add(Edge.of(cnd, refSuc.acceptanceSets()));
       }
@@ -187,7 +187,7 @@ public class SmartSucc<S> {
       return altSuc;
     }
     //did not found alternative -> construct new successor state,
-    //put it into the trie and also mark this request as fixed
+    //put it into the trieMap and also mark this request as fixed
     var newSucc = cur.successor(detConf, sym);
     existing.put(newSucc.successor().toTrieEncoding(), newSucc.successor());
     cache.put(request, newSucc);
@@ -200,7 +200,7 @@ public class SmartSucc<S> {
    * Takes content of a ranked slice, returns a "unpruned" version,
    * i.e., labels contain states of whole subtree
    * unpruned nodes in rank order uniquely determine a rank slice and are useful for
-   * storing ranked slices in k-equiv-aware lookup table (trie)
+   * storing ranked slices in k-equiv-aware lookup table (trieMap)
    */
   public static List<Pair<BitSet, Integer>> unprune(List<Pair<BitSet,Integer>> pruned) {
     var ret = new ArrayList<Pair<BitSet, Integer>>();
@@ -252,7 +252,7 @@ public class SmartSucc<S> {
     return unpruned.stream().map(Pair::fst).collect(Collectors.toCollection(ArrayList::new));
   }
 
-  /** Reverses the trie encoding. But this works correctly
+  /** Reverses the trieMap encoding. But this works correctly
    *  only for individually encoded RankedSlices.
    */
   public static RankedSlice fromTrieEncoding(List<BitSet> word) {
@@ -269,7 +269,7 @@ public class SmartSucc<S> {
       boolean hasParent = false;
       for (; j >= 0; --j) {
         //is contained -> is closest parent
-        if (BitSetUtil.without(word.get(i), word.get(j)).isEmpty()) {
+        if (BitSet2.without(word.get(i), word.get(j)).isEmpty()) {
           hasParent = true;
           break;
         }
@@ -314,10 +314,11 @@ public class SmartSucc<S> {
 
   /** Returns true if second slice is a neighbor-merged version of the first, ignoring ranks. */
   public static boolean finerOrEqual(RankedSlice rs1, RankedSlice rs2) {
-    if (rs1.slice().size() == 0 && rs2.slice().size() == 0) { //both empty
+    if (rs1.slice().isEmpty() && rs2.slice().isEmpty()) { //both empty
       return true;
     }
-    if ((rs1.slice().size() == 0) != (rs2.slice().size() == 0)) { //one empty, other is not
+
+    if (rs1.slice().isEmpty() || rs2.slice().isEmpty()) { //one empty, other is not
       return false;
     }
 
@@ -328,8 +329,8 @@ public class SmartSucc<S> {
     while (j < rs2.slice().size()) { //go through entries of second
       pref2.or(rs2.slice().get(j).fst());
       //catch up going through entries with first
-      while (i < rs1.slice().size() && BitSetUtil.without(
-          BitSetUtil.union(pref1, rs1.slice().get(i).fst()),
+      while (i < rs1.slice().size() && BitSet2.without(
+          BitSet2.union(pref1, rs1.slice().get(i).fst()),
           pref2).isEmpty()) {
         pref1.or(rs1.slice().get(i).fst());
         i++;
@@ -343,7 +344,7 @@ public class SmartSucc<S> {
     return ((i == rs1.slice().size()) == (j == rs2.slice().size()));
   }
 
-  /** Two trie-encoded slices are k-equiv. if have same k prefix in trie branch. */
+  /** Two trieMap-encoded slices are k-equiv. if have same k prefix in trieMap branch. */
   public static boolean kEquiv(List<BitSet> th1, List<BitSet> th2, int k) {
     if (k >= th1.size() || k >= th2.size()) {
       return false;
@@ -364,13 +365,13 @@ public class SmartSucc<S> {
       tmp.or(th.get(i));
       masks.add((BitSet)tmp.clone());
     }
-    forbidden = BitSetUtil.without(th.get(0), tmp);
+    forbidden = BitSet2.without(th.get(0), tmp);
     return Pair.of(forbidden, masks);
   }
 
   /**
    * Returns whether k-cut not worse in t1 compared to t2. This means:
-   * if in trie nodes >= k never appear states of t2 that never appear >= k in t2
+   * if in trieMap nodes >= k never appear states of t2 that never appear >= k in t2
    * and all states in t1 appear in nodes >= k not later than in t2
    */
   public static boolean notWorse(List<BitSet> th1, List<BitSet> th2, int k) {
@@ -382,12 +383,12 @@ public class SmartSucc<S> {
 
     var tmp = new BitSet();
     for (int i = k; i < th1.size(); i++) {
-      if (!BitSetUtil.intersection(th1.get(i), msk.fst()).isEmpty()) {
+      if (!BitSet2.intersection(th1.get(i), msk.fst()).isEmpty()) {
         return false; //states with ranks <k in th2 may not appear at >=k in th1
       }
 
       tmp.or(th1.get(i));
-      if (!BitSetUtil.without(msk.snd().get(i - k), tmp).isEmpty()) {
+      if (!BitSet2.without(msk.snd().get(i - k), tmp).isEmpty()) {
         return false; //some state that should have appeared by now did not appear
       }
     }

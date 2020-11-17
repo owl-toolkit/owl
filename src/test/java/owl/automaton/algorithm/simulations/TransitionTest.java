@@ -44,17 +44,15 @@ public class TransitionTest {
 
     assert SimulationStates.LookaheadSimulationState.of(
       1, 1,
-      Transition.of(a, 2, false).append(Transition.of(a, 4, false))
+      List.of(Transition.of(a, 2, false), Transition.of(a, 4, false))
     ).isValid(aut);
 
     var longTransition = SimulationStates.LookaheadSimulationState.of(
       1, 1,
-      Transition.of(a, 3, false).append(
-        Transition.of(a, 4, false).append(
-          Transition.of(a, 4, true)
-        )
-      )
-    );
+      List.of(
+        Transition.of(a, 3, false),
+        Transition.of(a, 4, false),
+        Transition.of(a, 4, true)));
     assert longTransition.isValid(aut);
     assert longTransition.flag();
 

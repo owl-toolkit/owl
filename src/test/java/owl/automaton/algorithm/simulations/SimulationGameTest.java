@@ -35,7 +35,6 @@ import owl.automaton.edge.Edge;
 import owl.collections.Pair;
 import owl.game.algorithms.OinkGameSolver;
 import owl.run.Environment;
-import owl.util.CombinationGenerator;
 
 public class SimulationGameTest {
   private Automaton<Integer, BuchiAcceptance> buildAutomatonOne() {

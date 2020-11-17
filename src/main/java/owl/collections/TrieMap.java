@@ -19,92 +19,27 @@
 
 package owl.collections;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-import javax.annotation.Nullable;
 
 /**
- * A TrieMap is a Map with sequences as keys that are organized in a Trie for value retrieval.
- * @param <K> List of K ist a key in this map.
- * @param <V> Values stored.
+ * A trieMap maps sequences of keys to a value. Tries do no support 'null' keys and values.
+ *
+ * @param <K> the key type.
+ * @param <V> the value type.
  */
-public class TrieMap<K,V> {
-  @Nullable
-  private V value;
+public interface TrieMap<K, V> extends Map<List<K>, V> {
 
-  public final Map<K, TrieMap<K,V>> suc = new HashMap<>();
+  boolean containsKeyWithPrefix(List<?> prefix);
 
-  /** Returns a fresh empty trie. */
-  public static <K,V> TrieMap<K,V> create() {
-    return new TrieMap<K,V>();
-  }
+  Map<K, ? extends TrieMap<K, V>> subTries();
 
-  public boolean isEmpty() {
-    return value == null && suc.isEmpty();
-  }
-
-  public Optional<TrieMap<K,V>> traverse(List<K> ks, boolean create) {
-    var curr = this;
-    for (var k : ks) {
-      if (!curr.suc.containsKey(k)) {
-        if (!create) {
-          return Optional.empty();
-        }
-        curr.suc.put(k, TrieMap.create());
-      }
-      curr = curr.suc.get(k);
-    }
-    return Optional.of(curr);
-  }
-
-  /** Put value at provided key position. Will replace existing. */
-  public void put(List<K> ks, V val) {
-    var curr = traverse(ks, true).orElseThrow(); //safe to do, as we create if missing
-    curr.value = val;
-  }
-
-  /** Check whether the value at the precise given key (for inSubtree=false)
-   *  or its subtree (for inSubtree=true) exists.
+  /**
+   * Retrieves the trieMap associated with the given prefix. Any changes to the subtrie are
+   * reflected in the trieMap and vice-versa.
+   *
+   * @param prefix the prefix of the key.
+   * @return the corresponding trie map.
    */
-  public boolean has(List<K> ks, boolean inSubtree) {
-    return get(ks, inSubtree).isPresent();
-  }
-
-  /** Retrieve value at given key. If any=true, returns any value in subtree rooted at key. */
-  public Optional<V> get(List<K> ks, boolean any) {
-    var curr = traverse(ks, false);
-    if (curr.isEmpty()) {
-      return Optional.empty();
-    }
-
-    var tr = curr.get();
-    if (!any && tr.value == null) {
-      return Optional.empty();
-    }
-
-    while (tr.value == null) {
-      if (tr.suc.isEmpty()) {
-        return Optional.empty();
-      }
-      tr = tr.suc.values().iterator().next();
-    }
-
-    return Optional.of(tr.value);
-  }
-
-  public Optional<V> getRootValue() {
-    return value == null ? Optional.empty() : Optional.of(value);
-  }
-
-  /** Returns size (O(n) operation, traverses tree). */
-  public int size() {
-    int sz = value == null ? 0 : 1;
-    for (var sub : suc.values()) {
-      sz += sub.size();
-    }
-    return sz;
-  }
-
+  TrieMap<K, V> subTrie(List<? extends K> prefix);
 }

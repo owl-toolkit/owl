@@ -20,6 +20,7 @@
 package owl.factories;
 
 import java.util.List;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 
@@ -46,4 +47,8 @@ public interface EquivalenceClassFactory {
    * @return the corresponding equivalence class.
    */
   EquivalenceClass of(Formula formula);
+
+  default EquivalenceClass of(boolean value) {
+    return of(BooleanConstant.of(value));
+  }
 }

@@ -19,18 +19,19 @@
 
 package owl.translations.nbadet;
 
+import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Set;
-import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 @SuppressWarnings("PMD.LooseCoupling")
 public final class NbaAdjMat<S> {
@@ -67,10 +68,12 @@ public final class NbaAdjMat<S> {
     this.aut = automaton;
     this.stateMap = sMap;
 
-    this.states = BitSetUtil.all(stateMap);
+    this.states = BitSet2
+      .copyOf(((BiMap<S, Integer>) stateMap).keySet(), ((BiMap<S, Integer>) stateMap)::get);
 
     //possible optimizations that might be active
-    this.aSinks = aSinks.isEmpty() ? null : BitSetUtil.fromSet(aSinks, stateMap);
+    this.aSinks = aSinks.isEmpty() ? null : BitSet2
+      .copyOf(aSinks, ((BiMap<S, Integer>) stateMap)::get);
     this.usedLangIncl = extIncl.isEmpty() ? null : extIncl;
 
     //compute the matrix
@@ -109,7 +112,7 @@ public final class NbaAdjMat<S> {
    * @return all successors + successors reached by at least one accepting edge
    */
   public Pair<BitSet,BitSet> powerSucc(BitSet state, BitSet valuation) {
-    final var sym = BitSetUtil.toInt(valuation); //numeric value of transition valuation
+    final var sym = BitSet2.toInt(valuation); //numeric value of transition valuation
 
     //collect all successors and those reached by acc. edges
     final var allSuccs = new BitSet();
@@ -130,19 +133,19 @@ public final class NbaAdjMat<S> {
     if (usedLangIncl != null) {
       BitSet maskedAllSuccs = (BitSet)allSuccs.clone();
       allSuccs.stream().forEach(i -> usedLangIncl.removeSubsumed(i, maskedAllSuccs));
-      return Pair.of(maskedAllSuccs, BitSetUtil.intersection(accSuccs, maskedAllSuccs));
+      return Pair.of(maskedAllSuccs, BitSet2.intersection(accSuccs, maskedAllSuccs));
     }
     //otherwise return unmasked
     return Pair.of(allSuccs, accSuccs);
   }
 
   private String toString(int st, int sym) {
-    Function<Integer,S> stmap = stateMap.inverse()::get; //convenience
+    IntFunction<S> stmap = stateMap.inverse()::get; //convenience
 
     var succs = succ(st, sym);
-    var aSuccs = BitSetUtil.toSet(succs.snd(), stmap);
-    var nSuccs = BitSetUtil.toSet(BitSetUtil.without(succs.fst(), succs.snd()), stmap);
-    var symStr = aut.factory().of(BitSetUtil.fromInt(sym)).toExpression().toString();
+    var aSuccs = BitSet2.asSet(succs.snd(), stmap);
+    var nSuccs = BitSet2.asSet(BitSet2.without(succs.fst(), succs.snd()), stmap);
+    var symStr = aut.factory().of(BitSet2.fromInt(sym)).toExpression().toString();
 
     if (aSuccs.isEmpty() && nSuccs.isEmpty()) {
       return "";

@@ -27,6 +27,7 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.annotation.Nullable;
 
 class GcManagedFactory<V extends GcManagedFactory.BddNode> {
   private static final Logger logger = Logger.getLogger(GcManagedFactory.class.getName());
@@ -85,6 +86,18 @@ class GcManagedFactory<V extends GcManagedFactory.BddNode> {
     gcObjects.put(node, new BddNodeReference<>(wrapper, queue));
     assert bdd.getReferenceCount(node) == 1;
     return wrapper;
+  }
+
+  @Nullable
+  V canonicalWrapper(int node) {
+    V wrapper = nonGcObjects.get(node);
+
+    if (wrapper != null) {
+      return wrapper;
+    }
+
+    BddNodeReference<V> reference = gcObjects.get(node);
+    return reference == null ? null : reference.get();
   }
 
   private void processReferenceQueue(int protectedNode) {

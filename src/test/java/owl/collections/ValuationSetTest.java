@@ -78,11 +78,11 @@ public abstract class ValuationSetTest {
   void testForEach() {
     for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.forEach(solution -> forEach.add(BitSets.copyOf(solution)));
+      set.forEach(solution -> forEach.add(BitSet2.copyOf(solution)));
 
       Set<BitSet> collect = BitSets.powerSet(4).stream()
         .filter(set::contains)
-        .map(BitSets::copyOf)
+        .map(BitSet2::copyOf)
         .collect(Collectors.toSet());
 
       assertEquals(collect, forEach);
@@ -97,11 +97,11 @@ public abstract class ValuationSetTest {
 
     for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.forEach(restriction, solution -> forEach.add(BitSets.copyOf(solution)));
+      set.forEach(restriction, solution -> forEach.add(BitSet2.copyOf(solution)));
 
       Set<BitSet> collect = BitSets.powerSet(restriction).stream()
         .filter(set::contains)
-        .map(BitSets::copyOf)
+        .map(BitSet2::copyOf)
         .collect(Collectors.toSet());
 
       assertEquals(collect, forEach);

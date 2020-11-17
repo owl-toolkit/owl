@@ -21,16 +21,18 @@ package owl.collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
-
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.translations.nbadet.AutomatonTestUtil;
 import owl.translations.nbadet.NbaDetArgs;
@@ -39,18 +41,21 @@ import owl.translations.nbadet.NbaDetState;
 import owl.translations.nbadet.NbaSccInfoTest;
 import owl.translations.nbadet.RankedSlice;
 import owl.translations.nbadet.SmartSucc;
-import owl.util.BitSetUtil;
 
-public class TrieMapTest {
+public class HashTrieMapTest {
 
   @Test
   void testTrieMap() {
-    TrieMap<Integer, String> tm = TrieMap.create();
+    HashTrieMap<Integer, String> tm = new HashTrieMap<>();
     assertTrue(tm.isEmpty());
-    assertFalse(tm.has(List.of(1,2,3), false));
-    assertFalse(tm.has(List.of(1,2,3), true));
-    assertEquals(Optional.empty(), tm.get(List.of(1,2,3), false));
-    assertEquals(Optional.empty(), tm.get(List.of(1,2,3), true));
+    List<Integer> ks17 = List.of(1,2,3);
+    assertNull(tm.get(ks17));
+    List<Integer> ks16 = List.of(1,2,3);
+    assertFalse(tm.containsKeyWithPrefix(ks16));
+    List<Integer> ks35 = List.of(1,2,3);
+    assertNull(tm.get(ks35));
+    List<Integer> ks34 = List.of(1,2,3);
+    assertNull(Iterables.getFirst(tm.subTrie(ks34).values(), null));
 
     assertEquals(0, tm.size());
     tm.put(List.of(1,2,3), "foo");
@@ -60,47 +65,73 @@ public class TrieMapTest {
     tm.put(List.of(1,5), "qux");
     assertEquals(4, tm.size());
 
-    assertEquals(Optional.of("foo"), tm.get(List.of(1,2,3), false));
-    assertEquals(Optional.of("bar"), tm.get(List.of(1,2,3,4), false));
-    assertEquals(Optional.of("baz"), tm.get(List.of(1), false));
-    assertEquals(Optional.of("qux"), tm.get(List.of(1,5), false));
-    assertEquals(Optional.empty(), tm.get(List.of(1,2), false));
-    assertEquals(Optional.empty(), tm.get(List.of(2), false));
-    assertEquals(Optional.empty(), tm.get(List.of(1,2,3,4,6), false));
-    assertEquals(Optional.empty(), tm.get(List.of(), false));
+    List<Integer> ks33 = List.of(1,2,3);
+    assertEquals("foo", tm.get(ks33));
+    List<Integer> ks32 = List.of(1,2,3,4);
+    assertEquals("bar", tm.get(ks32));
+    List<Integer> ks31 = List.of(1);
+    assertEquals("baz", tm.get(ks31));
+    List<Integer> ks30 = List.of(1,5);
+    assertEquals("qux", tm.get(ks30));
+    List<Integer> ks29 = List.of(1,2);
+    assertNull(tm.get(ks29));
+    List<Integer> ks28 = List.of(2);
+    assertNull(tm.get(ks28));
+    List<Integer> ks27 = List.of(1,2,3,4,6);
+    assertNull(tm.get(ks27));
+    List<Integer> ks26 = List.of();
+    assertNull(tm.get(ks26));
 
-    assertEquals(Optional.empty(), tm.getRootValue());
-    assertEquals(Optional.of("foo"), tm.traverse(List.of(1,2,3), false)
-                                       .orElse(TrieMap.create()).getRootValue());
-
-
-    assertEquals(Optional.of("foo"), tm.get(List.of(1,2,3), true));
-    assertEquals(Optional.of("bar"), tm.get(List.of(1,2,3,4), true));
-    assertEquals(Optional.of("baz"), tm.get(List.of(1), true));
-    assertEquals(Optional.of("qux"), tm.get(List.of(1,5), true));
-    assertEquals(Optional.of("foo"), tm.get(List.of(1,2), true));
-    assertEquals(Optional.empty(), tm.get(List.of(2), true));
-    assertEquals(Optional.empty(), tm.get(List.of(1,2,3,4,6), true));
-    assertEquals(Optional.of("baz"), tm.get(List.of(), true));
+    assertNull(tm.get(List.of()));
+    assertEquals("foo", tm.subTrie(List.of(1, 2, 3)).get(List.of()));
 
 
-    assertTrue(tm.has(List.of(), true));
-    assertFalse(tm.has(List.of(), false));
-    assertTrue(tm.has(List.of(1), true));
-    assertTrue(tm.has(List.of(1), false));
-    assertTrue(tm.has(List.of(1,2), true));
-    assertFalse(tm.has(List.of(1,2), false));
-    assertTrue(tm.has(List.of(1,2,3), true));
-    assertTrue(tm.has(List.of(1,2,3), false));
-    assertTrue(tm.has(List.of(1,2,3,4), true));
-    assertTrue(tm.has(List.of(1,2,3,4), false));
-    assertTrue(tm.has(List.of(1,5), true));
-    assertTrue(tm.has(List.of(1,5), false));
+    List<Integer> ks25 = List.of(1,2,3);
+    assertEquals("foo", Iterables.getFirst(tm.subTrie(ks25).values(), null));
+    List<Integer> ks24 = List.of(1,2,3,4);
+    assertEquals("bar", Iterables.getFirst(tm.subTrie(ks24).values(), null));
+    List<Integer> ks23 = List.of(1);
+    assertEquals("baz", Iterables.getFirst(tm.subTrie(ks23).values(), null));
+    List<Integer> ks22 = List.of(1,5);
+    assertEquals("qux", Iterables.getFirst(tm.subTrie(ks22).values(), null));
+    List<Integer> ks21 = List.of(1,2);
+    assertEquals("foo", Iterables.getFirst(tm.subTrie(ks21).values(), null));
+    List<Integer> ks20 = List.of(2);
+    assertNull(Iterables.getFirst(tm.subTrie(ks20).values(), null));
+    List<Integer> ks19 = List.of(1,2,3,4,6);
+    assertNull(Iterables.getFirst(tm.subTrie(ks19).values(), null));
+    List<Integer> ks18 = List.of();
+    assertEquals("baz", Iterables.getFirst(tm.subTrie(ks18).values(), null));
 
-    assertFalse(tm.has(List.of(2), true));
-    assertFalse(tm.has(List.of(2), false));
-    assertFalse(tm.has(List.of(1,2,3,4,6), true));
-    assertFalse(tm.has(List.of(1,2,3,4,6), false));
+
+    assertTrue(tm.containsKeyWithPrefix(List.<Integer>of()));
+    assertNull(tm.get(List.<Integer>of()));
+
+    assertTrue(tm.containsKeyWithPrefix(List.of(1)));
+    assertNotNull(tm.get(List.of(1)));
+
+    assertTrue(tm.containsKeyWithPrefix(List.of(1,2)));
+    assertNull(tm.get(List.of(1,2)));
+
+    assertTrue(tm.containsKeyWithPrefix(List.of(1,2,3)));
+    assertNotNull(tm.get(List.of(1,2,3)));
+    List<Integer> ks7 = List.of(1,2,3,4);
+    assertTrue(tm.containsKeyWithPrefix(ks7));
+    List<Integer> ks6 = List.of(1,2,3,4);
+    assertNotNull(tm.get(ks6));
+    List<Integer> ks5 = List.of(1,5);
+    assertTrue(tm.containsKeyWithPrefix(ks5));
+    List<Integer> ks4 = List.of(1,5);
+    assertNotNull(tm.get(ks4));
+
+    List<Integer> ks3 = List.of(2);
+    assertFalse(tm.containsKeyWithPrefix(ks3));
+    List<Integer> ks2 = List.of(2);
+    assertNull(tm.get(ks2));
+    List<Integer> ks1 = List.of(1,2,3,4,6);
+    assertFalse(tm.containsKeyWithPrefix(ks1));
+    List<Integer> ks = List.of(1,2,3,4,6);
+    assertNull(tm.get(ks));
   }
 
   @Test
@@ -110,9 +141,10 @@ public class TrieMapTest {
     var args = NbaDetArgs.getDefault().toBuilder()
       .setSepAcc(false).setSepRej(true).setSepDet(true).setSepMix(true).build();
     var conf = NbaDetConf.prepare(nba, Set.of(), args);
-    Function<Set<Integer>, BitSet> toBS = s -> BitSetUtil.fromSet(s, conf.aut().stateMap());
+    Function<Set<Integer>, BitSet> toBS = s -> BitSet2.copyOf(s, conf.aut().stateMap()::get);
 
-    var state = NbaDetState.of(conf, BitSetUtil.all(conf.aut().stateMap()));
+    BiMap<Integer, Integer> stateMap = conf.aut().stateMap();
+    var state = NbaDetState.of(conf, BitSet2.copyOf(stateMap.keySet(), stateMap::get));
     var expectedEncoding = List.of(
       toBS.apply(Set.of(0,1,2,3,4,5,6,7,8,9,10,11)),
       toBS.apply(Set.of(10,11)),
@@ -123,48 +155,44 @@ public class TrieMapTest {
     assertEquals(expectedEncoding, state.toTrieEncoding());
   }
 
-  BitSet toBS(Set<Integer> s) {
-    return BitSetUtil.fromSet(s, x -> x, 32);
-  }
-
   @Test
   void testSmartSuccFuncs() {
     var rs0 = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(1)), 0),
-      Pair.of(toBS(Set.of(2)), 0),
-      Pair.of(toBS(Set.of(3)), 0),
-      Pair.of(toBS(Set.of(4)), 0),
-      Pair.of(toBS(Set.of(5)), 0),
-      Pair.of(toBS(Set.of(6)), 0),
-      Pair.of(toBS(Set.of(7)), 0),
-      Pair.of(toBS(Set.of(8)), 0)
+      Pair.of(BitSet2.of(1), 0),
+      Pair.of(BitSet2.of(2), 0),
+      Pair.of(BitSet2.of(3), 0),
+      Pair.of(BitSet2.of(4), 0),
+      Pair.of(BitSet2.of(5), 0),
+      Pair.of(BitSet2.of(6), 0),
+      Pair.of(BitSet2.of(7), 0),
+      Pair.of(BitSet2.of(8), 0)
     ));
 
     var rs1 = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(1,2)), 0),
-      Pair.of(toBS(Set.of(3,4)), 0),
-      Pair.of(toBS(Set.of(5,6)), 0),
-      Pair.of(toBS(Set.of(7,8)), 0)
+      Pair.of(BitSet2.of(1, 2), 0),
+      Pair.of(BitSet2.of(3, 4), 0),
+      Pair.of(BitSet2.of(5, 6), 0),
+      Pair.of(BitSet2.of(7, 8), 0)
       ));
     var rs2 = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(1,2,3)), 0),
-      Pair.of(toBS(Set.of(4)), 0),
-      Pair.of(toBS(Set.of(5,6)), 0),
-      Pair.of(toBS(Set.of(7,8)), 0)
+      Pair.of(BitSet2.of(1, 2, 3), 0),
+      Pair.of(BitSet2.of(4), 0),
+      Pair.of(BitSet2.of(5, 6), 0),
+      Pair.of(BitSet2.of(7, 8), 0)
     ));
     var rs3 = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(1,2)), 0),
-      Pair.of(toBS(Set.of(3,4)), 0),
-      Pair.of(toBS(Set.of(5)), 0),
-      Pair.of(toBS(Set.of(6,7,8)), 0)
+      Pair.of(BitSet2.of(1, 2), 0),
+      Pair.of(BitSet2.of(3, 4), 0),
+      Pair.of(BitSet2.of(5), 0),
+      Pair.of(BitSet2.of(6, 7, 8), 0)
     ));
 
     var rs4 = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(1,2,3,4)), 0),
-      Pair.of(toBS(Set.of(5,6,7,8)), 0)
+      Pair.of(BitSet2.of(1, 2, 3, 4), 0),
+      Pair.of(BitSet2.of(5, 6, 7, 8), 0)
     ));
     var rs5 = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(1,2,3,4,5,6,7,8)), 0)
+      Pair.of(BitSet2.of(1, 2, 3, 4, 5, 6, 7, 8), 0)
     ));
 
     //trivial cases
@@ -221,50 +249,50 @@ public class TrieMapTest {
   @Test
   void testNotWorse() {
     var ref = SmartSucc.toTrieEncoding(RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0,7)), 3),
-      Pair.of(toBS(Set.of(1)), 5),
-      Pair.of(toBS(Set.of(2)), 2),
-      Pair.of(toBS(Set.of(3)), 6),
-      Pair.of(toBS(Set.of(4)), 4),
-      Pair.of(toBS(Set.of(5,6)), 1)
+      Pair.of(BitSet2.of(0, 7), 3),
+      Pair.of(BitSet2.of(1), 5),
+      Pair.of(BitSet2.of(2), 2),
+      Pair.of(BitSet2.of(3), 6),
+      Pair.of(BitSet2.of(4), 4),
+      Pair.of(BitSet2.of(5, 6), 1)
     )));
-    ref.add(0, toBS(Set.of(0,1,2,3,4,5,6,7)));
+    ref.add(0, BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7)));
 
     var merge1 = SmartSucc.toTrieEncoding(RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0,7,1)), 3),
-      Pair.of(toBS(Set.of(2)), 2),
-      Pair.of(toBS(Set.of(3)), 6),
-      Pair.of(toBS(Set.of(4)), 4),
-      Pair.of(toBS(Set.of(5,6)), 1)
+      Pair.of(BitSet2.of(0, 7, 1), 3),
+      Pair.of(BitSet2.of(2), 2),
+      Pair.of(BitSet2.of(3), 6),
+      Pair.of(BitSet2.of(4), 4),
+      Pair.of(BitSet2.of(5, 6), 1)
     )));
-    merge1.add(0, toBS(Set.of(0,1,2,3,4,5,6,7)));
+    merge1.add(0, BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7)));
 
     var merge2 = SmartSucc.toTrieEncoding(RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0,7,1,2)), 2),
-      Pair.of(toBS(Set.of(3,4)), 4),
-      Pair.of(toBS(Set.of(5,6)), 1)
+      Pair.of(BitSet2.copyOf(Set.of(0, 7, 1, 2)), 2),
+      Pair.of(BitSet2.of(3, 4), 4),
+      Pair.of(BitSet2.of(5, 6), 1)
     )));
-    merge2.add(0, toBS(Set.of(0,1,2,3,4,5,6,7)));
+    merge2.add(0, BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7)));
 
     //forbidden, as 5 with rank 1 moved down
     var merge3 = SmartSucc.toTrieEncoding(RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0,7)), 3),
-      Pair.of(toBS(Set.of(1)), 5),
-      Pair.of(toBS(Set.of(2)), 2),
-      Pair.of(toBS(Set.of(3,4,5)), 4),
-      Pair.of(toBS(Set.of(6)), 1)
+      Pair.of(BitSet2.of(0, 7), 3),
+      Pair.of(BitSet2.of(1), 5),
+      Pair.of(BitSet2.of(2), 2),
+      Pair.of(BitSet2.of(3, 4, 5), 4),
+      Pair.of(BitSet2.of(6), 1)
     )));
-    merge3.add(0, toBS(Set.of(0,1,2,3,4,5,6,7)));
+    merge3.add(0, BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7)));
 
     //forbidden as 7 with rank 3 moved down
     var merge4 = SmartSucc.toTrieEncoding(RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0)), 3),
-      Pair.of(toBS(Set.of(1)), 5),
-      Pair.of(toBS(Set.of(2)), 2),
-      Pair.of(toBS(Set.of(3,4,7)), 4),
-      Pair.of(toBS(Set.of(5,6)), 1)
+      Pair.of(BitSet2.of(0), 3),
+      Pair.of(BitSet2.of(1), 5),
+      Pair.of(BitSet2.of(2), 2),
+      Pair.of(BitSet2.of(3, 4, 7), 4),
+      Pair.of(BitSet2.of(5, 6), 1)
     )));
-    merge4.add(0, toBS(Set.of(0,1,2,3,4,5,6,7)));
+    merge4.add(0, BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7)));
 
     assertTrue(SmartSucc.notWorse(merge1, ref, 2));
     assertTrue(SmartSucc.notWorse(merge2, ref, 2));

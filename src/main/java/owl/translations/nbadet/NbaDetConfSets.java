@@ -29,7 +29,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import owl.util.BitSetUtil;
+import owl.collections.BitSet2;
 
 /**
  * these sets reflect the different determinisation components to be used in the DetState
@@ -69,7 +69,7 @@ public abstract class NbaDetConfSets {
       Set<S> rejStates = scci.rejSccs().stream()
         .flatMap(i -> scci.sccDecomposition().sccs().get(i).stream())
         .collect(Collectors.toUnmodifiableSet());
-      rejStatesBS = BitSetUtil.fromSet(rejStates, stateMap);
+      rejStatesBS = BitSet2.copyOf(rejStates, stateMap::get);
 
       handled.addAll(scci.rejSccs());
     }
@@ -84,12 +84,12 @@ public abstract class NbaDetConfSets {
       var accStates = accSccs.stream().flatMap(Collection::stream)
                                       .collect(Collectors.toUnmodifiableSet());
 
-      accStatesBS = BitSetUtil.fromSet(accStates, stateMap);
-      accSccs.forEach(s -> asccs.add(BitSetUtil.fromSet(s, stateMap)));
+      accStatesBS = BitSet2.copyOf(accStates, stateMap::get);
+      accSccs.forEach(s -> asccs.add(BitSet2.copyOf(s, stateMap::get)));
 
       if (!args.sepAccCyc()) {
         //if not requested to separate, put all ASCCs in single determinisation tuple component
-        final var merged = asccs.stream().reduce(BitSetUtil::union).orElse(new BitSet());
+        final var merged = asccs.stream().reduce(BitSet2::union).orElse(new BitSet());
         asccs.clear();
         asccs.add(merged);
       }
@@ -109,19 +109,19 @@ public abstract class NbaDetConfSets {
 
 
       //those must always be separate to work correctly
-      expDetSccs.forEach(s -> dsccs.add(BitSetUtil.fromSet(s, stateMap)));
+      expDetSccs.forEach(s -> dsccs.add(BitSet2.copyOf(s, stateMap::get)));
 
       handled.addAll(unhDetSccs);
     }
 
     //SCCs which are not handled specially yet are treated as mixed (generic determinization)
     var msccs = new ArrayList<BitSet>();
-    scci.ids().filter(i -> !handled.contains(i)).forEach(i ->
-      msccs.add(BitSetUtil.fromSet(scci.sccDecomposition().sccs().get(i), stateMap)));
+    scci.ids().filter(i -> !handled.contains(i)).forEach(
+      i -> msccs.add(BitSet2.copyOf(scci.sccDecomposition().sccs().get(i), stateMap::get)));
 
     if (!args.sepMix()) {
       //if not requested to separate, put all states in single determinisation tuple component
-      final var merged = msccs.stream().reduce(BitSetUtil::union).orElse(new BitSet());
+      final var merged = msccs.stream().reduce(BitSet2::union).orElse(new BitSet());
       msccs.clear();
       if (!merged.isEmpty()) {
         msccs.add(merged);

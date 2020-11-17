@@ -27,29 +27,25 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 public class RankedSliceTest {
-  BitSet toBS(Set<Integer> s) {
-    return BitSetUtil.fromSet(s, x -> x, 32);
-  }
 
   @Test
   void testRankedSlices() {
     var rsl = List.of(
-      Pair.of(toBS(Set.of(0)), 3),
-      Pair.of(toBS(Set.of(1)), 5),
-      Pair.of(toBS(Set.of(2)), 2),
-      Pair.of(toBS(Set.of(3)), 6),
-      Pair.of(toBS(Set.of(4)), 4),
-      Pair.of(toBS(Set.of(5)), 1)
-      );
+      Pair.of(BitSet2.of(0), 3),
+      Pair.of(BitSet2.of(1), 5),
+      Pair.of(BitSet2.of(2), 2),
+      Pair.of(BitSet2.of(3), 6),
+      Pair.of(BitSet2.of(4), 4),
+      Pair.of(BitSet2.of(5), 1)
+    );
 
     // test creation methods
     var sl = RankedSlice.of(rsl);
@@ -62,7 +58,7 @@ public class RankedSliceTest {
     var emptyslice = RankedSlice.empty();
     assertEquals(0, emptyslice.slice().size());
 
-    var singl = Pair.of(toBS(Set.of(5)), 7);
+    var singl = Pair.of(BitSet2.of(5), 7);
     var singleton = RankedSlice.singleton(singl);
     assertEquals(1, singleton.slice().size());
     assertSame(singl, singleton.slice().get(0));
@@ -71,7 +67,7 @@ public class RankedSliceTest {
     var slo = RankedSlice.copy(sl.slice());
 
     var slinc = sl.map(p -> p.mapFst(x ->
-      BitSetUtil.union(x, BitSetUtil.fromInt(512))).mapSnd(x -> x + 1));
+      BitSet2.union(x, BitSet2.fromInt(512))).mapSnd(x -> x + 1));
     assertEquals(slo.slice(), sl.slice());
     assertEquals(sl.slice().size(), slinc.slice().size());
     for (int i = 0; i < sl.slice().size(); i++) {
@@ -80,12 +76,12 @@ public class RankedSliceTest {
     }
 
     var redundant = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0)), 3),
-      Pair.of(toBS(Set.of(1,0)), 5),
-      Pair.of(toBS(Set.of(2,0)), 2),
-      Pair.of(toBS(Set.of(3,1)), 6),
-      Pair.of(toBS(Set.of(4,2)), 4),
-      Pair.of(toBS(Set.of(5,0,1)), 1)
+      Pair.of(BitSet2.of(0), 3),
+      Pair.of(BitSet2.of(1, 0), 5),
+      Pair.of(BitSet2.of(2, 0), 2),
+      Pair.of(BitSet2.of(3, 1), 6),
+      Pair.of(BitSet2.of(4, 2), 4),
+      Pair.of(BitSet2.of(5, 0, 1), 1)
     ));
     var redOrig = RankedSlice.copy(redundant.slice());
     assertEquals(sl, redundant.leftNormalized());
@@ -93,15 +89,15 @@ public class RankedSliceTest {
 
 
     var withEmpty = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0)), 3),
-      Pair.of(toBS(Set.of()), 8),
-      Pair.of(toBS(Set.of(1)), 5),
-      Pair.of(toBS(Set.of()), 7),
-      Pair.of(toBS(Set.of(2)), 2),
-      Pair.of(toBS(Set.of(3)), 6),
-      Pair.of(toBS(Set.of()), 9),
-      Pair.of(toBS(Set.of(4)), 4),
-      Pair.of(toBS(Set.of(5)), 1)
+      Pair.of(BitSet2.of(0), 3),
+      Pair.of(BitSet2.of(), 8),
+      Pair.of(BitSet2.of(1), 5),
+      Pair.of(BitSet2.of(), 7),
+      Pair.of(BitSet2.of(2), 2),
+      Pair.of(BitSet2.of(3), 6),
+      Pair.of(BitSet2.of(), 9),
+      Pair.of(BitSet2.of(4), 4),
+      Pair.of(BitSet2.of(5), 1)
     ));
     var empOrig = RankedSlice.copy(withEmpty.slice());
     assertEquals(sl, withEmpty.withoutEmptySets());
@@ -114,21 +110,21 @@ public class RankedSliceTest {
     SubsumedStatesMap pruneMap = SubsumedStatesMap.of(idmap,
       Set.of(Pair.of(1,0),Pair.of(2,0),Pair.of(4,3),Pair.of(5,3)));
     var withoutUseless = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0)), 3),
-      Pair.of(toBS(Set.of()), 5),
-      Pair.of(toBS(Set.of()), 2),
-      Pair.of(toBS(Set.of(3)), 6),
-      Pair.of(toBS(Set.of()), 4),
-      Pair.of(toBS(Set.of()), 1)
+      Pair.of(BitSet2.of(0), 3),
+      Pair.of(BitSet2.of(), 5),
+      Pair.of(BitSet2.of(), 2),
+      Pair.of(BitSet2.of(3), 6),
+      Pair.of(BitSet2.of(), 4),
+      Pair.of(BitSet2.of(), 1)
     ));
     var slOrig = RankedSlice.copy(sl.slice());
     assertEquals(withoutUseless, sl.prunedWithSim(pruneMap));
     assertEquals(slOrig, sl);
 
     var fullMerged = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0,1,2)), 2),
-      Pair.of(toBS(Set.of(3,4)), 4),
-      Pair.of(toBS(Set.of(5)), 1)
+      Pair.of(BitSet2.of(0, 1, 2), 2),
+      Pair.of(BitSet2.of(3, 4), 4),
+      Pair.of(BitSet2.of(5), 1)
     ));
     assertEquals(fullMerged, sl.fullMerge(2));
     assertEquals(slOrig, sl);
@@ -138,14 +134,14 @@ public class RankedSliceTest {
   void testTreeAndTrieEnc() {
     //test tree relations
     var forestSlice = RankedSlice.of(List.of(
-      Pair.of(toBS(Set.of(0)), 2), //0
-      Pair.of(toBS(Set.of(1)), 4), //1
-      Pair.of(toBS(Set.of(2)), 1), //2
-      Pair.of(toBS(Set.of(3)), 5), //3
-      Pair.of(toBS(Set.of(4)), 3), //4
-      Pair.of(toBS(Set.of(5)), 0), //5
-      Pair.of(toBS(Set.of(6)), 7), //6
-      Pair.of(toBS(Set.of(7)), 6)  //7
+      Pair.of(BitSet2.of(0), 2), //0
+      Pair.of(BitSet2.of(1), 4), //1
+      Pair.of(BitSet2.of(2), 1), //2
+      Pair.of(BitSet2.of(3), 5), //3
+      Pair.of(BitSet2.of(4), 3), //4
+      Pair.of(BitSet2.of(5), 0), //5
+      Pair.of(BitSet2.of(6), 7), //6
+      Pair.of(BitSet2.of(7), 6)  //7
     ));
     var treeRel = forestSlice.getTreeRelations();
     var par = treeRel.fst();
@@ -155,14 +151,14 @@ public class RankedSliceTest {
 
     //test unprune/prune
     var unprunedExpected = List.of(
-      Pair.of(toBS(Set.of(0)), 2), //0
-      Pair.of(toBS(Set.of(1)), 4), //1
-      Pair.of(toBS(Set.of(0,1,2)), 1), //2
-      Pair.of(toBS(Set.of(3)), 5), //3
-      Pair.of(toBS(Set.of(3,4)), 3), //4
-      Pair.of(toBS(Set.of(0,1,2,3,4,5)), 0), //5
-      Pair.of(toBS(Set.of(6)), 7), //6
-      Pair.of(toBS(Set.of(6,7)), 6)  //7
+      Pair.of(BitSet2.of(0), 2), //0
+      Pair.of(BitSet2.of(1), 4), //1
+      Pair.of(BitSet2.of(0, 1, 2), 1), //2
+      Pair.of(BitSet2.of(3), 5), //3
+      Pair.of(BitSet2.of(3, 4), 3), //4
+      Pair.of(BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5)), 0), //5
+      Pair.of(BitSet2.of(6), 7), //6
+      Pair.of(BitSet2.of(6, 7), 6)  //7
     );
     var unprComputed = SmartSucc.unprune(forestSlice.slice());
     assertEquals(unprunedExpected, unprComputed);
@@ -170,14 +166,14 @@ public class RankedSliceTest {
 
     //to and from trie encoding
     var trieencExpected = List.of(
-      toBS(Set.of(0,1,2,3,4,5)),
-      toBS(Set.of(0,1,2)),
-      toBS(Set.of(0)),
-      toBS(Set.of(3,4)),
-      toBS(Set.of(1)),
-      toBS(Set.of(3)),
-      toBS(Set.of(6,7)),
-      toBS(Set.of(6))
+      BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5)),
+      BitSet2.of(0, 1, 2),
+      BitSet2.of(0),
+      BitSet2.of(3, 4),
+      BitSet2.of(1),
+      BitSet2.of(3),
+      BitSet2.of(6, 7),
+      BitSet2.of(6)
     );
     assertEquals(trieencExpected, SmartSucc.toTrieEncoding(forestSlice));
     assertEquals(forestSlice, SmartSucc.fromTrieEncoding(trieencExpected));

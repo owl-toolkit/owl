@@ -30,7 +30,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import org.checkerframework.checker.nullness.qual.Nullable;
-import owl.util.TriFunction;
 
 public final class ValuationTrees {
   private ValuationTrees() {

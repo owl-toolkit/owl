@@ -194,7 +194,14 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       }
 
       jumps.put(x, Set.copyOf(Collections3
-        .maximalElements(productStates, (x1, y) -> x1.language().implies(y.language()))));
+        .maximalElements(productStates, (x1, y) -> {
+          // Workaround that languages might be equal, resolve tie.
+          if (x1.language().equals(y.language())) {
+            return x1.evaluatedFixpoints.compareTo(y.evaluatedFixpoints) < 0;
+          }
+
+          return x1.language().implies(y.language());
+        })));
     };
 
     DeterministicConstructions.Tracking tracking

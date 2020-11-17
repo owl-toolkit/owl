@@ -26,12 +26,11 @@ import com.google.common.collect.ImmutableBiMap;
 import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.Set;
-import java.util.function.Function;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.util.BitSetUtil;
 
 public class NbaAdjMatTest {
 
@@ -40,7 +39,6 @@ public class NbaAdjMatTest {
     var nba = AutomatonTestUtil.autFromString(NbaSccInfoTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
     var idmap = ImmutableBiMap.copyOf(Maps.asMap(nba.states(), st -> st));
-    Function<BitSet, Set<Integer>> fromBS = bs -> BitSetUtil.toSet(bs, Function.identity());
 
     var aSinks = NbaLangInclusions.getNbaAccPseudoSinks(nba);
     assertEquals(Set.of(9), aSinks);
@@ -53,31 +51,40 @@ public class NbaAdjMatTest {
     //sanity check for creation
     assertSame(nba, mat.original());
     assertSame(idmap, mat.stateMap());
-    assertEquals(nba.states(), fromBS.apply(mat.states()));
+    assertEquals(nba.states(), BitSet2.asSet(mat.states()));
 
     //test succ
-    assertEquals(Set.of(0,1,3,10), fromBS.apply(mat.succ(0, 0).fst()));
-    assertEquals(Set.of(4,7), fromBS.apply(mat.succ(3, 1).snd()));
+    BitSet bitSet7 = mat.succ(0, 0).fst();
+    assertEquals(Set.of(0,1,3,10), BitSet2.asSet(bitSet7));
+    BitSet bitSet6 = mat.succ(3, 1).snd();
+    assertEquals(Set.of(4,7), BitSet2.asSet(bitSet6));
 
     //test powersucc (which includes optimizations):
 
     //normal (nothing special)
-    var psuc = mat.powerSucc(BitSetUtil.fromSet(Set.of(5,10),idmap), BitSetUtil.fromInt(1));
+    var psuc = mat.powerSucc(BitSet2.of(5, 10), BitSet2.fromInt(1));
+    BitSet bitSet4 = psuc.snd();
+    BitSet bitSet5 = psuc.fst();
     assertEquals(Pair.allPairs(Set.of(4,11),Set.of(11)),
-                 Pair.allPairs(fromBS.apply(psuc.fst()), fromBS.apply(psuc.snd())));
+                 Pair.allPairs(BitSet2.asSet(bitSet5), BitSet2.asSet(bitSet4)));
 
     //accepting sink reached
-    var psuc2 = mat.powerSucc(BitSetUtil.fromSet(Set.of(0,3),idmap), BitSetUtil.fromInt(0));
+    var psuc2 = mat.powerSucc(BitSet2.of(0, 3), BitSet2.fromInt(0));
+    BitSet bitSet2 = psuc2.snd();
+    BitSet bitSet3 = psuc2.fst();
     assertEquals(Pair.allPairs(Set.of(9),Set.of(9)),
-                 Pair.allPairs(fromBS.apply(psuc2.fst()), fromBS.apply(psuc2.snd())));
+                 Pair.allPairs(BitSet2.asSet(bitSet3), BitSet2.asSet(bitSet2)));
 
     //with applied subsumption of states. 2,7,8 should be pruned
-    var psuc3 =  mat.powerSucc(BitSetUtil.fromSet(Set.of(0,1,7),idmap), BitSetUtil.fromInt(0));
+    var psuc3 =  mat.powerSucc(BitSet2.of(0, 1, 7), BitSet2.fromInt(0));
+    BitSet bitSet = psuc3.snd();
+    BitSet bitSet1 = psuc3.fst();
     assertEquals(Pair.allPairs(Set.of(0,1,3,10),Set.of()),
-                 Pair.allPairs(fromBS.apply(psuc3.fst()), fromBS.apply(psuc3.snd())));
+                 Pair.allPairs(BitSet2.asSet(bitSet1), BitSet2.asSet(bitSet)));
 
     //acc. sink + subsumption -> acc sink dominates
-    var psuc4 =  mat.powerSucc(BitSetUtil.fromSet(Set.of(0,1,3,7),idmap), BitSetUtil.fromInt(0));
+    var psuc4 =  mat.powerSucc(
+      BitSet2.copyOf(Set.of(0, 1, 3, 7)), BitSet2.fromInt(0));
     assertEquals(psuc2, psuc4);
   }
 }

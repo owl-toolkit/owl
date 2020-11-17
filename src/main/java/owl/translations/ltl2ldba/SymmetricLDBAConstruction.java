@@ -284,7 +284,14 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         Comparator.comparing((SymmetricProductState x) -> x.evaluatedFixpoints).reversed());
 
       epsilonJumps.put(entry, Set.copyOf(
-        Collections3.maximalElements(jumps, (x, y) -> x.language().implies(y.language()))));
+        Collections3.maximalElements(jumps, (x1, y) -> {
+          // Workaround that languages might be equal, resolve tie.
+          if (x1.language().equals(y.language())) {
+            return x1.evaluatedFixpoints.compareTo(y.evaluatedFixpoints) > 0;
+          }
+
+          return x1.language().implies(y.language());
+        })));
     };
 
     var initialComponent = HashMapAutomaton.copyOf(automaton);

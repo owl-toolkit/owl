@@ -21,7 +21,6 @@ package owl.game;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -114,7 +113,7 @@ public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, Aig
 
     // iterate through labelled edges to create latch and output formulas
     for (S player2State : states(Owner.PLAYER_2)) {
-      BitSet stateAndInput = BitSets.copyOf(encoding.get(player2State));
+      BitSet stateAndInput = owl.collections.BitSet2.copyOf(encoding.get(player2State));
       stateAndInput.or(choice(player2State, Owner.PLAYER_1));
       LabelledAig stateAndInputAig = factory.cube(stateAndInput);
 

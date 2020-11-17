@@ -23,7 +23,6 @@ import java.util.List;
 import org.graalvm.nativeimage.IsolateThread;
 import org.graalvm.nativeimage.ObjectHandle;
 import org.graalvm.nativeimage.ObjectHandles;
-import org.graalvm.nativeimage.UnmanagedMemory;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.constant.CConstant;
 import org.graalvm.nativeimage.c.function.CEntryPoint;
@@ -44,6 +43,10 @@ public final class CInterface {
 
   public static final String CHAR_TO_STRING
     = "Decodes a 0 terminated C char* to a Java string using the platform's default charset.";
+
+  public static final int SEPARATOR = -232_323;
+
+  public static final int FEATURE_SEPARATOR = -424_242;
 
   public static final Environment ENVIRONMENT = Environment.standard();
 
@@ -202,6 +205,12 @@ public final class CInterface {
 
   @CConstant("OWL_REJECTING_SINK")
   public static native int owlRejectingSink();
+
+  @CConstant("OWL_SEPARATOR")
+  public static native int owlSeparator();
+
+  @CConstant("OWL_FEATURE_SEPARATOR")
+  public static native int owlFeatureSeparator();
 
   public static void main(String... args) {
     // Empty method for native-image.

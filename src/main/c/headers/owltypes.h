@@ -5,6 +5,9 @@
 #define OWL_REJECTING_SINK -1
 #define OWL_ACCEPTING_SINK -2
 
+#define OWL_SEPARATOR -232323
+#define OWL_FEATURE_SEPARATOR -424242
+
 typedef enum {
   AUTOMATON,
   BICONDITIONAL,
@@ -38,6 +41,12 @@ typedef enum {
   WEAK,
   BOTTOM
 } acceptance_t;
+
+typedef enum {
+  PERMUTATION,
+  ROUND_ROBIN_COUNTER,
+  TEMPORAL_OPERATORS_PROFILE
+} feature_type_t;
 
 typedef struct {
   int *elements;

@@ -24,7 +24,7 @@ import java.util.Optional;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
-import owl.collections.Collections3;
+import owl.collections.BitSet2;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Negation;
 import owl.logic.propositional.sat.Solver;
@@ -64,11 +64,11 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
 
   @Override
   public Optional<BitSet> acceptingSet() {
-    return Solver.model(booleanExpression()).map(Collections3::toBitSet);
+    return Solver.model(booleanExpression()).map(BitSet2::copyOf);
   }
 
   @Override
   public Optional<BitSet> rejectingSet() {
-    return Solver.model(Negation.of(booleanExpression())).map(Collections3::toBitSet);
+    return Solver.model(Negation.of(booleanExpression())).map(BitSet2::copyOf);
   }
 }

@@ -32,7 +32,6 @@ import java.util.List;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import owl.cinterface.emulation.EmulatedCIntPointer;
 import owl.ltl.parser.LtlParser;
 
 class CLabelledFormulaTest {
@@ -41,9 +40,9 @@ class CLabelledFormulaTest {
   void testSimplifyAtomicPropostionStatusesModal() {
     var formula = LtlParser.parse("G (req | F gra)", List.of("req", "gra"));
 
-    var mockedPointer1 = new EmulatedCIntPointer(2);
-    var mockedPointer2 = new EmulatedCIntPointer(2);
-    var mockedPointer3 = new EmulatedCIntPointer(2);
+    var mockedPointer1 = UnmanagedMemory.mallocCIntPointer(2);
+    var mockedPointer2 = UnmanagedMemory.mallocCIntPointer(2);
+    var mockedPointer3 = UnmanagedMemory.mallocCIntPointer(2);
 
     simplify(formula, 0, mockedPointer1, 2);
     simplify(formula, 1, mockedPointer2, 2);
@@ -65,7 +64,7 @@ class CLabelledFormulaTest {
       "i1 | !i2 | (o1 & !o2 & (i4 <-> o4))",
       List.of("i1", "i2", "i3", "i4", "o1", "o2", "o3", "o4"));
 
-    var mockedPointer = new EmulatedCIntPointer(8);
+    var mockedPointer = UnmanagedMemory.mallocCIntPointer(8);
 
     simplify(formula, 4, mockedPointer, 8);
 

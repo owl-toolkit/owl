@@ -25,7 +25,7 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
-import owl.collections.Collections3;
+import owl.collections.BitSet2;
 import owl.logic.propositional.PropositionalFormula;
 
 public abstract class OmegaAcceptance {
@@ -63,7 +63,7 @@ public abstract class OmegaAcceptance {
    * Returns whether repeating these acceptance indices infinitely often would be accepting.
    */
   public boolean isAccepting(BitSet set) {
-    return booleanExpression().evaluate(Collections3.asSet(set));
+    return booleanExpression().evaluate(BitSet2.asSet(set));
   }
 
   /**
