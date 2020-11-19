@@ -1,4 +1,4 @@
-image: gitlab.lrz.de:5005/i7/owl:986b7109
+image: gitlab.lrz.de:5005/i7/owl:6510da13
 
 before_script:
   - chmod +x gradlew
@@ -75,6 +75,7 @@ Check:
     expire_in: 1 week
   dependencies:
   - Build
+  when: manual
 
 .benchmark: &benchmark_template
   stage: bench
