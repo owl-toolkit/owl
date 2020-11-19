@@ -21,16 +21,13 @@ package owl.translations.delag;
 
 import static owl.run.modules.OwlModule.Transformer;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.IOException;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import org.apache.commons.cli.Options;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
@@ -75,8 +72,6 @@ public class DelagBuilder
 
   private final Environment environment;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
-  @Nullable
-  private LoadingCache<ProductState<Object>, History> requiredHistoryCache;
 
   public DelagBuilder(Environment environment) {
     this.environment = environment;
@@ -120,50 +115,32 @@ public class DelagBuilder
     var expression = tree.getAcceptanceExpression();
     int sets = treeConverter.setNumber;
 
-    //noinspection ConstantConditions
-    requiredHistoryCache = CacheBuilder.newBuilder().maximumSize(1024L).build(
-      CacheLoader.from(key -> History.create(tree.getRequiredHistory(key))));
 
     ProductState<Object> initialProduct = treeConverter.buildInitialState();
     State<Object> initialState = new State<>(initialProduct,
-      getHistory(null, new BitSet(), initialProduct));
+      History.stepHistory(null, new BitSet(),
+        History.create(tree.getRequiredHistory(initialProduct))));
 
     return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(factories.vsFactory,
       Set.of(initialState), new EmersonLeiAcceptance(sets, expression)) {
+
+      private final Map<ProductState<?>, History> requiredHistory = new HashMap<>();
+
       @Override
       public Edge<State<Object>> edge(State<Object> state, BitSet valuation) {
-        return DelagBuilder.this.edge(tree, state, valuation);
+        ProductState.Builder<Object> builder = ProductState.builder();
+        Boolean acc = tree.buildSuccessor(state, valuation, builder);
+
+        if (acc != null && !acc) {
+          return null;
+        }
+
+        var successor = builder.build();
+        var history = History.stepHistory(state.past, valuation,
+          requiredHistory.computeIfAbsent(successor,
+            x -> History.create(tree.getRequiredHistory(successor))));
+        return Edge.of(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
       }
     };
-  }
-
-  private History getHistory(@Nullable History past, BitSet present, ProductState<Object> state) {
-    assert requiredHistoryCache != null;
-
-    try {
-      History requiredHistory = requiredHistoryCache.getUnchecked(state);
-      return History.stepHistory(past, present, requiredHistory);
-    } catch (UncheckedExecutionException e) {
-      if (e.getCause() instanceof RuntimeException) {
-        throw (RuntimeException) e.getCause();
-      } else {
-        throw new UnsupportedOperationException(e);
-      }
-    }
-  }
-
-  @Nullable
-  private Edge<State<Object>> edge(DependencyTree<Object> tree, State<Object> state,
-    BitSet valuation) {
-    ProductState.Builder<Object> builder = ProductState.builder();
-    Boolean acc = tree.buildSuccessor(state, valuation, builder);
-
-    if (acc != null && !acc) {
-      return null;
-    }
-
-    ProductState<Object> successor = builder.build();
-    History history = getHistory(state.past, valuation, successor);
-    return Edge.of(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
   }
 }

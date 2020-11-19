@@ -35,7 +35,7 @@ final class History {
   private final ImmutableLongArray longs;
 
   History() {
-    this.longs = makeUnique(new long[] {});
+    this.longs = makeUnique(new long[]{});
   }
 
   History(long[] longs) {
@@ -59,14 +59,13 @@ final class History {
   }
 
   static History stepHistory(@Nullable History past, BitSet present, History mask) {
-    checkArgument(present.nextSetBit(65) < 0);
+    checkArgument(present.length() < 64);
 
     long[] pastLongs = new long[mask.longs.length()];
     long[] presentLongs = present.toLongArray();
 
-    if (past != null && past.longs.length() > 1) {
-      int offset = pastLongs.length - past.longs.length();
-      System.arraycopy(past.longs.toArray(), 1, pastLongs, offset, past.longs.length() - 1);
+    if (past != null && past.longs.length() > 1 && pastLongs.length == past.longs.length()) {
+      System.arraycopy(past.longs.toArray(), 1, pastLongs, 0, past.longs.length() - 1);
     }
 
     if (pastLongs.length > 0 && presentLongs.length > 0) {

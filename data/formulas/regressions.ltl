@@ -27,6 +27,8 @@ a | G (b | (a & F b))
 a U (X (b & X (F a)))
 G (a | (F (a & X b)))
 !((a <-> b) -> (F b))
+F G (a | (X X a)) | F a
+F G a | F G (a | X X a)
 F G ((X a) | (a W X a))
 (a U b) | (G (c | X a))
 (a W (b <-> X G a)) W a
