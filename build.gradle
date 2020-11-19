@@ -85,7 +85,7 @@ repositories {
 
 dependencies {
     // https://github.com/google/guava
-    implementation 'com.google.guava:guava:29.0-jre'
+    implementation 'com.google.guava:guava:30.0-jre'
 
     // https://commons.apache.org/proper/commons-cli/
     implementation 'commons-cli:commons-cli:1.4'
@@ -109,7 +109,7 @@ dependencies {
 
     // https://www.graalvm.org/
     // https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk
-    implementation 'org.graalvm.sdk:graal-sdk:20.1.0'
+    implementation 'org.graalvm.sdk:graal-sdk:20.3.0'
 
     implementation group: 'com.zaxxer', name: 'SparseBitSet', version: '1.2'
 
