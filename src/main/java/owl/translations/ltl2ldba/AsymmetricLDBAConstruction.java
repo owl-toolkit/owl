@@ -25,7 +25,6 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -47,15 +46,12 @@ import owl.collections.Collections3;
 import owl.collections.ValuationTree;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
-import owl.ltl.visitors.PropositionalVisitor;
 import owl.run.Environment;
+import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.LegacyFactory;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
@@ -92,7 +88,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
     var formulaClass = factories.eqFactory.of(formula.formula());
 
-    Set<Formula.TemporalOperator> blockingModalOperators;
+    Set<Formula.TemporalOperator> blockingCoSafetyOperators;
     int acceptanceSets = 1;
 
     var knownFixpoints = new TreeSet<Fixpoints>();
@@ -102,7 +98,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
     if (SyntacticFragments.isSafety(formulaClass)
       || SyntacticFragments.isCoSafety(formulaClass)) {
-      blockingModalOperators = Set.of();
+      blockingCoSafetyOperators = Set.of();
     } else {
       for (Fixpoints fixpoints : Selector.selectAsymmetric(formula.formula(), false)) {
         var simplified = fixpoints.simplified();
@@ -126,10 +122,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
         }
       }
 
-      blockingModalOperators = formula.formula()
-        .accept(BlockingModalOperatorsVisitor.INSTANCE).stream()
-        .filter(x -> !isProperSubformula(x, formulaClass.temporalOperators()))
-        .collect(Collectors.toUnmodifiableSet());
+      blockingCoSafetyOperators = BlockingElements.blockingCoSafetyFormulas(formulaClass);
 
       if (acceptanceClass.equals(GeneralizedBuchiAcceptance.class)) {
         for (var automata : automataMap.values()) {
@@ -149,18 +142,15 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       // the infinite behaviour and simply build the left-derivative of the formula.
       if (SyntacticFragments.isCoSafety(x)
         || SyntacticFragments.isSafety(x)
-        || !Collections.disjoint(x.temporalOperators(), blockingModalOperators)) {
+        || !Collections.disjoint(x.temporalOperators(), blockingCoSafetyOperators)
+        || BlockingElements.isBlockedByCoSafety(x)) {
         return;
       }
 
       List<AsymmetricProductState> productStates = new ArrayList<>();
-      Set<Formula.TemporalOperator> allModalOperators = new HashSet<>();
-
-      for (var temporalOperator : x.temporalOperators()) {
-        allModalOperators.addAll(
-          temporalOperator.subformulas(Predicates.IS_GREATEST_FIXPOINT,
-            Formula.TemporalOperator.class::cast));
-      }
+      Set<Formula.TemporalOperator> allModalOperators = x.temporalOperators(true).stream()
+        .filter(Predicates.IS_GREATEST_FIXPOINT)
+        .collect(Collectors.toSet());
 
       for (Fixpoints fixpoints : knownFixpoints) {
         if (fixpoints.allFixpointsPresent(allModalOperators)) {
@@ -193,15 +183,14 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
         }
       }
 
-      jumps.put(x, Set.copyOf(Collections3
-        .maximalElements(productStates, (x1, y) -> {
-          // Workaround that languages might be equal, resolve tie.
-          if (x1.language().equals(y.language())) {
-            return x1.evaluatedFixpoints.compareTo(y.evaluatedFixpoints) < 0;
-          }
+      jumps.put(x, Set.copyOf(Collections3.maximalElements(productStates, (x1, y) -> {
+        // Workaround that languages might be equal, resolve tie.
+        if (x1.language().equals(y.language())) {
+          return x1.evaluatedFixpoints.compareTo(y.evaluatedFixpoints) < 0;
+        }
 
-          return x1.language().implies(y.language());
-        })));
+        return x1.language().implies(y.language());
+      })));
     };
 
     DeterministicConstructions.Tracking tracking
@@ -455,73 +444,5 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     assert !remainderAP.isEmpty();
     assert !atoms.isEmpty();
     return !remainderAP.intersects(atoms);
-  }
-
-  private static boolean isProperSubformula(Formula formula, Collection<? extends Formula> set) {
-    return set.stream().anyMatch(x -> !x.equals(formula) && x.anyMatch(formula::equals));
-  }
-
-  private static final class BlockingModalOperatorsVisitor
-    extends PropositionalVisitor<Set<Formula.TemporalOperator>> {
-
-    private static final BlockingModalOperatorsVisitor INSTANCE
-      = new BlockingModalOperatorsVisitor();
-
-    private BlockingModalOperatorsVisitor() {}
-
-    @Override
-    protected Set<Formula.TemporalOperator> visit(Formula.TemporalOperator formula) {
-      if (SyntacticFragments.isFinite(formula)) {
-        return Set.of();
-      }
-
-      if (SyntacticFragments.isCoSafety(formula)) {
-        return Set.of(formula);
-      }
-
-      return Set.of();
-    }
-
-    @Override
-    public Set<Formula.TemporalOperator> visit(Literal literal) {
-      return Set.of();
-    }
-
-    @Override
-    public Set<Formula.TemporalOperator> visit(BooleanConstant booleanConstant) {
-      return Set.of();
-    }
-
-    @Override
-    public Set<Formula.TemporalOperator> visit(Conjunction conjunction) {
-      Set<Formula.TemporalOperator> blockingOperators = new HashSet<>();
-
-      for (Formula child : conjunction.operands) {
-        // Only consider non-finite LTL formulas.
-        if (!SyntacticFragments.isFinite(child)) {
-          blockingOperators.addAll(child.accept(this));
-        }
-      }
-
-      return blockingOperators;
-    }
-
-    @Override
-    public Set<Formula.TemporalOperator> visit(Disjunction disjunction) {
-      Set<Formula.TemporalOperator> blockingOperators = null;
-
-      for (Formula child : disjunction.operands) {
-        // Only consider non-finite LTL formulas.
-        if (!SyntacticFragments.isFinite(child)) {
-          if (blockingOperators == null) {
-            blockingOperators = new HashSet<>(child.accept(this));
-          } else {
-            blockingOperators.retainAll(child.accept(this));
-          }
-        }
-      }
-
-      return blockingOperators == null ? Set.of() : blockingOperators;
-    }
   }
 }

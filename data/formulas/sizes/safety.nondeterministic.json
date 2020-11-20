@@ -1138,6 +1138,9 @@
     "formula": "(Ga & F(b & Xc))"
   },
   {
+    "formula": "(Xa & (Ga | ((b) M (Xa))))"
+  },
+  {
     "formula": "(X!a & (b | Fc | ((((d) R (!b))) U (Xa))))"
   },
   {
@@ -1331,6 +1334,9 @@
   },
   {
     "formula": "(G!a | ((((!a) U ((!a & b)))) U (a)))"
+  },
+  {
+    "formula": "(Xa | (Fa & ((b) W (Xa))))"
   },
   {
     "formula": "(Xa | (!b & Gc & ((((d) U (b))) R (X!a))))"
@@ -1770,6 +1776,9 @@
     "formula": "((a) M ((a | b | X((a) R (c)))))"
   },
   {
+    "formula": "((((a) R (Xa))) M (((((Ga) M (a))) U (((b) R (c))))))"
+  },
+  {
     "formula": "((a) R ((b | X((c) R (d)))))",
     "properties": {
       "size": 4,
@@ -1812,6 +1821,9 @@
     "formula": "((X((((a) R (b))) U (c))) R (((a) U (c))))"
   },
   {
+    "formula": "((((((Fa) W (a))) M (b))) R (((a) U (Xa))))"
+  },
+  {
     "formula": "((((((((a) R (b))) R (c))) R (d))) R (e))",
     "properties": {
       "size": 5,
@@ -1844,7 +1856,13 @@
     "formula": "((((((((a) U (b))) U (c))) U (d))) U (e))"
   },
   {
+    "formula": "((((((Ga) M (a))) W (b))) U (((a) R (Xa))))"
+  },
+  {
     "formula": "((a) W ((a & b & X((a) U (c)))))"
+  },
+  {
+    "formula": "((((a) U (Xa))) W (((((Fa) W (a))) R (((b) U (c))))))"
   },
   {
     "formula": "(a & F(b & (a | Gb)))"
@@ -2349,7 +2367,13 @@
     "formula": "(Fa & (((!a & b & X((!a) U ((!a & c))))) R ((!a & d))))"
   },
   {
+    "formula": "(Ga & GF(a & XXa))"
+  },
+  {
     "formula": "(FGa & (Ga | G(Xb | (a & Xa) | (!a & X!a))))"
+  },
+  {
+    "formula": "(GFa & GF(a & XXa))"
   },
   {
     "formula": "((FGa | GFb) & (GFc | FG(d | Xe)))"
@@ -2402,6 +2426,9 @@
     "formula": "(!a | ((FGb | GFa) & (GF!a | (FG!a & FGb))))"
   },
   {
+    "formula": "(Fa | FG(a | XXa))"
+  },
+  {
     "formula": "(G!a | ((b) U ((a | (b & c & X((b) U (d)))))))"
   },
   {
@@ -2409,6 +2436,9 @@
   },
   {
     "formula": "(G!a | ((b) W ((Fa | ((XXb) W (a))))))"
+  },
+  {
+    "formula": "(FGa | FG(a | XXa))"
   },
   {
     "formula": "(GF!a | (F!a & F(Xb & (a | Xa) & (!a | X!a))))"

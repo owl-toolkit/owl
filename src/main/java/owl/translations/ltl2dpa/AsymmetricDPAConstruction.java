@@ -22,6 +22,7 @@ package owl.translations.ltl2dpa;
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.NavigableMap;
@@ -60,15 +61,18 @@ final class AsymmetricDPAConstruction {
   }
 
   Automaton<AsymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {
-    var ldba = ldbaConstruction.apply(labelledFormula);
+    var nnfLabelledFormula = labelledFormula.nnf();
+
+    var ldba = ldbaConstruction.apply(nnfLabelledFormula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
       return EmptyAutomaton.of(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
     }
 
-    var builder = new Builder(labelledFormula.formula(), ldba);
+    var builder = new Builder(nnfLabelledFormula.formula(), ldba);
     return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
       builder.ldba.factory(), Set.of(builder.initialState), builder.acceptance) {
+
       @Override
       public Edge<AsymmetricRankingState> edge(AsymmetricRankingState state, BitSet valuation) {
         return builder.edge(state, valuation);
@@ -83,18 +87,18 @@ final class AsymmetricDPAConstruction {
     private final List<Set<EquivalenceClass>> initialComponentSccs;
     private final AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, BuchiAcceptance, SortedSet
       <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>> ldba;
-    private final BlockingElements blockingElements;
+    private final Set<Formula.TemporalOperator> blockingSafetyOperators;
 
     private Builder(Formula formula, AnnotatedLDBA<EquivalenceClass, AsymmetricProductState,
       BuchiAcceptance, SortedSet<AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass,
       Set<AsymmetricProductState>>> ldba) {
       this.ldba = ldba;
       this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
-      blockingElements = new BlockingElements(formula);
       acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
         Parity.MIN_ODD);
       EquivalenceClass ldbaInitialState = ldba.initialComponent().onlyInitialState();
       factory = ldbaInitialState.factory();
+      blockingSafetyOperators = BlockingElements.blockingSafetyFormulas(factory.of(formula));
       initialState = edge(ldbaInitialState, List.of(), -1, null).successor();
     }
 
@@ -103,7 +107,8 @@ final class AsymmetricDPAConstruction {
       @Nullable BitSet valuation) {
 
       // Short-circuit, if the language includes a non-empty safety language.
-      if (blockingElements.isBlockedBySafety(successor)) {
+      if (!Collections.disjoint(successor.temporalOperators(), blockingSafetyOperators)
+        || BlockingElements.isBlockedBySafety(successor)) {
         return Edge.of(AsymmetricRankingState.of(successor), 1);
       }
 

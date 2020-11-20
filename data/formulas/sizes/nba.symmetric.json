@@ -2530,6 +2530,17 @@
     }
   },
   {
+    "formula": "(Xa & (Ga | ((b) M (Xa))))",
+    "properties": {
+      "size": 5,
+      "initialStatesSize": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "(X!a & (b | Fc | ((((d) R (!b))) U (Xa))))",
     "properties": {
       "size": 14,
@@ -3061,6 +3072,17 @@
     "formula": "(G!a | ((((!a) U ((!a & b)))) U (a)))",
     "properties": {
       "size": 4,
+      "initialStatesSize": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(Xa | (Fa & ((b) W (Xa))))",
+    "properties": {
+      "size": 5,
       "initialStatesSize": 2,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4290,6 +4312,17 @@
     }
   },
   {
+    "formula": "((((a) R (Xa))) M (((((Ga) M (a))) U (((b) R (c))))))",
+    "properties": {
+      "size": 23,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "((a) R ((b | X((c) R (d)))))",
     "properties": {
       "size": 4,
@@ -4348,6 +4381,17 @@
     "formula": "((X((((a) R (b))) U (c))) R (((a) U (c))))",
     "properties": {
       "size": 14,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "((((((Fa) W (a))) M (b))) R (((a) U (Xa))))",
+    "properties": {
+      "size": 19,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4444,9 +4488,31 @@
     }
   },
   {
+    "formula": "((((((Ga) M (a))) W (b))) U (((a) R (Xa))))",
+    "properties": {
+      "size": 16,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "((a) W ((a & b & X((a) U (c)))))",
     "properties": {
       "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "((((a) U (Xa))) W (((((Fa) W (a))) R (((b) U (c))))))",
+    "properties": {
+      "size": 69,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -5973,10 +6039,32 @@
     }
   },
   {
+    "formula": "(Ga & GF(a & XXa))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "(FGa & (Ga | G(Xb | (a & Xa) | (!a & X!a))))",
     "properties": {
       "size": 5,
       "initialStatesSize": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(GFa & GF(a & XXa))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
@@ -6138,6 +6226,17 @@
     }
   },
   {
+    "formula": "(Fa | FG(a | XXa))",
+    "properties": {
+      "size": 7,
+      "initialStatesSize": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "(G!a | ((b) U ((a | (b & c & X((b) U (d)))))))",
     "properties": {
       "size": 4,
@@ -6163,6 +6262,17 @@
     "formula": "(G!a | ((b) W ((Fa | ((XXb) W (a))))))",
     "properties": {
       "size": 12,
+      "initialStatesSize": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(FGa | FG(a | XXa))",
+    "properties": {
+      "size": 7,
       "initialStatesSize": 2,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,

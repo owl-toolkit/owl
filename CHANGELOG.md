@@ -7,6 +7,12 @@ API:
 
 * Migrate OmegaAcceptance to new propositional logic datatype.
 
+Bugfixes:
+
+* Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions. 
+  The issue was caused by faulty detection of temporal operators that need
+  to be satisfied before jumping to the accepting component.
+
 # 2020.06
 
 Modules:

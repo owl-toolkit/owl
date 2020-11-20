@@ -704,82 +704,9 @@
           "roundRobinCounter": -1
         },
         {
-          "temporalOperatorsProfile": [
-            0
-          ]
+          "temporalOperatorsProfile": []
         }
       ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ]
-    ]
-  },
-  {
-    "formula": "(FGa | XFb)",
-    "properties": [
       [
         {
           "permutation": []
@@ -825,6 +752,35 @@
             0
           ]
         }
+      ]
+    ]
+  },
+  {
+    "formula": "(FGa | XFb)",
+    "properties": [
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": []
+        }
+      ],
+      [
+        {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
       ],
       [
         {
@@ -837,7 +793,7 @@
         },
         {
           "temporalOperatorsProfile": [
-            1
+            0
           ]
         },
         {
