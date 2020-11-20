@@ -19,8 +19,12 @@
 
 package owl.translations.ltl2ldba;
 
+import static java.util.Objects.hash;
+import static java.util.Objects.requireNonNull;
+
+import com.google.common.base.Preconditions;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LtlLanguageExpressible;
@@ -30,47 +34,60 @@ import owl.util.StringUtil;
 @SuppressWarnings("PMD.DataClass")
 public final class AsymmetricProductState implements LtlLanguageExpressible {
 
-  // Index of the current checked cosafety formula
+  // G-formulas that have to hold infinitely often.
+  public final AsymmetricEvaluatedFixpoints evaluatedFixpoints;
+
+  // Round-robin counter of the current checked G(cosafety)-formula
+  //
   // [0, |gCoSafety| - 1] -> gCoSafety
   // [-|gfCoSafety|, -1] -> gfCoSafety
+  //
+  // If the value is negative the current formula is G(FCoSafety)-formula. If it is positive
+  // then the formula is a G(CoSafety)-formula.
   public final int index;
+
+  // A single G formula whose operand is in the syntactic co-safety fragment.
   public final EquivalenceClass currentCoSafety;
+
+  // All other G formulas whose operands that are in the syntactic co-safety fragment.
   public final List<EquivalenceClass> nextCoSafety;
 
+  // Conjunction of all G formulas that lie in the syntactic safety fragment.
   public final EquivalenceClass safety;
 
-  private final EquivalenceClass language;
-  private final int hashCode;
-
-  public final AsymmetricEvaluatedFixpoints evaluatedFixpoints;
   @Nullable
   public final AsymmetricEvaluatedFixpoints.DeterministicAutomata automata;
+
+  // Precomputed, derived values.
+
+  // The language of the states, expressed as LTL formula.
+  private final EquivalenceClass precomputedLanguage;
+  private final int precomputedHashCode;
 
   public AsymmetricProductState(int index, EquivalenceClass safety,
     EquivalenceClass currentCoSafety, List<EquivalenceClass> nextCoSafety,
     AsymmetricEvaluatedFixpoints evaluatedFixpoints,
     @Nullable
     AsymmetricEvaluatedFixpoints.DeterministicAutomata automata) {
-    assert automata == null
+
+    Preconditions.checkArgument(automata == null
       || (0 <= index && index < automata.coSafety.size())
       || (index < 0 && -index <= automata.fCoSafety.size())
-      || (automata.coSafety.isEmpty() && automata.fCoSafety.isEmpty() && index == 0);
+      || (automata.coSafety.isEmpty() && automata.fCoSafety.isEmpty() && index == 0));
 
     this.index = index;
-    this.currentCoSafety = currentCoSafety;
-    this.evaluatedFixpoints = Objects.requireNonNull(evaluatedFixpoints);
-    this.safety = safety;
+    this.currentCoSafety = requireNonNull(currentCoSafety);
+    this.evaluatedFixpoints = requireNonNull(evaluatedFixpoints);
+    this.safety = requireNonNull(safety);
     this.nextCoSafety = List.copyOf(nextCoSafety);
-    this.hashCode = Objects.hash(currentCoSafety, evaluatedFixpoints, safety, index, nextCoSafety);
     this.automata = automata;
 
-    var language = safety.and(currentCoSafety).and(evaluatedFixpoints.language());
-
-    for (EquivalenceClass clazz : nextCoSafety) {
-      language = language.and(clazz);
-    }
-
-    this.language = language;
+    precomputedHashCode = hash(currentCoSafety, evaluatedFixpoints, safety, index, nextCoSafety);
+    precomputedLanguage = Stream
+      .concat(
+        Stream.of(safety, currentCoSafety, evaluatedFixpoints.language()),
+        nextCoSafety.stream())
+      .reduce(EquivalenceClass::and).orElseThrow();
   }
 
   @Override
@@ -84,7 +101,7 @@ public final class AsymmetricProductState implements LtlLanguageExpressible {
     }
 
     AsymmetricProductState other = (AsymmetricProductState) o;
-    return other.hashCode == hashCode
+    return precomputedHashCode == other.precomputedHashCode
       && index == other.index
       && safety.equals(other.safety)
       && currentCoSafety.equals(other.currentCoSafety)
@@ -94,12 +111,12 @@ public final class AsymmetricProductState implements LtlLanguageExpressible {
 
   @Override
   public int hashCode() {
-    return hashCode;
+    return precomputedHashCode;
   }
 
   @Override
   public EquivalenceClass language() {
-    return language;
+    return precomputedLanguage;
   }
 
   @Override
