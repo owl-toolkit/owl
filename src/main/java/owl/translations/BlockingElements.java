@@ -20,75 +20,134 @@
 package owl.translations;
 
 import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Collections;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
+import java.util.stream.Stream;
+import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
+import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
-import owl.translations.mastertheorem.Predicates;
 
-public class BlockingElements {
-  private final BitSet atomicPropositions;
+public final class BlockingElements {
 
-  private final Set<Formula.TemporalOperator> blockingCoSafety;
-  private final Set<Formula.TemporalOperator> blockingSafety;
+  private BlockingElements() {}
 
-  public BlockingElements(Formula formula) {
-    this.atomicPropositions = formula.atomicPropositions(true);
-    formula.subformulas(Predicates.IS_FIXPOINT)
-      .forEach(x -> atomicPropositions.andNot(x.atomicPropositions(true)));
+  public static boolean isBlockedByCoSafety(EquivalenceClass clazz) {
+    if (SyntacticFragments.isCoSafety(clazz)
+      || extractBlockingCoSafetyFormulas(clazz).noneMatch(Set::isEmpty)) {
+      return true;
+    }
 
-    if (formula instanceof Conjunction) {
-      var coSafetyTemporalChildren = new ArrayList<Formula.TemporalOperator>();
-      var otherChildren = new ArrayList<Formula>();
+    int classTemporalOperatorsSize = clazz.temporalOperators(true).size();
 
-      for (Formula child : formula.operands) {
-        if (child instanceof Formula.TemporalOperator && SyntacticFragments.isCoSafety(child)) {
-          coSafetyTemporalChildren.add((Formula.TemporalOperator) child);
-        } else {
-          otherChildren.add(child);
+    return clazz.temporalStepTree().flatValues().stream()
+      .allMatch(
+        x -> x.temporalOperators(true).size() < classTemporalOperatorsSize
+          || SyntacticFragments.isCoSafety(x)
+          || extractBlockingCoSafetyFormulas(x).noneMatch(Set::isEmpty));
+  }
+
+  public static boolean isBlockedBySafety(EquivalenceClass clazz) {
+    if (SyntacticFragments.isSafety(clazz)
+      || extractBlockingSafetyFormulas(clazz).noneMatch(Set::isEmpty)) {
+      return true;
+    }
+
+    int classTemporalOperatorsSize = clazz.temporalOperators(true).size();
+
+    return clazz.temporalStepTree().flatValues().stream()
+      .allMatch(
+        x -> x.temporalOperators(true).size() < classTemporalOperatorsSize
+          || SyntacticFragments.isSafety(x)
+          || extractBlockingSafetyFormulas(x).noneMatch(Set::isEmpty));
+  }
+
+  public static Set<Formula.TemporalOperator> blockingCoSafetyFormulas(EquivalenceClass clazz) {
+    if (SyntacticFragments.isCoSafety(clazz)) {
+      return clazz.temporalOperators();
+    }
+
+    return extractBlockingCoSafetyFormulas(clazz).reduce((x, y) -> {
+      x.retainAll(y);
+      return x;
+    }).orElseThrow();
+  }
+
+  public static Set<Formula.TemporalOperator> blockingSafetyFormulas(EquivalenceClass clazz) {
+    if (SyntacticFragments.isSafety(clazz)) {
+      return clazz.temporalOperators();
+    }
+
+    return extractBlockingSafetyFormulas(clazz).reduce((x, y) -> {
+      x.retainAll(y);
+      return x;
+    }).orElseThrow();
+  }
+
+  private static Stream<Set<Formula.TemporalOperator>>
+    extractBlockingCoSafetyFormulas(EquivalenceClass clazz) {
+
+    var nonCoSafetyFormulas = new ArrayList<>(clazz.temporalOperators());
+    nonCoSafetyFormulas.removeIf(SyntacticFragments::isCoSafety);
+
+    return clazz.disjunctiveNormalForm().stream().map(clause -> {
+      List<Formula.TemporalOperator> clauseCoSafetyFormulas = new ArrayList<>();
+
+      for (Formula literal : clause) {
+        if (literal instanceof Literal) {
+          continue;
+        }
+
+        assert literal instanceof Formula.TemporalOperator;
+
+        if (SyntacticFragments.isCoSafety(literal)
+          && !isProperSubformula(literal, nonCoSafetyFormulas)) {
+
+          clauseCoSafetyFormulas.add((Formula.TemporalOperator) literal);
         }
       }
 
-      coSafetyTemporalChildren
-        .removeIf(x -> otherChildren.stream().anyMatch(y -> y.anyMatch(x::equals)));
-      blockingCoSafety = Set.of(coSafetyTemporalChildren.toArray(Formula.TemporalOperator[]::new));
-    } else {
-      blockingCoSafety = Set.of();
-    }
-
-    if (formula instanceof Disjunction) {
-      var fixpoints = formula
-        .subformulas(Predicates.IS_FIXPOINT)
-        .stream()
-        .filter(
-          x -> !SyntacticFragments.isCoSafety(x) && !SyntacticFragments.isSafety(x))
-        .collect(Collectors.toSet());
-
-      blockingSafety = formula.operands
-        .stream()
-        .filter(x -> x instanceof Formula.TemporalOperator
-          && SyntacticFragments.isSafety(x)
-          && fixpoints.stream().noneMatch(y -> y.anyMatch(x::equals)))
-        .map(Formula.TemporalOperator.class::cast)
-        .collect(Collectors.toUnmodifiableSet());
-    } else {
-      blockingSafety = Set.of();
-    }
+      // Select only the temporal operators that do not occur in the scope of other temporal
+      // operators, since blocking should only depend on them.
+      return new HashSet<>(
+        Collections3.maximalElements(clauseCoSafetyFormulas, (x, y) -> y.anyMatch(x::equals)));
+    });
   }
 
-  public boolean isBlockedByCoSafety(EquivalenceClass clazz) {
-    return SyntacticFragments.isCoSafety(clazz)
-      || clazz.atomicPropositions(true).intersects(atomicPropositions)
-      || !Collections.disjoint(blockingCoSafety, clazz.temporalOperators());
+  private static Stream<Set<Formula.TemporalOperator>>
+    extractBlockingSafetyFormulas(EquivalenceClass clazz) {
+
+    var nonSafetyFormulas = new ArrayList<>(clazz.temporalOperators());
+    nonSafetyFormulas.removeIf(SyntacticFragments::isSafety);
+
+    return clazz.conjunctiveNormalForm().stream().map(clause -> {
+      List<Formula.TemporalOperator> clauseSafetyFormulas = new ArrayList<>();
+
+      for (Formula literal : clause) {
+        if (literal instanceof Literal) {
+          continue;
+        }
+
+        assert literal instanceof Formula.TemporalOperator;
+
+        if (SyntacticFragments.isSafety(literal)
+          && !isProperSubformula(literal, nonSafetyFormulas)) {
+
+          clauseSafetyFormulas.add((Formula.TemporalOperator) literal);
+        }
+      }
+
+      // Select only the temporal operators that do not occur in the scope of other temporal
+      // operators, since blocking should only depend on them.
+      return new HashSet<>(
+        Collections3.maximalElements(clauseSafetyFormulas, (x, y) -> y.anyMatch(x::equals)));
+    });
   }
 
-  public boolean isBlockedBySafety(EquivalenceClass clazz) {
-    return SyntacticFragments.isSafety(clazz)
-      || !Collections.disjoint(blockingSafety, clazz.temporalOperators());
+  private static boolean isProperSubformula(Formula formula, Collection<? extends Formula> set) {
+    return set.stream().anyMatch(x -> !x.equals(formula) && x.anyMatch(formula::equals));
   }
 }

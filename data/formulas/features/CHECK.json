@@ -9835,182 +9835,10 @@
     "properties": [
       [
         {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12
-          ]
+          "permutation": []
         },
         {
           "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -10038,162 +9866,8 @@
             21,
             22,
             23,
-            24,
-            25
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            17,
-            23,
             24
           ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -10208,777 +9882,7 @@
           ]
         },
         {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            17,
-            23,
-            24
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            13,
-            17,
-            23,
-            24
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            15,
-            19,
-            20
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            2,
-            3,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-            10,
-            11,
-            12,
-            15,
-            19,
-            20
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            1,
-            4,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            2,
-            3,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            2,
-            3,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            3,
-            2,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            3,
-            2,
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            5,
-            3,
-            4,
-            1,
-            2,
-            0
-          ]
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -10998,28 +9902,12 @@
           ]
         },
         {
-          "roundRobinCounter": -1
+          "roundRobinCounter": 0
         },
         {
           "temporalOperatorsProfile": [
             0
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
         },
         {
           "temporalOperatorsProfile": [
@@ -11033,6 +9921,65 @@
         },
         {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11051,18 +9998,31 @@
           "temporalOperatorsProfile": [
             0
           ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         }
       ],
       [
         {
           "permutation": [
             5,
-            3,
-            4,
             1,
             2,
+            3,
+            4,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -11082,28 +10042,12 @@
           ]
         },
         {
-          "roundRobinCounter": -1
+          "roundRobinCounter": 0
         },
         {
           "temporalOperatorsProfile": [
             0
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
         },
         {
           "temporalOperatorsProfile": [
@@ -11129,7 +10073,76 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11141,12 +10154,15 @@
         {
           "permutation": [
             5,
-            3,
-            4,
             1,
             2,
+            3,
+            4,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -11164,18 +10180,27 @@
             11,
             12,
             13,
-            14,
             15,
-            16,
-            17,
             18,
-            19,
-            20,
-            21,
-            22,
-            23,
-            24,
-            25
+            19
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11194,7 +10219,40 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11213,15 +10271,6 @@
         {
           "temporalOperatorsProfile": [
             0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
           ]
         },
         {
@@ -11234,9 +10283,17 @@
         },
         {
           "temporalOperatorsProfile": [
-            0,
-            1,
-            2
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         }
       ],
@@ -11244,12 +10301,15 @@
         {
           "permutation": [
             5,
-            3,
-            4,
             1,
             2,
+            3,
+            4,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -11267,9 +10327,27 @@
             11,
             12,
             13,
-            17,
-            23,
-            24
+            15,
+            18,
+            19
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11288,6 +10366,11 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
         },
         {
@@ -11296,7 +10379,22 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11323,7 +10421,22 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11335,12 +10448,15 @@
         {
           "permutation": [
             5,
-            3,
-            4,
             1,
             2,
+            3,
+            4,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -11358,9 +10474,27 @@
             11,
             12,
             13,
-            17,
-            23,
-            24
+            15,
+            18,
+            19
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11378,6 +10512,11 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
         },
         {
@@ -11386,7 +10525,22 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11413,7 +10567,22 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11425,12 +10594,15 @@
         {
           "permutation": [
             5,
-            3,
-            4,
             1,
             2,
+            3,
+            4,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -11447,9 +10619,27 @@
             10,
             11,
             12,
-            15,
-            19,
-            20
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11466,7 +10656,22 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11479,7 +10684,13 @@
         {
           "temporalOperatorsProfile": [
             0,
-            1
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11489,6 +10700,11 @@
         },
         {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11507,18 +10723,31 @@
           "temporalOperatorsProfile": [
             0
           ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         }
       ],
       [
         {
           "permutation": [
             5,
-            3,
-            4,
             1,
             2,
+            3,
+            4,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
@@ -11535,9 +10764,1223 @@
             10,
             11,
             12,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -2
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            1,
+            4,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            2,
+            3,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -2
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            2,
+            3,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -2
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            4,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -2
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            4,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            4,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
             15,
-            19,
-            20
+            18,
+            19
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11554,7 +11997,22 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11576,6 +12034,11 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
         },
         {
@@ -11587,9 +12050,6 @@
           "temporalOperatorsProfile": [
             0
           ]
-        },
-        {
-          "roundRobinCounter": -1
         },
         {
           "temporalOperatorsProfile": [
@@ -11601,17 +12061,72 @@
         {
           "permutation": [
             5,
+            3,
             4,
             1,
+            2,
             0
           ]
+        },
+        {
+          "roundRobinCounter": 4
         },
         {
           "temporalOperatorsProfile": [
             0,
             1,
             2,
-            3
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            15,
+            18,
+            19
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -11628,10 +12143,99 @@
           ]
         },
         {
-          "roundRobinCounter": 0
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
-          "temporalOperatorsProfile": []
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            4,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            14,
+            16,
+            17
+          ]
         },
         {
           "roundRobinCounter": 0
@@ -11642,10 +12246,77 @@
           ]
         },
         {
-          "temporalOperatorsProfile": []
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11664,6 +12335,160 @@
           "temporalOperatorsProfile": [
             0
           ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            3,
+            4,
+            1,
+            2,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            14,
+            16,
+            17
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         }
       ],
       [
@@ -11676,6 +12501,9 @@
           ]
         },
         {
+          "roundRobinCounter": 4
+        },
+        {
           "temporalOperatorsProfile": [
             0,
             1,
@@ -11684,7 +12512,30 @@
           ]
         },
         {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -11700,7 +12551,17 @@
           "roundRobinCounter": 0
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "roundRobinCounter": 0
@@ -11714,6 +12575,11 @@
           "temporalOperatorsProfile": []
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
         },
         {
@@ -11727,7 +12593,147 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -2
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            5,
+            4,
+            1,
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 4
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": 0
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -65493,6 +66499,32 @@
     "properties": [
       [
         {
+          "permutation": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": []
+        },
+        {
+          "temporalOperatorsProfile": [
+            4,
+            5,
+            6,
+            7
+          ]
+        }
+      ],
+      [
+        {
           "permutation": [
             0
           ]
@@ -65518,6 +66550,11 @@
           "temporalOperatorsProfile": [
             0
           ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         }
       ],
       [
@@ -65535,6 +66572,11 @@
         },
         {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -65560,14 +66602,19 @@
             1,
             2,
             4,
+            5,
+            9,
             10,
-            21,
-            22,
-            23
+            11
           ]
         },
         {
           "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -65608,117 +66655,13 @@
         {
           "temporalOperatorsProfile": [
             3,
-            10,
-            12,
-            13,
-            18,
-            21,
-            22,
-            23
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
             5,
-            10,
-            14,
-            15,
-            19,
-            21,
-            22,
-            23
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
             6,
             7,
             8,
             9,
-            11,
-            16,
-            17,
-            20
+            10,
+            11
           ]
         },
         {
@@ -65728,6 +66671,11 @@
           "temporalOperatorsProfile": [
             0,
             1
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -65778,6 +66726,11 @@
           "temporalOperatorsProfile": []
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
         },
         {
@@ -65825,6 +66778,11 @@
           ]
         },
         {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
           "roundRobinCounter": -1
         },
         {
@@ -65850,6 +66808,20 @@
     "properties": [
       [
         {
+          "permutation": []
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
+          ]
+        }
+      ],
+      [
+        {
           "permutation": [
             0
           ]
@@ -65861,6 +66833,24 @@
           "temporalOperatorsProfile": [
             0
           ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
         }
       ],
       [
@@ -65876,11 +66866,28 @@
         {
           "temporalOperatorsProfile": [
             0,
-            1,
+            2,
+            3,
             6,
-            7,
-            8,
-            9
+            7
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         },
         {
@@ -65915,18 +66922,14 @@
         {
           "temporalOperatorsProfile": [
             1,
-            2,
-            3,
             4,
             5,
-            6,
-            7,
             8,
             9
           ]
         },
         {
-          "roundRobinCounter": 0
+          "roundRobinCounter": -1
         },
         {
           "temporalOperatorsProfile": [
@@ -65941,29 +66944,6 @@
         {
           "temporalOperatorsProfile": [
             0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 3
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9
           ]
         },
         {

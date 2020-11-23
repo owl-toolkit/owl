@@ -265,7 +265,7 @@ class DecomposedDPATest {
   @Test
   void testPerformanceComplementConstructionHeuristic() {
     // Computing the automaton without COMPLEMENT_CONSTRUCTION_HEURISTIC takes minutes.
-    assertTimeout(Duration.ofSeconds(2), () -> {
+    assertTimeout(Duration.ofSeconds(5), () -> {
       of(LtlParser.parse("((FGp2|GFp1)&(FGp3|GFp2)&(FGp4|GFp3)&(FGp5|GFp4)&(FGp6|GFp5))"));
     });
   }

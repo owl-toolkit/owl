@@ -22,6 +22,7 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.ltl.visitors.Visitor;
@@ -78,6 +79,16 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   BitSet atomicPropositions(boolean includeNested);
 
   Set<Formula.TemporalOperator> temporalOperators();
+
+  default Set<Formula.TemporalOperator> temporalOperators(boolean includedNested) {
+    if (includedNested) {
+      return temporalOperators().stream()
+        .flatMap(x -> x.subformulas(Formula.TemporalOperator.class).stream())
+        .collect(Collectors.toSet());
+    }
+
+    return temporalOperators();
+  }
 
   boolean implies(EquivalenceClass other);
 

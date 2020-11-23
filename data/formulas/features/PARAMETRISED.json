@@ -658,35 +658,17 @@
     "properties": [
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": []
         }
       ],
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
             0
           ]
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -695,215 +677,6 @@
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1,
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -911,42 +684,37 @@
             2,
             3
           ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
             0,
+            1,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
             1
           ]
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            1,
+            3
           ]
         }
       ]
@@ -957,35 +725,17 @@
     "properties": [
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": []
         }
       ],
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
             0
           ]
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -995,12 +745,6 @@
       ],
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
             0,
             1,
@@ -1009,176 +753,6 @@
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 4
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -1188,893 +762,115 @@
             4,
             5
           ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
-        {
-          "permutation": [
-            0,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 4
-        },
         {
           "temporalOperatorsProfile": [
             0,
             1,
             2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            5
           ]
         }
       ],
       [
-        {
-          "permutation": [
-            0,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 4
-        },
         {
           "temporalOperatorsProfile": [
             0,
             1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            4
           ]
         }
       ],
       [
         {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
             0,
-            1,
             2
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ],
       [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             0,
             2,
             3
           ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             0,
             2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            3,
+            5
           ]
         }
       ],
       [
         {
-          "permutation": [
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
             2
           ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
             1,
             2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            5
           ]
         }
       ],
       [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            4
           ]
         }
       ],
       [
         {
-          "permutation": [
+          "temporalOperatorsProfile": [
             2
           ]
-        },
-        {
-          "roundRobinCounter": 2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            2,
+            5
           ]
         }
       ]
@@ -2085,35 +881,17 @@
     "properties": [
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": []
         }
       ],
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
             0
           ]
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -2122,12 +900,6 @@
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -2138,12 +910,6 @@
       ],
       [
         {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
             0,
             1,
@@ -2153,425 +919,6 @@
         }
       ],
       [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": []
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            0,
-            1,
-            2,
-            3,
-            5,
-            6,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 5
-        },
         {
           "temporalOperatorsProfile": [
             0,
@@ -2583,3536 +930,329 @@
             6,
             7
           ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
             0,
             1,
             2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            3,
+            7
           ]
         }
       ],
       [
         {
-          "permutation": [
-            0,
-            2,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 5
-        },
-        {
           "temporalOperatorsProfile": [
             0,
             1,
             2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            6
           ]
         }
       ],
       [
         {
-          "permutation": [
-            0,
-            2,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 5
-        },
-        {
           "temporalOperatorsProfile": [
             0,
             1,
-            2,
             3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ],
       [
         {
-          "permutation": [
+          "temporalOperatorsProfile": [
             0,
+            1,
             3,
             5
           ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
             0,
             1,
-            2,
             3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            5,
+            7
           ]
         }
       ],
       [
         {
-          "permutation": [
+          "temporalOperatorsProfile": [
             0,
+            1,
+            3,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            5
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            4,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            4,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            4,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            3,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
             3,
             5
           ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0,
             1,
-            2,
             3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            5,
+            7
           ]
         }
       ],
       [
         {
-          "permutation": [
-            0,
+          "temporalOperatorsProfile": [
+            1,
             3,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
             5
           ]
-        },
-        {
-          "roundRobinCounter": 6
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
         {
-          "permutation": [
-            0,
-            3,
-            5
-          ]
-        },
-        {
-          "roundRobinCounter": 6
-        },
-        {
           "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
             2
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
         {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
-            0,
-            1,
             2,
             3
           ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
         {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
           "temporalOperatorsProfile": [
-            0,
-            1,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
             2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1,
             3,
+            7
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
             6
           ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
             3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1,
-            3,
-            6
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1,
-            3,
-            6
-          ]
-        },
-        {
-          "roundRobinCounter": 8
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            1,
-            3,
-            6
-          ]
-        },
-        {
-          "roundRobinCounter": 8
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            2
-          ]
-        },
-        {
-          "roundRobinCounter": 2
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": -1
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "permutation": [
-            3
-          ]
-        },
-        {
-          "roundRobinCounter": 3
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "roundRobinCounter": 0
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            7
           ]
         }
       ]

@@ -102,8 +102,8 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
     // Declare components of LDBA
 
-    List<BlockingElements> blockingElements = new ArrayList<>(
-      List.of(new BlockingElements(BooleanConstant.TRUE)));
+    List<Set<Formula.TemporalOperator>> blockingCoSafetyOperators = new ArrayList<>();
+    blockingCoSafetyOperators.add(Set.of());
     Map<Integer, EquivalenceClass> initialState;
 
     Map<Map.Entry<Integer, EquivalenceClass>, Set<SymmetricProductState>> epsilonJumps
@@ -129,7 +129,8 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       for (Formula initialFormula : initialFormulas) {
         var sets = Selector.selectSymmetric(initialFormula, false);
         knownFixpoints.add(sets);
-        blockingElements.add(new BlockingElements(initialFormula));
+        blockingCoSafetyOperators.add(
+          BlockingElements.blockingCoSafetyFormulas(factories.eqFactory.of(initialFormula)));
 
         for (Fixpoints fixpoints : sets) {
           var simplified = fixpoints.simplified();
@@ -214,14 +215,14 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         || SyntacticFragments.isCoSafety(clazz)
         || SyntacticFragments.isSafety(clazz);
 
-      if (blockingElements.get(entry.getKey()).isBlockedByCoSafety(clazz)) {
+      if (!Collections.disjoint(clazz.temporalOperators(),
+          blockingCoSafetyOperators.get(entry.getKey()))
+        || BlockingElements.isBlockedByCoSafety(clazz)) {
         epsilonJumps.put(entry, Set.of());
         return;
       }
 
-      var nestedTemporalOperators = clazz.temporalOperators().stream()
-        .flatMap(x -> x.subformulas(Formula.TemporalOperator.class).stream())
-        .collect(Collectors.toUnmodifiableSet());
+      var nestedTemporalOperators = clazz.temporalOperators(true);
 
       var availableFixpoints = knownFixpoints.get(entry.getKey()).stream()
         .filter(x -> x.allFixpointsPresent(nestedTemporalOperators))
@@ -285,12 +286,16 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
       epsilonJumps.put(entry, Set.copyOf(
         Collections3.maximalElements(jumps, (x1, y) -> {
-          // Workaround that languages might be equal, resolve tie.
-          if (x1.language().equals(y.language())) {
-            return x1.evaluatedFixpoints.compareTo(y.evaluatedFixpoints) > 0;
+
+          // The underlying issue that two equal evaluatedFixpoints can come from two different
+          // sets of fixpoints. If we would not check both directions one of the runs might be
+          // dropped, which then causes issues surfacing in the LTL-to-DRA/DPA translations.
+          // TODO: revise code to robustly deal with simplifications.
+          if (x1.isCoveredBy(y) && y.isCoveredBy(x1)) {
+            return false;
           }
 
-          return x1.language().implies(y.language());
+          return x1.isCoveredBy(y);
         })));
     };
 
@@ -366,7 +371,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     return ldba;
   }
 
-  private static boolean containsUnresolvedFinite(Map<?, EquivalenceClass> state) {
+  private static boolean containsUnresolvedFinite(Map<?, ? extends EquivalenceClass> state) {
     return state.values().stream().anyMatch(SymmetricLDBAConstruction::containsUnresolvedFinite);
   }
 

@@ -82,6 +82,30 @@ public final class SymmetricProductState implements LtlLanguageExpressible {
     return safety.and(factory.of(Conjunction.of(evaluatedFixpoints.infinitelyOften))).unfold();
   }
 
+  public boolean isCoveredBy(SymmetricProductState that) {
+    if (!this.safety.implies(that.safety)) {
+      return false;
+    }
+
+    EquivalenceClass thisLiveness = liveness == null
+      ? safety.factory().of(true)
+      : liveness.state();
+
+    EquivalenceClass thatLiveness = that.liveness == null
+      ? safety.factory().of(true)
+      : that.liveness.state();
+
+    if (!thisLiveness.implies(thatLiveness)) {
+      return false;
+    }
+
+    if (!evaluatedFixpoints.almostAlways.containsAll(that.evaluatedFixpoints.almostAlways)) {
+      return false;
+    }
+
+    return evaluatedFixpoints.infinitelyOften.containsAll(that.evaluatedFixpoints.infinitelyOften);
+  }
+
   @Override
   public String toString() {
     return evaluatedFixpoints + StringUtil.join(

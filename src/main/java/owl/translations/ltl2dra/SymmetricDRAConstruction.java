@@ -44,8 +44,8 @@ import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragments;
 import owl.run.Environment;
+import owl.translations.BlockingElements;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricProductState;
@@ -149,7 +149,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
       @Nullable BitSet valuation) {
 
       for (EquivalenceClass clazz : successor.values()) {
-        if (SyntacticFragments.isSafety(clazz)) {
+        if (BlockingElements.isBlockedBySafety(clazz)) {
           if (safetyRabinPair.hasInfSet()) {
             BitSet acceptanceSets = new BitSet();
             safetyRabinPair.infSetStream().forEach(acceptanceSets::set);

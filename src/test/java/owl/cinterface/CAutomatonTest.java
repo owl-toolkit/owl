@@ -103,7 +103,7 @@ public class CAutomatonTest {
       .coSafety(Environment.standard(), formula);
     var states = automaton.states();
 
-    Assertions.assertTimeout(Duration.ofSeconds(55),
+    Assertions.assertTimeout(Duration.ofSeconds(60),
       () -> extractFeaturesFromEquivalenceClass(states));
   }
 
