@@ -21,8 +21,10 @@ package owl.automaton.hoa;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static owl.util.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -311,5 +313,16 @@ class HoaReaderTest {
     }
 
     return bitSet;
+  }
+
+  @Test
+  void testLargeAlphabet() {
+    // Assert that parsing happens fast enough. On my machine this takes less than 2s.
+    assertTimeout(Duration.ofSeconds(10), () -> {
+      var automaton = HoaReader.read(HoaConstants.LARGE_ALPHABET, FACTORY_SUPPLIER);
+
+      assertEquals(125, automaton.size());
+      assertEquals(213, automaton.factory().atomicPropositions().size());
+    });
   }
 }

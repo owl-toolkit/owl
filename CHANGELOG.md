@@ -9,9 +9,12 @@ API:
 
 Bugfixes:
 
-* Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions. 
+* Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions.
   The issue was caused by faulty detection of temporal operators that need
   to be satisfied before jumping to the accepting component.
+
+* Resolve the Alias fields in transition labels. Thanks to Pierre Ganty for
+  reporting the issue.
 
 # 2020.06
 

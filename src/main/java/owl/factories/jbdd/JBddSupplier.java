@@ -59,7 +59,7 @@ public final class JBddSupplier implements FactorySupplier {
   @Override
   public ValuationSetFactory getValuationSetFactory(List<String> atomicPropositions) {
     int alphabetSize = atomicPropositions.size();
-    Bdd vsFactoryBdd = create((1024 * alphabetSize * alphabetSize) + 256);
+    Bdd vsFactoryBdd = create(Math.abs(13 * alphabetSize));
     return new ValuationFactory(vsFactoryBdd, atomicPropositions);
   }
 }

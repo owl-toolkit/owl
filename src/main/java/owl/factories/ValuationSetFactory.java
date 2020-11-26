@@ -19,6 +19,7 @@
 
 package owl.factories;
 
+import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
@@ -51,33 +52,44 @@ public interface ValuationSetFactory {
   ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
 
   default ValuationSet of(BooleanExpression<AtomLabel> expression,
-    @Nullable IntUnaryOperator mapping) {
+    @Nullable IntUnaryOperator mapping,
+    @Nullable Map<String, BooleanExpression<AtomLabel>> aliases) {
+
     if (expression.isFALSE()) {
-      return this.empty();
+      return empty();
     }
 
     if (expression.isTRUE()) {
-      return this.universe();
+      return universe();
     }
 
     if (expression.isAtom()) {
-      int apIndex = expression.getAtom().getAPIndex();
-      return this.of(mapping == null ? apIndex : mapping.applyAsInt(apIndex));
+      AtomLabel atom = expression.getAtom();
+
+      if (atom.isAlias()) {
+        String alias = atom.getAliasName();
+        Preconditions.checkArgument(
+          aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
+        return of(aliases.get(alias), mapping, aliases);
+      } else {
+        int apIndex = atom.getAPIndex();
+        return this.of(mapping == null ? apIndex : mapping.applyAsInt(apIndex));
+      }
     }
 
     if (expression.isNOT()) {
-      return of(expression.getLeft(), mapping).complement();
+      return of(expression.getLeft(), mapping, aliases).complement();
     }
 
     if (expression.isAND()) {
-      ValuationSet left = of(expression.getLeft(), mapping);
-      ValuationSet right = of(expression.getRight(), mapping);
+      ValuationSet left = of(expression.getLeft(), mapping, aliases);
+      ValuationSet right = of(expression.getRight(), mapping, aliases);
       return left.intersection(right);
     }
 
     if (expression.isOR()) {
-      ValuationSet left = of(expression.getLeft(), mapping);
-      ValuationSet right = of(expression.getRight(), mapping);
+      ValuationSet left = of(expression.getLeft(), mapping, aliases);
+      ValuationSet right = of(expression.getRight(), mapping, aliases);
       return left.union(right);
     }
 

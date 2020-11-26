@@ -26,15 +26,18 @@ import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
+import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerStore;
@@ -366,9 +369,12 @@ public final class HoaReader {
         } else if (storedAutomaton.hasEdgesWithLabel(stateId)) {
           IntUnaryOperator apMapping = remapping == null ? null : i -> remapping[i];
 
+          Map<String, BooleanExpression<AtomLabel>> aliases = new HashMap<>();
+          storedAutomaton.getStoredHeader().getAliases().forEach(x -> aliases.put(x.name, x.extra));
+
           for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
-            HoaState successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
-            ValuationSet valuationSet = vsFactory.of(edgeWithLabel.getLabelExpr(), apMapping);
+            var successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
+            var valuationSet = vsFactory.of(edgeWithLabel.getLabelExpr(), apMapping, aliases);
             addEdge(state, valuationSet, edgeWithLabel.getAccSignature(), successorState);
           }
         }
