@@ -37161,8 +37161,7 @@
         },
         {
           "temporalOperatorsProfile": [
-            0,
-            1
+            0
           ]
         }
       ],
@@ -42340,9 +42339,7 @@
           "temporalOperatorsProfile": []
         },
         {
-          "temporalOperatorsProfile": [
-            0
-          ]
+          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -42401,9 +42398,7 @@
           ]
         },
         {
-          "temporalOperatorsProfile": [
-            0
-          ]
+          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -52542,9 +52537,7 @@
           ]
         },
         {
-          "temporalOperatorsProfile": [
-            0
-          ]
+          "temporalOperatorsProfile": []
         }
       ],
       [
