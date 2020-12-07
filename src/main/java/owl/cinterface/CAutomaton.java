@@ -270,7 +270,6 @@ public final class CAutomaton {
     }
   }
 
-  // CHECKSTYLE: OFF
   @CEntryPoint(
     name = CAutomaton.NAMESPACE + "extract_features",
     documentation = { "Signature: ",
@@ -295,7 +294,6 @@ public final class CAutomaton {
     },
     exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnBoolean.class
   )
-  // CHECKSTYLE: ON
   public static boolean extractFeatures(
     IsolateThread thread,
     ObjectHandle automatonObjectHandle,

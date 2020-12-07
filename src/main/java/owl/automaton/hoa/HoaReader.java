@@ -42,7 +42,7 @@ import jhoafparser.ast.BooleanExpression;
 import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerStore;
 import jhoafparser.extensions.BooleanExpressions;
-import jhoafparser.parser.HOAFParser;
+import jhoafparser.extensions.HOAFParserFixed;
 import jhoafparser.parser.generated.ParseException;
 import jhoafparser.storage.StoredAutomaton;
 import jhoafparser.storage.StoredEdgeImplicit;
@@ -76,8 +76,9 @@ public final class HoaReader {
   public static void readStream(Reader reader,
     Function<List<String>, ValuationSetFactory> factorySupplier,
     Consumer<Automaton<HoaState, ?>> consumer) throws ParseException {
-    HOAFParser.parseHOA(reader, () -> new ToTransitionAcceptance(
-      new HoaConsumerAutomatonSupplier(consumer, factorySupplier)), null);
+
+    HOAFParserFixed.parseHOA(reader, () -> new ToTransitionAcceptance(
+      new HoaConsumerAutomatonSupplier(consumer, factorySupplier)));
   }
 
   public static Automaton<HoaState, ?> read(String string,

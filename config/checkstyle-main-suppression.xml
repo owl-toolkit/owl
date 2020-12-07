@@ -7,11 +7,11 @@
 <suppressions>
     <!-- Suppress everything for generated files -->
     <suppress files="owl[\\/]grammar[\\/]" checks=".*"/>
+    <!-- Suppress everything for files from jhoafparser -->
+    <suppress files="jhoafparser[\\/]extensions[\\/]" checks=".*"/>
 
     <!-- Suppress broken file -->
     <suppress files="owl[\\/]cinterface[\\/]CAutomaton" checks=".*"/>
-    <suppress files="owl[\\/]automaton[\\/]acceptance[\\/]BooleanExpressions" checks=".*"/>
-
     <suppress files="FG.*|.+2.+|.*DPA.*" checks="AbbreviationAsWordInName"/>
 
     <!-- Soon we will doc everything ... -->
