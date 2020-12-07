@@ -28,8 +28,8 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
+import jhoafparser.extensions.HOAConsumerPrintFixed;
 import jhoafparser.extensions.ToStateAcceptanceFixed;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
@@ -163,7 +163,7 @@ public final class OutputWriters {
 
     @Override
     public void write(Writer writer, Object object) {
-      var printer = new HOAConsumerPrint(writer);
+      var printer = new HOAConsumerPrintFixed(writer);
       var wrappedPrinter = stateAcceptance
         ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptanceFixed())
         : printer;
