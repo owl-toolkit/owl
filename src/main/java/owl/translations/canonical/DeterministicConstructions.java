@@ -54,6 +54,7 @@ import owl.ltl.Formula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
+import owl.translations.BlockingElements;
 
 public final class DeterministicConstructions {
 
@@ -364,7 +365,16 @@ public final class DeterministicConstructions {
         || !formula.operands.stream().allMatch(SyntacticFragments::isFgSafety)));
 
       var formulaClass = initialStateInternal(factories.eqFactory.of(formula));
-      var initialState = BreakpointStateAccepting.of(formulaClass, accepting(formulaClass));
+
+      BreakpointStateAccepting initialState;
+
+      if (BlockingElements.isBlockedBySafety(formulaClass)
+        || BlockingElements.isBlockedByCoSafety(formulaClass)) {
+        initialState = BreakpointStateAccepting.of(formulaClass, factories.eqFactory.of(false));
+      } else {
+        initialState = BreakpointStateAccepting.of(formulaClass, accepting(formulaClass));
+      }
+
       return new CoSafetySafety(factories, initialState);
     }
 
@@ -396,15 +406,15 @@ public final class DeterministicConstructions {
         return null;
       }
 
-      if (SyntacticFragments.isSafety(all)) {
-        return Edge.of(BreakpointStateAccepting.of(all, all));
+      if (BlockingElements.isBlockedBySafety(all)) {
+        return Edge.of(BreakpointStateAccepting.of(all, all.factory().of(false)));
       }
 
       // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
       assert !all.isTrue() && !accepting.isTrue() && !nextAccepting.isTrue();
 
-      if (SyntacticFragments.isCoSafety(all)) {
-        return Edge.of(BreakpointStateAccepting.of(all, all), 0);
+      if (BlockingElements.isBlockedByCoSafety(all)) {
+        return Edge.of(BreakpointStateAccepting.of(all, all.factory().of(false)), 0);
       }
 
       if (accepting.isFalse()) {
@@ -470,7 +480,16 @@ public final class DeterministicConstructions {
         || !formula.operands.stream().allMatch(SyntacticFragments::isGfCoSafety)));
 
       var formulaClass = initialStateInternal(factories.eqFactory.of(formula));
-      var initialState = BreakpointStateRejecting.of(formulaClass, rejecting(formulaClass));
+
+      BreakpointStateRejecting initialState;
+
+      if (BlockingElements.isBlockedBySafety(formulaClass)
+        || BlockingElements.isBlockedByCoSafety(formulaClass)) {
+        initialState = BreakpointStateRejecting.of(formulaClass, factories.eqFactory.of(true));
+      } else {
+        initialState = BreakpointStateRejecting.of(formulaClass, rejecting(formulaClass));
+      }
+
       return new SafetyCoSafety(factories, initialState);
     }
 
@@ -502,15 +521,15 @@ public final class DeterministicConstructions {
         return null;
       }
 
-      if (SyntacticFragments.isSafety(all)) {
-        return Edge.of(BreakpointStateRejecting.of(all, all), 0);
+      if (BlockingElements.isBlockedBySafety(all)) {
+        return Edge.of(BreakpointStateRejecting.of(all, all.factory().of(true)), 0);
       }
 
       // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
       assert !all.isTrue();
 
-      if (SyntacticFragments.isCoSafety(all)) {
-        return Edge.of(BreakpointStateRejecting.of(all, all));
+      if (BlockingElements.isBlockedByCoSafety(all)) {
+        return Edge.of(BreakpointStateRejecting.of(all, all.factory().of(true)));
       }
 
       if (rejecting.isTrue()) {
