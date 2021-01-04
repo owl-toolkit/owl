@@ -196,7 +196,7 @@ class HashMapAutomatonTest {
     );
 
     // Relabel (1)
-    automaton.updateEdges(automaton.states(), (state, oldEdge) -> oldEdge.withAcceptance(key -> 2));
+    automaton.updateEdges(automaton.states(), (state, oldEdge) -> oldEdge.mapAcceptance(key -> 2));
     automaton.trim();
 
     assertAll(

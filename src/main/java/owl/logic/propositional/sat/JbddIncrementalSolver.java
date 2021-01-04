@@ -116,7 +116,21 @@ public class JbddIncrementalSolver implements IncrementalSolver {
       return Optional.empty();
     }
 
-    return Optional.of(bdd.getSatisfyingAssignment(conjunction));
+    BitSet model = new BitSet();
+    int currentNode = conjunction;
+
+    while (currentNode != bdd.trueNode()) {
+      int highNode = bdd.high(currentNode);
+
+      if (highNode == bdd.falseNode()) {
+        currentNode = bdd.low(currentNode);
+      } else {
+        model.set(bdd.variable(currentNode));
+        currentNode = highNode;
+      }
+    }
+
+    return Optional.of(model);
   }
 
   private int clauseConjunction() {

@@ -123,12 +123,12 @@ public abstract class OwlModule<M extends OwlModule.Instance> {
       return this.transform((Automaton<Object, ?>) object);
     }
 
-    static <R> AutomatonTransformer of(Function<Automaton<Object, ?>, R> function) {
+    static <R> AutomatonTransformer of(Function<? super Automaton<Object, ?>, R> function) {
       return function::apply;
     }
 
     static <A extends OmegaAcceptance, R> AutomatonTransformer of(
-      Function<Automaton<Object, A>, R> function, Class<A> acceptanceBound) {
+      Function<? super Automaton<Object, A>, R> function, Class<A> acceptanceBound) {
       return object -> function.apply(OmegaAcceptanceCast.cast(object, acceptanceBound));
     }
   }
@@ -145,7 +145,7 @@ public abstract class OwlModule<M extends OwlModule.Instance> {
       return transform((LabelledFormula) object);
     }
 
-    static <R> LabelledFormulaTransformer of(Function<LabelledFormula, R> function) {
+    static <R> LabelledFormulaTransformer of(Function<? super LabelledFormula, R> function) {
       return function::apply;
     }
   }

@@ -79,9 +79,29 @@ public abstract class SccDecomposition<S> {
    * @return {@code true} if any strongly connected components of the graph match the provided
    *     predicate, otherwise {@code false}
    */
-  public boolean anySccMatches(Predicate<? super Set<S>> predicate) {
+  public boolean anyMatch(Predicate<? super Set<S>> predicate) {
     var tarjan = new Tarjan<>(successorFunction(), predicate);
     return initialStates().stream().anyMatch(tarjan::run);
+  }
+
+  /**
+   * Returns whether all strongly connected components match the provided predicate. May not
+   * evaluate the predicate on all strongly connected components if not necessary for determining
+   * the result. If the initial states are empty then {@code true} is returned and the predicate
+   * is not evaluated.
+   *
+   * <p>This method evaluates the <em>universal quantification</em> of the predicate over the
+   * strongly connected components (for all x P(x)).</p>
+   *
+   * @param predicate a <a href="package-summary.html#NonInterference">non-interfering</a>,
+   *                  <a href="package-summary.html#Statelessness">stateless</a>
+   *                  predicate to apply to strongly connected components of the graph
+   * @return {@code true} if all strongly connected components of the graph match the provided
+   *     predicate, otherwise {@code false}
+   */
+  public boolean allMatch(Predicate<? super Set<S>> predicate) {
+    // Early termination of tarjan::run does not allow second entry.
+    return !anyMatch(predicate.negate());
   }
 
   /**
@@ -177,6 +197,7 @@ public abstract class SccDecomposition<S> {
     var sccs = sccs();
 
     for (int i = 0, s = sccs.size(); i < s; i++) {
+      // Share a single value instance for all mappings.
       Integer iObject = i;
 
       for (S state : sccs.get(i)) {

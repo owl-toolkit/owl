@@ -243,7 +243,7 @@ public final class OmegaAcceptanceCast {
 
     if (size3.isPresent()) {
       return new CastedAutomaton<>(automaton, RabinAcceptance.of(size3.getAsInt()),
-      edge -> edge.withAcceptance(x -> mapping[x]));
+      edge -> edge.mapAcceptance(x -> mapping[x]));
     }
 
     return automaton;
@@ -255,7 +255,7 @@ public final class OmegaAcceptanceCast {
     int sets = acceptance.acceptanceSets();
     return new CastedAutomaton<>(automaton, acceptance,
     // Remove unused acceptance marks.
-    edge -> edge.withAcceptance(x -> x >= sets ? -1 : x));
+    edge -> edge.mapAcceptance(x -> x >= sets ? -1 : x));
   }
 
   public static <A extends OmegaAcceptance, B extends OmegaAcceptance> B

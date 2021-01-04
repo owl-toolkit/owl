@@ -1,5 +1,7 @@
+F (a R X a)
 F a & G F b
 G a | G F a
+G F a | F G a
 G ((! a) W b)
 G (a M (F b))
 G (a | G F a)

@@ -65,7 +65,7 @@ final class ParseUtil {
       .collect(Collectors.toList());
   }
 
-  static void printList(Collection<OwlModule<?>> settingsCollection,
+  static void printList(Collection<? extends OwlModule<?>> settingsCollection,
     @Nullable Type type, @Nullable String invalidName) {
     printGuarded(writer -> {
       if (invalidName == null) {

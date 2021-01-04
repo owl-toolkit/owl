@@ -211,7 +211,7 @@ public final class AcceptanceOptimizations {
 
     logger.log(Level.FINER, "Removing acceptance indices {0} on subset", indicesToRemove);
     IntUnaryOperator transformer = index -> indicesToRemove.get(index) ? -1 : index;
-    automaton.updateEdges(states, (state, edge) -> edge.withAcceptance(transformer));
+    automaton.updateEdges(states, (state, edge) -> edge.mapAcceptance(transformer));
     automaton.trim();
   }
 
@@ -236,7 +236,7 @@ public final class AcceptanceOptimizations {
     }
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
-    automaton.updateEdges((state, edge) -> edge.withAcceptance(remapping));
+    automaton.updateEdges((state, edge) -> edge.mapAcceptance(remapping));
     automaton.trim();
   }
 

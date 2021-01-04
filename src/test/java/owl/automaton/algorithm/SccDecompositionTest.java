@@ -51,7 +51,7 @@ class SccDecompositionTest {
   void testEmptyGraph() {
     var decomposition = SccDecomposition.of(Set.of(), FUNCTION_ASSERT_NOT_CALLED);
 
-    assertFalse(decomposition.anySccMatches(PREDICATE_ASSERT_NOT_CALLED));
+    assertFalse(decomposition.anyMatch(PREDICATE_ASSERT_NOT_CALLED));
     checkConsistency(decomposition,
       Set.of(),
       INT_PREDICATE_ASSERT_NOT_CALLED,
@@ -62,7 +62,7 @@ class SccDecompositionTest {
   void testSingletonGraph() {
     var decomposition = SccDecomposition.of(Set.of(0), x -> Set.of());
 
-    assertTrue(decomposition.anySccMatches(x -> true));
+    assertTrue(decomposition.anyMatch(x -> true));
     checkConsistency(decomposition, Set.of(0), x -> true, x -> true);
   }
 

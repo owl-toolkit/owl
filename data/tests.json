@@ -215,6 +215,19 @@
             ],
             "data": "M"
         },
+        "delag-to-parity": {
+            "tools": [
+                "to-parity",
+                "to-parity#stutter",
+                "to-parity#scc-analysis",
+                "to-parity#stutter,scc-analysis",
+                "to-parity#scc-analysis,scc-analysis-jump-to-bottom",
+                "to-parity#stutter,scc-analysis,scc-analysis-jump-to-bottom",
+                "to-parity-normalform#scc-analysis",
+                "to-parity-normalform#stutter,scc-analysis",
+                "to-parity-normalform#stutter,scc-analysis,scc-analysis-jump-to-bottom"
+            ]
+        },
         "rabinizer": {
             "tools": [
                 "ltl2dgra#asymmetric,disable-portfolio",

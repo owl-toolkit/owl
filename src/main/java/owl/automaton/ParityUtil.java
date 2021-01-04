@@ -118,7 +118,7 @@ public final class ParityUtil {
   public static <S> Automaton<S, ParityAcceptance> convert(Automaton<S, ParityAcceptance> automaton,
     Parity toParity, S sink) {
 
-    if (automaton.acceptance().parity().equals(toParity)) {
+    if (automaton.acceptance().parity() == toParity) {
       return automaton;
     }
 

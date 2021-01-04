@@ -201,7 +201,7 @@ public final class LanguageEmptiness {
       };
 
       return SccDecomposition.of(initialStates, automaton::successors)
-        .anySccMatches(acceptingScc);
+        .anyMatch(acceptingScc);
     }
   }
 
@@ -270,7 +270,7 @@ public final class LanguageEmptiness {
           var filteredSuccessorFunction = SuccessorFunction.filter(
             automaton, scc, edge -> !edge.inSet(pair.finSet()));
 
-          if (SccDecomposition.of(scc, filteredSuccessorFunction).anySccMatches(subScc -> {
+          if (SccDecomposition.of(scc, filteredSuccessorFunction).anyMatch(subScc -> {
             // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
             BitSet awaitedIndices = new BitSet();
             pair.forEachInfSet(awaitedIndices::set);
@@ -300,7 +300,7 @@ public final class LanguageEmptiness {
         return false;
       };
 
-      return SccDecomposition.of(initialStates, automaton::successors).anySccMatches(acceptingScc);
+      return SccDecomposition.of(initialStates, automaton::successors).anyMatch(acceptingScc);
     }
   }
 }

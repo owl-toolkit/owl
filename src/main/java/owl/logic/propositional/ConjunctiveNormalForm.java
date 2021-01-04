@@ -44,14 +44,18 @@ public class ConjunctiveNormalForm<V> {
    */
   public final ImmutableIntArray clauses;
   public final ImmutableBiMap<V, Integer> variableMapping;
+  public final int tsetinVariablesLowerBound; // inclusive
+  public final int tsetinVariablesUpperBound; // exclusive
 
   /**
    * Construct an equisatisfiable CNF-representation of the given formula.
    * @param formula the formula.
    */
   public ConjunctiveNormalForm(PropositionalFormula<V> formula) {
-    var temporaryMapping = new VariableMapping<>(formula);
+    var temporaryMapping = new VariableMappingBuilder<>(formula);
+    tsetinVariablesLowerBound = temporaryMapping.nextFreeVariable;
     clauses = encodeFormula(formula, temporaryMapping);
+    tsetinVariablesUpperBound = temporaryMapping.nextFreeVariable;
     variableMapping = temporaryMapping.variables;
   }
 
@@ -83,7 +87,7 @@ public class ConjunctiveNormalForm<V> {
   // Plaisted, D.A., Greenbaum, S.:
   // A structure-preserving clause form translation. J.Symb. Comput. 2(3), 293–304 (1986)
   private static <V> ImmutableIntArray encodeFormula(
-    PropositionalFormula<V> formula, VariableMapping<V> variableMapping) {
+    PropositionalFormula<V> formula, VariableMappingBuilder<V> variableMapping) {
 
     var nnfFormula = formula.nnf();
     var cnfBuilder = builder(4 * variableMapping.variables.size());
@@ -106,7 +110,7 @@ public class ConjunctiveNormalForm<V> {
 
   // Called T_1 in source material.
   private static <V> void encodeFormula(
-    PropositionalFormula<V> formula, VariableMapping<V> variableMapping, Builder cnf) {
+    PropositionalFormula<V> formula, VariableMappingBuilder<V> variableMapping, Builder cnf) {
 
     if (formula instanceof Variable || formula instanceof Negation) {
       return;
@@ -143,7 +147,7 @@ public class ConjunctiveNormalForm<V> {
     }
   }
 
-  private static class VariableMapping<V> {
+  private static class VariableMappingBuilder<V> {
 
     private final ImmutableBiMap<V, Integer> variables;
     private final Map<Conjunction<V>, Integer> tseitinConjunctionVariables = new HashMap<>();
@@ -151,7 +155,7 @@ public class ConjunctiveNormalForm<V> {
 
     private int nextFreeVariable;
 
-    private VariableMapping(PropositionalFormula<V> formula) {
+    private VariableMappingBuilder(PropositionalFormula<V> formula) {
       var variables = new HashMap<V, Integer>();
 
       // Assign [v1, v2, ..., vn] -> [1, 2, ... n]

@@ -19,6 +19,7 @@
 
 package owl.logic.propositional.sat;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
@@ -26,8 +27,14 @@ import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
+import com.google.common.collect.Sets;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
+import owl.collections.Collections3;
 
 class SolverTest {
 
@@ -78,6 +85,41 @@ class SolverTest {
     var model2b = Solver.model(Negation.of(formula2), engine);
     assertTrue(model2b.isPresent());
     assertFalse(formula2.evaluate(model2b.get()));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = Solver.Engine.class,
+    names = {"JBDD"})
+  void testMaximalModel(Solver.Engine engine) {
+    var formula = Conjunction.of(
+      Variable.of(1),
+      Disjunction.of(
+        Negation.of(Variable.of(1)),
+        Variable.of(2),
+        Variable.of(3)
+      ),
+      Disjunction.of(
+        Negation.of(Variable.of(2)),
+        Negation.of(Variable.of(3))
+      ),
+      Variable.of(4),
+      Negation.of(Variable.of(5)));
+
+    for (Set<Integer> upperBound : Sets.powerSet(Set.of(1, 2, 3, 4, 5, 6))) {
+      List<Set<Integer>> actualMaximalModels = Solver.maximalModels(formula, upperBound, engine);
+      List<Set<Integer>> expectedMaximalModels = new ArrayList<>();
+
+      for (Set<Integer> model : Sets.powerSet(upperBound)) {
+        if (formula.evaluate(model)) {
+          expectedMaximalModels.add(model);
+          expectedMaximalModels = Collections3
+            .maximalElements(expectedMaximalModels, (x, y) -> y.containsAll(x));
+        }
+      }
+
+      assertEquals(new HashSet<>(expectedMaximalModels), new HashSet<>(actualMaximalModels));
+    }
   }
 
   @ParameterizedTest
