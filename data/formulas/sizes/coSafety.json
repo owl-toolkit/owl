@@ -108,6 +108,17 @@
     "formula": "((a) W (b))"
   },
   {
+    "formula": "(a & F!a)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(a & ((b) R (a)))"
   },
   {
@@ -198,6 +209,9 @@
       "complete": false,
       "deterministic": true
     }
+  },
+  {
+    "formula": "(!a | Ga)"
   },
   {
     "formula": "((a & b) | (!a & !b))",

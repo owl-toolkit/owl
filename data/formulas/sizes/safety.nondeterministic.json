@@ -108,6 +108,9 @@
     }
   },
   {
+    "formula": "(a & F!a)"
+  },
+  {
     "formula": "(a & ((b) R (a)))",
     "properties": {
       "size": 3,
@@ -182,6 +185,17 @@
   },
   {
     "formula": "(a | ((b) U (a)))"
+  },
+  {
+    "formula": "(!a | Ga)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 2,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
+      "complete": false,
+      "deterministic": false
+    }
   },
   {
     "formula": "((a & b) | (!a & !b))",

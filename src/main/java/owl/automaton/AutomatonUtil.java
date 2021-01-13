@@ -159,7 +159,7 @@ public final class AutomatonUtil {
         break;
 
       default:
-        throw new AssertionError("Unreable.");
+        throw new AssertionError("Unreachable.");
     }
 
     return indices;

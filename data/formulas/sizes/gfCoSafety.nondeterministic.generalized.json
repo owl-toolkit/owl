@@ -36,6 +36,9 @@
     "formula": "((a) W (b))"
   },
   {
+    "formula": "(a & F!a)"
+  },
+  {
     "formula": "(a & ((b) R (a)))"
   },
   {
@@ -70,6 +73,9 @@
   },
   {
     "formula": "(a | ((b) U (a)))"
+  },
+  {
+    "formula": "(!a | Ga)"
   },
   {
     "formula": "((a & b) | (!a & !b))"

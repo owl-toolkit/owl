@@ -19,31 +19,32 @@
 
 package owl.automaton.edge;
 
+import com.google.auto.value.AutoValue;
 import java.util.BitSet;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.Collection;
 import java.util.PrimitiveIterator;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 import java.util.function.IntUnaryOperator;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
-import owl.collections.BitSet2;
 
 /**
- * This class (with specialised subclasses) represents edges of automata including their acceptance
- * membership.
+ * This class represents edges of automata including their acceptance membership.
  *
  * @param <S>
  *     The type of the (successor) state.
  */
+@AutoValue
 public abstract class Edge<S> {
 
-  final S successor;
+  /**
+   * Get the target state of the edge.
+   *
+   * @return The state the edge points to.
+   */
+  public abstract S successor();
 
-  Edge(S successor) {
-    this.successor = Objects.requireNonNull(successor);
-  }
+  public abstract Colours colours();
 
   /**
    * Creates an edge which belongs to no acceptance set.
@@ -56,7 +57,7 @@ public abstract class Edge<S> {
    * @return An edge leading to {@code successor} with no acceptance.
    */
   public static <S> Edge<S> of(S successor) {
-    return new EdgeSingleton<>(successor);
+    return of(successor, Colours.of());
   }
 
   /**
@@ -72,7 +73,7 @@ public abstract class Edge<S> {
    * @return An edge leading to {@code successor} with given acceptance.
    */
   public static <S> Edge<S> of(S successor, @Nonnegative int acceptance) {
-    return new EdgeSingleton<>(successor, acceptance);
+    return of(successor, Colours.of(acceptance));
   }
 
   /**
@@ -96,38 +97,48 @@ public abstract class Edge<S> {
       return of(successor, acceptance.nextSetBit(0));
     }
 
-    if (acceptance.length() <= Long.SIZE) {
-      return new EdgeLong<>(successor, acceptance);
-    }
-
-    return new EdgeGeneric<>(successor, BitSet2.copyOf(acceptance));
+    return of(successor, Colours.copyOf(acceptance));
   }
 
+  /**
+   * Creates an edge which belongs to the specified acceptance sets.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   * @param acceptance
+   *     The delegate sets this edge should belong to.
+   *
+   * @return An edge leading to {@code successor} with given acceptance.
+   */
+  public static <S> Edge<S> of(S successor, Collection<Integer> acceptance) {
+    return new AutoValue_Edge<>(successor, Colours.copyOf(acceptance));
+  }
 
   /**
    * An iterator containing all acceptance sets this edge is a member of in ascending order.
    *
    * @return An iterator with all acceptance sets of this edge.
    */
-  public abstract PrimitiveIterator.OfInt acceptanceSetIterator();
+  public PrimitiveIterator.OfInt acceptanceSetIterator() {
+    return colours().intIterator();
+  }
 
-  public abstract void forEachAcceptanceSet(IntConsumer action);
+  public void forEachAcceptanceSet(IntConsumer action) {
+    colours().forEach(action);
+  }
 
-  public abstract BitSet acceptanceSets();
-
-  /**
-   * Get the target state of the edge.
-   *
-   * @return The state the edge points to.
-   */
-  public final S successor() {
-    return successor;
+  public BitSet acceptanceSets() {
+    return colours().asBitSet();
   }
 
   /**
    * Returns whether this edge has any acceptance set.
    */
-  public abstract boolean hasAcceptanceSets();
+  public boolean hasAcceptanceSets() {
+    return !colours().isEmpty();
+  }
 
   /**
    * Test membership of this edge for a specific acceptance set.
@@ -137,26 +148,31 @@ public abstract class Edge<S> {
    *
    * @return True if this edge is a member, false otherwise.
    */
-  public abstract boolean inSet(@Nonnegative int i);
+  public boolean inSet(@Nonnegative int i) {
+    return colours().contains(i);
+  }
 
   /**
    * Returns the largest acceptance set this edge is a member of, or {@code -1} if none.
    */
-  public abstract int largestAcceptanceSet();
+  public int largestAcceptanceSet() {
+    return colours().last();
+  }
 
   /**
    * Returns the largest acceptance set this edge is a member of, or {@code Integer.MAX_VALUE} if
    * none.
    */
-  public abstract int smallestAcceptanceSet();
-
+  public int smallestAcceptanceSet() {
+    return colours().first();
+  }
 
   public Edge<S> withAcceptance(int i) {
-    return of(successor, i);
+    return of(successor(), i);
   }
 
   public Edge<S> withAcceptance(BitSet acceptance) {
-    return of(successor, acceptance);
+    return of(successor(), acceptance);
   }
 
   public Edge<S> mapAcceptance(IntUnaryOperator transformer) {
@@ -184,322 +200,23 @@ public abstract class Edge<S> {
     return withAcceptance(acceptanceSet);
   }
 
-  public final Edge<S> withoutAcceptance() {
-    return hasAcceptanceSets() ? new EdgeSingleton<>(successor) : this;
+  public Edge<S> withoutAcceptance() {
+    return hasAcceptanceSets() ? of(successor()) : this;
   }
 
   /**
    * Returns an edge which has the same acceptance but the given state as successor.
    */
-  public abstract <T> Edge<T> withSuccessor(T successor);
+  public <T> Edge<T> withSuccessor(T successor) {
+    return of(successor, colours());
+  }
 
-  public abstract <T> Edge<T> mapSuccessor(Function<? super S, ? extends T> mapper);
+  public <T> Edge<T> mapSuccessor(Function<? super S, ? extends T> mapper) {
+    return of(mapper.apply(successor()), colours());
+  }
 
   @Override
   public String toString() {
-    if (!hasAcceptanceSets()) {
-      return "-> " + successor + " {}";
-    }
-
-    var acceptanceSetIterator = acceptanceSetIterator();
-    var builder = new StringBuilder(10);
-    builder.append(acceptanceSetIterator.nextInt());
-    acceptanceSetIterator.forEachRemaining((int x) -> builder.append(", ").append(x));
-    return "-> " + successor + " {" + builder + '}';
-  }
-
-  private static final class EdgeGeneric<S> extends Edge<S> {
-    private final BitSet acceptance;
-
-    private EdgeGeneric(S successor, BitSet acceptance) {
-      super(successor);
-      assert acceptance.cardinality() > 1;
-      this.acceptance = Objects.requireNonNull(acceptance);
-    }
-
-    @Override
-    public PrimitiveIterator.OfInt acceptanceSetIterator() {
-      return acceptance.stream().iterator();
-    }
-
-    @Override
-    public void forEachAcceptanceSet(IntConsumer action) {
-      Objects.requireNonNull(action);
-      acceptance.stream().forEach(action);
-    }
-
-    @Override
-    public BitSet acceptanceSets() {
-      return (BitSet) acceptance.clone();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof Edge.EdgeGeneric)) {
-        // instanceof is false when o == null
-        return false;
-      }
-
-      EdgeGeneric<?> other = (EdgeGeneric<?>) o;
-      return successor.equals(other.successor) && acceptance.equals(other.acceptance);
-    }
-
-    @Override
-    public boolean hasAcceptanceSets() {
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      // Not using Objects.hash to avoid var-ags array instantiation
-      return 31 * acceptance.hashCode() + successor.hashCode();
-    }
-
-    @Override
-    public boolean inSet(@Nonnegative int i) {
-      return acceptance.get(i);
-    }
-
-    @Override
-    public int largestAcceptanceSet() {
-      return acceptance.length() - 1;
-    }
-
-    @Override
-    public int smallestAcceptanceSet() {
-      return acceptance.nextSetBit(0);
-    }
-
-    @Override
-    public <T> EdgeGeneric<T> withSuccessor(T successor) {
-      return new EdgeGeneric<>(successor, acceptance);
-    }
-
-    @Override
-    public <T> Edge<T> mapSuccessor(Function<? super S, ? extends T> successorMap) {
-      return new EdgeGeneric<>(successorMap.apply(successor), acceptance);
-    }
-  }
-
-  private static final class EdgeLong<S> extends Edge<S> {
-    private final long store;
-
-    private EdgeLong(S successor, long store) {
-      super(successor);
-      this.store = store;
-      assert this.store != 0;
-    }
-
-    private EdgeLong(S successor, BitSet bitSet) {
-      super(successor);
-      assert bitSet.length() <= Long.SIZE && bitSet.cardinality() > 1;
-      long store = 0L;
-      for (int i = 0; i < Long.SIZE; i++) {
-        if (bitSet.get(i)) {
-          store |= 1L << i;
-        }
-      }
-      this.store = store;
-      assert this.store != 0;
-    }
-
-    @Override
-    public PrimitiveIterator.OfInt acceptanceSetIterator() {
-      return new LongBitIterator(store);
-    }
-
-    @Override
-    public void forEachAcceptanceSet(IntConsumer action) {
-      Objects.requireNonNull(action);
-      acceptanceSetIterator().forEachRemaining(action);
-    }
-
-    @Override
-    public BitSet acceptanceSets() {
-      BitSet bitSet = new BitSet();
-      forEachAcceptanceSet(bitSet::set);
-      return bitSet;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof Edge.EdgeLong)) {
-        return false;
-      }
-
-      EdgeLong<?> other = (EdgeLong<?>) o;
-      return store == other.store && successor.equals(other.successor);
-    }
-
-    @Override
-    public boolean hasAcceptanceSets() {
-      return true;
-    }
-
-    @Override
-    public int hashCode() {
-      // Not using Objects.hash to avoid var-ags array instantiation
-      return 31 * (int) (store ^ (store >>> 32)) + successor.hashCode();
-    }
-
-    @Override
-    public boolean inSet(@Nonnegative int i) {
-      Objects.checkIndex(i, Integer.MAX_VALUE);
-      return i < Long.SIZE && ((store >>> i) & 1L) != 0L;
-    }
-
-    @Override
-    public int largestAcceptanceSet() {
-      return (Long.SIZE - 1) - Long.numberOfLeadingZeros(store);
-    }
-
-    @Override
-    public int smallestAcceptanceSet() {
-      return Long.numberOfTrailingZeros(store);
-    }
-
-    @Override
-    public <T> EdgeLong<T> withSuccessor(T successor) {
-      return new EdgeLong<>(successor, store);
-    }
-
-    @Override
-    public <T> Edge<T> mapSuccessor(Function<? super S, ? extends T> mapper) {
-      return new EdgeLong<>(mapper.apply(successor), store);
-    }
-
-    private static final class LongBitIterator implements PrimitiveIterator.OfInt {
-      private long store;
-
-      private LongBitIterator(long store) {
-        this.store = store;
-      }
-
-      @Override
-      public boolean hasNext() {
-        return store != 0;
-      }
-
-      @Override
-      public int nextInt() {
-        int i = Long.numberOfTrailingZeros(store);
-
-        if (i == 64) {
-          throw new NoSuchElementException();
-        }
-
-        store ^= 1L << i;
-        return i;
-      }
-    }
-  }
-
-  private static final class EdgeSingleton<S> extends Edge<S> {
-    private static final int EMPTY_ACCEPTANCE = -1;
-
-    private final int acceptance;
-
-    private EdgeSingleton(S successor) {
-      super(successor);
-      this.acceptance = EMPTY_ACCEPTANCE;
-    }
-
-    private EdgeSingleton(S successor, @Nonnegative int acceptance) {
-      super(successor);
-      Objects.checkIndex(acceptance, Integer.MAX_VALUE);
-      this.acceptance = acceptance;
-    }
-
-    @Override
-    public PrimitiveIterator.OfInt acceptanceSetIterator() {
-      return hasAcceptanceSets()
-        ? IntStream.of(acceptance).iterator()
-        : IntStream.empty().iterator();
-    }
-
-    @Override
-    public void forEachAcceptanceSet(IntConsumer action) {
-      Objects.requireNonNull(action);
-
-      if (hasAcceptanceSets()) {
-        action.accept(acceptance);
-      }
-    }
-
-    @Override
-    public BitSet acceptanceSets() {
-      return hasAcceptanceSets() ? BitSet2.of(acceptance) : BitSet2.of();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof Edge.EdgeSingleton)) {
-        // instanceof is false when o == null
-        return false;
-      }
-
-      EdgeSingleton<?> other = (EdgeSingleton<?>) o;
-      return acceptance == other.acceptance && successor.equals(other.successor);
-    }
-
-    @Override
-    public boolean hasAcceptanceSets() {
-      return acceptance != EMPTY_ACCEPTANCE;
-    }
-
-    @Override
-    public int hashCode() {
-      // Not using Objects.hash to avoid var-ags array instantiation
-      return 31 * (31 + successor.hashCode()) + acceptance;
-    }
-
-    @Override
-    public boolean inSet(@Nonnegative int i) {
-      Objects.checkIndex(i, Integer.MAX_VALUE);
-      return i == acceptance;
-    }
-
-    @Override
-    public int largestAcceptanceSet() {
-      return hasAcceptanceSets() ? acceptance : -1;
-    }
-
-    @Override
-    public int smallestAcceptanceSet() {
-      return hasAcceptanceSets() ? acceptance : Integer.MAX_VALUE;
-    }
-
-    @Override
-    public Edge<S> withAcceptance(int acceptance) {
-      Objects.checkIndex(acceptance, Integer.MAX_VALUE);
-      return this.acceptance == acceptance
-        ? this
-        : new EdgeSingleton<>(successor, acceptance);
-    }
-
-    @Override
-    public <T> EdgeSingleton<T> withSuccessor(T successor) {
-      return hasAcceptanceSets()
-        ? new EdgeSingleton<>(successor, acceptance)
-        : new EdgeSingleton<>(successor);
-    }
-
-    @Override
-    public <T> Edge<T> mapSuccessor(Function<? super S, ? extends T> mapper) {
-      return hasAcceptanceSets()
-        ? new EdgeSingleton<>(mapper.apply(successor), acceptance)
-        : new EdgeSingleton<>(mapper.apply(successor));
-    }
+    return "-> " + successor() + ' ' + colours();
   }
 }

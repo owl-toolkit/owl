@@ -24,7 +24,6 @@ import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Comparators;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -56,6 +55,7 @@ import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.AcceptanceTransformer;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
@@ -459,7 +459,7 @@ public final class ToParityTransformer {
       PropositionalFormula<Integer> alpha, PropositionalFormula<Integer> beta, boolean stutter) {
 
       Set<Integer> colours = alpha.variables();
-      ZielonkaTree root = ZielonkaTree.of(colours, alpha, beta);
+      ZielonkaTree root = ZielonkaTree.of(Colours.copyOf(colours), alpha, beta);
       boolean accepting = alpha.evaluate(root.colours());
       return new AutoValue_ToParityTransformer_ZielonkaTreeRoot(root, accepting, stutter);
     }
@@ -548,12 +548,12 @@ public final class ToParityTransformer {
   @AutoValue
   public abstract static class ZielonkaTree {
 
-    public abstract Set<Integer> colours();
+    public abstract Colours colours();
 
     public abstract List<ZielonkaTree> children();
 
     private static ZielonkaTree of(
-      Set<Integer> colours,
+      Colours colours,
       PropositionalFormula<Integer> alpha,
       PropositionalFormula<Integer> beta) {
 
@@ -561,10 +561,10 @@ public final class ToParityTransformer {
     }
 
     private static ZielonkaTree of(
-      Set<Integer> colours,
+      Colours colours,
       PropositionalFormula<Integer> alpha,
       PropositionalFormula<Integer> beta,
-      Map<Set<Integer>, ZielonkaTree> cache) {
+      Map<Colours, ZielonkaTree> cache) {
 
       var zielonkaTree = cache.get(colours);
 
@@ -573,21 +573,22 @@ public final class ToParityTransformer {
       }
 
       // Invert acceptance condition (alpha) in order to obtain alternation in tree.
-      var maximalModels = Solver.maximalModels(
-        Conjunction.of(alpha.evaluate(colours) ? Negation.of(alpha) : alpha, beta), colours);
-
       // Sort colour sets lexicographically. This ensures that we always compute
       // the same Zielonka tree for a given acceptance condition.
-      maximalModels.sort(Comparators.lexicographical(Integer::compare));
+      var maximalModels = Solver.maximalModels(
+        Conjunction.of(alpha.evaluate(colours) ? Negation.of(alpha) : alpha, beta), colours)
+        .stream()
+        .map(Colours::copyOf)
+        .sorted()
+        .toArray(Colours[]::new);
 
       var children = new ArrayList<ZielonkaTree>();
 
-      for (Set<Integer> childColours : maximalModels) {
+      for (Colours childColours : maximalModels) {
         children.add(of(childColours, alpha, beta, cache));
       }
 
-      zielonkaTree = new AutoValue_ToParityTransformer_ZielonkaTree(
-        Set.copyOf(colours), List.copyOf(children));
+      zielonkaTree = new AutoValue_ToParityTransformer_ZielonkaTree(colours, List.copyOf(children));
 
       cache.put(colours, zielonkaTree);
       return zielonkaTree;

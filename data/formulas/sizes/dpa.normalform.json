@@ -132,6 +132,17 @@
     }
   },
   {
+    "formula": "(a & F!a)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 4,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(a & ((b) R (a)))",
     "properties": {
       "size": 2,
@@ -259,6 +270,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 3,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(!a | Ga)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 4,
       "complete": false,
       "deterministic": true
     }
@@ -4919,7 +4941,7 @@
   {
     "formula": "(Ga & (GFb | GFc) & G(d | ((!d) U ((b | c)))))",
     "properties": {
-      "size": 4,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 6,
@@ -5359,7 +5381,7 @@
   {
     "formula": "(Fa | (FGb & FGc) | F(!d & ((d) R ((b & c)))))",
     "properties": {
-      "size": 5,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 6,
@@ -6151,7 +6173,7 @@
   {
     "formula": "((GFa | GFb) & GF(c & XXa))",
     "properties": {
-      "size": 4,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 5,
@@ -6338,7 +6360,7 @@
   {
     "formula": "((FGa & FGb) | FG(c | XXa))",
     "properties": {
-      "size": 4,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 5,
@@ -6921,7 +6943,7 @@
   {
     "formula": "((FGa | GFb | GFc) & G(b | d | G(a | XFc)))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 6,
@@ -7009,7 +7031,7 @@
   {
     "formula": "((FGa & FGb & GFc) | F(a & d & F(c & XGb)))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 6,
