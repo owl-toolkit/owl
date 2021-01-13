@@ -23,13 +23,15 @@ import static java.util.Objects.hash;
 import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.Preconditions;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LtlLanguageExpressible;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
-import owl.util.StringUtil;
 
 @SuppressWarnings("PMD.DataClass")
 public final class AsymmetricProductState implements LtlLanguageExpressible {
@@ -121,9 +123,15 @@ public final class AsymmetricProductState implements LtlLanguageExpressible {
 
   @Override
   public String toString() {
-    return evaluatedFixpoints + StringUtil.join(safety.isTrue() ? null : "GWR=" + safety,
+    String[] pieces = {
+      safety.isTrue() ? null : "GWR=" + safety,
       index == 0 ? null : "i=" + index,
       currentCoSafety.isTrue() ? null : "C=" + currentCoSafety,
-      nextCoSafety.isEmpty() ? null : "N=" + nextCoSafety);
+      nextCoSafety.isEmpty() ? null : "N=" + nextCoSafety
+    };
+
+    return evaluatedFixpoints + Arrays.stream(pieces)
+      .filter(Objects::nonNull)
+      .collect(Collectors.joining(", ", " [", "]"));
   }
 }

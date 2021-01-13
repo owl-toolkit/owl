@@ -109,6 +109,7 @@
             "flags": {
                 "asymmetric": "--asymmetric",
                 "symmetric": "--symmetric",
+                "normal-form": "--normal-form",
                 "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
@@ -126,6 +127,7 @@
             "flags": {
                 "asymmetric": "--asymmetric",
                 "symmetric": "--symmetric",
+                "normal-form": "--normal-form",
                 "disable-portfolio": "--disable-portfolio"
             },
             "pre": [
@@ -375,6 +377,18 @@
                 "simplify-ltl",
                 "delag",
                 "optimize-aut"
+            ]
+        },
+        "ltl2dpaZielonka": {
+            "type": "owl",
+            "input": "ltl",
+            "output": "hoa",
+            "name": "ltl2dpaZielonka",
+            "flags": {
+                "simple": "--simple"
+            },
+            "pre": [
+                "simplify-ltl"
             ]
         }
     },

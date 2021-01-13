@@ -40,7 +40,7 @@ public final class ParallelEvaluation {
   private ParallelEvaluation() {}
 
   @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
-  public static <T> List<T> evaluate(List<Supplier<Optional<T>>> suppliers) {
+  public static <T> List<T> evaluate(List<? extends Supplier<Optional<T>>> suppliers) {
     ExecutorService executorService = Executors.newCachedThreadPool();
     List<Future<Optional<T>>> futures = new ArrayList<>();
 
@@ -61,14 +61,12 @@ public final class ParallelEvaluation {
       }
     }
 
-    List<Runnable> runnables = executorService.shutdownNow();
-    assert runnables.isEmpty();
-
+    executorService.shutdownNow();
     return results;
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> takeSmallest(
-    List<Automaton<S, A>> automata) {
+    List<? extends Automaton<S, A>> automata) {
 
     if (automata.isEmpty()) {
       throw new NoSuchElementException();

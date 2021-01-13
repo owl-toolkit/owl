@@ -36,6 +36,9 @@
     "formula": "((a) W (b))"
   },
   {
+    "formula": "(a & F!a)"
+  },
+  {
     "formula": "(a & ((b) R (a)))"
   },
   {
@@ -70,6 +73,9 @@
   },
   {
     "formula": "(a | ((b) U (a)))"
+  },
+  {
+    "formula": "(!a | Ga)"
   },
   {
     "formula": "((a & b) | (!a & !b))"
@@ -242,6 +248,9 @@
     "formula": "(FGa & FGb)"
   },
   {
+    "formula": "(FGa & GFa)"
+  },
+  {
     "formula": "(FGa & GFb)"
   },
   {
@@ -409,6 +418,9 @@
       "complete": true,
       "deterministic": true
     }
+  },
+  {
+    "formula": "(FGa | GFa)"
   },
   {
     "formula": "(FGa | GFb)"
@@ -778,6 +790,9 @@
     "formula": "(GFa & FG(b | c))"
   },
   {
+    "formula": "(GFa & G(a | Xa))"
+  },
+  {
     "formula": "(GFa & G(a | Xb))"
   },
   {
@@ -917,6 +932,9 @@
   },
   {
     "formula": "(FGa | (GFb & GFc))"
+  },
+  {
+    "formula": "(FGa | F(a & Xa))"
   },
   {
     "formula": "(FGa | F(a & Xb))"

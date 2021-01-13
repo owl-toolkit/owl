@@ -31,38 +31,91 @@ import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
 
+/**
+ * Check if a language represented by an EquivalenceClass is "blocked". These checks are suitable
+ * for on-the-fly automata generation.
+ */
 public final class BlockingElements {
 
   private BlockingElements() {}
 
-  public static boolean isBlockedByCoSafety(EquivalenceClass clazz) {
-    if (SyntacticFragments.isCoSafety(clazz)
-      || extractBlockingCoSafetyFormulas(clazz).noneMatch(Set::isEmpty)) {
+  public static boolean isBlockedByCoSafety(EquivalenceClass state) {
+    assert state.equals(state.unfold());
+
+    if (SyntacticFragments.isCoSafety(state)) {
       return true;
     }
 
-    int classTemporalOperatorsSize = clazz.temporalOperators(true).size();
+    int stateAtomicPropositionsSize = state.atomicPropositions(true).cardinality();
+    int stateTemporalOperatorsSize = state.temporalOperators(true).size();
 
-    return clazz.temporalStepTree().flatValues().stream()
-      .allMatch(
-        x -> x.temporalOperators(true).size() < classTemporalOperatorsSize
-          || SyntacticFragments.isCoSafety(x)
-          || extractBlockingCoSafetyFormulas(x).noneMatch(Set::isEmpty));
+    for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
+
+      // The successor class belongs to different SCC, hence it is irrelevant.
+      if (detectSccChange(stateAtomicPropositionsSize, stateTemporalOperatorsSize, successor)) {
+        continue;
+      }
+
+      // The SCC might have more than one state, hence we cannot say for sure if it is blocked
+      // by a coSafety property.
+      if (!state.equals(successor) && !state.equals(successor.unfold())) {
+        return false;
+      }
+
+      // We found a potential non-blocking successor.
+      if (extractBlockingCoSafetyFormulas(successor).anyMatch(Set::isEmpty)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
-  public static boolean isBlockedBySafety(EquivalenceClass clazz) {
-    if (SyntacticFragments.isSafety(clazz)
-      || extractBlockingSafetyFormulas(clazz).noneMatch(Set::isEmpty)) {
+  public static boolean isBlockedBySafety(EquivalenceClass state) {
+    assert state.equals(state.unfold());
+
+    if (SyntacticFragments.isSafety(state)) {
       return true;
     }
 
-    int classTemporalOperatorsSize = clazz.temporalOperators(true).size();
+    int stateAtomicPropositionsSize = state.atomicPropositions(true).cardinality();
+    int stateTemporalOperatorsSize = state.temporalOperators(true).size();
 
-    return clazz.temporalStepTree().flatValues().stream()
-      .allMatch(
-        x -> x.temporalOperators(true).size() < classTemporalOperatorsSize
-          || SyntacticFragments.isSafety(x)
-          || extractBlockingSafetyFormulas(x).noneMatch(Set::isEmpty));
+    for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
+
+      // The successor class belongs to different SCC, hence it is irrelevant.
+      if (detectSccChange(stateAtomicPropositionsSize, stateTemporalOperatorsSize, successor)) {
+        continue;
+      }
+
+      // The SCC might have more than one state, hence we cannot say for sure if it is blocked
+      // by a safety property.
+      if (!state.equals(successor) && !state.equals(successor.unfold())) {
+        return false;
+      }
+
+      // We found a potential non-blocking successor.
+      if (extractBlockingSafetyFormulas(successor).anyMatch(Set::isEmpty)) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  public static boolean isBlockedByTransient(EquivalenceClass state) {
+    assert state.equals(state.unfold());
+
+    int stateAtomicPropositionsSize = state.atomicPropositions(true).cardinality();
+    int stateTemporalOperatorsSize = state.temporalOperators(true).size();
+
+    for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
+      if (!detectSccChange(stateAtomicPropositionsSize, stateTemporalOperatorsSize, successor)) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   public static Set<Formula.TemporalOperator> blockingCoSafetyFormulas(EquivalenceClass clazz) {
@@ -85,6 +138,13 @@ public final class BlockingElements {
       x.retainAll(y);
       return x;
     }).orElseThrow();
+  }
+
+  private static boolean detectSccChange(
+    int stateAtomicPropositionsSize, int stateTemporalOperatorsSize, EquivalenceClass successor) {
+
+    return successor.atomicPropositions(true).cardinality() < stateAtomicPropositionsSize
+      || successor.temporalOperators(true).size() < stateTemporalOperatorsSize;
   }
 
   private static Stream<Set<Formula.TemporalOperator>>

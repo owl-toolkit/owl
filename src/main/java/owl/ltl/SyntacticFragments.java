@@ -214,6 +214,10 @@ public final class SyntacticFragments {
       }
     }
 
+    public boolean contains(LabelledFormula formula) {
+      return contains(formula.formula());
+    }
+
     public FormulaClass leastUpperBound(FormulaClass that) {
       if (this.lessOrEquals(that)) {
         return that;

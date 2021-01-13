@@ -19,12 +19,13 @@
 
 package owl.translations.ltl2nba;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.ltl.Formula;
 import owl.translations.canonical.RoundRobinState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
-import owl.util.StringUtil;
 
 public final class ProductState {
 
@@ -73,7 +74,13 @@ public final class ProductState {
 
   @Override
   public String toString() {
-    return evaluatedFixpoints
-      + StringUtil.join("GWR=" + safety, liveness == null ? null : "FUM=" + liveness);
+    String[] pieces = {
+      "GWR=" + safety,
+      liveness == null ? null : "FUM=" + liveness
+    };
+
+    return evaluatedFixpoints + Arrays.stream(pieces)
+      .filter(Objects::nonNull)
+      .collect(Collectors.joining(", ", " [", "]"));
   }
 }

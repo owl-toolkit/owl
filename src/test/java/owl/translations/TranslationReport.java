@@ -65,6 +65,7 @@ import owl.ltl.visitors.LatexPrintVisitor;
 import owl.run.Environment;
 import owl.translations.ExternalTranslator.InputMode;
 import owl.translations.dra2dpa.IARBuilder;
+import owl.translations.ltl2dra.NormalformDRAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 import owl.translations.modules.LTL2DPAModule;
 import owl.translations.modules.LTL2LDBAModule;
@@ -75,6 +76,106 @@ import owl.util.Statistics;
 @SuppressWarnings("PMD")
 class TranslationReport {
   private static final LatexPrintVisitor PRINT_VISITOR = new LatexPrintVisitor(COMMON_ALPHABET);
+
+  @Tag("size-report")
+  @ParameterizedTest
+  @EnumSource(
+    value = FormulaSet.class,
+    names = {"DWYER", "PARAMETRISED"})
+  void generateLics20Comparison(FormulaSet set) throws IOException {
+    Function<LabelledFormula, Automaton<?, ?>> draSymmetric = (LabelledFormula formula) ->
+      AcceptanceOptimizations.optimize(
+        SymmetricDRAConstruction.of(Environment.standard(), RabinAcceptance.class, true)
+          .apply(formula));
+
+    var normalform =
+      NormalformDRAConstruction.of(Environment.standard(), RabinAcceptance.class, false);
+
+    int smaller = 0;
+    int SMALLER = 0;
+    int equal = 0;
+    int EQUAL = 0;
+    int larger = 0;
+    int LARGER = 0;
+    int completeCount = 0;
+
+    Set<LabelledFormula> seenFormulas = new HashSet<>();
+    List<Integer> draSizes = new ArrayList<>();
+    List<Integer> normalformSizes = new ArrayList<>();
+
+    for (LabelledFormula formula : set.loadAndDeduplicateFormulaSet()) {
+      if (seenFormulas.contains(formula) || seenFormulas.contains(formula.not())) {
+        continue;
+      }
+
+      completeCount = completeCount + 2;
+
+      int draSize = draSymmetric.apply(formula).size();
+      int normalformSize = normalform.apply(formula).size();
+
+      draSizes.add(draSize);
+      normalformSizes.add(normalformSize);
+
+      if (draSize > normalformSize) {
+        smaller++;
+        System.out.println("d: " + draSize + " n: " + normalformSize + " f: " + formula);
+      } else if (draSize < normalformSize) {
+        larger++;
+        System.out.println("d: " + draSize + " n: " + normalformSize + " f: " + formula);
+      } else {
+        equal++;
+      }
+
+
+
+      draSize = draSymmetric.apply(formula.not()).size();
+      normalformSize = normalform.apply(formula.not()).size();
+
+      draSizes.add(draSize);
+      normalformSizes.add(normalformSize);
+
+      if (draSize > normalformSize) {
+        smaller++;
+        System.out.println("d: " + draSize + " n: " + normalformSize + " f: " + formula.not());
+      } else if (draSize < normalformSize) {
+        larger++;
+        System.out.println("d: " + draSize + " n: " + normalformSize + " f: " + formula.not());
+      } else {
+        equal++;
+      }
+
+
+      seenFormulas.add(formula);
+      seenFormulas.add(formula.not());
+    }
+
+    System.out.println("geom dra:" + owl.util.Statistics.geometricMean(draSizes.stream().mapToInt(x -> x).toArray()));
+    System.out.println("geom norm:" + owl.util.Statistics.geometricMean(normalformSizes.stream().mapToInt(x -> x).toArray()));
+
+    List<Integer> differences = new ArrayList<>();
+    List<Double> percentages = new ArrayList<>();
+
+    for (int i = 0; i < draSizes.size(); i++) {
+      int dra = draSizes.get(i);
+      int norm = normalformSizes.get(i);
+
+      differences.add(Math.abs(dra - norm));
+
+      if (dra < norm) {
+        percentages.add(((double) norm / (double) dra) - 1.0d);
+      } else {
+        percentages.add(((double) dra / (double) norm) - 1.0d);
+      }
+    }
+
+    differences.sort(Comparator.<Integer>naturalOrder().reversed());
+    System.out.println(differences);
+
+    percentages.sort(Comparator.<Double>naturalOrder().reversed());
+    System.out.println(percentages);
+
+    System.out.println("s: " + smaller + " e: " + equal + " l: " + larger + " / c: " + completeCount);
+  }
 
   @Disabled
   @Tag("size-report")

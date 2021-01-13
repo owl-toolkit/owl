@@ -297,12 +297,16 @@ public final class HoaReader {
         case "rabin":
           // acc-name: Rabin 3
           // Acceptance: 6 (Fin(0)&Inf(1))|(Fin(2)&Inf(3))|(Fin(4)&Inf(5))
-          return RabinAcceptance.of(expression);
+          return RabinAcceptance.of(expression).orElseThrow(
+            () -> new IllegalArgumentException(
+              String.format("Rabin Acceptance (%s) not well-formed.", expression)));
 
         case "generalized-rabin":
           // acc-name: generalized-Rabin 2 3 2
           // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
-          return GeneralizedRabinAcceptance.of(expression);
+          return GeneralizedRabinAcceptance.of(expression).orElseThrow(
+            () -> new IllegalArgumentException(String.format(
+              "Generalized-Rabin Acceptance (%s) not well-formed.", expression)));
 
         case "streett":
           // acc-name: Streett 3

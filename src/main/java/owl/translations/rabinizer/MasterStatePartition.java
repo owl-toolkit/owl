@@ -72,10 +72,6 @@ final class MasterStatePartition {
       outgoingTransitionsBuilder.build());
   }
 
-  int partitionSize() {
-    return sccs.size();
-  }
-
   @Override
   public String toString() {
     StringBuilder builder = new StringBuilder(32 + (40 * transientStates.size())

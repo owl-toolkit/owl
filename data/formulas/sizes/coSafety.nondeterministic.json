@@ -108,6 +108,17 @@
     "formula": "((a) W (b))"
   },
   {
+    "formula": "(a & F!a)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(a & ((b) R (a)))"
   },
   {
@@ -198,6 +209,9 @@
       "complete": false,
       "deterministic": false
     }
+  },
+  {
+    "formula": "(!a | Ga)"
   },
   {
     "formula": "((a & b) | (!a & !b))",
@@ -514,6 +528,9 @@
     "formula": "(FGa & FGb)"
   },
   {
+    "formula": "(FGa & GFa)"
+  },
+  {
     "formula": "(FGa & GFb)"
   },
   {
@@ -705,6 +722,9 @@
   },
   {
     "formula": "(FGa | FGb)"
+  },
+  {
+    "formula": "(FGa | GFa)"
   },
   {
     "formula": "(FGa | GFb)"
@@ -1194,6 +1214,9 @@
     "formula": "(GFa & FG(b | c))"
   },
   {
+    "formula": "(GFa & G(a | Xa))"
+  },
+  {
     "formula": "(GFa & G(a | Xb))"
   },
   {
@@ -1333,6 +1356,9 @@
   },
   {
     "formula": "(FGa | (GFb & GFc))"
+  },
+  {
+    "formula": "(FGa | F(a & Xa))"
   },
   {
     "formula": "(FGa | F(a & Xb))"

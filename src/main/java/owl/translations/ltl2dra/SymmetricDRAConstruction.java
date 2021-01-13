@@ -55,11 +55,11 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
   implements Function<LabelledFormula, Automaton<SymmetricRankingState, R>> {
 
   private final boolean optimizeInitialState;
-  private final Class<? extends R> acceptanceClass;
+  private final Class<R> acceptanceClass;
   private final SymmetricLDBAConstruction<?> ldbaConstruction;
 
   private SymmetricDRAConstruction(
-    Environment environment, Class<? extends R> acceptanceClass, boolean optimizeInitialState) {
+    Environment environment, Class<R> acceptanceClass, boolean optimizeInitialState) {
     assert acceptanceClass.equals(GeneralizedRabinAcceptance.class)
       || acceptanceClass.equals(RabinAcceptance.class);
 
@@ -73,7 +73,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
   }
 
   public static <R extends GeneralizedRabinAcceptance> SymmetricDRAConstruction<R>
-    of(Environment environment, Class<? extends R> clazz, boolean optimizeInitialState) {
+    of(Environment environment, Class<R> clazz, boolean optimizeInitialState) {
     return new SymmetricDRAConstruction<>(environment, clazz, optimizeInitialState);
   }
 
@@ -149,7 +149,9 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
       @Nullable BitSet valuation) {
 
       for (EquivalenceClass clazz : successor.values()) {
-        if (BlockingElements.isBlockedBySafety(clazz)) {
+        if (BlockingElements.isBlockedByTransient(clazz)
+          || BlockingElements.isBlockedBySafety(clazz)) {
+
           if (safetyRabinPair.hasInfSet()) {
             BitSet acceptanceSets = new BitSet();
             safetyRabinPair.infSetStream().forEach(acceptanceSets::set);

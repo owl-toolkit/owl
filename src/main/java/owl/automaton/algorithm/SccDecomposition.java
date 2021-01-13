@@ -24,9 +24,11 @@ import static java.util.Collections.disjoint;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.Graphs;
 import com.google.common.graph.ImmutableGraph;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -37,8 +39,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
+import owl.automaton.Views;
+import owl.automaton.acceptance.BuchiAcceptance;
 
 /**
  * This class provides a decomposition into strongly connected components (SCCs) of a directed graph
@@ -55,13 +62,17 @@ public abstract class SccDecomposition<S> {
 
   protected abstract SuccessorFunction<S> successorFunction();
 
+  @Nullable
+  protected abstract Automaton<S, ?> automaton();
+
   public static <S> SccDecomposition<S> of(Automaton<S, ?> automaton) {
-    return of(automaton.initialStates(), automaton::successors);
+    return new AutoValue_SccDecomposition<>(
+      Set.copyOf(automaton.initialStates()), automaton::successors, automaton);
   }
 
   public static <S> SccDecomposition<S> of(
-    Set<S> initialStates, SuccessorFunction<S> successorFunction) {
-    return new AutoValue_SccDecomposition<>(Set.copyOf(initialStates), successorFunction);
+    Set<? extends S> initialStates, SuccessorFunction<S> successorFunction) {
+    return new AutoValue_SccDecomposition<>(Set.copyOf(initialStates), successorFunction, null);
   }
 
   /**
@@ -296,12 +307,128 @@ public abstract class SccDecomposition<S> {
    * @param scc a strongly connected component.
    * @return {@code true} if {@code scc} is transient, {@code false} otherwise.
    */
-  public boolean isTransientScc(Set<S> scc) {
+  public boolean isTransientScc(Set<? extends S> scc) {
     if (scc.size() > 1) {
       return false;
     }
 
     int index = index(Iterables.getOnlyElement(scc));
     return !condensation().hasEdgeConnecting(index, index);
+  }
+
+  /** reachability relation on states. */
+  public boolean pathExists(S source, S target) {
+    int sourceIndex = index(source);
+    int targetIndex = index(target);
+
+    if (sourceIndex < 0 || targetIndex < 0 || targetIndex < sourceIndex) {
+      return false;
+    }
+
+    // Both states are in the same SCC.
+    if (sourceIndex == targetIndex) {
+      // SCC is not transient.
+      return !transientSccs().contains(sourceIndex);
+    }
+
+    return Graphs.reachableNodes(condensation(), sourceIndex).contains(targetIndex);
+  }
+
+  private String sccToString(int i) {
+    return sccs().get(i).toString() + ':'
+      + (transientSccs().contains(i) ? "T" : "")
+      + (bottomSccs().contains(i) ? "B" : "")
+      + (deterministicSccs().contains(i) ? "D" : "")
+      + (rejectingSccs().contains(i) ? "R" : "")
+      + (acceptingSccs().contains(i) ? "A" : "");
+  }
+
+  @Override
+  public String toString() {
+    return IntStream.range(0, sccs().size())
+      .mapToObj(this::sccToString)
+      .collect(Collectors.joining(", ","[","]"));
+  }
+
+  /** deterministic SCCs. */
+  @Memoized
+  public Set<Integer> deterministicSccs() {
+    Preconditions.checkState(automaton() != null,
+      "This decomposition only has access to a graph and not an automaton.");
+
+    var deterministicSccs = new HashSet<Integer>();
+
+    for (int i = 0, s = sccs().size(); i < s; i++) {
+      Set<S> scc = sccs().get(i);
+
+      //restrict automaton to just the SCC and check for non-det states
+      Views.Filter<S> sccFilter = Views.Filter.<S>builder()
+        .initialStates(scc)
+        .stateFilter(scc::contains)
+        .build();
+
+      if (Views.filtered(automaton(), sccFilter).is(Automaton.Property.SEMI_DETERMINISTIC)) {
+        deterministicSccs.add(i);
+      }
+    }
+
+    return Set.of(deterministicSccs.toArray(Integer[]::new));
+  }
+
+  /** Weak accepting SCCs (non-trivial and only good cycles). Only BüchiAcceptance supported. */
+  @Memoized
+  public Set<Integer> acceptingSccs() {
+    Preconditions.checkState(automaton() != null,
+      "This decomposition only has access to a graph and not an automaton.");
+
+    var acceptingSccs = new HashSet<Integer>();
+
+    Preconditions.checkState(automaton().acceptance() instanceof BuchiAcceptance);
+
+    for (int i = 0, s = sccs().size(); i < s; i++) {
+      Set<S> scc = sccs().get(i);
+
+      //if all SCCs in SCC sub-aut. with only rejecting edges are trivial, there is no rej. loop
+      Views.Filter<S> justRej = Views.Filter.<S>builder()
+        .initialStates(scc).stateFilter(scc::contains)
+        .edgeFilter((state, e) -> !automaton().acceptance().isAcceptingEdge(e)).build();
+      final var rejSubAut = Views.filtered(automaton(), justRej);
+
+      final var sccScci = SccDecomposition.of(rejSubAut);
+      final var noRejLoops = sccScci.sccs().stream().allMatch(sccScci::isTransientScc);
+
+      //no bad lasso and not trivial (i.e. has some good + has only good cycles) -> weak accepting
+      if (noRejLoops && !transientSccs().contains(i)) {
+        acceptingSccs.add(i);
+      }
+    }
+
+    return Set.of(acceptingSccs.toArray(Integer[]::new));
+  }
+
+  /** Weak rejecting SCCs (trivial or only rejecting cycles). */
+  @Memoized
+  public Set<Integer> rejectingSccs() {
+    Preconditions.checkState(automaton() != null,
+      "This decomposition only has access to a graph and not an automaton.");
+
+    var rejectingSccs = new HashSet<Integer>();
+
+    for (int i = 0, s = sccs().size(); i < s; i++) {
+      Set<S> scc = sccs().get(i);
+
+      Views.Filter<S> sccFilter = Views.Filter.<S>builder()
+        .initialStates(scc)
+        .stateFilter(scc::contains)
+        .build();
+
+      if (LanguageEmptiness
+        .isEmpty(Views.filtered(automaton(), sccFilter), Set.of(scc.iterator().next()))) {
+
+        rejectingSccs.add(i);
+      }
+    }
+
+    return Set.of(rejectingSccs.toArray(Integer[]::new));
   }
 }

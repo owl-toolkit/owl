@@ -19,7 +19,9 @@
 
 package owl.automaton.acceptance;
 
+import com.google.common.base.Preconditions;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Optional;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -38,11 +40,13 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
     this(acceptance.acceptanceSets(), acceptance.booleanExpression());
   }
 
-  public EmersonLeiAcceptance(int sets, BooleanExpression<AtomAcceptance> expression) {
+  public EmersonLeiAcceptance(int sets, BooleanExpression<? extends AtomAcceptance> expression) {
     this(sets, BooleanExpressions.toPropositionalFormula(expression));
   }
 
   public EmersonLeiAcceptance(int sets, PropositionalFormula<Integer> expression) {
+    Preconditions.checkArgument(expression.variables().isEmpty()
+      || Collections.max(expression.variables()) < sets);
     this.expression = expression.nnf().normalise();
     this.sets = sets;
   }
@@ -70,5 +74,24 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   @Override
   public Optional<BitSet> rejectingSet() {
     return Solver.model(Negation.of(booleanExpression())).map(BitSet2::copyOf);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+
+    if (!(o instanceof EmersonLeiAcceptance)) {
+      return false;
+    }
+
+    EmersonLeiAcceptance that = (EmersonLeiAcceptance) o;
+    return sets == that.sets && expression.equals(that.expression);
+  }
+
+  @Override
+  public int hashCode() {
+    return 31 * expression.hashCode() + sets;
   }
 }

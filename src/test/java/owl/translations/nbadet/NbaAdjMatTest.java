@@ -36,7 +36,8 @@ public class NbaAdjMatTest {
 
   @Test
   void testAdjMat() throws ParseException {
-    var nba = AutomatonTestUtil.autFromString(NbaSccInfoTest.HOA_NBA_SCCS, BuchiAcceptance.class);
+    var nba = AutomatonTestUtil.autFromString(
+      AutomatonSccDecompositionTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
     var idmap = ImmutableBiMap.copyOf(Maps.asMap(nba.states(), st -> st));
 

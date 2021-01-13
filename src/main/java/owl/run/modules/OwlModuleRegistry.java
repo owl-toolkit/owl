@@ -41,6 +41,7 @@ import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
+import owl.translations.ltl2dpa.NormalformDPAConstruction;
 import owl.translations.modules.LTL2DAModule;
 import owl.translations.modules.LTL2DGRAModule;
 import owl.translations.modules.LTL2DPAModule;
@@ -103,7 +104,7 @@ public class OwlModuleRegistry {
       // -> D(G)RA
       LTL2DRAModule.MODULE, LTL2DGRAModule.MODULE,
       // -> DPA
-      LTL2DPAModule.MODULE,
+      LTL2DPAModule.MODULE, NormalformDPAConstruction.MODULE,
       // -> DELA
       LTL2DAModule.MODULE, DelagBuilder.MODULE,
       // -> NELA

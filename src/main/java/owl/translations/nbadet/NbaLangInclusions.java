@@ -20,13 +20,11 @@
 package owl.translations.nbadet;
 
 import com.google.common.collect.Sets;
-
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.simulations.BuchiSimulation;

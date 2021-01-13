@@ -36,6 +36,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
+import owl.automaton.acceptance.transformer.ToParityTransformer;
 import owl.automaton.edge.Edge;
 
 public final class LanguageEmptiness {
@@ -85,8 +86,10 @@ public final class LanguageEmptiness {
       return !Rabin.containsAcceptingScc(casted, initialStates);
     }
 
-    throw new UnsupportedOperationException(
-      String.format("Emptiness check for %s not yet implemented.", acceptance.getClass()));
+    // TODO: implement direct algorithm.
+    var transformedAutomaton
+      = ToParityTransformer.transform(automaton, true, false, false);
+    return isEmpty(transformedAutomaton);
   }
 
   private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,

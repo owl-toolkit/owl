@@ -19,20 +19,17 @@
 
 package owl.translations.nba2dpa;
 
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.CacheLoader;
-import com.google.common.cache.LoadingCache;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import owl.automaton.AbstractImmutableAutomaton;
@@ -42,11 +39,11 @@ import owl.automaton.BooleanOperations;
 import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.edge.Edge;
+import owl.collections.Pair;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -94,7 +91,7 @@ public final class NBA2DPA
     private final Automaton<S, BuchiAcceptance> nba;
     private final Set<S> initialComponent;
 
-    private final LoadingCache<Map.Entry<Set<S>, S>, Boolean> greaterOrEqualCache;
+    private final Map<Pair<Set<S>, S>, Boolean> greaterOrEqualCache;
 
     RankingAutomaton(
       AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<S, BuchiAcceptance> LDGBA,
@@ -102,18 +99,7 @@ public final class NBA2DPA
       super(LDGBA.automaton().factory(), Set.of(initialState), acceptance);
       nba = LDGBA.automaton();
       initialComponent = Set.copyOf(LDGBA.initialComponent());
-      greaterOrEqualCache = CacheBuilder.newBuilder().maximumSize(500_000)
-        .expireAfterAccess(60, TimeUnit.SECONDS)
-        .build(new CacheLoader<>() {
-          @Override
-          public Boolean load(Map.Entry<Set<S>, S> entry) {
-            return LanguageContainment.contains(
-                Views.filtered(nba, Views.Filter.of(Set.of(entry.getValue()))),
-              OmegaAcceptanceCast.cast(BooleanOperations.unionBuchi(entry.getKey().stream()
-                .map(x -> Views.filtered(nba, Views.Filter.of(Set.of(x))))
-                .collect(Collectors.toList())), BuchiAcceptance.class));
-          }
-        });
+      greaterOrEqualCache = new HashMap<>();
     }
 
     @Override
@@ -170,15 +156,21 @@ public final class NBA2DPA
     }
 
     private boolean languageContainedIn(S language2, List<S> language1) {
-      if (language1.contains(language2)) {
-        return true;
-      }
-
       if (language1.isEmpty()) {
         return false;
       }
 
-      return greaterOrEqualCache.getUnchecked(Map.entry(Set.copyOf(language1), language2));
+      if (language1.contains(language2)) {
+        return true;
+      }
+
+      return greaterOrEqualCache.computeIfAbsent(Pair.of(Set.copyOf(language1), language2), pair ->
+        LanguageContainment.contains(
+        Views.filtered(nba, Views.Filter.of(Set.of(pair.snd()))),
+        BooleanOperations.deterministicUnion(pair.fst().stream()
+          .map(x -> Views.filtered(nba, Views.Filter.of(Set.of(x))))
+          .collect(Collectors.toList())))
+      );
     }
 
     private Set<S> onlyInitialComponent(Set<S> states) {

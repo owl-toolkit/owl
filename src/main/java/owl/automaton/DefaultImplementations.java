@@ -36,7 +36,7 @@ final class DefaultImplementations {
     Set<S> exploredStates = new HashSet<>(automaton.initialStates());
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
     Set<BitSet> powerSet = BitSets.powerSet(automaton.factory().atomicPropositions().size());
-
+    
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();
       visitor.enter(state);

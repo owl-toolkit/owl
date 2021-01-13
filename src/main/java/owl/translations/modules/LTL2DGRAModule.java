@@ -19,8 +19,11 @@
 
 package owl.translations.modules;
 
+import static owl.translations.modules.AbstractLTL2DRAModule.parseTranslator;
+
 import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -36,6 +39,7 @@ import owl.run.modules.OwlModule.Transformer;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
+import owl.translations.ltl2dra.NormalformDRAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 import owl.translations.rabinizer.RabinizerBuilder;
 import owl.translations.rabinizer.RabinizerConfiguration;
@@ -48,11 +52,11 @@ public final class LTL2DGRAModule {
       + " an asymmetric construction, also known as the \"Rabinizer construction\".",
     AbstractLTL2DRAModule.options(),
     (commandLine, environment) -> {
-      RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
-      boolean useSymmetric = configuration == null;
+      var translator = parseTranslator(commandLine);
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
+      RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
       return OwlModule.LabelledFormulaTransformer
-        .of(translation(environment, useSymmetric, usePortfolio, configuration));
+        .of(translation(environment, translator, usePortfolio, configuration, true));
     });
 
   private LTL2DGRAModule() {}
@@ -66,19 +70,31 @@ public final class LTL2DGRAModule {
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 
-  public static Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>>
-    translation(Environment environment, boolean useSymmetric, boolean usePortfolio,
-    @Nullable RabinizerConfiguration configuration) {
+  public static Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>> translation(
+    Environment environment, AbstractLTL2DRAModule.Translation translation, boolean usePortfolio,
+    @Nullable RabinizerConfiguration configuration, boolean dual) {
 
-    Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>> construction;
+    Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>> translator;
 
-    if (useSymmetric) {
-      construction =
-        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)::apply;
-    } else {
-      assert configuration != null;
-      construction = labelledFormula ->
-        RabinizerBuilder.build(labelledFormula, environment, configuration);
+    switch (translation) {
+      case SYMMETRIC:
+        translator
+          = SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)::apply;
+        break;
+
+      case ASYMMETRIC:
+        translator = labelledFormula ->
+          RabinizerBuilder.build(
+            labelledFormula, environment, Objects.requireNonNull(configuration));
+        break;
+
+      case NORMAL_FORM:
+        translator
+          = NormalformDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, dual);
+        break;
+
+      default:
+        throw new AssertionError("Unreachable.");
     }
 
     DeterministicConstructionsPortfolio<GeneralizedRabinAcceptance> portfolio = usePortfolio
@@ -94,7 +110,7 @@ public final class LTL2DGRAModule {
         }
       }
 
-      return construction.apply(labelledFormula);
+      return translator.apply(labelledFormula);
     };
   }
 }

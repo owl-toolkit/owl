@@ -23,15 +23,19 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.edge.Edge;
+import owl.logic.propositional.PropositionalFormula;
 
 /**
  * This class represents a Rabin acceptance. It consists of multiple {@link
- * RabinAcceptance.RabinPair}s, which in turn basically comprise a (potentially lazily allocated)
- * <b>Fin</b> and <b>Inf</b> set. A Rabin pair is accepting, if it's <b>Inf</b> set is seen
+ * RabinAcceptance.RabinPair}s, which in turn basically comprise a
+ * <b>Fin</b> and <b>Inf</b> set. A Rabin pair is accepting, if its <b>Inf</b> set is seen
  * infinitely often <b>and</b> it's <b>Fin</b> set is seen finitely often. The corresponding Rabin
  * acceptance is accepting if <b>any</b> Rabin pair is accepting. Note that therefore a Rabin
  * acceptance without any pairs rejects every word.
@@ -63,43 +67,70 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
     return of(List.of(pairs));
   }
 
-  public static RabinAcceptance of(BooleanExpression<AtomAcceptance> expression) {
+  public static Optional<RabinAcceptance> of(BooleanExpression<AtomAcceptance> expression) {
+    return of(BooleanExpressions.toPropositionalFormula(expression));
+  }
+
+  public static Optional<RabinAcceptance> of(PropositionalFormula<Integer> formula) {
+    return of(formula, null);
+  }
+
+  public static Optional<RabinAcceptance> of(
+    PropositionalFormula<Integer> formula, @Nullable Map<Integer, Integer> mapping) {
+
     Builder builder = new Builder();
 
-    int setCount = 0;
-    for (BooleanExpression<AtomAcceptance> pair : BooleanExpressions.getDisjuncts(expression)) {
+    if (mapping != null) {
+      mapping.clear();
+    }
+
+    for (PropositionalFormula<Integer> pair : PropositionalFormula.disjuncts(formula)) {
       int fin = -1;
       int inf = -1;
 
-      for (BooleanExpression<AtomAcceptance> element : BooleanExpressions.getConjuncts(pair)) {
-        AtomAcceptance atom = element.getAtom();
+      for (PropositionalFormula<Integer> element : PropositionalFormula.conjuncts(pair)) {
 
-        switch (atom.getType()) {
-          case TEMPORAL_FIN:
-            checkArgument(fin == -1);
-            fin = atom.getAcceptanceSet();
-            checkArgument(fin == setCount);
-            setCount++;
-            break;
+        if (element instanceof PropositionalFormula.Variable) { //  TEMPORAL_INF
+          if (inf != -1) {
+            return Optional.empty();
+          }
 
-          case TEMPORAL_INF:
-            checkArgument(inf == -1);
-            inf = atom.getAcceptanceSet();
-            checkArgument(inf == setCount);
-            setCount++;
-            break;
+          inf = ((PropositionalFormula.Variable<Integer>) element).variable;
 
-          default:
-            throw new IllegalArgumentException("Rabin Acceptance not well-formed.");
+        } else if (element instanceof PropositionalFormula.Negation) { // TEMPORAL_FIN
+          if (fin != -1) {
+            return Optional.empty();
+          }
+
+          fin = ((PropositionalFormula.Variable<Integer>)
+            ((PropositionalFormula.Negation<Integer>) element).operand).variable;
+        } else {
+          return Optional.empty();
         }
       }
 
-      checkArgument(fin >= 0);
-      checkArgument(inf >= 0);
+      if (fin < 0 || inf < 0) {
+        return Optional.empty();
+      }
+
+      if (mapping == null && (builder.sets != fin || builder.sets + 1 != inf)) {
+        return Optional.empty();
+      }
+
+      if (mapping != null && (mapping.containsKey(fin) || mapping.containsKey(inf))) {
+        return Optional.empty();
+      }
+
+      // Record mapping.
+      if (mapping != null) {
+        mapping.put(fin, builder.sets);
+        mapping.put(inf, builder.sets + 1);
+      }
+
       builder.add();
     }
 
-    return builder.build();
+    return Optional.of(builder.build());
   }
 
   @Override

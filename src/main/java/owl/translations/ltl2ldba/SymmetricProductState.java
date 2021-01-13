@@ -19,7 +19,9 @@
 
 package owl.translations.ltl2ldba;
 
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
@@ -27,7 +29,6 @@ import owl.ltl.LtlLanguageExpressible;
 import owl.ltl.SyntacticFragments;
 import owl.translations.canonical.RoundRobinState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
-import owl.util.StringUtil;
 
 public final class SymmetricProductState implements LtlLanguageExpressible {
 
@@ -108,8 +109,13 @@ public final class SymmetricProductState implements LtlLanguageExpressible {
 
   @Override
   public String toString() {
-    return evaluatedFixpoints + StringUtil.join(
+    String[] pieces = {
       safety.isTrue() ? null : "GWR=" + safety,
-      liveness == null ? null : "FUM=" + liveness);
+      liveness == null ? null : "FUM=" + liveness
+    };
+
+    return evaluatedFixpoints + Arrays.stream(pieces)
+      .filter(Objects::nonNull)
+      .collect(Collectors.joining(", ", " [", "]"));
   }
 }

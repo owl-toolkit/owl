@@ -22,6 +22,7 @@ package owl.automaton.acceptance;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
@@ -63,7 +64,11 @@ public abstract class OmegaAcceptance {
    * Returns whether repeating these acceptance indices infinitely often would be accepting.
    */
   public boolean isAccepting(BitSet set) {
-    return booleanExpression().evaluate(BitSet2.asSet(set));
+    return isAccepting(BitSet2.asSet(set));
+  }
+
+  public boolean isAccepting(Set<Integer> set) {
+    return booleanExpression().evaluate(set);
   }
 
   /**

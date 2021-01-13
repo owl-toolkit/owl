@@ -25,13 +25,15 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -46,8 +48,6 @@ import owl.collections.ValuationTree;
 import owl.factories.EquivalenceClassFactory;
 import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
@@ -61,7 +61,7 @@ public final class DeterministicConstructions {
   private DeterministicConstructions() {}
 
   abstract static class Base<S, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<S, A> {
+    extends AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<S, A> {
 
     final EquivalenceClassFactory factory;
 
@@ -69,18 +69,6 @@ public final class DeterministicConstructions {
       super(factories.vsFactory, Set.of(initialState), acceptance);
       this.factory = factories.eqFactory;
     }
-
-    @Nullable
-    @Override
-    public abstract Edge<S> edge(S state, BitSet valuation);
-
-    @Override
-    public final Set<Edge<S>> edges(S state, BitSet valuation) {
-      return Collections3.ofNullable(edge(state, valuation));
-    }
-
-    @Override
-    public abstract ValuationTree<Edge<S>> edgeTree(S state);
 
     @Override
     public boolean is(Property property) {
@@ -106,7 +94,7 @@ public final class DeterministicConstructions {
     }
 
     static <T> ValuationTree<T> successorTreeInternal(EquivalenceClass clazz,
-      Function<EquivalenceClass, Set<T>> edgeFunction) {
+      Function<? super EquivalenceClass, ? extends Set<T>> edgeFunction) {
       return clazz.temporalStepTree(x -> edgeFunction.apply(x.unfold()));
     }
   }
@@ -121,14 +109,8 @@ public final class DeterministicConstructions {
       super(factories, initialStateInternal(factories.eqFactory.of(formula)), acceptance);
     }
 
-    @Nullable
     @Override
-    public final Edge<EquivalenceClass> edge(EquivalenceClass clazz, BitSet valuation) {
-      return buildEdge(successorInternal(clazz, valuation));
-    }
-
-    @Override
-    public final ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
+    public final ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
       return clazz.temporalStepTree(edgeMapper);
     }
 
@@ -190,17 +172,14 @@ public final class DeterministicConstructions {
       return factory.of(state).unfold();
     }
 
-    @Override
-    public Edge<EquivalenceClass> edge(EquivalenceClass clazz, BitSet valuation) {
-      return Edge.of(clazz.temporalStep(valuation).unfold());
-    }
+
 
     public ValuationTree<EquivalenceClass> successorTree(EquivalenceClass clazz) {
       return clazz.temporalStepTree(x -> Set.of(x.unfold()));
     }
 
     @Override
-    public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass clazz) {
+    public ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
       return clazz.temporalStepTree(x -> Set.of(Edge.of(x.unfold())));
     }
   }
@@ -322,18 +301,8 @@ public final class DeterministicConstructions {
       return Edge.of(fallbackInitialState, acceptance);
     }
 
-    @Nonnull
     @Override
-    public final Edge<RoundRobinState<EquivalenceClass>> edge(
-      RoundRobinState<EquivalenceClass> state, BitSet valuation) {
-      var successor = successorInternal(state.state(), valuation);
-      var initialStateSuccessors = initialStatesSuccessorTree.get(valuation);
-      return buildEdge(
-        state.index(), successor, initialStateSuccessors.iterator().next(), fallbackInitialState);
-    }
-
-    @Override
-    public final ValuationTree<Edge<RoundRobinState<EquivalenceClass>>> edgeTree(
+    public final ValuationTree<Edge<RoundRobinState<EquivalenceClass>>> edgeTreeImpl(
       RoundRobinState<EquivalenceClass> state) {
       var successorTree = successorTreeInternal(state.state());
       return cartesianProduct(successorTree, initialStatesSuccessorTree,
@@ -353,71 +322,70 @@ public final class DeterministicConstructions {
   public static final class CoSafetySafety
     extends Base<BreakpointStateAccepting, CoBuchiAcceptance> {
 
-    private CoSafetySafety(Factories factories, BreakpointStateAccepting initialState) {
+    private final SuspensionCheck suspensionCheck;
+
+    private CoSafetySafety(
+      Factories factories, BreakpointStateAccepting initialState, SuspensionCheck suspensionCheck) {
+
       super(factories, initialState, CoBuchiAcceptance.INSTANCE);
+      this.suspensionCheck = suspensionCheck;
     }
 
     public static CoSafetySafety of(Factories factories, Formula formula) {
-      Preconditions.checkArgument(SyntacticFragments.isCoSafetySafety(formula)
-        && !SyntacticFragments.isCoSafety(formula)
-        && !SyntacticFragments.isSafety(formula)
-        && (!(formula instanceof Disjunction)
-        || !formula.operands.stream().allMatch(SyntacticFragments::isFgSafety)));
+      Preconditions.checkArgument(SyntacticFragments.isCoSafetySafety(formula));
 
-      var formulaClass = initialStateInternal(factories.eqFactory.of(formula));
+      var formulaClass = factories.eqFactory.of(formula);
+      var blocking = new SuspensionCheck(formulaClass);
+      var initialStateClass = initialStateInternal(formulaClass);
 
       BreakpointStateAccepting initialState;
 
-      if (BlockingElements.isBlockedBySafety(formulaClass)
-        || BlockingElements.isBlockedByCoSafety(formulaClass)) {
-        initialState = BreakpointStateAccepting.of(formulaClass, factories.eqFactory.of(false));
+      if (blocking.isBlocked(initialStateClass)) {
+        initialState = BreakpointStateAccepting.of(initialStateClass);
       } else {
-        initialState = BreakpointStateAccepting.of(formulaClass, accepting(formulaClass));
+        initialState = BreakpointStateAccepting.of(initialStateClass, accepting(initialStateClass));
       }
 
-      return new CoSafetySafety(factories, initialState);
-    }
-
-    @Nullable
-    @Override
-    public Edge<BreakpointStateAccepting> edge(BreakpointStateAccepting state, BitSet valuation) {
-      return edge(
-        successorInternal(state.all(), valuation),
-        successorInternal(state.accepting(), valuation),
-        successorInternal(accepting(state.all()), valuation));
+      return new CoSafetySafety(factories, initialState, blocking);
     }
 
     @Override
-    public ValuationTree<Edge<BreakpointStateAccepting>> edgeTree(BreakpointStateAccepting state) {
+    public ValuationTree<Edge<BreakpointStateAccepting>>
+      edgeTreeImpl(BreakpointStateAccepting state) {
+
       return cartesianProduct(
         successorTreeInternal(state.all()),
         successorTreeInternal(state.accepting()),
         successorTreeInternal(accepting(state.all())),
-        CoSafetySafety::edge);
+        this::edge);
     }
 
     @Nullable
-    private static Edge<BreakpointStateAccepting> edge(
+    private Edge<BreakpointStateAccepting> edge(
       EquivalenceClass all, EquivalenceClass accepting, EquivalenceClass nextAccepting) {
-      // all over-approximates accepting and nextAccepting.
-      assert accepting.implies(all) && nextAccepting.implies(all);
+      // all over-approximates accepting or is suspended (true).
+      assert accepting.implies(all) || accepting.isTrue();
+
+      // all over-approximates nextAccepting.
+      assert nextAccepting.implies(all);
+
 
       if (all.isFalse()) {
         return null;
       }
 
-      if (BlockingElements.isBlockedBySafety(all)) {
-        return Edge.of(BreakpointStateAccepting.of(all, all.factory().of(false)));
+      if (suspensionCheck.isBlockedBySafety(all)) {
+        return Edge.of(BreakpointStateAccepting.of(all));
       }
 
       // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
-      assert !all.isTrue() && !accepting.isTrue() && !nextAccepting.isTrue();
+      assert !all.isTrue();
 
-      if (BlockingElements.isBlockedByCoSafety(all)) {
-        return Edge.of(BreakpointStateAccepting.of(all, all.factory().of(false)), 0);
+      if (suspensionCheck.isBlockedByCoSafety(all) || suspensionCheck.isBlockedByTransient(all)) {
+        return Edge.of(BreakpointStateAccepting.of(all), 0);
       }
 
-      if (accepting.isFalse()) {
+      if (accepting.isFalse() || accepting.isTrue()) {
         if (nextAccepting.isFalse()) {
           return Edge.of(BreakpointStateAccepting.of(all, accepting(all)), 0);
         }
@@ -459,77 +427,117 @@ public final class DeterministicConstructions {
 
     public abstract EquivalenceClass accepting();
 
+    public static BreakpointStateAccepting of(EquivalenceClass all) {
+      return new AutoValue_DeterministicConstructions_BreakpointStateAccepting(
+        all, all.factory().of(true));
+    }
+
     public static BreakpointStateAccepting of(EquivalenceClass all, EquivalenceClass accepting) {
+      if (all.isTrue()) {
+        Preconditions.checkArgument(accepting.isTrue());
+        return of(all);
+      }
+
       assert accepting.implies(all);
       return new AutoValue_DeterministicConstructions_BreakpointStateAccepting(all, accepting);
     }
+
+    public final BreakpointStateAccepting suspend() {
+      return accepting().isTrue() ? this : of(all());
+    }
+
+    @Override
+    public final String toString() {
+      return String.format("BreakpointStateAccepting{all=%s, accepting=%s}",
+        all(), accepting().isTrue() ? "[suspended]" : accepting());
+    }
   }
 
-  public static final class SafetyCoSafety
-    extends Base<BreakpointStateRejecting, BuchiAcceptance> {
+  public static final class SafetyCoSafety extends Base<BreakpointStateRejecting, BuchiAcceptance> {
 
-    private SafetyCoSafety(Factories factories, BreakpointStateRejecting initialState) {
+    public final SuspensionCheck suspensionCheck;
+    private final boolean complete;
+
+    private SafetyCoSafety(
+      Factories factories,
+      BreakpointStateRejecting initialState,
+      SuspensionCheck suspensionCheck,
+      boolean complete) {
+
       super(factories, initialState, BuchiAcceptance.INSTANCE);
+      this.suspensionCheck = suspensionCheck;
+      this.complete = complete;
     }
 
     public static SafetyCoSafety of(Factories factories, Formula formula) {
-      Preconditions.checkArgument(SyntacticFragments.isSafetyCoSafety(formula)
-        && !SyntacticFragments.isCoSafety(formula)
-        && !SyntacticFragments.isSafety(formula)
-        && (!(formula instanceof Conjunction)
-        || !formula.operands.stream().allMatch(SyntacticFragments::isGfCoSafety)));
+      return of(factories, formula, false, false);
+    }
 
-      var formulaClass = initialStateInternal(factories.eqFactory.of(formula));
+    public static SafetyCoSafety of(Factories factories, Formula formula, boolean complete,
+      boolean deactivateSuspensionCheckOnInitialFormula) {
+
+      Preconditions.checkArgument(SyntacticFragments.isSafetyCoSafety(formula));
+
+      var formulaClass = factories.eqFactory.of(formula);
+      var blocking = new SuspensionCheck(
+        deactivateSuspensionCheckOnInitialFormula ? factories.eqFactory.of(true) : formulaClass);
+      var initialStateClass = initialStateInternal(formulaClass);
 
       BreakpointStateRejecting initialState;
 
-      if (BlockingElements.isBlockedBySafety(formulaClass)
-        || BlockingElements.isBlockedByCoSafety(formulaClass)) {
-        initialState = BreakpointStateRejecting.of(formulaClass, factories.eqFactory.of(true));
+      if (blocking.isBlocked(initialStateClass)) {
+        initialState = BreakpointStateRejecting.of(initialStateClass);
       } else {
-        initialState = BreakpointStateRejecting.of(formulaClass, rejecting(formulaClass));
+        initialState = BreakpointStateRejecting.of(initialStateClass, rejecting(initialStateClass));
       }
 
-      return new SafetyCoSafety(factories, initialState);
+      return new SafetyCoSafety(factories, initialState, blocking, complete);
     }
 
-    @Nullable
-    @Override
-    public Edge<BreakpointStateRejecting> edge(BreakpointStateRejecting state, BitSet valuation) {
-      return edge(
-        successorInternal(state.all(), valuation),
-        successorInternal(state.rejecting(), valuation),
-        successorInternal(rejecting(state.all()), valuation));
+    public BreakpointStateRejecting asInitialState(Formula formula) {
+      var initialStateClass = initialStateInternal(factory.of(formula));
+
+      if (suspensionCheck.isBlocked(initialStateClass)) {
+        return BreakpointStateRejecting.of(initialStateClass);
+      } else {
+        return BreakpointStateRejecting.of(initialStateClass, rejecting(initialStateClass));
+      }
     }
 
     @Override
-    public ValuationTree<Edge<BreakpointStateRejecting>> edgeTree(BreakpointStateRejecting state) {
+    public ValuationTree<Edge<BreakpointStateRejecting>>
+      edgeTreeImpl(BreakpointStateRejecting state) {
+
       return cartesianProduct(
         successorTreeInternal(state.all()),
         successorTreeInternal(state.rejecting()),
         successorTreeInternal(rejecting(state.all())),
-        SafetyCoSafety::edge);
+        this::edge);
     }
 
     @Nullable
-    private static Edge<BreakpointStateRejecting> edge(
+    private Edge<BreakpointStateRejecting> edge(
       EquivalenceClass all, EquivalenceClass rejecting, EquivalenceClass nextRejecting) {
-      // all under-approximates rejecting and nextRejecting.
-      assert all.implies(rejecting) && all.implies(nextRejecting);
 
-      if (all.isFalse() || rejecting.isFalse() || nextRejecting.isFalse()) {
-        return null;
+      // all under-approximates rejecting or rejecting is set to false during suspension.
+      assert all.implies(rejecting) || rejecting.isFalse();
+
+      // all under-approximates nextRejecting.
+      assert all.implies(nextRejecting);
+
+      if (all.isFalse()) {
+        return complete ? Edge.of(BreakpointStateRejecting.of(all)) : null;
       }
 
-      if (BlockingElements.isBlockedBySafety(all)) {
-        return Edge.of(BreakpointStateRejecting.of(all, all.factory().of(true)), 0);
+      if (suspensionCheck.isBlockedBySafety(all)) {
+        return Edge.of(BreakpointStateRejecting.of(all), 0);
       }
 
-      // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
+      // `true` satisfies `SyntacticFragments.isSafety(all)` and thus `all` cannot be true.
       assert !all.isTrue();
 
-      if (BlockingElements.isBlockedByCoSafety(all)) {
-        return Edge.of(BreakpointStateRejecting.of(all, all.factory().of(true)));
+      if (suspensionCheck.isBlockedByTransient(all) || suspensionCheck.isBlockedByCoSafety(all)) {
+        return Edge.of(BreakpointStateRejecting.of(all));
       }
 
       if (rejecting.isTrue()) {
@@ -538,6 +546,15 @@ public final class DeterministicConstructions {
         }
 
         return Edge.of(BreakpointStateRejecting.of(all, nextRejecting), 0);
+      }
+
+      // we have been suspended, re-activate.
+      if (rejecting.isFalse()) {
+        if (nextRejecting.isTrue()) {
+          return Edge.of(BreakpointStateRejecting.of(all, rejecting(all)));
+        }
+
+        return Edge.of(BreakpointStateRejecting.of(all, nextRejecting));
       }
 
       return Edge.of(BreakpointStateRejecting.of(all, rejecting));
@@ -574,9 +591,69 @@ public final class DeterministicConstructions {
 
     public abstract EquivalenceClass rejecting();
 
+    public static BreakpointStateRejecting of(EquivalenceClass all) {
+      return new AutoValue_DeterministicConstructions_BreakpointStateRejecting(
+        all, all.factory().of(false));
+    }
+
     public static BreakpointStateRejecting of(EquivalenceClass all, EquivalenceClass rejecting) {
+      if (all.isFalse()) {
+        Preconditions.checkArgument(rejecting.isFalse());
+        return of(all);
+      }
+
       assert all.implies(rejecting);
       return new AutoValue_DeterministicConstructions_BreakpointStateRejecting(all, rejecting);
+    }
+
+    public final boolean isSuspended() {
+      return rejecting().isFalse();
+    }
+
+    public final BreakpointStateRejecting suspend() {
+      return rejecting().isFalse() ? this : of(all());
+    }
+
+    @Override
+    public final String toString() {
+      return String.format("BreakpointStateRejecting{all=%s, rejecting=%s}",
+        all(), isSuspended() ? "[suspended]" : rejecting());
+    }
+  }
+
+  public static final class SuspensionCheck {
+
+    private final Set<Formula.TemporalOperator> blockingCoSafety;
+    private final Set<Formula.TemporalOperator> blockingSafety;
+    private final Map<EquivalenceClass, Boolean> transientBlocked = new HashMap<>();
+    private final Map<EquivalenceClass, Boolean> safetyBlocked = new HashMap<>();
+    private final Map<EquivalenceClass, Boolean> coSafetyBlocked = new HashMap<>();
+
+    private SuspensionCheck(EquivalenceClass formulaClass) {
+      blockingCoSafety = Set.copyOf(BlockingElements.blockingCoSafetyFormulas(formulaClass));
+      blockingSafety = Set.copyOf(BlockingElements.blockingSafetyFormulas(formulaClass));
+    }
+
+    public boolean isBlocked(EquivalenceClass clazz) {
+      return isBlockedByCoSafety(clazz)
+        || isBlockedBySafety(clazz)
+        || isBlockedByTransient(clazz);
+    }
+
+    public boolean isBlockedByCoSafety(EquivalenceClass clazz) {
+      return coSafetyBlocked.computeIfAbsent(clazz,
+        x -> !Collections.disjoint(x.temporalOperators(true), blockingCoSafety)
+          || BlockingElements.isBlockedByCoSafety(x));
+    }
+
+    public boolean isBlockedBySafety(EquivalenceClass clazz) {
+      return safetyBlocked.computeIfAbsent(clazz,
+        x -> !Collections.disjoint(x.temporalOperators(true), blockingSafety)
+          || BlockingElements.isBlockedBySafety(x));
+    }
+
+    public boolean isBlockedByTransient(EquivalenceClass clazz) {
+      return transientBlocked.computeIfAbsent(clazz, BlockingElements::isBlockedByTransient);
     }
   }
 }

@@ -21,7 +21,6 @@ package owl.automaton;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
-
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -31,7 +30,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.IntConsumer;
-
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
@@ -161,7 +159,7 @@ public final class AutomatonUtil {
         break;
 
       default:
-        throw new AssertionError("Unreable.");
+        throw new AssertionError("Unreachable.");
     }
 
     return indices;

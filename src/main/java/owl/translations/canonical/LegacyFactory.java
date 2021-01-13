@@ -20,8 +20,6 @@
 package owl.translations.canonical;
 
 import java.util.BitSet;
-import java.util.Set;
-import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.ValuationTree;
@@ -40,19 +38,12 @@ public final class LegacyFactory
     super(factories, factories.eqFactory.of(BooleanConstant.TRUE), AllAcceptance.INSTANCE);
   }
 
-  @Nullable
   @Override
-  public Edge<EquivalenceClass> edge(EquivalenceClass state, BitSet valuation) {
-    var successor = successorInternal(state, valuation);
-    return successor.isFalse() ? null : Edge.of(successor);
+  public ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass state) {
+    throw new UnsupportedOperationException();
   }
 
-  @Override
-  public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
-    return successorTreeInternal(state, x -> x.isFalse() ? Set.of() : Set.of(Edge.of(x)));
-  }
-
-  public EquivalenceClass successor(EquivalenceClass clazz, BitSet valuation,
+  public EquivalenceClass successorInternal(EquivalenceClass clazz, BitSet valuation,
     EquivalenceClass environment) {
     EquivalenceClass state = successorInternal(clazz, valuation);
     return environment.implies(state) ? factory.of(BooleanConstant.TRUE) : state;

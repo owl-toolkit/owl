@@ -19,15 +19,10 @@
 
 package owl.automaton.acceptance;
 
-import static owl.logic.propositional.PropositionalFormula.Negation;
-import static owl.logic.propositional.PropositionalFormula.Variable;
-import static owl.logic.propositional.PropositionalFormula.conjuncts;
-
-import java.util.Arrays;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -42,6 +37,7 @@ import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.factories.ValuationSetFactory;
 import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.sat.Solver;
 
 /**
  * This class provides functionality to cast an automaton to an automaton with a more generic
@@ -109,7 +105,8 @@ public final class OmegaAcceptanceCast {
     );
 
     CO_BUCHI_CAST_MAP = Map.of(
-      GeneralizedRabinAcceptance.class, x -> GeneralizedRabinAcceptance.of(x.booleanExpression()),
+      GeneralizedRabinAcceptance.class,
+      x -> GeneralizedRabinAcceptance.of(x.booleanExpression()).orElseThrow(),
       ParityAcceptance.class, x -> new ParityAcceptance(2, ParityAcceptance.Parity.MIN_ODD),
       RabinAcceptance.class, x -> RabinAcceptance.of(1)
     );
@@ -209,13 +206,12 @@ public final class OmegaAcceptanceCast {
   public static <S> Automaton<S, ?> castHeuristically(Automaton<S, ?> automaton) {
     var formula = automaton.acceptance().booleanExpression().nnf().normalise();
 
-    if (formula.isFalse()) {
+    if (Solver.model(formula).isEmpty()) {
       return EmptyAutomaton.of(automaton.factory(), AllAcceptance.INSTANCE);
     }
 
-    var allAcceptance = AllAcceptance.of(formula);
-    if (allAcceptance.isPresent()) {
-      return castHeuristically(automaton, allAcceptance.get());
+    if (Solver.model(PropositionalFormula.Negation.of(formula)).isEmpty()) {
+      return castHeuristically(automaton, AllAcceptance.INSTANCE);
     }
 
     var buchiAcceptance = BuchiAcceptance.of(formula);
@@ -238,12 +234,16 @@ public final class OmegaAcceptanceCast {
       return castHeuristically(automaton, generalizedCoBuchiAcceptance.get());
     }
 
-    var mapping = new int[automaton.acceptance().acceptanceSets()];
-    var size3 = detectRabin(formula, mapping);
+    var mapping = new HashMap<Integer, Integer>();
+    var rabinAcceptance = RabinAcceptance.of(formula, mapping);
+    if (rabinAcceptance.isPresent()) {
+      return new CastedAutomaton<>(
+        automaton, rabinAcceptance.get(), edge -> edge.mapAcceptance(mapping::get));
+    }
 
-    if (size3.isPresent()) {
-      return new CastedAutomaton<>(automaton, RabinAcceptance.of(size3.getAsInt()),
-      edge -> edge.mapAcceptance(x -> mapping[x]));
+    var generalizedRabinAcceptance = GeneralizedRabinAcceptance.of(formula);
+    if (generalizedRabinAcceptance.isPresent()) {
+      return castHeuristically(automaton, generalizedRabinAcceptance.get());
     }
 
     return automaton;
@@ -361,70 +361,6 @@ public final class OmegaAcceptanceCast {
     }
 
     return Map.of();
-  }
-
-  private static OptionalInt detectRabinPair(PropositionalFormula<Integer> expression,
-    int[] mapping, int base) {
-
-    int infIndex = -1;
-    int finIndex = -1;
-
-    for (var conjunct : conjuncts(expression)) {
-      // TEMPORAL_FIN
-      if (conjunct instanceof Negation) {
-        var negatedOperand = ((Negation<Integer>) conjunct).operand;
-
-        if (finIndex >= 0 || !(negatedOperand instanceof Variable)) {
-          return OptionalInt.empty();
-        }
-
-        finIndex = ((Variable<Integer>) negatedOperand).variable;
-      } else if (conjunct instanceof Variable) {
-        if (infIndex >= 0) {
-          return OptionalInt.empty();
-        }
-
-        infIndex = ((Variable<Integer>) conjunct).variable;
-      } else {
-        return OptionalInt.empty();
-      }
-    }
-
-    if (finIndex >= 0 && infIndex >= 0) {
-      if (mapping[finIndex] >= 0) {
-        return OptionalInt.empty();
-      }
-
-      mapping[finIndex] = base;
-
-      if (mapping[infIndex] >= 0) {
-        return OptionalInt.empty();
-      }
-
-      mapping[infIndex] = base + 1;
-      return OptionalInt.of(2);
-    }
-
-    return OptionalInt.empty();
-  }
-
-  private static OptionalInt detectRabin(PropositionalFormula<Integer> expression, int[] mapping) {
-
-    Arrays.fill(mapping, -1);
-    int base = 0;
-    var disjuncts = PropositionalFormula.disjuncts(expression);
-
-    for (var disjunct : disjuncts) {
-      var offset = detectRabinPair(disjunct, mapping, base);
-
-      if (offset.isPresent()) {
-        base += offset.getAsInt();
-      } else {
-        return OptionalInt.empty();
-      }
-    }
-
-    return OptionalInt.of(disjuncts.size());
   }
 
   private static class CastedAutomaton<S, A extends OmegaAcceptance, B extends OmegaAcceptance>

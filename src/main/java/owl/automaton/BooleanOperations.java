@@ -21,7 +21,6 @@ package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.Automaton.Property.COMPLETE;
-import static owl.automaton.Automaton.Property.DETERMINISTIC;
 import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Variable;
@@ -41,6 +40,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
@@ -60,63 +60,13 @@ import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Disjunction;
 
 /**
- * This class provides standard boolean operations (union, intersection) on automata. The returned
- * automata are live-views and are constructed on-the-fly.
+ * This class provides standard boolean operations (union, intersection, complementation) on
+ * automata. The returned automata are constructed on-the-fly and it assumed that the
+ * underlying automata are not changed during the lifetime of the returned objects.
  */
 public final class BooleanOperations {
 
   private BooleanOperations() {}
-
-  // TODO: Migrate to deterministicUnion + Inf set simplifications.
-  @Deprecated
-  public static <S> Automaton<List<S>, BuchiAcceptance> unionBuchi(
-    List<Automaton<S, BuchiAcceptance>> automata) {
-    checkArgument(!automata.isEmpty(), "No automaton was passed.");
-    assert automata.stream().allMatch(x -> x.is(DETERMINISTIC));
-
-    ValuationSetFactory factory = commonAlphabet(
-      automata.stream().map(Automaton::factory).collect(Collectors.toList()), true).fst();
-    List<Automaton<S, ? extends GeneralizedBuchiAcceptance>> buchi = new ArrayList<>(automata);
-
-    return new SemiDeterministicEdgesAutomaton<>(factory,
-      Set.of(buchi.stream()
-        .map(Automaton::onlyInitialState)
-        .collect(Collectors.toUnmodifiableList())), BuchiAcceptance.INSTANCE) {
-
-      @Override
-      public Edge<List<S>> edge(List<S> productState, BitSet valuation) {
-        var productSuccessor = new ArrayList<S>(productState.size());
-        BitSet acceptanceSets = new BitSet();
-
-        for (int i = 0; i < productState.size(); i++) {
-          S state = productState.get(i);
-
-          if (state == null) {
-            productSuccessor.add(null);
-            continue;
-          }
-
-          var edge = buchi.get(i).edge(state, valuation);
-
-          if (edge == null) {
-            productSuccessor.add(null);
-            continue;
-          }
-
-          productSuccessor.add(edge.successor());
-
-          assert edge.largestAcceptanceSet() <= 0;
-
-          if (edge.hasAcceptanceSets()) {
-            acceptanceSets.set(0);
-          }
-        }
-
-        productSuccessor.trimToSize();
-        return Edge.of(Collections.unmodifiableList(productSuccessor), acceptanceSets);
-      }
-    };
-  }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> deterministicComplement(
     Automaton<S, ?> automaton,
@@ -149,6 +99,10 @@ public final class BooleanOperations {
     } else if (acceptance instanceof ParityAcceptance) {
       checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
       complementAcceptance = ((ParityAcceptance) automaton.acceptance()).complement();
+    } else if (isInstanceOf(EmersonLeiAcceptance.class, expectedAcceptance)) {
+      complementAcceptance = new EmersonLeiAcceptance(
+        acceptance.acceptanceSets(),
+        PropositionalFormula.Negation.of(acceptance.booleanExpression()));
     }
 
     if (complementAcceptance == null) {
@@ -177,14 +131,17 @@ public final class BooleanOperations {
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
 
-  public static <S> Automaton<List<S>, ?> intersection(List<Automaton<S, ?>> automata) {
+  public static <S, A extends OmegaAcceptance> Automaton<List<S>, ?>
+    intersection(List<? extends Automaton<S, ?>> automata) {
+
     return intersection(automata, false);
   }
 
   public static <S> Automaton<List<S>, ?>
-    intersection(List<Automaton<S, ?>> automata, boolean ignoreSymbolicFactoryMismatch) {
+    intersection(List<? extends Automaton<S, ?>> automata,
+      boolean ignoreSymbolicFactoryMismatch) {
 
-    checkArgument(!automata.isEmpty(), "Automata is empty.");
+    checkArgument(!automata.isEmpty(), "List of automata is empty.");
     var factory = commonAlphabet(automata, ignoreSymbolicFactoryMismatch);
     var intersection = new ListIntersectionAutomaton<>(automata, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
@@ -198,35 +155,84 @@ public final class BooleanOperations {
 
   public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
     deterministicUnion(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2,
-    boolean ignoreSymbolicFactoryMismatch) {
+      boolean ignoreSymbolicFactoryMismatch) {
 
     var factory = commonAlphabet(
       List.of(automaton1.factory(), automaton2.factory()),
       ignoreSymbolicFactoryMismatch);
 
-    var union = new NullablePairDeterministicUnionAutomaton<>(automaton1, automaton2, factory);
+    Automaton<S1, ?> normalizedAutomaton1;
+    Automaton<S2, ?> normalizedAutomaton2;
+
+    // If all runs on automaton1 are accepting, transform to BuchiAcceptance to have access
+    // to an rejecting acceptance set.
+    if (automaton1.acceptance().rejectingSet().isEmpty()) {
+      Automaton<S1, AllAcceptance> castedAutomaton = OmegaAcceptanceCast.cast(
+        OmegaAcceptanceCast.castHeuristically(automaton1), AllAcceptance.class);
+      normalizedAutomaton1 = OmegaAcceptanceCast.cast(castedAutomaton, BuchiAcceptance.class);
+    } else {
+      normalizedAutomaton1 = automaton1;
+    }
+
+    // If all runs on automaton2 are accepting, transform to BuchiAcceptance to have access
+    // to an rejecting acceptance set.
+    if (automaton2.acceptance().rejectingSet().isEmpty()) {
+      Automaton<S2, AllAcceptance> castedAutomaton = OmegaAcceptanceCast.cast(
+        OmegaAcceptanceCast.castHeuristically(automaton2), AllAcceptance.class);
+      normalizedAutomaton2 = OmegaAcceptanceCast.cast(castedAutomaton, BuchiAcceptance.class);
+    } else {
+      normalizedAutomaton2 = automaton2;
+    }
+
+    var union = new NullablePairDeterministicUnionAutomaton<>(
+      normalizedAutomaton1,
+      normalizedAutomaton2,
+      factory,
+      normalizedAutomaton1.acceptance().rejectingSet().orElseThrow(),
+      normalizedAutomaton2.acceptance().rejectingSet().orElseThrow());
+
     return OmegaAcceptanceCast.castHeuristically(union);
   }
 
   public static <S> Automaton<Map<Integer, S>, ?>
-    deterministicUnion(List<Automaton<S, ?>> automata) {
+    deterministicUnion(List<? extends Automaton<S, ?>> automata) {
 
     return deterministicUnion(automata, false);
   }
 
   public static <S> Automaton<Map<Integer, S>, ?>
-    deterministicUnion(List<Automaton<S, ?>> automata, boolean ignoreSymbolicFactoryMismatch) {
+    deterministicUnion(List<? extends Automaton<S, ?>> automata,
+      boolean ignoreSymbolicFactoryMismatch) {
 
-    checkArgument(!automata.isEmpty(), "Automata is empty.");
+    checkArgument(!automata.isEmpty(), "List of automata is empty.");
     var factory = commonAlphabet(automata, ignoreSymbolicFactoryMismatch);
-    var union = new MapDeterministicUnionAutomaton<>(automata, factory);
+
+    List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
+    List<BitSet> rejectingSets = new ArrayList<>(automata.size());
+
+    automata.forEach(automaton -> {
+      Automaton<S, ?> normalisedAutomaton;
+
+      if (automaton.acceptance().rejectingSet().isEmpty()) {
+        Automaton<S, AllAcceptance> castedAutomaton = OmegaAcceptanceCast.cast(
+          OmegaAcceptanceCast.castHeuristically(automaton), AllAcceptance.class);
+        normalisedAutomaton = OmegaAcceptanceCast.cast(castedAutomaton, BuchiAcceptance.class);
+      } else {
+        normalisedAutomaton = automaton;
+      }
+
+      automataCopy.add(normalisedAutomaton);
+      rejectingSets.add(normalisedAutomaton.acceptance().rejectingSet().orElseThrow());
+    });
+
+    var union = new MapDeterministicUnionAutomaton<>(automataCopy, factory, rejectingSets);
     return OmegaAcceptanceCast.castHeuristically(union);
   }
 
   // Private implementations
 
-  private static <S> Pair<ValuationSetFactory, Boolean> commonAlphabet(
-    List<Automaton<S, ?>> automata, boolean ignoreSymbolicFactoryMismatch) {
+  private static Pair<ValuationSetFactory, Boolean> commonAlphabet(
+    List<? extends Automaton<?, ?>> automata, boolean ignoreSymbolicFactoryMismatch) {
 
     return commonAlphabet(
       automata.stream().map(Automaton::factory).collect(Collectors.toList()),
@@ -364,11 +370,11 @@ public final class BooleanOperations {
   private static class ListIntersectionAutomaton<S>
     extends AbstractImmutableAutomaton<List<S>, EmersonLeiAcceptance> {
 
-    private final List<Automaton<S, ?>> automata;
+    private final List<? extends Automaton<S, ?>> automata;
     private final boolean symbolicOperationsAllowed;
 
     private ListIntersectionAutomaton(
-      List<Automaton<S, ?>> automata,
+      List<? extends Automaton<S, ?>> automata,
       Pair<ValuationSetFactory, Boolean> factory) {
 
       super(factory.fst(),
@@ -379,7 +385,9 @@ public final class BooleanOperations {
       this.symbolicOperationsAllowed = factory.snd();
     }
 
-    private static <S> Set<List<S>> initialStates(List<Automaton<S, ?>> automata) {
+    private static <S> Set<List<S>>
+      initialStates(List<? extends Automaton<S, ?>> automata) {
+
       return Sets.cartesianProduct(
         automata.stream().map(Automaton::initialStates).collect(Collectors.toList()));
     }
@@ -490,20 +498,27 @@ public final class BooleanOperations {
     private final Automaton<S1, ?> automaton1;
     private final Automaton<S2, ?> automaton2;
 
+    private final BitSet rejectingSet1;
+    private final BitSet rejectingSet2;
+
     private NullablePairDeterministicUnionAutomaton(
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      Pair<ValuationSetFactory, Boolean> factory) {
+      Pair<ValuationSetFactory, Boolean> factory,
+      BitSet rejectingSet1,
+      BitSet rejectingSet2) {
 
       super(factory.fst(),
         Set.of(initialState(automaton1, automaton2)),
         unionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
       this.automaton1 = automaton1;
       this.automaton2 = automaton2;
+      this.rejectingSet1 = rejectingSet1;
+      this.rejectingSet2 = rejectingSet2;
     }
 
     private static <S1, S2> NullablePair<S1, S2> initialState(
-      Automaton<S1, ?> automata1, Automaton<S2, ?> automata2) {
+      Automaton<? extends S1, ?> automata1, Automaton<? extends S2, ?> automata2) {
       S1 initialState1 = Iterables.getOnlyElement(automata1.initialStates(), null);
       S2 initialState2 = Iterables.getOnlyElement(automata2.initialStates(), null);
       return NullablePair.of(initialState1, initialState2);
@@ -518,22 +533,29 @@ public final class BooleanOperations {
 
     @Nullable
     private Edge<NullablePair<S1, S2>> combine(@Nullable Edge<S1> edge1, @Nullable Edge<S2> edge2) {
-      S1 successor1 = null;
-      S2 successor2 = null;
-      BitSet acceptance = new BitSet();
-
       if (edge1 == null && edge2 == null) {
         return null;
       }
 
-      if (edge1 != null) {
+      S1 successor1;
+      BitSet acceptance = new BitSet();
+
+      if (edge1 == null) {
+        successor1 = null;
+        acceptance.or(rejectingSet1);
+      } else {
         successor1 = edge1.successor();
         edge1.forEachAcceptanceSet(acceptance::set);
       }
 
-      if (edge2 != null) {
+      S2 successor2;
+      int offset = automaton1.acceptance().acceptanceSets();
+
+      if (edge2 == null) {
+        successor2 = null;
+        rejectingSet2.stream().forEach(i -> acceptance.set(i + offset));
+      } else {
         successor2 = edge2.successor();
-        int offset = automaton1.acceptance().acceptanceSets();
         edge2.forEachAcceptanceSet(i -> acceptance.set(i + offset));
       }
 
@@ -544,19 +566,23 @@ public final class BooleanOperations {
   private static class MapDeterministicUnionAutomaton<S>
     extends SemiDeterministicEdgesAutomaton<Map<Integer, S>, EmersonLeiAcceptance> {
 
-    private final List<Automaton<S, ?>> automata;
+    private final List<? extends Automaton<S, ?>> automata;
+    private final List<BitSet> rejectingSets;
 
     private MapDeterministicUnionAutomaton(
-      List<Automaton<S, ?>> automata,
-      Pair<ValuationSetFactory, Boolean> factory) {
+      List<? extends Automaton<S, ?>> automata,
+      Pair<ValuationSetFactory, Boolean> factory,
+      List<BitSet> rejectingSets) {
 
       super(factory.fst(),
         Set.of(initialState(automata)),
         unionAcceptance(automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
       this.automata = List.copyOf(automata);
+      this.rejectingSets = List.copyOf(rejectingSets);
     }
 
-    private static <S> Map<Integer, S> initialState(List<Automaton<S, ?>> automata) {
+    private static <S> Map<Integer, S> initialState(List<? extends Automaton<S, ?>> automata) {
+
       Map<Integer, S> initialStates = new HashMap<>();
 
       for (int i = 0, s = automata.size(); i < s; i++) {
@@ -595,10 +621,12 @@ public final class BooleanOperations {
 
       for (int i = 0, s = automata.size(); i < s; i++) {
         var edge = edges.get(i);
+        int offsetFinal = offset;
 
-        if (edge != null) {
+        if (edge == null) {
+          rejectingSets.get(i).stream().forEach(set -> acceptance.set(set + offsetFinal));
+        } else {
           successor.put(i, edge.successor());
-          int offsetFinal = offset;
           edge.forEachAcceptanceSet(set -> acceptance.set(set + offsetFinal));
         }
 

@@ -26,11 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 

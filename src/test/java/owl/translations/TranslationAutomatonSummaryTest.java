@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.concurrent.CompletionException;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -82,7 +81,9 @@ import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
+import owl.translations.ltl2dpa.NormalformDPAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
+import owl.translations.modules.AbstractLTL2DRAModule;
 import owl.translations.modules.LTL2DGRAModule;
 import owl.translations.modules.LTL2DPAModule;
 import owl.translations.modules.LTL2DRAModule;
@@ -100,105 +101,138 @@ public class TranslationAutomatonSummaryTest {
     "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
 
   static final List<Translator> TRANSLATORS = List.of(
-      new Translator("safety",
-        DeterministicConstructionsPortfolio::safety),
-      new Translator("safety.nondeterministic",
-        NonDeterministicConstructionsPortfolio::safety),
+    new Translator("dpa.normalform", x -> NormalformDPAConstruction.of(x, false)),
 
-      new Translator("coSafety",
-        DeterministicConstructionsPortfolio::coSafety),
-      new Translator("coSafety.nondeterministic",
-        NonDeterministicConstructionsPortfolio::coSafety),
+    new Translator("safety",
+      DeterministicConstructionsPortfolio::safety),
+    new Translator("safety.nondeterministic",
+      NonDeterministicConstructionsPortfolio::safety),
 
-      new Translator("fgSafety",
-      x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, false)),
-      new Translator("fgSafety.generalized",
-      x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, true)),
-      new Translator("fgSafety.nondeterministic",
-        NonDeterministicConstructionsPortfolio::fgSafety),
+    new Translator("coSafety",
+      DeterministicConstructionsPortfolio::coSafety),
+    new Translator("coSafety.nondeterministic",
+      NonDeterministicConstructionsPortfolio::coSafety),
 
-      new Translator("gfCoSafety",
-      x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
-      new Translator("gfCoSafety.generalized",
-      x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
-      new Translator("gfCoSafety.nondeterministic",
-      x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
-      new Translator("gfCoSafety.nondeterministic.generalized",
-      x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
+    new Translator("fgSafety",
+    x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, false)),
+    new Translator("fgSafety.generalized",
+    x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, true)),
+    new Translator("fgSafety.nondeterministic",
+      NonDeterministicConstructionsPortfolio::fgSafety),
 
-      new Translator("coSafetySafety", DeterministicConstructionsPortfolio::coSafetySafety),
-      new Translator("safetyCoSafety", DeterministicConstructionsPortfolio::safetyCoSafety),
+    new Translator("gfCoSafety",
+    x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
+    new Translator("gfCoSafety.generalized",
+    x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
+    new Translator("gfCoSafety.nondeterministic",
+    x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
+    new Translator("gfCoSafety.nondeterministic.generalized",
+    x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
 
-      new Translator("ldba.asymmetric", environment ->
-        LTL2LDBAModule.translation(environment, false, false)),
-      new Translator("ldba.asymmetric.portfolio", environment ->
-        LTL2LDBAModule.translation(environment, false, true)),
-      new Translator("ldgba.asymmetric", environment ->
-        LTL2LDGBAModule.translation(environment, false, false)),
-      new Translator("ldgba.asymmetric.portfolio", environment ->
-        LTL2LDGBAModule.translation(environment, false, true)),
+    new Translator("coSafetySafety", DeterministicConstructionsPortfolio::coSafetySafety),
+    new Translator("safetyCoSafety", DeterministicConstructionsPortfolio::safetyCoSafety),
 
-      new Translator("ldba.symmetric", environment ->
-        LTL2LDBAModule.translation(environment, true, false)),
-      new Translator("ldba.symmetric.portfolio", environment ->
-        LTL2LDBAModule.translation(environment, true, true)),
-      new Translator("ldgba.symmetric", environment ->
-        LTL2LDGBAModule.translation(environment, true, false)),
-      new Translator("ldgba.symmetric.portfolio", environment ->
-        LTL2LDGBAModule.translation(environment, true, true)),
+    new Translator("ldba.asymmetric", environment ->
+      LTL2LDBAModule.translation(environment, false, false)),
+    new Translator("ldba.asymmetric.portfolio", environment ->
+      LTL2LDBAModule.translation(environment, false, true)),
+    new Translator("ldgba.asymmetric", environment ->
+      LTL2LDGBAModule.translation(environment, false, false)),
+    new Translator("ldgba.asymmetric.portfolio", environment ->
+      LTL2LDGBAModule.translation(environment, false, true)),
 
-      new Translator("dpa.asymmetric", environment ->
-        LTL2DPAModule.translation(environment, false, false, false),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
-      new Translator("dpa.asymmetric.portfolio", environment ->
-        LTL2DPAModule.translation(environment, false, false, true),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+    new Translator("ldba.symmetric", environment ->
+      LTL2LDBAModule.translation(environment, true, false)),
+    new Translator("ldba.symmetric.portfolio", environment ->
+      LTL2LDBAModule.translation(environment, true, true)),
+    new Translator("ldgba.symmetric", environment ->
+      LTL2LDGBAModule.translation(environment, true, false)),
+    new Translator("ldgba.symmetric.portfolio", environment ->
+      LTL2LDGBAModule.translation(environment, true, true)),
 
-      new Translator("dpa.symmetric", environment ->
-        LTL2DPAModule.translation(environment, true, false, false),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
-      new Translator("dpa.symmetric.portfolio", environment ->
-        LTL2DPAModule.translation(environment, true, false, true),
-        EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+    new Translator("dpa.asymmetric", environment ->
+      LTL2DPAModule.translation(environment, false, false, false),
+      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+    new Translator("dpa.asymmetric.portfolio", environment ->
+      LTL2DPAModule.translation(environment, false, false, true),
+      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
-      // TODO: Investigate one minute difference
-      new Translator("dra.symmetric", environment ->
-        LTL2DRAModule.translation(environment, true, false, null)),
-      new Translator("dra.symmetric.portfolio", environment ->
-        LTL2DRAModule.translation(environment, true, true, null)),
-      new Translator("dra.symmetric.optimizations", environment -> x ->
-        AcceptanceOptimizations.optimize(
-          SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
-            .apply(x))),
+    new Translator("dpa.symmetric", environment ->
+      LTL2DPAModule.translation(environment, true, false, false),
+      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+    new Translator("dpa.symmetric.portfolio", environment ->
+      LTL2DPAModule.translation(environment, true, false, true),
+      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
 
-      new Translator("dgra.symmetric", environment ->
-        LTL2DGRAModule.translation(environment, true, false, null)),
-      new Translator("dgra.symmetric.portfolio", environment ->
-        LTL2DGRAModule.translation(environment, true, true, null)),
-      new Translator("dgra.symmetric.optimizations", environment -> x ->
-        AcceptanceOptimizations.optimize(
-          SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
-            .apply(x))),
+    // TODO: Investigate one minute difference
+    new Translator("dra.symmetric", environment ->
+      LTL2DRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false)),
+    new Translator("dra.symmetric.portfolio", environment ->
+      LTL2DRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false)),
+    new Translator("dra.symmetric.optimizations", environment -> x ->
+      AcceptanceOptimizations.optimize(
+        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
+          .apply(x))),
 
-      new Translator("nba.symmetric", environment ->
-        LTL2NBAModule.translation(environment, false)),
-      new Translator("nba.symmetric.portfolio", environment ->
-        LTL2NBAModule.translation(environment, true)),
-      new Translator("ngba.symmetric", environment ->
-        LTL2NGBAModule.translation(environment, false)),
-      new Translator("ngba.symmetric.portfolio", environment ->
-        LTL2NGBAModule.translation(environment, true)),
+    new Translator("dgra.symmetric", environment ->
+      LTL2DGRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false)),
+    new Translator("dgra.symmetric.portfolio", environment ->
+      LTL2DGRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false)),
+    new Translator("dgra.symmetric.optimizations", environment -> x ->
+      AcceptanceOptimizations.optimize(
+        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
+          .apply(x))),
 
-      new Translator("delag",
-        DelagBuilder::new,
-        EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
-      new Translator("ltl2da",
-        LTL2DAFunction::new,
-        EnumSet.of(LIBEROUTER)),
-      new Translator("ltl2na",
-        LTL2NAFunction::new,
-        EnumSet.of(LIBEROUTER))
-    );
+    new Translator("dra.normalform", environment ->
+      LTL2DRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
+      Set.of(), true),
+    new Translator("dra.normalform.portfolio", environment ->
+      LTL2DRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
+      Set.of(), true),
+
+    new Translator("dra.normalform.dual", environment ->
+      LTL2DRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, true),
+      Set.of(), true),
+    new Translator("dra.normalform.dual.portfolio", environment ->
+      LTL2DRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, true),
+      Set.of(), true),
+
+    new Translator("dgra.normalform", environment ->
+      LTL2DGRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
+      Set.of(), true),
+    new Translator("dgra.normalform.portfolio", environment ->
+      LTL2DGRAModule.translation(environment,
+        AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
+      Set.of(), true),
+
+    new Translator("nba.symmetric", environment ->
+      LTL2NBAModule.translation(environment, false)),
+    new Translator("nba.symmetric.portfolio", environment ->
+      LTL2NBAModule.translation(environment, true)),
+    new Translator("ngba.symmetric", environment ->
+      LTL2NGBAModule.translation(environment, false)),
+    new Translator("ngba.symmetric.portfolio", environment ->
+      LTL2NGBAModule.translation(environment, true)),
+
+    new Translator("delag",
+      DelagBuilder::new,
+      EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
+    new Translator("ltl2da",
+      LTL2DAFunction::new,
+      EnumSet.of(LIBEROUTER)),
+    new Translator("ltl2na",
+      LTL2NAFunction::new,
+      EnumSet.of(LIBEROUTER))
+  );
 
   private static boolean containsIsomorphic(Collection<Formula> formulas, Formula formula) {
     for (Formula existingFormula : formulas) {
@@ -313,7 +347,9 @@ public class TranslationAutomatonSummaryTest {
     }
 
     var translatorFunction = translator.constructor.apply(Environment.standard());
-    var testCases = formulaSet.stream().map(x -> TestCase.of(x, translatorFunction)).toArray();
+    var testCases = formulaSet.stream()
+      .map(x -> TestCase.of(x, translatorFunction, translator.numberOfAcceptanceSetsUnstable))
+      .toArray();
 
     try (BufferedWriter writer = Files.newBufferedWriter(translator.referenceFile())) {
       var gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
@@ -392,6 +428,7 @@ public class TranslationAutomatonSummaryTest {
     final String name;
     final Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
       constructor;
+    final boolean numberOfAcceptanceSetsUnstable;
     private final Set<FormulaSet> selectedSets;
 
     Translator(String name,
@@ -408,12 +445,21 @@ public class TranslationAutomatonSummaryTest {
     Translator(String name,
       Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
         constructor,
-      Collection<FormulaSet> blacklistedSets) {
+      Set<FormulaSet> blacklistedSets) {
+      this(name, constructor, blacklistedSets, false);
+    }
+
+    Translator(String name,
+      Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
+        constructor,
+      Set<FormulaSet> blacklistedSets,
+      boolean numberOfAcceptanceSetsUnstable) {
       this.name = name;
       this.constructor = constructor;
       this.selectedSets = EnumSet.allOf(FormulaSet.class);
       this.selectedSets.remove(PARAMETRISED_HARDNESS);
       this.selectedSets.removeAll(blacklistedSets);
+      this.numberOfAcceptanceSetsUnstable = numberOfAcceptanceSetsUnstable;
     }
 
     Path referenceFile() {
@@ -437,8 +483,9 @@ public class TranslationAutomatonSummaryTest {
     }
 
     static TestCase of(LabelledFormula formula,
-      Function<LabelledFormula, ? extends Automaton<?, ?>> translation) {
-      var properties = AutomatonSummary.of(() -> translation.apply(formula));
+      Function<LabelledFormula, ? extends Automaton<?, ?>> translation, boolean ignoreSets) {
+      var properties
+        = AutomatonSummary.of(() -> translation.apply(formula), ignoreSets);
       return new TestCase(formula.toString(), properties);
     }
 
@@ -467,10 +514,14 @@ public class TranslationAutomatonSummaryTest {
     final boolean deterministic;
 
     AutomatonSummary(int size, int initialStatesSize, OmegaAcceptance acceptance,
-      boolean deterministic, boolean complete) {
+      boolean deterministic, boolean complete, boolean ignoreSets) {
       this.acceptance = acceptance;
-      this.acceptanceSets = acceptance.acceptanceSets();
-      this.acceptanceName = acceptance.getClass().getSimpleName();
+      this.acceptanceSets = ignoreSets
+        ? -1
+        : acceptance.acceptanceSets();
+      this.acceptanceName = ignoreSets
+        ? OmegaAcceptance.class.getSimpleName()
+        : acceptance.getClass().getSimpleName();
       this.complete = complete;
       this.deterministic = deterministic;
       this.initialStatesSize = initialStatesSize;
@@ -479,14 +530,20 @@ public class TranslationAutomatonSummaryTest {
 
     @Nullable
     static AutomatonSummary of(Supplier<Automaton<?, ?>> supplier) {
+      return of(supplier, false);
+    }
+
+    @Nullable
+    static AutomatonSummary of(Supplier<Automaton<?, ?>> supplier, boolean ignoreSets) {
       try {
         var automaton = Objects.requireNonNull(supplier.get());
         return new AutomatonSummary(automaton.size(),
           automaton.initialStates().size(),
           automaton.acceptance(),
           automaton.is(Automaton.Property.DETERMINISTIC),
-          automaton.is(Automaton.Property.COMPLETE));
-      } catch (IllegalArgumentException | UnsupportedOperationException | CompletionException ex) {
+          automaton.is(Automaton.Property.COMPLETE),
+          ignoreSets);
+      } catch (IllegalArgumentException ex) {
         return null;
       }
     }
@@ -498,10 +555,15 @@ public class TranslationAutomatonSummaryTest {
       assertEquals(initialStatesSize, automaton.initialStates().size(),
         () -> String.format("Expected %d intial states, got %d.\n%s",
         initialStatesSize, automaton.initialStates().size(), HoaWriter.toString(automaton)));
-      assertEquals(acceptanceSets, automaton.acceptance().acceptanceSets(),
-        () -> String.format("Expected %d acceptance sets, got %d.\n%s",
-        acceptanceSets, automaton.acceptance().acceptanceSets(), HoaWriter.toString(automaton)));
-      assertEquals(acceptanceName, automaton.acceptance().getClass().getSimpleName());
+
+      if (acceptanceSets >= 0) {
+        assertEquals(acceptanceSets, automaton.acceptance().acceptanceSets(),
+          () -> String.format("Expected %d acceptance sets, got %d.\n%s",
+            acceptanceSets, automaton.acceptance().acceptanceSets(),
+            HoaWriter.toString(automaton)));
+        assertEquals(acceptanceName, automaton.acceptance().getClass().getSimpleName());
+      }
+
       assertEquals(deterministic, automaton.is(Automaton.Property.DETERMINISTIC));
       assertEquals(complete, automaton.is(Automaton.Property.COMPLETE));
     }

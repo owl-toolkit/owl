@@ -38,7 +38,7 @@ public abstract class Pair<A, B> {
     return new AutoValue_Pair<>(fst, snd);
   }
 
-  public static <A, B> Set<Pair<A, B>> allPairs(Set<A> fstSet, Set<B> sndSet) {
+  public static <A, B> Set<Pair<A, B>> allPairs(Set<? extends A> fstSet, Set<? extends B> sndSet) {
     Set<Pair<A, B>> pairs = new HashSet<>();
 
     for (A fst : fstSet) {
@@ -50,16 +50,24 @@ public abstract class Pair<A, B> {
     return pairs;
   }
 
-  public Pair<B,A> swap() {
+  public Pair<B, A> swap() {
     return Pair.of(snd(), fst());
   }
 
-  public <C> Pair<C,B> mapFst(Function<A,C> fun) {
-    return Pair.of(fun.apply(fst()), snd());
+  public <C> Pair<C, B> mapFst(Function<? super A, ? extends C> mapper) {
+    return Pair.of(mapper.apply(fst()), snd());
   }
 
-  public <C> Pair<A,C> mapSnd(Function<B,C> fun) {
-    return Pair.of(fst(), fun.apply(snd()));
+  public <C> Pair<A, C> mapSnd(Function<? super B, ? extends C> mapper) {
+    return Pair.of(fst(), mapper.apply(snd()));
+  }
+
+  public <C> Pair<C, B> withFst(C fst) {
+    return Pair.of(fst, snd());
+  }
+
+  public <C> Pair<A, C> withSnd(C snd) {
+    return Pair.of(fst(), snd);
   }
 
   @Override

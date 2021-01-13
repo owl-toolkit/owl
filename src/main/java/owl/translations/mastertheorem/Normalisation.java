@@ -20,7 +20,6 @@
 package owl.translations.mastertheorem;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.UnaryOperator;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -58,13 +57,16 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
   @Override
   public LabelledFormula apply(LabelledFormula labelledFormula) {
-    var formula = labelledFormula.formula().nnf();
-    var atomicPropositions = List.copyOf(labelledFormula.atomicPropositions());
+    return labelledFormula.wrap(apply(labelledFormula.formula()));
+  }
+
+  public Formula apply(Formula labelledFormula) {
+    var formula = labelledFormula.nnf();
     var disjuncts = new ArrayList<Formula>();
 
     if (local && !(formula instanceof Formula.TemporalOperator)) {
-      var localNormalForm = new LocalNormalisation(atomicPropositions);
-      return LabelledFormula.of(formula.accept(localNormalForm), atomicPropositions);
+      var localNormalForm = new LocalNormalisation();
+      return formula.accept(localNormalForm);
     }
 
     for (Fixpoints fixpoints : Selector.selectSymmetric(formula, true)) {
@@ -87,7 +89,13 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
       }
 
       for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
-        conjuncts.add(GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint))));
+        var rewrittenLeastFixpoint = FOperator.of(toCoSafety.apply(leastFixpoint));
+
+        if (rewrittenLeastFixpoint instanceof Disjunction) {
+          rewrittenLeastFixpoint = new FOperator(rewrittenLeastFixpoint);
+        }
+
+        conjuncts.add(GOperator.of(rewrittenLeastFixpoint));
       }
 
       for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
@@ -99,16 +107,10 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
 
     var disjunction = NormalForms.toDnfFormula(Disjunction.of(disjuncts));
     assert SyntacticFragments.DELTA_2.contains(disjunction);
-    return labelledFormula.wrap(disjunction);
+    return disjunction;
   }
 
   private class LocalNormalisation extends PropositionalVisitor<Formula> {
-    private final List<String> atomicPropositions;
-
-    private LocalNormalisation(List<String> atomicPropositions) {
-      this.atomicPropositions = atomicPropositions;
-    }
-
     @Override
     public Formula visit(BooleanConstant booleanConstant) {
       return booleanConstant;
@@ -137,8 +139,7 @@ public class Normalisation implements UnaryOperator<LabelledFormula> {
         return temporalOperator;
       }
 
-      return Normalisation.this
-        .apply(LabelledFormula.of(temporalOperator, atomicPropositions)).formula();
+      return Normalisation.this.apply(temporalOperator);
     }
   }
 

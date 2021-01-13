@@ -65,9 +65,9 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>>> {
 
   private final Environment environment;
-  private final Class<? extends B> acceptanceClass;
+  private final Class<B> acceptanceClass;
 
-  private AsymmetricLDBAConstruction(Environment environment, Class<? extends B> acceptanceClass) {
+  private AsymmetricLDBAConstruction(Environment environment, Class<B> acceptanceClass) {
     this.environment = environment;
     this.acceptanceClass = acceptanceClass;
     assert BuchiAcceptance.class.equals(acceptanceClass)
@@ -75,7 +75,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
   }
 
   public static <B extends GeneralizedBuchiAcceptance> AsymmetricLDBAConstruction<B>
-  of(Environment environment, Class<? extends B> clazz) {
+    of(Environment environment, Class<B> clazz) {
     return new AsymmetricLDBAConstruction<>(environment, clazz);
   }
 
@@ -140,9 +140,9 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       // The state is a simple safety or cosafety condition. We don't need to use reasoning about
       // the infinite behaviour and simply build the left-derivative of the formula.
-      if (SyntacticFragments.isCoSafety(x)
-        || SyntacticFragments.isSafety(x)
+      if (SyntacticFragments.isSafety(x)
         || !Collections.disjoint(x.temporalOperators(), blockingCoSafetyOperators)
+        || BlockingElements.isBlockedByTransient(x)
         || BlockingElements.isBlockedByCoSafety(x)) {
         return;
       }
@@ -202,13 +202,13 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     Function<EquivalenceClass, Set<AsymmetricProductState>> jumpLookup
       = x -> jumps.getOrDefault(x, Set.of());
 
-    var automaton = new AbstractImmutableAutomaton.NonDeterministicEdgeTreeAutomaton<>(
+    var automaton = new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
       factories.vsFactory,
       initialState.isFalse() ? Set.<EquivalenceClass>of() : Set.of(initialState),
       AllAcceptance.INSTANCE) {
 
       @Override
-      public ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
+      public ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass state) {
         return tracking.successorTree(state).map(successors -> {
           var successor = Iterables.getOnlyElement(successors);
 
@@ -329,12 +329,12 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       }
 
       var currentCoSafetySuccessor =
-        factory.successor(state.currentCoSafety, valuation, safetySuccessor);
+        factory.successorInternal(state.currentCoSafety, valuation, safetySuccessor);
 
       var assumptions = currentCoSafetySuccessor.and(safetySuccessor);
 
       var nextSuccessors = state.nextCoSafety.stream()
-        .map(x -> factory.successor(x, valuation, assumptions))
+        .map(x -> factory.successorInternal(x, valuation, assumptions))
         .collect(Collectors.toList());
 
       boolean acceptingEdge = false;
@@ -413,8 +413,8 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       // Scan gfCoSafety.
       while (i < 0) {
-        var successor = factory.successor(automata.fCoSafety.get(automata.fCoSafety.size() + i),
-          valuation, environment);
+        var successor = factory.successorInternal(
+          automata.fCoSafety.get(automata.fCoSafety.size() + i), valuation, environment);
 
         if (!successor.isTrue()) {
           return i;

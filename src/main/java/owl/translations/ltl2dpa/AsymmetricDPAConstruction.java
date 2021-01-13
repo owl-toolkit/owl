@@ -108,6 +108,7 @@ final class AsymmetricDPAConstruction {
 
       // Short-circuit, if the language includes a non-empty safety language.
       if (!Collections.disjoint(successor.temporalOperators(), blockingSafetyOperators)
+        || BlockingElements.isBlockedByTransient(successor)
         || BlockingElements.isBlockedBySafety(successor)) {
         return Edge.of(AsymmetricRankingState.of(successor), 1);
       }
