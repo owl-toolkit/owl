@@ -329,7 +329,7 @@ public class TranslationAutomatonSummaryTest {
         reader.lines().forEach(line -> {
           var formulaString = line.trim();
 
-          if (formulaString.isEmpty()) {
+          if (formulaString.isEmpty() || formulaString.charAt(0) == '#') {
             return;
           }
 
@@ -367,6 +367,7 @@ public class TranslationAutomatonSummaryTest {
     REGRESSIONS("regressions"),
     SIZE_FGGF("size-fggf"),
     SIZE("size"),
+    SYNTCOMP_SELECTION("syntcomp-selection"),
 
     // Literature Patterns
     DWYER("literature/DwyerAC98"),
@@ -396,7 +397,7 @@ public class TranslationAutomatonSummaryTest {
         reader.lines().forEach(line -> {
           var formulaString = line.trim();
 
-          if (formulaString.isEmpty()) {
+          if (formulaString.isEmpty() || formulaString.charAt(0) == '#') {
             return;
           }
 

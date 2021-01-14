@@ -244,8 +244,12 @@ public final class NormalformDPAConstruction implements
     }
 
     private State initialState() {
-      var initialStateFormulaConstructor = new InitialStateConstructor(dbw, simpleConstruction);
-      var initialStateFormula = initialStateFormulaConstructor.apply(formula.formula());
+      var normalFormConstructor = new NormalFormConverter(simpleConstruction);
+      var normalForm = formula.formula().accept(normalFormConstructor);
+      normalFormConstructor.referenceCounter.entrySet().removeIf(e -> e.getValue().equals(1));
+      var initialStateFormulaConstructor = new InitialStateConstructor(
+        dbw, simpleConstruction, normalFormConstructor.referenceCounter.keySet());
+      var initialStateFormula = initialStateFormulaConstructor.apply(normalForm);
       var initialStates = initialStateFormulaConstructor.initialStates;
 
       Map<Integer, BreakpointStateRejecting> stateMap = new HashMap<>(initialStates.size());
@@ -280,7 +284,6 @@ public final class NormalformDPAConstruction implements
       return status;
     }
 
-    // This is only called on unsuspended states (or by SafetyCoSafety suspended states).
     private Status computeStatus(BreakpointStateRejecting state) {
       Status status = statusCache.get(state);
 
@@ -290,6 +293,25 @@ public final class NormalformDPAConstruction implements
 
       var automaton = Views.filtered(dbw, Views.Filter.of(Set.of(state)));
       var sccDecomposition = SccDecomposition.of(automaton);
+
+      for (Set<BreakpointStateRejecting> scc : sccDecomposition.sccs()) {
+        for (BreakpointStateRejecting sccState : scc) {
+          computeStatus(sccState, sccDecomposition);
+        }
+      }
+
+      return computeStatus(state, sccDecomposition);
+    }
+
+    // This is only called on unsuspended states (or by SafetyCoSafety suspended states).
+    private Status computeStatus(BreakpointStateRejecting state,
+      SccDecomposition<BreakpointStateRejecting> sccDecomposition) {
+
+      Status status = statusCache.get(state);
+
+      if (status != null) {
+        return status;
+      }
 
       // Check for accepting and rejecting sinks.
       if (state.all().isTrue()) {
@@ -303,11 +325,12 @@ public final class NormalformDPAConstruction implements
       }
 
       var condensationGraph = sccDecomposition.condensation();
-      assert sccDecomposition.index(state) == 0;
+      int index = sccDecomposition.index(state);
 
-      if (sccDecomposition.rejectingSccs().equals(Graphs.reachableNodes(condensationGraph, 0))) {
+      if (sccDecomposition.rejectingSccs().equals(
+        Graphs.reachableNodes(condensationGraph, index))) {
 
-        return memoize(automaton.states(), TERMINAL_REJECTING);
+        return memoize(Set.of(state), TERMINAL_REJECTING);
       }
 
       // Check for transient SCCs.
@@ -316,7 +339,7 @@ public final class NormalformDPAConstruction implements
         return memoize(Set.of(state), TRANSIENT_SUSPENDABLE);
       }
 
-      if (sccDecomposition.transientSccs().contains(0)) {
+      if (sccDecomposition.transientSccs().contains(index)) {
         return memoize(Set.of(state), state.isSuspended()
           ? TRANSIENT_SUSPENDABLE
           : TRANSIENT_NOT_SUSPENDABLE);
@@ -332,22 +355,22 @@ public final class NormalformDPAConstruction implements
 
       assert !state.isSuspended();
 
-      if (sccDecomposition.acceptingSccs().contains(0)) {
-        return memoize(sccDecomposition.sccs().get(0), WEAK_ACCEPTING_NOT_SUSPENDABLE);
+      if (sccDecomposition.acceptingSccs().contains(index)) {
+        return memoize(sccDecomposition.sccs().get(index), WEAK_ACCEPTING_NOT_SUSPENDABLE);
       }
 
-      if (sccDecomposition.rejectingSccs().contains(0)) {
-        return memoize(sccDecomposition.sccs().get(0), WEAK_REJECTING_NOT_SUSPENDABLE);
+      if (sccDecomposition.rejectingSccs().contains(index)) {
+        return memoize(sccDecomposition.sccs().get(index), WEAK_REJECTING_NOT_SUSPENDABLE);
       }
 
-      var scc = sccDecomposition.sccs().get(0);
+      var scc = sccDecomposition.sccs().get(index);
 
       if (scc.size() == Collections3.transformSet(scc, BreakpointStateRejecting::all).size()) {
-        return NOT_SUSPENDABLE;
+        return memoize(scc, NOT_SUSPENDABLE);
       }
 
       assert !state.isSuspended();
-      return SUSPENDABLE;
+      return memoize(scc, SUSPENDABLE);
     }
 
     NavigableMap<Integer, Status> computeStatus(
@@ -684,6 +707,109 @@ public final class NormalformDPAConstruction implements
     }
   }
 
+  // First normalise.
+
+  private static final class NormalFormConverter
+    extends PropositionalVisitor<Formula> {
+
+    private final Map<Formula.TemporalOperator, Integer> referenceCounter = new HashMap<>();
+    private final boolean simpleConstruction;
+
+    private NormalFormConverter(boolean simpleConstruction) {
+      this.simpleConstruction = simpleConstruction;
+    }
+
+    @Override
+    protected Formula visit(Formula.TemporalOperator formula) {
+      // Keep this in sync with initial state constructor.
+
+      if (referenceCounter.containsKey(formula)) {
+        referenceCounter.put(formula, 2);
+        return formula;
+      }
+
+      var formulaNot = (Formula.TemporalOperator) formula.not();
+
+      if (referenceCounter.containsKey(formulaNot)) {
+        referenceCounter.put(formulaNot, 2);
+        return formula;
+      }
+
+      if (SyntacticFragments.isSafetyCoSafety(formula)) {
+        referenceCounter.put(formula, 1);
+        return formula;
+      }
+
+      if (SyntacticFragments.isSafetyCoSafety(formulaNot)) {
+        referenceCounter.put(formulaNot, 1);
+        return formula;
+      }
+
+      var normalForm1 =
+        PushNextThroughPropositionalVisitor.apply(
+          SimplifierFactory.apply(
+            NORMALISATION.apply(formula), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
+
+      if (simpleConstruction) {
+        return normalForm1.accept(this);
+      }
+
+      var normalForm2 =
+        PushNextThroughPropositionalVisitor.apply(
+          SimplifierFactory.apply(
+            DUAL_NORMALISATION.apply(formula), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
+
+      if (normalForm1 instanceof Disjunction) {
+        if (normalForm2 instanceof Disjunction
+          && normalForm1.operands.size() < normalForm2.operands.size()) {
+          return normalForm1.accept(this);
+        }
+
+        return normalForm2.accept(this);
+      }
+
+      if (normalForm1 instanceof Conjunction) {
+        if (normalForm2 instanceof Disjunction
+          || (normalForm2 instanceof Conjunction
+          && normalForm1.operands.size() < normalForm2.operands.size())) {
+          return normalForm1.accept(this);
+        }
+
+        return normalForm2.accept(this);
+      }
+
+      if (normalForm1.operands.size() < normalForm2.operands.size()) {
+        return normalForm1.accept(this);
+      }
+
+      return normalForm2.accept(this);
+    }
+
+    @Override
+    public Formula visit(Literal literal) {
+      return literal;
+    }
+
+    @Override
+    public Formula visit(BooleanConstant booleanConstant) {
+      return booleanConstant;
+    }
+
+    @Override
+    public Formula visit(Conjunction conjunction) {
+      return Conjunction.of(conjunction.map(operand -> operand.accept(this)));
+    }
+
+    @Override
+    public Formula visit(Disjunction disjunction) {
+      return Disjunction.of(disjunction.map(operand -> operand.accept(this)));
+    }
+  }
+
+  // Then count occurences.
+
+  // Only merge, if single occurence.
+
   private static final class InitialStateConstructor
     extends PropositionalVisitor<PropositionalFormula<Integer>> {
 
@@ -691,10 +817,24 @@ public final class NormalformDPAConstruction implements
     private final List<BreakpointStateRejecting> initialStates = new ArrayList<>();
     private final BiMap<Formula, Integer> mapping = HashBiMap.create();
     private final boolean simpleConstruction;
+    private final Set<Formula.TemporalOperator> nonUnique;
 
-    public InitialStateConstructor(SafetyCoSafety dbw, boolean simpleConstruction) {
+    public InitialStateConstructor(
+      SafetyCoSafety dbw,
+      boolean simpleConstruction,
+      Set<Formula.TemporalOperator> nonUnique) {
+
       this.dbw = dbw;
       this.simpleConstruction = simpleConstruction;
+      this.nonUnique = nonUnique;
+    }
+
+    private boolean uniqueReference(Formula.TemporalOperator formula) {
+      assert SyntacticFragments.isSafetyCoSafety(formula)
+        || SyntacticFragments.isCoSafetySafety(formula);
+
+      return !nonUnique.contains(formula)
+        && !nonUnique.contains((Formula.TemporalOperator) formula.not());
     }
 
     private PropositionalFormula<Integer> add(Formula formula) {
@@ -726,44 +866,23 @@ public final class NormalformDPAConstruction implements
         return PropositionalFormula.Negation.of(PropositionalFormula.Variable.of(id));
       }
 
-      // Ok this does not belong to any fragments we directly support, use normalisation.
-
-      var normalForm1 = PushNextThroughPropositionalVisitor.apply(
-        SimplifierFactory.apply(
-          NORMALISATION.apply(formula), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
-
-      if (simpleConstruction) {
-        return normalForm1.accept(this);
-      }
-
-      var normalForm2 = PushNextThroughPropositionalVisitor.apply(
-        SimplifierFactory.apply(
-          DUAL_NORMALISATION.apply(formula), SimplifierFactory.Mode.SYNTACTIC_FIXPOINT));
-
-      if (normalForm1.operands.size() < normalForm2.operands.size()) {
-        return normalForm1.accept(this);
-      }
-
-      return normalForm2.accept(this);
+      throw new AssertionError("should not reach");
     }
 
     @Override
-    protected PropositionalFormula<Integer>
-      visit(Formula.TemporalOperator temporalOperator) {
+    protected PropositionalFormula<Integer> visit(Formula.TemporalOperator temporalOperator) {
 
       return add(temporalOperator);
     }
 
     @Override
-    public PropositionalFormula<Integer>
-      visit(Literal literal) {
+    public PropositionalFormula<Integer> visit(Literal literal) {
 
       return add(literal);
     }
 
     @Override
-    public PropositionalFormula<Integer>
-      visit(BooleanConstant booleanConstant) {
+    public PropositionalFormula<Integer> visit(BooleanConstant booleanConstant) {
 
       return booleanConstant.value
         ? PropositionalFormula.trueConstant()
@@ -771,13 +890,26 @@ public final class NormalformDPAConstruction implements
     }
 
     @Override
-    public PropositionalFormula<Integer>
-      visit(Conjunction conjunction) {
+    public PropositionalFormula<Integer> visit(Conjunction conjunction) {
 
       List<PropositionalFormula<Integer>> operands = new ArrayList<>(conjunction.operands.size());
+      List<Formula> weakOrCoSafetySafety = new ArrayList<>();
 
       for (Formula operand : conjunction.operands) {
-        operands.add(operand.accept(this));
+        boolean isWeak = SyntacticFragments.DELTA_1.contains(operand);
+        boolean isCoSafetySafetyAndUnique = operand instanceof Formula.TemporalOperator
+          && SyntacticFragments.isCoSafetySafety(operand)
+          && uniqueReference((Formula.TemporalOperator) operand);
+
+        if (!simpleConstruction && (isWeak || isCoSafetySafetyAndUnique)) {
+          weakOrCoSafetySafety.add(operand);
+        } else {
+          operands.add(operand.accept(this));
+        }
+      }
+
+      if (!weakOrCoSafetySafety.isEmpty()) {
+        operands.add(add(Conjunction.of(weakOrCoSafetySafety)));
       }
 
       return PropositionalFormula.Conjunction.of(operands);
@@ -787,9 +919,23 @@ public final class NormalformDPAConstruction implements
     public PropositionalFormula<Integer> visit(Disjunction disjunction) {
 
       List<PropositionalFormula<Integer>> operands = new ArrayList<>(disjunction.operands.size());
+      List<Formula> weakOrSafetyCoSafety = new ArrayList<>();
 
       for (Formula operand : disjunction.operands) {
-        operands.add(operand.accept(this));
+        boolean isWeak = SyntacticFragments.DELTA_1.contains(operand);
+        boolean isSafetyCoSafetyAndUnique = operand instanceof Formula.TemporalOperator
+          && SyntacticFragments.isSafetyCoSafety(operand)
+          && uniqueReference((Formula.TemporalOperator) operand);
+
+        if (!simpleConstruction && (isWeak || isSafetyCoSafetyAndUnique)) {
+          weakOrSafetyCoSafety.add(operand);
+        } else {
+          operands.add(operand.accept(this));
+        }
+      }
+
+      if (!weakOrSafetyCoSafety.isEmpty()) {
+        operands.add(add(Disjunction.of(weakOrSafetyCoSafety)));
       }
 
       return PropositionalFormula.Disjunction.of(operands);
