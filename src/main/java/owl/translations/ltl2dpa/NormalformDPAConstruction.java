@@ -42,8 +42,8 @@ import com.google.common.graph.Graphs;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -169,36 +169,32 @@ public final class NormalformDPAConstruction implements
           var edgeTreeMap = new HashMap<>(Maps.transformValues(state.stateMap(), dbw::edgeTree));
 
           // Remember, dbw needs to be complete!
-          return ValuationTrees.cartesianProduct(edgeTreeMap).map(y -> {
-            Set<Edge<State>> edges = new HashSet<>();
+          return ValuationTrees.uncachedNaryCartesianProduct(edgeTreeMap, y -> {
+            var edge = combineEdge(state, y);
 
-            for (var localEdges : y) {
-              var edge = combineEdge(state, localEdges);
-
-              if (edge.successor().stateFormula().isFalse()) {
-                continue;
-              }
-
-              edges.add(edge);
+            if (edge.successor().stateFormula().isFalse()) {
+              return null;
             }
 
-            return edges;
+            return edge;
           });
         }
       };
     }
 
     private Edge<State> combineEdge(State state,
-      Map<Integer, Edge<BreakpointStateRejecting>> edges) {
+      Collection<Map.Entry<Integer, Edge<BreakpointStateRejecting>>> edges) {
 
       BitSet acceptanceSet = new BitSet();
 
       Map<Integer, BreakpointStateRejecting> stateMap = new HashMap<>(edges.size());
-      edges.forEach((index, edge) -> {
-        stateMap.put(index, edge.successor());
+      edges.forEach((entry) -> {
+        var oldValue
+          = stateMap.put(entry.getKey(), entry.getValue().successor());
+        assert oldValue == null;
 
-        if (edge.inSet(0)) {
-          acceptanceSet.set(index);
+        if (entry.getValue().inSet(0)) {
+          acceptanceSet.set(entry.getKey());
         }
       });
 

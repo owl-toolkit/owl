@@ -21,7 +21,9 @@ package owl.collections;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -29,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 public final class ValuationTrees {
@@ -192,6 +196,124 @@ public final class ValuationTrees {
     return cartesianProduct;
   }
 
+  @SuppressWarnings("PMD")
+  private static <T, R> ValuationTree<R> naryCartesianProduct(
+    List<? extends ValuationTree<T>> trees,
+    Function<? super List<T>, ? extends R> mapper,
+    Map<? super List<ValuationTree<T>>, ValuationTree<R>> memoizedCalls) {
+
+    ValuationTree<R> cartesianProduct = memoizedCalls.get(trees);
+
+    if (cartesianProduct != null) {
+      return cartesianProduct;
+    }
+
+    int variable = nextVariable(trees);
+
+    if (variable == Integer.MAX_VALUE) {
+      Set<R> elements = new HashSet<>();
+      List<Set<T>> values = new ArrayList<>(trees.size());
+
+      for (ValuationTree<T> x : trees) {
+        assert x instanceof ValuationTree.Leaf;
+        ValuationTree.Leaf<T> casted = (ValuationTree.Leaf<T>) x;
+        values.add(casted.value);
+      }
+
+      for (List<T> values2 : Sets.cartesianProduct(values)) {
+        R element = mapper.apply(values2);
+
+        if (element != null) {
+          elements.add(element);
+        }
+      }
+
+      cartesianProduct = ValuationTree.of(elements);
+    } else {
+      var falseTrees = trees.stream()
+        .map(x -> descendFalseIf(x, variable))
+        .collect(Collectors.toUnmodifiableList());
+
+      var trueTrees = trees.stream()
+        .map(x -> descendTrueIf(x, variable))
+        .collect(Collectors.toUnmodifiableList());
+
+      var falseCartesianProduct = naryCartesianProduct(
+        falseTrees,
+        mapper, memoizedCalls);
+      var trueCartesianProduct = naryCartesianProduct(
+        trueTrees,
+        mapper, memoizedCalls);
+      cartesianProduct = ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+    }
+
+    memoizedCalls.put(List.copyOf(trees), cartesianProduct);
+    return cartesianProduct;
+  }
+
+  public static <K, T, R> ValuationTree<R> uncachedNaryCartesianProduct(
+    Map<? extends K, ? extends ValuationTree<T>> trees,
+    Function<Collection<Map.Entry<K, T>>, R> mapper) {
+
+    List<K> lookup = new ArrayList<>(trees.size());
+    List<ValuationTree<T>> treesNew = new ArrayList<>(trees.size());
+
+    trees.forEach((k, t) -> {
+      lookup.add(k);
+      treesNew.add(t);
+    });
+
+    return naryCartesianProduct(treesNew, mapper, lookup);
+  }
+
+  private static <K, T, R> ValuationTree<R> naryCartesianProduct(
+    List<ValuationTree<T>> trees,
+    Function<Collection<Map.Entry<K, T>>, R> mapper,
+    List<K> lookup) {
+
+    int variable = nextVariable(trees);
+
+    if (variable == Integer.MAX_VALUE) {
+      Set<R> elements = new HashSet<>();
+      List<List<Map.Entry<K, T>>> values = new ArrayList<>(trees.size());
+
+      for (int i = 0, s = lookup.size(); i < s; i++) {
+        var x = trees.get(i);
+        var key = lookup.get(i);
+        assert x instanceof ValuationTree.Leaf;
+        ValuationTree.Leaf<T> casted = (ValuationTree.Leaf<T>) x;
+
+        List<Map.Entry<K, T>> z = new ArrayList<>(casted.value.size());
+
+        for (var y : casted.value) {
+          z.add(Map.entry(key, y));
+        }
+
+        values.add(z);
+      }
+
+      for (Collection<Map.Entry<K, T>> values2 : Lists.cartesianProduct(values)) {
+        R element = mapper.apply(values2);
+
+        if (element != null) {
+          elements.add(element);
+        }
+      }
+
+      return ValuationTree.of(elements);
+    }
+
+    var falseTrees = new ArrayList<>(trees);
+    falseTrees.replaceAll(x -> descendFalseIf(x, variable));
+    var falseCartesianProduct = naryCartesianProduct(falseTrees, mapper, lookup);
+
+    var trueTrees = new ArrayList<>(trees);
+    trueTrees.replaceAll(x -> descendTrueIf(x, variable));
+    var trueCartesianProduct = naryCartesianProduct(trueTrees, mapper, lookup);
+
+    return ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+  }
+
   private static <E> ValuationTree<E> union(ValuationTree<E> tree1, ValuationTree<E> tree2,
     Map<Set<?>, ValuationTree<E>> memoizedCalls) {
     if (tree1.equals(tree2)) {
@@ -243,6 +365,18 @@ public final class ValuationTrees {
       : Integer.MAX_VALUE;
 
     return Math.min(variable1, variable2);
+  }
+
+  private static int nextVariable(Collection<? extends ValuationTree<?>> trees) {
+    int variable = Integer.MAX_VALUE;
+
+    for (var tree : trees) {
+      variable = Math.min(variable, tree instanceof ValuationTree.Node
+        ? ((ValuationTree.Node<?>) tree).variable
+        : Integer.MAX_VALUE);
+    }
+
+    return variable;
   }
 
   private static <E> ValuationTree<E> descendFalseIf(ValuationTree<E> tree, int variable) {
