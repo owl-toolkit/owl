@@ -9657,11 +9657,6 @@
             1,
             3
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -9671,27 +9666,6 @@
             2,
             3,
             4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            1
           ]
         }
       ],
@@ -9700,11 +9674,6 @@
           "temporalOperatorsProfile": [
             1,
             3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ]
@@ -10434,25 +10403,7 @@
         {
           "temporalOperatorsProfile": [
             0,
-            1,
-            2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3,
-            4,
-            5
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3
+            1
           ]
         }
       ]

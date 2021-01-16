@@ -135,8 +135,8 @@ class DeterministicConstructionsPortfolioTest {
         Arguments.of("G (a U b)", 1),
         Arguments.of("G (a M b | a U b | F a)", 2),
         Arguments.of("G ((a & X b) | (c & X F c))", 5),
-        Arguments.of("G ((a & X X b) | (b & X X c) | (c & X X F d))", 85),
-        Arguments.of("G ((a & X X b) | (c & X X d) | (e & X X F f))", 85)
+        Arguments.of("G ((a & X X b) | (b & X X c) | (c & X X F d))", 78),
+        Arguments.of("G ((a & X X b) | (c & X X d) | (e & X X F f))", 78)
       );
     }
 

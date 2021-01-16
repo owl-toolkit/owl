@@ -2114,6 +2114,17 @@
     "formula": "(FGa & (Ga | ((b) U (Ga))))"
   },
   {
+    "formula": "(G(a | b) & GF(b & c))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(GFa & (F!a | FGb))"
   },
   {
@@ -2243,6 +2254,17 @@
     "formula": "(G(a | Xb) & G(c | Xd))",
     "properties": {
       "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(G(a | Xb) & GF(b & c))",
+    "properties": {
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -2456,6 +2478,9 @@
     }
   },
   {
+    "formula": "(F(a & b) | FG(b | c))"
+  },
+  {
     "formula": "(FGa | (FGb & GFc))"
   },
   {
@@ -2562,6 +2587,9 @@
       "complete": true,
       "deterministic": true
     }
+  },
+  {
+    "formula": "(F(a & Xb) | FG(b | c))"
   },
   {
     "formula": "(Fa | FGb | F(b & X!a))"
@@ -3476,6 +3504,28 @@
     "formula": "(FG!a & (F(b & X!a) | F(!b & Xa)))"
   },
   {
+    "formula": "(G(a | b) & GF(b & Xc))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(G(a | b) & GF(c & Xb))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(GFa & (Gb | (a & GFa)))",
     "properties": {
       "size": 4,
@@ -3530,6 +3580,39 @@
     "formula": "((FG!a | FG!b | FG!c | FG!d | FG!e) & (GFc | (GFa & GFb & GFd & GFe)))"
   },
   {
+    "formula": "(G(a | Xb) & GF(b & Xc))",
+    "properties": {
+      "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(G(a | Xb) & GF(c & Xa))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(G(a | Xb) & GF(c & Xb))",
+    "properties": {
+      "size": 7,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(G(!a | Fb) & (((Xa) U (b)) | X((!a) R ((!a | !b)))))",
     "properties": {
       "size": 5,
@@ -3548,6 +3631,17 @@
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(XG(a | b) & GF(c & Xb))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
       "deterministic": true
     }
   },
@@ -3638,7 +3732,7 @@
   {
     "formula": "(GFa & GF!a & G(a | XFb))",
     "properties": {
-      "size": 5,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -3686,7 +3780,40 @@
     "formula": "(FG(a | X!a) & FG(!a | Xa) & FG(b | X!b) & FG(!b | Xb))"
   },
   {
+    "formula": "(G(a | Fb) & G(c | Fd) & G(e | Ff) & G((!b & !d) | (!f & (!b | !d))) & G(a | Xc | F(b & d)) & G(a | Xe | F(b & f)) & G(c | Xe | F(d & f)))",
+    "properties": {
+      "size": 1386,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(FG(a | X!a) & FG(!a | Xa) & FG(b | X!b) & FG(!b | Xb) & FG(c | X!c) & FG(!c | Xc) & FG(d | X!d) & FG(!d | Xd))"
+  },
+  {
+    "formula": "(((a) R (!b)) & ((c) R (!d)) & G(!b | !d) & (GFa | GF!b) & (GFc | GF!d) & G(!a | Fb) & G(!c | Fd) & G(!b | X(a | b) | X((a) R (!b))) & G(!d | X(c | d) | X((c) R (!d))))",
+    "properties": {
+      "size": 16,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(((a) R (!b)) & ((c) R (!d)) & ((e) R (!f)) & ((g) R (!h)) & (GFa | GF!b) & (GFc | GF!d) & (GFe | GF!f) & (GFg | GF!h) & G(!a | Fb) & G(!c | Fd) & G(!e | Ff) & G(!g | Fh) & G((!b & !d & (!f | !h)) | (!f & !h & (!b | !d))) & G(!b | X(a | b) | X((a) R (!b))) & G(!d | X(c | d) | X((c) R (!d))) & G(!f | X(e | f) | X((e) R (!f))) & G(!h | X(g | h) | X((g) R (!h))))",
+    "properties": {
+      "size": 254,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
   },
   {
     "formula": "(a | G(b | (a & Fb)))",
@@ -3761,6 +3888,12 @@
     "formula": "((Fa & Gb) | (Gb & F(Fa & Gb)))"
   },
   {
+    "formula": "(F(a & b) | FG(b | Xc))"
+  },
+  {
+    "formula": "(F(a & b) | FG(c | Xb))"
+  },
+  {
     "formula": "(FGa | (Fb & (a | FGa)))"
   },
   {
@@ -3827,7 +3960,19 @@
     "formula": "(F(a & G!b) | (((X!a) R (!b)) & X((a) U ((a & b)))))"
   },
   {
+    "formula": "(F(a & Xb) | FG(b | Xc))"
+  },
+  {
+    "formula": "(F(a & Xb) | FG(c | Xa))"
+  },
+  {
+    "formula": "(F(a & Xb) | FG(c | Xb))"
+  },
+  {
     "formula": "(FG(a | b) | FG(!a | Xb))"
+  },
+  {
+    "formula": "(XF(a & b) | FG(c | Xb))"
   },
   {
     "formula": "((Fa & X(F!b & G!a)) | (G!a & X(Fa | Gb)))",
@@ -3932,6 +4077,9 @@
     }
   },
   {
+    "formula": "(F(a & G!b) | F(c & G!d) | F(e & G!f) | F((b | d) & (f | (b & d))) | F(a & Xc & G(!b | !d)) | F(a & Xe & G(!b | !f)) | F(c & Xe & G(!d | !f)))"
+  },
+  {
     "formula": "(GF(a & X!a) | GF(!a & Xa) | GF(b & X!b) | GF(!b & Xb) | GF(c & X!c) | GF(!c & Xc) | GF(d & X!d) | GF(!d & Xd))",
     "properties": {
       "size": 17,
@@ -3941,6 +4089,12 @@
       "complete": true,
       "deterministic": true
     }
+  },
+  {
+    "formula": "(((!a) U (b)) | ((!c) U (d)) | F(b & d) | (FG!a & FGb) | (FG!c & FGd) | F(a & G!b) | F(c & G!d) | F(b & X(!a & !b) & X((!a) U (b))) | F(d & X(!c & !d) & X((!c) U (d))))"
+  },
+  {
+    "formula": "(((!a) U (b)) | ((!c) U (d)) | ((!e) U (f)) | ((!g) U (h)) | (FG!a & FGb) | (FG!c & FGd) | (FG!e & FGf) | (FG!g & FGh) | F(a & G!b) | F(c & G!d) | F(e & G!f) | F(g & G!h) | F((b | d | (f & h)) & (f | h | (b & d))) | F(b & X(!a & !b) & X((!a) U (b))) | F(d & X(!c & !d) & X((!c) U (d))) | F(f & X(!e & !f) & X((!e) U (f))) | F(h & X(!g & !h) & X((!g) U (h))))"
   },
   {
     "formula": "F(a & ((!a & !b) | GFb))"
@@ -4181,7 +4335,7 @@
   {
     "formula": "G((a & Xb) | (b & XFc))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4203,7 +4357,7 @@
   {
     "formula": "G((a & XXb) | (b & XXc) | (c & XFd))",
     "properties": {
-      "size": 63,
+      "size": 62,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4849,6 +5003,12 @@
     "formula": "(FG(a | XXXa) & FG(!a | XXX!a))"
   },
   {
+    "formula": "(a & GFa & (!b | c | F(!a & c) | F(b & d) | F(!b & !d) | (FG!b & FGe) | (FG!d & FGf) | F(b & (e | g) & (!e | !g)) | F(d & (f | g) & (!f | !g)) | F(c & !e & !f & X!b) | F(!a & (b | Xb) & (!b | X!b)) | F(!a & (d | Xd) & (!d | X!d)) | F(c & (b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd)) | F(!c & ((b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd)))))"
+  },
+  {
+    "formula": "(a & GFa & (!b | c | F(!a & c) | F(!b & !d & !e & !f) | (FG!b & FGg) | (FG!d & FGh) | (FG!e & FGi) | (FG!f & FGj) | F(b & (g | k) & (!g | !k)) | F(d & (h | k) & (!h | !k)) | F(e & (i | k) & (!i | !k)) | F(f & (j | k) & (!j | !k)) | F(c & !g & !h & !i & !j & X!b) | F((b | d | (e & f)) & (e | f | (b & d))) | F(!a & (b | Xb) & (!b | X!b)) | F(!a & (d | Xd) & (!d | X!d)) | F(!a & (e | Xe) & (!e | X!e)) | F(!a & (f | Xf) & (!f | X!f)) | F(c & (b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd) & (e | X!e) & (!e | Xe) & (f | X!f) & (!f | Xf)) | F(!c & ((b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd) | (e & X!e) | (!e & Xe) | (f & X!f) | (!f & Xf)))))"
+  },
+  {
     "formula": "(GFa & FG(b | Xc) & GF(d & XXXe))"
   },
   {
@@ -4859,6 +5019,28 @@
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "((F(a & Xb) | F(c & Xd) | (G(!b | Fa) & G(!b | ((!c) W (d))) & G(!d | Fc) & G(!d | ((!a) W (b))) & G(b | d | Fa | Fc) & G((e & Xf) | X(!g | !h)) & G((e & X!f) | X(!i | !j)) & G(!e | Xf | X(i & j)) & G(!e | X!f | X(g & h)))) & G((a & !c & !k) | (!a & ((c & !k & (c | !k)) | (!c & k & (!c | k))))) & G((!g & i & !l) | (!i & ((g & !l & (g | !l)) | (!g & l & (!g | l))))) & G((!h & j & !m) | (!j & ((h & !m & (h | !m)) | (!h & m & (!h | m))))))",
+    "properties": {
+      "size": 91,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(G(a | !b | !c) & G(b | d | !e) & G(!b | e | f) & G(!a | (b & c)) & G(!d | (!b & e)) & G(!f | (b & !e)) & G(c | Xb | X!c | Xg) & G(X!g | (!c & X!b & Xc)) & G((a & !g & !h) | (!a & ((g & !h & (g | !h)) | (!g & h & (!g | h))))) & G((d & !f & !i) | (!d & ((f & !i & (f | !i)) | (!f & i & (!f | i))))))",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
       "deterministic": true
     }
   },
@@ -4897,15 +5079,35 @@
     }
   },
   {
+    "formula": "(!a | FG!a | (b & !c & G(a | !c) & G(b | d) & G(!b | !d) & (GFb | GF!e) & (GFd | GF!f) & G(!b | (e & g) | (!e & !g)) & G(!d | (f & g) | (!f & !g)) & G(!c | e | f | Xb) & G(a | (b & Xb) | (!b & X!b)) & G(a | (d & Xd) | (!d & X!d)) & G(!c | (b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd)) & G(c | ((b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd)))))"
+  },
+  {
+    "formula": "(!a | FG!a | (b & !c & G(a | !c) & G(b | d | e | f) & (GFb | GF!g) & (GFd | GF!h) & (GFe | GF!i) & (GFf | GF!j) & G(!b | (g & k) | (!g & !k)) & G(!d | (h & k) | (!h & !k)) & G(!e | (i & k) | (!i & !k)) & G(!f | (j & k) | (!j & !k)) & G(!c | g | h | i | j | Xb) & G((!b & !d & (!e | !f)) | (!e & !f & (!b | !d))) & G(a | (b & Xb) | (!b & X!b)) & G(a | (d & Xd) | (!d & X!d)) & G(a | (e & Xe) | (!e & X!e)) & G(a | (f & Xf) | (!f & X!f)) & G(!c | (b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd) | (e & X!e) | (!e & Xe) | (f & X!f) | (!f & Xf)) & G(c | ((b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd) & (e | X!e) & (!e | Xe) & (f | X!f) & (!f | Xf)))))"
+  },
+  {
     "formula": "(FGa | GF(b & Xc) | FG(d | XXXe))"
   },
   {
     "formula": "(FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb))"
   },
   {
+    "formula": "((G(!a | X!b) & G(!c | X!d) & (F(b & G!a) | F(b & ((c) M (!d))) | F(d & G!c) | F(d & ((a) M (!b))) | F(!b & !d & G!a & G!c) | F((!e | Xf) & X(g & h)) | F((!e | X!f) & X(i & j)) | F(e & Xf & X(!i | !j)) | F(e & X!f & X(!g | !h)))) | F((!a | c | k) & (a | ((c | !k | (c & !k)) & (!c | k | (!c & k))))) | F((!g | i | l) & (g | ((i | !l | (i & !l)) & (!i | l | (!i & l))))) | F((!h | j | m) & (h | ((j | !m | (j & !m)) & (!j | m | (!j & m))))))"
+  },
+  {
     "formula": "(Fa | Fb | Fc | XF!b | X(Xa | ((b) U (((!b) U (((b) U ((a | d)))))))))",
     "properties": {
       "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(F(!a & b & c) | F(b & !d & !e) | F(!b & d & !f) | F(a & (!b | !c)) | F(e & (!b | d)) | F(f & (b | !d)) | F(!c & X!b & Xc & X!g) | F(Xg & (c | Xb | X!c)) | F((!a | g | h) & (a | ((g | !h | (g & !h)) & (!g | h | (!g & h))))) | F((e | !f | i) & (f | ((e | !i | (e & !i)) & (!e | i | (!e & i))))))",
+    "properties": {
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4955,7 +5157,7 @@
   {
     "formula": "G(a | G(b | (c & XFd)))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -4966,7 +5168,7 @@
   {
     "formula": "G(a | G(b | (c & d & X((d) U (e)))))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -5129,6 +5331,20 @@
     "formula": "(FG(a | XXXXa) & FG(!a | XXXX!a))"
   },
   {
+    "formula": "(a & GFa & (!b | c | F(!a & c) | F(!b & !d & !e & !f & !g & !h) | (FG!b & FGi) | (FG!d & FGj) | (FG!e & FGk) | (FG!f & FGl) | (FG!g & FGm) | (FG!h & FGn) | F(b & (i | o) & (!i | !o)) | F(d & (j | o) & (!j | !o)) | F(e & (k | o) & (!k | !o)) | F(f & (l | o) & (!l | !o)) | F(g & (m | o) & (!m | !o)) | F(h & (n | o) & (!n | !o)) | F(c & !i & !j & !k & !l & !m & !n & X!b) | F(!a & (b | Xb) & (!b | X!b)) | F(!a & (d | Xd) & (!d | X!d)) | F(!a & (e | Xe) & (!e | X!e)) | F(!a & (f | Xf) & (!f | X!f)) | F(!a & (g | Xg) & (!g | X!g)) | F(!a & (h | Xh) & (!h | X!h)) | F(c & (b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd) & (e | X!e) & (!e | Xe) & (f | X!f) & (!f | Xf) & (g | X!g) & (!g | Xg) & (h | X!h) & (!h | Xh)) | F(!c & ((b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd) | (e & X!e) | (!e & Xe) | (f & X!f) | (!f & Xf) | (g & X!g) | (!g & Xg) | (h & X!h) | (!h & Xh))) | F((b | d | e | ((f | g) & (h | (f & g)))) & (f | g | h | ((b | d) & (e | (b & d)))))))"
+  },
+  {
+    "formula": "(G((a & !b & !c) | (!a & ((b & !c & (b | !c)) | (!b & c & (!b | c))))) & G((d & !e & !f) | (!d & ((e & !f & (e | !f)) | (!e & f & (!e | f))))) & G((g & !h & !i) | (!g & ((h & !i & (h | !i)) | (!h & i & (!h | i))))) & (((j) M (!d)) | F(k & l) | F(d & X((!j) M (!f))) | F(f & X((j) M (!d))) | (G(a | !j) & G(!a | j) & G(b | j) & G(!b | !j) & G(i | !l) & G(!i | l) & G(h | !j | !k) & G(!h | (j & k)) & G(!k | (j & X!j) | (!j & Xj)) & G(k | ((j | X!j) & (!j | Xj))))))",
+    "properties": {
+      "size": 8,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(G!a | (((b | ((!a) U ((!a & c & d & X(((!a & d)) U (e))))))) U (a)))",
     "properties": {
       "size": 4,
@@ -5146,6 +5362,20 @@
     "formula": "(GF(a & XXXXa) | GF(!a & XXXX!a))",
     "properties": {
       "size": 31,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(!a | FG!a | (b & !c & G(a | !c) & G(b | d | e | f | g | h) & (GFb | GF!i) & (GFd | GF!j) & (GFe | GF!k) & (GFf | GF!l) & (GFg | GF!m) & (GFh | GF!n) & G(!b | (i & o) | (!i & !o)) & G(!d | (j & o) | (!j & !o)) & G(!e | (k & o) | (!k & !o)) & G(!f | (l & o) | (!l & !o)) & G(!g | (m & o) | (!m & !o)) & G(!h | (n & o) | (!n & !o)) & G(!c | i | j | k | l | m | n | Xb) & G(a | (b & Xb) | (!b & X!b)) & G(a | (d & Xd) | (!d & X!d)) & G(a | (e & Xe) | (!e & X!e)) & G(a | (f & Xf) | (!f & X!f)) & G(a | (g & Xg) | (!g & X!g)) & G(a | (h & Xh) | (!h & X!h)) & G(!c | (b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd) | (e & X!e) | (!e & Xe) | (f & X!f) | (!f & Xf) | (g & X!g) | (!g & Xg) | (h & X!h) | (!h & Xh)) & G(c | ((b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd) & (e | X!e) & (!e | Xe) & (f | X!f) & (!f | Xf) & (g | X!g) & (!g | Xg) & (h | X!h) & (!h | Xh))) & G((!b & !d & !e & ((!f & !g) | (!h & (!f | !g)))) | (!f & !g & !h & ((!b & !d) | (!e & (!b | !d)))))))"
+  },
+  {
+    "formula": "(F((!a | b | c) & (a | ((b | !c | (b & !c)) & (!b | c | (!b & c))))) | F((!d | e | f) & (d | ((e | !f | (e & !f)) & (!e | f | (!e & f))))) | F((!g | h | i) & (g | ((h | !i | (h & !i)) & (!h | i | (!h & i))))) | (((!j) W (d)) & G(!k | !l) & G(!d | X((j) W (f))) & G(!f | X((!j) W (d))) & (F(a & !j) | F(!a & j) | F(b & j) | F(!b & !j) | F(i & !l) | F(!i & l) | F(!h & j & k) | F(h & (!j | !k)) | F(k & (j | X!j) & (!j | Xj)) | F(!k & ((j & X!j) | (!j & Xj))))))",
+    "properties": {
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
@@ -5233,7 +5463,51 @@
     "formula": "((!a | GF(a & !b & ((!c) M (!a))) | GF(!a & (b | ((c) W (a)))) | (F!c & (F(a & !b & ((!c) M (!a))) | F(!a & (b | ((c) W (a))))))) & (a | (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a)))))))))"
   },
   {
+    "formula": "(G((a & !b) | (!a & b)) & G((c & !d & !e) | (!c & ((d & !e & (d | !e)) | (!d & e & (!d | e))))) & G((f & !g & !h) | (!f & ((g & !h & (g | !h)) | (!g & h & (!g | h))))) & (!i | !j | F(k & l) | F(m & n) | F(c & o & X!i) | F(d & p & X!i) | F(f & q & X!j) | F(g & r & X!j) | F(h & j & X!j) | (Gi & Gj & G(b | !s) & G(!b | s) & G(!k | (((c & n & o) | (!c & (!n | !o))) & ((d & m & p) | (!d & (!m | !p))))) & G(!l | (((f & n & q) | (!f & (!n | !q))) & ((g & m & r) | (!g & (!m | !r))))))))",
+    "properties": {
+      "size": 9,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(G((a & !b) | (!a & b)) & G((c & !d & !e) | (!c & ((d & !e & (d | !e)) | (!d & e & (!d | e))))) & G((f & !g & !h) | (!f & ((g & !h & (g | !h)) | (!g & h & (!g | h))))) & (!i | !j | F(k & l) | F(m & n) | F(c & o & X!i) | F(d & p & X!i) | F(e & i & X!i) | F(f & q & X!j) | F(g & r & X!j) | F(h & j & X!j) | (Gi & Gj & G(b | !s) & G(!b | s) & G(!k | (((c & n & o) | (!c & (!n | !o))) & ((d & m & p) | (!d & (!m | !p))))) & G(!l | (((f & n & q) | (!f & (!n | !q))) & ((g & m & r) | (!g & (!m | !r))))))))",
+    "properties": {
+      "size": 9,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((a & FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))) | (!a & (GF(a & !b & ((!c) M (!a))) | GF(!a & (b | ((c) W (a)))) | (F!c & (F(a & !b & ((!c) M (!a))) | F(!a & (b | ((c) W (a)))))))))"
+  },
+  {
+    "formula": "(F((a | !b) & (!a | b)) | F((!c | d | e) & (c | ((d | !e | (d & !e)) & (!d | e | (!d & e))))) | F((!f | g | h) & (f | ((g | !h | (g & !h)) & (!g | h | (!g & h))))) | (i & j & G(!k | !l) & G(!m | !n) & G(!c | !o | Xi) & G(!d | !p | Xi) & G(!f | !q | Xj) & G(!g | !r | Xj) & G(!h | !j | Xj) & (F!i | F!j | F(b & !s) | F(!b & s) | F(k & (((!c | !n | !o) & (c | (n & o))) | ((!d | !m | !p) & (d | (m & p))))) | F(l & (((!f | !n | !q) & (f | (n & q))) | ((!g | !m | !r) & (g | (m & r))))))))",
+    "properties": {
+      "size": 11,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(F((a | !b) & (!a | b)) | F((!c | d | e) & (c | ((d | !e | (d & !e)) & (!d | e | (!d & e))))) | F((!f | g | h) & (f | ((g | !h | (g & !h)) & (!g | h | (!g & h))))) | (i & j & G(!k | !l) & G(!m | !n) & G(!c | !o | Xi) & G(!d | !p | Xi) & G(!e | !i | Xi) & G(!f | !q | Xj) & G(!g | !r | Xj) & G(!h | !j | Xj) & (F!i | F!j | F(b & !s) | F(!b & s) | F(k & (((!c | !n | !o) & (c | (n & o))) | ((!d | !m | !p) & (d | (m & p))))) | F(l & (((!f | !n | !q) & (f | (n & q))) | ((!g | !m | !r) & (g | (m & r))))))))",
+    "properties": {
+      "size": 11,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
   },
   {
     "formula": "F(a & (((b & ((c) R ((c | d | X((c) R (e))))))) R ((!c & F(b & (d | XGe))))))"

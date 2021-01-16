@@ -848,7 +848,7 @@ public final class NormalformDPAConstruction implements
 
       if (SyntacticFragments.isSafetyCoSafety(formula)) {
         int id = mapping.size();
-        var initialState = dbw.asInitialState(formula);
+        var initialState = dbw.initialState(formula);
         mapping.put(formula, id);
         initialStates.add(initialState);
         return PropositionalFormula.Variable.of(id);
@@ -856,7 +856,7 @@ public final class NormalformDPAConstruction implements
 
       if (SyntacticFragments.isSafetyCoSafety(formulaNot)) {
         int id = mapping.size();
-        var initialState = dbw.asInitialState(formulaNot);
+        var initialState = dbw.initialState(formulaNot);
         mapping.put(formulaNot, id);
         initialStates.add(initialState);
         return PropositionalFormula.Negation.of(PropositionalFormula.Variable.of(id));

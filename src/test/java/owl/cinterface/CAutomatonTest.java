@@ -80,7 +80,7 @@ public class CAutomatonTest {
   private static final String BASE_PATH = "data/formulas/features";
 
   private static final Map<FormulaSet, Summary> TEST_DATA = Map.ofEntries(
-    Map.entry(BASE, Summary.of(51, 51, 51)),
+    Map.entry(BASE, Summary.of(59, 59, 59)),
     Map.entry(LIBEROUTER, Summary.of(46, 45, 45)),
     Map.entry(CHECK, Summary.of(75, 74, 68)),
     Map.entry(PARAMETRISED, Summary.of(33, 33, 33)),
