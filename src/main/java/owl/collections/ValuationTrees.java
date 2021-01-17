@@ -236,13 +236,14 @@ public final class ValuationTrees {
       treesNew.add(t);
     });
 
-    return naryCartesianProduct(treesNew, mapper, lookup);
+    return naryCartesianProduct(treesNew, mapper, lookup, new HashMap<>());
   }
 
   private static <K, T, R> ValuationTree<R> naryCartesianProduct(
     List<ValuationTree<T>> trees,
-    Function<? super Collection<Map.Entry<K, T>>, R> mapper,
-    List<? extends K> lookup) {
+    Function<Collection<Map.Entry<K, T>>, R> mapper,
+    List<? extends K> lookup,
+    Map<Collection<Map.Entry<K, T>>, R> mapperCache) {
 
     int variable = nextVariable(trees);
 
@@ -265,8 +266,9 @@ public final class ValuationTrees {
         values.add(z);
       }
 
-      for (Collection<Map.Entry<K, T>> values2 : Lists.cartesianProduct(values)) {
-        R element = mapper.apply(values2);
+      for (List<Map.Entry<K, T>> values2 : Lists.cartesianProduct(values)) {
+        var listCopy = List.copyOf(values2);
+        R element = mapperCache.computeIfAbsent(listCopy, mapper::apply);
 
         if (element != null) {
           elements.add(element);
@@ -278,11 +280,13 @@ public final class ValuationTrees {
 
     var falseTrees = new ArrayList<>(trees);
     falseTrees.replaceAll(x -> descendFalseIf(x, variable));
-    var falseCartesianProduct = naryCartesianProduct(falseTrees, mapper, lookup);
+    var falseCartesianProduct
+      = naryCartesianProduct(falseTrees, mapper, lookup, mapperCache);
 
     var trueTrees = new ArrayList<>(trees);
     trueTrees.replaceAll(x -> descendTrueIf(x, variable));
-    var trueCartesianProduct = naryCartesianProduct(trueTrees, mapper, lookup);
+    var trueCartesianProduct
+      = naryCartesianProduct(trueTrees, mapper, lookup, mapperCache);
 
     return ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
   }
