@@ -59,8 +59,8 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.transformer.ToParityTransformer;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
@@ -225,8 +225,8 @@ public final class NormalformDPAConstruction implements
       // Is it the same?
       if (state.zielonkaTreeRoot().equals(zielonkaTreeRoot)) {
         // Yes, Update path and generate colours
-        var zielonkaEdge
-          = zielonkaTreeRoot.transformEdge(BitSet2.asSet(acceptanceSet), state.zielonkaTreePath());
+        var zielonkaEdge = zielonkaTreeRoot.transformColours(
+          Colours.copyOf(acceptanceSet), state.zielonkaTreePath());
         successor = State.of(successorFormula,
           stateMap, zielonkaTreeRoot, zielonkaEdge.successor(), statusMap);
         colour = zielonkaEdge.smallestAcceptanceSet();

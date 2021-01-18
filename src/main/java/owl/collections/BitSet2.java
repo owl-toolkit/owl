@@ -73,7 +73,10 @@ public final class BitSet2 {
   }
 
   public static BitSet copyOf(BitSet bitSet) {
-    return (BitSet) bitSet.clone();
+    // Do not use clone(), since the method can be overridden and might produce unexpected results.
+    BitSet copy = new BitSet();
+    copy.or(bitSet);
+    return copy;
   }
 
   public static BitSet copyOf(Collection<Integer> set) {

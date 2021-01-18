@@ -154,6 +154,25 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
   public abstract BitSet asBitSet();
 
+  public final Colours intersection(Colours that) {
+    if (this.containsAll(that)) {
+      return that;
+    }
+
+    if (that.containsAll(this)) {
+      return this;
+    }
+
+    BitSet intersection = this.asBitSet();
+    intersection.and(that.asBitSet());
+
+    if (intersection.cardinality() > 1) {
+      return new Large(intersection);
+    }
+
+    return copyOf(intersection);
+  }
+
   private static final class Small extends Colours {
     private static Colours EMPTY = new Small(Small.EMPTY_ELEMENT_VALUE);
 
