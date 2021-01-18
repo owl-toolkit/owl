@@ -24,7 +24,6 @@ import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Sets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -57,7 +56,6 @@ import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedSta
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
@@ -423,7 +421,7 @@ public final class ToParityTransformer {
             : edge.mapAcceptance(mapping::get);
 
           Edge<Path> extensionEdge
-            = successorTransformer.transformEdge(mappedEdge, state.extension());
+            = successorTransformer.transformColours(mappedEdge.colours(), state.extension());
           return extensionEdge.mapSuccessor(x -> ExtendedState.of(mappedEdge.successor(), x));
         } else {
           return Edge.of(
@@ -475,12 +473,8 @@ public final class ToParityTransformer {
     }
 
     @Override
-    public Edge<Path> transformEdge(Edge<?> edge, Path currentPath) {
-      return transformEdge(BitSet2.asSet(edge.acceptanceSets()), currentPath);
-    }
-
-    public Edge<Path> transformEdge(Set<Integer> unfilteredColours, Path currentPath) {
-      Set<Integer> colours = new HashSet<>(Sets.intersection(unfilteredColours, root().colours()));
+    public Edge<Path> transformColours(Colours unfilteredColours, Path currentPath) {
+      Colours colours = unfilteredColours.intersection(root().colours());
 
       int anchorLevel = 0;
       var node = this.root();
@@ -518,7 +512,7 @@ public final class ToParityTransformer {
           // We did not fully cycle around.
           if (child.colours().containsAll(colours)) {
             // Recursively descend, but override acceptance mark.
-            return transformEdge(colours, successorPath)
+            return transformColours(colours, successorPath)
               .withAcceptance(rootAccepting() ? anchorLevel : anchorLevel + 1);
           }
 

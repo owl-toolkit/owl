@@ -29,6 +29,7 @@ import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
@@ -41,7 +42,7 @@ abstract class AcceptanceTransformation {
 
     E initialExtension();
 
-    Edge<E> transformEdge(Edge<?> edge, E extension);
+    Edge<E> transformColours(Colours edge, E extension);
   }
 
   static <S, E, A extends OmegaAcceptance, B extends OmegaAcceptance>
@@ -83,7 +84,7 @@ abstract class AcceptanceTransformation {
       }
 
       private Edge<ExtendedState<S, E>> transformEdge(Edge<? extends S> edge, E annotation) {
-        Edge<E> extensionEdge = transformer.transformEdge(edge, annotation);
+        Edge<E> extensionEdge = transformer.transformColours(edge.colours(), annotation);
         return extensionEdge.mapSuccessor(x -> ExtendedState.of(edge.successor(), x));
       }
     };

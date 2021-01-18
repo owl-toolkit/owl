@@ -55,6 +55,10 @@
         "type": "file",
         "path": "data/formulas/literature/SomenziB00.ltl"
     },
+    "syntcomp-selection": {
+        "type": "file",
+        "path": "data/formulas/syntcomp-selection.ltl"
+    },
     "random": {
         "type": "random"
     }

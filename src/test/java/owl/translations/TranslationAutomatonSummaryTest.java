@@ -29,6 +29,7 @@ import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBERO
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.PARAMETRISED_HARDNESS;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SIZE_FGGF;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.SYNTCOMP_SELECTION;
 
 import com.google.common.collect.Collections2;
 import com.google.gson.Gson;
@@ -98,7 +99,8 @@ public class TranslationAutomatonSummaryTest {
   private static final String BASE_PATH = "data/formulas";
 
   static final List<String> COMMON_ALPHABET = List.of("a", "b", "c", "d", "e", "f", "g",
-    "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z");
+    "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z",
+    "aa", "ab", "ac", "ad", "ae", "af", "ag");
 
   static final List<Translator> TRANSLATORS = List.of(
     new Translator("dpa.normalform", x -> NormalformDPAConstruction.of(x, false)),
@@ -133,86 +135,99 @@ public class TranslationAutomatonSummaryTest {
     new Translator("safetyCoSafety", DeterministicConstructionsPortfolio::safetyCoSafety),
 
     new Translator("ldba.asymmetric", environment ->
-      LTL2LDBAModule.translation(environment, false, false)),
+      LTL2LDBAModule.translation(environment, false, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldba.asymmetric.portfolio", environment ->
-      LTL2LDBAModule.translation(environment, false, true)),
+      LTL2LDBAModule.translation(environment, false, true),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.asymmetric", environment ->
-      LTL2LDGBAModule.translation(environment, false, false)),
+      LTL2LDGBAModule.translation(environment, false, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.asymmetric.portfolio", environment ->
-      LTL2LDGBAModule.translation(environment, false, true)),
+      LTL2LDGBAModule.translation(environment, false, true),
+      Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("ldba.symmetric", environment ->
-      LTL2LDBAModule.translation(environment, true, false)),
+      LTL2LDBAModule.translation(environment, true, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldba.symmetric.portfolio", environment ->
-      LTL2LDBAModule.translation(environment, true, true)),
+      LTL2LDBAModule.translation(environment, true, true),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.symmetric", environment ->
-      LTL2LDGBAModule.translation(environment, true, false)),
+      LTL2LDGBAModule.translation(environment, true, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.symmetric.portfolio", environment ->
-      LTL2LDGBAModule.translation(environment, true, true)),
+      LTL2LDGBAModule.translation(environment, true, true),
+      Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dpa.asymmetric", environment ->
       LTL2DPAModule.translation(environment, false, false, false),
-      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+      Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
     new Translator("dpa.asymmetric.portfolio", environment ->
       LTL2DPAModule.translation(environment, false, false, true),
-      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+      Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
     new Translator("dpa.symmetric", environment ->
       LTL2DPAModule.translation(environment, true, false, false),
-      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+      Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
     new Translator("dpa.symmetric.portfolio", environment ->
       LTL2DPAModule.translation(environment, true, false, true),
-      EnumSet.of(LIBEROUTER, FGGF, SIZE_FGGF)),
+      Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
-    // TODO: Investigate one minute difference
     new Translator("dra.symmetric", environment ->
       LTL2DRAModule.translation(environment,
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false)),
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("dra.symmetric.portfolio", environment ->
       LTL2DRAModule.translation(environment,
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false)),
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("dra.symmetric.optimizations", environment -> x ->
       AcceptanceOptimizations.optimize(
         SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
-          .apply(x))),
+          .apply(x)),
+      Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dgra.symmetric", environment ->
       LTL2DGRAModule.translation(environment,
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false)),
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("dgra.symmetric.portfolio", environment ->
       LTL2DGRAModule.translation(environment,
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false)),
+        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("dgra.symmetric.optimizations", environment -> x ->
       AcceptanceOptimizations.optimize(
         SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
-          .apply(x))),
+          .apply(x)),
+      Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dra.normalform", environment ->
       LTL2DRAModule.translation(environment,
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
-      Set.of(), true),
+      Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dra.normalform.portfolio", environment ->
       LTL2DRAModule.translation(environment,
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
-      Set.of(), true),
+      Set.of(SYNTCOMP_SELECTION), true),
 
     new Translator("dra.normalform.dual", environment ->
       LTL2DRAModule.translation(environment,
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, true),
-      Set.of(), true),
+      Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dra.normalform.dual.portfolio", environment ->
       LTL2DRAModule.translation(environment,
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, true),
-      Set.of(), true),
+      Set.of(SYNTCOMP_SELECTION), true),
 
     new Translator("dgra.normalform", environment ->
       LTL2DGRAModule.translation(environment,
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
-      Set.of(), true),
+      Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dgra.normalform.portfolio", environment ->
       LTL2DGRAModule.translation(environment,
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
-      Set.of(), true),
+      Set.of(SYNTCOMP_SELECTION), true),
 
     new Translator("nba.symmetric", environment ->
       LTL2NBAModule.translation(environment, false)),
@@ -228,10 +243,10 @@ public class TranslationAutomatonSummaryTest {
       EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
     new Translator("ltl2da",
       LTL2DAFunction::new,
-      EnumSet.of(LIBEROUTER)),
+      EnumSet.of(SYNTCOMP_SELECTION, LIBEROUTER)),
     new Translator("ltl2na",
       LTL2NAFunction::new,
-      EnumSet.of(LIBEROUTER))
+      EnumSet.of(SYNTCOMP_SELECTION, LIBEROUTER))
   );
 
   private static boolean containsIsomorphic(Collection<Formula> formulas, Formula formula) {
@@ -329,7 +344,7 @@ public class TranslationAutomatonSummaryTest {
         reader.lines().forEach(line -> {
           var formulaString = line.trim();
 
-          if (formulaString.isEmpty()) {
+          if (formulaString.isEmpty() || formulaString.charAt(0) == '#') {
             return;
           }
 
@@ -367,6 +382,7 @@ public class TranslationAutomatonSummaryTest {
     REGRESSIONS("regressions"),
     SIZE_FGGF("size-fggf"),
     SIZE("size"),
+    SYNTCOMP_SELECTION("syntcomp-selection"),
 
     // Literature Patterns
     DWYER("literature/DwyerAC98"),
@@ -396,7 +412,7 @@ public class TranslationAutomatonSummaryTest {
         reader.lines().forEach(line -> {
           var formulaString = line.trim();
 
-          if (formulaString.isEmpty()) {
+          if (formulaString.isEmpty() || formulaString.charAt(0) == '#') {
             return;
           }
 

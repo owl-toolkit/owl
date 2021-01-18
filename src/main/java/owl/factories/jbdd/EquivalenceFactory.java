@@ -596,7 +596,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
         if (unfoldCache.unfoldCache == null) {
           unfoldCache.unfoldCache = unfoldCache;
         } else {
-          assert unfoldCache.unfoldCache.equals(unfoldCache);
+          assert unfoldCache.unfoldCache == unfoldCache;
         }
       }
 

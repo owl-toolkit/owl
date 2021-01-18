@@ -1581,5 +1581,344 @@
         }
       ]
     ]
+  },
+  {
+    "formula": "(G(a | b) & GF(b & c))",
+    "properties": [
+      []
+    ]
+  },
+  {
+    "formula": "(G(a | Xb) & GF(b & c))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G(a | b) & GF(c & Xb))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G(a | Xb) & GF(c & Xb))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G(a | b) & GF(b & Xc))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G(a | Xb) & GF(b & Xc))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(G(a | Xb) & GF(c & Xa))",
+    "properties": [
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3,
+            4
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ]
+    ]
+  },
+  {
+    "formula": "(XG(a | b) & GF(c & Xb))",
+    "properties": [
+      [
+        {
+          "permutation": []
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "permutation": [
+            0
+          ]
+        },
+        {
+          "roundRobinCounter": -1
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
+          ]
+        }
+      ]
+    ]
   }
 ]

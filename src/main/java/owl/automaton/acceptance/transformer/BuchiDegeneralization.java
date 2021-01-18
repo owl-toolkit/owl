@@ -27,6 +27,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.AcceptanceTransformer;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -106,14 +107,14 @@ public final class BuchiDegeneralization {
       }
 
       @Override
-      public Edge<Integer> transformEdge(Edge<?> edge, Integer currentIndex) {
+      public Edge<Integer> transformColours(Colours colours, Integer currentIndex) {
         int nextIndex = currentIndex;
 
-        while (nextIndex < sets && edge.inSet(nextIndex)) {
+        while (nextIndex < sets && colours.contains(nextIndex)) {
           nextIndex++;
         }
 
-        while (nextIndex < currentIndex && edge.inSet(nextIndex)) {
+        while (nextIndex < currentIndex && colours.contains(nextIndex)) {
           nextIndex++;
         }
 
