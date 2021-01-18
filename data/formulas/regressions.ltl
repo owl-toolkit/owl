@@ -74,6 +74,7 @@ G ((a M (G b)) | ((c W d) & (a W c)))
 a <-> ((G b) U (G(a <-> (c | (b W a)))))
 ((G a) | ((F b) W (c & X b))) -> (b U c)
 G F ((a | (G b)) & ((G c) R (a | (G c))))
+G a & G(!b | ((!c | (b R !a)) U (b | c)))
 (a | GFb) & (c | GFd) & (FGc | GFa) & GFc
 (!X a) & ((b | (Fc) | (d R (!b)) U (X a)))
 F (a & ((a & G (b U c)) | !(a | G (b U c))))
