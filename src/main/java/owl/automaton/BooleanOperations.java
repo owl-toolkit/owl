@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -72,10 +73,26 @@ public final class BooleanOperations {
     Automaton<S, ?> automaton,
     @Nullable S trapState,
     Class<A> expectedAcceptance) {
-    var completeAutomaton = trapState == null ? automaton : Views.complete(automaton, trapState);
+
+    int initialStatesSize = automaton.initialStates().size();
+    checkArgument(initialStatesSize <= 1, "Automaton has multiple initial states");
+
+    Automaton<S, ?> completeAutomaton;
+
+    if (initialStatesSize == 0) {
+      completeAutomaton = SingletonAutomaton.of(
+        automaton.factory(),
+        Objects.requireNonNull(trapState),
+        automaton.acceptance(),
+        automaton.acceptance().rejectingSet().orElseThrow());
+    } else if (trapState == null) {
+      completeAutomaton = automaton;
+    } else {
+      completeAutomaton = Views.complete(automaton, trapState);
+    }
 
     checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
-    checkArgument(!completeAutomaton.initialStates().isEmpty(), "Automaton is empty.");
+    
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
 
