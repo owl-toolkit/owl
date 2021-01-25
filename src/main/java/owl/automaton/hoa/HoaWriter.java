@@ -24,6 +24,7 @@ import static com.google.common.base.Preconditions.checkState;
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -135,10 +136,14 @@ public final class HoaWriter {
       }
     }
 
-    private void addEdgeBackend(BooleanExpression<AtomLabel> label, S end, List<Integer> accSets) {
+    private void addEdgeBackend(BooleanExpression<AtomLabel> label, Edge<S> edge) {
+
       try {
-        consumer.addEdgeWithLabel(getStateId(currentState), label, List.of(getStateId(end)),
-          accSets.isEmpty() ? null : accSets);
+        consumer.addEdgeWithLabel(getStateId(currentState), label,
+          List.of(getStateId(edge.successor())),
+          edge.colours().isEmpty()
+            ? null
+            : Arrays.asList(edge.colours().toArray(Integer[]::new)));
       } catch (HOAConsumerException ex) {
         log.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
       }
@@ -184,8 +189,6 @@ public final class HoaWriter {
 
       @Override
       public void visit(S state, BitSet valuation, Edge<S> edge) {
-        List<Integer> accSets = new ArrayList<>();
-        edge.forEachAcceptanceSet(accSets::add);
         List<BooleanExpression<AtomLabel>> conjuncts = new ArrayList<>(alphabetSize);
 
         for (int i = 0; i < alphabetSize; i++) {
@@ -198,21 +201,17 @@ public final class HoaWriter {
           }
         }
 
-        addEdgeBackend(BooleanExpressions.createConjunction(conjuncts), edge.successor(), accSets);
+        addEdgeBackend(BooleanExpressions.createConjunction(conjuncts), edge);
       }
 
       @Override
       public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
         edgeMap.forEach((edge, valuationSet) -> {
-          S end = edge.successor();
-
           if (valuationSet.isEmpty()) {
             return;
           }
 
-          List<Integer> acceptanceSets = new ArrayList<>();
-          edge.forEachAcceptanceSet(acceptanceSets::add);
-          addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
+          addEdgeBackend(valuationSet.toExpression(), edge);
         });
       }
     }

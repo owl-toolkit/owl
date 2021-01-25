@@ -188,7 +188,7 @@ public final class RabinDegeneralization {
                 RabinPair currentPair = trackedPairs.get(currentPairIndex);
                 int awaitedInfSet = state.awaitedInfSet(sccPairIndex);
 
-                if (edge.inSet(currentPair.finSet())) {
+                if (edge.colours().contains(currentPair.finSet())) {
                   // We have seen the fin set, put this transition into the fin set and restart
                   // the wait
                   awaitedInfSet = 0;
@@ -201,7 +201,7 @@ public final class RabinDegeneralization {
                   for (int i = 0; i < infiniteIndexCount; i++) {
                     currentInfNumber = (awaitedInfSet + i) % infiniteIndexCount;
                     int currentInfIndex = currentPair.infSet(currentInfNumber);
-                    if (!edge.inSet(currentInfIndex)) {
+                    if (!edge.colours().contains(currentInfIndex)) {
                       break;
                     }
 
@@ -220,7 +220,7 @@ public final class RabinDegeneralization {
                 int currentPairIndex = trackedPairsCount + noInfIndex;
                 RabinPair currentPair = rabinAcceptance.pairs().get(currentPairIndex);
 
-                edgeAcceptance.set(edge.inSet(pair.finSet())
+                edgeAcceptance.set(edge.colours().contains(pair.finSet())
                   ? currentPair.finSet()
                   : currentPair.infSet());
               });

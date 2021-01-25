@@ -91,8 +91,8 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
         IntSet pairComplementary = pairComplementaryInfSets.get(pairIndex);
         assert !pairComplementary.isEmpty();
-        boolean finEdge = edge.inSet(pair.finSet());
-        pairComplementary.removeIf((int i) -> finEdge == edge.inSet(i));
+        boolean finEdge = edge.colours().contains(pair.finSet());
+        pairComplementary.removeIf((int i) -> finEdge == edge.colours().contains(i));
 
         if (pairComplementary.isEmpty()) {
           iterator.remove();
@@ -130,11 +130,11 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     BitSet[] impliesMap = new BitSet[acceptanceSets];
     Arrays.setAll(impliesMap, i -> BitSet2.copyOf(defaultConsequent));
 
-    AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) ->
-      edge.forEachAcceptanceSet((int index) -> {
+    AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> edge.colours().forEach(
+      (int index) -> {
         BitSet consequences = impliesMap[index];
         BitSets.forEach(consequences, consequent -> {
-          if (!edge.inSet(consequent)) {
+          if (!edge.colours().contains(consequent)) {
             consequences.clear(consequent);
           }
         });
@@ -271,15 +271,14 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     automaton.updateEdges((state, edge) -> {
       BitSet newAcceptance = new BitSet();
 
-      edge.forEachAcceptanceSet(
-        (int index) -> {
-          IntSet indexRemapping = remapping.get(index);
-          if (indexRemapping == null) {
-            newAcceptance.set(index);
-          } else {
-            indexRemapping.forEach((IntConsumer) newAcceptance::set);
-          }
-        });
+      edge.colours().forEach((int index) -> {
+        IntSet indexRemapping = remapping.get(index);
+        if (indexRemapping == null) {
+          newAcceptance.set(index);
+        } else {
+          indexRemapping.forEach((IntConsumer) newAcceptance::set);
+        }
+      });
 
       return Edge.of(edge.successor(), newAcceptance);
     });
@@ -306,14 +305,14 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     }
 
     automaton.updateEdges((state, edge) -> {
-      if (!edge.hasAcceptanceSets()) {
+      if (edge.colours().isEmpty()) {
         return edge;
       }
 
       int overlapIndex = -1;
       for (int index = 0; index < pairs.size(); index++) {
         RabinPair pair = pairs.get(index);
-        if (edge.inSet(pair.finSet()) && pair.containsInfinite(edge)) {
+        if (edge.colours().contains(pair.finSet()) && pair.containsInfinite(edge)) {
           overlapIndex = index;
           break;
         }
@@ -324,12 +323,12 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       }
 
       BitSet modifiedAcceptance = new BitSet(edge.largestAcceptanceSet());
-      edge.forEachAcceptanceSet((IntConsumer) modifiedAcceptance::set);
+      edge.colours().copyInto(modifiedAcceptance);
       pairs.get(overlapIndex).forEachInfSet(modifiedAcceptance::clear);
 
       for (int index = overlapIndex + 1; index < pairs.size(); index++) {
         RabinPair pair = pairs.get(index);
-        if (edge.inSet(pair.finSet()) && pair.containsInfinite(edge)) {
+        if (edge.colours().contains(pair.finSet()) && pair.containsInfinite(edge)) {
           pair.forEachInfSet(modifiedAcceptance::clear);
         }
       }
@@ -366,14 +365,16 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       // Build implication matrix on this SCC, including vacuous implications (!)
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
-          if (scc.contains(edge.successor())) {
-            edge.forEachAcceptanceSet((int index) ->
-              BitSets.forEach(impliesMap[index], consequent -> {
-                if (!edge.inSet(consequent)) {
-                  impliesMap[index].clear(consequent);
-                }
-              }));
+          if (!scc.contains(edge.successor())) {
+            continue;
           }
+
+          edge.colours().forEach((int index) ->
+            BitSets.forEach(impliesMap[index], consequent -> {
+              if (!edge.colours().contains(consequent)) {
+                impliesMap[index].clear(consequent);
+              }
+            }));
         }
       }
 
@@ -569,8 +570,8 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     IntSet occurringIndices = new IntOpenHashSet();
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> {
-      edge.forEachAcceptanceSet((IntConsumer) occurringIndices::add);
-      indicesOnEveryEdge.removeIf((int index) -> !edge.inSet(index));
+      edge.colours().forEach((IntConsumer) occurringIndices::add);
+      indicesOnEveryEdge.removeIf((int index) -> !edge.colours().contains(index));
     });
 
     Set<RabinPair> impossiblePairs = new HashSet<>();

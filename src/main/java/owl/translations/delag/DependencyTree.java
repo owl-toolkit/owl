@@ -198,7 +198,7 @@ abstract class DependencyTree<T> {
       var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
       var acceptanceSets = edge == null
         ? automaton.acceptance().rejectingSet().orElseThrow().stream().iterator()
-        : edge.acceptanceSetIterator();
+        : edge.colours().intIterator();
 
       // Shift acceptance sets.
       BitSet set = new BitSet();

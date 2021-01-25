@@ -180,7 +180,7 @@ public final class NBA2LDBA
         .collect(toSet());
 
       Set<Edge<S>> intersection = outEdgesM.stream()
-        .filter(x -> x.inSet(ldbaState.ix() % acceptanceSets)).collect(toSet());
+        .filter(x -> x.colours().contains(ldbaState.ix() % acceptanceSets)).collect(toSet());
 
       outEdgesN.addAll(intersection);
 
@@ -189,7 +189,7 @@ public final class NBA2LDBA
 
       if (outEdgesM.equals(outEdgesN)) {
         i1 = (ldbaState.ix() + 1) % acceptanceSets;
-        n1 = Edges.successors(Sets.filter(outEdgesM, x -> x.inSet(i1)));
+        n1 = Edges.successors(Sets.filter(outEdgesM, x -> x.colours().contains(i1)));
       } else {
         i1 = ldbaState.ix();
         n1 = Edges.successors(outEdgesN);

@@ -650,7 +650,7 @@ public final class CAutomaton {
           BUCHI, GeneralizedBuchiAcceptance.class,
           x -> false,
           x -> nnfFormula,
-          x -> x.inSet(0) ? 1.0d : 0.5d,
+          x -> x.colours().contains(0) ? 1.0d : 0.5d,
           -1,
           null,
           null
@@ -667,7 +667,7 @@ public final class CAutomaton {
           CO_BUCHI, GeneralizedCoBuchiAcceptance.class,
           x -> false,
           x -> nnfFormula,
-          x -> x.inSet(0) ? 0.0d : 0.5d,
+          x -> x.colours().contains(0) ? 0.0d : 0.5d,
           -1,
           null,
           null
@@ -684,7 +684,7 @@ public final class CAutomaton {
           BUCHI, BuchiAcceptance.class,
           x -> x.all().isTrue() && x.rejecting().isTrue(),
           BreakpointStateRejecting::all,
-          x -> x.inSet(0) ? 1.0d : x.successor().rejecting().trueness(),
+          x -> x.colours().contains(0) ? 1.0d : x.successor().rejecting().trueness(),
           -1,
           BreakpointStateRejecting.of(factory.of(true), factory.of(true)),
           BreakpointStateRejecting.of(factory.of(false), factory.of(false))
@@ -701,7 +701,7 @@ public final class CAutomaton {
           CO_BUCHI, CoBuchiAcceptance.class,
           x -> x.all().isTrue(),
           BreakpointStateAccepting::all,
-          x -> x.inSet(0) ? 0.0d : x.successor().accepting().trueness(),
+          x -> x.colours().contains(0) ? 0.0d : x.successor().accepting().trueness(),
           -1,
           BreakpointStateAccepting.of(factory.of(true), factory.of(true)),
           BreakpointStateAccepting.of(factory.of(false), factory.of(false))

@@ -38,6 +38,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton;
@@ -92,7 +93,7 @@ public final class BooleanOperations {
     }
 
     checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
-    
+
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
 
@@ -377,9 +378,9 @@ public final class BooleanOperations {
       return automaton1.preferredEdgeAccess();
     }
 
-    private Edge<Pair<S1, S2>> combine(Edge<S1> edge1, Edge<S2> edge2) {
-      BitSet acceptance = edge1.acceptanceSets();
-      edge2.forEachAcceptanceSet((int set) -> acceptance.set(set + acceptance1Sets));
+    private Edge<Pair<S1, S2>> combine(Edge<? extends S1> edge1, Edge<? extends S2> edge2) {
+      BitSet acceptance = edge1.colours().copyInto(new BitSet());
+      edge2.colours().forEach((int set) -> acceptance.set(set + acceptance1Sets));
       return Edge.of(Pair.of(edge1.successor(), edge2.successor()), acceptance);
     }
   }
@@ -482,7 +483,7 @@ public final class BooleanOperations {
 
         var edge = edges.get(i);
         successors.add(edge.successor());
-        edge.forEachAcceptanceSet(set -> acceptance.set(set + offsetFinal));
+        edge.colours().forEach((IntConsumer) set -> acceptance.set(set + offsetFinal));
 
         offset += automata.get(i).acceptance().acceptanceSets();
       }
@@ -562,7 +563,7 @@ public final class BooleanOperations {
         acceptance.or(rejectingSet1);
       } else {
         successor1 = edge1.successor();
-        edge1.forEachAcceptanceSet(acceptance::set);
+        edge1.colours().copyInto(acceptance);
       }
 
       S2 successor2;
@@ -573,7 +574,7 @@ public final class BooleanOperations {
         rejectingSet2.stream().forEach(i -> acceptance.set(i + offset));
       } else {
         successor2 = edge2.successor();
-        edge2.forEachAcceptanceSet(i -> acceptance.set(i + offset));
+        edge2.colours().forEach((IntConsumer) i -> acceptance.set(i + offset));
       }
 
       return Edge.of(NullablePair.of(successor1, successor2), acceptance);
@@ -644,7 +645,7 @@ public final class BooleanOperations {
           rejectingSets.get(i).stream().forEach(set -> acceptance.set(set + offsetFinal));
         } else {
           successor.put(i, edge.successor());
-          edge.forEachAcceptanceSet(set -> acceptance.set(set + offsetFinal));
+          edge.colours().forEach((IntConsumer) set -> acceptance.set(set + offsetFinal));
         }
 
         offset += automata.get(i).acceptance().acceptanceSets();

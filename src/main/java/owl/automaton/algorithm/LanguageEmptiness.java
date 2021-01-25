@@ -103,7 +103,7 @@ public final class LanguageEmptiness {
 
     for (Edge<S> edge : automaton.edges(q)) {
       S successor = edge.successor();
-      if ((infIndex == -1 || edge.inSet(infIndex))
+      if ((infIndex == -1 || edge.colours().contains(infIndex))
         && !inSet(edge, finIndex, allFinIndicesBelow)) {
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
           visitedStates, visitedAcceptingStates, infIndex,
@@ -127,7 +127,8 @@ public final class LanguageEmptiness {
     for (Edge<S> edge : automaton.edges(q)) {
       S successor = edge.successor();
 
-      if ((infIndex == -1 || edge.inSet(infIndex)) && !inSet(edge, finIndex, allFinIndicesBelow)
+      if ((infIndex == -1 || edge.colours().contains(infIndex))
+        && !inSet(edge, finIndex, allFinIndicesBelow)
         && successor.equals(seed)) {
         return true;
       }
@@ -149,7 +150,9 @@ public final class LanguageEmptiness {
 
     for (Edge<S> edge : automaton.edges(initialState)) {
       S successor = edge.successor();
-      if ((infIndex == -1 || edge.inSet(infIndex)) && !inSet(edge, finIndex, allFinIndicesBelow)) {
+      if ((infIndex == -1 || edge.colours().contains(infIndex))
+        && !inSet(edge, finIndex, allFinIndicesBelow)) {
+
         if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
           visitedStates, visitedAcceptingStates, infIndex, finIndex, true,
           allFinIndicesBelow)) {
@@ -169,7 +172,7 @@ public final class LanguageEmptiness {
       return edge.smallestAcceptanceSet() <= index;
     }
 
-    return index >= 0 && edge.inSet(index);
+    return index >= 0 && edge.colours().contains(index);
   }
 
   private static final class Buchi {
@@ -192,7 +195,7 @@ public final class LanguageEmptiness {
               continue;
             }
 
-            successorEdge.forEachAcceptanceSet((IntConsumer) remaining::clear);
+            successorEdge.colours().forEach((IntConsumer) remaining::clear);
 
             if (remaining.isEmpty()) {
               return true;
@@ -271,7 +274,7 @@ public final class LanguageEmptiness {
         for (RabinPair pair : automaton.acceptance().pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair
           var filteredSuccessorFunction = SuccessorFunction.filter(
-            automaton, scc, edge -> !edge.inSet(pair.finSet()));
+            automaton, scc, edge -> !edge.colours().contains(pair.finSet()));
 
           if (SccDecomposition.of(scc, filteredSuccessorFunction).anyMatch(subScc -> {
             // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
@@ -280,12 +283,12 @@ public final class LanguageEmptiness {
 
             for (S state : subScc) {
               for (Edge<S> edge : automaton.edges(state)) {
-                if (!subScc.contains(edge.successor()) || edge.inSet(pair.finSet())) {
+                if (!subScc.contains(edge.successor()) || edge.colours().contains(pair.finSet())) {
                   // This edge does not qualify for an accepting cycle
                   continue;
                 }
 
-                edge.forEachAcceptanceSet(awaitedIndices::clear);
+                edge.colours().forEach((IntConsumer) awaitedIndices::clear);
 
                 if (awaitedIndices.isEmpty()) {
                   // This edge yields an accepting cycle

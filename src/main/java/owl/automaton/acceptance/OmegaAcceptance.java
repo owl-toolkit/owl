@@ -75,7 +75,7 @@ public abstract class OmegaAcceptance {
    * Returns whether repeating this edge infinitely often would be accepting.
    */
   public boolean isAcceptingEdge(Edge<?> edge) {
-    return isAccepting(edge.acceptanceSets());
+    return isAccepting(edge.colours());
   }
 
   /**

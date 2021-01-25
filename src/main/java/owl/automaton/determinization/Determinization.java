@@ -73,7 +73,7 @@ public class Determinization {
 
         for (S rejectingState : breakpointState.rejecting()) {
           for (Edge<S> edge : ncw.edges(rejectingState, valuation)) {
-            if (!edge.inSet(0)) {
+            if (!edge.colours().contains(0)) {
               rejectingSuccessors.add(edge.successor());
             }
           }

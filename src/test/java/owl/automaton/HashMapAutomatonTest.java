@@ -213,10 +213,10 @@ class HashMapAutomatonTest {
     automaton.trim();
 
     assertAll(
-      () -> automaton.edgeMap("1").forEach((x, y)
-      -> x.forEachAcceptanceSet((int z) -> assertEquals(0, z))),
-      () -> automaton.edgeMap("2").forEach((x, y)
-      -> x.forEachAcceptanceSet((int z) -> assertEquals(1, z)))
+      () -> automaton.edgeMap("1").forEach(
+        (x, y) -> x.colours().forEach((int z) -> assertEquals(0, z))),
+      () -> automaton.edgeMap("2").forEach(
+        (x, y) -> x.colours().forEach((int z) -> assertEquals(1, z)))
     );
 
     assertTrue(automaton.checkConsistency(), "Automaton is inconsistent.");

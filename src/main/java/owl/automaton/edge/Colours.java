@@ -152,7 +152,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
   public abstract void forEach(IntConsumer action);
 
-  public abstract BitSet asBitSet();
+  public abstract BitSet copyInto(BitSet target);
 
   public final Colours intersection(Colours that) {
     if (this.containsAll(that)) {
@@ -163,8 +163,9 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
       return this;
     }
 
-    BitSet intersection = this.asBitSet();
-    intersection.and(that.asBitSet());
+    // TODO: case distinction: Small and Large Sets.
+    BitSet intersection = this.copyInto(new BitSet());
+    intersection.and(that.copyInto(new BitSet()));
 
     if (intersection.cardinality() > 1) {
       return new Large(intersection);
@@ -285,14 +286,12 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     }
 
     @Override
-    public BitSet asBitSet() {
-      BitSet bitSet = new BitSet();
-
+    public BitSet copyInto(BitSet target) {
       if (!isEmpty()) {
-        bitSet.set(element);
+        target.set(element);
       }
 
-      return bitSet;
+      return target;
     }
 
     @Override
@@ -414,8 +413,16 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     }
 
     @Override
-    public BitSet asBitSet() {
-      return (BitSet) colours.clone();
+    public BitSet copyInto(BitSet target) {
+      // It is safe to use target without worrying about target changing our internal state.
+      if (BitSet.class.equals(target.getClass())) {
+        target.or(colours);
+      } else {
+        // safe-fallback.
+        colours.stream().forEach(target::set);
+      }
+
+      return target;
     }
 
     @Override

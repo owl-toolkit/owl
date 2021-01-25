@@ -134,7 +134,7 @@ public class SmartSucc<S> {
       var subtrie = existing.subTrie(tht);
       var cnds = trieDfs(refSuc.successor(), msk, subtrie, tht.get(tht.size() - 1), 0, getAll);
       for (var cnd : cnds) { //lift to edges
-        ret.add(Edge.of(cnd, refSuc.acceptanceSets()));
+        ret.add(refSuc.withSuccessor(cnd));
       }
     }
     return ret;
@@ -151,7 +151,7 @@ public class SmartSucc<S> {
     logger.log(Level.FINEST, "dom rank " + rk + " redirect");
     logger.log(Level.FINEST, "from: " + usrSuc.toString() + "\nto: " + altSuc.toString());
 
-    if (!usrSuc.acceptanceSets().equals(altSuc.acceptanceSets())) {
+    if (!usrSuc.colours().equals(altSuc.colours())) {
       logger.log(Level.SEVERE, "ERROR: edge priority changed!");
     }
     if (!refSuc.successor().finerOrEqual(altSuc.successor())) {

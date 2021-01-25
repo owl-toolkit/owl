@@ -24,7 +24,6 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.PrimitiveIterator;
 import java.util.function.Function;
-import java.util.function.IntConsumer;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
 
@@ -44,6 +43,9 @@ public abstract class Edge<S> {
    */
   public abstract S successor();
 
+  /**
+   * Colours: the acceptance sets this edge is part of.
+   */
   public abstract Colours colours();
 
   /**
@@ -117,42 +119,6 @@ public abstract class Edge<S> {
   }
 
   /**
-   * An iterator containing all acceptance sets this edge is a member of in ascending order.
-   *
-   * @return An iterator with all acceptance sets of this edge.
-   */
-  public PrimitiveIterator.OfInt acceptanceSetIterator() {
-    return colours().intIterator();
-  }
-
-  public void forEachAcceptanceSet(IntConsumer action) {
-    colours().forEach(action);
-  }
-
-  public BitSet acceptanceSets() {
-    return colours().asBitSet();
-  }
-
-  /**
-   * Returns whether this edge has any acceptance set.
-   */
-  public boolean hasAcceptanceSets() {
-    return !colours().isEmpty();
-  }
-
-  /**
-   * Test membership of this edge for a specific acceptance set.
-   *
-   * @param i
-   *     The number of the acceptance set.
-   *
-   * @return True if this edge is a member, false otherwise.
-   */
-  public boolean inSet(@Nonnegative int i) {
-    return colours().contains(i);
-  }
-
-  /**
    * Returns the largest acceptance set this edge is a member of, or {@code -1} if none.
    */
   public int largestAcceptanceSet() {
@@ -176,7 +142,7 @@ public abstract class Edge<S> {
   }
 
   public Edge<S> mapAcceptance(IntUnaryOperator transformer) {
-    PrimitiveIterator.OfInt iter = acceptanceSetIterator();
+    PrimitiveIterator.OfInt iter = colours().intIterator();
 
     int first = -1;
 
@@ -201,7 +167,7 @@ public abstract class Edge<S> {
   }
 
   public Edge<S> withoutAcceptance() {
-    return hasAcceptanceSets() ? of(successor()) : this;
+    return colours().isEmpty() ? this : of(successor());
   }
 
   /**

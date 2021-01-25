@@ -240,7 +240,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
           var successor = new ProductState(safetyEdge.successor(), livenessEdge.successor(),
             state.evaluatedFixpoints, automata);
 
-          var acceptance = livenessEdge.acceptanceSets();
+          var acceptance = livenessEdge.colours().copyInto(new BitSet());
           acceptance.set(livenessAutomaton.acceptance().acceptanceSets(), acceptanceSets);
 
           return Edge.of(successor, acceptance);

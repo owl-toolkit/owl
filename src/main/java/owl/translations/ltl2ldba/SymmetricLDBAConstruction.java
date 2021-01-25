@@ -439,7 +439,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         var successor = new SymmetricProductState(safetyEdge.successor(),
           livenessEdge.successor(), state.evaluatedFixpoints, automata);
 
-        var acceptance = livenessEdge.acceptanceSets();
+        var acceptance = livenessEdge.colours().copyInto(new BitSet());
         acceptance.set(livenessAutomaton.acceptance().acceptanceSets(),
           this.acceptance.acceptanceSets());
 

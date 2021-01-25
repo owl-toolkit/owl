@@ -17,6 +17,8 @@ API:
 
 * Migrate OmegaAcceptance to new propositional logic datatype.
 
+* Disentangle `Colours`-related API from `Edge` datatype.
+
 Bugfixes:
 
 * Fixed several bugs affecting the LD(G)BA, D(G)RA, and DPA constructions.

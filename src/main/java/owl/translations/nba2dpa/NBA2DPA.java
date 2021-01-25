@@ -135,7 +135,7 @@ public final class NBA2DPA
 
         ranking.add(successor);
 
-        if (edge.inSet(0)) {
+        if (edge.colours().contains(0)) {
           edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
         }
       }

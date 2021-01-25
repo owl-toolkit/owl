@@ -134,7 +134,7 @@ public final class IARBuilder<R> {
 
       for (R state : scc) {
         for (Edge<R> edge : rabinAutomaton.edges(state)) {
-          noInfEdgePairs.removeIf(pair -> edge.inSet(pair.infSet()));
+          noInfEdgePairs.removeIf(pair -> edge.colours().contains(pair.infSet()));
         }
       }
 
@@ -421,12 +421,12 @@ public final class IARBuilder<R> {
         currentOffset += classes.length;
         for (int rabinIndex : classes) {
           RabinPair rabinPair = indexToPair[rabinIndex];
-          if (rabinEdge.inSet(rabinPair.finSet())) {
+          if (rabinEdge.colours().contains(rabinPair.finSet())) {
             matchOffset = currentOffset;
             infMatch = false;
             seenFin.set(rabinIndex);
           } else if (matchOffset < currentOffset
-            && rabinEdge.inSet(rabinPair.infSet())) {
+            && rabinEdge.colours().contains(rabinPair.infSet())) {
             matchOffset = currentOffset;
             infMatch = true;
           }
