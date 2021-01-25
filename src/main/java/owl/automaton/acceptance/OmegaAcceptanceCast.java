@@ -187,7 +187,7 @@ public final class OmegaAcceptanceCast {
     return new CastedAutomaton<>((Automaton<S, ?>) automaton,
       cast(oldAcceptance, oldAcceptanceClass, acceptanceClass),
       edgeCast == null ? null : edge -> {
-        BitSet set = edge.acceptanceSets();
+        BitSet set = edge.colours().copyInto(new BitSet());
         edgeCast.accept(oldAcceptance, set);
         return edge.withAcceptance(set);
       });

@@ -175,12 +175,13 @@ final class SymmetricDPAConstruction {
 
           ranking.add(entry(entry.getKey(), rankingSuccessor));
 
-          if (rankingEdge.inSet(0)) {
+          if (rankingEdge.colours().contains(0)) {
             edgeColor = Math.min(2 * iterator.previousIndex() + 1, edgeColor);
           }
 
           if (rankingSuccessor.evaluatedFixpoints.isSafety()) {
-            assert rankingEdge.inSet(0) : "SafetyComponents are assumed to be always accepting.";
+            assert rankingEdge.colours().contains(0)
+              : "SafetyComponents are assumed to be always accepting.";
             activeSafetyComponent = true;
           }
         }

@@ -277,7 +277,7 @@ public final class ToParityTransformer {
 
       for (S state : scc) {
         for (Edge<S> edges : automaton.edges(state)) {
-          BitSet accepanteMarks = edges.acceptanceSets();
+          BitSet accepanteMarks = edges.colours().copyInto(new BitSet());
           allEdges.and(accepanteMarks);
           someEdges.or(accepanteMarks);
         }
@@ -288,7 +288,8 @@ public final class ToParityTransformer {
         // .filter(x -> !allEdges.get(x) && someEdges.get(x)) // skip non trivial
         .boxed()
         .collect(Collectors.toList()),
-        (x, y) -> equivalent(automaton, scc, e1 -> e1.inSet(x), e2 -> e2.inSet(y)));
+        (x, y) -> equivalent(automaton, scc, e1 -> e1.colours().contains((int) x),
+          e2 -> e2.colours().contains((int) y)));
 
       Map<Integer, Integer> mapping = new HashMap<>();
 
@@ -323,7 +324,7 @@ public final class ToParityTransformer {
 
       for (Integer i : variables) {
         // On every path in the scc i set to true inf.
-        if (implies(automaton, scc, e1 -> true, e2 -> e2.inSet(i))) {
+        if (implies(automaton, scc, e1 -> true, e2 -> e2.colours().contains((int) i))) {
           facts.add(PropositionalFormula.Variable.of(i));
           singletons.add(i);
         }
@@ -335,7 +336,8 @@ public final class ToParityTransformer {
             continue;
           }
 
-          if (implies(automaton, scc, e1 -> e1.inSet(i), e2 -> e2.inSet(j))) {
+          if (implies(automaton, scc, e1 -> e1.colours().contains((int) i),
+            e2 -> e2.colours().contains((int) j))) {
             facts.add(PropositionalFormula.Disjunction.of(
               Negation.of(PropositionalFormula.Variable.of(i)),
               PropositionalFormula.Variable.of(j)));
@@ -345,7 +347,8 @@ public final class ToParityTransformer {
             continue;
           }
 
-          if (implies(automaton, scc, e1 -> true, e2 -> e2.inSet(i) || e2.inSet(j))) {
+          if (implies(automaton, scc, e1 -> true,
+            e2 -> e2.colours().contains((int) i) || e2.colours().contains((int) j))) {
             facts.add(PropositionalFormula.Disjunction.of(
               PropositionalFormula.Variable.of(i),
               PropositionalFormula.Variable.of(j)));

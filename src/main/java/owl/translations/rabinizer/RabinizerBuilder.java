@@ -136,7 +136,7 @@ public final class RabinizerBuilder {
       ValuationSet[] edgePriorities = new ValuationSet[monitorAcceptanceSets];
 
       monitor.edgeMap(monitorState).forEach((edge, valuations) -> {
-        if (!edge.hasAcceptanceSets()) {
+        if (edge.colours().isEmpty()) {
           return;
         }
 

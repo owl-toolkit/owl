@@ -94,7 +94,7 @@ class EdgeTest {
     var acceptance = testCase.acceptance;
     for (Edge<?> edge : testCase.edges) {
       for (int i = 0; i < 200; i++) {
-        assertEquals(acceptance.contains(i), edge.inSet(i));
+        assertEquals(acceptance.contains(i), edge.colours().contains(i));
       }
     }
   }
@@ -103,9 +103,9 @@ class EdgeTest {
   @MethodSource("edgeProvider")
   void inSetConsistent(TestCase testCase) {
     for (Edge<?> edge : testCase.edges) {
-      OfInt iterator = edge.acceptanceSetIterator();
+      OfInt iterator = edge.colours().intIterator();
       while (iterator.hasNext()) {
-        assertTrue(edge.inSet(iterator.nextInt()));
+        assertTrue(edge.colours().contains(iterator.nextInt()));
       }
     }
   }
@@ -117,7 +117,7 @@ class EdgeTest {
 
     for (Edge<?> edge : testCase.edges) {
       assertTrue(Iterators.elementsEqual(acceptance.iterator(),
-        edge.acceptanceSetIterator()));
+          edge.colours().intIterator()));
     }
   }
 

@@ -240,15 +240,15 @@ class HoaReaderTest {
 
     Edge<HoaState> initialToSucc = automaton.edge(initialState, createBitSet(false, false));
     assertThat(initialToSucc, Objects::nonNull);
-    assertThat(initialToSucc.acceptanceSetIterator().nextInt(), x -> x == 2);
+    assertThat(initialToSucc.colours().intIterator().nextInt(), x -> x == 2);
 
     Edge<HoaState> succToInitial = automaton.edge(successor, createBitSet(true, false));
     assertThat(succToInitial, Objects::nonNull);
-    assertThat(succToInitial.acceptanceSetIterator().nextInt(), x -> x == 1);
+    assertThat(succToInitial.colours().intIterator().nextInt(), x -> x == 1);
 
     Edge<HoaState> succToSucc = automaton.edge(successor, createBitSet(false, true));
     assertThat(succToSucc, Objects::nonNull);
-    assertFalse(succToSucc.acceptanceSetIterator().hasNext());
+    assertFalse(succToSucc.colours().intIterator().hasNext());
   }
 
   @Test

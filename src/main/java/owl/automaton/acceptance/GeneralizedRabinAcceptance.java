@@ -267,7 +267,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
     }
 
     public boolean contains(Edge<?> edge) {
-      return edge.inSet(finIndex) || containsInfinite(edge);
+      return edge.colours().contains(finIndex) || containsInfinite(edge);
     }
 
     /**
@@ -282,7 +282,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
      */
     public boolean containsInfinite(Edge<?> edge) {
       for (int i = finIndex + 1; i <= infIndex; i++) {
-        if (edge.inSet(i)) {
+        if (edge.colours().contains(i)) {
           return true;
         }
       }

@@ -135,7 +135,7 @@ public final class ParityUtil {
       int colours = fromAcceptance.acceptanceSets();
       mutableAutomaton.acceptance(fromAcceptance.withAcceptanceSets(colours + 2));
       mutableAutomaton.updateEdges((state, edge) -> {
-        if (edge.hasAcceptanceSets()) {
+        if (!edge.colours().isEmpty()) {
           return edge.withAcceptance(edge.largestAcceptanceSet() + 2);
         }
 
@@ -145,11 +145,11 @@ public final class ParityUtil {
       int colours = fromAcceptance.acceptanceSets();
       mutableAutomaton.acceptance(fromAcceptance.withAcceptanceSets(colours + 2));
       mutableAutomaton.updateEdges((state, edge) -> {
-        if (edge.hasAcceptanceSets()) {
-          return edge.withAcceptance(edge.smallestAcceptanceSet() + 2);
+        if (edge.colours().isEmpty()) {
+          return edge.withAcceptance(colours);
         }
 
-        return edge.withAcceptance(colours);
+        return edge.withAcceptance(edge.smallestAcceptanceSet() + 2);
       });
     }
 
@@ -181,7 +181,7 @@ public final class ParityUtil {
     var maximalNewAcceptance = new AtomicInteger(0);
 
     mutableAutomaton.updateEdges((state, edge) -> {
-      if (!edge.hasAcceptanceSets()) {
+      if (edge.colours().isEmpty()) {
         throw new IllegalStateException();
       }
 

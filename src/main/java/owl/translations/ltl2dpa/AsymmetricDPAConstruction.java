@@ -175,7 +175,7 @@ final class AsymmetricDPAConstruction {
             continue;
           }
 
-          if (rankingEdge.inSet(0)) {
+          if (rankingEdge.colours().contains(0)) {
             rankingColor = Math.min(2 * ranking.size() + 1, rankingColor);
           }
 

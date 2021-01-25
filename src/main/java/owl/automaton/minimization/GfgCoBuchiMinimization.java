@@ -92,7 +92,7 @@ public final class GfgCoBuchiMinimization {
     return SccDecomposition.of(
       ncw.states(),
       state -> ncw.edges(state).stream()
-        .filter(edge -> !edge.inSet(0))
+        .filter(edge -> !edge.colours().contains(0))
         .map(Edge::successor)
         .collect(Collectors.toSet()))
       .sccs();
@@ -125,14 +125,14 @@ public final class GfgCoBuchiMinimization {
       @Override
       public Set<Edge<S>> edges(S state, BitSet valuation) {
         var edges = new HashSet<>(ncw.edges(state, valuation));
-        edges.removeIf(Edge::hasAcceptanceSets);
+        edges.removeIf(sEdge -> !sEdge.colours().isEmpty());
         return edges;
       }
 
       @Override
       public Map<Edge<S>, ValuationSet> edgeMap(S state) {
         var edgeMap = new HashMap<>(ncw.edgeMap(state));
-        edgeMap.keySet().removeIf(Edge::hasAcceptanceSets);
+        edgeMap.keySet().removeIf(sEdge -> !sEdge.colours().isEmpty());
         return edgeMap;
       }
 
@@ -140,7 +140,7 @@ public final class GfgCoBuchiMinimization {
       public ValuationTree<Edge<S>> edgeTree(S state) {
         return ncw.edgeTree(state).map(edges -> {
           var edgesCopy = new HashSet<>(edges);
-          edgesCopy.removeIf(Edge::hasAcceptanceSets);
+          edgesCopy.removeIf(sEdge -> !sEdge.colours().isEmpty());
           return edgesCopy;
         });
       }
@@ -209,10 +209,10 @@ public final class GfgCoBuchiMinimization {
         Set<S> rejectingSuccessors = new HashSet<>();
 
         ncw.edges(state, valuation).forEach(edge -> {
-          if (edge.inSet(0)) {
+          if (edge.colours().contains(0)) {
             rejectingSuccessors.add(edge.successor());
           } else {
-            assert !edge.hasAcceptanceSets();
+            assert edge.colours().isEmpty();
             acceptingEdges.add(edge);
           }
         });
@@ -282,7 +282,7 @@ public final class GfgCoBuchiMinimization {
           for (Edge<S> edge : ncw.edges(representative, valuation)) {
             var successorRepresentative = edge.successor();
 
-            if (edge.inSet(0)) {
+            if (edge.colours().contains(0)) {
               assert type == EdgeType.UNKNOWN || type == EdgeType.REJECTING;
               type = EdgeType.REJECTING;
             } else {

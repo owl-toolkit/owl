@@ -147,13 +147,13 @@ public final class BuchiDegeneralization {
       private Edge<IndexedState<S>> transformEdge(Edge<S> edge, int currentIndex) {
         int nextIndex = currentIndex;
 
-        while (nextIndex < sets && edge.inSet(nextIndex)) {
+        while (nextIndex < sets && edge.colours().contains(nextIndex)) {
           nextIndex++;
         }
 
         boolean accepting = nextIndex == sets;
 
-        while (nextIndex < currentIndex && edge.inSet(nextIndex)) {
+        while (nextIndex < currentIndex && edge.colours().contains(nextIndex)) {
           nextIndex++;
         }
 

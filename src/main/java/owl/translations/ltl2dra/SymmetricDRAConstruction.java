@@ -193,7 +193,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
           acceptance.set(pair.finSet());
         } else {
           successorTable.put(index, fixpoints, edge.successor());
-          edge.forEachAcceptanceSet((int i) -> acceptance.set(pair.infSet(i)));
+          edge.colours().forEach((int i) -> acceptance.set(pair.infSet(i)));
         }
       }
 

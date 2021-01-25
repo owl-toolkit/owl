@@ -29,7 +29,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import java.util.function.IntConsumer;
 import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
@@ -125,7 +124,7 @@ public final class AutomatonUtil {
     for (S state : states) {
       automaton.edges(state).forEach(edge -> {
         if (states.contains(edge.successor())) {
-          edge.forEachAcceptanceSet(set::set);
+          edge.colours().copyInto(set);
         }
       });
     }
@@ -144,18 +143,18 @@ public final class AutomatonUtil {
 
     switch (automaton.preferredEdgeAccess().get(0)) {
       case EDGES:
-        automaton.accept((state, valuation, edge) ->
-          edge.forEachAcceptanceSet((IntConsumer) indices::set));
+        automaton.accept(
+          (state, valuation, edge) -> edge.colours().copyInto(indices));
         break;
 
       case EDGE_MAP:
-        automaton.accept((EdgeMapVisitor<S>) (state, edgeMap) -> edgeMap.forEach((edge, set) ->
-          edge.forEachAcceptanceSet((IntConsumer) indices::set)));
+        automaton.accept((EdgeMapVisitor<S>) (state, edgeMap) -> edgeMap.forEach(
+          (edge, set) -> edge.colours().copyInto(indices)));
         break;
 
       case EDGE_TREE:
         automaton.accept((Automaton.EdgeTreeVisitor<S>) (state, tree) -> tree.flatValues().forEach(
-          edge -> edge.forEachAcceptanceSet((IntConsumer) indices::set)));
+          edge -> edge.colours().copyInto(indices)));
         break;
 
       default:

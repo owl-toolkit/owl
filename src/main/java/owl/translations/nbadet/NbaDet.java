@@ -273,7 +273,7 @@ public final class NbaDet {
         var retSt = psScc == sucScc ? sccDpa.get(psScc).edge(state.snd(), val)
                                     : Edge.of(Objects.requireNonNull(repMap.get(sucPSet)));
         assert retSt != null;
-        var ret = Edge.of(Pair.of(sucScc, retSt.successor()), retSt.acceptanceSets());
+        var ret = retSt.mapSuccessor(x -> Pair.of(sucScc, x));
 
         if (!toPS.containsKey(ret.successor())) { // map from detstate to pset state, if new state
           toPS.put(ret.successor(), sucPSet);

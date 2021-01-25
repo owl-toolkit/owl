@@ -134,9 +134,8 @@ public final class ParityAcceptance extends OmegaAcceptance {
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return !edge.hasAcceptanceSets()
-      || (edge.smallestAcceptanceSet() == edge.largestAcceptanceSet()
-      && edge.largestAcceptanceSet() < colours);
+    return edge.colours().isEmpty()
+      || (edge.colours().size() == 1 && edge.colours().last() < colours);
   }
 
   public ParityAcceptance withAcceptanceSets(@Nonnegative int colours) {

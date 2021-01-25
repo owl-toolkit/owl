@@ -193,7 +193,7 @@ public final class NormalformDPAConstruction implements
           = stateMap.put(entry.getKey(), entry.getValue().successor());
         assert oldValue == null;
 
-        if (entry.getValue().inSet(0)) {
+        if (entry.getValue().colours().contains(0)) {
           acceptanceSet.set(entry.getKey());
         }
       });

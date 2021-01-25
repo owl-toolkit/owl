@@ -71,7 +71,7 @@ public final class ParityAcceptanceOptimizations {
       // Determine the used priorities
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
-          if (edge.hasAcceptanceSets() && scc.contains(edge.successor())) {
+          if (!edge.colours().isEmpty() && scc.contains(edge.successor())) {
             usedPriorities.add(edge.smallestAcceptanceSet());
           }
         }
@@ -91,10 +91,10 @@ public final class ParityAcceptanceOptimizations {
         usedAcceptanceSets = Math.max(usedAcceptanceSets, currentTarget + 1);
       }
 
-      automaton.updateEdges(scc, (state, edge) ->
-        scc.contains(edge.successor()) && edge.hasAcceptanceSets()
-          ? edge.withAcceptance(reductionMapping.get(edge.smallestAcceptanceSet()))
-          : edge.withoutAcceptance());
+      automaton.updateEdges(scc, (state, edge) -> scc.contains(edge.successor()) && !edge.colours()
+          .isEmpty()
+        ? edge.withAcceptance(reductionMapping.get(edge.smallestAcceptanceSet()))
+        : edge.withoutAcceptance());
       automaton.trim();
     }
 
