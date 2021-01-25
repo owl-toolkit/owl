@@ -40,14 +40,12 @@ import java.util.TreeSet;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nullable;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import owl.cinterface.CAutomaton.Acceptance;
 import owl.cinterface.CDecomposedDPA.RealizabilityStatus;
 import owl.cinterface.CDecomposedDPA.Structure.NodeType;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -85,9 +83,7 @@ public final class DecomposedDPA {
     var tree = labelledFormula.formula().accept(builder);
     var globalFactory = CInterface.ENVIRONMENT.factorySupplier()
       .getValuationSetFactory(atomicPropositions);
-    var filters = tree.computeFilter(builder.automata, null, globalFactory);
-    tree.installFilter(builder.automata, null,
-      builder.automataSharedWithDifferentAtomicPropositions, filters);
+    tree.initializeFilter(builder.automata, builder.sharedAutomata, globalFactory.universe());
     return new DecomposedDPA(tree, List.copyOf(builder.automata));
   }
 
@@ -129,7 +125,7 @@ public final class DecomposedDPA {
     private final Map<Formula, Acceptance> annotations = new HashMap<>();
     private final List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> automata = new ArrayList<>();
     private final Map<Formula, Tree.Leaf> lookup = new HashMap<>();
-    private final BitSet automataSharedWithDifferentAtomicPropositions = new BitSet();
+    private final BitSet sharedAutomata = new BitSet();
 
     private TreeBuilder(List<String> atomicPropositions) {
       this.atomicPropositions = List.copyOf(atomicPropositions);
@@ -140,6 +136,7 @@ public final class DecomposedDPA {
       Tree.Leaf leaf = lookup.get(formula);
 
       if (leaf != null) {
+        sharedAutomata.set(leaf.index);
         return leaf;
       }
 
@@ -161,7 +158,7 @@ public final class DecomposedDPA {
             }
           }
 
-          automataSharedWithDifferentAtomicPropositions.set(leaf.index);
+          sharedAutomata.set(leaf.index);
           return new Tree.Leaf(leaf.index, formula, ImmutableIntArray.copyOf(newMapping));
         }
       }
@@ -385,16 +382,10 @@ public final class DecomposedDPA {
 
     abstract IntStream leafIndices();
 
-    abstract Map<Tree, ValuationSet> computeFilter(
+    abstract void initializeFilter(
       List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
-      @Nullable NodeType context,
-      ValuationSetFactory globalFactory);
-
-    abstract void installFilter(
-      List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
-      @Nullable ValuationSet globalFilter,
       BitSet sharedAutomata,
-      Map<Tree, ValuationSet> computedFilters);
+      ValuationSet globalFilter);
 
     static final class Leaf extends Tree {
 
@@ -468,67 +459,14 @@ public final class DecomposedDPA {
       }
 
       @Override
-      Map<Tree, ValuationSet> computeFilter(
+      void initializeFilter(
         List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
-        @Nullable NodeType context,
-        ValuationSetFactory globalFactory) {
-
-        if (context == null) {
-          return Map.of();
-        }
-
-        if (context != NodeType.CONJUNCTION && context != NodeType.DISJUNCTION) {
-          throw new AssertionError();
-        }
-
-        var automaton = referencedAutomata.get(index);
-        var initialStateSuccessors = automaton.initialStateSuccessors;
-
-        if (initialStateSuccessors == null) {
-          return Map.of();
-        }
-
-        ValuationTree<Boolean> filter;
-
-        if (context == NodeType.CONJUNCTION
-          && ALLOWED_CONJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors)) {
-
-          filter = automaton.initialStateEdgeTree.map(
-            x -> x.isEmpty()
-              ? Set.of()
-              : Set.of(true));
-        } else if (context == NodeType.DISJUNCTION
-          && automaton.acceptance == Acceptance.CO_SAFETY
-          && ALLOWED_DISJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors)) {
-
-          var initialState = automaton.automaton.onlyInitialState();
-          filter = automaton.initialStateEdgeTree.map(
-            x -> initialState.equals(Iterables.getOnlyElement(x).successor())
-              ? Set.of(true)
-              : Set.of());
-        } else {
-          return Map.of();
-        }
-
-        return Map.of(this,
-          filter.inverse(globalFactory, localToGlobalMapping::get)
-            .getOrDefault(Boolean.TRUE, globalFactory.empty()));
-      }
-
-      @Override
-      void installFilter(
-        List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
-        @Nullable ValuationSet globalFilter,
         BitSet sharedAutomata,
-        Map<Tree, ValuationSet> computedFilters) {
+        ValuationSet globalFilter) {
 
-        // If there is no filter or this leaf is the source of a filter, do not install a filter.
-        if (globalFilter == null || computedFilters.containsKey(this)) {
-          return;
-        }
-
-        // This automaton is shared and filtering is not allowed.
-        if (sharedAutomata.get(index)) {
+        // Skip, if there is a trivial filter or this automaton is shared and
+        // filtering is not allowed.
+        if (globalFilter.isUniverse() || sharedAutomata.get(index)) {
           return;
         }
 
@@ -548,13 +486,10 @@ public final class DecomposedDPA {
           .project(unusedAtomicPropositions)
           .relabel(x -> x < globalToLocalMapping.length() ? globalToLocalMapping.get(x) : -1);
 
-        if (newFilter.isUniverse()) {
-          return;
+        if (!newFilter.isUniverse()) {
+          assert referencedAutomaton.filter == null;
+          referencedAutomaton.filter = newFilter;
         }
-
-        referencedAutomaton.filter = referencedAutomaton.filter == null
-          ? newFilter
-          : referencedAutomaton.filter.intersection(newFilter);
       }
     }
 
@@ -574,53 +509,72 @@ public final class DecomposedDPA {
       }
 
       @Override
-      Map<Tree, ValuationSet> computeFilter(
+      void initializeFilter(
         List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
-        @Nullable NodeType context,
-        ValuationSetFactory globalFactory) {
+        BitSet sharedAutomata,
+        ValuationSet globalFilter) {
 
+        // Skip biconditionals.
         if (label == NodeType.BICONDITIONAL) {
-          return Map.of();
+          return;
         }
 
         assert label == NodeType.CONJUNCTION || label == NodeType.DISJUNCTION;
 
-        Map<Tree, ValuationSet> computedFilters = new HashMap<>();
-        ValuationSet filter = globalFactory.universe();
+        ValuationSet nodeFilter = globalFilter;
+        Set<Leaf> filterSources = new HashSet<>();
 
         for (Tree child : children) {
-          var computation = child.computeFilter(referencedAutomata, label, globalFactory);
-          computedFilters.putAll(computation);
-
-          var childFilter = computation.get(child);
-
-          if (childFilter != null) {
-            filter = filter.intersection(childFilter);
+          // We don't compute filters for composed nodes.
+          if (child instanceof Node) {
+            continue;
           }
+
+          var leaf = (Leaf) child;
+
+          var automaton = referencedAutomata.get(leaf.index);
+          var initialStateSuccessors = automaton.initialStateSuccessors;
+
+          if (initialStateSuccessors == null) {
+            continue;
+          }
+
+          ValuationTree<Boolean> leafFilter;
+
+          if (label == NodeType.CONJUNCTION
+            && Leaf.ALLOWED_CONJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors)) {
+
+            leafFilter = automaton.initialStateEdgeTree.map(
+              x -> x.isEmpty()
+                ? Set.of()
+                : Set.of(true));
+          } else if (label == NodeType.DISJUNCTION
+            && automaton.acceptance == Acceptance.CO_SAFETY
+            && Leaf.ALLOWED_DISJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors)) {
+
+            var initialState = automaton.automaton.onlyInitialState();
+            leafFilter = automaton.initialStateEdgeTree.map(
+              x -> initialState.equals(Iterables.getOnlyElement(x).successor())
+                ? Set.of(true)
+                : Set.of());
+          } else {
+            continue;
+          }
+
+          filterSources.add(leaf);
+          nodeFilter = leafFilter
+            .inverse(globalFilter.factory(), leaf.localToGlobalMapping::get)
+            .getOrDefault(Boolean.TRUE, globalFilter.factory().empty())
+            .intersection(nodeFilter);
         }
-
-        if (!filter.isUniverse()) {
-          computedFilters.put(this, filter);
-        }
-
-        return computedFilters;
-      }
-
-      @Override
-      void installFilter(
-        List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
-        @Nullable ValuationSet globalFilter,
-        BitSet sharedAutomata,
-        Map<Tree, ValuationSet> computedFilters) {
-
-        var localFilter = computedFilters.get(this);
-
-        var filter = globalFilter == null
-          ? localFilter
-          : (localFilter == null ? globalFilter : globalFilter.intersection(localFilter));
 
         for (var child : children) {
-          child.installFilter(referencedAutomata, filter, sharedAutomata, computedFilters);
+          // Skip filter sources.
+          if (child instanceof Leaf && filterSources.contains(child)) {
+            continue;
+          }
+
+          child.initializeFilter(referencedAutomata, sharedAutomata, nodeFilter);
         }
       }
     }

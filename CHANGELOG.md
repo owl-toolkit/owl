@@ -29,6 +29,13 @@ Bugfixes:
 * Fixed handling of rejecting sinks in the union operation implemented in
   BooleanOperations.
 
+* Correctly propagate EdgeTree filters used in the DecomposedDPA C-API.
+  Thanks to Lucas M. Tabajara for reporting the issue.
+
+* Do not throw an exception if an empty automaton is passed to
+  BooleanOperations#deterministicComplement. Thanks to Frederik Schmitt
+  for reporting the issue.
+
 # 2020.06
 
 Modules:

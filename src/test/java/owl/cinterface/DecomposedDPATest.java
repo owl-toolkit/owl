@@ -23,6 +23,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.cinterface.CDecomposedDPA.RealizabilityStatus.REALIZABLE;
@@ -101,8 +103,6 @@ class DecomposedDPATest {
 
     while (!todo.isEmpty()) {
       int state = todo.nextSetBit(0);
-
-
 
       var foo = wrapper.edgeTree(state, false);
 
@@ -351,5 +351,26 @@ class DecomposedDPATest {
   private static LabelledFormula simplify(LabelledFormula formula, int firstOutputVariable) {
     return CLabelledFormula.simplify(formula, firstOutputVariable,
       UnmanagedMemory.mallocCIntPointer(100), 100);
+  }
+
+  @Test
+  void testFilterRegression2() {
+    var alphabet = List.of("p0", "p1", "p2", "p3");
+    var formula = LtlParser.parse(
+      "((!p2|!p3)W(p0&p1)) & (F(p0&p1) | ((FG!p0|GFp2)&(FG!p1|GFp3)))", alphabet);
+    var decomposedDpa = of(formula);
+
+    var safetyAutomaton = decomposedDpa.automata.get(0);
+    var coSafetyAutomaton = decomposedDpa.automata.get(1);
+    var parityAutomaton = decomposedDpa.automata.get(2);
+
+    assertEquals(CAutomaton.Acceptance.SAFETY, safetyAutomaton.acceptance);
+    assertNull(safetyAutomaton.filter);
+
+    assertEquals(CAutomaton.Acceptance.CO_SAFETY, coSafetyAutomaton.acceptance);
+    assertNull(coSafetyAutomaton.filter);
+
+    assertEquals(CAutomaton.Acceptance.PARITY_MIN_EVEN, parityAutomaton.acceptance);
+    assertNotNull(parityAutomaton.filter);
   }
 }
