@@ -17,10 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jbdd;
+package owl.bdd.jbdd;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
-import static owl.factories.jbdd.ValuationFactory.BddValuationSet;
+import static owl.bdd.jbdd.ValuationFactory.BddValuationSet;
 
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.naturals.bitset.BitSets;
@@ -35,9 +35,9 @@ import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 
 final class ValuationFactory extends GcManagedFactory<BddValuationSet>
   implements ValuationSetFactory {

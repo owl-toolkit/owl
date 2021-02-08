@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 import owl.game.Game;
 
 public interface SimulationType<S, T extends SimulationType.SimulationState> {

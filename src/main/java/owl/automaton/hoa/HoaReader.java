@@ -65,9 +65,9 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 
 public final class HoaReader {
   private HoaReader() {

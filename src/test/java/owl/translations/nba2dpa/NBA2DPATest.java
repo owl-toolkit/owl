@@ -34,7 +34,7 @@ import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaWriter;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class NBA2DPATest {
@@ -295,8 +295,9 @@ class NBA2DPATest {
   @ParameterizedTest
   @MethodSource("testCases")
   void runTest(String input, int size) throws ParseException {
+
     var nba = OmegaAcceptanceCast.cast(HoaReader
-        .read(input, Environment.standard().factorySupplier()::getValuationSetFactory),
+        .read(input, FactorySupplier.defaultSupplier()::getValuationSetFactory),
       GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 

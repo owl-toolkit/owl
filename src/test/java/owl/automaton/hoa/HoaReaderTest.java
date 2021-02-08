@@ -46,13 +46,17 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader.HoaState;
-import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 
 class HoaReaderTest {
 
-  private static final Function<List<String>, ValuationSetFactory> FACTORY_SUPPLIER =
-    Environment.annotated().factorySupplier()::getValuationSetFactory;
+  private static final Function<List<String>, ValuationSetFactory> FACTORY_SUPPLIER;
+
+  static {
+
+    FACTORY_SUPPLIER = FactorySupplier.defaultSupplier()::getValuationSetFactory;
+  }
 
   private static final String HOA_BUCHI = "HOA: v1\n"
     + "States: 2\n"

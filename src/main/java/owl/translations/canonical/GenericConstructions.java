@@ -31,11 +31,11 @@ import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
 import owl.collections.Either;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 
 public final class GenericConstructions {
 

@@ -41,6 +41,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.graalvm.nativeimage.c.type.CIntPointer;
+import owl.bdd.FactorySupplier;
 import owl.cinterface.CAutomaton.Acceptance;
 import owl.cinterface.CDecomposedDPA.RealizabilityStatus;
 import owl.cinterface.CDecomposedDPA.Structure.NodeType;
@@ -81,7 +82,7 @@ public final class DecomposedDPA {
     var atomicPropositions = labelledFormula.atomicPropositions();
     var builder = new TreeBuilder(atomicPropositions);
     var tree = labelledFormula.formula().accept(builder);
-    var globalFactory = CInterface.ENVIRONMENT.factorySupplier()
+    var globalFactory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(atomicPropositions);
     tree.initializeFilter(builder.automata, builder.sharedAutomata, globalFactory.universe());
     return new DecomposedDPA(tree, List.copyOf(builder.automata));

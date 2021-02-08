@@ -29,9 +29,9 @@ import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.GOperator;
 
 class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, AllAcceptance> {

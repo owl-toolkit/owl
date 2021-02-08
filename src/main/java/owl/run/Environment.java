@@ -20,31 +20,15 @@
 package owl.run;
 
 import com.google.auto.value.AutoValue;
-import owl.factories.FactorySupplier;
-import owl.factories.jbdd.JBddSupplier;
 
 /**
- * The environment makes global configuration available to all parts of the pipeline. For example,
- * it provides an {@link FactorySupplier factory supplier} that is supposed to be used by all
- * implementations.
+ * The environment makes global configuration available to all parts of the pipeline.
  */
 @AutoValue
 public abstract class Environment {
   public abstract boolean annotations();
 
-  public FactorySupplier factorySupplier() {
-    return JBddSupplier.async();
-  }
-
   public static Environment of(boolean annotated) {
     return new AutoValue_Environment(annotated);
-  }
-
-  public static Environment annotated() {
-    return of(true);
-  }
-
-  public static Environment standard() {
-    return of(false);
   }
 }

@@ -27,7 +27,7 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.hoa.HoaReader;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
 
 public final class AutomatonTestUtil {
 
@@ -38,7 +38,8 @@ public final class AutomatonTestUtil {
    * state object corresponds to HOA state number in string. */
   public static <A extends OmegaAcceptance> Automaton<Integer, A> autFromString(
       String hoa, Class<A> acc) throws ParseException {
-    final var supplier = Environment.annotated().factorySupplier();
+
+    final var supplier = FactorySupplier.defaultSupplier();
     final var parsed = HoaReader.read(new StringReader(hoa), supplier::getValuationSetFactory);
     final var aut = OmegaAcceptanceCast.cast(parsed, acc);
 

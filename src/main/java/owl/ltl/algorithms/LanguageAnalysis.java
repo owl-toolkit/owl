@@ -27,7 +27,6 @@ import owl.ltl.Biconditional;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.translations.LTL2NAFunction;
 
 public final class LanguageAnalysis {
@@ -40,7 +39,7 @@ public final class LanguageAnalysis {
     }
 
     var labelledFormula = attachDummyAlphabet(formula);
-    var translation = new LTL2NAFunction(GeneralizedBuchiAcceptance.class, Environment.of(false));
+    var translation = new LTL2NAFunction(GeneralizedBuchiAcceptance.class);
     return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }
 

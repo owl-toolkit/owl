@@ -18,6 +18,6 @@
  */
 
 @EverythingIsNonnullByDefault
-package owl.factories.jbdd;
+package owl.bdd.jbdd;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

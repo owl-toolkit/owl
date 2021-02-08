@@ -25,12 +25,12 @@ import com.google.common.collect.Iterables;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import owl.bdd.FactorySupplier;
 import owl.ltl.FOperator;
 import owl.ltl.GOperator;
 import owl.ltl.ROperator;
 import owl.ltl.UOperator;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 
 class SelectVisitorTest {
 
@@ -72,7 +72,8 @@ class SelectVisitorTest {
 
     var nonEmpty = Fixpoints.of(Set.of(fOperator));
 
+
     assertEquals(1, SymmetricEvaluatedFixpoints.build(gOperator, nonEmpty,
-      Environment.standard().factorySupplier().getFactories(List.of("a", "b"))).size());
+      FactorySupplier.defaultSupplier().getFactories(List.of("a", "b"))).size());
   }
 }

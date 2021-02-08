@@ -28,7 +28,7 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.factories.EquivalenceClassFactory;
+import owl.bdd.EquivalenceClassFactory;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;

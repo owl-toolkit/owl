@@ -26,30 +26,30 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
+import owl.bdd.FactorySupplier;
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
-import owl.run.Environment;
 
 public final class NonDeterministicConstructionsPortfolio<A extends OmegaAcceptance>
   extends AbstractPortfolio<A> {
 
-  public NonDeterministicConstructionsPortfolio(Class<A> acceptance, Environment environment) {
-    super(acceptance, environment);
+  public NonDeterministicConstructionsPortfolio(Class<A> acceptance) {
+    super(acceptance);
   }
 
   @Override
   public Optional<Automaton<?, A>> apply(LabelledFormula formula) {
     if (isAllowed(AllAcceptance.class)
       && SyntacticFragments.isSafety(formula.formula())) {
-      return box(safety(environment, formula));
+      return box(safety(formula));
     }
 
     if (isAllowed(BuchiAcceptance.class)
       && SyntacticFragments.isCoSafety(formula.formula())) {
-      return box(coSafety(environment, formula));
+      return box(coSafety(formula));
     }
 
     if (formula.formula() instanceof XOperator) {
@@ -72,37 +72,37 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
 
     if (isAllowed(GeneralizedBuchiAcceptance.class)
       && formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
-      return box(gfCoSafety(environment, formula, true));
+      return box(gfCoSafety(formula, true));
     }
 
     if (isAllowed(BuchiAcceptance.class)
       && formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
-      return box(gfCoSafety(environment, formula, false));
+      return box(gfCoSafety(formula, false));
     }
 
     if (isAllowed(BuchiAcceptance.class)
       && SyntacticFragments.isFgSafety(formula.formula())) {
-      return box(fgSafety(environment, formula));
+      return box(fgSafety(formula));
     }
 
     return Optional.empty();
   }
 
   public static Automaton<Formula, BuchiAcceptance> coSafety(
-    Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    LabelledFormula formula) {
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     return NonDeterministicConstructions.CoSafety.of(factories, formula.formula());
   }
 
   public static Automaton<Formula, AllAcceptance> safety(
-    Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    LabelledFormula formula) {
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     return NonDeterministicConstructions.Safety.of(factories, formula.formula());
   }
 
   public static Automaton<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> gfCoSafety(
-    Environment environment, LabelledFormula formula, boolean generalized) {
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    LabelledFormula formula, boolean generalized) {
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     var formulas = formula.formula() instanceof Conjunction
       ? Set.copyOf(formula.formula().operands)
       : Set.of(formula.formula());
@@ -110,8 +110,8 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
   }
 
   public static Automaton<Formula, BuchiAcceptance> fgSafety(
-    Environment environment, LabelledFormula formula) {
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    LabelledFormula formula) {
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     return NonDeterministicConstructions.FgSafety.of(factories, formula.formula());
   }
 }

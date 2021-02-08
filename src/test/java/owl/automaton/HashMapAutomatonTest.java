@@ -38,14 +38,15 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 
 class HashMapAutomatonTest {
   private static final ValuationSetFactory FACTORY;
 
   static {
-    FACTORY = Environment.annotated().factorySupplier().getValuationSetFactory(List.of("a"));
+
+    FACTORY = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a"));
   }
 
   @Test

@@ -27,7 +27,6 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -44,7 +43,7 @@ public final class LTL2NGBAModule {
       + "The construction is based on the symmetric approach from [EKS: LICS'18].",
     AbstractLTL2PortfolioModule.disablePortfolio(),
     (commandLine, environment) -> OwlModule.LabelledFormulaTransformer.of(
-      translation(environment, AbstractLTL2PortfolioModule.usePortfolio(commandLine)))
+      translation(AbstractLTL2PortfolioModule.usePortfolio(commandLine)))
   );
 
   private LTL2NGBAModule() {}
@@ -59,11 +58,11 @@ public final class LTL2NGBAModule {
   }
 
   public static Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>>
-    translation(Environment environment, boolean usePortfolio) {
+    translation(boolean usePortfolio) {
 
-    var construction = SymmetricNBAConstruction.of(environment, GeneralizedBuchiAcceptance.class);
+    var construction = SymmetricNBAConstruction.of(GeneralizedBuchiAcceptance.class);
     var portfolio = usePortfolio
-      ? new NonDeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class, environment)
+      ? new NonDeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class)
       : null;
 
     return labelledFormula -> {

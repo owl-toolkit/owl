@@ -34,7 +34,7 @@ import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaWriter;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
 
 class TestHasAcceptingRun {
 
@@ -104,9 +104,10 @@ class TestHasAcceptingRun {
 
   private static void testHasAcceptingRun(String input, boolean hasAcceptingRun,
     boolean complementHasAcceptingRun) throws ParseException {
-    var nba = OmegaAcceptanceCast
-      .cast(HoaReader.read(new StringReader(input), Environment.annotated()
-        .factorySupplier()::getValuationSetFactory), GeneralizedBuchiAcceptance.class);
+    var nba = OmegaAcceptanceCast.cast(
+      HoaReader.read(
+        new StringReader(input), FactorySupplier.defaultSupplier()::getValuationSetFactory),
+      GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 
     HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));

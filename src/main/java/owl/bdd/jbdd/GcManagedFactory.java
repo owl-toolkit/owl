@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jbdd;
+package owl.bdd.jbdd;
 
 import de.tum.in.jbdd.Bdd;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;

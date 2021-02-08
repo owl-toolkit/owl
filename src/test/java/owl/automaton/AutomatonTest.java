@@ -33,18 +33,18 @@ import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class AutomatonTest {
 
   private static LTL2DAFunction translator =
-    new LTL2DAFunction(EmersonLeiAcceptance.class, Environment.standard());
+    new LTL2DAFunction(EmersonLeiAcceptance.class);
 
   private static final List<LabelledFormula> FORMULAS = List.of(
     LtlParser.parse("true"),
@@ -81,7 +81,7 @@ class AutomatonTest {
   }
 
   private static Stream<Arguments> automatonProvider() {
-    ValuationSetFactory factory = Environment.standard().factorySupplier()
+    ValuationSetFactory factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
 
     return Stream.of(Arguments.of(

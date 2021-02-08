@@ -52,12 +52,12 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.NullablePair;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
-import owl.factories.ValuationSetFactory;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Disjunction;
 

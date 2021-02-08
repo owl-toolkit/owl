@@ -32,21 +32,23 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
-import owl.factories.ValuationSetFactory;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 class AutomatonFactoryTest {
 
-  private static final ValuationSetFactory factory = Environment.annotated()
-    .factorySupplier().getValuationSetFactory(List.of("a"));
+  private static final ValuationSetFactory factory;
+
+  static {
+    factory = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a"));
+  }
 
   @Test
   void testCopy() {
     var automaton = HashMapAutomaton.copyOf(
-      DeterministicConstructionsPortfolio.safety(
-        Environment.annotated(), LtlParser.parse("G a | b R c")));
+      DeterministicConstructionsPortfolio.safety(LtlParser.parse("G a | b R c")));
 
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());

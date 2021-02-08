@@ -36,7 +36,7 @@ public final class LTL2NAModule {
     "ltl2na",
     "Translate LTL to a (heuristically chosen) small non-deterministic automaton.",
     (commandLine, environment) ->
-      OwlModule.LabelledFormulaTransformer.of(new LTL2NAFunction(environment)));
+      OwlModule.LabelledFormulaTransformer.of(new LTL2NAFunction()));
 
   private LTL2NAModule() {}
 

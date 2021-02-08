@@ -46,7 +46,6 @@ import owl.automaton.edge.Edge;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
-import owl.run.Environment;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricProductState;
@@ -55,8 +54,8 @@ import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 final class SymmetricDPAConstruction {
   private final SymmetricLDBAConstruction<BuchiAcceptance> ldbaConstruction;
 
-  SymmetricDPAConstruction(Environment environment) {
-    ldbaConstruction = SymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+  SymmetricDPAConstruction() {
+    ldbaConstruction = SymmetricLDBAConstruction.of(BuchiAcceptance.class);
   }
 
   Automaton<SymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {

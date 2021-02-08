@@ -44,7 +44,6 @@ import owl.automaton.edge.Edge;
 import owl.collections.Collections3;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.translations.BlockingElements;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
@@ -59,7 +58,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
   private final SymmetricLDBAConstruction<?> ldbaConstruction;
 
   private SymmetricDRAConstruction(
-    Environment environment, Class<R> acceptanceClass, boolean optimizeInitialState) {
+      Class<R> acceptanceClass, boolean optimizeInitialState) {
     assert acceptanceClass.equals(GeneralizedRabinAcceptance.class)
       || acceptanceClass.equals(RabinAcceptance.class);
 
@@ -69,12 +68,12 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
 
     this.acceptanceClass = acceptanceClass;
     this.optimizeInitialState = optimizeInitialState;
-    this.ldbaConstruction = SymmetricLDBAConstruction.of(environment, buchiAcceptance);
+    this.ldbaConstruction = SymmetricLDBAConstruction.of(buchiAcceptance);
   }
 
   public static <R extends GeneralizedRabinAcceptance> SymmetricDRAConstruction<R>
-    of(Environment environment, Class<R> clazz, boolean optimizeInitialState) {
-    return new SymmetricDRAConstruction<>(environment, clazz, optimizeInitialState);
+    of(Class<R> clazz, boolean optimizeInitialState) {
+    return new SymmetricDRAConstruction<>(clazz, optimizeInitialState);
   }
 
   @Override

@@ -17,24 +17,20 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jbdd;
+package owl.bdd.jbdd;
 
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.List;
-import owl.factories.EquivalenceClassFactory;
-import owl.factories.FactorySupplier;
-import owl.factories.ValuationSetFactory;
+import owl.bdd.EquivalenceClassFactory;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 
-public final class JBddSupplier implements FactorySupplier {
-  private static final JBddSupplier INSTANCE = new JBddSupplier();
+public final class JBddSupplier extends FactorySupplier {
+  public static final JBddSupplier INSTANCE = new JBddSupplier();
 
   private JBddSupplier() {}
-
-  public static FactorySupplier async() {
-    return INSTANCE;
-  }
 
   private static Bdd create(int size) {
     var configuration = ImmutableBddConfiguration.builder()

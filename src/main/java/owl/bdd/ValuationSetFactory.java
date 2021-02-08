@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories;
+package owl.bdd;
 
 import com.google.common.base.Preconditions;
 import java.util.BitSet;

@@ -22,14 +22,12 @@ package owl.translations;
 import java.util.EnumSet;
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 class LTL2DPAFunctionTest {
   @Test
   void testComplete() {
-    var environment = Environment.standard();
-    var translation = new LTL2DPAFunction(environment, EnumSet.of(
+    var translation = new LTL2DPAFunction(EnumSet.of(
       LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE,
       LTL2DPAFunction.Configuration.COMPRESS_COLOURS));
 

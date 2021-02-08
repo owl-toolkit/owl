@@ -32,10 +32,10 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.sat.Solver;
 

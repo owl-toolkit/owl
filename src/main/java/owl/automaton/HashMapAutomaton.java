@@ -48,9 +48,9 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
 public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements

@@ -29,11 +29,11 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
 
 /**
  * Simulation type for forward-direct multipebble simulation games.
@@ -77,9 +77,8 @@ public class ForwardDirectSimulation<S>
     this.pebbleCount = pebbleCount;
     this.knownPairs = Set.copyOf(known);
 
-    this.factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    this.factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
 
     this.initialState = SimulationStates.MultipebbleSimulationState.of(

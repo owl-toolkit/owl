@@ -31,7 +31,6 @@ import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.word.PointerBase;
 import org.graalvm.word.UnsignedWord;
 import org.graalvm.word.WordFactory;
-import owl.run.Environment;
 import owl.util.OwlVersion;
 
 @CContext(CInterface.CDirectives.class)
@@ -47,8 +46,6 @@ public final class CInterface {
   public static final int SEPARATOR = -232_323;
 
   public static final int FEATURE_SEPARATOR = -424_242;
-
-  public static final Environment ENVIRONMENT = Environment.standard();
 
   private CInterface() {}
 

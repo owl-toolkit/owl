@@ -17,18 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories;
+@EverythingIsNonnullByDefault
+package owl.bdd;
 
-import java.util.List;
-
-public interface FactorySupplier {
-  ValuationSetFactory getValuationSetFactory(List<String> atomicPropositions);
-
-  EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions);
-
-  default Factories getFactories(List<String> atomicPropositions) {
-    return new Factories(
-      getEquivalenceClassFactory(atomicPropositions),
-      getValuationSetFactory(atomicPropositions));
-  }
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

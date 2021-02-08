@@ -35,7 +35,6 @@ import owl.game.GameViews.Node;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class GameFactoryTest {
@@ -81,7 +80,7 @@ public class GameFactoryTest {
 
   public static Automaton<Object, ParityAcceptance> translate(LabelledFormula x) {
     var dpa = new LTL2DPAFunction(
-      Environment.annotated(), LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
+      LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
     var complete = Views.complete(
       OmegaAcceptanceCast.cast((Automaton<Object, ?>) dpa, ParityAcceptance.class),
       new MutableAutomatonUtil.Sink());

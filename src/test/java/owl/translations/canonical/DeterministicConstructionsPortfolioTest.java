@@ -55,11 +55,9 @@ import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class DeterministicConstructionsPortfolioTest {
-  private static final Environment environment = Environment.standard();
 
   @TestInstance(PER_CLASS)
   @Nested
@@ -78,7 +76,7 @@ class DeterministicConstructionsPortfolioTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
-      var automaton = coSafety(environment, labelledFormula);
+      var automaton = coSafety(labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
@@ -88,7 +86,7 @@ class DeterministicConstructionsPortfolioTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> coSafety(environment, LtlParser.parse("G a")));
+        () -> coSafety(LtlParser.parse("G a")));
     }
   }
 
@@ -108,7 +106,7 @@ class DeterministicConstructionsPortfolioTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = fgSafety(environment, labelledFormula, false);
+      var automaton = fgSafety(labelledFormula, false);
       assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
@@ -119,11 +117,11 @@ class DeterministicConstructionsPortfolioTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> fgSafety(environment, LtlParser.parse("F a"), false));
+        () -> fgSafety(LtlParser.parse("F a"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> fgSafety(environment, LtlParser.parse("F ((G a) & (G b))"), false));
+        () -> fgSafety(LtlParser.parse("F ((G a) & (G b))"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> fgSafety(environment, LtlParser.parse("F (G (F a))"), false));
+        () -> fgSafety(LtlParser.parse("F (G (F a))"), false));
     }
   }
 
@@ -144,7 +142,7 @@ class DeterministicConstructionsPortfolioTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = safetyCoSafety(environment, labelledFormula);
+      var automaton = safetyCoSafety(labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(
@@ -156,7 +154,7 @@ class DeterministicConstructionsPortfolioTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> safetyCoSafety(environment, LtlParser.parse("G (a U (b R c))")));
+        () -> safetyCoSafety(LtlParser.parse("G (a U (b R c))")));
     }
   }
 
@@ -176,7 +174,7 @@ class DeterministicConstructionsPortfolioTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
-      var automaton = gfCoSafety(environment, labelledFormula, false);
+      var automaton = gfCoSafety(labelledFormula, false);
       assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
@@ -187,11 +185,11 @@ class DeterministicConstructionsPortfolioTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> gfCoSafety(environment, LtlParser.parse("G a"), false));
+        () -> gfCoSafety(LtlParser.parse("G a"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> gfCoSafety(environment, LtlParser.parse("G ((F a) | (F b))"), false));
+        () -> gfCoSafety(LtlParser.parse("G ((F a) | (F b))"), false));
       assertThrows(IllegalArgumentException.class,
-        () -> gfCoSafety(environment, LtlParser.parse("G (F (G a))"), false));
+        () -> gfCoSafety(LtlParser.parse("G (F (G a))"), false));
     }
   }
 
@@ -212,7 +210,7 @@ class DeterministicConstructionsPortfolioTest {
     @MethodSource("provider")
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
-      var automaton = safety(environment, labelledFormula);
+      var automaton = safety(labelledFormula);
       assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
@@ -222,7 +220,7 @@ class DeterministicConstructionsPortfolioTest {
     @Test
     void testThrows() {
       assertThrows(IllegalArgumentException.class,
-        () -> safety(environment, LtlParser.parse("F a")));
+        () -> safety(LtlParser.parse("F a")));
     }
   }
 
@@ -250,7 +248,7 @@ class DeterministicConstructionsPortfolioTest {
     var formula = LabelledFormula.of(
       leftNestedU(k),
       IntStream.range(0, k + 1).mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
-    var automaton = coSafety(Environment.annotated(), formula);
+    var automaton = coSafety(formula);
     automaton.states();
   }
 
@@ -259,7 +257,7 @@ class DeterministicConstructionsPortfolioTest {
   @ValueSource(
     ints = {8, 16, 32, 64})
   void safetyLargeAlphabet(int k) {
-    var automaton = safety(Environment.standard(), largeAlphabetSafety(k));
+    var automaton = safety(largeAlphabetSafety(k));
     automaton.edgeTree(automaton.onlyInitialState());
   }
 
@@ -268,7 +266,7 @@ class DeterministicConstructionsPortfolioTest {
   @ValueSource(
     ints = {8, 10, 12, 14, 16})
   void safetyLargeStateSpace(int k) {
-    var automaton = safety(Environment.standard(), largeStateSpaceSafety(k));
+    var automaton = safety(largeStateSpaceSafety(k));
     automaton.states();
   }
 

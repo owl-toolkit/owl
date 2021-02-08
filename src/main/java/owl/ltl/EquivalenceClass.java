@@ -23,8 +23,8 @@ import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import owl.bdd.EquivalenceClassFactory;
 import owl.collections.ValuationTree;
-import owl.factories.EquivalenceClassFactory;
 import owl.ltl.visitors.Visitor;
 
 /**

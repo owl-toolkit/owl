@@ -44,9 +44,9 @@ import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaReader.HoaState;
+import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
-import owl.run.Environment;
 import owl.run.modules.OwlModule;
 
 public class ExternalTranslator implements Function<LabelledFormula, Automaton<HoaState, ?>> {
@@ -79,20 +79,18 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
         throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
       }
 
-      var translator = new ExternalTranslator(command, inputMode, environment);
+      var translator = new ExternalTranslator(command, inputMode);
       return OwlModule.LabelledFormulaTransformer.of(translator);
     });
 
   private final List<String> command;
   private final InputMode inputMode;
-  private final Environment environment;
 
-  public ExternalTranslator(String command, InputMode inputMode, Environment environment) {
-    this(List.of(splitPattern.split(command)), inputMode, environment);
+  public ExternalTranslator(String command, InputMode inputMode) {
+    this(List.of(splitPattern.split(command)), inputMode);
   }
 
-  public ExternalTranslator(List<String> command, InputMode inputMode, Environment environment) {
-    this.environment = environment;
+  public ExternalTranslator(List<String> command, InputMode inputMode) {
     this.inputMode = inputMode;
     this.command = List.copyOf(command);
 
@@ -134,7 +132,8 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
         new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
         return HoaReader.read(reader, atomicPropositions -> {
           checkArgument(formula.atomicPropositions().containsAll(atomicPropositions));
-          return environment.factorySupplier().getValuationSetFactory(formula.atomicPropositions());
+          return FactorySupplier.defaultSupplier()
+            .getValuationSetFactory(formula.atomicPropositions());
         });
       }
     } catch (IOException | ParseException | NoSuchElementException ex) {

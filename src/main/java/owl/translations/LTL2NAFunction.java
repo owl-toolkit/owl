@@ -27,7 +27,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.ltl2nba.SymmetricNBAConstruction;
 
@@ -38,11 +37,11 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
   private final NonDeterministicConstructionsPortfolio<?> portfolio;
 
-  public LTL2NAFunction(Environment environment) {
-    this(OmegaAcceptance.class, environment);
+  public LTL2NAFunction() {
+    this(OmegaAcceptance.class);
   }
 
-  public LTL2NAFunction(Class<? extends OmegaAcceptance> acceptance, Environment environment) {
+  public LTL2NAFunction(Class<? extends OmegaAcceptance> acceptance) {
     Preconditions.checkArgument(SUPPORTED_ACCEPTANCE_CONDITIONS.contains(acceptance),
       "%s is not in the set %s of supported acceptance conditions.",
       acceptance, SUPPORTED_ACCEPTANCE_CONDITIONS);
@@ -56,8 +55,8 @@ public final class LTL2NAFunction implements Function<LabelledFormula, Automaton
       castedAcceptance = BuchiAcceptance.class;
     }
 
-    this.fallback = SymmetricNBAConstruction.of(environment, castedAcceptance);
-    this.portfolio = new NonDeterministicConstructionsPortfolio<>(acceptance, environment);
+    this.fallback = SymmetricNBAConstruction.of(castedAcceptance);
+    this.portfolio = new NonDeterministicConstructionsPortfolio<>(acceptance);
   }
 
   @Override
