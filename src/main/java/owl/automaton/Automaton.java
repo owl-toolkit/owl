@@ -35,9 +35,9 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 
 /**
  * The base interface providing read access to an automaton. If mutation is required either the

@@ -34,8 +34,8 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 
 public final class AutomatonUtil {
 

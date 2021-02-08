@@ -26,15 +26,15 @@ import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.SingletonAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 
 class ParallelEvaluationTest {
 
   @Test
   void takeSmallest() {
     ValuationSetFactory factory
-      = Environment.standard().factorySupplier().getValuationSetFactory(List.of("a", "b"));
+      = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a", "b"));
 
     Automaton<Object, GeneralizedBuchiAcceptance> empty1
       = EmptyAutomaton.of(factory, GeneralizedBuchiAcceptance.of(1));

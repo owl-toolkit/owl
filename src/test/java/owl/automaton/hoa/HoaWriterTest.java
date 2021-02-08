@@ -27,14 +27,18 @@ import org.junit.jupiter.api.Test;
 import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.run.modules.OutputWriters;
 
 public class HoaWriterTest {
 
-  private static final ValuationSetFactory FACTORY
-    = Environment.standard().factorySupplier().getValuationSetFactory(List.of("a"));
+  private static final ValuationSetFactory FACTORY;
+
+  static {
+
+    FACTORY = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a"));
+  }
 
   @Test
   void testStateWithoutOutgoingEdgesBug() {

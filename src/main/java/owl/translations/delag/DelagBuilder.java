@@ -36,12 +36,12 @@ import owl.automaton.SingletonAutomaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.factories.Factories;
+import owl.bdd.Factories;
+import owl.bdd.FactorySupplier;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -63,23 +63,20 @@ public class DelagBuilder
       String command = commandLine.getOptionValue("fallback");
 
       if (command == null) {
-        return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder(environment));
+        return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder());
       }
 
-      return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder(environment,
-        new ExternalTranslator(command, ExternalTranslator.InputMode.STDIN, environment)));
+      return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder(
+        new ExternalTranslator(command, ExternalTranslator.InputMode.STDIN)));
     });
 
-  private final Environment environment;
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
-  public DelagBuilder(Environment environment) {
-    this.environment = environment;
-    this.fallback = new LTL2DAFunction(GeneralizedRabinAcceptance.class, environment);
+  public DelagBuilder() {
+    this.fallback = new LTL2DAFunction(GeneralizedRabinAcceptance.class);
   }
 
-  private DelagBuilder(Environment environment, ExternalTranslator fallback) {
-    this.environment = environment;
+  private DelagBuilder(ExternalTranslator fallback) {
     this.fallback = fallback;
   }
 
@@ -95,7 +92,8 @@ public class DelagBuilder
   @Override
   public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = inputFormula.nnf();
-    Factories factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    Factories factories = FactorySupplier.defaultSupplier()
+      .getFactories(formula.atomicPropositions());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
       return EmptyAutomaton.of(factories.vsFactory,

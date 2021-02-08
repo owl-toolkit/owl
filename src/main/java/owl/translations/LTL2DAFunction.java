@@ -32,7 +32,6 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
@@ -46,26 +45,26 @@ public final class LTL2DAFunction implements Function<LabelledFormula, Automaton
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
   private final DeterministicConstructionsPortfolio<?> portfolio;
 
-  public LTL2DAFunction(Environment environment) {
-    this(OmegaAcceptance.class, environment);
+  public LTL2DAFunction() {
+    this(OmegaAcceptance.class);
   }
 
-  public LTL2DAFunction(Class<? extends OmegaAcceptance> acceptance, Environment environment) {
+  public LTL2DAFunction(Class<? extends OmegaAcceptance> acceptance) {
     Preconditions.checkArgument(SUPPORTED_ACCEPTANCE_CONDITIONS.contains(acceptance),
       "%s is not in the set %s of supported acceptance conditions.",
       acceptance, SUPPORTED_ACCEPTANCE_CONDITIONS);
 
-    this.portfolio = new DeterministicConstructionsPortfolio<>(acceptance, environment);
+    this.portfolio = new DeterministicConstructionsPortfolio<>(acceptance);
 
     if (OmegaAcceptance.class.equals(acceptance) || EmersonLeiAcceptance.class.equals(acceptance)) {
-      fallback = new DelagBuilder(environment);
+      fallback = new DelagBuilder();
     } else if (GeneralizedRabinAcceptance.class.equals(acceptance)) {
-      fallback = SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true);
+      fallback = SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true);
     } else if (RabinAcceptance.class.equals(acceptance)) {
-      fallback = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true);
+      fallback = SymmetricDRAConstruction.of(RabinAcceptance.class, true);
     } else {
       assert ParityAcceptance.class.equals(acceptance);
-      fallback = new LTL2DPAFunction(environment, EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG));
+      fallback = new LTL2DPAFunction(EnumSet.copyOf(RECOMMENDED_ASYMMETRIC_CONFIG));
     }
   }
 

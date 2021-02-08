@@ -58,10 +58,11 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
+import owl.bdd.EquivalenceClassFactory;
+import owl.bdd.Factories;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
-import owl.factories.EquivalenceClassFactory;
-import owl.factories.Factories;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -81,7 +82,6 @@ import owl.ltl.XOperator;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.UnabbreviateVisitor;
-import owl.run.Environment;
 import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
 import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
 
@@ -199,8 +199,9 @@ public final class RabinizerBuilder {
   }
 
   public static MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> build(
-    LabelledFormula formula, Environment environment, RabinizerConfiguration configuration) {
-    Factories factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    LabelledFormula formula, RabinizerConfiguration configuration) {
+    Factories factories = FactorySupplier.defaultSupplier()
+      .getFactories(formula.atomicPropositions());
     Formula phiNormalized = formula.formula().nnf().accept(
       new UnabbreviateVisitor(WOperator.class, ROperator.class));
     // TODO Check if the formula only has a single G

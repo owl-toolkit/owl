@@ -19,13 +19,14 @@
 
 package owl.ltl;
 
-import owl.factories.EquivalenceClassFactory;
-import owl.run.Environment;
+import owl.bdd.EquivalenceClassFactory;
+import owl.bdd.FactorySupplier;
 
 public class BddEquivalenceClassTest extends EquivalenceClassTest {
   @Override
   protected EquivalenceClassFactory obtainFactory(LabelledFormula domain) {
-    return Environment.annotated().factorySupplier()
+
+    return FactorySupplier.defaultSupplier()
       .getEquivalenceClassFactory(domain.atomicPropositions());
   }
 }

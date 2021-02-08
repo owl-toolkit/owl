@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories;
+package owl.bdd;
 
 import java.util.List;
 import owl.ltl.BooleanConstant;

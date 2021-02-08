@@ -42,15 +42,15 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.Factories;
+import owl.bdd.FactorySupplier;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
-import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
-import owl.run.Environment;
 import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.LegacyFactory;
@@ -64,19 +64,17 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
   Function<LabelledFormula, AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, B, SortedSet
     <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>>> {
 
-  private final Environment environment;
   private final Class<B> acceptanceClass;
 
-  private AsymmetricLDBAConstruction(Environment environment, Class<B> acceptanceClass) {
-    this.environment = environment;
+  private AsymmetricLDBAConstruction(Class<B> acceptanceClass) {
     this.acceptanceClass = acceptanceClass;
     assert BuchiAcceptance.class.equals(acceptanceClass)
       || GeneralizedBuchiAcceptance.class.equals(acceptanceClass);
   }
 
   public static <B extends GeneralizedBuchiAcceptance> AsymmetricLDBAConstruction<B>
-    of(Environment environment, Class<B> clazz) {
-    return new AsymmetricLDBAConstruction<>(environment, clazz);
+    of(Class<B> clazz) {
+    return new AsymmetricLDBAConstruction<>(clazz);
   }
 
   @Override
@@ -85,7 +83,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     apply(LabelledFormula input) {
     LabelledFormula formula = input.nnf();
 
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     var formulaClass = factories.eqFactory.of(formula.formula());
 
     Set<Formula.TemporalOperator> blockingCoSafetyOperators;

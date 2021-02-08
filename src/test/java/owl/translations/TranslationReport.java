@@ -62,7 +62,6 @@ import owl.collections.Collections3;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.LatexPrintVisitor;
-import owl.run.Environment;
 import owl.translations.ExternalTranslator.InputMode;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dra.NormalformDRAConstruction;
@@ -85,11 +84,10 @@ class TranslationReport {
   void generateLics20Comparison(FormulaSet set) throws IOException {
     Function<LabelledFormula, Automaton<?, ?>> draSymmetric = (LabelledFormula formula) ->
       AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(Environment.standard(), RabinAcceptance.class, true)
-          .apply(formula));
+        SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula));
 
     var normalform =
-      NormalformDRAConstruction.of(Environment.standard(), RabinAcceptance.class, false);
+      NormalformDRAConstruction.of(RabinAcceptance.class, false);
 
     int smaller = 0;
     int SMALLER = 0;
@@ -186,11 +184,11 @@ class TranslationReport {
   void generateJacmComparison(FormulaSet set) throws IOException {
     Function<LabelledFormula, Automaton<?, ?>> dgraAsymmetric = (LabelledFormula formula) ->
       AcceptanceOptimizations.optimize(
-        RabinizerBuilder.build(formula, Environment.standard(), RabinizerConfiguration.of(true, true, true)));
+        RabinizerBuilder.build(formula, RabinizerConfiguration.of(true, true, true)));
 
     Function<LabelledFormula, Automaton<?, ?>> dgraSymmetric = (LabelledFormula formula) ->
       AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(Environment.standard(), GeneralizedRabinAcceptance.class, true)
+        SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)
           .apply(formula));
 
     int symmeticLeq = 0;
@@ -241,21 +239,21 @@ class TranslationReport {
       "./ltl2tgba --generic --deterministic %f > %O"
     );
 
-    var dgraAsymmetric = new Translator("DGRA (asymmetric)", (env) -> (formula) ->
+    var dgraAsymmetric = new Translator("DGRA (asymmetric)", (formula) ->
       AcceptanceOptimizations.optimize(
-        RabinizerBuilder.build(formula, env,
+        RabinizerBuilder.build(formula,
           RabinizerConfiguration.of(true, true, true))));
 
-    var dgraSymmetric = new Translator("DGRA (this paper)", environment -> formula ->
+    var dgraSymmetric = new Translator("DGRA (this paper)", formula ->
       AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
+        SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)
           .apply(formula)));
 
-    var historic = List.of(new Translator("ltl2dstar (historic)", environment
-      -> new ExternalTranslator(ltl2dstarCommand, InputMode.REPLACE, environment)));
+    var historic = List.of(new Translator("ltl2dstar (historic)",
+      new ExternalTranslator(ltl2dstarCommand, InputMode.REPLACE)));
 
-    var portfolio = List.of(new Translator("ltl2tgba (portfolio)", environment
-      -> new ExternalTranslator(ltl2tgbaCommand, InputMode.REPLACE, environment)));
+    var portfolio = List.of(new Translator("ltl2tgba (portfolio)",
+      new ExternalTranslator(ltl2tgbaCommand, InputMode.REPLACE)));
 
     var direct = List.of(dgraAsymmetric, dgraSymmetric);
     var translators = List.of(historic, direct, portfolio);
@@ -265,7 +263,7 @@ class TranslationReport {
 
     for (List<Translator> group : translators) {
       for (Translator translator : group) {
-        var translatorFunction = translator.constructor.apply(Environment.standard());
+        var translatorFunction = translator.constructor;
 
         for (LabelledFormula formula : formulaSet) {
           var summary = AutomatonSummary.of(() -> translatorFunction.apply(formula));
@@ -310,14 +308,14 @@ class TranslationReport {
 
     // Without Portfolio.
 
-    var dpa_ldba_asymmetric = new Translator("\\LDone", environment ->
-      LTL2DPAModule.translation(environment, false, false, false));
+    var dpa_ldba_asymmetric = new Translator("\\LDone",
+      LTL2DPAModule.translation(false, false, false));
 
-    var dpa_ldba_symmetric = new Translator("\\LDtwo", environment ->
-      LTL2DPAModule.translation(environment, true, false, false));
+    var dpa_ldba_symmetric = new Translator("\\LDtwo",
+      LTL2DPAModule.translation(true, false, false));
 
-    var dpa_iar_asymmetric = new Translator("\\Done", environment -> formula -> {
-      var dgra = RabinizerBuilder.build(formula, environment, configuration);
+    var dpa_iar_asymmetric = new Translator("\\Done", formula -> {
+      var dgra = RabinizerBuilder.build(formula, configuration);
       var optimisedDgra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
 
@@ -328,8 +326,8 @@ class TranslationReport {
       return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
     });
 
-    var dpa_iar_symmetric = new Translator("\\Dtwo", environment -> formula -> {
-      var dra = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula);
+    var dpa_iar_symmetric = new Translator("\\Dtwo", formula -> {
+      var dra = SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula);
       var optimisedDra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
       return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
@@ -337,14 +335,12 @@ class TranslationReport {
 
     // With Portfolio
 
-    var dpa_ldba_asymmetric_portfolio = new Translator("\\LDp", environment -> {
-      var translation1 = LTL2DPAModule.translation(environment, false, true, true);
-      var translation2 = LTL2DPAModule.translation(environment, true, true, true);
-      return labelledFormula -> {
-        var automaton1 = translation1.apply(labelledFormula);
-        var automaton2 = translation2.apply(labelledFormula);
-        return automaton1.size() <= automaton2.size() ? automaton1 : automaton2;
-      };
+    var dpa_ldba_asymmetric_portfolio = new Translator("\\LDp", labelledFormula -> {
+      var automaton1
+        = LTL2DPAModule.translation(false, true, true).apply(labelledFormula);
+      var automaton2
+        = LTL2DPAModule.translation(true, true, true).apply(labelledFormula);
+      return automaton1.size() <= automaton2.size() ? automaton1 : automaton2;
     });
 
     // External
@@ -364,11 +360,11 @@ class TranslationReport {
         + "/sttt-experiments/tools/nbautils/build/bin/nbadet -k -j -t -i -r -o -m -d -u2 > %O"
     );
 
-    var ltl2tgba = new Translator("\\None", environment
-      -> new ExternalTranslator(ltl2tgbaCommand, InputMode.REPLACE, environment));
+    var ltl2tgba = new Translator("\\None",
+      new ExternalTranslator(ltl2tgbaCommand, InputMode.REPLACE));
 
-    var nbaDet = new Translator("\\Ntwo", environment
-      -> new ExternalTranslator(nbaDetCommand, InputMode.REPLACE, environment));
+    var nbaDet = new Translator("\\Ntwo",
+      new ExternalTranslator(nbaDetCommand, InputMode.REPLACE));
 
     var translators = List.of(List.of(ltl2tgba, nbaDet,
       dpa_iar_asymmetric, dpa_iar_symmetric,
@@ -379,7 +375,7 @@ class TranslationReport {
 
     for (List<Translator> group : translators) {
       for (Translator translator : group) {
-        var translatorFunction = translator.constructor.apply(Environment.standard());
+        var translatorFunction = translator.constructor;
 
         for (LabelledFormula formula : formulaSet) {
           var summary = AutomatonSummary.of(() -> translatorFunction.apply(formula));
@@ -423,14 +419,14 @@ class TranslationReport {
 
     // Without Portfolio.
 
-    var dpa_ldba_asymmetric = new Translator("\\LDone", environment ->
-      LTL2LDBAModule.translation(environment, false, false));
+    var dpa_ldba_asymmetric = new Translator("\\LDone",
+      LTL2LDBAModule.translation(false, false));
 
-    var dpa_ldba_symmetric = new Translator("\\LDtwo", environment ->
-      LTL2LDBAModule.translation(environment, true, false));
+    var dpa_ldba_symmetric = new Translator("\\LDtwo",
+      LTL2LDBAModule.translation(true, false));
 
-    var dpa_iar_asymmetric = new Translator("\\Done", environment -> formula -> {
-      var dgra = RabinizerBuilder.build(formula, environment, configuration);
+    var dpa_iar_asymmetric = new Translator("\\Done", formula -> {
+      var dgra = RabinizerBuilder.build(formula, configuration);
       var optimisedDgra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.optimize(dgra), GeneralizedRabinAcceptance.class);
 
@@ -441,8 +437,8 @@ class TranslationReport {
       return optimisedDra;
     });
 
-    var dpa_iar_symmetric = new Translator("\\Dtwo", environment -> formula -> {
-      var dra = SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true).apply(formula);
+    var dpa_iar_symmetric = new Translator("\\Dtwo", formula -> {
+      var dra = SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula);
       var optimisedDra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.optimize(dra), RabinAcceptance.class);
       return optimisedDra;
@@ -458,7 +454,7 @@ class TranslationReport {
 
     for (List<Translator> group : translators) {
       for (Translator translator : group) {
-        var translatorFunction = translator.constructor.apply(Environment.standard());
+        var translatorFunction = translator.constructor;
 
         for (LabelledFormula formula : formulaSet) {
           var summary = AutomatonSummary.of(() -> translatorFunction.apply(formula));

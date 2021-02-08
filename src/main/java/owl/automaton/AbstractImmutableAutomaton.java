@@ -27,10 +27,10 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
-import owl.factories.ValuationSetFactory;
 
 /**
  * This abstract class implements storage and retrieval of commonly fixed values, and overrides the

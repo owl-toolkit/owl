@@ -41,9 +41,9 @@ import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.ParityUtil;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
+import owl.bdd.FactorySupplier;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 import owl.translations.mastertheorem.Selector;
 import owl.util.ParallelEvaluation;
 
@@ -56,21 +56,19 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
 
   private final EnumSet<Configuration> configuration;
-  private final Environment environment;
 
   private final AsymmetricDPAConstruction asymmetricDPAConstruction;
   private final SymmetricDPAConstruction symmetricDPAConstruction;
 
-  public LTL2DPAFunction(Environment environment, EnumSet<Configuration> configuration) {
+  public LTL2DPAFunction(EnumSet<Configuration> configuration) {
     checkArgument(!configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
       || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
       "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");
 
     this.configuration = EnumSet.copyOf(configuration);
-    this.environment = environment;
 
-    asymmetricDPAConstruction = new AsymmetricDPAConstruction(environment);
-    symmetricDPAConstruction = new SymmetricDPAConstruction(environment);
+    asymmetricDPAConstruction = new AsymmetricDPAConstruction();
+    symmetricDPAConstruction = new SymmetricDPAConstruction();
   }
 
   @Override
@@ -127,7 +125,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       : dpa;
 
     if (optimisedDpa.initialStates().isEmpty()) {
-      var factory = environment.factorySupplier()
+      var factory = FactorySupplier.defaultSupplier()
         .getEquivalenceClassFactory(formula.atomicPropositions());
       return new Result<>(optimisedDpa,
         AsymmetricRankingState.of(factory.of(BooleanConstant.FALSE)),

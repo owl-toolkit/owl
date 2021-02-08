@@ -21,15 +21,13 @@ package owl.translations.dpa2safety;
 
 import org.junit.jupiter.api.Test;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 class Dpa2SafetyTest {
 
   @Test
   void test() {
-    LTL2DPAFunction dpaConstructor = new LTL2DPAFunction(Environment.standard(),
-      LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
+    var dpaConstructor = new LTL2DPAFunction(LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG);
     DPA2Safety safetyConstructor = new DPA2Safety<>();
     safetyConstructor.apply(dpaConstructor.apply(LtlParser.parse("F G a | G F b | X c")), 1);
     safetyConstructor.apply(dpaConstructor.apply(LtlParser.parse("F G a | G F b | X c")), 9);

@@ -41,18 +41,18 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.Factories;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.Either;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
-import owl.factories.Factories;
-import owl.factories.ValuationSetFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
-import owl.run.Environment;
 import owl.translations.canonical.NonDeterministicConstructions;
 import owl.translations.mastertheorem.Fixpoints;
 import owl.translations.mastertheorem.Rewriter;
@@ -63,24 +63,22 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
   implements Function<LabelledFormula, Automaton<Either<Formula, ProductState>, B>> {
 
   private final Class<B> acceptanceClass;
-  private final Environment environment;
 
-  private SymmetricNBAConstruction(Environment environment, Class<B> acceptanceClass) {
+  private SymmetricNBAConstruction(Class<B> acceptanceClass) {
     this.acceptanceClass = acceptanceClass;
-    this.environment = environment;
     assert BuchiAcceptance.class.equals(acceptanceClass)
       || GeneralizedBuchiAcceptance.class.equals(acceptanceClass);
   }
 
   public static <B extends GeneralizedBuchiAcceptance> Function<LabelledFormula,
-    Automaton<Either<Formula, ProductState>, B>> of(Environment environment, Class<B> clazz) {
-    return new SymmetricNBAConstruction<>(environment, clazz);
+    Automaton<Either<Formula, ProductState>, B>> of(Class<B> clazz) {
+    return new SymmetricNBAConstruction<>(clazz);
   }
 
   @Override
   public Automaton<Either<Formula, ProductState>, B> apply(LabelledFormula input) {
     var formula = input.nnf();
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     var automaton = new SymmetricNBA(factories, formula);
     var mutableAutomaton = HashMapAutomaton.copyOf(automaton);
     AcceptanceOptimizations.removeDeadStates(mutableAutomaton);

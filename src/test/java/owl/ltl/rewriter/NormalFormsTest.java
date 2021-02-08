@@ -31,6 +31,7 @@ import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
+import owl.bdd.FactorySupplier;
 import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -39,7 +40,6 @@ import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class NormalFormsTest {
@@ -134,8 +134,8 @@ class NormalFormsTest {
   @ParameterizedTest
   @MethodSource("labelledFormulaProvider")
   void testCorrectness(LabelledFormula formula) {
-    var factory = Environment.of(false)
-      .factorySupplier().getEquivalenceClassFactory(formula.atomicPropositions());
+    var factory = FactorySupplier.defaultSupplier()
+      .getEquivalenceClassFactory(formula.atomicPropositions());
 
     assertEquals(factory.of(formula.formula()),
       factory.of(NormalForms.toDnfFormula(formula.formula())));

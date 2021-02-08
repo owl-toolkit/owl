@@ -26,7 +26,6 @@ import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 class LanguageContainmentTest {
@@ -38,7 +37,7 @@ class LanguageContainmentTest {
     LabelledFormula formula3 = LtlParser.parse("G F (X a & (a U X b))");
 
     var translation
-      = new DeterministicConstructionsPortfolio<>(BuchiAcceptance.class, Environment.standard());
+      = new DeterministicConstructionsPortfolio<>(BuchiAcceptance.class);
 
     var infOftAandB = translation.apply(formula1).orElseThrow();
     var infOftA = translation.apply(formula2).orElseThrow();

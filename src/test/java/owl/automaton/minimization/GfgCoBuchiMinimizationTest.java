@@ -38,14 +38,14 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.determinization.Determinization;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
+import owl.bdd.FactorySupplier;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 class GfgCoBuchiMinimizationTest {
 
   private static final DeterministicConstructionsPortfolio<CoBuchiAcceptance> coBuchiPortfolio
-    = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class, Environment.standard());
+    = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class);
 
   @Test
   void testMinimize1() {
@@ -89,7 +89,8 @@ class GfgCoBuchiMinimizationTest {
   }
 
   private static Automaton<?, CoBuchiAcceptance> graphPermutationLanguage(int n) {
-    var factory = Environment.standard().factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
 
     var initialState = IntStream.range(1, n + 1).boxed().collect(Collectors.toUnmodifiableList());
@@ -142,7 +143,8 @@ class GfgCoBuchiMinimizationTest {
   }
 
   private static Automaton<?, CoBuchiAcceptance> graphPermutationLanguage2(int n) {
-    var factory = Environment.standard().factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
 
     var initialState = Integer.valueOf(1);

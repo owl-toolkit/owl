@@ -44,10 +44,10 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
-import owl.factories.ValuationSetFactory;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 

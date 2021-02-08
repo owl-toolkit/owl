@@ -61,6 +61,7 @@ import owl.automaton.acceptance.transformer.ToParityTransformer;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
+import owl.bdd.FactorySupplier;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
@@ -76,7 +77,6 @@ import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.visitors.PropositionalVisitor;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -100,14 +100,12 @@ public final class NormalformDPAConstruction implements
       "Disable optimisations and only use the simple base construction."),
     (commandLine, environment) ->
       OwlModule.LabelledFormulaTransformer.of(
-        x -> of(environment, commandLine.hasOption("simple")).apply(x))
+        x -> of(commandLine.hasOption("simple")).apply(x))
   );
 
-  private final Environment environment;
   private final boolean simpleConstruction;
 
-  public NormalformDPAConstruction(Environment environment, boolean simpleConstruction) {
-    this.environment = environment;
+  public NormalformDPAConstruction(boolean simpleConstruction) {
     this.simpleConstruction = simpleConstruction;
   }
 
@@ -120,8 +118,8 @@ public final class NormalformDPAConstruction implements
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 
-  public static NormalformDPAConstruction of(Environment environment, boolean simpleConstruction) {
-    return new NormalformDPAConstruction(environment, simpleConstruction);
+  public static NormalformDPAConstruction of(boolean simpleConstruction) {
+    return new NormalformDPAConstruction(simpleConstruction);
   }
 
   @Override
@@ -129,7 +127,7 @@ public final class NormalformDPAConstruction implements
     // Ensure that the input formula is in negation normal form and that
     // X-operators occur only in-front of temporal operators.
     var normalisedFormula = PushNextThroughPropositionalVisitor.apply(formula.nnf());
-    return new Construction(environment, normalisedFormula, simpleConstruction).automaton();
+    return new Construction(normalisedFormula, simpleConstruction).automaton();
   }
 
   private static class Construction {
@@ -144,11 +142,10 @@ public final class NormalformDPAConstruction implements
 
     private final boolean simpleConstruction;
 
-    private Construction(
-      Environment environment, LabelledFormula formula, boolean simpleConstruction) {
+    private Construction(LabelledFormula formula, boolean simpleConstruction) {
 
       var factories
-        = environment.factorySupplier().getFactories(formula.atomicPropositions());
+        = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
 
       // Underlying automaton.
       this.dbw = SafetyCoSafety.of(factories, BooleanConstant.TRUE, true, true);

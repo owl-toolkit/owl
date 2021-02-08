@@ -26,16 +26,15 @@ import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
 
 public final class CommonAutomata {
   // silence PMD
   private CommonAutomata() {}
 
   public static Automaton<Integer, BuchiAcceptance> buildAutomatonOne() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
@@ -65,9 +64,8 @@ public final class CommonAutomata {
   }
 
   public static Automaton<Integer, BuchiAcceptance> anotherRefinementAutomaton() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
@@ -94,9 +92,8 @@ public final class CommonAutomata {
   }
 
   public static Automaton<Integer, BuchiAcceptance> simpleColorRefinementAutomaton() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
@@ -128,9 +125,8 @@ public final class CommonAutomata {
   }
 
   public static Automaton<Integer, BuchiAcceptance> predecessorAutomaton() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
     var acceptance = BuchiAcceptance.INSTANCE;
 

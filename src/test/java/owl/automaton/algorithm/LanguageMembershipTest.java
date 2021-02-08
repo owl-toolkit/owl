@@ -32,17 +32,16 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.collections.BitSet2;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.LTL2DAFunction;
 import owl.translations.LTL2NAFunction;
 
 class LanguageMembershipTest {
 
   private static final Function<LabelledFormula, Automaton<?, ?>> deterministicTranslation
-    = new LTL2DAFunction(RabinAcceptance.class, Environment.standard());
+    = new LTL2DAFunction(RabinAcceptance.class);
 
   private static final Function<LabelledFormula, Automaton<?, ?>> nondeterministicTranslation
-    = new LTL2NAFunction(Environment.standard());
+    = new LTL2NAFunction();
 
   @Test
   void containsDeterministic() {

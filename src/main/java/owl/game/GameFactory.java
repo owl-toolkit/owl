@@ -34,8 +34,8 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 
 public final class GameFactory {
   private GameFactory() {}

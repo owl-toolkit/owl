@@ -17,7 +17,17 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-@EverythingIsNonnullByDefault
-package owl.factories;
+package owl.bdd.jbdd;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import de.tum.in.jbdd.BddFactory;
+import java.util.List;
+import owl.bdd.ValuationSetFactory;
+import owl.collections.ValuationSetTest;
+
+public class BddValuationSetTest extends ValuationSetTest {
+
+  @Override
+  protected ValuationSetFactory factory(List<String> atomicPropositions) {
+    return new ValuationFactory(BddFactory.buildBdd(1024), atomicPropositions);
+  }
+}

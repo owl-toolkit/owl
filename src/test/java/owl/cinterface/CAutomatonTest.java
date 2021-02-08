@@ -71,7 +71,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.modules.LTL2DPAModule;
 
@@ -100,7 +99,7 @@ public class CAutomatonTest {
       .mapToObj(Character::toString)
       .collect(Collectors.toList()));
     var automaton = DeterministicConstructionsPortfolio
-      .coSafety(Environment.standard(), formula);
+      .coSafety(formula);
     var states = automaton.states();
 
     Assertions.assertTimeout(Duration.ofSeconds(60),
@@ -111,7 +110,7 @@ public class CAutomatonTest {
   void testStateFeaturesExtractionForU() {
     var formula = LtlParser.parse("((a U b) U c) U d");
     var automaton = DeterministicConstructionsPortfolio
-      .coSafety(Environment.standard(), formula);
+      .coSafety(formula);
     var states = automaton.states();
 
     var expectedDnfFeatures = new HashSet<Feature>();
@@ -149,7 +148,7 @@ public class CAutomatonTest {
   void testStateFeaturesExtractionForF() {
     var formula = LtlParser.parse("F(a & ((b) U (c)))", List.of("a", "b", "c"));
     var automaton = DeterministicConstructionsPortfolio
-      .coSafety(Environment.standard(), formula);
+      .coSafety(formula);
     var states = automaton.states();
 
     {
@@ -221,7 +220,7 @@ public class CAutomatonTest {
     {"PMD.EmptyCatchBlock", "PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingNPE"})
   @Test
   void testStateFeaturesExtractionForFormulaDatabase() throws IOException {
-    var translation = LTL2DPAModule.translation(Environment.standard(), false, false, true);
+    var translation = LTL2DPAModule.translation(false, false, true);
 
     for (var test : TEST_DATA.entrySet()) {
       List<TestCase> features = new ArrayList<>();

@@ -17,9 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jbdd;
+package owl.bdd.jbdd;
 
-import static owl.factories.jbdd.EquivalenceFactory.BddEquivalenceClass;
+import static owl.bdd.jbdd.EquivalenceFactory.BddEquivalenceClass;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -43,9 +43,9 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import owl.bdd.EquivalenceClassFactory;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
-import owl.factories.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;

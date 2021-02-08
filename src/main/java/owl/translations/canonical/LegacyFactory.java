@@ -22,8 +22,8 @@ package owl.translations.canonical;
 import java.util.BitSet;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.Factories;
 import owl.collections.ValuationTree;
-import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 

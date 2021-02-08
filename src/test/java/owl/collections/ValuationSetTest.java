@@ -37,7 +37,7 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import owl.factories.ValuationSetFactory;
+import owl.bdd.ValuationSetFactory;
 
 public abstract class ValuationSetTest {
 

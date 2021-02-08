@@ -30,7 +30,6 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -50,7 +49,7 @@ public final class LTL2LDGBAModule {
       boolean useSymmetric = commandLine.hasOption(symmetric().getOpt());
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
       return OwlModule.LabelledFormulaTransformer
-        .of(translation(environment, useSymmetric, usePortfolio));
+        .of(translation(useSymmetric, usePortfolio));
     }
   );
 
@@ -66,16 +65,16 @@ public final class LTL2LDGBAModule {
   }
 
   public static Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>>
-    translation(Environment environment, boolean useSymmetric, boolean usePortfolio) {
+    translation(boolean useSymmetric, boolean usePortfolio) {
 
     Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>> construction = useSymmetric
-      ? SymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+      ? SymmetricLDBAConstruction.of(GeneralizedBuchiAcceptance.class)
       ::applyWithShortcuts
-      : AsymmetricLDBAConstruction.of(environment, GeneralizedBuchiAcceptance.class)
+      : AsymmetricLDBAConstruction.of(GeneralizedBuchiAcceptance.class)
         .andThen(AnnotatedLDBA::copyAsMutable);
 
     DeterministicConstructionsPortfolio<GeneralizedBuchiAcceptance> portfolio = usePortfolio
-      ? new DeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class, environment)
+      ? new DeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class)
       : null;
 
     return labelledFormula -> {

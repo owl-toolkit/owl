@@ -36,8 +36,8 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.hoa.HoaReader;
+import owl.bdd.FactorySupplier;
 import owl.collections.Pair;
-import owl.run.Environment;
 
 public class AutomatonSccDecompositionTest {
 
@@ -91,7 +91,8 @@ public class AutomatonSccDecompositionTest {
 
   @Test
   void testNbaSccs() throws ParseException {
-    final var supplier = Environment.annotated().factorySupplier();
+
+    final var supplier = FactorySupplier.defaultSupplier();
     final var parsed = HoaReader.read(new StringReader(HOA_NBA_SCCS),
       supplier::getValuationSetFactory);
     final var nba = OmegaAcceptanceCast.cast(parsed, BuchiAcceptance.class);

@@ -31,7 +31,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -56,7 +55,7 @@ public final class LTL2DGRAModule {
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
       RabinizerConfiguration configuration = AbstractLTL2DRAModule.parseAsymmetric(commandLine);
       return OwlModule.LabelledFormulaTransformer
-        .of(translation(environment, translator, usePortfolio, configuration, true));
+        .of(translation(translator, usePortfolio, configuration, true));
     });
 
   private LTL2DGRAModule() {}
@@ -71,7 +70,7 @@ public final class LTL2DGRAModule {
   }
 
   public static Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>> translation(
-    Environment environment, AbstractLTL2DRAModule.Translation translation, boolean usePortfolio,
+    AbstractLTL2DRAModule.Translation translation, boolean usePortfolio,
     @Nullable RabinizerConfiguration configuration, boolean dual) {
 
     Function<LabelledFormula, Automaton<?, GeneralizedRabinAcceptance>> translator;
@@ -79,18 +78,18 @@ public final class LTL2DGRAModule {
     switch (translation) {
       case SYMMETRIC:
         translator
-          = SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)::apply;
+          = SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)::apply;
         break;
 
       case ASYMMETRIC:
         translator = labelledFormula ->
           RabinizerBuilder.build(
-            labelledFormula, environment, Objects.requireNonNull(configuration));
+            labelledFormula, Objects.requireNonNull(configuration));
         break;
 
       case NORMAL_FORM:
         translator
-          = NormalformDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, dual);
+          = NormalformDRAConstruction.of(GeneralizedRabinAcceptance.class, dual);
         break;
 
       default:
@@ -98,7 +97,7 @@ public final class LTL2DGRAModule {
     }
 
     DeterministicConstructionsPortfolio<GeneralizedRabinAcceptance> portfolio = usePortfolio
-      ? new DeterministicConstructionsPortfolio<>(GeneralizedRabinAcceptance.class, environment)
+      ? new DeterministicConstructionsPortfolio<>(GeneralizedRabinAcceptance.class)
       : null;
 
     return labelledFormula -> {

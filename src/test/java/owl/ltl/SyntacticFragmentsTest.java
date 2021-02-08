@@ -26,9 +26,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
-import owl.factories.EquivalenceClassFactory;
+import owl.bdd.EquivalenceClassFactory;
+import owl.bdd.FactorySupplier;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 
 class SyntacticFragmentsTest {
   private static final List<String> FINITE_EXAMPLES = List.of(
@@ -67,8 +67,13 @@ class SyntacticFragmentsTest {
     "a U (X G ((a R b) | c U (G d)))"
   );
 
-  private static final EquivalenceClassFactory FACTORY = Environment.standard()
-    .factorySupplier().getEquivalenceClassFactory(List.of("a", "b", "c", "d"));
+  private static final EquivalenceClassFactory FACTORY;
+
+  static {
+
+    FACTORY = FactorySupplier.defaultSupplier()
+        .getEquivalenceClassFactory(List.of("a", "b", "c", "d"));
+  }
 
   private static List<Formula> parse(List<List<String>> formulas) {
     List<Formula> parsedFormulas = new ArrayList<>();

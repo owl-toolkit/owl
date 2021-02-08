@@ -17,14 +17,27 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories;
+package owl.bdd;
 
-public final class Factories {
-  public final EquivalenceClassFactory eqFactory;
-  public final ValuationSetFactory vsFactory;
+import java.util.List;
+import owl.bdd.jbdd.JBddSupplier;
 
-  public Factories(EquivalenceClassFactory eqFactory, ValuationSetFactory vsFactory) {
-    this.eqFactory = eqFactory;
-    this.vsFactory = vsFactory;
+public abstract class FactorySupplier {
+
+  public static FactorySupplier defaultSupplier() {
+    // TODO: add compile-time selection switch (JDD vs sylvan)
+    return JBddSupplier.INSTANCE;
+  }
+
+  public abstract ValuationSetFactory
+    getValuationSetFactory(List<String> atomicPropositions);
+
+  public abstract EquivalenceClassFactory
+    getEquivalenceClassFactory(List<String> atomicPropositions);
+
+  public Factories getFactories(List<String> atomicPropositions) {
+    return new Factories(
+      getEquivalenceClassFactory(atomicPropositions),
+      getValuationSetFactory(atomicPropositions));
   }
 }

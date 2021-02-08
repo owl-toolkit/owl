@@ -25,17 +25,14 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.ltl.LabelledFormula;
-import owl.run.Environment;
 
 abstract class AbstractPortfolio<A extends OmegaAcceptance>
   implements Function<LabelledFormula, Optional<Automaton<?, A>>> {
 
   final Class<A> acceptanceBound;
-  final Environment environment;
 
-  AbstractPortfolio(Class<A> acceptanceBound, Environment environment) {
+  AbstractPortfolio(Class<A> acceptanceBound) {
     this.acceptanceBound = acceptanceBound;
-    this.environment = environment;
   }
 
   boolean isAllowed(Class<? extends OmegaAcceptance> acceptance) {

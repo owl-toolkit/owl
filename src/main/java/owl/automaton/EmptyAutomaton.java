@@ -23,8 +23,8 @@ import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
 
 public final class EmptyAutomaton<S, A extends OmegaAcceptance>
   extends AbstractImmutableAutomaton<S, A>

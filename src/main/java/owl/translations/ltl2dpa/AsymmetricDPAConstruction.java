@@ -40,13 +40,12 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.factories.EquivalenceClassFactory;
+import owl.bdd.EquivalenceClassFactory;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
-import owl.run.Environment;
 import owl.translations.BlockingElements;
 import owl.translations.ltl2ldba.AnnotatedLDBA;
 import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
@@ -56,8 +55,8 @@ import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 final class AsymmetricDPAConstruction {
   private final AsymmetricLDBAConstruction<BuchiAcceptance> ldbaConstruction;
 
-  AsymmetricDPAConstruction(Environment environment) {
-    ldbaConstruction = AsymmetricLDBAConstruction.of(environment, BuchiAcceptance.class);
+  AsymmetricDPAConstruction() {
+    ldbaConstruction = AsymmetricLDBAConstruction.of(BuchiAcceptance.class);
   }
 
   Automaton<AsymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {

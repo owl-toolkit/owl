@@ -17,17 +17,14 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.factories.jbdd;
+package owl.bdd;
 
-import de.tum.in.jbdd.BddFactory;
-import java.util.List;
-import owl.collections.ValuationSetTest;
-import owl.factories.ValuationSetFactory;
+public final class Factories {
+  public final EquivalenceClassFactory eqFactory;
+  public final ValuationSetFactory vsFactory;
 
-public class BddValuationSetTest extends ValuationSetTest {
-
-  @Override
-  protected ValuationSetFactory factory(List<String> atomicPropositions) {
-    return new ValuationFactory(BddFactory.buildBdd(1024), atomicPropositions);
+  public Factories(EquivalenceClassFactory eqFactory, ValuationSetFactory vsFactory) {
+    this.eqFactory = eqFactory;
+    this.vsFactory = vsFactory;
   }
 }

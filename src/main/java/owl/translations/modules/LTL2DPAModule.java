@@ -34,7 +34,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
-import owl.run.Environment;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -55,7 +54,7 @@ public final class LTL2DPAModule {
       boolean useComplement = !commandLine.hasOption("disable-complement");
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
       return OwlModule.LabelledFormulaTransformer
-        .of(translation(environment, useSymmetric, useComplement, usePortfolio));
+        .of(translation(useSymmetric, useComplement, usePortfolio));
     }
   );
 
@@ -81,7 +80,7 @@ public final class LTL2DPAModule {
   }
 
   public static Function<LabelledFormula, Automaton<?, ParityAcceptance>> translation(
-    Environment environment, boolean useSymmetric, boolean useComplement, boolean usePortfolio) {
+    boolean useSymmetric, boolean useComplement, boolean usePortfolio) {
     EnumSet<Configuration> configuration = EnumSet.of(OPTIMISE_INITIAL_STATE);
 
     if (useComplement) {
@@ -94,9 +93,9 @@ public final class LTL2DPAModule {
 
     configuration.add(COMPRESS_COLOURS);
 
-    var construction = new LTL2DPAFunction(environment, configuration);
+    var construction = new LTL2DPAFunction(configuration);
     var portfolio = usePortfolio
-      ? new DeterministicConstructionsPortfolio<>(ParityAcceptance.class, environment)
+      ? new DeterministicConstructionsPortfolio<>(ParityAcceptance.class)
       : null;
 
     return labelledFormula -> {

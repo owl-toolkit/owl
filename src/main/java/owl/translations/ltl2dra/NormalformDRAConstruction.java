@@ -25,7 +25,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.mastertheorem.Normalisation;
@@ -40,8 +39,6 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
   private static final Normalisation DUAL_NORMALISATION
     = Normalisation.of(true, false, false);
 
-  private final Environment environment;
-
   private final Class<R> acceptanceClass;
   private final boolean dualConstruction;
 
@@ -52,9 +49,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
   private final DeterministicConstructionsPortfolio<CoBuchiAcceptance>
     sigma2Portfolio;
 
-  private NormalformDRAConstruction(
-    Environment environment, Class<R> acceptanceClass, boolean dualConstruction) {
-    this.environment = environment;
+  private NormalformDRAConstruction(Class<R> acceptanceClass, boolean dualConstruction) {
     this.acceptanceClass = acceptanceClass;
     this.dualConstruction = dualConstruction;
 
@@ -63,16 +58,16 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       : BuchiAcceptance.class;
 
     this.pi2Portfolio
-      = new DeterministicConstructionsPortfolio<>(buchiAcceptance, environment);
+      = new DeterministicConstructionsPortfolio<>(buchiAcceptance);
     this.sigma2Portfolio
-      = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class, environment);
+      = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class);
     this.singleRabinPortfolio
-      = new DeterministicConstructionsPortfolio<>(acceptanceClass, environment);
+      = new DeterministicConstructionsPortfolio<>(acceptanceClass);
   }
 
   public static <R extends GeneralizedRabinAcceptance> NormalformDRAConstruction<R>
-    of(Environment environment, Class<R> acceptanceClass, boolean dualConstruction) {
-    return new NormalformDRAConstruction<>(environment, acceptanceClass, dualConstruction);
+    of(Class<R> acceptanceClass, boolean dualConstruction) {
+    return new NormalformDRAConstruction<>(acceptanceClass, dualConstruction);
   }
 
   @Override
@@ -160,7 +155,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       if (pi2.isEmpty()) {
         var singleRabinAutomaton = singleRabinPortfolio.apply(sigma2Formula).orElseGet(
           () -> OmegaAcceptanceCast.cast(
-            DeterministicConstructionsPortfolio.coSafetySafety(environment, sigma2Formula),
+            DeterministicConstructionsPortfolio.coSafetySafety(sigma2Formula),
             acceptanceClass));
         automata.add((Automaton<Object, R>) singleRabinAutomaton);
         continue;
@@ -169,7 +164,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       if (sigma2.isEmpty()) {
         var singleRabinAutomaton = singleRabinPortfolio.apply(pi2Formula).orElseGet(
           () -> OmegaAcceptanceCast.cast(
-            DeterministicConstructionsPortfolio.safetyCoSafety(environment, pi2Formula),
+            DeterministicConstructionsPortfolio.safetyCoSafety(pi2Formula),
             acceptanceClass));
         automata.add((Automaton<Object, R>) singleRabinAutomaton);
         continue;
@@ -177,11 +172,11 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
 
       var sigma2Automaton = sigma2Portfolio.apply(sigma2Formula).orElseGet(
         () -> OmegaAcceptanceCast.cast(
-          DeterministicConstructionsPortfolio.coSafetySafety(environment, sigma2Formula),
+          DeterministicConstructionsPortfolio.coSafetySafety(sigma2Formula),
           CoBuchiAcceptance.class));
       Automaton<?, ?> pi2Automaton = pi2Portfolio.apply(pi2Formula).orElseGet(
         () -> (Automaton)
-          DeterministicConstructionsPortfolio.safetyCoSafety(environment, pi2Formula));
+          DeterministicConstructionsPortfolio.safetyCoSafety(pi2Formula));
       var intersectionAutomaton
         = BooleanOperations.intersection(sigma2Automaton, pi2Automaton, true);
       automata.add(OmegaAcceptanceCast.cast((Automaton) intersectionAutomaton, acceptanceClass));

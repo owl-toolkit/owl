@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
-import owl.factories.ValuationSetFactory;
+import owl.bdd.ValuationSetFactory;
 
 public abstract class ValuationSet {
 

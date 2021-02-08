@@ -34,14 +34,13 @@ import owl.automaton.edge.Edge;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.parser.LtlParser;
-import owl.run.Environment;
 
 class LTL2DAModuleFunctionTest {
   private static final String LARGE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)"
       + "& X G (x1 | x2 | x3)";
 
   private static final LTL2DAFunction TRANSLATOR
-    = new LTL2DAFunction(ParityAcceptance.class, Environment.standard());
+    = new LTL2DAFunction(ParityAcceptance.class);
 
   @Test
   void construct() {

@@ -28,10 +28,10 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.LookaheadSimulationState;
 import owl.automaton.edge.Edge;
+import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSetFactory;
 import owl.collections.Pair;
 import owl.collections.ValuationSet;
-import owl.factories.ValuationSetFactory;
-import owl.run.Environment;
 
 public class ForwardDirectLookaheadSimulation<S>
   implements SimulationType<S, LookaheadSimulationState<S>> {
@@ -60,9 +60,8 @@ public class ForwardDirectLookaheadSimulation<S>
     this.maxLookahead = maxLookahead;
     this.knownPairs = known;
 
-    this.factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    this.factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
 
     this.initialState = LookaheadSimulationState.of(left, right);

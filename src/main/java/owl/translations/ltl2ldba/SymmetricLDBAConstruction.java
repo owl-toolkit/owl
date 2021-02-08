@@ -51,10 +51,11 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.Factories;
+import owl.bdd.FactorySupplier;
 import owl.collections.Collections3;
 import owl.collections.Either;
 import owl.collections.ValuationTree;
-import owl.factories.Factories;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -64,7 +65,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
-import owl.run.Environment;
 import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.mastertheorem.Fixpoints;
@@ -79,18 +79,16 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>>> {
 
   private final Class<? extends B> acceptanceClass;
-  private final Environment environment;
 
-  private SymmetricLDBAConstruction(Environment environment, Class<? extends B> acceptanceClass) {
-    this.environment = environment;
+  private SymmetricLDBAConstruction(Class<? extends B> acceptanceClass) {
     this.acceptanceClass = acceptanceClass;
     assert BuchiAcceptance.class.equals(acceptanceClass)
       || GeneralizedBuchiAcceptance.class.equals(acceptanceClass);
   }
 
   public static <B extends GeneralizedBuchiAcceptance> SymmetricLDBAConstruction<B>
-    of(Environment environment, Class<? extends B> clazz) {
-    return new SymmetricLDBAConstruction<>(environment, clazz);
+    of(Class<? extends B> clazz) {
+    return new SymmetricLDBAConstruction<>(clazz);
   }
 
   @Override
@@ -98,7 +96,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
       Set<SymmetricProductState>>> apply(LabelledFormula input) {
     var formula = input.nnf();
-    var factories = environment.factorySupplier().getFactories(formula.atomicPropositions());
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
 
     // Declare components of LDBA
 

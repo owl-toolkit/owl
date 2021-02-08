@@ -29,7 +29,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaWriter;
-import owl.run.Environment;
+import owl.bdd.FactorySupplier;
 
 class NBA2LDBATest {
 
@@ -106,7 +106,8 @@ class NBA2LDBATest {
   @ParameterizedTest
   @ValueSource(strings = {ALL_ACCEPTANCE, BUCHI_1, BUCHI_2, BUCHI_3, BUCHI_4})
   void runTest(String hoa) throws ParseException {
-    var supplier = Environment.annotated().factorySupplier();
+
+    var supplier = FactorySupplier.defaultSupplier();
     var nba = OmegaAcceptanceCast
       .cast(HoaReader.read(new StringReader(hoa), supplier::getValuationSetFactory),
         OmegaAcceptance.class);

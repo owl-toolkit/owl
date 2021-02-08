@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
@@ -78,7 +77,6 @@ import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
-import owl.run.Environment;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
@@ -103,7 +101,7 @@ public class TranslationAutomatonSummaryTest {
     "aa", "ab", "ac", "ad", "ae", "af", "ag");
 
   static final List<Translator> TRANSLATORS = List.of(
-    new Translator("dpa.normalform", x -> NormalformDPAConstruction.of(x, false)),
+    new Translator("dpa.normalform", NormalformDPAConstruction.of(false)),
 
     new Translator("safety",
       DeterministicConstructionsPortfolio::safety),
@@ -116,136 +114,136 @@ public class TranslationAutomatonSummaryTest {
       NonDeterministicConstructionsPortfolio::coSafety),
 
     new Translator("fgSafety",
-    x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, false)),
+    x -> DeterministicConstructionsPortfolio.fgSafety(x, false)),
     new Translator("fgSafety.generalized",
-    x -> y -> DeterministicConstructionsPortfolio.fgSafety(x, y, true)),
+    x -> DeterministicConstructionsPortfolio.fgSafety(x, true)),
     new Translator("fgSafety.nondeterministic",
       NonDeterministicConstructionsPortfolio::fgSafety),
 
     new Translator("gfCoSafety",
-    x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
+    y -> DeterministicConstructionsPortfolio.gfCoSafety(y, false)),
     new Translator("gfCoSafety.generalized",
-    x -> y -> DeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
+    y -> DeterministicConstructionsPortfolio.gfCoSafety(y, true)),
     new Translator("gfCoSafety.nondeterministic",
-    x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, false)),
+    y -> NonDeterministicConstructionsPortfolio.gfCoSafety(y, false)),
     new Translator("gfCoSafety.nondeterministic.generalized",
-    x -> y -> NonDeterministicConstructionsPortfolio.gfCoSafety(x, y, true)),
+    y -> NonDeterministicConstructionsPortfolio.gfCoSafety(y, true)),
 
     new Translator("coSafetySafety", DeterministicConstructionsPortfolio::coSafetySafety),
     new Translator("safetyCoSafety", DeterministicConstructionsPortfolio::safetyCoSafety),
 
-    new Translator("ldba.asymmetric", environment ->
-      LTL2LDBAModule.translation(environment, false, false),
+    new Translator("ldba.asymmetric",
+      LTL2LDBAModule.translation(false, false),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("ldba.asymmetric.portfolio", environment ->
-      LTL2LDBAModule.translation(environment, false, true),
+    new Translator("ldba.asymmetric.portfolio",
+      LTL2LDBAModule.translation(false, true),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("ldgba.asymmetric", environment ->
-      LTL2LDGBAModule.translation(environment, false, false),
+    new Translator("ldgba.asymmetric",
+      LTL2LDGBAModule.translation(false, false),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("ldgba.asymmetric.portfolio", environment ->
-      LTL2LDGBAModule.translation(environment, false, true),
-      Set.of(SYNTCOMP_SELECTION)),
-
-    new Translator("ldba.symmetric", environment ->
-      LTL2LDBAModule.translation(environment, true, false),
-      Set.of(SYNTCOMP_SELECTION)),
-    new Translator("ldba.symmetric.portfolio", environment ->
-      LTL2LDBAModule.translation(environment, true, true),
-      Set.of(SYNTCOMP_SELECTION)),
-    new Translator("ldgba.symmetric", environment ->
-      LTL2LDGBAModule.translation(environment, true, false),
-      Set.of(SYNTCOMP_SELECTION)),
-    new Translator("ldgba.symmetric.portfolio", environment ->
-      LTL2LDGBAModule.translation(environment, true, true),
+    new Translator("ldgba.asymmetric.portfolio",
+      LTL2LDGBAModule.translation(false, true),
       Set.of(SYNTCOMP_SELECTION)),
 
-    new Translator("dpa.asymmetric", environment ->
-      LTL2DPAModule.translation(environment, false, false, false),
+    new Translator("ldba.symmetric",
+      LTL2LDBAModule.translation(true, false),
+      Set.of(SYNTCOMP_SELECTION)),
+    new Translator("ldba.symmetric.portfolio",
+      LTL2LDBAModule.translation(true, true),
+      Set.of(SYNTCOMP_SELECTION)),
+    new Translator("ldgba.symmetric",
+      LTL2LDGBAModule.translation(true, false),
+      Set.of(SYNTCOMP_SELECTION)),
+    new Translator("ldgba.symmetric.portfolio",
+      LTL2LDGBAModule.translation(true, true),
+      Set.of(SYNTCOMP_SELECTION)),
+
+    new Translator("dpa.asymmetric",
+      LTL2DPAModule.translation(false, false, false),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
-    new Translator("dpa.asymmetric.portfolio", environment ->
-      LTL2DPAModule.translation(environment, false, false, true),
+    new Translator("dpa.asymmetric.portfolio",
+      LTL2DPAModule.translation(false, false, true),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
-    new Translator("dpa.symmetric", environment ->
-      LTL2DPAModule.translation(environment, true, false, false),
+    new Translator("dpa.symmetric",
+      LTL2DPAModule.translation(true, false, false),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
-    new Translator("dpa.symmetric.portfolio", environment ->
-      LTL2DPAModule.translation(environment, true, false, true),
+    new Translator("dpa.symmetric.portfolio",
+      LTL2DPAModule.translation(true, false, true),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
-    new Translator("dra.symmetric", environment ->
-      LTL2DRAModule.translation(environment,
+    new Translator("dra.symmetric",
+      LTL2DRAModule.translation(
         AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("dra.symmetric.portfolio", environment ->
-      LTL2DRAModule.translation(environment,
+    new Translator("dra.symmetric.portfolio",
+      LTL2DRAModule.translation(
         AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("dra.symmetric.optimizations", environment -> x ->
+    new Translator("dra.symmetric.optimizations", x ->
       AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(environment, RabinAcceptance.class, true)
+        SymmetricDRAConstruction.of(RabinAcceptance.class, true)
           .apply(x)),
       Set.of(SYNTCOMP_SELECTION)),
 
-    new Translator("dgra.symmetric", environment ->
-      LTL2DGRAModule.translation(environment,
+    new Translator("dgra.symmetric",
+      LTL2DGRAModule.translation(
         AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("dgra.symmetric.portfolio", environment ->
-      LTL2DGRAModule.translation(environment,
+    new Translator("dgra.symmetric.portfolio",
+      LTL2DGRAModule.translation(
         AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("dgra.symmetric.optimizations", environment -> x ->
+    new Translator("dgra.symmetric.optimizations", x ->
       AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(environment, GeneralizedRabinAcceptance.class, true)
+        SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)
           .apply(x)),
       Set.of(SYNTCOMP_SELECTION)),
 
-    new Translator("dra.normalform", environment ->
-      LTL2DRAModule.translation(environment,
+    new Translator("dra.normalform",
+      LTL2DRAModule.translation(
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
       Set.of(SYNTCOMP_SELECTION), true),
-    new Translator("dra.normalform.portfolio", environment ->
-      LTL2DRAModule.translation(environment,
+    new Translator("dra.normalform.portfolio",
+      LTL2DRAModule.translation(
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
       Set.of(SYNTCOMP_SELECTION), true),
 
-    new Translator("dra.normalform.dual", environment ->
-      LTL2DRAModule.translation(environment,
+    new Translator("dra.normalform.dual",
+      LTL2DRAModule.translation(
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, true),
       Set.of(SYNTCOMP_SELECTION), true),
-    new Translator("dra.normalform.dual.portfolio", environment ->
-      LTL2DRAModule.translation(environment,
+    new Translator("dra.normalform.dual.portfolio",
+      LTL2DRAModule.translation(
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, true),
       Set.of(SYNTCOMP_SELECTION), true),
 
-    new Translator("dgra.normalform", environment ->
-      LTL2DGRAModule.translation(environment,
+    new Translator("dgra.normalform",
+      LTL2DGRAModule.translation(
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
       Set.of(SYNTCOMP_SELECTION), true),
-    new Translator("dgra.normalform.portfolio", environment ->
-      LTL2DGRAModule.translation(environment,
+    new Translator("dgra.normalform.portfolio",
+      LTL2DGRAModule.translation(
         AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
       Set.of(SYNTCOMP_SELECTION), true),
 
-    new Translator("nba.symmetric", environment ->
-      LTL2NBAModule.translation(environment, false)),
-    new Translator("nba.symmetric.portfolio", environment ->
-      LTL2NBAModule.translation(environment, true)),
-    new Translator("ngba.symmetric", environment ->
-      LTL2NGBAModule.translation(environment, false)),
-    new Translator("ngba.symmetric.portfolio", environment ->
-      LTL2NGBAModule.translation(environment, true)),
+    new Translator("nba.symmetric",
+      LTL2NBAModule.translation(false)),
+    new Translator("nba.symmetric.portfolio",
+      LTL2NBAModule.translation(true)),
+    new Translator("ngba.symmetric",
+      LTL2NGBAModule.translation(false)),
+    new Translator("ngba.symmetric.portfolio",
+      LTL2NGBAModule.translation(true)),
 
     new Translator("delag",
-      DelagBuilder::new,
+      new DelagBuilder(),
       EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
     new Translator("ltl2da",
-      LTL2DAFunction::new,
+      new LTL2DAFunction(),
       EnumSet.of(SYNTCOMP_SELECTION, LIBEROUTER)),
     new Translator("ltl2na",
-      LTL2NAFunction::new,
+      new LTL2NAFunction(),
       EnumSet.of(SYNTCOMP_SELECTION, LIBEROUTER))
   );
 
@@ -319,7 +317,7 @@ public class TranslationAutomatonSummaryTest {
     var gson = new Gson();
 
     for (Translator translator : TRANSLATORS) {
-      var translatorFunction = translator.constructor.apply(Environment.standard());
+      var translatorFunction = translator.constructor;
 
       try (Reader sizesFile = Files.newBufferedReader(translator.referenceFile())) {
         var testCases = Arrays.stream(gson.fromJson(sizesFile, TestCase[].class))
@@ -361,7 +359,7 @@ public class TranslationAutomatonSummaryTest {
       }
     }
 
-    var translatorFunction = translator.constructor.apply(Environment.standard());
+    var translatorFunction = translator.constructor;
     var testCases = formulaSet.stream()
       .map(x -> TestCase.of(x, translatorFunction, translator.numberOfAcceptanceSetsUnstable))
       .toArray();
@@ -442,32 +440,24 @@ public class TranslationAutomatonSummaryTest {
 
   static class Translator {
     final String name;
-    final Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
-      constructor;
+    final Function<LabelledFormula, ? extends Automaton<?, ?>> constructor;
     final boolean numberOfAcceptanceSetsUnstable;
     private final Set<FormulaSet> selectedSets;
 
     Translator(String name,
-      BiFunction<Environment, LabelledFormula, ? extends Automaton<?, ?>> constructor) {
-      this(name, x -> y -> constructor.apply(x, y));
-    }
+      Function<LabelledFormula, ? extends Automaton<?, ?>> constructor) {
 
-    Translator(String name,
-      Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
-        constructor) {
       this(name, constructor, Set.of());
     }
 
     Translator(String name,
-      Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
-        constructor,
+      Function<LabelledFormula, ? extends Automaton<?, ?>> constructor,
       Set<FormulaSet> blacklistedSets) {
       this(name, constructor, blacklistedSets, false);
     }
 
     Translator(String name,
-      Function<Environment, ? extends Function<LabelledFormula, ? extends Automaton<?, ?>>>
-        constructor,
+      Function<LabelledFormula, ? extends Automaton<?, ?>> constructor,
       Set<FormulaSet> blacklistedSets,
       boolean numberOfAcceptanceSetsUnstable) {
       this.name = name;

@@ -31,15 +31,14 @@ import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.FactorySupplier;
 import owl.collections.Pair;
 import owl.game.algorithms.OinkGameSolver;
-import owl.run.Environment;
 
 public class SimulationGameTest {
   private Automaton<Integer, BuchiAcceptance> buildAutomatonOne() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
@@ -70,9 +69,8 @@ public class SimulationGameTest {
 
   private Pair<Automaton<Integer, BuchiAcceptance>, Automaton<Integer, BuchiAcceptance>>
   buildAutomataThree() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b", "c", "d"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
@@ -121,9 +119,8 @@ public class SimulationGameTest {
 
   private Pair<Automaton<Integer, BuchiAcceptance>, Automaton<Integer, BuchiAcceptance>>
   buildAutomataFvsDe() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
     BitSet a = factory.iterator(factory.of(0)).next();
@@ -160,9 +157,8 @@ public class SimulationGameTest {
 
   private Pair<Automaton<Integer, BuchiAcceptance>, Automaton<Integer, BuchiAcceptance>>
   buildAutomataDiVDe() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
     BitSet a = factory.iterator(factory.of(0)).next();
@@ -199,9 +195,8 @@ public class SimulationGameTest {
 
   private Pair<Automaton<Integer, BuchiAcceptance>, Automaton<Integer, BuchiAcceptance>>
   buildAutomataTwo() {
-    var factory = Environment
-      .annotated()
-      .factorySupplier()
+
+    var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b", "c"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
