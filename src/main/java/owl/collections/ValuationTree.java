@@ -31,6 +31,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 
 public abstract class ValuationTree<E> {

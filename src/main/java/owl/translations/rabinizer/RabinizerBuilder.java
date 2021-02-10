@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import owl.automaton.AbstractImmutableAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
@@ -61,8 +62,9 @@ import owl.automaton.hoa.HoaWriter;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSet;
+import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -224,40 +226,18 @@ public final class RabinizerBuilder {
      * The master automaton models a simple transition system based on the global formula and keeps
      * track of how the formula evolves along the finite prefix seen so far. */
 
-    EquivalenceClass initialClass = masterStateFactory.getInitialState(this.initialClass);
-
-    // TODO Copy Rabinizer3.1 behaviour for computing the successors - there a partitioning of the
-    // valuation space is computed.
-
-    /*
-    Map<EquivalenceClass, Map<EquivalenceClass, ValuationSet>> partitioning = new HashMap<>();
-
-    BiFunction<EquivalenceClass, BitSet, Edge<EquivalenceClass>> successorFunction =
-      (state, valuation) -> {
-        Map<EquivalenceClass, ValuationSet> successorMap = partitioning
-          .computeIfAbsent(state, s -> {
-            Map<EquivalenceClass, ValuationSet> map = new HashMap<>();
-            s.forEachAssignment((solution, support) -> {
-              ValuationSet valuations = vsFactory.createValuationSet(solution, support);
-              BitSet any = valuations.iterator().next();
-              Edge<EquivalenceClass> successor = masterStateFactory.getMasterSuccessor(s, any);
-              if (successor != null) {
-                ValuationSetMapUtil.add(map, successor.getSuccessor(), valuations);
-              }
-            });
-            return map;
-          });
-        EquivalenceClass first = ValuationSetMapUtil.findFirst(successorMap, valuation);
-        if (first == null) {
-          return null;
-        }
-        return Edges.create(first);
-      };*/
-
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
-      HashMapAutomaton.of(AllAcceptance.INSTANCE, vsFactory,
-        Set.of(initialClass), masterStateFactory::getSuccessor,
-        masterStateFactory::getClassSensitiveAlphabet);
+      new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
+        vsFactory,
+        Set.of(masterStateFactory.initialState(this.initialClass)),
+        AllAcceptance.INSTANCE) {
+
+        @Override
+        protected ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(
+          EquivalenceClass state) {
+          return masterStateFactory.edgeTree(state);
+        }
+      };
 
     if (logger.isLoggable(Level.FINER)) {
       logger.log(Level.FINER, "Master automaton for {0}:\n{1}",
@@ -519,7 +499,8 @@ public final class RabinizerBuilder {
       });
 
     // Properly choose the initial state
-    rabinizerAutomaton.initialStates(Set.of(getAnyState.apply(initialClass)));
+    rabinizerAutomaton.initialStates(Set.of(getAnyState.apply(
+      masterStateFactory.initialState(this.initialClass))));
     rabinizerAutomaton.trim();
 
     // Handle the |G| = {} case

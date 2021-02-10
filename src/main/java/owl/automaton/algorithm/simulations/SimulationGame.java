@@ -27,7 +27,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationType.SimulationState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 import owl.game.Game;
 
 /**

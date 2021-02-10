@@ -26,9 +26,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
-import owl.collections.ValuationSet;
 
 public final class SingletonAutomaton<S, A extends OmegaAcceptance>
   extends AbstractImmutableAutomaton<S, A>

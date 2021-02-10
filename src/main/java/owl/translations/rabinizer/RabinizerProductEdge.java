@@ -20,7 +20,7 @@
 package owl.translations.rabinizer;
 
 import java.util.Arrays;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 /**
  * This class is used to represent one edge in the Rabinizer product automaton. This way, we can

@@ -35,8 +35,8 @@ import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 final class ValuationFactory extends GcManagedFactory<BddValuationSet>

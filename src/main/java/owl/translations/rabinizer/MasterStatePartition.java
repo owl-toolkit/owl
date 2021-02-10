@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 import owl.ltl.EquivalenceClass;
 
 final class MasterStatePartition {

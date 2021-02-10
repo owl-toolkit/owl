@@ -19,20 +19,17 @@
 
 package owl.bdd;
 
-import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
-import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 public interface ValuationSetFactory {
+
   List<String> atomicPropositions();
 
   ValuationSet of(int literal);
@@ -50,51 +47,6 @@ public interface ValuationSetFactory {
   }
 
   ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
-
-  default ValuationSet of(BooleanExpression<AtomLabel> expression,
-    @Nullable IntUnaryOperator mapping,
-    @Nullable Map<String, BooleanExpression<AtomLabel>> aliases) {
-
-    if (expression.isFALSE()) {
-      return empty();
-    }
-
-    if (expression.isTRUE()) {
-      return universe();
-    }
-
-    if (expression.isAtom()) {
-      AtomLabel atom = expression.getAtom();
-
-      if (atom.isAlias()) {
-        String alias = atom.getAliasName();
-        Preconditions.checkArgument(
-          aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
-        return of(aliases.get(alias), mapping, aliases);
-      } else {
-        int apIndex = atom.getAPIndex();
-        return this.of(mapping == null ? apIndex : mapping.applyAsInt(apIndex));
-      }
-    }
-
-    if (expression.isNOT()) {
-      return of(expression.getLeft(), mapping, aliases).complement();
-    }
-
-    if (expression.isAND()) {
-      ValuationSet left = of(expression.getLeft(), mapping, aliases);
-      ValuationSet right = of(expression.getRight(), mapping, aliases);
-      return left.intersection(right);
-    }
-
-    if (expression.isOR()) {
-      ValuationSet left = of(expression.getLeft(), mapping, aliases);
-      ValuationSet right = of(expression.getRight(), mapping, aliases);
-      return left.union(right);
-    }
-
-    throw new IllegalArgumentException("Unsupported Case: " + expression);
-  }
 
   ValuationSet empty();
 

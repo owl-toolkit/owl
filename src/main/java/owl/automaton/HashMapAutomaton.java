@@ -48,8 +48,8 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps

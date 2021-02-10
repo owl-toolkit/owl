@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.function.Supplier;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 public final class MutableAutomatonUtil {
 

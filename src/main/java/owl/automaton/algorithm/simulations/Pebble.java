@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 /**
  * Abstraction of a single pebble in a multipebble simulation game. This holds a state on an

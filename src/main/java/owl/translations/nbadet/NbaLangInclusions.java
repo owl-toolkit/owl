@@ -29,8 +29,8 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.algorithm.simulations.ColorRefinement;
+import owl.bdd.ValuationSet;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 import owl.run.RunUtil;
 
 /**

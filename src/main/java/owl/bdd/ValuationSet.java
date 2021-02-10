@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections;
+package owl.bdd;
 
 import java.math.BigInteger;
 import java.util.BitSet;
@@ -25,7 +25,7 @@ import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
-import owl.bdd.ValuationSetFactory;
+import owl.collections.ValuationTree;
 
 public abstract class ValuationSet {
 

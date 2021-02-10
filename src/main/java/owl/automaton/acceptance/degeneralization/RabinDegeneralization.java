@@ -48,7 +48,7 @@ import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 

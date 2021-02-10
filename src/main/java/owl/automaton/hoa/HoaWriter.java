@@ -43,7 +43,7 @@ import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 import owl.util.OwlVersion;
 
 public final class HoaWriter {

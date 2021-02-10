@@ -42,8 +42,8 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
+import owl.bdd.ValuationSet;
 import owl.collections.Collections3;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.run.modules.OwlModule;
 

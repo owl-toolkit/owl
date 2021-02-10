@@ -24,7 +24,7 @@ import static owl.automaton.algorithm.simulations.CommonAutomata.predecessorAuto
 import java.util.BitSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 public class PebbleTest {
   @Test
