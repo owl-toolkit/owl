@@ -200,7 +200,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   public ValuationTree<Edge<S>> edgeTree(S state) {
     readMode();
     S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
-    return cachedTrees.computeIfAbsent(uniqueState, x -> factory().inverse(edgeMap(x)));
+    return cachedTrees.computeIfAbsent(uniqueState, x -> factory().toValuationTree(edgeMap(x)));
   }
 
   @Override
@@ -288,8 +288,8 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     readMode();
     transitions.forEach((state, edges) -> {
       visitor.enter(state);
-      edges.forEach((edge, valuations) ->
-        valuations.forEach((valuation) -> visitor.visit(state, valuation, edge)));
+      edges.forEach((edge, valuations) -> valuations.toSet()
+        .forEach(valuation -> visitor.visit(state, valuation, edge)));
       visitor.exit(state);
     });
   }
@@ -309,7 +309,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     readMode();
     transitions.forEach((state, edges) -> {
       visitor.enter(state);
-      visitor.visit(state, factory().inverse(edges));
+      visitor.visit(state, factory().toValuationTree(edges));
       visitor.exit(state);
     });
   }

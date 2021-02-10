@@ -22,7 +22,7 @@ package owl.ltl;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.FactorySupplier;
 
-public class BddEquivalenceClassTest extends EquivalenceClassTest {
+public class JBddEquivalenceClassTest extends EquivalenceClassTest {
   @Override
   protected EquivalenceClassFactory obtainFactory(LabelledFormula domain) {
 

@@ -989,6 +989,6 @@ public final class NormalformDPAConstruction implements
     WEAK_REJECTING_NOT_SUSPENDABLE,
 
     SUSPENDABLE,
-    NOT_SUSPENDABLE;
+    NOT_SUSPENDABLE
   }
 }

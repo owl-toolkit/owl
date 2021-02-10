@@ -104,7 +104,7 @@ public class HashTrieSet<E> extends AbstractSet<List<E>> implements TrieSet<E> {
 
   @Override
   public Stream<List<E>> stream() {
-    return map.entrySet().stream().map(Map.Entry::getKey);
+    return map.keySet().stream();
   }
 
   @Override

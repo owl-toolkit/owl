@@ -19,66 +19,60 @@
 
 package owl.bdd;
 
-import java.math.BigInteger;
 import java.util.BitSet;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationTree;
+import owl.logic.propositional.PropositionalFormula;
 
-public abstract class ValuationSet {
+/**
+ * Symbolic representation of a {@code Set<BitSet>}.
+ *
+ * <p> This interface does not extend {@code Set<BitSet>} in order to make it explicit whenever a
+ * slow-path through the explicit representation is taken. </p>
+ */
+public interface ValuationSet {
 
-  public abstract ValuationSetFactory factory();
+  ValuationSetFactory factory();
 
-  public final boolean isEmpty() {
-    return equals(factory().empty());
+  boolean isEmpty();
+
+  boolean isUniverse();
+
+  boolean contains(BitSet valuation);
+
+  boolean containsAll(ValuationSet valuationSet);
+
+  boolean intersects(ValuationSet other);
+
+  void forEach(BitSet restriction, Consumer<? super BitSet> action);
+
+  ValuationSet complement();
+
+  ValuationSet union(ValuationSet other);
+
+  ValuationSet intersection(ValuationSet other);
+
+  PropositionalFormula<Integer> toExpression();
+
+  default PropositionalFormula<String> toExpressionNamed() {
+    var atomicProposition = factory().atomicPropositions();
+    return toExpression().map(atomicProposition::get);
   }
 
-  public final boolean isUniverse() {
-    return equals(factory().universe());
-  }
+  <E> ValuationTree<E> filter(ValuationTree<E> tree);
 
-  public final boolean contains(BitSet valuation) {
-    return factory().contains(this, valuation);
-  }
+  ValuationSet project(BitSet quantifiedAtomicPropositions);
 
-  public final boolean intersects(ValuationSet other) {
-    return factory().intersects(this, other);
-  }
+  ValuationSet relabel(IntUnaryOperator mapping);
 
-  public final void forEach(Consumer<? super BitSet> action) {
-    factory().forEach(this, action);
-  }
+  /**
+   * Returns an explicit Collection-compatible view of this ValuationSet. Note that iteration
+   * and other operation on this set should not be used in performance sensitive-code.
+   *
+   * @return a set view.
+   */
+  Set<BitSet> toSet();
 
-  public final void forEach(BitSet restriction, Consumer<? super BitSet> action) {
-    factory().forEach(this, restriction, action);
-  }
-
-  public abstract ValuationSet complement();
-
-  public final ValuationSet union(ValuationSet other) {
-    return factory().union(this, other);
-  }
-
-  public final ValuationSet intersection(ValuationSet other) {
-    return factory().intersection(this, other);
-  }
-
-  public final BooleanExpression<AtomLabel> toExpression() {
-    return factory().toExpression(this);
-  }
-
-  public abstract <E> ValuationTree<E> filter(ValuationTree<E> tree);
-
-  public abstract ValuationSet project(BitSet quantifiedAtomicPropositions);
-
-  public abstract ValuationSet relabel(IntUnaryOperator mapping);
-
-  public abstract BigInteger size();
-
-  @Override
-  public String toString() {
-    return '[' + this.toExpression().toString() + ']';
-  }
 }

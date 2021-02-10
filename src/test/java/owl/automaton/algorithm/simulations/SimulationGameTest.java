@@ -43,7 +43,7 @@ public class SimulationGameTest {
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.iterator(factory.of(0)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
 
     aut.addState(1);
     aut.addInitialState(1);
@@ -77,10 +77,10 @@ public class SimulationGameTest {
     MutableAutomaton<Integer, BuchiAcceptance> left = HashMapAutomaton.of(acceptance, factory);
     MutableAutomaton<Integer, BuchiAcceptance> right = HashMapAutomaton.of(acceptance, factory);
 
-    BitSet a = factory.iterator(factory.of(0)).next();
-    BitSet b = factory.iterator(factory.of(1)).next();
-    BitSet c = factory.iterator(factory.of(2)).next();
-    BitSet d = factory.iterator(factory.of(3)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
+    BitSet b = factory.of(1).toSet().iterator().next();
+    BitSet c = factory.of(2).toSet().iterator().next();
+    BitSet d = factory.of(3).toSet().iterator().next();
 
     left.addState(1);
     left.addInitialState(1);
@@ -123,7 +123,7 @@ public class SimulationGameTest {
     var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
-    BitSet a = factory.iterator(factory.of(0)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
 
     MutableAutomaton<Integer, BuchiAcceptance> l = HashMapAutomaton.of(acceptance, factory);
     MutableAutomaton<Integer, BuchiAcceptance> r = HashMapAutomaton.of(acceptance, factory);
@@ -161,7 +161,7 @@ public class SimulationGameTest {
     var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
-    BitSet a = factory.iterator(factory.of(0)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
 
     MutableAutomaton<Integer, BuchiAcceptance> l = HashMapAutomaton.of(acceptance, factory);
     MutableAutomaton<Integer, BuchiAcceptance> r = HashMapAutomaton.of(acceptance, factory);
@@ -203,9 +203,9 @@ public class SimulationGameTest {
     MutableAutomaton<Integer, BuchiAcceptance> left = HashMapAutomaton.of(acceptance, factory);
     MutableAutomaton<Integer, BuchiAcceptance> right = HashMapAutomaton.of(acceptance, factory);
 
-    BitSet a = factory.iterator(factory.of(0)).next();
-    BitSet b = factory.iterator(factory.of(1)).next();
-    BitSet c = factory.iterator(factory.of(2)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
+    BitSet b = factory.of(1).toSet().iterator().next();
+    BitSet c = factory.of(2).toSet().iterator().next();
 
     left.addState(1);
     left.addInitialState(1);

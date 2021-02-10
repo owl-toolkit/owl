@@ -114,12 +114,14 @@ public class BackwardDirectSimulation<S>
 
       predecessors.forEach(pred -> leftAutomaton.edgeMap(pred).forEach((e, vS) -> {
         if (e.successor().equals(state.odd().state())) {
-          vS.forEach(val -> state.odd().predecessors(leftAutomaton, val).forEach(p -> {
-            var target = MultipebbleSimulationState.of(
-              p, state.even().setFlag(false), val
-            );
-            out.put(Edge.of(target, 0), factory.universe());
-          }));
+          vS.toSet().forEach(
+            val -> state.odd().predecessors(leftAutomaton, val)
+              .forEach(p -> {
+                var target = MultipebbleSimulationState.of(
+                  p, state.even().setFlag(false), val
+                );
+                out.put(Edge.of(target, 0), factory.universe());
+              }));
         }
       }));
     } else {

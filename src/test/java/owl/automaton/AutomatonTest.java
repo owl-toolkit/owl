@@ -134,7 +134,7 @@ class AutomatonTest {
         assertEquals(actualEdges.get(valuation), automaton.edges(state, valuation));
       }
 
-      assertEquals(actualEdges, automaton.factory().inverse(expectedEdges));
+      assertEquals(actualEdges, automaton.factory().toValuationTree(expectedEdges));
     }
   }
 }

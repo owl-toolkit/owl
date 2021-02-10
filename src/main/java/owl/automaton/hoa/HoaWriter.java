@@ -58,7 +58,7 @@ public final class HoaWriter {
   public static <S> String toString(Automaton<S, ?> automaton, EnumSet<HoaOption> options) {
     ByteArrayOutputStream writer = new ByteArrayOutputStream();
     HoaWriter.write(automaton, new HOAConsumerPrint(writer), options);
-    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
+    return writer.toString(StandardCharsets.UTF_8);
   }
 
   public static <S> void write(Automaton<S, ?> automaton, HOAConsumer consumer) {
@@ -211,7 +211,10 @@ public final class HoaWriter {
             return;
           }
 
-          addEdgeBackend(valuationSet.toExpression(), edge);
+          addEdgeBackend(BooleanExpressions.fromPropositionalFormula(
+            valuationSet.toExpression(),
+            x -> new BooleanExpression<>(AtomLabel.createAPIndex(x))),
+            edge);
         });
       }
     }

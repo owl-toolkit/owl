@@ -150,7 +150,7 @@ public final class NBA2LDBA
         }
       }
 
-      return factory.inverse(labelledEdges);
+      return factory.toValuationTree(labelledEdges);
     }
 
     @Override

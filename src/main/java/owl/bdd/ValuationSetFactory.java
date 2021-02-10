@@ -20,55 +20,29 @@
 package owl.bdd;
 
 import java.util.BitSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
 import owl.collections.ValuationTree;
 
 public interface ValuationSetFactory {
 
+  /**
+   * The atomic propositions associated with this factory.
+   *
+   * @return the list of atomic propositions.
+   */
   List<String> atomicPropositions();
 
-  ValuationSet of(int literal);
+  ValuationSet of();
+
+  ValuationSet of(int atomicProposition);
 
   ValuationSet of(BitSet valuation);
 
-  default ValuationSet of(BitSet... valuations) {
-    ValuationSet valuationSet = empty();
-
-    for (BitSet valuation : valuations) {
-      valuationSet = valuationSet.union(of(valuation));
-    }
-
-    return valuationSet;
-  }
-
   ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
-
-  ValuationSet empty();
 
   ValuationSet universe();
 
-  boolean contains(ValuationSet set, BitSet valuation);
+  <S> ValuationTree<S> toValuationTree(Map<? extends S, ? extends ValuationSet> sets);
 
-  boolean implies(ValuationSet one, ValuationSet other);
-
-  boolean intersects(ValuationSet set, ValuationSet other);
-
-  void forEach(ValuationSet set, Consumer<? super BitSet> action);
-
-  void forEach(ValuationSet set, BitSet restriction, Consumer<? super BitSet> action);
-
-  ValuationSet intersection(ValuationSet set1, ValuationSet set2);
-
-  ValuationSet union(ValuationSet set1, ValuationSet set2);
-
-  BooleanExpression<AtomLabel> toExpression(ValuationSet set);
-
-  <S> ValuationTree<S> inverse(Map<S, ValuationSet> sets);
-
-  Iterator<BitSet> iterator(ValuationSet set);
 }

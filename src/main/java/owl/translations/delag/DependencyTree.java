@@ -37,6 +37,7 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.collections.BitSet2;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -178,10 +179,22 @@ abstract class DependencyTree<T> {
       this.automaton = automaton;
     }
 
+    BitSet crop(BitSet valuation) {
+      int apSize = automaton.factory().atomicPropositions().size();
+
+      if (valuation.length() <= apSize) {
+        return valuation;
+      }
+
+      BitSet valuationCopy = BitSet2.copyOf(valuation);
+      valuationCopy.clear(apSize, valuation.length());
+      return valuationCopy;
+    }
+
     @Override
     Boolean buildSuccessor(State<T> state, BitSet valuation, Builder<T> builder) {
       T fallbackState = state.productState.fallback().get(formula);
-      var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
+      var edge = fallbackState == null ? null : automaton.edge(fallbackState, crop(valuation));
 
       if (edge == null) {
         builder.addFinished(this, Boolean.FALSE);
@@ -195,7 +208,7 @@ abstract class DependencyTree<T> {
     @Override
     BitSet getAcceptance(State<T> state, BitSet valuation, @Nullable Boolean parentAcceptance) {
       T fallbackState = state.productState.fallback().get(formula);
-      var edge = fallbackState == null ? null : automaton.edge(fallbackState, valuation);
+      var edge = fallbackState == null ? null : automaton.edge(fallbackState, crop(valuation));
       var acceptanceSets = edge == null
         ? automaton.acceptance().rejectingSet().orElseThrow().stream().iterator()
         : edge.colours().intIterator();

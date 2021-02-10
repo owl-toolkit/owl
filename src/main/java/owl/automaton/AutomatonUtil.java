@@ -73,7 +73,7 @@ public final class AutomatonUtil {
 
       @Override
       public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        ValuationSet set = edgeMap.values().stream().reduce(factory.empty(), ValuationSet::union);
+        ValuationSet set = edgeMap.values().stream().reduce(factory.of(), ValuationSet::union);
 
         if (!set.isUniverse()) {
           incompleteStates.put(state, set.complement());
@@ -88,20 +88,15 @@ public final class AutomatonUtil {
   public static <S> Set<S> getNondeterministicStates(Automaton<S, ?> automaton) {
     Set<S> nondeterministicStates = new HashSet<>();
 
-    EdgeMapVisitor<S> visitor = new EdgeMapVisitor<>() {
-      private final ValuationSet emptyValuationSet = automaton.factory().empty();
+    EdgeMapVisitor<S> visitor = (state, edgeMap) -> {
+      ValuationSet union = automaton.factory().of();
 
-      @Override
-      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        ValuationSet union = emptyValuationSet;
-
-        for (ValuationSet valuationSet : edgeMap.values()) {
-          if (union.intersects(valuationSet)) {
-            nondeterministicStates.add(state);
-            return;
-          } else {
-            union = union.union(valuationSet);
-          }
+      for (ValuationSet valuationSet : edgeMap.values()) {
+        if (union.intersects(valuationSet)) {
+          nondeterministicStates.add(state);
+          return;
+        } else {
+          union = union.union(valuationSet);
         }
       }
     };

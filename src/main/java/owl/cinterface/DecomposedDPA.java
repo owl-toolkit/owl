@@ -565,7 +565,7 @@ public final class DecomposedDPA {
           filterSources.add(leaf);
           nodeFilter = leafFilter
             .inverse(globalFilter.factory(), leaf.localToGlobalMapping::get)
-            .getOrDefault(Boolean.TRUE, globalFilter.factory().empty())
+            .getOrDefault(Boolean.TRUE, globalFilter.factory().of())
             .intersection(nodeFilter);
         }
 

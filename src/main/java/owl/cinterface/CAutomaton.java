@@ -834,11 +834,11 @@ public final class CAutomaton {
 
         ValuationSet falseChildSet = falseChild >= 0
           ? cache[falseChild / 3]
-          : (falseChild == REJECTING ? factory.empty() : factory.universe());
+          : (falseChild == REJECTING ? factory.of() : factory.universe());
 
         ValuationSet trueChildSet = trueChild >= 0
           ? cache[trueChild / 3]
-          : (trueChild == REJECTING ? factory.empty() : factory.universe());
+          : (trueChild == REJECTING ? factory.of() : factory.universe());
 
         ValuationSet trueBranch = factory.of(atomicProposition);
         ValuationSet falseBranch = trueBranch.complement();
@@ -882,7 +882,7 @@ public final class CAutomaton {
           }
         }
 
-        edgeTree = factory.inverse(labelledEdges);
+        edgeTree = factory.toValuationTree(labelledEdges);
 
       } else {
 

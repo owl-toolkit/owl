@@ -25,7 +25,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import owl.bdd.EquivalenceClassFactory;
 import owl.collections.ValuationTree;
-import owl.ltl.visitors.Visitor;
 
 /**
  * A propositional equivalence class of an LTL formula.
@@ -95,10 +94,6 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   EquivalenceClass and(EquivalenceClass other);
 
   EquivalenceClass or(EquivalenceClass other);
-
-  default EquivalenceClass accept(Visitor<? extends Formula> visitor) {
-    return factory().of(canonicalRepresentativeDnf().accept(visitor));
-  }
 
   /**
    * See {@link Formula#substitute(Function)}.

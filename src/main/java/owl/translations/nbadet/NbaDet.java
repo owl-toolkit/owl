@@ -352,7 +352,7 @@ public final class NbaDet {
       var curr = toVisit.pop();
       for (var e : refScc.edgeMap(curr).entrySet()) {
         var suc = e.getKey().successor();
-        var sym = e.getValue().factory().iterator(e.getValue()).next(); // some sym
+        var sym = e.getValue().toSet().iterator().next(); // some sym
         if (!repMap.containsKey(suc)) {
           repMap.put(suc, trimmedPartialDpa.successor(repMap.get(curr), sym));
           toVisit.push(suc);

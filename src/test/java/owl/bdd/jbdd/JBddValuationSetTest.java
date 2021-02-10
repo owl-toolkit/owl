@@ -24,10 +24,10 @@ import java.util.List;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationSetTest;
 
-public class BddValuationSetTest extends ValuationSetTest {
+public class JBddValuationSetTest extends ValuationSetTest {
 
   @Override
   protected ValuationSetFactory factory(List<String> atomicPropositions) {
-    return new ValuationFactory(BddFactory.buildBdd(1024), atomicPropositions);
+    return new JBddValuationSetFactory(BddFactory.buildBdd(1024), atomicPropositions);
   }
 }

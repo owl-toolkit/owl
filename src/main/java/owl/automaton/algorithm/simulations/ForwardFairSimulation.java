@@ -19,10 +19,12 @@
 
 package owl.automaton.algorithm.simulations;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -94,15 +96,17 @@ public class ForwardFairSimulation<S>
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.forEach(val -> {
+        // if Duplicator has an accepting Multipebble, we assign a good parity, otherwise the
+        // parity is determined by whether or not Spoiler sees an accepting edge
+        valSet.toSet().forEach((Consumer<? super BitSet>) val -> {
           boolean isAccepting = leftAutomaton.acceptance().isAcceptingEdge(edge);
           // if Duplicator has an accepting Multipebble, we assign a good parity, otherwise the
           // parity is determined by whether or not Spoiler sees an accepting edge
           int edgeParity = state.even().flag() ? 2 : (isAccepting ? 1 : 0);
-          var target = SimulationStates.MultipebbleSimulationState.of(
-            Pebble.of(edge.successor(), isAccepting),
-            state.even().flag() ? state.even().setFlag(false) : state.even(),
-            val
+          var target = MultipebbleSimulationState.of(
+              Pebble.of(edge.successor(), isAccepting),
+              state.even().flag() ? state.even().setFlag(false) : state.even(),
+              val
           );
           out.put(Edge.of(target, edgeParity), factory.universe());
         });

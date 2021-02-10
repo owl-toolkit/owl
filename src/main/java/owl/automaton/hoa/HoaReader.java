@@ -113,7 +113,7 @@ public final class HoaReader {
     @Nullable Map<String, ? extends BooleanExpression<AtomLabel>> aliases) {
 
     if (expression.isFALSE()) {
-      return valuationSetFactory.empty();
+      return valuationSetFactory.of();
     }
 
     if (expression.isTRUE()) {

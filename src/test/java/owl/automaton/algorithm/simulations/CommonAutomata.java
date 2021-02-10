@@ -70,8 +70,8 @@ public final class CommonAutomata {
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.iterator(factory.of(0)).next();
-    BitSet b = factory.iterator(factory.of(1)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
+    BitSet b = factory.of(1).toSet().iterator().next();
 
     aut.addState(0);
     aut.addInitialState(0);
@@ -98,8 +98,8 @@ public final class CommonAutomata {
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.iterator(factory.of(0)).next();
-    BitSet b = factory.iterator(factory.of(1)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
+    BitSet b = factory.of(1).toSet().iterator().next();
 
     aut.addState(1);
     aut.addInitialState(1);
@@ -131,7 +131,7 @@ public final class CommonAutomata {
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.iterator(factory.of(0)).next();
+    BitSet a = factory.of(0).toSet().iterator().next();
 
     aut.addState(1);
     aut.addState(2);

@@ -37,8 +37,8 @@ public class PebbleTest {
     );
 
     var aut = predecessorAutomaton();
-    BitSet a = aut.factory().iterator(aut.factory().of(0)).next();
-    BitSet b = aut.factory().iterator(aut.factory().of(1)).next();
+    BitSet a = aut.factory().of(0).toSet().iterator().next();
+    BitSet b = aut.factory().of(1).toSet().iterator().next();
     ValuationSet ab = aut.factory().of(a).union(aut.factory().of(b));
 
     assert Pebble.of(4, false).predecessors(aut, a).equals(expectedForA);
