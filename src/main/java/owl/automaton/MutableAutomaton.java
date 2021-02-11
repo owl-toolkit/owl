@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 /**
  * A mutation interface extending {@link Automaton}. As the super interface requires that only from

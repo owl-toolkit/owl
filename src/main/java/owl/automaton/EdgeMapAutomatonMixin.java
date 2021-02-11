@@ -57,7 +57,7 @@ public interface EdgeMapAutomatonMixin<S, A extends OmegaAcceptance> extends Aut
 
   @Override
   default ValuationTree<Edge<S>> edgeTree(S state) {
-    return factory().inverse(edgeMap(state));
+    return factory().toValuationTree(edgeMap(state));
   }
 
   @Override

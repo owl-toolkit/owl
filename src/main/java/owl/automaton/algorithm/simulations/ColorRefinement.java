@@ -27,14 +27,14 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 
 /**
  * Computes direct simulation relation of an automaton based on the color refinement algorithm. See
@@ -158,8 +158,8 @@ public class ColorRefinement<S> {
     // profile for each state. We collect all symbols on which an accepting transition is available
     // to initialize the colouring.
     aut.states().forEach(state -> {
-      maxAcceptingVal.put(state, aut.factory().empty());
-      aut.factory().universe().forEach(valuation -> {
+      maxAcceptingVal.put(state, aut.factory().of());
+      aut.factory().universe().toSet().forEach(valuation -> {
         boolean hasAcceptingEdge = aut.edges(state, valuation)
           .stream().anyMatch(edge -> aut.acceptance().isAcceptingEdge(edge));
         if (hasAcceptingEdge) {
@@ -169,7 +169,7 @@ public class ColorRefinement<S> {
     });
 
     aut.states().forEach(state -> {
-      availableVal.put(state, aut.factory().empty());
+      availableVal.put(state, aut.factory().of());
       aut.edgeMap(state).forEach((edge, vSet) -> {
         availableVal.put(state, availableVal.get(state).union(vSet));
       });
@@ -202,14 +202,9 @@ public class ColorRefinement<S> {
       for (Map.Entry<Integer, Pair<ValuationSet, ValuationSet>> entry : rIntermC.entrySet()) {
         var p1 = rIntermC.get(c);
         var p2 = entry.getValue();
-        AtomicBoolean contained = new AtomicBoolean(true);
-        p1.fst().forEach(val -> {
-          if (!p2.fst().contains(val)) {
-            contained.set(false);
-          }
-        });
-        if (contained.get()
-          && aut.factory().implies(p1.snd(), p2.snd())) {
+        boolean contained = p2.fst().containsAll(p1.fst());
+
+        if (contained && p2.snd().containsAll(p1.snd())) {
           po.set(c, entry.getKey());
         }
       }
@@ -274,7 +269,7 @@ public class ColorRefinement<S> {
       return "("
         + colour()
         + ", \""
-        + factory().toExpression(factory().of(BitSet2.fromInt(valuation())))
+        + factory().of(BitSet2.fromInt(valuation())).toExpression()
         + "\") ";
     }
   }
@@ -346,7 +341,7 @@ public class ColorRefinement<S> {
       // collect all possible neighbor types
       HashSet<NeighborType> nts = new HashSet<>();
 
-      ValuationSet avail = aut.factory().empty();
+      ValuationSet avail = aut.factory().of();
       for (var e : aut.edgeMap(state).entrySet()) {
         avail = avail.union(e.getValue());
       }
@@ -354,14 +349,15 @@ public class ColorRefinement<S> {
       // important to split valuation sets and extract each possible valuation as otherwise it can
       // happen that one valuation of a set is covered by two distinct transitions later on, which
       // the algorithm could otherwise not pick up on.
-      aut.edgeMap(state).forEach((edge, valSet) -> valSet.forEach(val -> {
-        nts.add(NeighborType.of(
-          col.get(edge.successor()),
-          val,
-          aut.factory(),
-          aut.acceptance().isAcceptingEdge(edge)
-        ));
-      }));
+      aut.edgeMap(state).forEach((edge, valSet) -> valSet
+        .toSet().forEach((Consumer<? super BitSet>) val -> {
+          nts.add(NeighborType.of(
+            col.get(edge.successor()),
+            val,
+            aut.factory(),
+            aut.acceptance().isAcceptingEdge(edge)
+          ));
+        }));
       // filter out all neighbor types that are dominated
       var maximal = nts.stream()
         .filter(nt -> nts.stream()
@@ -394,9 +390,8 @@ public class ColorRefinement<S> {
           return false;
         }
       }
-      return other.available().factory().implies(
-        other.available(), available()
-      );
+
+      return available().containsAll(other.available());
     }
   }
 

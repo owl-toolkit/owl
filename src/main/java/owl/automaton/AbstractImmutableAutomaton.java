@@ -27,9 +27,9 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 /**
@@ -148,7 +148,7 @@ public abstract class AbstractImmutableAutomaton<S, A extends OmegaAcceptance>
 
   /**
    * This class provides a skeleton implementation to create a non-deterministic on-the-fly
-   * constructed automaton that uses {@link owl.collections.ValuationSet} as the main
+   * constructed automaton that uses {@link ValuationSet} as the main
    * representation of the transition relation.
    */
   public abstract static class NonDeterministicEdgeMapAutomaton<S, A extends OmegaAcceptance>

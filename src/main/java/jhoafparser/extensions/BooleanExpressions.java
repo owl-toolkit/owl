@@ -32,9 +32,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import jhoafparser.ast.Atom;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
@@ -43,112 +41,24 @@ import owl.logic.propositional.PropositionalFormula.Conjunction;
 import owl.logic.propositional.PropositionalFormula.Negation;
 
 public final class BooleanExpressions {
-  private BooleanExpressions() {
-  }
 
-  public static <T extends Atom> boolean evaluate(BooleanExpression<T> expression,
-    Predicate<T> valuation) {
-    if (expression.isTRUE()) {
-      return true;
-    }
-    if (expression.isFALSE()) {
-      return true;
-    }
-    if (expression.isAtom()) {
-      return valuation.test(expression.getAtom());
-    }
-    if (expression.isNOT()) {
-      return !evaluate(expression.getLeft(), valuation);
-    }
-    if (expression.isAND()) {
-      return evaluate(expression.getLeft(), valuation)
-        && evaluate(expression.getRight(), valuation);
-    }
-    if (expression.isOR()) {
-      return evaluate(expression.getLeft(), valuation)
-        || evaluate(expression.getRight(), valuation);
-    }
-    throw new AssertionError("Encountered unknown expression " + expression);
-  }
+  private BooleanExpressions() {}
 
   public static <T extends Atom> BooleanExpression<T> createConjunction(
     Iterable<BooleanExpression<T>> conjuncts) {
-    return createConjunction(conjuncts.iterator());
-  }
+    Iterator<BooleanExpression<T>> iterator = conjuncts.iterator();
 
-  public static <T extends Atom> BooleanExpression<T> createConjunction(
-    Stream<BooleanExpression<T>> conjuncts) {
-    return createConjunction(conjuncts.iterator());
-  }
-
-  public static <T extends Atom> BooleanExpression<T> createConjunction(
-    Iterator<BooleanExpression<T>> conjuncts) {
-
-    if (!conjuncts.hasNext()) {
+    if (!iterator.hasNext()) {
       return new BooleanExpression<>(true);
     }
 
-    BooleanExpression<T> conjunction = conjuncts.next();
+    BooleanExpression<T> conjunction = iterator.next();
 
-    while (conjuncts.hasNext()) {
-      conjunction = conjunction.and(conjuncts.next());
+    while (iterator.hasNext()) {
+      conjunction = conjunction.and(iterator.next());
     }
 
     return conjunction;
-  }
-
-  public static <T extends Atom> BooleanExpression<T> createDisjunction(
-    Iterable<BooleanExpression<T>> disjuncts) {
-    return createDisjunction(disjuncts.iterator());
-  }
-
-  public static <T extends Atom> BooleanExpression<T> createDisjunction(
-    Stream<BooleanExpression<T>> disjuncts) {
-    return createDisjunction(disjuncts.iterator());
-  }
-
-  public static <T extends Atom> BooleanExpression<T> createDisjunction(
-    Iterator<BooleanExpression<T>> disjuncts) {
-
-    if (!disjuncts.hasNext()) {
-      return new BooleanExpression<>(false);
-    }
-
-    BooleanExpression<T> disjunction = disjuncts.next();
-
-    while (disjuncts.hasNext()) {
-      disjunction = disjunction.or(disjuncts.next());
-    }
-
-    return disjunction;
-  }
-
-  public static <T extends Atom> List<BooleanExpression<T>> getConjuncts(BooleanExpression<T> exp) {
-    if (exp.isTRUE()) {
-      return new ArrayList<>();
-    }
-
-    if (!exp.isAND()) {
-      return new ArrayList<>(List.of(exp));
-    }
-
-    List<BooleanExpression<T>> conjuncts = getConjuncts(exp.getLeft());
-    conjuncts.addAll(getConjuncts(exp.getRight()));
-    return conjuncts;
-  }
-
-  public static <T extends Atom> List<BooleanExpression<T>> getDisjuncts(BooleanExpression<T> exp) {
-    if (exp.isFALSE()) {
-      return new ArrayList<>();
-    }
-
-    if (!exp.isOR()) {
-      return new ArrayList<>(List.of(exp));
-    }
-
-    List<BooleanExpression<T>> disjuncts = getDisjuncts(exp.getLeft());
-    disjuncts.addAll(getDisjuncts(exp.getRight()));
-    return disjuncts;
   }
 
   public static BooleanExpression<AtomAcceptance> mkFin(int number) {
@@ -159,39 +69,6 @@ public final class BooleanExpressions {
   public static BooleanExpression<AtomAcceptance> mkInf(int number) {
     return new BooleanExpression<>(
       new AtomAcceptance(AtomAcceptance.Type.TEMPORAL_INF, number, false));
-  }
-
-  public static BooleanExpression<AtomAcceptance> shift(
-    BooleanExpression<AtomAcceptance> expression, int offset) {
-
-    if (offset == 0) {
-      return expression;
-    }
-
-    if (expression.isTRUE() || expression.isFALSE()) {
-      return expression;
-    }
-
-    if (expression.isAtom()) {
-      var atom = expression.getAtom();
-      var shiftedAtom = new AtomAcceptance(
-        atom.getType(), atom.getAcceptanceSet() + offset, atom.isNegated());
-      return new BooleanExpression<>(shiftedAtom);
-    }
-
-    if (expression.isNOT()) {
-      return shift(expression.getLeft(), offset).not();
-    }
-
-    if (expression.isAND()) {
-      return shift(expression.getLeft(), offset).and(shift(expression.getRight(), offset));
-    }
-
-    if (expression.isOR()) {
-      return shift(expression.getLeft(), offset).or(shift(expression.getRight(), offset));
-    }
-
-    throw new AssertionError("Encountered unknown expression " + expression);
   }
 
   // Copied from jhoafparser and fixed.
@@ -299,24 +176,37 @@ public final class BooleanExpressions {
 
   public static BooleanExpression<AtomAcceptance> fromPropositionalFormula(
     PropositionalFormula<Integer> formula) {
+    return fromPropositionalFormula(formula, BooleanExpressions::mkInf, BooleanExpressions::mkFin);
+  }
+
+  public static <A extends Atom> BooleanExpression<A> fromPropositionalFormula(
+    PropositionalFormula<Integer> formula,
+    Function<? super Integer, ? extends BooleanExpression<A>> mapper) {
+    return fromPropositionalFormula(formula, mapper, x -> mapper.apply(x).not());
+  }
+
+  public static <A extends Atom> BooleanExpression<A> fromPropositionalFormula(
+    PropositionalFormula<Integer> formula,
+    Function<? super Integer, ? extends BooleanExpression<A>> mapper,
+    Function<? super Integer, ? extends BooleanExpression<A>> negatedMapper) {
 
     if (formula instanceof Variable) {
-      return mkInf(((Variable<Integer>) formula).variable);
+      return mapper.apply(((Variable<Integer>) formula).variable);
     }
 
     if (formula instanceof Negation) {
       var operand = ((Negation<Integer>) formula).operand;
 
       if (operand instanceof Variable) {
-        return mkFin(((Variable<Integer>) operand).variable);
+        return negatedMapper.apply(((Variable<Integer>) operand).variable);
       }
 
-      return fromPropositionalFormula(operand).not();
+      return fromPropositionalFormula(operand, mapper, negatedMapper).not();
     }
 
     if (formula instanceof Conjunction) {
       var conjuncts = ((Conjunction<Integer>) formula).conjuncts.stream()
-        .map(BooleanExpressions::fromPropositionalFormula)
+        .map(x -> fromPropositionalFormula(x, mapper, negatedMapper))
         .collect(Collectors.toCollection(ArrayDeque::new));
 
       if (conjuncts.isEmpty()) {
@@ -334,7 +224,7 @@ public final class BooleanExpressions {
 
     if (formula instanceof Disjunction) {
       var disjuncts = ((Disjunction<Integer>) formula).disjuncts.stream()
-        .map(BooleanExpressions::fromPropositionalFormula)
+        .map(x -> fromPropositionalFormula(x, mapper, negatedMapper))
         .collect(Collectors.toCollection(ArrayDeque::new));
 
       if (disjuncts.isEmpty()) {

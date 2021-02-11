@@ -19,21 +19,23 @@
 
 package owl.automaton.algorithm.simulations;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 
 /**
  * Simulation type for forward-direct multipebble simulation games.
@@ -114,8 +116,8 @@ public class ForwardDirectSimulation<S>
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.forEach(valuation -> {
-          var target = SimulationStates.MultipebbleSimulationState.of(
+        valSet.toSet().forEach((Consumer<? super BitSet>) valuation -> {
+          var target = MultipebbleSimulationState.of(
             Pebble.of(edge.successor(), leftAutomaton.acceptance().isAcceptingEdge(edge)),
             state.even().setFlag(false),
             valuation

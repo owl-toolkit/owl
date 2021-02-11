@@ -328,7 +328,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	}
 
 	@Override
-	public void notifyEndOfState(int stateId) throws HOAConsumerException {}
+	public void notifyEndOfState(int stateId) {}
 
 	@Override
 	public void notifyEnd() throws HOAConsumerException {

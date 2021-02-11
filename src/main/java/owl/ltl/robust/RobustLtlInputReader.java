@@ -77,7 +77,7 @@ public final class RobustLtlInputReader {
       }
     }
 
-    //noinspection resource,IOResourceOpenedButNotSafelyClosed
+    // noinspection IOResourceOpenedButNotSafelyClosed
     return (reader, callback, shutdownSignal) -> new BufferedReader(reader).lines()
       .forEach(line -> {
         if (shutdownSignal.get() || line.isEmpty()) {

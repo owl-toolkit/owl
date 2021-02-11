@@ -29,15 +29,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
-class GcManagedFactory<V extends GcManagedFactory.BddNode> {
-  private static final Logger logger = Logger.getLogger(GcManagedFactory.class.getName());
+abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
+  private static final Logger logger = Logger.getLogger(JBddGcManagedFactory.class.getName());
 
   final Bdd bdd;
-  private final Int2ObjectMap<BddNodeReference<V>> gcObjects = new Int2ObjectOpenHashMap<>();
+  private final Int2ObjectMap<JBddNodeReference<V>> gcObjects = new Int2ObjectOpenHashMap<>();
   private final Int2ObjectMap<V> nonGcObjects = new Int2ObjectOpenHashMap<>();
   private final ReferenceQueue<V> queue = new ReferenceQueue<>();
 
-  GcManagedFactory(Bdd bdd) {
+  JBddGcManagedFactory(Bdd bdd) {
     this.bdd = bdd;
   }
 
@@ -53,7 +53,7 @@ class GcManagedFactory<V extends GcManagedFactory.BddNode> {
       return nonGcObjects.merge(node, wrapper, (oldWrapper, newWrapper) -> oldWrapper);
     }
 
-    BddNodeReference<V> canonicalReference = gcObjects.get(node);
+    JBddNodeReference<V> canonicalReference = gcObjects.get(node);
 
     if (canonicalReference == null) {
       // The BDD was created and needs a reference to be protected.
@@ -83,7 +83,7 @@ class GcManagedFactory<V extends GcManagedFactory.BddNode> {
     // Remove queued BDDs from the mapping.
     processReferenceQueue(node);
     // Insert BDD into mapping.
-    gcObjects.put(node, new BddNodeReference<>(wrapper, queue));
+    gcObjects.put(node, new JBddNodeReference<>(wrapper, queue));
     assert bdd.getReferenceCount(node) == 1;
     return wrapper;
   }
@@ -96,7 +96,7 @@ class GcManagedFactory<V extends GcManagedFactory.BddNode> {
       return wrapper;
     }
 
-    BddNodeReference<V> reference = gcObjects.get(node);
+    JBddNodeReference<V> reference = gcObjects.get(node);
     return reference == null ? null : reference.get();
   }
 
@@ -109,7 +109,7 @@ class GcManagedFactory<V extends GcManagedFactory.BddNode> {
 
     int count = 0;
     do {
-      int node = ((BddNodeReference<?>) reference).node;
+      int node = ((JBddNodeReference<?>) reference).node;
       gcObjects.remove(node);
 
       if (node != protectedNode) {
@@ -125,16 +125,16 @@ class GcManagedFactory<V extends GcManagedFactory.BddNode> {
     logger.log(Level.FINEST, "Cleared {0} references", count);
   }
 
-  private static final class BddNodeReference<V extends BddNode> extends WeakReference<V> {
+  private static final class JBddNodeReference<V extends JBddNode> extends WeakReference<V> {
     private final int node;
 
-    private BddNodeReference(V wrapper, ReferenceQueue<? super V> queue) {
+    private JBddNodeReference(V wrapper, ReferenceQueue<? super V> queue) {
       super(wrapper, queue);
-      this.node = wrapper.node();
+      node = wrapper.node();
     }
   }
 
-  interface BddNode {
+  interface JBddNode {
     int node();
   }
 

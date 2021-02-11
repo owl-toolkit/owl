@@ -38,6 +38,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -53,9 +54,9 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
@@ -380,7 +381,7 @@ public final class GameViews {
       for (S predecessor : automaton.states()) {
         automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
           if (successor.state().equals(edge.successor())) {
-            valuations.forEach(set -> {
+            valuations.toSet().forEach((Consumer<? super BitSet>) set -> {
               BitSet localSet = owl.collections.BitSet2.copyOf(set);
               localSet.and(firstPlayer);
               predecessors.add(Node.of(predecessor, localSet));
@@ -442,8 +443,8 @@ public final class GameViews {
         return owl.collections.BitSet2.copyOf(choice);
       }
 
-      ValuationSet valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
-      return valuationSet.factory().iterator(valuationSet).next();
+      var valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
+      return valuationSet.toSet().iterator().next();
     }
   }
 

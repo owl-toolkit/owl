@@ -42,10 +42,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.cinterface.CAutomaton.Acceptance;
 import owl.cinterface.CDecomposedDPA.RealizabilityStatus;
 import owl.cinterface.CDecomposedDPA.Structure.NodeType;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
@@ -565,7 +565,7 @@ public final class DecomposedDPA {
           filterSources.add(leaf);
           nodeFilter = leafFilter
             .inverse(globalFilter.factory(), leaf.localToGlobalMapping::get)
-            .getOrDefault(Boolean.TRUE, globalFilter.factory().empty())
+            .getOrDefault(Boolean.TRUE, globalFilter.factory().of())
             .intersection(nodeFilter);
         }
 

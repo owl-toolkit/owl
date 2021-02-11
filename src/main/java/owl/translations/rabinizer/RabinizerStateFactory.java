@@ -19,12 +19,14 @@
 
 package owl.translations.rabinizer;
 
+import com.google.common.collect.Iterables;
 import java.util.BitSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import owl.automaton.edge.Edge;
+import owl.collections.ValuationTree;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -76,26 +78,29 @@ class RabinizerStateFactory {
       this.fairnessFragment = fairnessFragment;
     }
 
-    EquivalenceClass getInitialState(EquivalenceClass formula) {
+    EquivalenceClass initialState(EquivalenceClass formula) {
       return eager ? formula.unfold() : formula;
     }
 
-    @Nullable
-    Edge<EquivalenceClass> getSuccessor(EquivalenceClass state, BitSet valuation) {
-      EquivalenceClass successor;
+    ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
+      ValuationTree<EquivalenceClass> successorTree;
+
       if (eager) {
         if (fairnessFragment) {
-          successor = state;
+          successorTree = ValuationTree.of(Set.of(state));
         } else {
-          successor = state.temporalStep(valuation).unfold();
+          successorTree = state.temporalStepTree(x -> Set.of(x.unfold()));
         }
       } else {
-        successor = state.unfold().temporalStep(valuation);
+        successorTree = state.unfold().temporalStepTree();
       }
 
       // If the master moves into false, there is no way of accepting, since the finite prefix
       // of the word already violates the formula. Hence, we refrain from creating this state.
-      return successor.isFalse() ? null : Edge.of(successor);
+      return successorTree.map(x -> {
+        var element = Iterables.getOnlyElement(x);
+        return element.isFalse() ? Set.of() : Set.of(Edge.of(element));
+      });
     }
   }
 

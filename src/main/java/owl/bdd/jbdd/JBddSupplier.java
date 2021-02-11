@@ -49,13 +49,13 @@ public final class JBddSupplier extends FactorySupplier {
   @Override
   public EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions) {
     Bdd eqFactoryBdd = create(1024 * (atomicPropositions.size() + 1));
-    return new EquivalenceFactory(eqFactoryBdd, atomicPropositions);
+    return new JBddEquivalenceClassFactory(eqFactoryBdd, atomicPropositions);
   }
 
   @Override
   public ValuationSetFactory getValuationSetFactory(List<String> atomicPropositions) {
     int alphabetSize = atomicPropositions.size();
     Bdd vsFactoryBdd = create(Math.abs(13 * alphabetSize));
-    return new ValuationFactory(vsFactoryBdd, atomicPropositions);
+    return new JBddValuationSetFactory(vsFactoryBdd, atomicPropositions);
   }
 }

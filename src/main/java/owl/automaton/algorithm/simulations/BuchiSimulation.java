@@ -114,13 +114,11 @@ public final class BuchiSimulation {
     var reverseTc = tc.stream().map(Pair::swap).collect(Collectors.toSet());
 
     // now we build the intersection of E and E^-1
-    tc.forEach(l -> {
-      reverseTc.forEach(r -> {
-        if (l.equals(r)) {
-          out.add(l);
-        }
-      });
-    });
+    tc.forEach(l -> reverseTc.forEach(r -> {
+      if (l.equals(r)) {
+        out.add(l);
+      }
+    }));
 
     // finally we assert that the result is indeed symmetric
     for (var p : out) {

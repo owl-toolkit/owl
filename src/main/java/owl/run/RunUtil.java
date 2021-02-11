@@ -65,8 +65,8 @@ public final class RunUtil {
     if (Arrays.asList(args).contains("-v") || Arrays.asList(args).contains("--version")) {
       var nameAndVersion = OwlVersion.getNameAndVersion();
 
-      System.out.println(
-        String.format("Name: %s \nVersion: %s", nameAndVersion.name(), nameAndVersion.version()));
+      System.out.printf(
+        "Name: %s \nVersion: %s%n", nameAndVersion.name(), nameAndVersion.version());
 
       System.exit(0);
     }

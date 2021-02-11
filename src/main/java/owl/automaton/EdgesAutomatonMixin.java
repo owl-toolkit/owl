@@ -32,8 +32,8 @@ import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 /**
@@ -77,7 +77,7 @@ public interface EdgesAutomatonMixin<S, A extends OmegaAcceptance> extends Autom
 
   @Override
   default ValuationTree<Edge<S>> edgeTree(S state) {
-    return factory().inverse(edgeMap(state));
+    return factory().toValuationTree(edgeMap(state));
   }
 
   @Override

@@ -65,13 +65,13 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
-import owl.collections.ValuationSet;
 
 public final class HoaReader {
-  private HoaReader() {
-  }
+
+  private HoaReader() {}
 
   public static void readStream(Reader reader,
     Function<List<String>, ValuationSetFactory> factorySupplier,
@@ -105,6 +105,52 @@ public final class HoaReader {
     }
 
     return automaton;
+  }
+
+  private static ValuationSet of(ValuationSetFactory valuationSetFactory,
+    BooleanExpression<? extends AtomLabel> expression,
+    @Nullable IntUnaryOperator mapping,
+    @Nullable Map<String, ? extends BooleanExpression<AtomLabel>> aliases) {
+
+    if (expression.isFALSE()) {
+      return valuationSetFactory.of();
+    }
+
+    if (expression.isTRUE()) {
+      return valuationSetFactory.universe();
+    }
+
+    if (expression.isAtom()) {
+      AtomLabel atom = expression.getAtom();
+
+      if (atom.isAlias()) {
+        String alias = atom.getAliasName();
+        checkArgument(
+          aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
+        return of(valuationSetFactory, aliases.get(alias), mapping, aliases);
+      } else {
+        int apIndex = atom.getAPIndex();
+        return valuationSetFactory.of(mapping == null ? apIndex : mapping.applyAsInt(apIndex));
+      }
+    }
+
+    if (expression.isNOT()) {
+      return of(valuationSetFactory, expression.getLeft(), mapping, aliases).complement();
+    }
+
+    if (expression.isAND()) {
+      ValuationSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
+      ValuationSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
+      return left.intersection(right);
+    }
+
+    if (expression.isOR()) {
+      ValuationSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
+      ValuationSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
+      return left.union(right);
+    }
+
+    throw new IllegalArgumentException("Unsupported Case: " + expression);
   }
 
   private static final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
@@ -379,7 +425,7 @@ public final class HoaReader {
 
           for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
             var successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
-            var valuationSet = vsFactory.of(edgeWithLabel.getLabelExpr(), apMapping, aliases);
+            var valuationSet = of(vsFactory, edgeWithLabel.getLabelExpr(), apMapping, aliases);
             addEdge(state, valuationSet, edgeWithLabel.getAccSignature(), successorState);
           }
         }

@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 /**
  * Mixin interface for implementing an automaton by {@link Automaton#edgeTree(Object)}.

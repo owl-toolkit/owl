@@ -46,9 +46,9 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.determinization.Determinization;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.Either;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -150,7 +150,7 @@ public final class NBA2LDBA
         }
       }
 
-      return factory.inverse(labelledEdges);
+      return factory.toValuationTree(labelledEdges);
     }
 
     @Override

@@ -44,8 +44,8 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
 import owl.run.modules.OwlModule;
@@ -201,7 +201,7 @@ public final class Views {
 
       Map<Edge<S>, ValuationSet> edges = new HashMap<>(automaton.edgeMap(state));
       ValuationSet valuationSet = incompleteStates == null
-        ? edges.values().stream().reduce(factory.empty(), ValuationSet::union).complement()
+        ? edges.values().stream().reduce(factory.of(), ValuationSet::union).complement()
         : incompleteStates.get(state);
 
       if (!valuationSet.isEmpty()) {

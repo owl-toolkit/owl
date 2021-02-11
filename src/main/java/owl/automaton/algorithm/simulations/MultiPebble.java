@@ -27,10 +27,11 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 /**
  * Abstracts multiple pebbles controlled by Duplicator in a multipebble simulation game.
@@ -136,13 +137,13 @@ public abstract class MultiPebble<S> {
    */
   public Set<MultiPebble<S>> successors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
     Set<MultiPebble<S>> out = new HashSet<>();
-    valSet.forEach(val -> out.addAll(successors(aut, val)));
+    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(successors(aut, val)));
     return out;
   }
 
   public Set<MultiPebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
     Set<MultiPebble<S>> out = new HashSet<>();
-    valSet.forEach(val -> out.addAll(predecessors(aut, val)));
+    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(predecessors(aut, val)));
     return out;
   }
 

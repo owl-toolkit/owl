@@ -24,10 +24,11 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.collections.ValuationSet;
+import owl.bdd.ValuationSet;
 
 /**
  * Abstraction of a single pebble in a multipebble simulation game. This holds a state on an
@@ -98,13 +99,13 @@ public abstract class Pebble<S> {
    */
   public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
-    valSet.forEach(val -> out.addAll(successors(aut, val)));
+    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(successors(aut, val)));
     return out;
   }
 
   public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
-    valSet.forEach(val -> out.addAll(predecessors(aut, val)));
+    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(predecessors(aut, val)));
     return out;
   }
 

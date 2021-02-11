@@ -19,7 +19,7 @@
 
 package owl.bdd.jbdd;
 
-import static owl.bdd.jbdd.EquivalenceFactory.BddEquivalenceClass;
+import static owl.bdd.jbdd.JBddEquivalenceClassFactory.JBddEquivalenceClass;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterators;
@@ -56,11 +56,11 @@ import owl.ltl.Literal;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.PropositionalIntVisitor;
 
-final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
+final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquivalenceClass>
   implements EquivalenceClassFactory {
 
   private final List<String> atomicPropositions;
-  private final BddVisitor visitor;
+  private final JBddVisitor visitor;
 
   private TemporalOperator[] reverseMapping;
   private final Map<TemporalOperator, Integer> mapping;
@@ -73,14 +73,14 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   @Nullable
   private IdentityHashMap<EquivalenceClass, ValuationTree<?>> temporalStepTreeCache;
 
-  EquivalenceFactory(Bdd bdd, List<String> atomicPropositions) {
+  JBddEquivalenceClassFactory(Bdd bdd, List<String> atomicPropositions) {
     super(bdd);
     this.atomicPropositions = List.copyOf(atomicPropositions);
 
     int apSize = this.atomicPropositions.size();
     mapping = new HashMap<>();
     reverseMapping = new TemporalOperator[apSize];
-    visitor = new BddVisitor();
+    visitor = new JBddVisitor();
 
     // Register literals.
     for (int i = 0; i < apSize; i++) {
@@ -102,7 +102,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     return of(formula, true);
   }
 
-  private BddEquivalenceClass of(Formula formula, boolean scanForUnknown) {
+  private JBddEquivalenceClass of(Formula formula, boolean scanForUnknown) {
     if (scanForUnknown) {
       // Scan for unknown modal operators.
       var newPropositions = formula.subformulas(TemporalOperator.class)
@@ -125,8 +125,8 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     return of(formula, bdd.dereference(formula.accept(visitor)));
   }
 
-  private BddEquivalenceClass of(@Nullable Formula representative, int node) {
-    var clazz = canonicalize(new BddEquivalenceClass(this, node, representative));
+  private JBddEquivalenceClass of(@Nullable Formula representative, int node) {
+    var clazz = canonicalize(new JBddEquivalenceClass(this, node, representative));
 
     if (clazz.representative == null) {
       clazz.representative = representative;
@@ -136,7 +136,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
   }
 
   // Translates a formula into a BDD under the assumption every subformula is already registered.
-  private final class BddVisitor extends PropositionalIntVisitor {
+  private final class JBddVisitor extends PropositionalIntVisitor {
     @Override
     public int visit(Literal literal) {
       Preconditions.checkArgument(literal.getAtom() < atomicPropositions.size());
@@ -183,12 +183,12 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     }
   }
 
-  private BddEquivalenceClass cast(EquivalenceClass clazz) {
+  private JBddEquivalenceClass cast(EquivalenceClass clazz) {
     if (!this.equals(clazz.factory())) {
       throw new IllegalArgumentException("Incompatible factory.");
     }
 
-    return (BddEquivalenceClass) clazz;
+    return (JBddEquivalenceClass) clazz;
   }
 
   /**
@@ -202,7 +202,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
       return zeroPaths;
     }
 
-    BddEquivalenceClass wrapper = canonicalWrapper(node);
+    JBddEquivalenceClass wrapper = canonicalWrapper(node);
 
     if (wrapper != null && wrapper.zeroPathsCache != null) {
       zeroPaths = wrapper.zeroPathsCache;
@@ -267,7 +267,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     lowZeroPaths.sort(Comparator.comparing(List::size));
     zeroPaths = List.copyOf(Collections3.maximalElements(
-      lowZeroPaths, EquivalenceFactory::containsAll));
+      lowZeroPaths, JBddEquivalenceClassFactory::containsAll));
     cache.put(node, zeroPaths);
 
     // Cache zeroPaths in wrapper.
@@ -289,7 +289,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
       return onePaths;
     }
 
-    BddEquivalenceClass wrapper = canonicalWrapper(node);
+    JBddEquivalenceClass wrapper = canonicalWrapper(node);
 
     if (wrapper != null && wrapper.onePathsCache != null) {
       onePaths = wrapper.onePathsCache;
@@ -354,7 +354,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     highOnePaths.sort(Comparator.comparing(List::size));
     onePaths = List.copyOf(Collections3.maximalElements(
-      highOnePaths, EquivalenceFactory::containsAll));
+      highOnePaths, JBddEquivalenceClassFactory::containsAll));
     cache.put(node, onePaths);
 
     // Cache onePaths in wrapper.
@@ -398,8 +398,9 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
    * uniqueness.
    */
   @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode") // We only have a "bogus" assert equals
-  static final class BddEquivalenceClass implements BddNode, EquivalenceClass {
-    private final EquivalenceFactory factory;
+  static final class JBddEquivalenceClass implements JBddNode, EquivalenceClass {
+
+    private final JBddEquivalenceClassFactory factory;
     private final int node;
 
     @Nullable
@@ -409,7 +410,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
     @Nullable
     private Set<TemporalOperator> temporalOperatorsCache;
     @Nullable
-    private BddEquivalenceClass unfoldCache;
+    private JBddEquivalenceClass unfoldCache;
     @Nullable
     private List<List<Integer>> zeroPathsCache;
     @Nullable
@@ -417,7 +418,7 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
 
     private double truenessCache = Double.NaN;
 
-    private BddEquivalenceClass(EquivalenceFactory factory, int node,
+    private JBddEquivalenceClass(JBddEquivalenceClassFactory factory, int node,
       @Nullable Formula internalRepresentative) {
       this.factory = factory;
       this.node = node;

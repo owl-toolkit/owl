@@ -29,9 +29,9 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.LookaheadSimulationState;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 
 public class ForwardDirectLookaheadSimulation<S>
   implements SimulationType<S, LookaheadSimulationState<S>> {

@@ -29,8 +29,8 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.algorithm.simulations.ColorRefinement;
+import owl.bdd.ValuationSet;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 import owl.run.RunUtil;
 
 /**
@@ -116,7 +116,7 @@ public final class NbaLangInclusions {
        && aut.acceptance().isAcceptingEdge(e.getKey())) //...that are accepting,
     .map(Map.Entry::getValue)                           //get associated expressions...
     .reduce(ValuationSet::union)                        //...and fold them
-    .orElse(aut.factory().empty())                      //(default fallback value is [f]).
+    .orElse(aut.factory().of())                      //(default fallback value is [f]).
     .isUniverse()                                       //Keep states with universal loop ([t])
     ).collect(Collectors.toSet());                      //and return them as set.
   }

@@ -41,6 +41,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import javax.annotation.Nullable;
+import owl.bdd.ValuationSet;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Collections3 {

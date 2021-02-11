@@ -34,8 +34,8 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSet;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LTL2DAFunction;
@@ -134,7 +134,7 @@ class AutomatonTest {
         assertEquals(actualEdges.get(valuation), automaton.edges(state, valuation));
       }
 
-      assertEquals(actualEdges, automaton.factory().inverse(expectedEdges));
+      assertEquals(actualEdges, automaton.factory().toValuationTree(expectedEdges));
     }
   }
 }

@@ -19,20 +19,22 @@
 
 package owl.automaton.algorithm.simulations;
 
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 
 public class ForwardDelayedSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
@@ -106,12 +108,12 @@ public class ForwardDelayedSimulation<S>
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.forEach(val -> {
+        valSet.toSet().forEach((Consumer<? super BitSet>) val -> {
           var isAccepting = leftAutomaton.acceptance().isAcceptingEdge(edge);
           var target = MultipebbleSimulationState.of(
-            Pebble.of(edge.successor(), state.odd().flag() || isAccepting),
-            isAccepting ? state.even().setFlag(false) : state.even(),
-            val
+              Pebble.of(edge.successor(), state.odd().flag() || isAccepting),
+              isAccepting ? state.even().setFlag(false) : state.even(),
+              val
           );
           out.put(Edge.of(target, edgeParity), factory.universe());
         });

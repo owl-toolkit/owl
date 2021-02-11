@@ -316,8 +316,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     }
 
     @Nullable
-    private Edge<AsymmetricProductState> edge(AsymmetricProductState state,
-      BitSet valuation) {
+    private Edge<AsymmetricProductState> edge(AsymmetricProductState state, BitSet valuation) {
       var automata = state.automata;
 
       var safetySuccessor = automata.safetyAutomaton.successor(state.safety, valuation);

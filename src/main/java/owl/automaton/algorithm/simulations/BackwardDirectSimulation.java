@@ -29,10 +29,10 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.collections.ValuationSet;
 
 public class BackwardDirectSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
@@ -114,12 +114,14 @@ public class BackwardDirectSimulation<S>
 
       predecessors.forEach(pred -> leftAutomaton.edgeMap(pred).forEach((e, vS) -> {
         if (e.successor().equals(state.odd().state())) {
-          vS.forEach(val -> state.odd().predecessors(leftAutomaton, val).forEach(p -> {
-            var target = MultipebbleSimulationState.of(
-              p, state.even().setFlag(false), val
-            );
-            out.put(Edge.of(target, 0), factory.universe());
-          }));
+          vS.toSet().forEach(
+            val -> state.odd().predecessors(leftAutomaton, val)
+              .forEach(p -> {
+                var target = MultipebbleSimulationState.of(
+                  p, state.even().setFlag(false), val
+                );
+                out.put(Edge.of(target, 0), factory.universe());
+              }));
         }
       }));
     } else {

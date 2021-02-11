@@ -33,10 +33,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 
 public abstract class ValuationSetTest {
@@ -52,7 +54,7 @@ public abstract class ValuationSetTest {
   void beforeEach() {
     ValuationSetFactory factory = factory(List.of("a", "b", "c", "d"));
 
-    empty = factory.empty();
+    empty = factory.of();
     universe = factory.universe();
 
     BitSet bs = new BitSet(4);
@@ -78,7 +80,8 @@ public abstract class ValuationSetTest {
   void testForEach() {
     for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.forEach(solution -> forEach.add(BitSet2.copyOf(solution)));
+      set.toSet().forEach(
+        (Consumer<? super BitSet>) solution -> forEach.add(BitSet2.copyOf(solution)));
 
       Set<BitSet> collect = BitSets.powerSet(4).stream()
         .filter(set::contains)
@@ -119,38 +122,40 @@ public abstract class ValuationSetTest {
   @Test
   void testIterator() {
     Set<BitSet> seen = new HashSet<>();
-    universe.forEach(valuation -> {
-      assertTrue(valuation.cardinality() <= 4);
-      assertTrue(seen.add(valuation));
+    universe.toSet().forEach((Consumer<? super BitSet>) valuation3 -> {
+      assertTrue(valuation3.cardinality() <= 4);
+      assertTrue(seen.add(valuation3));
     });
 
-    containsA.forEach(valuation -> assertTrue(valuation.get(0)));
+    containsA
+      .toSet().forEach((Consumer<? super BitSet>) valuation2 -> assertTrue(valuation2.get(0)));
 
-    abcd.forEach(valuation -> {
-      assertTrue(valuation.get(0));
-      assertTrue(valuation.get(1));
-      assertTrue(valuation.get(2));
-      assertTrue(valuation.get(3));
+    abcd.toSet().forEach((Consumer<? super BitSet>) valuation1 -> {
+      assertTrue(valuation1.get(0));
+      assertTrue(valuation1.get(1));
+      assertTrue(valuation1.get(2));
+      assertTrue(valuation1.get(3));
     });
 
-    empty.forEach(valuation -> fail("empty should be empty, but it contains " + valuation));
+    empty.toSet().forEach((Consumer<? super BitSet>) valuation -> fail(
+      "empty should be empty, but it contains " + valuation));
   }
 
 
   @Test
   void testCreateEmptyValuationSet() {
     var factory = factory(ATOMIC_PROPOSITIONS);
-    assertThat(factory.empty(), ValuationSet::isEmpty);
+    assertThat(factory.of(), ValuationSet::isEmpty);
   }
 
   @Test
   void testCreateUniverseValuationSet() {
     var factory = factory(ATOMIC_PROPOSITIONS);
-    var empty = factory.empty();
+    var empty = factory.of();
 
     for (BitSet element : BitSets.powerSet(ATOMIC_PROPOSITIONS.size())) {
       assertTrue(factory.universe().contains(element));
-      empty = factory.union(empty, factory.of(element));
+      empty = empty.union(factory.of(element));
     }
 
     assertEquals(factory.universe(), empty);
@@ -188,7 +193,7 @@ public abstract class ValuationSetTest {
       return -1;
     };
 
-    assertEquals(factory.empty(), factory.empty().relabel(mapping));
+    assertEquals(factory.of(), factory.of().relabel(mapping));
     assertEquals(valuationSetAfter, valuationSetBefore.relabel(mapping));
     assertEquals(factory.universe(), factory.universe().relabel(mapping));
   }

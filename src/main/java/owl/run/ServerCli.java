@@ -98,7 +98,6 @@ public final class ServerCli {
       while (socket.isOpen()) {
         //noinspection NestedTryStatement
         try {
-          //noinspection resource
           SocketChannel connection = socket.accept();
           logger.log(Level.FINE, "New connection from {0}", socket);
 

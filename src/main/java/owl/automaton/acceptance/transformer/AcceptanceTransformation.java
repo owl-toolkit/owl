@@ -31,8 +31,8 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
+import owl.bdd.ValuationSet;
 import owl.collections.Collections3;
-import owl.collections.ValuationSet;
 import owl.collections.ValuationTree;
 
 abstract class AcceptanceTransformation {
