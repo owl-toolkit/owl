@@ -104,7 +104,7 @@ public final class HoaWriter {
 
       // TODO: Use Properties.java to derive properties and fix this.
       consumer.addProperties(List.of("trans-acc", "trans-label"));
-      consumer.setAPs(automaton.factory().atomicPropositions());
+      consumer.setAPs(automaton.atomicPropositions());
       consumer.notifyBodyStart();
 
       // Use a work-list algorithm in case source is an on-the-fly generated automaton and

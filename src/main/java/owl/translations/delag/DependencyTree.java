@@ -180,7 +180,7 @@ abstract class DependencyTree<T> {
     }
 
     BitSet crop(BitSet valuation) {
-      int apSize = automaton.factory().atomicPropositions().size();
+      int apSize = automaton.atomicPropositions().size();
 
       if (valuation.length() <= apSize) {
         return valuation;
@@ -236,7 +236,7 @@ abstract class DependencyTree<T> {
     @Override
     public String toString() {
       return String.format("Fallback{%s, %s %d}",
-        LabelledFormula.of(formula, automaton.factory().atomicPropositions()),
+        LabelledFormula.of(formula, automaton.atomicPropositions()),
         acceptance,
         acceptanceSet);
     }

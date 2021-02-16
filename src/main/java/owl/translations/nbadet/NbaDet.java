@@ -154,7 +154,7 @@ public final class NbaDet {
    */
   public static <S> Automaton<?, ParityAcceptance> determinize(
       Automaton<S, BuchiAcceptance> aut, NbaDetArgs args) {
-    if (aut.factory().atomicPropositions().size() > 30) {
+    if (aut.atomicPropositions().size() > 30) {
       RunUtil.failWithMessage("ERROR: Too many atomic propositions! Only up to 30 are supported.");
     }
     var oldLogLevels = overrideLogLevel(args.verbosity());

@@ -193,7 +193,7 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cDeterministicAutomaton) {
 
-    return get(cDeterministicAutomaton).automaton.factory().atomicPropositions().size();
+    return get(cDeterministicAutomaton).automaton.atomicPropositions().size();
   }
 
   @CEntryPoint(
@@ -222,7 +222,7 @@ public final class CAutomaton {
     UnsignedWord bufferSize){
 
     return CTypeConversion.toCString(
-      get(cDeterministicAutomaton).automaton.factory().atomicPropositions().get(index), buffer, bufferSize);
+      get(cDeterministicAutomaton).automaton.atomicPropositions().get(index), buffer, bufferSize);
   }
 
   @CEntryPoint(

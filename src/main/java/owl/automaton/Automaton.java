@@ -39,7 +39,12 @@ import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationTree;
 
 /**
- * The base interface providing read access to an automaton. If mutation is required either the
+ * An automaton over infinite words.
+ *
+ * <p>This interface provides an explicit representation of an automaton with a optional symbolic
+ * encoding of transitions.
+ *
+ * <p>The base interface providing read access to an automaton. If mutation is required either the
  * {@link MutableAutomaton} interface or an on-the-fly view from {@link Views} can be used.
  *
  * <p>The methods of the interface are always referring to the set of states reachable from
@@ -69,6 +74,10 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    * @return The acceptance.
    */
   A acceptance();
+
+  default List<String> atomicPropositions() {
+    return factory().atomicPropositions();
+  }
 
   /**
    * Returns the backing engine for the symbolic representation of edges. Only this engine might be
@@ -167,7 +176,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
       case EDGES:
         var edges = new HashSet<Edge<S>>();
 
-        for (BitSet valuation : BitSets.powerSet(factory().atomicPropositions().size())) {
+        for (BitSet valuation : BitSets.powerSet(atomicPropositions().size())) {
           edges.addAll(edges(state, valuation));
         }
 

@@ -434,7 +434,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     Set<S> exploredStates = new HashSet<>(initialStates);
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
-    int alphabetSize = vsFactory.atomicPropositions().size();
+    int alphabetSize = automaton.atomicPropositions().size();
 
     while (!workQueue.isEmpty()) {
       S state = workQueue.remove();

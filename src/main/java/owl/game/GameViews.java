@@ -327,7 +327,7 @@ public final class GameViews {
 
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
-      ListIterator<String> iterator = automaton.factory().atomicPropositions().listIterator();
+      ListIterator<String> iterator = automaton.atomicPropositions().listIterator();
       while (iterator.hasNext()) {
         int index = iterator.nextIndex();
         String next = iterator.next();
@@ -336,7 +336,7 @@ public final class GameViews {
         }
       }
       secondPlayer = owl.collections.BitSet2.copyOf(this.firstPlayer);
-      secondPlayer.flip(0, automaton.factory().atomicPropositions().size());
+      secondPlayer.flip(0, automaton.atomicPropositions().size());
     }
 
     @Override
@@ -415,7 +415,7 @@ public final class GameViews {
     public List<String> variables(Owner owner) {
       List<String> variables = new ArrayList<>();
 
-      Indices.forEachIndexed(factory().atomicPropositions(), (i, s) -> {
+      Indices.forEachIndexed(atomicPropositions(), (i, s) -> {
         if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
           variables.add(s);
         }

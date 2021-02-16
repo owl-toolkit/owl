@@ -17,27 +17,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.bdd;
+/**
+ * This package and its subpackages contain the infrastructure for omega automata.
+ */
+@EverythingIsNonnullByDefault
+package owl.automaton.symbolic;
 
-import java.util.List;
-import owl.bdd.jbdd.JBddSupplier;
-
-public abstract class FactorySupplier {
-
-  public static FactorySupplier defaultSupplier() {
-    // TODO: add compile-time switch (JDD vs sylvan)
-    return JBddSupplier.INSTANCE;
-  }
-
-  public abstract ValuationSetFactory
-    getValuationSetFactory(List<String> atomicPropositions);
-
-  public abstract EquivalenceClassFactory
-    getEquivalenceClassFactory(List<String> atomicPropositions);
-
-  public Factories getFactories(List<String> atomicPropositions) {
-    return new Factories(
-      getEquivalenceClassFactory(atomicPropositions),
-      getValuationSetFactory(atomicPropositions));
-  }
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

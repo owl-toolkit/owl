@@ -78,7 +78,7 @@ public final class NbaAdjMat<S> {
 
     //compute the matrix
     this.mat = new ArrayList<>();
-    IntStream.range(0, 1 << aut.factory().atomicPropositions().size()).forEach(i -> {
+    IntStream.range(0, 1 << aut.atomicPropositions().size()).forEach(i -> {
       BitSet sym = BitSet.valueOf(new long[]{i});
       var symmat = new ArrayList<Pair<BitSet,BitSet>>();
 

@@ -271,7 +271,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     private ValuationTree<Edge<S>> edgeTreeImplRecursive(
       S state, BitSet partialValuation, int currentVariable) {
 
-      if (currentVariable < factory.atomicPropositions().size()) {
+      if (currentVariable < atomicPropositions().size()) {
         partialValuation.set(currentVariable);
         var trueChild
           = edgeTreeImplRecursive(state, partialValuation, currentVariable + 1);
@@ -281,7 +281,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
         return ValuationTree.of(currentVariable, trueChild, falseChild);
       }
 
-      assert currentVariable == factory.atomicPropositions().size();
+      assert currentVariable == atomicPropositions().size();
       return ValuationTree.of(edgesImpl(state, (BitSet) partialValuation.clone()));
     }
   }

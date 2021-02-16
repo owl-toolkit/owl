@@ -50,6 +50,7 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.FactorySupplier;
 import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.NullablePair;
@@ -133,7 +134,8 @@ public final class BooleanOperations {
   public static <S1, S2> Automaton<Pair<S1, S2>, ?>
     intersection(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
 
-    var factory = commonAlphabet(List.of(automaton1, automaton2));
+    var factory = FactorySupplier.defaultSupplier().getValuationSetFactory(
+      unifyAtomicPropositions(List.of(automaton1, automaton2)));
     var intersection = new PairIntersectionAutomaton<>(automaton1, automaton2, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
@@ -142,7 +144,8 @@ public final class BooleanOperations {
     intersection(List<? extends Automaton<S, ?>> automata) {
 
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    var factory = commonAlphabet(automata);
+    var factory = FactorySupplier.defaultSupplier().getValuationSetFactory(
+      unifyAtomicPropositions(automata));
     var intersection = new ListIntersectionAutomaton<>(automata, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
@@ -150,7 +153,8 @@ public final class BooleanOperations {
   public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
     deterministicUnion(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
 
-    var factory = commonAlphabet(List.of(automaton1, automaton2));
+    ValuationSetFactory factory = FactorySupplier.defaultSupplier().getValuationSetFactory(
+      unifyAtomicPropositions(List.of(automaton1, automaton2)));
 
     Automaton<S1, ?> normalizedAutomaton1;
     Automaton<S2, ?> normalizedAutomaton2;
@@ -189,7 +193,8 @@ public final class BooleanOperations {
     deterministicUnion(List<? extends Automaton<S, ?>> automata) {
 
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    var factory = commonAlphabet(automata);
+    ValuationSetFactory factory = FactorySupplier.defaultSupplier().getValuationSetFactory(
+      unifyAtomicPropositions(automata));
 
     List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
     List<BitSet> rejectingSets = new ArrayList<>(automata.size());
@@ -215,24 +220,20 @@ public final class BooleanOperations {
 
   // Private implementations
 
-  private static ValuationSetFactory commonAlphabet(List<? extends Automaton<?, ?>> automata) {
-    ValuationSetFactory factory = automata.get(0).factory();
+  private static List<String> unifyAtomicPropositions(List<? extends Automaton<?, ?>> automata) {
+    List<String> atomicPropositions = automata.get(0).atomicPropositions();
 
     for (Automaton<?, ?> automaton : automata) {
-      ValuationSetFactory otherFactory = automaton.factory();
+      List<String> otherAtomicPropositions = automaton.atomicPropositions();
 
-      if (Collections.indexOfSubList(
-        otherFactory.atomicPropositions(),
-        factory.atomicPropositions()) == 0) {
-        factory = otherFactory;
-      } else if (Collections.indexOfSubList(
-        factory.atomicPropositions(),
-        otherFactory.atomicPropositions()) != 0) {
-        throw new IllegalArgumentException("Could not find shared alphabet.");
+      if (Collections.indexOfSubList(otherAtomicPropositions, atomicPropositions) == 0) {
+        atomicPropositions = otherAtomicPropositions;
+      } else if (Collections.indexOfSubList(atomicPropositions, otherAtomicPropositions) != 0) {
+        throw new IllegalArgumentException("Could not find shared set of atomic propositions.");
       }
     }
 
-    return factory;
+    return atomicPropositions;
   }
 
   private static <A extends OmegaAcceptance> EmersonLeiAcceptance
