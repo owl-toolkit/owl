@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.bdd.EquivalenceClassFactory;
+import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
@@ -415,6 +416,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     private List<List<Integer>> zeroPathsCache;
     @Nullable
     private List<List<Integer>> onePathsCache;
+    @Nullable
+    private BitSet atomicPropositionsCache;
+    @Nullable
+    private BitSet atomicPropositionsCacheIncludeNested;
 
     private double truenessCache = Double.NaN;
 
@@ -475,22 +480,36 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     @Override
+    public BitSet atomicPropositions() {
+      if (atomicPropositionsCache == null) {
+        atomicPropositionsCache = BitSet2.copyOf(
+          factory.bdd.support(node, factory.atomicPropositions.size()));
+      }
+
+      return BitSet2.copyOf(atomicPropositionsCache);
+    }
+
+    @Override
     public BitSet atomicPropositions(boolean includeNested) {
       if (!includeNested) {
-        return factory.bdd.support(node, factory.atomicPropositions.size());
+        return atomicPropositions();
       }
 
-      BitSet atomicPropositions = factory.bdd.support(node);
-      int literalOffset = factory.atomicPropositions.size();
-      int i = atomicPropositions.nextSetBit(literalOffset);
+      if (atomicPropositionsCacheIncludeNested == null) {
+        BitSet atomicPropositions = BitSet2.copyOf(factory.bdd.support(node));
+        int literalOffset = factory.atomicPropositions.size();
+        int i = atomicPropositions.nextSetBit(literalOffset);
 
-      for (; i >= 0; i = atomicPropositions.nextSetBit(i + 1)) {
-        atomicPropositions.clear(i);
-        atomicPropositions.or(
-          factory.reverseMapping[i - literalOffset].atomicPropositions(true));
+        for (; i >= 0; i = atomicPropositions.nextSetBit(i + 1)) {
+          atomicPropositions.clear(i);
+          atomicPropositions.or(
+            factory.reverseMapping[i - literalOffset].atomicPropositions(true));
+        }
+
+        atomicPropositionsCacheIncludeNested = atomicPropositions;
       }
 
-      return atomicPropositions;
+      return BitSet2.copyOf(atomicPropositionsCacheIncludeNested);
     }
 
     @Override

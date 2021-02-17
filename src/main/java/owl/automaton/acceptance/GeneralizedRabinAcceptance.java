@@ -45,6 +45,7 @@ import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -262,8 +263,8 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
       return new RabinPair(finIndex, finIndex + infSets);
     }
 
-    public boolean contains(BitSet indices) {
-      return !indices.get(finIndex, infIndex + 1).isEmpty();
+    public boolean contains(Colours indices) {
+      return !indices.copyInto(new BitSet()).get(finIndex, infIndex + 1).isEmpty();
     }
 
     public boolean contains(Edge<?> edge) {

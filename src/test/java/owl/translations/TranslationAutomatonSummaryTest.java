@@ -543,7 +543,7 @@ public class TranslationAutomatonSummaryTest {
     static AutomatonSummary of(Supplier<Automaton<?, ?>> supplier, boolean ignoreSets) {
       try {
         var automaton = Objects.requireNonNull(supplier.get());
-        return new AutomatonSummary(automaton.size(),
+        return new AutomatonSummary(automaton.states().size(),
           automaton.initialStates().size(),
           automaton.acceptance(),
           automaton.is(Automaton.Property.DETERMINISTIC),
@@ -555,9 +555,9 @@ public class TranslationAutomatonSummaryTest {
     }
 
     void test(Automaton<?, ?> automaton) {
-      assertEquals(size, automaton.size(),
+      assertEquals(size, automaton.states().size(),
         () -> String.format("Expected %d states, got %d.\n%s",
-        size, automaton.size(), HoaWriter.toString(automaton)));
+        size, automaton.states().size(), HoaWriter.toString(automaton)));
       assertEquals(initialStatesSize, automaton.initialStates().size(),
         () -> String.format("Expected %d intial states, got %d.\n%s",
         initialStatesSize, automaton.initialStates().size(), HoaWriter.toString(automaton)));

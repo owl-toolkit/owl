@@ -107,7 +107,7 @@ public final class Collections3 {
   }
 
   public static <K, V> Map<K, V> add(Map<K, V> map, K key, V value) {
-    checkArgument(!map.containsKey(key), "duplicate key: " + key);
+    checkArgument(!map.containsKey(key), "duplicate key: %s", key);
 
     if (map.isEmpty()) {
       return Map.of(key, value);

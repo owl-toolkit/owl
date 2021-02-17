@@ -111,8 +111,8 @@ public class SimulationGameTest {
     left.trim();
     right.trim();
 
-    assert left.size() == 3;
-    assert right.size() == 5;
+    assert left.states().size() == 3;
+    assert right.states().size() == 5;
 
     return Pair.of(left, right);
   }
@@ -149,8 +149,8 @@ public class SimulationGameTest {
     l.trim();
     r.trim();
 
-    assert l.size() == 3;
-    assert r.size() == 3;
+    assert l.states().size() == 3;
+    assert r.states().size() == 3;
 
     return Pair.of(l, r);
   }
@@ -187,8 +187,8 @@ public class SimulationGameTest {
     l.trim();
     r.trim();
 
-    assert l.size() == 3;
-    assert r.size() == 3;
+    assert l.states().size() == 3;
+    assert r.states().size() == 3;
 
     return Pair.of(l, r);
   }
@@ -232,8 +232,8 @@ public class SimulationGameTest {
     left.trim();
     right.trim();
 
-    assert left.size() == 3;
-    assert right.size() == 4;
+    assert left.states().size() == 3;
+    assert right.states().size() == 4;
 
     return Pair.of(left, right);
   }
@@ -282,7 +282,7 @@ public class SimulationGameTest {
     );
     var simulator = new BuchiSimulation();
     var automaton = buildAutomatonOne();
-    assert automaton.size() == 5;
+    assert automaton.states().size() == 5;
 
     assert simulator.directSimulates(automaton, automaton, 2, 3, 1);
     var relation = simulator.directSimulation(automaton, automaton, 1);

@@ -30,12 +30,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 
 public final class GameFactory {
   private GameFactory() {}
@@ -45,18 +44,19 @@ public final class GameFactory {
     return new ImmutableGame<>(game);
   }
 
-  static final class ImmutableGame<S, A extends OmegaAcceptance> implements Game<S, A>,
-    EdgeMapAutomatonMixin<S, A> {
-    private final A acceptance;
-    private final ValuationSetFactory factory;
+  static final class ImmutableGame<S, A extends OmegaAcceptance>
+    extends AbstractMemoizingAutomaton.EdgeMapImplementation<S, A>
+    implements Game<S, A> {
+
     private final ImmutableValueGraph<S, ValueEdge> graph;
-    private final Set<S> initialStates;
     private final Set<S> player1Nodes;
     private final List<String> variablesPlayer1;
     private final List<String> variablesPlayer2;
     private final BiFunction<S, Owner, BitSet> choice;
 
     ImmutableGame(Game<S, A> game) {
+      super(game.factory(), game.initialStates(), game.acceptance());
+
       Set<S> player1NodesBuilder = new HashSet<>();
       MutableValueGraph<S, ValueEdge> graph =
         ValueGraphBuilder.directed().allowsSelfLoops(true).build();
@@ -72,10 +72,7 @@ public final class GameFactory {
               edge.smallestAcceptanceSet(), valuations)));
       }
 
-      this.acceptance = game.acceptance();
-      this.factory = game.factory();
       this.graph = ImmutableValueGraph.copyOf(graph);
-      this.initialStates = Set.copyOf(game.initialStates());
       this.player1Nodes = Set.copyOf(player1NodesBuilder);
       this.variablesPlayer1 = List.copyOf(game.variables(Owner.PLAYER_1));
       this.variablesPlayer2 = List.copyOf(game.variables(Owner.PLAYER_2));
@@ -88,22 +85,7 @@ public final class GameFactory {
     }
 
     @Override
-    public A acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public ValuationSetFactory factory() {
-      return factory;
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return initialStates;
-    }
-
-    @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+    protected Map<Edge<S>, ValuationSet> edgeMapImpl(S state) {
       Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
 
       graph.edges().stream().filter(x -> x.source().equals(state)).forEach(x -> {
@@ -125,16 +107,6 @@ public final class GameFactory {
     @Override
     public Set<S> predecessors(S successor) {
       return graph.predecessors(successor);
-    }
-
-    @Override
-    public Set<S> states() {
-      return graph.nodes();
-    }
-
-    @Override
-    public Set<S> successors(S state) {
-      return graph.successors(state);
     }
 
     @Override

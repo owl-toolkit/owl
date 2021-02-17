@@ -36,7 +36,7 @@ import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import owl.Bibliography;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
@@ -137,9 +137,9 @@ public final class NbaDet {
     }
 
     var quotAut = Views.quotientAutomaton(aut, classMap::get);
-    if (quotAut.size() < aut.size()) {
+    if (quotAut.states().size() < aut.states().size()) {
       logger.log(Level.FINE, "Quotienting reduced automaton from "
-        + aut.size() + " states to " + quotAut.size() + " states.");
+        + aut.states().size() + " states to " + quotAut.states().size() + " states.");
     }
     var remainingIncl = incl.stream()
       .map(p -> Pair.of(classMap.get(p.fst()), classMap.get(p.snd())))
@@ -181,13 +181,13 @@ public final class NbaDet {
   public static <S> Automaton<NbaDetState<S>, ParityAcceptance> determinizeNba(NbaDetConf<S> conf) {
     logger.log(Level.FINE, "Start naive exploration of DPA.");
     var succHelper = new SmartSucc<S>(conf);
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       conf.aut().original().factory(),
       Set.of(NbaDetState.of(conf, conf.aut().original().initialStates())),
       NbaDetState.getAcceptance(conf)) {
       private boolean logOverridden;
       @Override
-      public Edge<NbaDetState<S>> edge(NbaDetState<S> state, BitSet val) {
+      public Edge<NbaDetState<S>> edgeImpl(NbaDetState<S> state, BitSet val) {
         if (!logOverridden) {
           overrideLogLevel(conf.args().verbosity());
           logOverridden = true;
@@ -238,7 +238,8 @@ public final class NbaDet {
 
       logger.log(Level.FINE, "Partial exploration of DPA for SCC " + i);
       var ret = determinizeNbaAlongScc(psSccAut, conf);
-      logger.log(Level.FINE, "resulting partial DPA " + i + " of size " + ret.fst().size());
+      logger.log(Level.FINE, "resulting partial DPA " + i + " of size "
+        + ret.fst().states().size());
 
       //store partial DPA and collect representative mappings
       sccDpa.put(i, ret.fst());
@@ -255,10 +256,10 @@ public final class NbaDet {
     var dpaInitial = Pair.of(sccOf.get(psInitial), repMap.get(psInitial));
     var toPS = new HashMap<Pair<Integer,NbaDetState<S>>, BitSet>();
     toPS.put(dpaInitial, psInitial);
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       conf.aut().original().factory(), Set.of(dpaInitial), NbaDetState.getAcceptance(conf)) {
       @Override
-      public Edge<Pair<Integer,NbaDetState<S>>> edge(
+      public Edge<Pair<Integer,NbaDetState<S>>> edgeImpl(
           Pair<Integer,NbaDetState<S>> state, BitSet val) {
         var pSet = toPS.get(state);   //associated powerset
         int psScc = sccOf.get(pSet); //and its SCC
@@ -307,10 +308,10 @@ public final class NbaDet {
     //otherwise some weird bug happens when using succHelper with the "lazy" construction,
     //where the SCC decomp. claims that there are no bottom SCCs, which is obviously impossible
     var sccAut = MutableAutomatonUtil.asMutable(
-      new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+      new AbstractMemoizingAutomaton.EdgeImplementation<>(
       conf.aut().original().factory(), Set.of(initDpa), NbaDetState.getAcceptance(conf)) {
       @Override
-      public Edge<NbaDetState<S>> edge(NbaDetState<S> state, BitSet val) {
+      public Edge<NbaDetState<S>> edgeImpl(NbaDetState<S> state, BitSet val) {
         var pSet = toPS.get(state); //associated powerset
         var refSuc = refScc.successors(pSet, val);
         if (refSuc.isEmpty()) {
@@ -370,12 +371,12 @@ public final class NbaDet {
    * @return the resulting powerset automaton
    */
   public static <S> Automaton<BitSet, AllAcceptance> createPowerSetAutomaton(NbaAdjMat<S> adjMat) {
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       adjMat.original().factory(),
       Set.of(BitSet2.copyOf(adjMat.original().initialStates(), adjMat.stateMap()::get)),
       AllAcceptance.INSTANCE) {
       @Override
-      public Edge<BitSet> edge(BitSet state, BitSet val) {
+      public Edge<BitSet> edgeImpl(BitSet state, BitSet val) {
         return Edge.of(adjMat.powerSucc(state, val).fst());
       }
     };

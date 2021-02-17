@@ -19,29 +19,33 @@
 
 package owl.translations.rabinizer;
 
-import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import javax.annotation.Nullable;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 import owl.collections.Collections3;
 import owl.ltl.GOperator;
 
-class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, AllAcceptance> {
+class MonitorAutomaton
+  extends AbstractMemoizingAutomaton.EdgeMapImplementation<MonitorState, AllAcceptance> {
+
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
   private final Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;
   private final GOperator formula;
 
   MonitorAutomaton(GOperator formula,
+    Automaton<MonitorState, ParityAcceptance> anyAutomaton,
     Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
+    super(anyAutomaton.factory(),
+      anyAutomaton.initialStates(),
+      AllAcceptance.INSTANCE);
+
     this.automata = Map.copyOf(automata);
     this.formula = formula;
 
@@ -50,13 +54,7 @@ class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, AllAccepta
       baseBuilder.addAll(relevantSet);
     }
     this.base = new GSet(baseBuilder);
-
-    anyAutomaton = automata.values().iterator().next();
-  }
-
-  @Override
-  public AllAcceptance acceptance() {
-    return AllAcceptance.INSTANCE;
+    this.anyAutomaton = anyAutomaton;
   }
 
   Map<GSet, Automaton<MonitorState, ParityAcceptance>> getAutomata() {
@@ -72,38 +70,12 @@ class MonitorAutomaton implements EdgeMapAutomatonMixin<MonitorState, AllAccepta
   }
 
   @Override
-  public ValuationSetFactory factory() {
-    return anyAutomaton.factory();
-  }
-
-  @Override
-  public Set<MonitorState> initialStates() {
-    return anyAutomaton.initialStates();
-  }
-
-  @Override
-  public Map<Edge<MonitorState>, ValuationSet> edgeMap(MonitorState state) {
+  public Map<Edge<MonitorState>, ValuationSet> edgeMapImpl(MonitorState state) {
     return Collections3.transformMap(anyAutomaton.edgeMap(state), Edge::withoutAcceptance);
   }
 
   @Override
   public String name() {
     return "Monitor for " + formula + " with base " + base;
-  }
-
-  @Override
-  public Set<MonitorState> states() {
-    return anyAutomaton.states();
-  }
-
-  @Nullable
-  @Override
-  public MonitorState successor(MonitorState state, BitSet valuation) {
-    return anyAutomaton.successor(state, valuation);
-  }
-
-  @Override
-  public Set<MonitorState> successors(MonitorState state) {
-    return anyAutomaton.successors(state);
   }
 }

@@ -22,7 +22,7 @@ package owl.automaton.algorithm.simulations;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationType.SimulationState;
 import owl.automaton.edge.Edge;
@@ -38,7 +38,7 @@ import owl.game.Game;
  * @param <T> Type of simulation state that is used.
  */
 public class SimulationGame<S, T extends SimulationState>
-  extends AbstractImmutableAutomaton.NonDeterministicEdgeMapAutomaton<T, ParityAcceptance>
+  extends AbstractMemoizingAutomaton.EdgeMapImplementation<T, ParityAcceptance>
   implements Game<T, ParityAcceptance> {
 
   final SimulationType<S, T> simulationType;
@@ -49,7 +49,7 @@ public class SimulationGame<S, T extends SimulationState>
   }
 
   @Override
-  public Map<Edge<T>, ValuationSet> edgeMap(T state) {
+  public Map<Edge<T>, ValuationSet> edgeMapImpl(T state) {
     return simulationType.edgeMap(state);
   }
 

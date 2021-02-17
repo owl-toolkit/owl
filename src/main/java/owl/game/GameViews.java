@@ -21,10 +21,14 @@ package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGES;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_MAP;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Maps;
 import de.tum.in.naturals.Indices;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
@@ -45,10 +49,10 @@ import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.OptionGroup;
 import org.apache.commons.cli.Options;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.EdgeMapAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
@@ -151,8 +155,11 @@ public final class GameViews {
     return new ForwardingGame<>(automaton, firstPropositions);
   }
 
-  private static final class FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A>,
-    EdgeMapAutomatonMixin<S, A> {
+  private static final class FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A> {
+
+    public static final List<PreferredEdgeAccess> ACCESS_MODES
+      = List.of(EDGE_MAP, EDGE_TREE, EDGES);
+
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
@@ -215,6 +222,21 @@ public final class GameViews {
     public Set<S> states() {
       return filteredAutomaton.states();
     }
+
+    @Override
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
+      return Maps.filterValues(edgeMap(state), x -> x.contains(valuation)).keySet();
+    }
+
+    @Override
+    public ValuationTree<Edge<S>> edgeTree(S state) {
+      return factory().toValuationTree(edgeMap(state));
+    }
+
+    @Override
+    public List<PreferredEdgeAccess> preferredEdgeAccess() {
+      return ACCESS_MODES;
+    }
   }
 
   public static <S, A extends OmegaAcceptance> Game<S, A> replaceInitialStates(
@@ -259,7 +281,7 @@ public final class GameViews {
 
       @Override
       public ValuationTree<Edge<S>> edgeTree(S state) {
-        throw new UnsupportedOperationException("Class deprecated.");
+        return game.edgeTree(state);
       }
 
       @Override
@@ -292,12 +314,17 @@ public final class GameViews {
    * corresponding acceptance.
    */
   static final class ForwardingGame<S, A extends OmegaAcceptance>
-    implements Game<Node<S>, A>, EdgeMapAutomatonMixin<Node<S>, A> {
+    extends AbstractMemoizingAutomaton.EdgeMapImplementation<Node<S>, A>
+    implements Game<Node<S>, A> {
     private final Automaton<S, A> automaton;
     private final BitSet firstPlayer;
     private final BitSet secondPlayer;
 
     ForwardingGame(Automaton<S, A> automaton, Predicate<String> firstPlayer) {
+      super(automaton.factory(),
+        Collections3.transformSet(automaton.initialStates(), Node::of),
+        automaton.acceptance());
+
       this.automaton = automaton;
       this.firstPlayer = new BitSet();
       ListIterator<String> iterator = automaton.factory().atomicPropositions().listIterator();
@@ -313,22 +340,7 @@ public final class GameViews {
     }
 
     @Override
-    public A acceptance() {
-      return automaton.acceptance();
-    }
-
-    @Override
-    public ValuationSetFactory factory() {
-      return automaton.factory();
-    }
-
-    @Override
-    public Set<Node<S>> initialStates() {
-      return Collections3.transformSet(automaton.initialStates(), Node::of);
-    }
-
-    @Override
-    public Map<Edge<Node<S>>, ValuationSet> edgeMap(Node<S> node) {
+    public Map<Edge<Node<S>>, ValuationSet> edgeMapImpl(Node<S> node) {
       /*
        * In order obtain a complete game, each players transitions are labeled
        * with his choice and all valuations of the other players APs. This is
@@ -397,22 +409,6 @@ public final class GameViews {
     public Set<Node<S>> predecessors(Node<S> state, Owner owner) {
       // Alternation
       return owner == owner(state) ? Set.of() : predecessors(state);
-    }
-
-    @Override
-    public Set<Node<S>> states() {
-      Set<Node<S>> states = new HashSet<>();
-
-      automaton.states().forEach(state -> {
-        Node<S> node = Node.of(state);
-        states.add(node);
-
-        for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
-          states.add(Node.of(state, valuation));
-        }
-      });
-
-      return states;
     }
 
     @Override

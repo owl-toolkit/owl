@@ -24,7 +24,6 @@ import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableListMultimap;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -280,7 +279,7 @@ public final class Views {
   }
 
   private static final class AutomatonView<S, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton<S, A> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     private final Automaton<S, A> backingAutomaton;
 
@@ -341,79 +340,40 @@ public final class Views {
       Automaton<S, ?> automaton, Filter<S> settings) {
       Set<S> initialStates = settings.initialStates();
 
-      if (initialStates != null) {
-        return initialStates;
+      if (initialStates == null) {
+        initialStates = automaton.initialStates();
       }
 
       Predicate<S> stateFilter = settings.stateFilter();
 
       if (stateFilter == null) {
-        return automaton.initialStates();
+        return initialStates;
       }
 
-      return Sets.filter(automaton.initialStates(), stateFilter::test);
+      return Sets.filter(initialStates, stateFilter::test);
     }
 
     private boolean stateFilter(S state) {
       return stateFilter == null || stateFilter.test(state);
     }
 
-    private Predicate<Edge<S>> edgeFilter(S state) {
-      return edge ->
-        (edgeFilter == null || edgeFilter.test(state, edge)) && stateFilter(edge.successor());
-    }
-
-    private boolean filterRequired() {
-      return stateFilter != null || edgeFilter != null;
+    private boolean edgeFilter(S state, Edge<S> edge) {
+      return edgeFilter == null || edgeFilter.test(state, edge);
     }
 
     @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return backingAutomaton.preferredEdgeAccess();
-    }
-
-    @Override
-    public Set<Edge<S>> edges(S state, BitSet valuation) {
-      checkArgument(stateFilter(state));
-      return filterRequired()
-        ? backingAutomaton.edges(state, valuation).stream()
-            .filter(edgeFilter(state)).collect(Collectors.toSet())
-        : backingAutomaton.edges(state, valuation);
-    }
-
-    @Override
-    public Set<Edge<S>> edges(S state) {
-      checkArgument(stateFilter(state));
-      return filterRequired()
-        ? backingAutomaton.edges(state).stream()
-            .filter(edgeFilter(state)).collect(Collectors.toSet())
-        : backingAutomaton.edges(state);
-    }
-
-    @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
-      checkArgument(stateFilter(state));
-      return filterRequired()
-        ? Maps.filterKeys(backingAutomaton.edgeMap(state), x -> edgeFilter(state).test(x))
-        : backingAutomaton.edgeMap(state);
-    }
-
-    @Override
-    public ValuationTree<Edge<S>> edgeTree(S state) {
+    public ValuationTree<Edge<S>> edgeTreeImpl(S state) {
       checkArgument(stateFilter(state));
 
       var edges = backingAutomaton.edgeTree(state);
 
-      @Nullable
-      Function<Set<Edge<S>>, Set<Edge<S>>> mapper;
-
-      if (filterRequired()) {
-        mapper = x -> Sets.filter(x, y -> edgeFilter(state).test(y));
-      } else {
-        mapper = null;
+      if (stateFilter == null && edgeFilter == null) {
+        return edges;
       }
 
-      return mapper == null ? edges : edges.map(mapper);
+      return edges.map((Set<Edge<S>> set) -> set.stream()
+        .filter(edge -> edgeFilter(state, edge) && stateFilter(edge.successor()))
+        .collect(Collectors.toUnmodifiableSet()));
     }
   }
 
@@ -446,7 +406,7 @@ public final class Views {
   }
 
   private static class QuotientAutomaton<S, T, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<T, A> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, A> {
 
     private final Automaton<S, A> automaton;
     private final Map<S, T> mapping;

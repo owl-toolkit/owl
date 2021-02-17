@@ -49,7 +49,7 @@ import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
@@ -227,7 +227,7 @@ public final class RabinizerBuilder {
      * track of how the formula evolves along the finite prefix seen so far. */
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
-      new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
+      new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
         vsFactory,
         Set.of(masterStateFactory.initialState(this.initialClass)),
         AllAcceptance.INSTANCE) {
@@ -244,7 +244,7 @@ public final class RabinizerBuilder {
         new Object[] {this.initialClass, HoaWriter.toString(masterAutomaton)});
     } else {
       logger.log(Level.FINE, "Master automaton for {0} has {1} states",
-        new Object[] {this.initialClass, masterAutomaton.size()});
+        new Object[] {this.initialClass, masterAutomaton.states().size()});
     }
 
     /* Determine the SCC decomposition of the master.

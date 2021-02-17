@@ -302,7 +302,7 @@ class NBA2DPATest {
     var dpa = new NBA2DPA().apply(nba);
 
     assertThat(dpa.acceptance(), ParityAcceptance.class::isInstance);
-    assertEquals(size, dpa.size());
+    assertEquals(size, dpa.states().size());
     HoaWriter.write(dpa, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
   }
 }

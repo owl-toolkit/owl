@@ -23,10 +23,9 @@ import com.google.auto.value.AutoValue;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
-import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.UltimatelyPeriodicWord;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -54,13 +53,13 @@ public final class LanguageMembership {
   }
 
   private static final class IndexedAutomaton<S, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton<IndexedState<S>, A>
-    implements EdgesAutomatonMixin<IndexedState<S>, A> {
+    extends
+    AbstractMemoizingAutomaton.EdgesImplementation<IndexedState<S>, A> {
+
     private final Automaton<S, A> automaton;
     private final UltimatelyPeriodicWord word;
 
-    private IndexedAutomaton(Automaton<S, A> automaton,
-      UltimatelyPeriodicWord word) {
+    private IndexedAutomaton(Automaton<S, A> automaton, UltimatelyPeriodicWord word) {
       super(automaton.factory(), automaton.initialStates().stream()
         .map(x -> IndexedState.of(-word.prefix.size(), x))
         .collect(Collectors.toUnmodifiableSet()), automaton.acceptance());
@@ -69,7 +68,7 @@ public final class LanguageMembership {
     }
 
     @Override
-    public Set<Edge<IndexedState<S>>> edges(IndexedState<S> state, BitSet valuation) {
+    protected Set<Edge<IndexedState<S>>> edgesImpl(IndexedState<S> state, BitSet valuation) {
       BitSet allowedValuation;
 
       if (state.index() < 0) {

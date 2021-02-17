@@ -53,7 +53,7 @@ import java.util.TreeMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.Options;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -158,7 +158,7 @@ public final class NormalformDPAConstruction implements
       var acceptance = new ParityAcceptance(
         initialState.stateMap().size() + 2, ParityAcceptance.Parity.MIN_EVEN);
 
-      return new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
+      return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
         dbw.factory(), Set.of(initialState), acceptance) {
 
         @Override

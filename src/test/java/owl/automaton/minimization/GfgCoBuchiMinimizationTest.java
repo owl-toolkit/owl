@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -52,7 +52,7 @@ class GfgCoBuchiMinimizationTest {
     var minimizedAutomaton = GfgCoBuchiMinimization.minimize(coBuchiPortfolio.apply(
       LtlParser.parse("F G a")).orElseThrow());
 
-    assertEquals(1, minimizedAutomaton.size());
+    assertEquals(1, minimizedAutomaton.states().size());
     assertTrue(minimizedAutomaton.is(Automaton.Property.DETERMINISTIC));
   }
 
@@ -61,7 +61,7 @@ class GfgCoBuchiMinimizationTest {
     var minimizedAutomaton = GfgCoBuchiMinimization.minimize(coBuchiPortfolio.apply(
       LtlParser.parse("F G ((G a & G b & G !c) | (G a & G !b & G c))")).orElseThrow());
 
-    assertEquals(2, minimizedAutomaton.size());
+    assertEquals(2, minimizedAutomaton.states().size());
   }
 
   @Test
@@ -78,13 +78,13 @@ class GfgCoBuchiMinimizationTest {
     var minimizedAutomaton = MutableAutomatonUtil.asMutable(
       GfgCoBuchiMinimization.minimize(automaton2));
     AcceptanceOptimizations.removeDeadStates(minimizedAutomaton);
-    assertEquals(gfgAutomaton.size(), minimizedAutomaton.size(),
+    assertEquals(gfgAutomaton.states().size(), minimizedAutomaton.states().size(),
       HoaWriter.toString(minimizedAutomaton));
 
     var minimizedAutomaton2 = MutableAutomatonUtil.asMutable(
       GfgCoBuchiMinimization.minimize(graphPermutationLanguage(n)));
     AcceptanceOptimizations.removeDeadStates(minimizedAutomaton2);
-    assertEquals(gfgAutomaton.size(), minimizedAutomaton2.size(),
+    assertEquals(gfgAutomaton.states().size(), minimizedAutomaton2.states().size(),
       HoaWriter.toString(minimizedAutomaton2));
   }
 
@@ -95,11 +95,11 @@ class GfgCoBuchiMinimizationTest {
 
     var initialState = IntStream.range(1, n + 1).boxed().collect(Collectors.toUnmodifiableList());
 
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       factory, Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
 
       @Override
-      public Edge<List<Integer>> edge(List<Integer> state, BitSet valuation) {
+      public Edge<List<Integer>> edgeImpl(List<Integer> state, BitSet valuation) {
         List<Integer> successor = new ArrayList<>();
         boolean rejecting = false;
 
@@ -142,18 +142,16 @@ class GfgCoBuchiMinimizationTest {
     };
   }
 
-  private static Automaton<?, CoBuchiAcceptance> graphPermutationLanguage2(int n) {
+  private static Automaton<Integer, CoBuchiAcceptance> graphPermutationLanguage2(int n) {
 
     var factory = FactorySupplier.defaultSupplier()
       .getValuationSetFactory(List.of("a", "b"));
 
-    var initialState = Integer.valueOf(1);
-
-    return new AbstractImmutableAutomaton.NonDeterministicEdgesAutomaton<>(
-      factory, Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
+    return new AbstractMemoizingAutomaton.EdgesImplementation<>(
+      factory, Set.of(1), CoBuchiAcceptance.INSTANCE) {
 
       @Override
-      public Set<Edge<Integer>> edges(Integer index, BitSet valuation) {
+      public Set<Edge<Integer>> edgesImpl(Integer index, BitSet valuation) {
         if (valuation.get(0)) {
           int newIndex = index + 1;
 

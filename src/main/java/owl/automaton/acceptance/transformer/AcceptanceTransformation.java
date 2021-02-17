@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
@@ -55,7 +55,7 @@ abstract class AcceptanceTransformation {
     var initialStates = Collections3.transformSet(
       automaton.initialStates(), s -> ExtendedState.of(s, initialExtension));
 
-    return new AbstractImmutableAutomaton<>(
+    return new AbstractAutomaton<>(
       automaton.factory(), initialStates, transformer.transformedAcceptance()) {
 
       @Override

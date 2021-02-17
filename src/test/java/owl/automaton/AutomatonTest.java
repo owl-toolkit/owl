@@ -85,11 +85,11 @@ class AutomatonTest {
       .getValuationSetFactory(List.of("a", "b"));
 
     return Stream.of(Arguments.of(
-      new AbstractImmutableAutomaton.NonDeterministicEdgeMapAutomaton<>(factory, Set.of("x"),
+      new AbstractMemoizingAutomaton.EdgeMapImplementation<>(factory, Set.of("x"),
         AllAcceptance.INSTANCE) {
 
         @Override
-        public Map<Edge<String>, ValuationSet> edgeMap(String state) {
+        public Map<Edge<String>, ValuationSet> edgeMapImpl(String state) {
           return Map.of(Edge.of("x"), factory.universe(), Edge.of("y"), factory.of(0));
         }
       }));

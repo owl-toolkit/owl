@@ -73,11 +73,11 @@ public final class ParallelEvaluation {
     }
 
     var smallestAutomaton = automata.get(0);
-    int smallestSize = smallestAutomaton.size();
+    int smallestSize = smallestAutomaton.states().size();
     int smallestAcceptanceSets = smallestAutomaton.acceptance().acceptanceSets();
 
     for (var automaton : automata.subList(1, automata.size())) {
-      int automatonSize = automaton.size();
+      int automatonSize = automaton.states().size();
       int automatonAcceptanceSize = automaton.acceptance().acceptanceSets();
 
       if (smallestSize < automatonSize) {

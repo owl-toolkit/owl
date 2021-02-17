@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
@@ -47,6 +47,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.ValuationSet;
 import owl.run.modules.OwlModule;
@@ -122,11 +123,11 @@ public final class RabinDegeneralization {
 
       // Determine the pairs which can accept in this SCC (i.e. those which have all their Inf in
       // this SCC)
-      BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
+      Colours indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       List<Integer> sccTrackedPairs = new ArrayList<>(trackedPairsCount);
       Indices.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
         assert pair.hasInfSet();
-        if (pair.infSetStream().allMatch(indices::get)) {
+        if (pair.infSetStream().allMatch(indices::contains)) {
           sccTrackedPairs.add(pairIndex);
         }
       });
@@ -152,12 +153,13 @@ public final class RabinDegeneralization {
       // Deal with sets which have no Fin set separately
 
       Automaton<DegeneralizedRabinState<S>, RabinAcceptance> sourceAutomaton =
-        new AbstractImmutableAutomaton.NonDeterministicEdgeMapAutomaton<>(resultAutomaton.factory(),
+        new AbstractMemoizingAutomaton.EdgeMapImplementation<>(resultAutomaton.factory(),
           Set.of(initialSccState), resultAutomaton.acceptance()) {
 
           @Override
-          public Map<Edge<DegeneralizedRabinState<S>>, ValuationSet> edgeMap(
+          public Map<Edge<DegeneralizedRabinState<S>>, ValuationSet> edgeMapImpl(
             DegeneralizedRabinState<S> state) {
+
             S generalizedState = state.state();
             Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
             Map<Edge<DegeneralizedRabinState<S>>, ValuationSet> successors = new HashMap<>();

@@ -40,7 +40,7 @@ class BooleanOperationsTest {
 
     Assertions.assertTrue(complementAutomaton.is(Automaton.Property.DETERMINISTIC));
     Assertions.assertTrue(complementAutomaton.is(Automaton.Property.COMPLETE));
-    Assertions.assertEquals(1, complementAutomaton.size());
+    Assertions.assertEquals(1, complementAutomaton.states().size());
     Assertions.assertFalse(LanguageEmptiness.isEmpty(complementAutomaton));
 
     var complementComplementAutomaton = BooleanOperations.deterministicComplement(
@@ -48,7 +48,7 @@ class BooleanOperationsTest {
 
     Assertions.assertTrue(complementComplementAutomaton.is(Automaton.Property.DETERMINISTIC));
     Assertions.assertTrue(complementComplementAutomaton.is(Automaton.Property.COMPLETE));
-    Assertions.assertEquals(1, complementComplementAutomaton.size());
+    Assertions.assertEquals(1, complementComplementAutomaton.states().size());
     Assertions.assertTrue(LanguageEmptiness.isEmpty(complementComplementAutomaton));
   }
 }

@@ -32,11 +32,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
+import owl.automaton.AbstractMemoizingAutomaton.PartitionedEdgeTreeImplementation;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
-import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -111,36 +111,27 @@ public final class NBA2LDBA
   }
 
   static final class BreakpointAutomaton<S>
-    extends TwoPartAutomaton<S, BreakpointState<S>, BuchiAcceptance>  {
+    extends PartitionedEdgeTreeImplementation<S, BreakpointState<S>, BuchiAcceptance> {
 
     private final Automaton<S, ? extends GeneralizedBuchiAcceptance> ngba;
     private final List<Set<S>> sccs;
     private final int acceptanceSets;
 
     BreakpointAutomaton(Automaton<S, ? extends GeneralizedBuchiAcceptance> ngba) {
+      super(ngba.factory(), ngba.initialStates(), Set.of(), BuchiAcceptance.INSTANCE);
       this.ngba = ngba;
       this.sccs = SccDecomposition.of(ngba).sccsWithoutTransient();
       this.acceptanceSets = Math.max(ngba.acceptance().acceptanceSets(), 1);
     }
 
     @Override
-    protected Set<S> initialStatesA() {
-      return ngba.initialStates();
-    }
-
-    @Override
-    protected Set<BreakpointState<S>> initialStatesB() {
-      return Set.of();
-    }
-
-    @Override
-    protected ValuationTree<Edge<S>> edgeTreeA(S state) {
+    protected ValuationTree<Edge<S>> edgeTreeImplA(S state) {
       return ngba.edgeTree(state).map(
         x -> x.stream().map(Edge::withoutAcceptance).collect(toUnmodifiableSet()));
     }
 
     @Override
-    protected ValuationTree<Edge<BreakpointState<S>>> edgeTreeB(BreakpointState<S> state) {
+    protected ValuationTree<Edge<BreakpointState<S>>> edgeTreeImplB(BreakpointState<S> state) {
       ValuationSetFactory factory = factory();
       Map<Edge<BreakpointState<S>>, ValuationSet> labelledEdges = new HashMap<>();
 
@@ -153,7 +144,6 @@ public final class NBA2LDBA
       return factory.toValuationTree(labelledEdges);
     }
 
-    @Override
     protected Set<Edge<BreakpointState<S>>> edgesB(BreakpointState<S> ldbaState, BitSet valuation) {
       Optional<Set<S>> optionalScc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx()))
         .findAny();
@@ -209,16 +199,6 @@ public final class NBA2LDBA
       }
 
       return Set.of();
-    }
-
-    @Override
-    public BuchiAcceptance acceptance() {
-      return BuchiAcceptance.INSTANCE;
-    }
-
-    @Override
-    public ValuationSetFactory factory() {
-      return ngba.factory();
     }
   }
 }

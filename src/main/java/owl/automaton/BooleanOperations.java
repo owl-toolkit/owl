@@ -31,8 +31,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +39,7 @@ import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.automaton.AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton.EdgeImplementation;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -134,33 +132,17 @@ public final class BooleanOperations {
 
   public static <S1, S2> Automaton<Pair<S1, S2>, ?>
     intersection(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
-    return intersection(automaton1, automaton2, false);
-  }
 
-  public static <S1, S2> Automaton<Pair<S1, S2>, ?>
-    intersection(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2,
-    boolean ignoreSymbolicFactoryMismatch) {
-
-    var factory = commonAlphabet(
-      List.of(automaton1.factory(), automaton2.factory()),
-      ignoreSymbolicFactoryMismatch);
-
+    var factory = commonAlphabet(List.of(automaton1, automaton2));
     var intersection = new PairIntersectionAutomaton<>(automaton1, automaton2, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<List<S>, ?>
+  public static <S> Automaton<List<S>, ?>
     intersection(List<? extends Automaton<S, ?>> automata) {
 
-    return intersection(automata, false);
-  }
-
-  public static <S> Automaton<List<S>, ?>
-    intersection(List<? extends Automaton<S, ?>> automata,
-      boolean ignoreSymbolicFactoryMismatch) {
-
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    var factory = commonAlphabet(automata, ignoreSymbolicFactoryMismatch);
+    var factory = commonAlphabet(automata);
     var intersection = new ListIntersectionAutomaton<>(automata, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
@@ -168,16 +150,7 @@ public final class BooleanOperations {
   public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
     deterministicUnion(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
 
-    return deterministicUnion(automaton1, automaton2, false);
-  }
-
-  public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
-    deterministicUnion(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2,
-      boolean ignoreSymbolicFactoryMismatch) {
-
-    var factory = commonAlphabet(
-      List.of(automaton1.factory(), automaton2.factory()),
-      ignoreSymbolicFactoryMismatch);
+    var factory = commonAlphabet(List.of(automaton1, automaton2));
 
     Automaton<S1, ?> normalizedAutomaton1;
     Automaton<S2, ?> normalizedAutomaton2;
@@ -215,15 +188,8 @@ public final class BooleanOperations {
   public static <S> Automaton<Map<Integer, S>, ?>
     deterministicUnion(List<? extends Automaton<S, ?>> automata) {
 
-    return deterministicUnion(automata, false);
-  }
-
-  public static <S> Automaton<Map<Integer, S>, ?>
-    deterministicUnion(List<? extends Automaton<S, ?>> automata,
-      boolean ignoreSymbolicFactoryMismatch) {
-
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    var factory = commonAlphabet(automata, ignoreSymbolicFactoryMismatch);
+    var factory = commonAlphabet(automata);
 
     List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
     List<BitSet> rejectingSets = new ArrayList<>(automata.size());
@@ -249,29 +215,11 @@ public final class BooleanOperations {
 
   // Private implementations
 
-  private static Pair<ValuationSetFactory, Boolean> commonAlphabet(
-    List<? extends Automaton<?, ?>> automata, boolean ignoreSymbolicFactoryMismatch) {
+  private static ValuationSetFactory commonAlphabet(List<? extends Automaton<?, ?>> automata) {
+    ValuationSetFactory factory = automata.get(0).factory();
 
-    return commonAlphabet(
-      automata.stream().map(Automaton::factory).collect(Collectors.toList()),
-      ignoreSymbolicFactoryMismatch);
-  }
-
-  private static Pair<ValuationSetFactory, Boolean> commonAlphabet(
-    Iterable<ValuationSetFactory> factories, boolean ignoreSymbolicFactoryMismatch) {
-
-    Iterator<ValuationSetFactory> iterator = factories.iterator();
-    ValuationSetFactory factory = iterator.next();
-    boolean symbolicOperationsAllowed = true;
-
-    while (iterator.hasNext()) {
-      ValuationSetFactory otherFactory = iterator.next();
-
-      symbolicOperationsAllowed = symbolicOperationsAllowed && factory.equals(otherFactory);
-
-      if (!ignoreSymbolicFactoryMismatch && !symbolicOperationsAllowed) {
-        throw new IllegalArgumentException("Symbolic factories are incompatible.");
-      }
+    for (Automaton<?, ?> automaton : automata) {
+      ValuationSetFactory otherFactory = automaton.factory();
 
       if (Collections.indexOfSubList(
         otherFactory.atomicPropositions(),
@@ -284,7 +232,7 @@ public final class BooleanOperations {
       }
     }
 
-    return Pair.of(factory, symbolicOperationsAllowed);
+    return factory;
   }
 
   private static <A extends OmegaAcceptance> EmersonLeiAcceptance
@@ -306,76 +254,31 @@ public final class BooleanOperations {
   }
 
   private static class PairIntersectionAutomaton<S1, S2>
-    extends AbstractImmutableAutomaton<Pair<S1, S2>, EmersonLeiAcceptance> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Pair<S1, S2>, EmersonLeiAcceptance> {
 
     private final Automaton<S1, ?> automaton1;
     private final Automaton<S2, ?> automaton2;
-    private final boolean symbolicOperationsAllowed;
     private final int acceptance1Sets;
 
     private PairIntersectionAutomaton(
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      Pair<ValuationSetFactory, Boolean> factory) {
+      ValuationSetFactory factory) {
 
-      super(factory.fst(),
+      super(factory,
         Pair.allPairs(automaton1.initialStates(), automaton2.initialStates()),
         intersectionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
 
       this.automaton1 = automaton1;
       this.automaton2 = automaton2;
       this.acceptance1Sets = automaton1.acceptance().acceptanceSets();
-      this.symbolicOperationsAllowed = factory.snd();
     }
 
     @Override
-    public Set<Edge<Pair<S1, S2>>> edges(Pair<S1, S2> state, BitSet valuation) {
-      var edges1 = automaton1.edges(state.fst(), valuation);
-      var edges2 = automaton2.edges(state.snd(), valuation);
-      var edges = new HashSet<Edge<Pair<S1, S2>>>();
-
-      for (var edge1 : edges1) {
-        for (var edge2 : edges2) {
-          edges.add(combine(edge1, edge2));
-        }
-      }
-
-      return edges;
-    }
-
-    @Override
-    public Map<Edge<Pair<S1, S2>>, ValuationSet> edgeMap(Pair<S1, S2> state) {
-      if (!symbolicOperationsAllowed) {
-        return this.edgeTree(state).inverse(factory());
-      }
-
-      var edgeMap1 = automaton1.edgeMap(state.fst());
-      var edgeMap2 = automaton2.edgeMap(state.snd());
-      var edgeMap = new HashMap<Edge<Pair<S1, S2>>, ValuationSet>();
-
-      edgeMap1.forEach((edge1, valuationSet1) -> {
-        edgeMap2.forEach((edge2, valuationSet2) -> {
-          var intersection = valuationSet1.intersection(valuationSet2);
-
-          if (!intersection.isEmpty()) {
-            edgeMap.merge(combine(edge1, edge2), intersection, ValuationSet::union);
-          }
-        });
-      });
-
-      return edgeMap;
-    }
-
-    @Override
-    public ValuationTree<Edge<Pair<S1, S2>>> edgeTree(Pair<S1, S2> state) {
+    protected ValuationTree<Edge<Pair<S1, S2>>> edgeTreeImpl(Pair<S1, S2> state) {
       var edgeTree1 = automaton1.edgeTree(state.fst());
       var edgeTree2 = automaton2.edgeTree(state.snd());
       return ValuationTrees.cartesianProduct(edgeTree1, edgeTree2, this::combine);
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return automaton1.preferredEdgeAccess();
     }
 
     private Edge<Pair<S1, S2>> combine(Edge<? extends S1> edge1, Edge<? extends S2> edge2) {
@@ -386,21 +289,19 @@ public final class BooleanOperations {
   }
 
   private static class ListIntersectionAutomaton<S>
-    extends AbstractImmutableAutomaton<List<S>, EmersonLeiAcceptance> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<List<S>, EmersonLeiAcceptance> {
 
     private final List<? extends Automaton<S, ?>> automata;
-    private final boolean symbolicOperationsAllowed;
 
     private ListIntersectionAutomaton(
       List<? extends Automaton<S, ?>> automata,
-      Pair<ValuationSetFactory, Boolean> factory) {
+      ValuationSetFactory factory) {
 
-      super(factory.fst(),
+      super(factory,
         initialStates(automata),
         intersectionAcceptance(
           automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
       this.automata = List.copyOf(automata);
-      this.symbolicOperationsAllowed = factory.snd();
     }
 
     private static <S> Set<List<S>>
@@ -411,49 +312,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    public Set<Edge<List<S>>> edges(List<S> state, BitSet valuation) {
-      List<Set<Edge<S>>> edges = new ArrayList<>();
-
-      for (int i = 0, s = automata.size(); i < s; i++) {
-        edges.add(automata.get(i).edges(state.get(i), valuation));
-      }
-
-      return Sets.cartesianProduct(edges).stream()
-        .map(this::combine)
-        .collect(Collectors.toSet());
-    }
-
-    @Override
-    public Map<Edge<List<S>>, ValuationSet> edgeMap(List<S> state) {
-      if (!symbolicOperationsAllowed) {
-        return edgeTree(state).inverse(factory());
-      }
-
-      List<Set<Map.Entry<Edge<S>, ValuationSet>>> edgeMaps = new ArrayList<>();
-
-      for (int i = 0, s = automata.size(); i < s; i++) {
-        edgeMaps.add(automata.get(i).edgeMap(state.get(i)).entrySet());
-      }
-
-      var edgeMap = new HashMap<Edge<List<S>>, ValuationSet>();
-
-      for (List<Map.Entry<Edge<S>, ValuationSet>> edgeList : Sets.cartesianProduct(edgeMaps)) {
-        var intersection = edgeList.stream()
-          .map(Map.Entry::getValue)
-          .reduce(ValuationSet::intersection)
-          .orElseThrow();
-
-        if (!intersection.isEmpty()) {
-          var list = edgeList.stream().map(Map.Entry::getKey).collect(Collectors.toList());
-          edgeMap.merge(combine(list), intersection, ValuationSet::union);
-        }
-      }
-
-      return edgeMap;
-    }
-
-    @Override
-    public ValuationTree<Edge<List<S>>> edgeTree(List<S> state) {
+    protected ValuationTree<Edge<List<S>>> edgeTreeImpl(List<S> state) {
       List<ValuationTree<Edge<S>>> edgeTrees = new ArrayList<>();
 
       for (int i = 0, s = automata.size(); i < s; i++) {
@@ -465,11 +324,6 @@ public final class BooleanOperations {
         .map((Set<List<Edge<S>>> x) -> x.stream()
           .map(this::combine)
           .collect(Collectors.toUnmodifiableSet()));
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return automata.get(0).preferredEdgeAccess();
     }
 
     private Edge<List<S>> combine(List<Edge<S>> edges) {
@@ -511,7 +365,7 @@ public final class BooleanOperations {
   }
 
   private static class NullablePairDeterministicUnionAutomaton<S1, S2>
-    extends SemiDeterministicEdgesAutomaton<NullablePair<S1, S2>, EmersonLeiAcceptance> {
+    extends EdgeImplementation<NullablePair<S1, S2>, EmersonLeiAcceptance> {
 
     private final Automaton<S1, ?> automaton1;
     private final Automaton<S2, ?> automaton2;
@@ -522,11 +376,11 @@ public final class BooleanOperations {
     private NullablePairDeterministicUnionAutomaton(
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      Pair<ValuationSetFactory, Boolean> factory,
+      ValuationSetFactory factory,
       BitSet rejectingSet1,
       BitSet rejectingSet2) {
 
-      super(factory.fst(),
+      super(factory,
         Set.of(initialState(automaton1, automaton2)),
         unionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
       this.automaton1 = automaton1;
@@ -543,7 +397,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    public Edge<NullablePair<S1, S2>> edge(NullablePair<S1, S2> state, BitSet valuation) {
+    public Edge<NullablePair<S1, S2>> edgeImpl(NullablePair<S1, S2> state, BitSet valuation) {
       Edge<S1> edge1 = state.fst() == null ? null : automaton1.edge(state.fst(), valuation);
       Edge<S2> edge2 = state.snd() == null ? null : automaton2.edge(state.snd(), valuation);
       return combine(edge1, edge2);
@@ -582,17 +436,17 @@ public final class BooleanOperations {
   }
 
   private static class MapDeterministicUnionAutomaton<S>
-    extends SemiDeterministicEdgesAutomaton<Map<Integer, S>, EmersonLeiAcceptance> {
+    extends EdgeImplementation<Map<Integer, S>, EmersonLeiAcceptance> {
 
     private final List<? extends Automaton<S, ?>> automata;
     private final List<BitSet> rejectingSets;
 
     private MapDeterministicUnionAutomaton(
       List<? extends Automaton<S, ?>> automata,
-      Pair<ValuationSetFactory, Boolean> factory,
+      ValuationSetFactory factory,
       List<BitSet> rejectingSets) {
 
-      super(factory.fst(),
+      super(factory,
         Set.of(initialState(automata)),
         unionAcceptance(automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
       this.automata = List.copyOf(automata);
@@ -600,7 +454,6 @@ public final class BooleanOperations {
     }
 
     private static <S> Map<Integer, S> initialState(List<? extends Automaton<S, ?>> automata) {
-
       Map<Integer, S> initialStates = new HashMap<>();
 
       for (int i = 0, s = automata.size(); i < s; i++) {
@@ -621,7 +474,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    public Edge<Map<Integer, S>> edge(Map<Integer, S> state, BitSet valuation) {
+    public Edge<Map<Integer, S>> edgeImpl(Map<Integer, S> state, BitSet valuation) {
       Map<Integer, Edge<S>> edges = new HashMap<>();
 
       state.forEach(
@@ -708,26 +561,6 @@ public final class BooleanOperations {
     @Override
     public Set<S> states() {
       return backingAutomaton.states();
-    }
-
-    @Override
-    public void accept(EdgeVisitor<S> visitor) {
-      backingAutomaton.accept(visitor);
-    }
-
-    @Override
-    public void accept(EdgeMapVisitor<S> visitor) {
-      backingAutomaton.accept(visitor);
-    }
-
-    @Override
-    public void accept(EdgeTreeVisitor<S> visitor) {
-      backingAutomaton.accept(visitor);
-    }
-
-    @Override
-    public void accept(Visitor<S> visitor) {
-      backingAutomaton.accept(visitor);
     }
 
     @Override

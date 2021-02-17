@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import org.apache.commons.cli.Options;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.SingletonAutomaton;
@@ -119,13 +119,13 @@ public class DelagBuilder
       History.stepHistory(null, new BitSet(),
         History.create(tree.getRequiredHistory(initialProduct))));
 
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(factories.vsFactory,
-      Set.of(initialState), new EmersonLeiAcceptance(sets, expression)) {
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
+      factories.vsFactory, Set.of(initialState), new EmersonLeiAcceptance(sets, expression)) {
 
       private final Map<ProductState<?>, History> requiredHistory = new HashMap<>();
 
       @Override
-      public Edge<State<Object>> edge(State<Object> state, BitSet valuation) {
+      public Edge<State<Object>> edgeImpl(State<Object> state, BitSet valuation) {
         ProductState.Builder<Object> builder = ProductState.builder();
         Boolean acc = tree.buildSuccessor(state, valuation, builder);
 

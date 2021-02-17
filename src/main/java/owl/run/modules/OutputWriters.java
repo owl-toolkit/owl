@@ -109,7 +109,7 @@ public final class OutputWriters {
 
       // State count
       Pattern.compile("%S", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),
-      automaton -> String.valueOf(automaton.size()),
+      automaton -> String.valueOf(automaton.states().size()),
 
       // Number of propositions
       Pattern.compile("%X", Pattern.CASE_INSENSITIVE | Pattern.LITERAL),

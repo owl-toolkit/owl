@@ -39,7 +39,6 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
-import owl.automaton.Automaton;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -92,7 +91,6 @@ class DecomposedDPATest {
     var decomposedDpa = of(LtlParser.parse(specification));
 
     var dpa = decomposedDpa.automata.get(2);
-    assertEquals(Automaton.PreferredEdgeAccess.EDGES, dpa.automaton.preferredEdgeAccess().get(0));
     assertEquals(1, reachableState(dpa).cardinality());
   }
 
@@ -245,7 +243,7 @@ class DecomposedDPATest {
     assertEquals(9, automaton.automata.size());
 
     for (var deterministicAutomaton : automaton.automata) {
-      assertThat(deterministicAutomaton.automaton.size(), x -> x <= 4);
+      assertThat(deterministicAutomaton.automaton.states().size(), x -> x <= 4);
     }
   }
 
@@ -305,8 +303,8 @@ class DecomposedDPATest {
       var automaton = of(simplify(ambaDecomposedLock, 25));
 
       assertEquals(3, automaton.automata.size());
-      assertEquals(4, automaton.automata.get(0).automaton.size());
-      assertEquals(2, automaton.automata.get(1).automaton.size());
+      assertEquals(4, automaton.automata.get(0).automaton.states().size());
+      assertEquals(2, automaton.automata.get(1).automaton.states().size());
     });
   }
 
@@ -328,8 +326,8 @@ class DecomposedDPATest {
     var decomposedDpa = of(simplify(theta, 6));
 
     assertEquals(2, decomposedDpa.automata.size());
-    assertEquals(1, decomposedDpa.automata.get(0).automaton.size());
-    assertEquals(2, decomposedDpa.automata.get(1).automaton.size());
+    assertEquals(1, decomposedDpa.automata.get(0).automaton.states().size());
+    assertEquals(2, decomposedDpa.automata.get(1).automaton.states().size());
   }
 
   @Test

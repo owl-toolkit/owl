@@ -34,7 +34,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
@@ -200,7 +200,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     Function<EquivalenceClass, Set<AsymmetricProductState>> jumpLookup
       = x -> jumps.getOrDefault(x, Set.of());
 
-    var automaton = new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
+    var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       factories.vsFactory,
       initialState.isFalse() ? Set.<EquivalenceClass>of() : Set.of(initialState),
       AllAcceptance.INSTANCE) {

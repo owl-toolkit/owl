@@ -21,27 +21,25 @@ package owl.automaton;
 
 import com.google.common.base.Preconditions;
 import java.util.BitSet;
-import java.util.Map;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
+import owl.collections.ValuationTree;
 
 public final class SingletonAutomaton<S, A extends OmegaAcceptance>
-  extends AbstractImmutableAutomaton<S, A>
-  implements EdgeMapAutomatonMixin<S, A> {
+  extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-  private final Map<Edge<S>, ValuationSet> selfLoopEdges;
+  private final ValuationTree<Edge<S>> selfLoopEdges;
 
   private SingletonAutomaton(S singletonState, ValuationSetFactory factory,
     @Nullable BitSet acceptanceSets, A acceptance) {
     super(factory, Set.of(singletonState), acceptance);
     this.selfLoopEdges = acceptanceSets == null
-      ? Map.of()
-      : Map.of(Edge.of(singletonState, acceptanceSets), factory.universe());
+      ? ValuationTree.of()
+      : ValuationTree.of(Set.of(Edge.of(singletonState, acceptanceSets)));
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
@@ -60,7 +58,7 @@ public final class SingletonAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+  protected ValuationTree<Edge<S>> edgeTreeImpl(S state) {
     Preconditions.checkArgument(initialStates.contains(state),
       "This state is not in the automaton");
     return selfLoopEdges;

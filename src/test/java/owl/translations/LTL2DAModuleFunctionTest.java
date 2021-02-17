@@ -49,7 +49,7 @@ class LTL2DAModuleFunctionTest {
     var automaton = TRANSLATOR.apply(formula);
     var complementAutomaton = TRANSLATOR.apply(formula.not());
 
-    assertEquals(automaton.size(), complementAutomaton.size());
+    assertEquals(automaton.states().size(), complementAutomaton.states().size());
     assertFalse(LanguageEmptiness.isEmpty(automaton));
     assertFalse(LanguageEmptiness.isEmpty(complementAutomaton));
   }

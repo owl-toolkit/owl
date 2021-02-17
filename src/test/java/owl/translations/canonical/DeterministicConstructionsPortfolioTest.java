@@ -77,7 +77,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
       var automaton = coSafety(labelledFormula);
-      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
+      assertEquals(expectedSize, automaton.states().size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
       assertThat(automaton.acceptance(), BuchiAcceptance.class::isInstance);
@@ -107,7 +107,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
       var automaton = fgSafety(labelledFormula, false);
-      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
+      assertEquals(expectedSize, automaton.states().size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isTrue()));
@@ -143,7 +143,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
       var automaton = safetyCoSafety(labelledFormula);
-      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
+      assertEquals(expectedSize, automaton.states().size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(
         y -> y.all().isFalse() || y.rejecting().isFalse()));
@@ -175,7 +175,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula).nnf();
       var automaton = gfCoSafety(labelledFormula, false);
-      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
+      assertEquals(expectedSize, automaton.states().size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, true);
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isFalse()));
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.state().isTrue()));
@@ -211,7 +211,7 @@ class DeterministicConstructionsPortfolioTest {
     void test(String formula, int expectedSize) {
       var labelledFormula = LtlParser.parse(formula);
       var automaton = safety(labelledFormula);
-      assertEquals(expectedSize, automaton.size(), () -> HoaWriter.toString(automaton));
+      assertEquals(expectedSize, automaton.states().size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
       assertThat(automaton.states(), x -> x.stream().noneMatch(EquivalenceClass::isFalse));
       assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);

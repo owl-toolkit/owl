@@ -29,7 +29,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
@@ -121,7 +122,7 @@ public final class GfgCoBuchiMinimization {
   private static <S> Automaton<S, AllAcceptance>
     safeView(Automaton<S, CoBuchiAcceptance> ncw, S q) {
 
-    return new AbstractImmutableAutomaton<>(ncw.factory(), Set.of(q), AllAcceptance.INSTANCE) {
+    return new AbstractAutomaton<>(ncw.factory(), Set.of(q), AllAcceptance.INSTANCE) {
       @Override
       public Set<Edge<S>> edges(S state, BitSet valuation) {
         var edges = new HashSet<>(ncw.edges(state, valuation));
@@ -200,11 +201,11 @@ public final class GfgCoBuchiMinimization {
 
     assert initialState != null;
 
-    return new AbstractImmutableAutomaton.NonDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgesImplementation<>(
       ncw.factory(), Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
 
       @Override
-      public Set<Edge<S>> edges(S state, BitSet valuation) {
+      protected Set<Edge<S>> edgesImpl(S state, BitSet valuation) {
         Set<Edge<S>> acceptingEdges = new HashSet<>();
         Set<S> rejectingSuccessors = new HashSet<>();
 
@@ -267,13 +268,13 @@ public final class GfgCoBuchiMinimization {
       .filter(x -> !Collections.disjoint(x, ncw.initialStates()))
       .collect(Collectors.toUnmodifiableSet());
 
-    return new AbstractImmutableAutomaton.NonDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgesImplementation<>(
       ncw.factory(),
       initialStates,
       CoBuchiAcceptance.INSTANCE) {
 
       @Override
-      public Set<Edge<Set<S>>> edges(Set<S> state, BitSet valuation) {
+      protected Set<Edge<Set<S>>> edgesImpl(Set<S> state, BitSet valuation) {
         var edges = new HashSet<Edge<Set<S>>>();
 
         for (S representative : state) {
