@@ -21,10 +21,13 @@ package owl.collections;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -42,6 +45,19 @@ public final class ValuationTrees {
   public static <L, R, E> ValuationTree<E> cartesianProduct(
     ValuationTree<L> factor1, ValuationTree<R> factor2, BiFunction<L, R, @Nullable E> combinator) {
     return cartesianProduct(factor1, factor2, combinator, new HashMap<>());
+  }
+
+  /**
+   * This is a short-hack to fix issues that arise by empty sets in leafs. Only works for
+   * leafs with at most one value.
+   *
+   * @param trees list of trees
+   * @param <E> type
+   * @return the lists might contain null.
+   */
+  public static <E> ValuationTree<List<E>> cartesianProductWithNull(
+    List<? extends ValuationTree<E>> trees) {
+    return naryCartesianProductWithNull(trees, new HashMap<>());
   }
 
   public static <E> ValuationTree<List<E>> cartesianProduct(
@@ -167,6 +183,49 @@ public final class ValuationTrees {
     }
 
     memoizedCalls.put(key, cartesianProduct);
+    return cartesianProduct;
+  }
+
+  private static <T> ValuationTree<List<T>> naryCartesianProductWithNull(
+    List<? extends ValuationTree<T>> trees,
+    Map<? super List<ValuationTree<T>>, ValuationTree<List<T>>> memoizedCalls) {
+
+    var cartesianProduct = memoizedCalls.get(trees);
+
+    if (cartesianProduct != null) {
+      return cartesianProduct;
+    }
+
+    int variable = nextVariable(trees);
+
+    if (variable == Integer.MAX_VALUE) {
+      List<T> values = new ArrayList<>(trees.size());
+
+      for (ValuationTree<T> x : trees) {
+        assert x instanceof ValuationTree.Leaf;
+        ValuationTree.Leaf<T> casted = (ValuationTree.Leaf<T>) x;
+        Preconditions.checkArgument(casted.value.size() <= 1);
+        values.add(Iterables.getOnlyElement(casted.value, null));
+      }
+
+      cartesianProduct = ValuationTree.of(Set.of(Collections.unmodifiableList(values)));
+    } else {
+      var falseTrees = trees.stream()
+        .map(x -> descendFalseIf(x, variable))
+        .collect(Collectors.toUnmodifiableList());
+
+      var trueTrees = trees.stream()
+        .map(x -> descendTrueIf(x, variable))
+        .collect(Collectors.toUnmodifiableList());
+
+      var falseCartesianProduct = naryCartesianProductWithNull(
+        falseTrees, memoizedCalls);
+      var trueCartesianProduct = naryCartesianProductWithNull(
+        trueTrees, memoizedCalls);
+      cartesianProduct = ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+    }
+
+    memoizedCalls.put(List.copyOf(trees), cartesianProduct);
     return cartesianProduct;
   }
 

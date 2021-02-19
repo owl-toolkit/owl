@@ -22,9 +22,13 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGES;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_MAP;
+import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
 import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
@@ -36,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -53,9 +58,11 @@ import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationTree;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
-public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
-  EdgeMapAutomatonMixin<S, A>, MutableAutomaton<S, A> {
+public final class HashMapAutomaton<S, A extends OmegaAcceptance>
+  implements MutableAutomaton<S, A> {
+
   private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
+  private static final List<PreferredEdgeAccess> ACCESS_MODES = List.of(EDGE_MAP, EDGE_TREE, EDGES);
 
   private A acceptance;
   private final Set<S> initialStates;
@@ -200,6 +207,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   public ValuationTree<Edge<S>> edgeTree(S state) {
     readMode();
     S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
+    checkArgument(uniqueState != null, "state (%s) is not present in the automaton.", state);
     return cachedTrees.computeIfAbsent(uniqueState, x -> factory().toValuationTree(edgeMap(x)));
   }
 
@@ -211,6 +219,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
 
   @Override
   public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
+    cachedTrees.remove(makeUnique(source));
     edgeMapInternal(source).merge(makeUnique(edge), valuations, ValuationSet::union);
   }
 
@@ -279,41 +288,6 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
   public void updateEdges(BiFunction<S, Edge<S>, Edge<S>> updater) {
     updateEdges(transitions.keySet(), updater);
   }
-
-
-  // Visitors
-
-  @Override
-  public void accept(EdgeVisitor<S> visitor) {
-    readMode();
-    transitions.forEach((state, edges) -> {
-      visitor.enter(state);
-      edges.forEach((edge, valuations) -> valuations.toSet()
-        .forEach(valuation -> visitor.visit(state, valuation, edge)));
-      visitor.exit(state);
-    });
-  }
-
-  @Override
-  public void accept(EdgeMapVisitor<S> visitor) {
-    readMode();
-    transitions.forEach((state, edges) -> {
-      visitor.enter(state);
-      visitor.visit(state, Collections.unmodifiableMap(edges));
-      visitor.exit(state);
-    });
-  }
-
-  @Override
-  public void accept(EdgeTreeVisitor<S> visitor) {
-    readMode();
-    transitions.forEach((state, edges) -> {
-      visitor.enter(state);
-      visitor.visit(state, factory().toValuationTree(edges));
-      visitor.exit(state);
-    });
-  }
-
 
   // Misc.
 
@@ -507,6 +481,16 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance> implements
     target.name(source.name());
     assert source.states().equals(target.states());
     return target;
+  }
+
+  @Override
+  public Set<Edge<S>> edges(S state, BitSet valuation) {
+    return Maps.filterValues(edgeMap(state), x -> x.contains(valuation)).keySet();
+  }
+
+  @Override
+  public List<PreferredEdgeAccess> preferredEdgeAccess() {
+    return ACCESS_MODES;
   }
 
   private enum State {

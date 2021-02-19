@@ -219,9 +219,9 @@ public final class BuchiSimulation {
     }
     var quotient = Views.quotientAutomaton(automaton, classMap::get);
     logger.fine("Input had "
-      + automaton.size()
+      + automaton.states().size()
       + " states, while output has "
-      + quotient.size()
+      + quotient.states().size()
       + " states");
 
     if (null != oldLogLevels) {
@@ -527,7 +527,7 @@ public final class BuchiSimulation {
     }
 
     public static SimulationStats of(long time, SimulationGame<?, ?> game) {
-      return new SimulationStats(time, game.size());
+      return new SimulationStats(time, game.states().size());
     }
   }
 }

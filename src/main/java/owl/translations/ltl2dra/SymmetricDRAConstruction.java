@@ -31,7 +31,7 @@ import java.util.TreeSet;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedStateOptimisation;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -80,13 +80,15 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
   public Automaton<SymmetricRankingState, R> apply(LabelledFormula formula) {
     var ldba = ldbaConstruction.apply(formula);
     var builder = new Builder(ldba);
-    var automaton = new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(ldba.factory(),
-      Collections3.ofNullable(builder.initialState), builder.acceptance) {
+    var automaton = new AbstractMemoizingAutomaton.EdgeImplementation<>(
+      ldba.factory(), Collections3.ofNullable(builder.initialState), builder.acceptance) {
+
       @Override
-      public Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
+      public Edge<SymmetricRankingState> edgeImpl(SymmetricRankingState state, BitSet valuation) {
         return builder.edge(state, valuation);
       }
     };
+
     return optimizeInitialState
       ? AnnotatedStateOptimisation.optimizeInitialState(automaton)
       : automaton;

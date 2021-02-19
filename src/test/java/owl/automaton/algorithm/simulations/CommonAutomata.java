@@ -145,7 +145,7 @@ public final class CommonAutomata {
     aut.addEdge(3, a, Edge.of(4));
     aut.addEdge(4, a, Edge.of(4, 0));
     aut.trim();
-    assert 4 == aut.size();
+    assert 4 == aut.states().size();
     return aut;
   }
 

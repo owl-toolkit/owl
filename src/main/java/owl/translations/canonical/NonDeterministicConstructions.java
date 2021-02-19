@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -70,7 +70,7 @@ public final class NonDeterministicConstructions {
   }
 
   abstract static class Base<S, A extends OmegaAcceptance>
-    extends AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<S, A> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     final EquivalenceClassFactory factory;
 

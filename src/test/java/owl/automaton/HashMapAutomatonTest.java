@@ -24,11 +24,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static owl.automaton.DefaultImplementations.getReachableStates;
 import static owl.util.Assertions.assertThat;
 
+import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -105,6 +107,7 @@ class HashMapAutomatonTest {
     );
 
     automaton.addInitialState("1");
+    automaton.trim();
 
     assertAll(
       () -> assertEquals("1", automaton.onlyInitialState()),
@@ -116,6 +119,7 @@ class HashMapAutomatonTest {
     // Add edge
     var edge = Edge.of("2");
     automaton.addEdge("1", FACTORY.universe(), edge);
+    automaton.trim();
 
     assertAll(
       () -> assertEquals(edge, automaton.edge("1", new BitSet())),
@@ -132,6 +136,7 @@ class HashMapAutomatonTest {
 
     // Add duplicate edge
     automaton.addEdge("1", FACTORY.of(new BitSet()), edge);
+    automaton.trim();
 
     assertAll(
       () -> assertEquals(edge, automaton.edge("1", new BitSet())),
@@ -149,6 +154,7 @@ class HashMapAutomatonTest {
     // Add edge with different acceptance
     var edgeWithAcceptance = edge.withAcceptance(0);
     automaton.addEdge("1", FACTORY.of(new BitSet()), edgeWithAcceptance);
+    automaton.trim();
 
     assertAll(
       () -> assertEquals(Set.of(edge, edgeWithAcceptance), automaton.edges("1", new BitSet())),
@@ -167,6 +173,7 @@ class HashMapAutomatonTest {
     // Add loop edge
     var loop = Edge.of("1", 0);
     automaton.addEdge("1", FACTORY.universe(), loop);
+    automaton.trim();
 
     assertAll(
       () -> assertEquals(
@@ -221,5 +228,28 @@ class HashMapAutomatonTest {
     );
 
     assertTrue(automaton.checkConsistency(), "Automaton is inconsistent.");
+  }
+
+  /**
+   * Returns all states reachable from the initial states.
+   *
+   * @param automaton
+   *     The automaton.
+   *
+   * @return All from the initial states reachable states.
+   */
+  static <S> Set<S> getReachableStates(Automaton<S, ?> automaton) {
+    Set<S> reachableStates = new HashSet<>(automaton.initialStates());
+    Deque<S> workQueue = new ArrayDeque<>(reachableStates);
+
+    while (!workQueue.isEmpty()) {
+      for (S successor : automaton.successors(workQueue.remove())) {
+        if (reachableStates.add(successor)) {
+          workQueue.add(successor);
+        }
+      }
+    }
+
+    return reachableStates;
   }
 }

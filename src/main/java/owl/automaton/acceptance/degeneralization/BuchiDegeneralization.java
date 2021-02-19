@@ -26,7 +26,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -106,7 +106,7 @@ public final class BuchiDegeneralization {
 
     // We map the three different ways of accessing edges to the implementation of the backing
     // automaton. Hence we only extend AbstractImmutableAutomaton and none of the subclasses.
-    return new AbstractImmutableAutomaton<>(
+    return new AbstractAutomaton<>(
       automaton.factory(), initialStates, BuchiAcceptance.INSTANCE) {
 
       private final Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton = automaton;

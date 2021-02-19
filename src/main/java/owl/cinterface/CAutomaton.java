@@ -31,13 +31,11 @@ import static owl.cinterface.DecomposedDPA.Tree;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 
 import com.google.common.collect.Iterables;
-import de.tum.in.naturals.bitset.BitSets;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -857,32 +855,14 @@ public final class CAutomaton {
       S state = index2StateMap.get(stateIndex);
       ValuationTree<Edge<S>> edgeTree;
 
+      assert automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_TREE
+        || automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_MAP;
+
       if (filter == null) {
 
         edgeTree = stateIndex == 0 && initialStateEdgeTree != null
           ? initialStateEdgeTree
           : automaton.edgeTree(state);
-
-      } else if (automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGES) {
-
-        assert initialStateEdgeTree == null;
-
-        var factory = automaton.factory();
-        var labelledEdges = new HashMap<Edge<S>, ValuationSet>();
-
-        for (BitSet valuation : BitSets.powerSet(factory.atomicPropositions().size())) {
-          if (!filter.contains(valuation)) {
-            continue;
-          }
-
-          var edge = automaton.edge(state, valuation);
-
-          if (edge != null) {
-            labelledEdges.merge(edge, factory.of(valuation), ValuationSet::union);
-          }
-        }
-
-        edgeTree = factory.toValuationTree(labelledEdges);
 
       } else {
 

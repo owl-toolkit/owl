@@ -25,8 +25,7 @@ import owl.automaton.algorithm.SccDecomposition;
 
 public final class AnnotatedStateOptimisation {
 
-  private AnnotatedStateOptimisation() {
-  }
+  private AnnotatedStateOptimisation() {}
 
   /**
    * Selects a state within the automaton as a new initial state such that the resulting automaton
@@ -50,7 +49,7 @@ public final class AnnotatedStateOptimisation {
     var originalInitialState = mutableAutomatonCopy.onlyInitialState().state();
 
     S candidateInitialState = null;
-    int size = mutableAutomatonCopy.size();
+    int size = mutableAutomatonCopy.states().size();
 
     for (Set<S> scc : SccDecomposition.of(mutableAutomatonCopy).sccsWithoutTransient()) {
       for (S state : scc) {
@@ -58,7 +57,8 @@ public final class AnnotatedStateOptimisation {
           continue;
         }
 
-        int newSize = Views.filtered(mutableAutomatonCopy, Views.Filter.of(Set.of(state))).size();
+        int newSize = Views.filtered(mutableAutomatonCopy, Views.Filter.of(Set.of(state))).states()
+          .size();
 
         if (newSize < size) {
           candidateInitialState = state;

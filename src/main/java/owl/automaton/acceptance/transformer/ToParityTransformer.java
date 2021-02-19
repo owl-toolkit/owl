@@ -41,7 +41,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.cli.Options;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.SuccessorFunction;
@@ -379,7 +379,7 @@ public final class ToParityTransformer {
         return ExtendedState.of(s, transformer.initialExtension());
       });
 
-    return new AbstractImmutableAutomaton<>(
+    return new AbstractAutomaton<>(
       automaton.factory(), initialStates, globalAcceptance) {
 
       @Override

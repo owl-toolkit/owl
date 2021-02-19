@@ -178,12 +178,12 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
         () -> (Automaton)
           DeterministicConstructionsPortfolio.safetyCoSafety(pi2Formula));
       var intersectionAutomaton
-        = BooleanOperations.intersection(sigma2Automaton, pi2Automaton, true);
+        = BooleanOperations.intersection(sigma2Automaton, pi2Automaton);
       automata.add(OmegaAcceptanceCast.cast((Automaton) intersectionAutomaton, acceptanceClass));
     }
 
     Automaton<Map<Integer, Object>, ?> unionAutomaton
-      = BooleanOperations.deterministicUnion(automata, true);
+      = BooleanOperations.deterministicUnion(automata);
     var automaton
       = HashMapAutomaton.copyOf(OmegaAcceptanceCast.cast(unionAutomaton, acceptanceClass));
 

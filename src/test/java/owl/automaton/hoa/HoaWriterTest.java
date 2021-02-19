@@ -24,7 +24,7 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
@@ -42,11 +42,11 @@ public class HoaWriterTest {
 
   @Test
   void testStateWithoutOutgoingEdgesBug() {
-    var automaton = new AbstractImmutableAutomaton.NonDeterministicEdgesAutomaton<>(
+    var automaton = new AbstractMemoizingAutomaton.EdgesImplementation<>(
       FACTORY, Set.of(1, 2), BuchiAcceptance.INSTANCE) {
 
       @Override
-      public Set<Edge<Integer>> edges(Integer state, BitSet valuation) {
+      public Set<Edge<Integer>> edgesImpl(Integer state, BitSet valuation) {
         return state == 1 ? Set.of(Edge.of(2, 0)) : Set.of();
       }
     };

@@ -19,7 +19,6 @@
 
 package owl.bdd.jbdd;
 
-import static java.util.stream.Collectors.toUnmodifiableSet;
 import static owl.bdd.jbdd.JBddValuationSetFactory.JBddValuationSet;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
@@ -40,11 +39,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.IntFunction;
 import java.util.function.IntUnaryOperator;
 import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
 import owl.collections.ValuationTree;
+import owl.collections.ValuationTrees;
 import owl.logic.propositional.PropositionalFormula;
 
 final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSet>
@@ -97,95 +96,14 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
 
   @Override
   public <S> ValuationTree<S> toValuationTree(Map<? extends S, ? extends ValuationSet> sets) {
-    if (sets.isEmpty()) {
-      return ValuationTree.of(List.of());
+    ValuationTree<S> union = ValuationTree.of(Set.of());
+
+    for (Map.Entry<? extends S, ? extends ValuationSet> entry : sets.entrySet()) {
+      union = ValuationTrees.union(union,
+        toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>()));
     }
 
-    int offset = atomicPropositions.size();
-    int requiredVariables = sets.size() - (bdd.numberOfVariables() - offset);
-
-    if (requiredVariables > 0) {
-      bdd.createVariables(requiredVariables);
-    }
-
-    // Build BDD describing the tree:
-    int node = trueNode;
-    var list = List.copyOf(sets.entrySet());
-
-    for (int i = 0; i < list.size(); i++) {
-      var entry = list.get(i);
-      int relation = bdd.reference(bdd.equivalence(
-        bdd.variableNode(offset + i), getNode(entry.getValue())));
-      node = bdd.consume(bdd.and(node, relation), node, relation);
-    }
-
-    ValuationTree<S> result = inverseMemoized(node, new HashMap<>(),
-      i -> list.get(i - offset).getKey(), offset + list.size());
-    bdd.dereference(node);
-    return result;
-  }
-
-  private <S> ValuationTree<S> inverseMemoized(int node,
-    Map<Integer, ValuationTree<S>> cache,
-    IntFunction<S> mapper,
-    int maxSize) {
-
-    assert node != bdd.trueNode();
-    assert node != bdd.falseNode();
-
-    var tree = cache.get(node);
-
-    if (tree != null) {
-      return tree;
-    }
-
-    int variable = bdd.variable(node);
-
-    if (variable < atomicPropositions().size()) {
-      tree = ValuationTree.of(variable,
-        inverseMemoized(bdd.high(node), cache, mapper, maxSize),
-        inverseMemoized(bdd.low(node), cache, mapper, maxSize));
-    } else {
-      tree = ValuationTree.of(getOnlySatisfyingAssignment(node, maxSize - 1)
-        .stream().mapToObj(mapper).collect(toUnmodifiableSet()));
-    }
-
-    cache.put(node, tree);
-    return tree;
-  }
-
-  private BitSet getOnlySatisfyingAssignment(int node, int largestVariable) {
-    assert node != bdd.trueNode();
-    assert node != bdd.falseNode();
-    int variable = bdd.variable(node);
-
-    if (variable < largestVariable) {
-      int high = bdd.high(node);
-
-      if (high == bdd.falseNode()) {
-        return getOnlySatisfyingAssignment(bdd.low(node), largestVariable);
-      } else {
-        assert bdd.low(node) == bdd.falseNode();
-        assert high != bdd.trueNode();
-        var assignment = getOnlySatisfyingAssignment(high, largestVariable);
-        assignment.set(variable);
-        return assignment;
-      }
-    } else {
-      assert variable == largestVariable;
-      assert bdd.trueNode() == bdd.low(node)
-        || bdd.falseNode() == bdd.low(node);
-      assert bdd.trueNode() == bdd.high(node)
-        || bdd.falseNode() == bdd.high(node);
-
-      if (bdd.high(node) == trueNode) {
-        var set = new BitSet();
-        set.set(variable);
-        return set;
-      } else {
-        return new BitSet();
-      }
-    }
+    return union;
   }
 
   private PropositionalFormula<Integer> toExpression(int node) {
@@ -239,6 +157,27 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     int node = ((JBddValuationSet) vs).node;
     assert bdd.getReferenceCount(node) > 0 || bdd.getReferenceCount(node) == -1;
     return node;
+  }
+
+  private <E> ValuationTree<E> toTree(E value, int bddNode, Map<Integer, ValuationTree<E>> cache) {
+    var tree = cache.get(bddNode);
+
+    if (tree != null) {
+      return tree;
+    }
+
+    if (bddNode == falseNode) {
+      tree = ValuationTree.of();
+    } else if (bddNode == trueNode) {
+      tree = ValuationTree.of(Set.of(value));
+    } else {
+      tree = ValuationTree.of(bdd.variable(bddNode),
+        toTree(value, bdd.high(bddNode), cache),
+        toTree(value, bdd.low(bddNode), cache));
+    }
+
+    cache.put(bddNode, tree);
+    return tree;
   }
 
   private <E> ValuationTree<E> filter(ValuationTree<E> tree, int bddNode) {

@@ -22,16 +22,15 @@ package owl.translations.ltl2ldba;
 import com.google.common.collect.Lists;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.SetMultimap;
-import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Function;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
@@ -90,7 +89,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
   AnnotatedLDBA<S, T, Acc, X, Y> build(
     MutableAutomaton<S, AllAcceptance> initialComponent,
     AcceptingComponentBuilder<T, Acc> acceptingComponentBuilder,
-    Function<S, Set<T>> jumps,
+    Function<? super S, ? extends Set<T>> jumps,
     Function<S, EquivalenceClass> languageFunction,
     X annotation,
     Y stateAnnotation) {
@@ -157,39 +156,28 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     return stateAnnotation;
   }
 
-  private class AutomatonView extends TwoPartAutomaton<S, T, B> {
+  private class AutomatonView extends
+    AbstractMemoizingAutomaton.PartitionedEdgeTreeImplementation<S, T, B> {
+
+    private AutomatonView() {
+      super(acceptingComponent.factory(),
+        initialComponent.initialStates(),
+        Set.of(),
+        acceptingComponent.acceptance());
+    }
+
     @Override
     public String name() {
       return initialComponent.name();
     }
 
     @Override
-    protected Set<S> initialStatesA() {
-      return initialComponent.initialStates();
-    }
-
-    @Override
-    protected Set<T> initialStatesB() {
-      return Set.of();
-    }
-
-    @Override
-    protected Set<Edge<S>> edgesA(S state, BitSet valuation) {
-      return initialComponent.edges(state, valuation);
-    }
-
-    @Override
-    protected Set<Edge<T>> edgesB(T state, BitSet valuation) {
-      return acceptingComponent.edges(state, valuation);
-    }
-
-    @Override
-    protected ValuationTree<Edge<S>> edgeTreeA(S state) {
+    protected ValuationTree<Edge<S>> edgeTreeImplA(S state) {
       return initialComponent.edgeTree(state);
     }
 
     @Override
-    protected ValuationTree<Edge<T>> edgeTreeB(T state) {
+    protected ValuationTree<Edge<T>> edgeTreeImplB(T state) {
       return acceptingComponent.edgeTree(state);
     }
 
@@ -230,16 +218,6 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
       acceptingComponentEdges.add(initialComponentEdge);
       return acceptingComponentEdges;
-    }
-
-    @Override
-    public B acceptance() {
-      return acceptingComponent.acceptance();
-    }
-
-    @Override
-    public ValuationSetFactory factory() {
-      return acceptingComponent.factory();
     }
   }
 

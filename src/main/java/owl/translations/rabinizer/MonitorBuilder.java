@@ -217,7 +217,7 @@ final class MonitorBuilder {
         "%s monitor for %s is not deterministic", relevantSets[contextIndex], initialClass);
     }
 
-    return new MonitorAutomaton(gOperator, builder);
+    return new MonitorAutomaton(gOperator, builder.values().iterator().next(), builder);
   }
 
   private MonitorState getSuccessor(MonitorState currentState, BitSet valuation, int[] priorities,

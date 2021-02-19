@@ -35,7 +35,7 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.function.BiFunction;
 import javax.annotation.Nullable;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -66,10 +66,13 @@ final class SymmetricDPAConstruction {
     }
 
     var builder = new SymmetricDPAConstruction.Builder(ldba);
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       builder.ldba.factory(), Set.of(builder.initialState), builder.acceptance) {
+
       @Override
-      public Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
+      protected Edge<SymmetricRankingState>
+        edgeImpl(SymmetricRankingState state, BitSet valuation) {
+
         return builder.edge(state, valuation);
       }
     };
@@ -89,8 +92,8 @@ final class SymmetricDPAConstruction {
       this.ldba = ldba;
       this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       // Identify  safety components.
-      acceptance = new ParityAcceptance(2 * Math.max(1, ldba.acceptingComponent().size() + 1),
-        Parity.MIN_ODD);
+      acceptance = new ParityAcceptance(
+        2 * Math.max(1, ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
       Map<Integer, EquivalenceClass> ldbaInitialState = ldba.initialComponent().onlyInitialState();
       initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
     }

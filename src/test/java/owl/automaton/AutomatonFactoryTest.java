@@ -76,7 +76,7 @@ class AutomatonFactoryTest {
     assertAll(
       () -> assertEquals(states, automaton.states()),
       () -> assertEquals(states, automaton.initialStates()),
-      () -> assertEquals(states, DefaultImplementations.getReachableStates(automaton)),
+      () -> assertEquals(states, HashMapAutomatonTest.getReachableStates(automaton)),
 
       () -> assertEquals(Set.of(edge), automaton.edges(state)),
       () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
@@ -97,7 +97,7 @@ class AutomatonFactoryTest {
     assertAll(
       () -> assertEquals(states, automaton.states()),
       () -> assertEquals(states, automaton.initialStates()),
-      () -> assertEquals(states, DefaultImplementations.getReachableStates(automaton)),
+      () -> assertEquals(states, HashMapAutomatonTest.getReachableStates(automaton)),
 
       () -> assertEquals(Set.of(edge), automaton.edges(state)),
       () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),

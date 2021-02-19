@@ -43,7 +43,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
@@ -190,7 +190,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
         });
       };
 
-    var automaton = new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
+    var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       factories.vsFactory,
       Collections3.ofNullable(initialState),
       AllAcceptance.INSTANCE) {
@@ -448,7 +448,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     @Override
     public MutableAutomaton<SymmetricProductState, B> build() {
       return HashMapAutomaton.copyOf(
-        new AbstractImmutableAutomaton.MemoizedNonDeterministicEdgeTreeAutomaton<>(
+        new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
           factories.vsFactory, Set.copyOf(anchors), acceptance) {
 
           @Override

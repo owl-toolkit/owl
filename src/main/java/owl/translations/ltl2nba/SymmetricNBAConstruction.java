@@ -27,15 +27,14 @@ import com.google.common.collect.Sets;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
-import owl.automaton.TwoPartAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
@@ -43,7 +42,6 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSetFactory;
 import owl.collections.Either;
 import owl.collections.ValuationTree;
 import owl.collections.ValuationTrees;
@@ -78,85 +76,159 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
   @Override
   public Automaton<Either<Formula, ProductState>, B> apply(LabelledFormula input) {
     var formula = input.nnf();
-    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
-    var automaton = new SymmetricNBA(factories, formula);
+    var automaton = create(formula);
     var mutableAutomaton = HashMapAutomaton.copyOf(automaton);
     AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
     return mutableAutomaton;
   }
 
-  private final class SymmetricNBA extends TwoPartAutomaton<Formula, ProductState, B> {
+  private SymmetricNBA create(LabelledFormula formula) {
+    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
+    var evaluationMap = new HashMap<Fixpoints, Set<SymmetricEvaluatedFixpoints>>();
+    var automataMap = new HashMap<SymmetricEvaluatedFixpoints, NonDeterministicAutomata>();
 
-    private final Set<Fixpoints> knownFixpoints;
-    private final Map<Fixpoints, Set<SymmetricEvaluatedFixpoints>> evaluationMap;
-    private final Map<SymmetricEvaluatedFixpoints, NonDeterministicAutomata> automataMap;
-    private final NonDeterministicConstructions.Tracking trackingAutomaton;
-    private final int acceptanceSets;
-    private final Factories factories;
+    // Compute initial state and available fixpoints.
+    var trackingAutomaton
+      = new NonDeterministicConstructions.Tracking(factories, formula.formula());
+    var knownFixpoints = new HashSet<Fixpoints>();
+    int acceptanceSets = 1;
 
-    private final Set<Formula> initialStatesA;
-    private final Set<ProductState> initialStatesB;
+    for (Formula initialFormula : trackingAutomaton.initialStates()) {
+      knownFixpoints.addAll(Selector.selectSymmetric(initialFormula, false));
+    }
 
-    private final String name;
+    for (Fixpoints fixpoints : knownFixpoints) {
+      var simplified = fixpoints.simplified();
 
-    private SymmetricNBA(Factories factories, LabelledFormula formula) {
-      var evaluationMap = new HashMap<Fixpoints, Set<SymmetricEvaluatedFixpoints>>();
-      var automataMap = new HashMap<SymmetricEvaluatedFixpoints, NonDeterministicAutomata>();
-
-      // Compute initial state and available fixpoints.
-      trackingAutomaton = new NonDeterministicConstructions.Tracking(factories, formula.formula());
-      this.factories = factories;
-      var knownFixpoints = new HashSet<Fixpoints>();
-      int acceptanceSets = 1;
-
-      for (Formula initialFormula : trackingAutomaton.initialStates()) {
-        knownFixpoints.addAll(Selector.selectSymmetric(initialFormula, false));
+      if (evaluationMap.containsKey(simplified)) {
+        continue;
       }
 
-      this.knownFixpoints = Set.copyOf(knownFixpoints);
+      var evaluatedSet = build(formula.formula(), simplified, factories);
+      evaluationMap.put(simplified, evaluatedSet);
 
-      for (Fixpoints fixpoints : this.knownFixpoints) {
-        var simplified = fixpoints.simplified();
-
-        if (evaluationMap.containsKey(simplified)) {
+      for (var evaluated : evaluatedSet) {
+        if (automataMap.containsKey(evaluated)) {
           continue;
         }
 
-        var evaluatedSet = build(formula.formula(), simplified, factories);
-        evaluationMap.put(simplified, evaluatedSet);
+        var automata = evaluated.nonDeterministicAutomata(factories,
+          acceptanceClass.equals(GeneralizedBuchiAcceptance.class));
+        automataMap.put(evaluated, automata);
 
-        for (var evaluated : evaluatedSet) {
-          if (automataMap.containsKey(evaluated)) {
+        if (automata.gfCoSafetyAutomaton != null) {
+          acceptanceSets = Math.max(acceptanceSets,
+            automata.gfCoSafetyAutomaton.acceptance().acceptanceSets());
+        }
+      }
+    }
+
+    Set<Formula> initialStatesA = new HashSet<>();
+    Set<ProductState> initialStatesB = new HashSet<>();
+
+    Function<Formula, Set<ProductState>> moveAtoB = state -> {
+      if (SyntacticFragments.isCoSafety(state)
+        || SyntacticFragments.isSafety(state)
+        || (SyntacticFragments.isFSafety(state) && !state.isSuspendable())) {
+        return Set.of();
+      }
+
+      var allModalOperators = state.subformulas(Formula.TemporalOperator.class);
+
+      var availableFixpoints = knownFixpoints.stream()
+        .filter(x -> x.allFixpointsPresent(allModalOperators))
+        .map(Fixpoints::simplified)
+        .collect(Collectors.toSet());
+
+      if (state instanceof Conjunction) {
+        for (Formula x : state.operands) {
+          if (!(x instanceof Formula.TemporalOperator)) {
             continue;
           }
 
-          var automata = evaluated.nonDeterministicAutomata(factories,
-            acceptanceClass.equals(GeneralizedBuchiAcceptance.class));
-          automataMap.put(evaluated, automata);
+          if (!SyntacticFragments.isCoSafety(x)) {
+            continue;
+          }
 
-          if (automata.gfCoSafetyAutomaton != null) {
-            acceptanceSets = Math.max(acceptanceSets,
-              automata.gfCoSafetyAutomaton.acceptance().acceptanceSets());
+          if (allModalOperators.stream()
+            .filter(Predicate.not(SyntacticFragments::isCoSafety))
+            .noneMatch(y -> y.subformulas(Formula.TemporalOperator.class).contains(x))) {
+            return Set.of();
           }
         }
       }
 
-      this.acceptanceSets = acceptanceSets;
-      this.automataMap = Map.copyOf(automataMap);
-      this.evaluationMap = Map.copyOf(evaluationMap);
+      Set<ProductState> bStates = new HashSet<>();
 
-      this.initialStatesA = new HashSet<>();
-      this.initialStatesB = new HashSet<>();
+      Maps.filterKeys(evaluationMap, availableFixpoints::contains)
+        .forEach((fixpoints, set) -> {
+          for (SymmetricEvaluatedFixpoints symmetricEvaluatedFixpoints : set) {
+            var remainder = state.unfold().substitute(new Rewriter.ToSafety(fixpoints));
 
-      for (Formula initialFormula : trackingAutomaton.initialStates()) {
-        if (SyntacticFragments.isGfCoSafety(initialFormula)) {
-          initialStatesB.addAll(moveAtoB(initialFormula));
-        } else {
-          initialStatesA.add(initialFormula);
-        }
+            if (BooleanConstant.FALSE.equals(state)) {
+              return;
+            }
+
+            var automata = automataMap.get(symmetricEvaluatedFixpoints);
+            var safety = automata.safetyAutomaton.initialStatesWithRemainder(remainder);
+
+            for (Formula safetyState : safety) {
+              if (automata.gfCoSafetyAutomaton == null) {
+                bStates.add(
+                  new ProductState(safetyState, null, symmetricEvaluatedFixpoints, automata));
+                continue;
+              }
+
+              for (var gfCoSafetyState : automata.gfCoSafetyAutomaton.initialStates()) {
+                bStates.add(new ProductState(safetyState, gfCoSafetyState,
+                  symmetricEvaluatedFixpoints, automata));
+              }
+            }
+          }
+        });
+
+      return bStates;
+    };
+
+    for (Formula initialFormula : trackingAutomaton.initialStates()) {
+      if (SyntacticFragments.isGfCoSafety(initialFormula)) {
+        initialStatesB.addAll(moveAtoB.apply(initialFormula));
+      } else {
+        initialStatesA.add(initialFormula);
       }
+    }
 
-      this.name = "LTL to NBA (symmetric) for formula: " + formula;
+    return new SymmetricNBA(initialStatesA,
+      initialStatesB,
+      acceptanceClass.cast(GeneralizedBuchiAcceptance.of(acceptanceSets)),
+      trackingAutomaton,
+      acceptanceSets,
+      factories,
+      "LTL to NBA (symmetric) for formula: " + formula,
+      moveAtoB);
+  }
+
+  private final class SymmetricNBA extends
+    AbstractMemoizingAutomaton.PartitionedEdgeTreeImplementation<Formula, ProductState, B> {
+
+    private final Function<Formula, Set<ProductState>> moveAtoB;
+    private final NonDeterministicConstructions.Tracking trackingAutomaton;
+    private final int acceptanceSets;
+    private final Factories factories;
+    private final String name;
+
+    public SymmetricNBA(Set<Formula> initialStatesA,
+      Set<ProductState> initialStatesB, B acceptance,
+      NonDeterministicConstructions.Tracking trackingAutomaton, int acceptanceSets,
+      Factories factories, String name,
+      Function<Formula, Set<ProductState>> moveAtoB) {
+      super(factories.vsFactory, initialStatesA, initialStatesB, acceptance);
+
+      this.moveAtoB = moveAtoB;
+      this.trackingAutomaton = trackingAutomaton;
+      this.acceptanceSets = acceptanceSets;
+      this.factories = factories;
+      this.name = name;
     }
 
     @Override
@@ -165,32 +237,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     }
 
     @Override
-    public ValuationSetFactory factory() {
-      return factories.vsFactory;
-    }
-
-    @Override
-    public B acceptance() {
-      return acceptanceClass.cast(GeneralizedBuchiAcceptance.of(acceptanceSets));
-    }
-
-    @Override
-    protected Set<Formula> initialStatesA() {
-      return initialStatesA;
-    }
-
-    @Override
-    protected Set<ProductState> initialStatesB() {
-      return initialStatesB;
-    }
-
-    @Override
-    protected Set<Edge<Formula>> edgesA(Formula state, BitSet valuation) {
-      return buildEdgeA(trackingAutomaton.successors(state, valuation));
-    }
-
-    @Override
-    protected ValuationTree<Edge<Formula>> edgeTreeA(Formula state) {
+    protected ValuationTree<Edge<Formula>> edgeTreeImplA(Formula state) {
       return trackingAutomaton.edgeTree(state).map(x -> buildEdgeA(Edges.successors(x)));
     }
 
@@ -213,7 +260,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     }
 
     @Override
-    protected ValuationTree<Edge<ProductState>> edgeTreeB(ProductState state) {
+    protected ValuationTree<Edge<ProductState>> edgeTreeImplB(ProductState state) {
       var automata = Objects.requireNonNull(state.automata);
       var safetyState = Objects.requireNonNull(state.safety);
       var safetyAutomaton = automata.safetyAutomaton;
@@ -247,67 +294,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
 
     @Override
     protected Set<ProductState> moveAtoB(Formula state) {
-      if (SyntacticFragments.isCoSafety(state)
-        || SyntacticFragments.isSafety(state)
-        || (SyntacticFragments.isFSafety(state) && !state.isSuspendable())) {
-        return Set.of();
-      }
-
-      var allModalOperators = state.subformulas(Formula.TemporalOperator.class);
-
-      var availableFixpoints = knownFixpoints.stream()
-        .filter(x -> x.allFixpointsPresent(allModalOperators))
-        .map(Fixpoints::simplified)
-        .collect(Collectors.toSet());
-
-      if (state instanceof Conjunction) {
-        for (Formula x : state.operands) {
-          if (!(x instanceof Formula.TemporalOperator)) {
-            continue;
-          }
-
-          if (!SyntacticFragments.isCoSafety(x)) {
-            continue;
-          }
-
-          if (allModalOperators.stream()
-            .filter(Predicate.not(SyntacticFragments::isCoSafety))
-            .noneMatch(y -> y.subformulas(Formula.TemporalOperator.class).contains(x))) {
-            return Set.of();
-          }
-        }
-      }
-
-      var bStates = new HashSet<ProductState>();
-
-      Maps.filterKeys(evaluationMap, availableFixpoints::contains)
-        .forEach((fixpoints, set) -> {
-          for (SymmetricEvaluatedFixpoints symmetricEvaluatedFixpoints : set) {
-            var remainder = state.unfold().substitute(new Rewriter.ToSafety(fixpoints));
-
-            if (BooleanConstant.FALSE.equals(state)) {
-              return;
-            }
-
-            var automata = automataMap.get(symmetricEvaluatedFixpoints);
-            var safety = automata.safetyAutomaton.initialStatesWithRemainder(remainder);
-
-            for (Formula safetyState : safety) {
-              if (automata.gfCoSafetyAutomaton == null) {
-                bStates.add(
-                  new ProductState(safetyState, null, symmetricEvaluatedFixpoints, automata));
-                continue;
-              }
-
-              for (var gfCoSafetyState : automata.gfCoSafetyAutomaton.initialStates()) {
-                bStates.add(new ProductState(safetyState, gfCoSafetyState,
-                  symmetricEvaluatedFixpoints, automata));
-              }
-            }
-          }
-        });
-
-      return bStates;
+      return moveAtoB.apply(state);
     }
 
     @Override

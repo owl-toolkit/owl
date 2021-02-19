@@ -108,8 +108,8 @@ class TranslationReport {
 
       completeCount = completeCount + 2;
 
-      int draSize = draSymmetric.apply(formula).size();
-      int normalformSize = normalform.apply(formula).size();
+      int draSize = draSymmetric.apply(formula).states().size();
+      int normalformSize = normalform.apply(formula).states().size();
 
       draSizes.add(draSize);
       normalformSizes.add(normalformSize);
@@ -125,9 +125,8 @@ class TranslationReport {
       }
 
 
-
-      draSize = draSymmetric.apply(formula.not()).size();
-      normalformSize = normalform.apply(formula.not()).size();
+      draSize = draSymmetric.apply(formula.not()).states().size();
+      normalformSize = normalform.apply(formula.not()).states().size();
 
       draSizes.add(draSize);
       normalformSizes.add(normalformSize);
@@ -203,11 +202,13 @@ class TranslationReport {
 
       completeCount = completeCount + 2;
 
-      if (dgraSymmetric.apply(formula).size() <= dgraAsymmetric.apply(formula).size()) {
+      if (dgraSymmetric.apply(formula).states().size() <= dgraAsymmetric.apply(formula).states()
+          .size()) {
         symmeticLeq++;
       }
 
-      if (dgraSymmetric.apply(formula.not()).size() <= dgraAsymmetric.apply(formula.not()).size()) {
+      if (dgraSymmetric.apply(formula.not()).states().size() <= dgraAsymmetric.apply(formula.not())
+          .states().size()) {
         symmeticLeq++;
       }
 
@@ -340,7 +341,7 @@ class TranslationReport {
         = LTL2DPAModule.translation(false, true, true).apply(labelledFormula);
       var automaton2
         = LTL2DPAModule.translation(true, true, true).apply(labelledFormula);
-      return automaton1.size() <= automaton2.size() ? automaton1 : automaton2;
+      return automaton1.states().size() <= automaton2.states().size() ? automaton1 : automaton2;
     });
 
     // External

@@ -19,16 +19,14 @@
 
 package owl.automaton;
 
-import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
 import owl.bdd.ValuationSetFactory;
+import owl.collections.ValuationTree;
 
 public final class EmptyAutomaton<S, A extends OmegaAcceptance>
-  extends AbstractImmutableAutomaton<S, A>
-  implements EdgeMapAutomatonMixin<S, A> {
+  extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
   private EmptyAutomaton(ValuationSetFactory factory, A acceptance) {
     super(factory, Set.of(), acceptance);
@@ -40,7 +38,7 @@ public final class EmptyAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+  protected ValuationTree<Edge<S>> edgeTreeImpl(S state) {
     throw new IllegalArgumentException("There are no states in this automaton.");
   }
 }

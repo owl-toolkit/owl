@@ -154,6 +154,26 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
   public abstract BitSet copyInto(BitSet target);
 
+  public final Colours union(Colours that) {
+    if (this.containsAll(that)) {
+      return this;
+    }
+
+    if (that.containsAll(this)) {
+      return that;
+    }
+
+    // TODO: case distinction: Small and Large Sets.
+    BitSet union = this.copyInto(new BitSet());
+    that.copyInto(union);
+
+    if (union.cardinality() > 1) {
+      return new Large(union);
+    }
+
+    return copyOf(union);
+  }
+
   public final Colours intersection(Colours that) {
     if (this.containsAll(that)) {
       return that;

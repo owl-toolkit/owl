@@ -25,7 +25,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.IntPredicate;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -78,11 +78,11 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       return Edge.of(new Counter<>(edge.successor(), counters));
     };
 
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       automaton.factory(), Set.of(initialState), AllAcceptance.INSTANCE) {
 
       @Override
-      public Edge<Counter<S>> edge(Counter<S> state, BitSet valuation) {
+      public Edge<Counter<S>> edgeImpl(Counter<S> state, BitSet valuation) {
         return successor.apply(state, valuation);
       }
     };

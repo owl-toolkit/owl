@@ -46,7 +46,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
@@ -349,7 +349,7 @@ public final class IARBuilder<R> {
   }
 
   private static final class IARExplorer<S> extends
-    AbstractImmutableAutomaton<IARState<S>, ParityAcceptance> {
+      AbstractAutomaton<IARState<S>, ParityAcceptance> {
     private final Automaton<S, RabinAcceptance> rabinAutomaton;
     private final RabinPair[] indexToPair;
     private final Parity parity;

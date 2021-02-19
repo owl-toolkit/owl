@@ -32,11 +32,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton.EdgesImplementation;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.BooleanOperations;
-import owl.automaton.EdgesAutomatonMixin;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -85,8 +84,7 @@ public final class NBA2DPA
   }
 
   private static final class RankingAutomaton<S>
-    extends AbstractImmutableAutomaton<RankingState<S>, ParityAcceptance>
-    implements EdgesAutomatonMixin<RankingState<S>, ParityAcceptance> {
+    extends EdgesImplementation<RankingState<S>, ParityAcceptance> {
 
     private final Automaton<S, BuchiAcceptance> nba;
     private final Set<S> initialComponent;
@@ -103,7 +101,7 @@ public final class NBA2DPA
     }
 
     @Override
-    public Set<Edge<RankingState<S>>> edges(RankingState<S> state, BitSet valuation) {
+    public Set<Edge<RankingState<S>>> edgesImpl(RankingState<S> state, BitSet valuation) {
       var initialComponentSuccessors = new HashSet<S>();
       var acceptingComponentSuccessors = new HashSet<S>();
 

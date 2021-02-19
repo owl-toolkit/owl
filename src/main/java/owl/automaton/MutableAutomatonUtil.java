@@ -19,9 +19,12 @@
 
 package owl.automaton;
 
-import java.util.BitSet;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
@@ -33,6 +36,7 @@ public final class MutableAutomatonUtil {
 
   public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> asMutable(
     Automaton<S, A> automaton) {
+
     if (automaton instanceof MutableAutomaton) {
       return (MutableAutomaton<S, A>) automaton;
     }
@@ -75,39 +79,27 @@ public final class MutableAutomatonUtil {
   /**
    * Copies all the states of {@code source} into {@code target}.
    */
-  public static <S> void copyInto(Automaton<S, ?> source, MutableAutomaton<S, ?> target) {
-    source.accept((Automaton.Visitor<S>) new CopyVisitor<>(target));
+  public static <S> void copyInto(Automaton<S, ?> source, MutableAutomaton<? super S, ?> target) {
+    // Use a work-list algorithm in case source is an on-the-fly generated automaton.
+    Deque<S> workList = new ArrayDeque<>(source.initialStates());
+    Set<S> visited = new HashSet<>(workList);
+
+    while (!workList.isEmpty()) {
+      S state = workList.remove();
+      target.addState(state);
+      source.edgeMap(state).forEach((x, y) -> {
+        target.addEdge(state, y, x);
+        if (visited.add(x.successor())) {
+          workList.add(x.successor());
+        }
+      });
+    }
   }
 
   public static final class Sink {
     @Override
     public String toString() {
       return "Sink";
-    }
-  }
-
-  private static final class CopyVisitor<S>
-    implements Automaton.EdgeVisitor<S>, Automaton.EdgeMapVisitor<S> {
-
-    private final MutableAutomaton<S, ?> target;
-
-    private CopyVisitor(MutableAutomaton<S, ?> target) {
-      this.target = target;
-    }
-
-    @Override
-    public void visit(S state, BitSet valuation, Edge<S> edge) {
-      target.addEdge(state, valuation, edge);
-    }
-
-    @Override
-    public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-      edgeMap.forEach((x, y) -> target.addEdge(state, y, x));
-    }
-
-    @Override
-    public void enter(S state) {
-      target.addState(state);
     }
   }
 }

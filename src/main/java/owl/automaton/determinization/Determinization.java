@@ -24,7 +24,7 @@ import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractImmutableAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -37,13 +37,13 @@ public class Determinization {
   public static <S> Automaton<Set<S>, AllAcceptance>
     determinizeAllAcceptance(Automaton<S, AllAcceptance> automaton) {
 
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       automaton.factory(),
       Set.of(automaton.initialStates()),
       AllAcceptance.INSTANCE) {
 
       @Override
-      public Edge<Set<S>> edge(Set<S> state, BitSet valuation) {
+      public Edge<Set<S>> edgeImpl(Set<S> state, BitSet valuation) {
         Set<S> successors = state.stream()
           .flatMap(x -> automaton.successors(x, valuation).stream())
           .collect(Collectors.toUnmodifiableSet());
@@ -55,13 +55,15 @@ public class Determinization {
   public static <S> Automaton<BreakpointState<S>, CoBuchiAcceptance>
     determinizeCoBuchiAcceptance(Automaton<S, CoBuchiAcceptance> ncw) {
 
-    return new AbstractImmutableAutomaton.SemiDeterministicEdgesAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       ncw.factory(),
       Set.of(BreakpointState.of(ncw.initialStates(), ncw.initialStates())),
       CoBuchiAcceptance.INSTANCE) {
 
       @Override
-      public Edge<BreakpointState<S>> edge(BreakpointState<S> breakpointState, BitSet valuation) {
+      public Edge<BreakpointState<S>> edgeImpl(
+        BreakpointState<S> breakpointState, BitSet valuation) {
+
         Set<S> successors = new HashSet<>();
         Set<S> rejectingSuccessors = new HashSet<>();
 

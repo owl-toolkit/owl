@@ -49,7 +49,7 @@ public final class LanguageContainment {
 
     var automaton2Complement = BooleanOperations.deterministicComplement(
       (Automaton<Object, ?>) automaton2, new Object(), EmersonLeiAcceptance.class);
-    var intersection = BooleanOperations.intersection(automaton1, automaton2Complement,true);
+    var intersection = BooleanOperations.intersection(automaton1, automaton2Complement);
 
     return LanguageEmptiness.isEmpty(intersection);
   }

@@ -57,6 +57,7 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 
@@ -201,7 +202,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     SortedMap<RabinPair, IntSet> pairActiveSccs = new TreeMap<>();
     Indices.forEachIndexed(
       SccDecomposition.of(automaton).sccsWithoutTransient(), (sccIndex, scc) -> {
-      BitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
+      Colours indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       pairs.forEach(pair -> {
         if (pair.contains(indices)) {
           pairActiveSccs.computeIfAbsent(pair, k -> new IntOpenHashSet()).add(sccIndex);
@@ -526,17 +527,17 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       .collect(Collectors.toUnmodifiableList());
 
     for (Set<S> scc : SccDecomposition.of(automaton).sccsWithoutTransient()) {
-      BitSet indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
+      Colours indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
       BitSet indicesToRemove = new BitSet();
 
       for (RabinPair pair : acceptance.pairs()) {
-        boolean finOccurring = indicesInScc.get(pair.finSet());
+        boolean finOccurring = indicesInScc.contains(pair.finSet());
         boolean infOccurring = false;
         boolean impossibleIndexFound = false;
 
         for (int number = 0; number < pair.infSetCount()
           && !(impossibleIndexFound && infOccurring); number++) {
-          if (indicesInScc.get(pair.infSet(number))) {
+          if (indicesInScc.contains(pair.infSet(number))) {
             infOccurring = true;
           } else {
             impossibleIndexFound = true;
@@ -554,12 +555,14 @@ public final class GeneralizedRabinAcceptanceOptimizations {
         }
       }
 
+      BitSet indicesInSccBitSet = indicesInScc.copyInto(new BitSet());
+
       finOnlyPairs.stream()
-        .filter(pair -> !indicesInScc.get(pair.finSet()))
+        .filter(pair -> !indicesInScc.contains(pair.finSet()))
         .findAny()
         .ifPresent(pair -> {
-          indicesInScc.clear(pair.finSet());
-          AcceptanceOptimizations.removeIndices(automaton, scc, indicesInScc);
+          indicesInSccBitSet.clear(pair.finSet());
+          AcceptanceOptimizations.removeIndices(automaton, scc, indicesInSccBitSet);
         });
 
       AcceptanceOptimizations.removeIndices(automaton, scc, indicesToRemove);
@@ -608,9 +611,9 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
   public static <S> void mergeBuchiTypePairs(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    BitSet usedIndices = AutomatonUtil.getAcceptanceSets(automaton);
+    Colours colours = AutomatonUtil.getAcceptanceSets(automaton);
     List<RabinPair> buchiTypePairs = automaton.acceptance().pairs().stream()
-      .filter(x -> x.infSetCount() == 1 && !usedIndices.get(x.finSet()))
+      .filter(x -> x.infSetCount() == 1 && !colours.contains(x.finSet()))
       .collect(Collectors.toList());
 
     if (buchiTypePairs.size() < 2) {

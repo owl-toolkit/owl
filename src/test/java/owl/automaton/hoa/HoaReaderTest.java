@@ -196,7 +196,7 @@ class HoaReaderTest {
       assertFalse(states.containsKey(stateId));
       states.put(stateId, state);
     });
-    assertEquals(states.size(), automaton.size());
+    assertEquals(states.size(), automaton.states().size());
     return states;
   }
 
@@ -205,7 +205,7 @@ class HoaReaderTest {
     Automaton<HoaState, BuchiAcceptance> automaton = OmegaAcceptanceCast.cast(
       HoaReader.read(HOA_BUCHI, FACTORY_SUPPLIER),
       BuchiAcceptance.class);
-    assertThat(automaton.size(), x -> x == 2);
+    assertThat(automaton.states().size(), x -> x == 2);
     var stateMap = getStates(automaton);
     ValuationSetFactory valuationSetFactory = automaton.factory();
 
@@ -258,7 +258,7 @@ class HoaReaderTest {
   @Test
   void readAutomatonSimple() throws ParseException {
     var automaton = HoaReader.read(HOA_SIMPLE, FACTORY_SUPPLIER);
-    assertThat(automaton.size(), x -> x == 2);
+    assertThat(automaton.states().size(), x -> x == 2);
     assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);
 
     var initialState = automaton.onlyInitialState();
@@ -276,7 +276,7 @@ class HoaReaderTest {
   void testAcceptanceGeneralizedBuchi() throws ParseException {
     var automaton = HoaReader.read(HOA_GENERALIZED_BUCHI, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), x -> x == 1);
+    assertThat(automaton.states().size(), x -> x == 1);
     assertThat(automaton.acceptance(), GeneralizedBuchiAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
@@ -285,7 +285,7 @@ class HoaReaderTest {
   void testAcceptanceGeneralizedRabin() throws ParseException {
     var automaton = HoaReader.read(HOA_GENERALIZED_RABIN, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), x -> x == 2);
+    assertThat(automaton.states().size(), x -> x == 2);
     assertThat(automaton.acceptance(), GeneralizedRabinAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 5);
   }
@@ -294,7 +294,7 @@ class HoaReaderTest {
   void testAcceptanceGeneric() throws ParseException {
     var automaton = HoaReader.read(HOA_GENERIC, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), x -> x == 3);
+    assertThat(automaton.states().size(), x -> x == 3);
     assertThat(automaton.acceptance(), EmersonLeiAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
@@ -303,7 +303,7 @@ class HoaReaderTest {
   void testAcceptanceRabin() throws ParseException {
     var automaton = HoaReader.read(HOA_RABIN, FACTORY_SUPPLIER);
 
-    assertThat(automaton.size(), x -> x == 3);
+    assertThat(automaton.states().size(), x -> x == 3);
     assertThat(automaton.acceptance(), RabinAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
@@ -325,7 +325,7 @@ class HoaReaderTest {
     assertTimeout(Duration.ofSeconds(10), () -> {
       var automaton = HoaReader.read(HoaConstants.LARGE_ALPHABET, FACTORY_SUPPLIER);
 
-      assertEquals(125, automaton.size());
+      assertEquals(125, automaton.states().size());
       assertEquals(213, automaton.factory().atomicPropositions().size());
     });
   }

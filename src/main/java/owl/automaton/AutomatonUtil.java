@@ -21,7 +21,6 @@ package owl.automaton;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -29,13 +28,12 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
-import owl.automaton.Automaton.EdgeMapVisitor;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 
 public final class AutomatonUtil {
 
@@ -68,40 +66,30 @@ public final class AutomatonUtil {
   public static <S> Map<S, ValuationSet> getIncompleteStates(Automaton<S, ?> automaton) {
     Map<S, ValuationSet> incompleteStates = new HashMap<>();
 
-    EdgeMapVisitor<S> visitor = new EdgeMapVisitor<>() {
-      private final ValuationSetFactory factory = automaton.factory();
+    for (S state : automaton.states()) {
+      ValuationSet union = automaton.factory().of();
 
-      @Override
-      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        ValuationSet set = edgeMap.values().stream().reduce(factory.of(), ValuationSet::union);
-
-        if (!set.isUniverse()) {
-          incompleteStates.put(state, set.complement());
-        }
+      for (ValuationSet valuationSet : automaton.edgeMap(state).values()) {
+        union = union.union(valuationSet);
       }
-    };
 
-    automaton.accept(visitor);
+      if (!union.isUniverse()) {
+        incompleteStates.put(state, union.complement());
+      }
+    }
+
     return incompleteStates;
   }
 
   public static <S> Set<S> getNondeterministicStates(Automaton<S, ?> automaton) {
     Set<S> nondeterministicStates = new HashSet<>();
 
-    EdgeMapVisitor<S> visitor = (state, edgeMap) -> {
-      ValuationSet union = automaton.factory().of();
-
-      for (ValuationSet valuationSet : edgeMap.values()) {
-        if (union.intersects(valuationSet)) {
-          nondeterministicStates.add(state);
-          return;
-        } else {
-          union = union.union(valuationSet);
-        }
+    for (S state : automaton.states()) {
+      if (automaton.edgeTree(state).values().stream().anyMatch(x -> x.size() > 1)) {
+        nondeterministicStates.add(state);
       }
-    };
+    }
 
-    automaton.accept(visitor);
     return nondeterministicStates;
   }
 
@@ -113,50 +101,26 @@ public final class AutomatonUtil {
    * @param <S> the type of the states
    * @return a set containing all acceptance indices
    */
-  public static <S> BitSet getAcceptanceSets(Automaton<S, ?> automaton, Set<S> states) {
-    BitSet set = new BitSet();
+  public static <S> Colours getAcceptanceSets(Automaton<S, ?> automaton, Set<S> states) {
+    Colours colours = Colours.of();
 
     for (S state : states) {
-      automaton.edges(state).forEach(edge -> {
-        if (states.contains(edge.successor())) {
-          edge.colours().copyInto(set);
-        }
-      });
+      for (Edge<S> edge : automaton.edges(state)) {
+        colours = colours.union(edge.colours());
+      }
     }
 
-    return set;
+    return colours;
   }
 
   /**
-   * Collect all acceptance sets occurring on transitions within the given state set.
+   * Collect all acceptance sets occurring on transitions.
    *
    * @param automaton the automaton
    * @return a set containing all acceptance indices
    */
-  public static <S> BitSet getAcceptanceSets(Automaton<S, ?> automaton) {
-    BitSet indices = new BitSet();
-
-    switch (automaton.preferredEdgeAccess().get(0)) {
-      case EDGES:
-        automaton.accept(
-          (state, valuation, edge) -> edge.colours().copyInto(indices));
-        break;
-
-      case EDGE_MAP:
-        automaton.accept((EdgeMapVisitor<S>) (state, edgeMap) -> edgeMap.forEach(
-          (edge, set) -> edge.colours().copyInto(indices)));
-        break;
-
-      case EDGE_TREE:
-        automaton.accept((Automaton.EdgeTreeVisitor<S>) (state, tree) -> tree.flatValues().forEach(
-          edge -> edge.colours().copyInto(indices)));
-        break;
-
-      default:
-        throw new AssertionError("Unreachable.");
-    }
-
-    return indices;
+  public static <S> Colours getAcceptanceSets(Automaton<S, ?> automaton) {
+    return getAcceptanceSets(automaton, automaton.states());
   }
 
   public static <S, B extends GeneralizedBuchiAcceptance>
@@ -165,8 +129,10 @@ public final class AutomatonUtil {
     Set<S> acceptingSccs = new HashSet<>();
 
     for (Set<S> scc : SccDecomposition.of(automaton).sccs()) {
-      if (!LanguageEmptiness.isEmpty(Views.filtered(automaton,
-        Views.Filter.of(Set.of(scc.iterator().next()), scc::contains)))) {
+      var sccAutomaton = Views.filtered(automaton,
+        Views.Filter.of(Set.of(scc.iterator().next()), scc::contains));
+
+      if (!LanguageEmptiness.isEmpty(sccAutomaton)) {
         acceptingSccs.addAll(scc);
       }
     }
@@ -195,5 +161,4 @@ public final class AutomatonUtil {
         automaton, Set.copyOf(initialComponent));
     }
   }
-
 }

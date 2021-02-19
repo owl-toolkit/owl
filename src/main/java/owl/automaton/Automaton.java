@@ -21,7 +21,6 @@ package owl.automaton;
 
 import com.google.common.collect.Iterables;
 import de.tum.in.naturals.bitset.BitSets;
-import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,19 +43,14 @@ import owl.collections.ValuationTree;
  * {@link MutableAutomaton} interface or an on-the-fly view from {@link Views} can be used.
  *
  * <p>The methods of the interface are always referring to the set of states reachable from
- * the initial states, especially {@link Automaton#size}, {@link Automaton#states()},
- * {@link Automaton#accept(EdgeVisitor)}, {@link Automaton#accept(EdgeMapVisitor)},
- * {@link Automaton#accept(EdgeTreeVisitor)}, {@link Automaton#predecessors(Object)} only refer
- * to the from the initial states reachable set.</p>
+ * the initial states, i.e., {@link Automaton#states()} and {@link Automaton#predecessors(Object)}
+ * only refer to the from the initial states reachable set.</p>
  *
  * <p>All methods throw an {@link IllegalArgumentException} on a best-effort basis if they detect
  * that a state given as an argument is not reachable from the initial states. Note that this
- * behavior cannot be guaranteed, as it is, generally speaking, extremely expensive to check this
+ * behavior cannot be guaranteed, as it is, generally speaking, expensive to check this
  * for on-the-fly constructed automata. Therefore, it would be wrong to write a program that
  * depends on this exception for its correctness: this should be only used to detect bugs.</p>
- *
- * <p>Further, every state-related operation (e.g., {@link #successors(Object)}) should be unique,
- * while edge-related operations may yield duplicates.</p>
  *
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
@@ -84,8 +78,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    */
   ValuationSetFactory factory();
 
-
-  // Initial states
+  // States
 
   /**
    * Returns the initial state. Throws an {@link NoSuchElementException} if there is no and
@@ -117,22 +110,6 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    * @return The set of initial states.
    */
   Set<S> initialStates();
-
-
-  // State-set properties
-
-  /**
-   * Returns the number of reachable states of this automaton (its cardinality). If this
-   * set contains more than {@code Integer.MAX_VALUE} elements, it returns
-   * {@code Integer.MAX_VALUE}.
-   *
-   * @return the number of elements in this set (its cardinality)
-   *
-   * @see #states()
-   */
-  default int size() {
-    return states().size();
-  }
 
   /**
    * The set of all from the initial states reachable states in this automaton.
@@ -286,51 +263,13 @@ public interface Automaton<S, A extends OmegaAcceptance> {
   default Set<S> predecessors(S successor) {
     Set<S> predecessors = new HashSet<>();
 
-    var visitor = new EdgeMapVisitor<S>() {
-      @Override
-      public void visit(S state, Map<Edge<S>, ValuationSet> edgeMap) {
-        if (edgeMap.keySet().stream().anyMatch(x -> x.successor().equals(successor))) {
-          predecessors.add(state);
-        }
-      }
-    };
-
-    this.accept(visitor);
-    return predecessors;
-  }
-
-  // Automaton Visitor
-
-  default void accept(EdgeVisitor<S> visitor) {
-    DefaultImplementations.visit(this, visitor);
-  }
-
-  default void accept(EdgeMapVisitor<S> visitor) {
-    DefaultImplementations.visit(this, visitor);
-  }
-
-  default void accept(EdgeTreeVisitor<S> visitor) {
-    DefaultImplementations.visit(this, visitor);
-  }
-
-  /**
-   * Traverse all edges of the automaton using the preferred visitor style. The iteration order is
-   * not specified and can be arbitrary.
-   *
-   * @param visitor the visitor.
-   */
-  default void accept(Visitor<S> visitor) {
-    List<PreferredEdgeAccess> preferredEdgeAccesses = preferredEdgeAccess();
-
-    for (PreferredEdgeAccess mode : preferredEdgeAccesses) {
-      if (mode.matches(visitor)) {
-        mode.dispatch(this, visitor);
-        return;
+    for (S state : states()) {
+      if (successors(state).contains(successor)) {
+        predecessors.add(state);
       }
     }
 
-    throw new IllegalArgumentException(String.format("No common access mode for %s and %s.",
-      preferredEdgeAccesses, Arrays.toString(visitor.getClass().getInterfaces())));
+    return predecessors;
   }
 
   // Properties
@@ -349,57 +288,19 @@ public interface Automaton<S, A extends OmegaAcceptance> {
   List<PreferredEdgeAccess> preferredEdgeAccess();
 
   enum PreferredEdgeAccess {
-    EDGES {
-      @Override
-      <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor) {
-        automaton.accept((EdgeVisitor<S>) visitor);
-      }
-
-      @Override
-      boolean matches(Visitor<?> visitor) {
-        return visitor instanceof Automaton.EdgeVisitor;
-      }
-    },
-
-    EDGE_MAP {
-      @Override
-      <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor) {
-        automaton.accept((EdgeMapVisitor<S>) visitor);
-      }
-
-      @Override
-      boolean matches(Visitor<?> visitor) {
-        return visitor instanceof Automaton.EdgeMapVisitor;
-      }
-    },
-
-    EDGE_TREE {
-      @Override
-      <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor) {
-        automaton.accept((EdgeTreeVisitor<S>) visitor);
-      }
-
-      @Override
-      boolean matches(Visitor<?> visitor) {
-        return visitor instanceof Automaton.EdgeTreeVisitor;
-      }
-    };
-
-    abstract boolean matches(Visitor<?> visitor);
-
-    abstract <S> void dispatch(Automaton<S, ?> automaton, Visitor<S> visitor);
+    EDGES, EDGE_MAP, EDGE_TREE;
   }
 
   default boolean is(Property property) {
     switch (property) {
       case COMPLETE:
-        return Properties.isComplete(this);
+        return !initialStates().isEmpty() && AutomatonUtil.getIncompleteStates(this).isEmpty();
 
       case DETERMINISTIC:
-        return Properties.isDeterministic(this);
+        return initialStates().size() <= 1 && is(Property.SEMI_DETERMINISTIC);
 
       case SEMI_DETERMINISTIC:
-        return Properties.isSemiDeterministic(this);
+        return AutomatonUtil.getNondeterministicStates(this).isEmpty();
 
       case LIMIT_DETERMINISTIC:
         if (acceptance() instanceof GeneralizedBuchiAcceptance) {
@@ -416,66 +317,25 @@ public interface Automaton<S, A extends OmegaAcceptance> {
   }
 
   enum Property {
-    COMPLETE, DETERMINISTIC, SEMI_DETERMINISTIC, LIMIT_DETERMINISTIC
-  }
-
-  interface Visitor<S> {
 
     /**
-     * Called when entering a state. The default implementation does nothing in order to allow
-     * subinterfaces to be functional interfaces.
-     *
-     * @param state the entered state.
+     * An automaton is complete if there is at least on initial state and every state has at least
+     * one successor for each valuation.
      */
-    default void enter(S state) {
-      // Default implementation does nothing.
-    }
+    COMPLETE,
 
     /**
-     * Called when leaving a state. The default implementation does nothing in order to allow
-     * subinterfaces to be functional interfaces.
-     *
-     * @param state the left state.
+     * An automaton is deterministic if there is at most one initial state and every state has at
+     * most one successor for each valuation.
      */
-    default void exit(S state) {
-      // Default implementation does nothing.
-    }
-  }
-
-  @FunctionalInterface
-  interface EdgeVisitor<S> extends Visitor<S> {
+    DETERMINISTIC,
 
     /**
-     * An outgoing edge of the state, might be called several times.
-     *
-     * @param state the state
-     * @param valuation the valuation for the edge
-     * @param edge the edge
+     * An automaton is semi-deterministic if there is at most one initial state and every state has
+     * at most one successor for each valuation.
      */
-    void visit(S state, BitSet valuation, Edge<S> edge);
-  }
+    SEMI_DETERMINISTIC,
 
-  @FunctionalInterface
-  interface EdgeMapVisitor<S> extends Visitor<S> {
-
-    /**
-     * The edge map associated with the state. Called exactly once for each state.
-     *
-     * @param state the state
-     * @param edgeMap the edge-tree
-     */
-    void visit(S state, Map<Edge<S>, ValuationSet> edgeMap);
-  }
-
-  @FunctionalInterface
-  interface EdgeTreeVisitor<S> extends Visitor<S> {
-
-    /**
-     * The edge map associated with the state. Called exactly once for each state.
-     *
-     * @param state the state
-     * @param edgeTree the edge-tree
-     */
-    void visit(S state, ValuationTree<Edge<S>> edgeTree);
+    LIMIT_DETERMINISTIC
   }
 }

@@ -124,7 +124,7 @@ public class ForwardDelayedSimulation<S>
         .successors(rightAutomaton, BitSet2.fromInt(state.valuation()));
 
       // if no successor is possible for Duplicator, we go to the sink
-      if (possible.size() == 0) {
+      if (possible.isEmpty()) {
         out.put(Edge.of(sinkState, 1), factory.universe());
         return out;
       }
