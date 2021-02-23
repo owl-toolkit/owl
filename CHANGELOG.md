@@ -12,6 +12,8 @@ Modules:
 
 API:
 
+* Add a symbolic representation of automata.
+
 * Add rudimentary support for propositional logic and a SAT-solving
   infrastructure.
 
