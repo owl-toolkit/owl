@@ -44,9 +44,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.bdd.EquivalenceClassFactory;
+import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -72,7 +72,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   @Nullable
   private Function<EquivalenceClass, Set<?>> temporalStepTreeCachedMapper;
   @Nullable
-  private IdentityHashMap<EquivalenceClass, ValuationTree<?>> temporalStepTreeCache;
+  private IdentityHashMap<EquivalenceClass, MtBdd<?>> temporalStepTreeCache;
 
   JBddEquivalenceClassFactory(Bdd bdd, List<String> atomicPropositions) {
     super(bdd);
@@ -560,7 +560,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> ValuationTree<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper) {
+    public <T> MtBdd<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper) {
       if (factory.temporalStepTreeCache == null
         || !mapper.equals(factory.temporalStepTreeCachedMapper)) {
         factory.temporalStepTreeCachedMapper = (Function) mapper;
@@ -571,11 +571,11 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
         (IdentityHashMap) factory.temporalStepTreeCache);
     }
 
-    private <T> ValuationTree<T> temporalStepTree(
+    private <T> MtBdd<T> temporalStepTree(
       Formula initialRepresentative,
       BitSet pathTrace,
       Function<EquivalenceClass, Set<T>> mapper,
-      IdentityHashMap<EquivalenceClass, ValuationTree<T>> cache) {
+      IdentityHashMap<EquivalenceClass, MtBdd<T>> cache) {
 
       var tree = cache.get(this);
 
@@ -589,7 +589,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       int atom = bdd.isNodeRoot(node) ? alphabet.size() : bdd.variable(node);
 
       if (atom >= alphabet.size()) {
-        tree = ValuationTree.of(mapper.apply(
+        tree = MtBdd.of(mapper.apply(
           factory.of(initialRepresentative.temporalStep(pathTrace), false)));
       } else {
         pathTrace.set(atom);
@@ -600,7 +600,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
         var falseSubTree = factory.of(null, bdd.low(node))
           .temporalStepTree(initialRepresentative, pathTrace, mapper, cache);
 
-        tree = ValuationTree.of(atom, trueSubTree, falseSubTree);
+        tree = MtBdd.of(atom, trueSubTree, falseSubTree);
       }
 
       cache.put(this, tree);

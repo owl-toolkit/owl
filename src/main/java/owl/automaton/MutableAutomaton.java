@@ -27,7 +27,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 /**
  * A mutation interface extending {@link Automaton}. As the super interface requires that only from
@@ -46,7 +46,7 @@ import owl.bdd.ValuationSet;
  * <li>{@link MutableAutomaton#removeState(Object)}
  * <li>{@link MutableAutomaton#removeStateIf(Predicate)}
  * <li>{@link MutableAutomaton#removeEdge(Object, BitSet, Object)}
- * <li>{@link MutableAutomaton#removeEdge(Object, ValuationSet, Object)}
+ * <li>{@link MutableAutomaton#removeEdge(Object, BddSet, Object)}
  * <li>{@link MutableAutomaton#updateEdges(BiFunction)}
  * <li>{@link MutableAutomaton#updateEdges(Set, BiFunction)}
  * </ul>
@@ -59,7 +59,7 @@ import owl.bdd.ValuationSet;
  * <li>{@link MutableAutomaton#updateAcceptance(Function)}
  * <li>{@link MutableAutomaton#addInitialState(Object)}
  * <li>{@link MutableAutomaton#addEdge(Object, BitSet, Edge)}
- * <li>{@link MutableAutomaton#addEdge(Object, ValuationSet, Edge)}
+ * <li>{@link MutableAutomaton#addEdge(Object, BddSet, Edge)}
  * <li>{@link MutableAutomaton#trim()}
  * </ul>
  *
@@ -169,7 +169,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If {@code source} is not contained in the automaton
    */
-  void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge);
+  void addEdge(S source, BddSet valuations, Edge<? extends S> edge);
 
   /**
    * Removes all transition from {@code source} under {@code valuation} to {@code destination}.
@@ -185,7 +185,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If either {@code source} or {@code destination} are not present in the automaton.
    *
-   * @see #removeEdge(Object, ValuationSet, Object)
+   * @see #removeEdge(Object, BddSet, Object)
    */
   default void removeEdge(S source, BitSet valuation, S destination) {
     removeEdge(source, factory().of(valuation), destination);
@@ -205,7 +205,7 @@ public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automato
    * @throws IllegalArgumentException
    *     If either {@code source} or {@code destination} are not present in the automaton.
    */
-  void removeEdge(S source, ValuationSet valuations, S destination);
+  void removeEdge(S source, BddSet valuations, S destination);
 
   /**
    * Remaps each outgoing edge of the specified {@code states} according to {@code updater}.

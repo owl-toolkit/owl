@@ -39,7 +39,7 @@ public class SimulationGameTest {
   private Automaton<Integer, BuchiAcceptance> buildAutomatonOne() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
@@ -71,7 +71,7 @@ public class SimulationGameTest {
   buildAutomataThree() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b", "c", "d"));
+      .getBddSetFactory(List.of("a", "b", "c", "d"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> left = HashMapAutomaton.of(acceptance, factory);
@@ -121,7 +121,7 @@ public class SimulationGameTest {
   buildAutomataFvsDe() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
     BitSet a = factory.of(0).toSet().iterator().next();
 
@@ -159,7 +159,7 @@ public class SimulationGameTest {
   buildAutomataDiVDe() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
     BitSet a = factory.of(0).toSet().iterator().next();
 
@@ -197,7 +197,7 @@ public class SimulationGameTest {
   buildAutomataTwo() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b", "c"));
+      .getBddSetFactory(List.of("a", "b", "c"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> left = HashMapAutomaton.of(acceptance, factory);

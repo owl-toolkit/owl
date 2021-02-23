@@ -43,10 +43,10 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 
@@ -104,7 +104,7 @@ public final class Views {
     private final B acceptance;
 
     @Nullable
-    private Map<S, ValuationSet> incompleteStates;
+    private Map<S, BddSet> incompleteStates;
 
     Complete(Automaton<S, A> automaton, Edge<S> sinkEdge, B acceptance) {
       this.automaton = automaton;
@@ -121,7 +121,7 @@ public final class Views {
     }
 
     @Override
-    public ValuationSetFactory factory() {
+    public BddSetFactory factory() {
       return automaton.factory();
     }
 
@@ -187,8 +187,8 @@ public final class Views {
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
-      ValuationSetFactory factory = automaton.factory();
+    public Map<Edge<S>, BddSet> edgeMap(S state) {
+      BddSetFactory factory = automaton.factory();
 
       if (sink.equals(state)) {
         return Map.of(sinkEdge, factory.universe());
@@ -198,9 +198,9 @@ public final class Views {
         return automaton.edgeMap(state);
       }
 
-      Map<Edge<S>, ValuationSet> edges = new HashMap<>(automaton.edgeMap(state));
-      ValuationSet valuationSet = incompleteStates == null
-        ? edges.values().stream().reduce(factory.of(), ValuationSet::union).complement()
+      Map<Edge<S>, BddSet> edges = new HashMap<>(automaton.edgeMap(state));
+      BddSet valuationSet = incompleteStates == null
+        ? edges.values().stream().reduce(factory.of(), BddSet::union).complement()
         : incompleteStates.get(state);
 
       if (!valuationSet.isEmpty()) {
@@ -211,9 +211,9 @@ public final class Views {
     }
 
     @Override
-    public ValuationTree<Edge<S>> edgeTree(S state) {
+    public MtBdd<Edge<S>> edgeTree(S state) {
       if (sink.equals(state)) {
-        return ValuationTree.of(sinkEdgeSet);
+        return MtBdd.of(sinkEdgeSet);
       }
 
       var valuationTree = automaton.edgeTree(state);
@@ -362,7 +362,7 @@ public final class Views {
     }
 
     @Override
-    public ValuationTree<Edge<S>> edgeTreeImpl(S state) {
+    public MtBdd<Edge<S>> edgeTreeImpl(S state) {
       checkArgument(stateFilter(state));
 
       var edges = backingAutomaton.edgeTree(state);
@@ -424,8 +424,8 @@ public final class Views {
     }
 
     @Override
-    public ValuationTree<Edge<T>> edgeTreeImpl(T state) {
-      return ValuationTrees.cartesianProduct(
+    public MtBdd<Edge<T>> edgeTreeImpl(T state) {
+      return MtBddOperations.cartesianProduct(
         reverseMapping.get(state).stream().map(automaton::edgeTree).collect(Collectors.toList())
       ).map(x -> {
         Set<Edge<T>> set = new HashSet<>();

@@ -43,9 +43,9 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.run.modules.OwlModule;
 
 /**
@@ -131,14 +131,14 @@ public final class GfgCoBuchiMinimization {
       }
 
       @Override
-      public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+      public Map<Edge<S>, BddSet> edgeMap(S state) {
         var edgeMap = new HashMap<>(ncw.edgeMap(state));
         edgeMap.keySet().removeIf(sEdge -> !sEdge.colours().isEmpty());
         return edgeMap;
       }
 
       @Override
-      public ValuationTree<Edge<S>> edgeTree(S state) {
+      public MtBdd<Edge<S>> edgeTree(S state) {
         return ncw.edgeTree(state).map(edges -> {
           var edgesCopy = new HashSet<>(edges);
           edgesCopy.removeIf(sEdge -> !sEdge.colours().isEmpty());

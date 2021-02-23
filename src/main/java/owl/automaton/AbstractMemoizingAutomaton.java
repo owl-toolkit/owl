@@ -37,12 +37,12 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
 import owl.collections.Either;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
 
 /**
  * This class provides a skeletal implementation of the {@code Automaton}
@@ -51,7 +51,7 @@ import owl.collections.ValuationTrees;
  * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
  * transition relation, and the acceptance condition is fixed. It makes use of this
  * assumption by caching the set of states and by memoizing the transition relation
- * as {@link owl.collections.ValuationTree}.
+ * as {@link MtBdd}.
  *
  * <p>Depending on the computation of the transition relation different sub-classes are
  * available:
@@ -72,14 +72,14 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
 
   protected final A acceptance;
   protected final Set<S> initialStates;
-  protected final ValuationSetFactory factory;
+  protected final BddSetFactory factory;
 
   // Memoization.
   private final Set<S> unexploredStates;
-  private Map<S, ValuationTree<Edge<S>>> memoizedEdges = new HashMap<>();
+  private Map<S, MtBdd<Edge<S>>> memoizedEdges = new HashMap<>();
 
   private AbstractMemoizingAutomaton(
-    ValuationSetFactory factory, Set<S> initialStates, A acceptance) {
+    BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
     this.acceptance = acceptance;
     this.initialStates = Set.copyOf(initialStates);
@@ -88,7 +88,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public final ValuationTree<Edge<S>> edgeTree(S state) {
+  public final MtBdd<Edge<S>> edgeTree(S state) {
     var edgeTree = memoizedEdges.get(state);
 
     if (edgeTree != null) {
@@ -111,7 +111,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public final Map<Edge<S>, ValuationSet> edgeMap(S state) {
+  public final Map<Edge<S>, BddSet> edgeMap(S state) {
     return edgeTree(state).inverse(factory);
   }
 
@@ -152,7 +152,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public final ValuationSetFactory factory() {
+  public final BddSetFactory factory() {
     return factory;
   }
 
@@ -180,7 +180,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     return memoizedEdges.keySet();
   }
 
-  protected abstract ValuationTree<Edge<S>> edgeTreeImpl(S state);
+  protected abstract MtBdd<Edge<S>> edgeTreeImpl(S state);
 
   private void freezeMemoizedEdges() {
     Preconditions.checkState(unexploredStates.isEmpty());
@@ -194,7 +194,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
    * transition relation, and the acceptance condition is fixed. It makes use of this
    * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link owl.collections.ValuationTree}.
+   * as {@link MtBdd}.
    *
    * <p>This is the recommended implementation class.
    *
@@ -205,7 +205,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeTreeImplementation(
-      ValuationSetFactory factory, Set<S> initialStates, A acceptance) {
+      BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
       super(factory, initialStates, acceptance);
     }
@@ -218,7 +218,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
    * transition relation, and the acceptance condition is fixed. It makes use of this
    * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link owl.collections.ValuationTree}.
+   * as {@link MtBdd}.
    *
    * @param <S> the state type
    * @param <A> the acceptance condition type
@@ -227,15 +227,15 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeMapImplementation(
-      ValuationSetFactory factory, Set<S> initialStates, A acceptance) {
+      BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
       super(factory, initialStates, acceptance);
     }
 
-    protected abstract Map<Edge<S>, ValuationSet> edgeMapImpl(S state);
+    protected abstract Map<Edge<S>, BddSet> edgeMapImpl(S state);
 
     @Override
-    protected final ValuationTree<Edge<S>> edgeTreeImpl(S state) {
+    protected final MtBdd<Edge<S>> edgeTreeImpl(S state) {
       return factory.toValuationTree(edgeMapImpl(state));
     }
   }
@@ -247,7 +247,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
    * transition relation, and the acceptance condition is fixed. It makes use of this
    * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link owl.collections.ValuationTree}.
+   * as {@link MtBdd}.
    *
    * @param <S> the state type
    * @param <A> the acceptance condition type
@@ -256,7 +256,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgesImplementation(
-      ValuationSetFactory factory, Set<S> initialStates, A acceptance) {
+      BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
       super(factory, initialStates, acceptance);
     }
@@ -264,11 +264,11 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     protected abstract Set<Edge<S>> edgesImpl(S state, BitSet valuation);
 
     @Override
-    protected final ValuationTree<Edge<S>> edgeTreeImpl(S state) {
+    protected final MtBdd<Edge<S>> edgeTreeImpl(S state) {
       return edgeTreeImplRecursive(state, new BitSet(), 0);
     }
 
-    private ValuationTree<Edge<S>> edgeTreeImplRecursive(
+    private MtBdd<Edge<S>> edgeTreeImplRecursive(
       S state, BitSet partialValuation, int currentVariable) {
 
       if (currentVariable < atomicPropositions().size()) {
@@ -278,11 +278,11 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
         partialValuation.clear(currentVariable);
         var falseChild
           = edgeTreeImplRecursive(state, partialValuation, currentVariable + 1);
-        return ValuationTree.of(currentVariable, trueChild, falseChild);
+        return MtBdd.of(currentVariable, trueChild, falseChild);
       }
 
       assert currentVariable == atomicPropositions().size();
-      return ValuationTree.of(edgesImpl(state, (BitSet) partialValuation.clone()));
+      return MtBdd.of(edgesImpl(state, (BitSet) partialValuation.clone()));
     }
   }
 
@@ -293,7 +293,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
    * transition relation, and the acceptance condition is fixed. It makes use of this
    * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link owl.collections.ValuationTree}.
+   * as {@link MtBdd}.
    *
    * @param <S> the state type
    * @param <A> the acceptance condition type
@@ -302,7 +302,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     extends EdgesImplementation<S, A> {
 
     public EdgeImplementation(
-      ValuationSetFactory factory, Set<S> initialStates, A acceptance) {
+      BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
       super(factory, initialStates, acceptance);
     }
@@ -331,7 +331,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
    * transition relation, and the acceptance condition is fixed. It makes use of this
    * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link owl.collections.ValuationTree}.
+   * as {@link MtBdd}.
    *
    * <p>This class assumes that there are two separate parts of the automaton with state type
    * A and B. Runs can move from A to B but not the other way.
@@ -344,7 +344,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     extends AbstractMemoizingAutomaton<Either<A, B>, C> {
 
     public PartitionedEdgeTreeImplementation(
-      ValuationSetFactory factory, Set<A> initialStatesA, Set<B> initialStatesB, C acceptance) {
+      BddSetFactory factory, Set<A> initialStatesA, Set<B> initialStatesB, C acceptance) {
 
       super(factory,
         Sets.union(
@@ -354,19 +354,19 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     }
 
     @Override
-    protected final ValuationTree<Edge<Either<A, B>>> edgeTreeImpl(Either<A, B> state) {
+    protected final MtBdd<Edge<Either<A, B>>> edgeTreeImpl(Either<A, B> state) {
       return state.map(a -> {
         var trees = moveAtoB(a).stream()
           .map(x -> edgeTreeImplB(x).map(this::liftB))
           .collect(Collectors.toSet());
         trees.add(edgeTreeImplA(a).map(this::liftA));
-        return ValuationTrees.union(trees).map(this::deduplicate);
+        return MtBddOperations.union(trees).map(this::deduplicate);
       }, b -> edgeTreeImplB(b).map(x -> deduplicate(liftB(x))));
     }
 
-    protected abstract ValuationTree<Edge<A>> edgeTreeImplA(A state);
+    protected abstract MtBdd<Edge<A>> edgeTreeImplA(A state);
 
-    protected abstract ValuationTree<Edge<B>> edgeTreeImplB(B state);
+    protected abstract MtBdd<Edge<B>> edgeTreeImplB(B state);
 
     protected abstract Set<B> moveAtoB(A state);
 

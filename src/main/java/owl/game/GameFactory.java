@@ -34,7 +34,7 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 public final class GameFactory {
   private GameFactory() {}
@@ -85,15 +85,15 @@ public final class GameFactory {
     }
 
     @Override
-    protected Map<Edge<S>, ValuationSet> edgeMapImpl(S state) {
-      Map<Edge<S>, ValuationSet> labelledEdges = new HashMap<>();
+    protected Map<Edge<S>, BddSet> edgeMapImpl(S state) {
+      Map<Edge<S>, BddSet> labelledEdges = new HashMap<>();
 
       graph.edges().stream().filter(x -> x.source().equals(state)).forEach(x -> {
         ValueEdge valueEdge = graph.edgeValue(x.source(), x.target()).get();
         Edge<S> edge = valueEdge.colour() == -1
           ? Edge.of(x.target())
           : Edge.of(x.target(), valueEdge.colour());
-        labelledEdges.merge(edge, valueEdge.valuationSet(), ValuationSet::union);
+        labelledEdges.merge(edge, valueEdge.valuationSet(), BddSet::union);
       });
 
       return labelledEdges;
@@ -118,7 +118,7 @@ public final class GameFactory {
     abstract static class ValueEdge {
       abstract int colour();
 
-      abstract ValuationSet valuationSet();
+      abstract BddSet valuationSet();
     }
   }
 }

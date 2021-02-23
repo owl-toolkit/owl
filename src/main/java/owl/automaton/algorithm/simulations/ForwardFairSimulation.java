@@ -30,9 +30,9 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 
@@ -40,7 +40,7 @@ public class ForwardFairSimulation<S>
   implements SimulationType<S, SimulationStates.MultipebbleSimulationState<S>> {
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final ValuationSetFactory factory;
+  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -65,7 +65,7 @@ public class ForwardFairSimulation<S>
 
 
     this.factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
 
     this.initialState = SimulationStates.MultipebbleSimulationState.of(
       Pebble.of(left, false),
@@ -79,9 +79,9 @@ public class ForwardFairSimulation<S>
   }
 
   @Override
-  public Map<Edge<MultipebbleSimulationState<S>>, ValuationSet>
+  public Map<Edge<MultipebbleSimulationState<S>>, BddSet>
   edgeMap(SimulationStates.MultipebbleSimulationState<S> state) {
-    Map<Edge<MultipebbleSimulationState<S>>, ValuationSet> out = new HashMap<>();
+    Map<Edge<MultipebbleSimulationState<S>>, BddSet> out = new HashMap<>();
 
     if (state.equals(sinkState)) {
       out.put(Edge.of(sinkState, 1), factory.universe());
@@ -141,7 +141,7 @@ public class ForwardFairSimulation<S>
   }
 
   @Override
-  public ValuationSetFactory factory() {
+  public BddSetFactory factory() {
     return factory;
   }
 }

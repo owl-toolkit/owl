@@ -65,8 +65,8 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.collections.BitSet2;
 
 public final class HoaReader {
@@ -74,7 +74,7 @@ public final class HoaReader {
   private HoaReader() {}
 
   public static void readStream(Reader reader,
-    Function<List<String>, ValuationSetFactory> factorySupplier,
+    Function<List<String>, BddSetFactory> factorySupplier,
     Consumer<Automaton<HoaState, ?>> consumer) throws ParseException {
 
     HOAFParserFixed.parseHOA(reader, () -> new ToTransitionAcceptance(
@@ -82,12 +82,12 @@ public final class HoaReader {
   }
 
   public static Automaton<HoaState, ?> read(String string,
-    Function<List<String>, ValuationSetFactory> factorySupplier) throws ParseException {
+    Function<List<String>, BddSetFactory> factorySupplier) throws ParseException {
     return read(new StringReader(string), factorySupplier);
   }
 
   public static Automaton<HoaState, ?> read(Reader reader,
-    Function<List<String>, ValuationSetFactory> factorySupplier) throws ParseException {
+    Function<List<String>, BddSetFactory> factorySupplier) throws ParseException {
     AtomicReference<Automaton<HoaState, ?>> reference = new AtomicReference<>();
 
     readStream(reader, factorySupplier, automaton -> {
@@ -107,7 +107,7 @@ public final class HoaReader {
     return automaton;
   }
 
-  private static ValuationSet of(ValuationSetFactory valuationSetFactory,
+  private static BddSet of(BddSetFactory valuationSetFactory,
     BooleanExpression<? extends AtomLabel> expression,
     @Nullable IntUnaryOperator mapping,
     @Nullable Map<String, ? extends BooleanExpression<AtomLabel>> aliases) {
@@ -139,14 +139,14 @@ public final class HoaReader {
     }
 
     if (expression.isAND()) {
-      ValuationSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
-      ValuationSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
+      BddSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
+      BddSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
       return left.intersection(right);
     }
 
     if (expression.isOR()) {
-      ValuationSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
-      ValuationSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
+      BddSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
+      BddSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
       return left.union(right);
     }
 
@@ -155,10 +155,10 @@ public final class HoaReader {
 
   private static final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
     private final Consumer<? super Automaton<HoaState, ?>> consumer;
-    private final Function<List<String>, ValuationSetFactory> factorySupplier;
+    private final Function<List<String>, BddSetFactory> factorySupplier;
 
     HoaConsumerAutomatonSupplier(Consumer<? super Automaton<HoaState, ?>> consumer,
-      Function<List<String>, ValuationSetFactory> factorySupplier) {
+      Function<List<String>, BddSetFactory> factorySupplier) {
       this.consumer = consumer;
       this.factorySupplier = factorySupplier;
     }
@@ -211,10 +211,10 @@ public final class HoaReader {
     private final Int2ObjectMap<HoaState> states;
     private final StoredAutomaton storedAutomaton;
     private final StoredHeader storedHeader;
-    private final ValuationSetFactory vsFactory;
+    private final BddSetFactory vsFactory;
 
     StoredConverter(StoredAutomaton storedAutomaton,
-      Function<List<String>, ValuationSetFactory> factorySupplier) throws HOAConsumerException {
+      Function<List<String>, BddSetFactory> factorySupplier) throws HOAConsumerException {
       this.vsFactory = factorySupplier.apply(storedAutomaton.getStoredHeader().getAPs());
       check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported");
 
@@ -251,7 +251,7 @@ public final class HoaReader {
       }
     }
 
-    private void addEdge(HoaState source, ValuationSet valuationSet,
+    private void addEdge(HoaState source, BddSet valuationSet,
       @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
       throws HOAConsumerException {
       Edge<HoaState> edge = storedEdgeAcceptance == null
@@ -410,7 +410,7 @@ public final class HoaReader {
             HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
 
             // TODO Pretty sure we have to remap here, too?
-            ValuationSet valuationSet = vsFactory.of(BooleanExpression.fromImplicit(counter));
+            BddSet valuationSet = vsFactory.of(BooleanExpression.fromImplicit(counter));
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
             addEdge(state, valuationSet, edgeAcceptance, successorState);
             counter += 1;

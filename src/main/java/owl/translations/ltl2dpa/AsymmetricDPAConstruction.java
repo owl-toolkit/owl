@@ -43,8 +43,8 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.EquivalenceClassFactory;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -77,7 +77,7 @@ final class AsymmetricDPAConstruction {
       builder.ldba.factory(), Set.of(builder.initialState), builder.acceptance) {
 
       @Override
-      protected ValuationTree<Edge<AsymmetricRankingState>> edgeTreeImpl(
+      protected MtBdd<Edge<AsymmetricRankingState>> edgeTreeImpl(
         AsymmetricRankingState state) {
         return builder.edgeTree(state);
       }
@@ -252,7 +252,7 @@ final class AsymmetricDPAConstruction {
       return Edge.of(AsymmetricRankingState.of(successor, ranking, safetyProgress), rankingColor);
     }
 
-    private ValuationTree<Edge<AsymmetricRankingState>> edgeTree(
+    private MtBdd<Edge<AsymmetricRankingState>> edgeTree(
       AsymmetricRankingState macroState) {
 
       // We obtain the successor of the state in the initial component.
@@ -261,12 +261,12 @@ final class AsymmetricDPAConstruction {
         .map(Edges::successors);
 
       var rankingEdgeTree
-        = ValuationTrees.cartesianProductWithNull(macroState.ranking()
+        = MtBddOperations.cartesianProductWithNull(macroState.ranking()
           .stream()
           .map(state -> ldba.acceptingComponent().edgeTree(state))
           .collect(Collectors.toList()));
 
-      return ValuationTrees.cartesianProduct(successorTree, rankingEdgeTree,
+      return MtBddOperations.cartesianProduct(successorTree, rankingEdgeTree,
         (successor, rankingEdges) -> {
           // If a SCC switch occurs, the ranking and the safety progress is reset.
           if (initialComponentSccs.stream()

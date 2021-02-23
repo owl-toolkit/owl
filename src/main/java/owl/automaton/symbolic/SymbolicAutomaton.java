@@ -38,10 +38,10 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
+import owl.bdd.MtBdd;
 
 /**
  * An automaton over infinite words.
@@ -55,9 +55,9 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
 
   public abstract List<String> atomicPropositions();
 
-  public abstract ValuationSet initialStates();
+  public abstract BddSet initialStates();
 
-  public abstract ValuationSet transitionRelation();
+  public abstract BddSet transitionRelation();
 
   public abstract A acceptance();
 
@@ -68,8 +68,8 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
    */
   static <A extends OmegaAcceptance> SymbolicAutomaton<A> of(
     List<String> atomicPropositions,
-    ValuationSet initialStates,
-    ValuationSet transitionRelation,
+    BddSet initialStates,
+    BddSet transitionRelation,
     A acceptance,
     VariableAllocation variableAllocation) {
 
@@ -109,10 +109,10 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
       atomicPropositions.size(),
       automaton.acceptance().acceptanceSets());
 
-    ValuationSetFactory factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(allocation.variableNames());
+    BddSetFactory factory = FactorySupplier.defaultSupplier()
+      .getBddSetFactory(allocation.variableNames());
 
-    ValuationSet initialStates = factory.of();
+    BddSet initialStates = factory.of();
 
     // Work-list algorithm.
     Deque<S> workList = new ArrayDeque<>();
@@ -127,14 +127,14 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
       exploredStates.add(initialState);
     }
 
-    ValuationSet transitionRelation = factory.of();
+    BddSet transitionRelation = factory.of();
 
     while (!workList.isEmpty()) {
       S state = workList.remove();
-      ValuationTree<Edge<S>> edgeTree = automaton.edgeTree(state);
+      MtBdd<Edge<S>> edgeTree = automaton.edgeTree(state);
 
       BitSet stateEncoding = stateEncoder.encode(state);
-      ValuationSet stateValuationSet = factory.of(
+      BddSet stateValuationSet = factory.of(
         allocation.localToGlobal(stateEncoding, STATE),
         allocation.variables(STATE));
       transitionRelation = transitionRelation.union(
@@ -156,16 +156,16 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
   }
 
   // TODO: add memoization for ValuationTrees.
-  private static <S> ValuationSet encodeEdgeTree(
-    ValuationSetFactory factory,
-    ValuationTree<Edge<S>> edgeTree,
+  private static <S> BddSet encodeEdgeTree(
+    BddSetFactory factory,
+    MtBdd<Edge<S>> edgeTree,
     StateEncoder<S> encoder,
     VariableAllocation allocation) {
 
-    if (edgeTree instanceof ValuationTree.Leaf) {
-      var leaf = (ValuationTree.Leaf<Edge<S>>) edgeTree;
+    if (edgeTree instanceof MtBdd.Leaf) {
+      var leaf = (MtBdd.Leaf<Edge<S>>) edgeTree;
 
-      ValuationSet edges = factory.of();
+      BddSet edges = factory.of();
 
       for (Edge<S> edge : leaf.value) {
         BitSet successorEncoding
@@ -182,7 +182,7 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
 
       return edges;
     } else {
-      var node = (ValuationTree.Node<Edge<S>>) edgeTree;
+      var node = (MtBdd.Node<Edge<S>>) edgeTree;
 
       var trueEdges = encodeEdgeTree(factory, node.trueChild, encoder, allocation);
       var falseEdges = encodeEdgeTree(factory, node.falseChild, encoder, allocation);
@@ -205,23 +205,23 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
 
     // TODO: Use AbstractMemoizingAutomaton.EdgeTreeImplementation for faster computation.
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
-      FactorySupplier.defaultSupplier().getValuationSetFactory(atomicPropositions()),
+      FactorySupplier.defaultSupplier().getBddSetFactory(atomicPropositions()),
       initialStates,
       acceptance()) {
 
       @Override
       protected Set<Edge<BitSet>> edgesImpl(BitSet state, BitSet valuation) {
-        ValuationSetFactory factory = transitionRelation().factory();
+        BddSetFactory factory = transitionRelation().factory();
 
-        ValuationSet stateSingletonSet = factory.of(
+        BddSet stateSingletonSet = factory.of(
           allocation.localToGlobal(state, STATE),
           allocation.variables(STATE));
 
-        ValuationSet atomicPropositionsSingletonSet = factory.of(
+        BddSet atomicPropositionsSingletonSet = factory.of(
           allocation.localToGlobal(valuation, ATOMIC_PROPOSITION),
           allocation.variables(ATOMIC_PROPOSITION));
 
-        ValuationSet edgesSet = stateSingletonSet
+        BddSet edgesSet = stateSingletonSet
           .intersection(atomicPropositionsSingletonSet)
           .intersection(transitionRelation());
 

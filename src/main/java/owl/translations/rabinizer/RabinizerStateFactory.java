@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.edge.Edge;
-import owl.collections.ValuationTree;
+import owl.bdd.MtBdd;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -82,12 +82,12 @@ class RabinizerStateFactory {
       return eager ? formula.unfold() : formula;
     }
 
-    ValuationTree<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
-      ValuationTree<EquivalenceClass> successorTree;
+    MtBdd<Edge<EquivalenceClass>> edgeTree(EquivalenceClass state) {
+      MtBdd<EquivalenceClass> successorTree;
 
       if (eager) {
         if (fairnessFragment) {
-          successorTree = ValuationTree.of(Set.of(state));
+          successorTree = MtBdd.of(Set.of(state));
         } else {
           successorTree = state.temporalStepTree(x -> Set.of(x.unfold()));
         }

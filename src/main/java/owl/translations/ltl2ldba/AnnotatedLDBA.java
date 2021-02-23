@@ -36,9 +36,9 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.Either;
-import owl.collections.ValuationTree;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LtlLanguageExpressible;
 import owl.ltl.SyntacticFragments;
@@ -144,7 +144,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     return mutableAutomaton;
   }
 
-  public ValuationSetFactory factory() {
+  public BddSetFactory factory() {
     return acceptingComponent.factory();
   }
 
@@ -172,12 +172,12 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     }
 
     @Override
-    protected ValuationTree<Edge<S>> edgeTreeImplA(S state) {
+    protected MtBdd<Edge<S>> edgeTreeImplA(S state) {
       return initialComponent.edgeTree(state);
     }
 
     @Override
-    protected ValuationTree<Edge<T>> edgeTreeImplB(T state) {
+    protected MtBdd<Edge<T>> edgeTreeImplB(T state) {
       return acceptingComponent.edgeTree(state);
     }
 

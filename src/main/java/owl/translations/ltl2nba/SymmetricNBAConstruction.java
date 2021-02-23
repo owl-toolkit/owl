@@ -42,9 +42,9 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.collections.Either;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -237,7 +237,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     }
 
     @Override
-    protected ValuationTree<Edge<Formula>> edgeTreeImplA(Formula state) {
+    protected MtBdd<Edge<Formula>> edgeTreeImplA(Formula state) {
       return trackingAutomaton.edgeTree(state).map(x -> buildEdgeA(Edges.successors(x)));
     }
 
@@ -260,7 +260,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     }
 
     @Override
-    protected ValuationTree<Edge<ProductState>> edgeTreeImplB(ProductState state) {
+    protected MtBdd<Edge<ProductState>> edgeTreeImplB(ProductState state) {
       var automata = Objects.requireNonNull(state.automata);
       var safetyState = Objects.requireNonNull(state.safety);
       var safetyAutomaton = automata.safetyAutomaton;
@@ -277,7 +277,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
       var livenessState = Objects.requireNonNull(state.liveness);
       var livenessAutomaton = automata.gfCoSafetyAutomaton;
 
-      return ValuationTrees.cartesianProduct(safetyAutomaton.edgeTree(safetyState),
+      return MtBddOperations.cartesianProduct(safetyAutomaton.edgeTree(safetyState),
         livenessAutomaton.edgeTree(livenessState),
         (safetyEdge, livenessEdge) -> {
           assert livenessEdge.largestAcceptanceSet() < acceptanceSets;

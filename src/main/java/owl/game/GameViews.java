@@ -58,10 +58,10 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 
@@ -189,7 +189,7 @@ public final class GameViews {
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+    public Map<Edge<S>, BddSet> edgeMap(S state) {
       return filteredAutomaton.edgeMap(state);
     }
 
@@ -204,7 +204,7 @@ public final class GameViews {
     }
 
     @Override
-    public ValuationSetFactory factory() {
+    public BddSetFactory factory() {
       return filteredAutomaton.factory();
     }
 
@@ -229,7 +229,7 @@ public final class GameViews {
     }
 
     @Override
-    public ValuationTree<Edge<S>> edgeTree(S state) {
+    public MtBdd<Edge<S>> edgeTree(S state) {
       return factory().toValuationTree(edgeMap(state));
     }
 
@@ -250,7 +250,7 @@ public final class GameViews {
       }
 
       @Override
-      public ValuationSetFactory factory() {
+      public BddSetFactory factory() {
         return game.factory();
       }
 
@@ -275,12 +275,12 @@ public final class GameViews {
       }
 
       @Override
-      public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+      public Map<Edge<S>, BddSet> edgeMap(S state) {
         return game.edgeMap(state);
       }
 
       @Override
-      public ValuationTree<Edge<S>> edgeTree(S state) {
+      public MtBdd<Edge<S>> edgeTree(S state) {
         return game.edgeTree(state);
       }
 
@@ -340,28 +340,28 @@ public final class GameViews {
     }
 
     @Override
-    public Map<Edge<Node<S>>, ValuationSet> edgeMapImpl(Node<S> node) {
+    public Map<Edge<Node<S>>, BddSet> edgeMapImpl(Node<S> node) {
       /*
        * In order obtain a complete game, each players transitions are labeled
        * with his choice and all valuations of the other players APs. This is
        * important when trying to recover a strategy from a sub-game.
        */
 
-      Map<Edge<Node<S>>, ValuationSet> edges = new HashMap<>();
-      ValuationSetFactory factory = automaton.factory();
+      Map<Edge<Node<S>>, BddSet> edges = new HashMap<>();
+      BddSetFactory factory = automaton.factory();
 
       if (node.isFirstPlayersTurn()) {
         // First player chooses his part of the valuation
 
         for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
-          ValuationSet valuationSet = factory.of(valuation, firstPlayer);
-          edges.merge(Edge.of(Node.of(node.state(), valuation)), valuationSet, ValuationSet::union);
+          BddSet valuationSet = factory.of(valuation, firstPlayer);
+          edges.merge(Edge.of(Node.of(node.state(), valuation)), valuationSet, BddSet::union);
         }
       } else {
         // Second player completes the valuation, yielding a transition in the automaton
 
         for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
-          ValuationSet vs = factory.of(valuation, secondPlayer);
+          BddSet vs = factory.of(valuation, secondPlayer);
 
           BitSet joined = owl.collections.BitSet2.copyOf(valuation);
           joined.or(node.firstPlayerChoice());
@@ -370,7 +370,7 @@ public final class GameViews {
             node.state(), joined);
 
           // Lift the automaton edge to the game
-          edges.merge(edge.withSuccessor(Node.of(edge.successor())), vs, ValuationSet::union);
+          edges.merge(edge.withSuccessor(Node.of(edge.successor())), vs, BddSet::union);
         }
       }
 

@@ -25,40 +25,40 @@ import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
-import owl.collections.ValuationTree;
 
 public final class SingletonAutomaton<S, A extends OmegaAcceptance>
   extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-  private final ValuationTree<Edge<S>> selfLoopEdges;
+  private final MtBdd<Edge<S>> selfLoopEdges;
 
-  private SingletonAutomaton(S singletonState, ValuationSetFactory factory,
+  private SingletonAutomaton(S singletonState, BddSetFactory factory,
     @Nullable BitSet acceptanceSets, A acceptance) {
     super(factory, Set.of(singletonState), acceptance);
     this.selfLoopEdges = acceptanceSets == null
-      ? ValuationTree.of()
-      : ValuationTree.of(Set.of(Edge.of(singletonState, acceptanceSets)));
+      ? MtBdd.of()
+      : MtBdd.of(Set.of(Edge.of(singletonState, acceptanceSets)));
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
-    ValuationSetFactory factory, S state, A acceptance) {
+    BddSetFactory factory, S state, A acceptance) {
     return new SingletonAutomaton<>(state, factory, null, acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
-    ValuationSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
+    BddSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
     return new SingletonAutomaton<>(state, factory, BitSet2.copyOf(acceptanceSet), acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
-    ValuationSetFactory factory, S state, A acceptance, BitSet acceptanceSet) {
+    BddSetFactory factory, S state, A acceptance, BitSet acceptanceSet) {
     return new SingletonAutomaton<>(state, factory, acceptanceSet, acceptance);
   }
 
   @Override
-  protected ValuationTree<Edge<S>> edgeTreeImpl(S state) {
+  protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
     Preconditions.checkArgument(initialStates.contains(state),
       "This state is not in the automaton");
     return selfLoopEdges;

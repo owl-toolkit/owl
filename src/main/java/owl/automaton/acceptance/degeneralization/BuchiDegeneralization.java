@@ -33,9 +33,9 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -120,7 +120,7 @@ public final class BuchiDegeneralization {
 
       // All possible letters for an edge are symbolically encoded in ValuationSet.
       @Override
-      public Map<Edge<IndexedState<S>>, ValuationSet> edgeMap(IndexedState<S> state) {
+      public Map<Edge<IndexedState<S>>, BddSet> edgeMap(IndexedState<S> state) {
         return Collections3.transformMap(
           backingAutomaton.edgeMap(state.state()),
           edge -> transformEdge(edge, state.index()));
@@ -128,7 +128,7 @@ public final class BuchiDegeneralization {
 
       // All possible edges are encoded in a binary decision diagram with multiple terminals.
       @Override
-      public ValuationTree<Edge<IndexedState<S>>> edgeTree(
+      public MtBdd<Edge<IndexedState<S>>> edgeTree(
         IndexedState<S> state) {
         return backingAutomaton.edgeTree(state.state())
           .map(edges -> transformEdges(edges, state.index()));

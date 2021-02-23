@@ -33,7 +33,7 @@ import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 public final class AutomatonUtil {
 
@@ -63,13 +63,13 @@ public final class AutomatonUtil {
    *
    * @return The set of incomplete states and the missing valuations.
    */
-  public static <S> Map<S, ValuationSet> getIncompleteStates(Automaton<S, ?> automaton) {
-    Map<S, ValuationSet> incompleteStates = new HashMap<>();
+  public static <S> Map<S, BddSet> getIncompleteStates(Automaton<S, ?> automaton) {
+    Map<S, BddSet> incompleteStates = new HashMap<>();
 
     for (S state : automaton.states()) {
-      ValuationSet union = automaton.factory().of();
+      BddSet union = automaton.factory().of();
 
-      for (ValuationSet valuationSet : automaton.edgeMap(state).values()) {
+      for (BddSet valuationSet : automaton.edgeMap(state).values()) {
         union = union.union(valuationSet);
       }
 

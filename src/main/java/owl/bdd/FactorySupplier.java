@@ -29,8 +29,8 @@ public abstract class FactorySupplier {
     return JBddSupplier.INSTANCE;
   }
 
-  public abstract ValuationSetFactory
-    getValuationSetFactory(List<String> atomicPropositions);
+  public abstract BddSetFactory
+    getBddSetFactory(List<String> atomicPropositions);
 
   public abstract EquivalenceClassFactory
     getEquivalenceClassFactory(List<String> atomicPropositions);
@@ -38,6 +38,6 @@ public abstract class FactorySupplier {
   public Factories getFactories(List<String> atomicPropositions) {
     return new Factories(
       getEquivalenceClassFactory(atomicPropositions),
-      getValuationSetFactory(atomicPropositions));
+      getBddSetFactory(atomicPropositions));
   }
 }

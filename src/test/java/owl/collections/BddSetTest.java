@@ -38,21 +38,22 @@ import java.util.function.IntUnaryOperator;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 
-public abstract class ValuationSetTest {
+public abstract class BddSetTest {
 
   private static final List<String> ATOMIC_PROPOSITIONS = List.of("a", "b", "c", "d", "e", "f");
 
-  private ValuationSet abcd;
-  private ValuationSet containsA;
-  private ValuationSet empty;
-  private ValuationSet universe;
+  private BddSet abcd;
+  private BddSet containsA;
+  private BddSet empty;
+  private BddSet universe;
 
   @BeforeEach
   void beforeEach() {
-    ValuationSetFactory factory = factory(List.of("a", "b", "c", "d"));
+    BddSetFactory factory = factory(List.of("a", "b", "c", "d"));
 
     empty = factory.of();
     universe = factory.universe();
@@ -66,7 +67,7 @@ public abstract class ValuationSetTest {
     containsA = factory.of(bs, bs);
   }
 
-  protected abstract ValuationSetFactory factory(List<String> atomicPropositions);
+  protected abstract BddSetFactory factory(List<String> atomicPropositions);
 
   @Test
   void testComplement() {
@@ -78,7 +79,7 @@ public abstract class ValuationSetTest {
 
   @Test
   void testForEach() {
-    for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
+    for (BddSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
       set.toSet().forEach(
         (Consumer<? super BitSet>) solution -> forEach.add(BitSet2.copyOf(solution)));
@@ -98,7 +99,7 @@ public abstract class ValuationSetTest {
     restriction.set(1);
     restriction.set(3);
 
-    for (ValuationSet set : List.of(abcd, containsA, empty, universe)) {
+    for (BddSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
       set.forEach(restriction, solution -> forEach.add(BitSet2.copyOf(solution)));
 
@@ -145,7 +146,7 @@ public abstract class ValuationSetTest {
   @Test
   void testCreateEmptyValuationSet() {
     var factory = factory(ATOMIC_PROPOSITIONS);
-    assertThat(factory.of(), ValuationSet::isEmpty);
+    assertThat(factory.of(), BddSet::isEmpty);
   }
 
   @Test
@@ -173,11 +174,11 @@ public abstract class ValuationSetTest {
 
     BitSet valuation1 = bitSetOf(false, true, true, false, false, true);
     BitSet valuation2 = bitSetOf(false, true, false, true, false, true);
-    ValuationSet valuationSetBefore = factory.of(valuation1, valuation2);
+    BddSet valuationSetBefore = factory.of(valuation1, valuation2);
 
     BitSet valuation3 = bitSetOf(true, true, false, false, false, true);
     BitSet valuation4 = bitSetOf(true, false, true, false, false, true);
-    ValuationSet valuationSetAfter = factory.of(valuation3, valuation4);
+    BddSet valuationSetAfter = factory.of(valuation3, valuation4);
 
     IntUnaryOperator mapping = i -> {
       Objects.checkIndex(i, 6);
@@ -215,11 +216,11 @@ public abstract class ValuationSetTest {
   void testFilter() {
     var factory = factory(ATOMIC_PROPOSITIONS);
 
-    var tree = ValuationTree.of(Set.of(true));
+    var tree = MtBdd.of(Set.of(true));
     var filter = factory.of(0);
 
     assertEquals(
-      ValuationTree.of(0, ValuationTree.of(Set.of(true)), ValuationTree.of()),
+      MtBdd.of(0, MtBdd.of(Set.of(true)), MtBdd.of()),
       filter.filter(tree));
   }
 

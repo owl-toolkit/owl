@@ -41,12 +41,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.graalvm.nativeimage.c.type.CIntPointer;
+import owl.bdd.BddSet;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
+import owl.bdd.MtBdd;
 import owl.cinterface.CAutomaton.Acceptance;
 import owl.cinterface.CDecomposedDPA.RealizabilityStatus;
 import owl.cinterface.CDecomposedDPA.Structure.NodeType;
-import owl.collections.ValuationTree;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -83,7 +83,7 @@ public final class DecomposedDPA {
     var builder = new TreeBuilder(atomicPropositions);
     var tree = labelledFormula.formula().accept(builder);
     var globalFactory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(atomicPropositions);
+      .getBddSetFactory(atomicPropositions);
     tree.initializeFilter(builder.automata, builder.sharedAutomata, globalFactory.universe());
     return new DecomposedDPA(tree, List.copyOf(builder.automata));
   }
@@ -386,7 +386,7 @@ public final class DecomposedDPA {
     abstract void initializeFilter(
       List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
       BitSet sharedAutomata,
-      ValuationSet globalFilter);
+      BddSet globalFilter);
 
     static final class Leaf extends Tree {
 
@@ -463,7 +463,7 @@ public final class DecomposedDPA {
       void initializeFilter(
         List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
         BitSet sharedAutomata,
-        ValuationSet globalFilter) {
+        BddSet globalFilter) {
 
         // Skip, if there is a trivial filter or this automaton is shared and
         // filtering is not allowed.
@@ -513,7 +513,7 @@ public final class DecomposedDPA {
       void initializeFilter(
         List<CAutomaton.DeterministicAutomatonWrapper<?, ?>> referencedAutomata,
         BitSet sharedAutomata,
-        ValuationSet globalFilter) {
+        BddSet globalFilter) {
 
         // Skip biconditionals.
         if (label == NodeType.BICONDITIONAL) {
@@ -522,7 +522,7 @@ public final class DecomposedDPA {
 
         assert label == NodeType.CONJUNCTION || label == NodeType.DISJUNCTION;
 
-        ValuationSet nodeFilter = globalFilter;
+        BddSet nodeFilter = globalFilter;
         Set<Leaf> filterSources = new HashSet<>();
 
         for (Tree child : children) {
@@ -540,7 +540,7 @@ public final class DecomposedDPA {
             continue;
           }
 
-          ValuationTree<Boolean> leafFilter;
+          MtBdd<Boolean> leafFilter;
 
           if (label == NodeType.CONJUNCTION
             && Leaf.ALLOWED_CONJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors)) {

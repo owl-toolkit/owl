@@ -27,7 +27,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 import owl.collections.Collections3;
 import owl.ltl.GOperator;
 
@@ -70,7 +70,7 @@ class MonitorAutomaton
   }
 
   @Override
-  public Map<Edge<MonitorState>, ValuationSet> edgeMapImpl(MonitorState state) {
+  public Map<Edge<MonitorState>, BddSet> edgeMapImpl(MonitorState state) {
     return Collections3.transformMap(anyAutomaton.edgeMap(state), Edge::withoutAcceptance);
   }
 

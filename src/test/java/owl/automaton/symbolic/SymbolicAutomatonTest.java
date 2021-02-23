@@ -54,7 +54,7 @@ public class SymbolicAutomatonTest {
   @Test
   protected void testEmpty() {
     var emptyAutomaton = EmptyAutomaton.of(
-      FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a")),
+      FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a")),
       AllAcceptance.INSTANCE);
 
     var symbolicEmptyAutomaton = SymbolicAutomaton.of(emptyAutomaton);
@@ -65,7 +65,7 @@ public class SymbolicAutomatonTest {
   @Test
   protected void testSingleton() {
     var singletonAutomaton = SingletonAutomaton.of(
-      FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a", "b")),
+      FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a", "b")),
       new Object(),
       BuchiAcceptance.INSTANCE,
       Set.of(0));

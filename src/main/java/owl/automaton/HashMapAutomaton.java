@@ -53,9 +53,9 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
 public final class HashMapAutomaton<S, A extends OmegaAcceptance>
@@ -66,15 +66,15 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
 
   private A acceptance;
   private final Set<S> initialStates;
-  private IdentityHashMap<S, Map<Edge<S>, ValuationSet>> transitions;
-  private final IdentityHashMap<S, ValuationTree<Edge<S>>> cachedTrees;
+  private IdentityHashMap<S, Map<Edge<S>, BddSet>> transitions;
+  private final IdentityHashMap<S, MtBdd<Edge<S>>> cachedTrees;
   private Map<S, S> uniqueStates;
-  private final ValuationSetFactory valuationSetFactory;
+  private final BddSetFactory valuationSetFactory;
   @Nullable
   private String name;
   private State state = State.READ;
 
-  HashMapAutomaton(ValuationSetFactory valuationSetFactory, A acceptance) {
+  HashMapAutomaton(BddSetFactory valuationSetFactory, A acceptance) {
     this.valuationSetFactory = valuationSetFactory;
     this.acceptance = acceptance;
 
@@ -182,7 +182,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   public Edge<S> edge(S state, BitSet valuation) {
     readMode();
 
-    for (Map.Entry<Edge<S>, ValuationSet> entry : edgeMapInternal(state).entrySet()) {
+    for (Map.Entry<Edge<S>, BddSet> entry : edgeMapInternal(state).entrySet()) {
       if (entry.getValue().contains(valuation)) {
         return entry.getKey();
       }
@@ -198,13 +198,13 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+  public Map<Edge<S>, BddSet> edgeMap(S state) {
     readMode();
     return Collections.unmodifiableMap(edgeMapInternal(state));
   }
 
   @Override
-  public ValuationTree<Edge<S>> edgeTree(S state) {
+  public MtBdd<Edge<S>> edgeTree(S state) {
     readMode();
     S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
     checkArgument(uniqueState != null, "state (%s) is not present in the automaton.", state);
@@ -218,22 +218,22 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public void addEdge(S source, ValuationSet valuations, Edge<? extends S> edge) {
+  public void addEdge(S source, BddSet valuations, Edge<? extends S> edge) {
     cachedTrees.remove(makeUnique(source));
-    edgeMapInternal(source).merge(makeUnique(edge), valuations, ValuationSet::union);
+    edgeMapInternal(source).merge(makeUnique(edge), valuations, BddSet::union);
   }
 
   @Override
-  public void removeEdge(S source, ValuationSet valuations, S destination) {
+  public void removeEdge(S source, BddSet valuations, S destination) {
     writeMode();
 
-    ValuationSet complement = valuations.complement();
+    BddSet complement = valuations.complement();
     boolean edgeRemoved = edgeMapInternal(source).entrySet().removeIf(entry -> {
       if (!destination.equals(entry.getKey().successor())) {
         return false;
       }
 
-      ValuationSet edgeValuation = entry.getValue().intersection(complement);
+      BddSet edgeValuation = entry.getValue().intersection(complement);
       entry.setValue(edgeValuation);
       return edgeValuation.isEmpty();
     });
@@ -250,8 +250,8 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     writeMode();
 
     for (S state : states) {
-      Map<Edge<S>, ValuationSet> map = edgeMapInternal(state);
-      Map<Edge<S>, ValuationSet> secondMap = new HashMap<>();
+      Map<Edge<S>, BddSet> map = edgeMapInternal(state);
+      Map<Edge<S>, BddSet> secondMap = new HashMap<>();
 
       map.entrySet().removeIf(entry -> {
         Edge<S> oldEdge = entry.getKey();
@@ -276,11 +276,11 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
         }
 
         newEdge = makeUnique(newEdge);
-        secondMap.merge(newEdge, entry.getValue(), ValuationSet::union);
+        secondMap.merge(newEdge, entry.getValue(), BddSet::union);
         return true;
       });
 
-      secondMap.forEach((edge, valuations) -> map.merge(edge, valuations, ValuationSet::union));
+      secondMap.forEach((edge, valuations) -> map.merge(edge, valuations, BddSet::union));
     }
   }
 
@@ -292,7 +292,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
   // Misc.
 
   @Override
-  public ValuationSetFactory factory() {
+  public BddSetFactory factory() {
     return valuationSetFactory;
   }
 
@@ -324,7 +324,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     Set<S> exploredStates = new HashSet<>(initialStates());
     Deque<S> workQueue = new ArrayDeque<>(exploredStates);
 
-    Map<S, Map<Edge<S>, ValuationSet>> oldTransitions = transitions;
+    Map<S, Map<Edge<S>, BddSet>> oldTransitions = transitions;
     transitions = new IdentityHashMap<>(oldTransitions.size());
     uniqueStates = new HashMap<>(uniqueStates.size());
 
@@ -377,11 +377,11 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     }
   }
 
-  private Map<Edge<S>, ValuationSet> edgeMapInternal(S state) {
+  private Map<Edge<S>, BddSet> edgeMapInternal(S state) {
     S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
     checkArgument(uniqueState != null, "State %s not in automaton", state);
-    Map<Edge<S>, ValuationSet> successors = transitions.get(uniqueState);
-    assert successors.values().stream().noneMatch(ValuationSet::isEmpty);
+    Map<Edge<S>, BddSet> successors = transitions.get(uniqueState);
+    assert successors.values().stream().noneMatch(BddSet::isEmpty);
     return successors;
   }
 
@@ -422,12 +422,12 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
    * @return Empty automaton with the specified parameters.
    */
   public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> of(A acceptance,
-    ValuationSetFactory vsFactory) {
+    BddSetFactory vsFactory) {
     return new HashMapAutomaton<>(vsFactory, acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> of(A acceptance,
-    ValuationSetFactory vsFactory, Collection<S> initialStates,
+    BddSetFactory vsFactory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
     HashMapAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
     initialStates.forEach(automaton::addInitialState);
@@ -451,7 +451,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
           continue;
         }
 
-        ValuationSet valuationSet;
+        BddSet valuationSet;
 
         if (sensitiveAlphabet == null) {
           valuationSet = vsFactory.of(valuation);

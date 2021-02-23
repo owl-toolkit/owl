@@ -28,7 +28,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 /**
  * Abstraction of a single pebble in a multipebble simulation game. This holds a state on an
@@ -97,13 +97,13 @@ public abstract class Pebble<S> {
    * @param valSet Set of valuations to advance the pebble by.
    * @return A set of possible successor pebbles for the given valuation set.
    */
-  public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
+  public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
     valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(successors(aut, val)));
     return out;
   }
 
-  public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
+  public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
     valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(predecessors(aut, val)));
     return out;

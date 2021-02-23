@@ -69,11 +69,11 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -123,7 +123,7 @@ public final class CAutomaton {
 
     AtomicInteger uncontrollableApSize = new AtomicInteger(-1);
 
-    Function<List<String>, ValuationSetFactory> factoryFunction = (atomicPropositions) -> {
+    Function<List<String>, BddSetFactory> factoryFunction = (atomicPropositions) -> {
       List<String> uncontrollableAp = new ArrayList<>();
       List<String> controllableAp = new ArrayList<>();
 
@@ -137,7 +137,7 @@ public final class CAutomaton {
 
       uncontrollableApSize.set(uncontrollableAp.size());
       uncontrollableAp.addAll(controllableAp);
-      return FactorySupplier.defaultSupplier().getValuationSetFactory(uncontrollableAp);
+      return FactorySupplier.defaultSupplier().getBddSetFactory(uncontrollableAp);
     };
 
     var automaton = DeterministicAutomatonWrapper.of(
@@ -505,12 +505,12 @@ public final class CAutomaton {
 
     // Initial state caching.
     @Nullable
-    final ValuationTree<Edge<S>> initialStateEdgeTree;
+    final MtBdd<Edge<S>> initialStateEdgeTree;
     @Nullable
     final Set<Integer> initialStateSuccessors;
 
     @Nullable
-    ValuationSet filter;
+    BddSet filter;
 
     @Nullable
     final S canonicalAcceptingState;
@@ -773,18 +773,18 @@ public final class CAutomaton {
     }
 
     private void serialise(
-      ValuationTree<Edge<S>> edgeTree,
+      MtBdd<Edge<S>> edgeTree,
       SerialisedEdgeTree buffers,
       int treeBufferWriteBackPosition,
-      Object2IntMap<ValuationTree<Edge<S>>> cachedPositions) {
+      Object2IntMap<MtBdd<Edge<S>>> cachedPositions) {
 
       var treeBuffer = buffers.tree;
       int position = cachedPositions.getInt(edgeTree);
 
       if (position == Integer.MIN_VALUE) {
 
-        if (edgeTree instanceof ValuationTree.Node) {
-          var node = (ValuationTree.Node<Edge<S>>) edgeTree;
+        if (edgeTree instanceof MtBdd.Node) {
+          var node = (MtBdd.Node<Edge<S>>) edgeTree;
 
           position = treeBuffer.size();
           treeBuffer.add(node.variable, -1, -1);
@@ -792,7 +792,7 @@ public final class CAutomaton {
           serialise(node.falseChild, buffers, position + 1, cachedPositions);
           serialise(node.trueChild, buffers, position + 2, cachedPositions);
         } else {
-          var edge = Iterables.getOnlyElement(((ValuationTree.Leaf<Edge<S>>) edgeTree).value, null);
+          var edge = Iterables.getOnlyElement(((MtBdd.Leaf<Edge<S>>) edgeTree).value, null);
 
           var edgeBuffer = buffers.edges;
 
@@ -819,8 +819,8 @@ public final class CAutomaton {
       }
     }
 
-    private static ValuationSet deserialise(CIntPointer tree, int length, ValuationSetFactory factory) {
-      var cache = new ValuationSet[length / 3];
+    private static BddSet deserialise(CIntPointer tree, int length, BddSetFactory factory) {
+      var cache = new BddSet[length / 3];
 
       assert 3 * cache.length == length;
 
@@ -830,16 +830,16 @@ public final class CAutomaton {
         int falseChild = tree.read(3 * i + 1);
         int trueChild = tree.read(3 * i + 2);
 
-        ValuationSet falseChildSet = falseChild >= 0
+        BddSet falseChildSet = falseChild >= 0
           ? cache[falseChild / 3]
           : (falseChild == REJECTING ? factory.of() : factory.universe());
 
-        ValuationSet trueChildSet = trueChild >= 0
+        BddSet trueChildSet = trueChild >= 0
           ? cache[trueChild / 3]
           : (trueChild == REJECTING ? factory.of() : factory.universe());
 
-        ValuationSet trueBranch = factory.of(atomicProposition);
-        ValuationSet falseBranch = trueBranch.complement();
+        BddSet trueBranch = factory.of(atomicProposition);
+        BddSet falseBranch = trueBranch.complement();
 
         cache[i] = (trueBranch.intersection(trueChildSet))
           .union(falseBranch.intersection(falseChildSet));
@@ -853,7 +853,7 @@ public final class CAutomaton {
       // Load installed global filter.
       var filter = this.filter;
       S state = index2StateMap.get(stateIndex);
-      ValuationTree<Edge<S>> edgeTree;
+      MtBdd<Edge<S>> edgeTree;
 
       assert automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_TREE
         || automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_MAP;
@@ -874,7 +874,7 @@ public final class CAutomaton {
       }
 
       var serialisedEdgeTree = new SerialisedEdgeTree(computeScores);
-      var cachedPositions = new Object2IntOpenHashMap<ValuationTree<Edge<S>>>();
+      var cachedPositions = new Object2IntOpenHashMap<MtBdd<Edge<S>>>();
       cachedPositions.defaultReturnValue(Integer.MIN_VALUE);
       serialise(edgeTree, serialisedEdgeTree, -1, cachedPositions);
       return serialisedEdgeTree;

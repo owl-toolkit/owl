@@ -91,7 +91,7 @@ class GfgCoBuchiMinimizationTest {
   private static Automaton<?, CoBuchiAcceptance> graphPermutationLanguage(int n) {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b"));
+      .getBddSetFactory(List.of("a", "b"));
 
     var initialState = IntStream.range(1, n + 1).boxed().collect(Collectors.toUnmodifiableList());
 
@@ -145,7 +145,7 @@ class GfgCoBuchiMinimizationTest {
   private static Automaton<Integer, CoBuchiAcceptance> graphPermutationLanguage2(int n) {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b"));
+      .getBddSetFactory(List.of("a", "b"));
 
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
       factory, Set.of(1), CoBuchiAcceptance.INSTANCE) {

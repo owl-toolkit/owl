@@ -106,7 +106,7 @@ class TestHasAcceptingRun {
     boolean complementHasAcceptingRun) throws ParseException {
     var nba = OmegaAcceptanceCast.cast(
       HoaReader.read(
-        new StringReader(input), FactorySupplier.defaultSupplier()::getValuationSetFactory),
+        new StringReader(input), FactorySupplier.defaultSupplier()::getBddSetFactory),
       GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 

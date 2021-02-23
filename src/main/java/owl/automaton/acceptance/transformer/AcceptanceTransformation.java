@@ -31,9 +31,9 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 
 abstract class AcceptanceTransformation {
 
@@ -66,14 +66,14 @@ abstract class AcceptanceTransformation {
       }
 
       @Override
-      public Map<Edge<ExtendedState<S, E>>, ValuationSet> edgeMap(ExtendedState<S, E> state) {
+      public Map<Edge<ExtendedState<S, E>>, BddSet> edgeMap(ExtendedState<S, E> state) {
         return Collections3.transformMap(
           automaton.edgeMap(state.state()),
           x -> transformEdge(x, state.extension()));
       }
 
       @Override
-      public ValuationTree<Edge<ExtendedState<S, E>>> edgeTree(ExtendedState<S, E> state) {
+      public MtBdd<Edge<ExtendedState<S, E>>> edgeTree(ExtendedState<S, E> state) {
         return automaton.edgeTree(state.state())
           .map(x -> Collections3.transformSet(x, y -> transformEdge(y, state.extension())));
       }

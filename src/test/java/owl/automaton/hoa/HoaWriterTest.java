@@ -27,17 +27,17 @@ import org.junit.jupiter.api.Test;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSetFactory;
 import owl.run.modules.OutputWriters;
 
 public class HoaWriterTest {
 
-  private static final ValuationSetFactory FACTORY;
+  private static final BddSetFactory FACTORY;
 
   static {
 
-    FACTORY = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a"));
+    FACTORY = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
   }
 
   @Test

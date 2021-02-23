@@ -40,7 +40,7 @@ public final class AutomatonTestUtil {
       String hoa, Class<A> acc) throws ParseException {
 
     final var supplier = FactorySupplier.defaultSupplier();
-    final var parsed = HoaReader.read(new StringReader(hoa), supplier::getValuationSetFactory);
+    final var parsed = HoaReader.read(new StringReader(hoa), supplier::getBddSetFactory);
     final var aut = OmegaAcceptanceCast.cast(parsed, acc);
 
     var stateMap = new HashMap<HoaReader.HoaState, Integer>();

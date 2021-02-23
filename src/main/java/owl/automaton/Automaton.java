@@ -34,9 +34,9 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 
 /**
  * An automaton over infinite words.
@@ -85,7 +85,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return The symbolic engine used to generate ValuationSets.
    */
-  ValuationSetFactory factory();
+  BddSetFactory factory();
 
   // States
 
@@ -203,7 +203,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *
    * @return All labelled edges of the state.
    */
-  Map<Edge<S>, ValuationSet> edgeMap(S state);
+  Map<Edge<S>, BddSet> edgeMap(S state);
 
   /**
    * Returns a decision-tree with nodes labelled by literals and sets of edges as leaves.
@@ -212,7 +212,7 @@ public interface Automaton<S, A extends OmegaAcceptance> {
    *    The state.
    * @return A tree.
    */
-  ValuationTree<Edge<S>> edgeTree(S state);
+  MtBdd<Edge<S>> edgeTree(S state);
 
   // Derived state functions
 

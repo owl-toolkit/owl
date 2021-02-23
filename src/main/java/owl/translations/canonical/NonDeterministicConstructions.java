@@ -19,7 +19,7 @@
 
 package owl.translations.canonical;
 
-import static owl.collections.ValuationTrees.cartesianProduct;
+import static owl.bdd.MtBddOperations.cartesianProduct;
 import static owl.translations.canonical.Util.unwrap;
 
 import com.google.common.base.Preconditions;
@@ -42,9 +42,9 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.Pair;
-import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -88,7 +88,7 @@ public final class NonDeterministicConstructions {
       return successorsInternal(state, valuation, mapper, factory);
     }
 
-    <T> ValuationTree<T> successorTreeInternal(Formula state,
+    <T> MtBdd<T> successorTreeInternal(Formula state,
       Function<? super Set<Formula>, ? extends Set<T>> mapper) {
       return successorTreeInternal(state, mapper, factory);
     }
@@ -99,7 +99,7 @@ public final class NonDeterministicConstructions {
         reducedDnf(factory.of(unfoldWithSuspension(state).temporalStep(valuation))));
     }
 
-    static <T> ValuationTree<T> successorTreeInternal(
+    static <T> MtBdd<T> successorTreeInternal(
       Formula state,
       Function<? super Set<Formula>, ? extends Set<T>> mapper,
       EquivalenceClassFactory factory) {
@@ -281,7 +281,7 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public final ValuationTree<Edge<Formula>> edgeTreeImpl(Formula state) {
+    public final MtBdd<Edge<Formula>> edgeTreeImpl(Formula state) {
       return successorTreeInternal(state, this::successorToEdge);
     }
   }
@@ -341,7 +341,7 @@ public final class NonDeterministicConstructions {
 
   public static final class FgSafety extends Terminal<BuchiAcceptance> {
     private final FOperator initialState;
-    private final ValuationTree<Formula> initialStateSuccessorTree;
+    private final MtBdd<Formula> initialStateSuccessorTree;
 
     private FgSafety(Factories factories, FOperator formula) {
       super(factories, Set.of(formula), BuchiAcceptance.INSTANCE);
@@ -356,7 +356,7 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public ValuationTree<Edge<Formula>> edgeTreeImpl(Formula state) {
+    public MtBdd<Edge<Formula>> edgeTreeImpl(Formula state) {
       return initialState.equals(state)
         ? initialStateSuccessorTree.map(x -> successorToEdge(Sets.union(x, initialStates())))
         : successorTreeInternal(state, this::successorToEdge);
@@ -374,12 +374,12 @@ public final class NonDeterministicConstructions {
     extends Base<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> {
 
     private final RoundRobinState<Formula> fallbackInitialState;
-    private final ValuationTree<Pair<List<RoundRobinState<Formula>>, BitSet>>
+    private final MtBdd<Pair<List<RoundRobinState<Formula>>, BitSet>>
       initialStatesSuccessorTree;
 
     private GfCoSafety(Factories factories, Set<RoundRobinState<Formula>> initialState,
       RoundRobinState<Formula> fallbackInitialState,
-      ValuationTree<Pair<List<RoundRobinState<Formula>>, BitSet>> tree,
+      MtBdd<Pair<List<RoundRobinState<Formula>>, BitSet>> tree,
       GeneralizedBuchiAcceptance acceptance) {
       super(factories, initialState, acceptance);
       this.fallbackInitialState = fallbackInitialState;
@@ -417,7 +417,7 @@ public final class NonDeterministicConstructions {
 
       // Iteratively build common edge-tree.
       var initialStatesSuccessorTreeTemp
-        = ValuationTree.of(Set.of(List.<RoundRobinState<Formula>>of()));
+        = MtBdd.of(Set.of(List.<RoundRobinState<Formula>>of()));
 
       for (int i = 0; i < automata.size(); i++) {
         int j = i;
@@ -452,7 +452,7 @@ public final class NonDeterministicConstructions {
     }
 
     @Override
-    public ValuationTree<Edge<RoundRobinState<Formula>>> edgeTreeImpl(
+    public MtBdd<Edge<RoundRobinState<Formula>>> edgeTreeImpl(
       RoundRobinState<Formula> state) {
       var successorTree = successorTreeInternal(state.state(), Function.identity());
       return cartesianProduct(successorTree, initialStatesSuccessorTree,
@@ -461,7 +461,7 @@ public final class NonDeterministicConstructions {
 
     private static Set<Edge<RoundRobinState<Formula>>> edges(
       RoundRobinState<Formula> state, BitSet valuation, EquivalenceClassFactory factory,
-      ValuationTree<Pair<List<RoundRobinState<Formula>>, BitSet>> initialStatesSuccessorTree,
+      MtBdd<Pair<List<RoundRobinState<Formula>>, BitSet>> initialStatesSuccessorTree,
       RoundRobinState<Formula> fallbackInitialState) {
 
       Set<Edge<RoundRobinState<Formula>>> edges = new HashSet<>();

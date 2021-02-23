@@ -109,7 +109,7 @@ class NBA2LDBATest {
 
     var supplier = FactorySupplier.defaultSupplier();
     var nba = OmegaAcceptanceCast
-      .cast(HoaReader.read(new StringReader(hoa), supplier::getValuationSetFactory),
+      .cast(HoaReader.read(new StringReader(hoa), supplier::getBddSetFactory),
         OmegaAcceptance.class);
     var ldba = new NBA2LDBA().apply(nba);
     HoaWriter.write(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));

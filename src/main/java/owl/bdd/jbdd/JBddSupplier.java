@@ -23,9 +23,9 @@ import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.List;
+import owl.bdd.BddSetFactory;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSetFactory;
 
 public final class JBddSupplier extends FactorySupplier {
   public static final JBddSupplier INSTANCE = new JBddSupplier();
@@ -53,9 +53,9 @@ public final class JBddSupplier extends FactorySupplier {
   }
 
   @Override
-  public ValuationSetFactory getValuationSetFactory(List<String> atomicPropositions) {
+  public BddSetFactory getBddSetFactory(List<String> atomicPropositions) {
     int alphabetSize = atomicPropositions.size();
     Bdd vsFactoryBdd = create(Math.abs(13 * alphabetSize));
-    return new JBddValuationSetFactory(vsFactoryBdd, atomicPropositions);
+    return new JBddSetFactory(vsFactoryBdd, atomicPropositions);
   }
 }

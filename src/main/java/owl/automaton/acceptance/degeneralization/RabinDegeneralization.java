@@ -49,7 +49,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 
@@ -95,7 +95,7 @@ public final class RabinDegeneralization {
     // Arbitrary correspondence map for each original state
     Map<S, DegeneralizedRabinState<S>> stateMap = new HashMap<>();
     // Table containing all transient edges
-    Table<DegeneralizedRabinState<S>, S, ValuationSet> transientEdgesTable =
+    Table<DegeneralizedRabinState<S>, S, BddSet> transientEdgesTable =
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
@@ -115,9 +115,9 @@ public final class RabinDegeneralization {
         resultAutomaton.addInitialState(degeneralizedState);
         stateMap.put(state, degeneralizedState);
 
-        Map<S, ValuationSet> successors = transientEdgesTable.row(degeneralizedState);
+        Map<S, BddSet> successors = transientEdgesTable.row(degeneralizedState);
         automaton.edgeMap(state).forEach((edge, valuations) ->
-              successors.merge(edge.successor(), valuations, ValuationSet::union));
+              successors.merge(edge.successor(), valuations, BddSet::union));
         continue;
       }
 
@@ -157,18 +157,18 @@ public final class RabinDegeneralization {
           Set.of(initialSccState), resultAutomaton.acceptance()) {
 
           @Override
-          public Map<Edge<DegeneralizedRabinState<S>>, ValuationSet> edgeMapImpl(
+          public Map<Edge<DegeneralizedRabinState<S>>, BddSet> edgeMapImpl(
             DegeneralizedRabinState<S> state) {
 
             S generalizedState = state.state();
-            Map<S, ValuationSet> transientSuccessors = transientEdgesTable.row(state);
-            Map<Edge<DegeneralizedRabinState<S>>, ValuationSet> successors = new HashMap<>();
+            Map<S, BddSet> transientSuccessors = transientEdgesTable.row(state);
+            Map<Edge<DegeneralizedRabinState<S>>, BddSet> successors = new HashMap<>();
 
             automaton.edgeMap(generalizedState).forEach((edge, valuation) -> {
               S generalizedSuccessor = edge.successor();
               if (!scc.contains(generalizedSuccessor)) {
                 // This is a transient edge, add to the table and ignore it
-                transientSuccessors.merge(generalizedSuccessor, valuation, ValuationSet::union);
+                transientSuccessors.merge(generalizedSuccessor, valuation, BddSet::union);
                 return;
               }
 
@@ -229,7 +229,7 @@ public final class RabinDegeneralization {
 
               var successor =
                 DegeneralizedRabinState.of(generalizedSuccessor, successorAwaitedIndices);
-              successors.merge(Edge.of(successor, edgeAcceptance), valuation, ValuationSet::union);
+              successors.merge(Edge.of(successor, edgeAcceptance), valuation, BddSet::union);
             });
 
             return successors;

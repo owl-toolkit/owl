@@ -19,7 +19,7 @@
 
 package owl.translations.ltl2ldba;
 
-import static owl.collections.ValuationTrees.cartesianProduct;
+import static owl.bdd.MtBddOperations.cartesianProduct;
 import static owl.translations.mastertheorem.SymmetricEvaluatedFixpoints.DeterministicAutomata;
 
 import com.google.common.collect.Iterables;
@@ -53,9 +53,9 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.Either;
-import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -174,7 +174,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     BitSet accSets = new BitSet();
     accSets.set(0, acceptanceSets);
 
-    Function<Map<Integer, EquivalenceClass>, ValuationTree<Edge<Map<Integer, EquivalenceClass>>>>
+    Function<Map<Integer, EquivalenceClass>, MtBdd<Edge<Map<Integer, EquivalenceClass>>>>
       edgeTree = state -> {
         var successors = state.entrySet().stream()
           .map(x -> Map.entry(x.getKey(), factory.successorTree(x.getValue())))
@@ -196,7 +196,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       AllAcceptance.INSTANCE) {
 
       @Override
-      public ValuationTree<Edge<Map<Integer, EquivalenceClass>>> edgeTreeImpl(
+      public MtBdd<Edge<Map<Integer, EquivalenceClass>>> edgeTreeImpl(
         Map<Integer, EquivalenceClass> state) {
         return edgeTree.apply(state);
       }
@@ -405,7 +405,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       anchors.addAll(List.copyOf(initialStates));
     }
 
-    protected ValuationTree<Edge<SymmetricProductState>> edgeTree(SymmetricProductState state) {
+    protected MtBdd<Edge<SymmetricProductState>> edgeTree(SymmetricProductState state) {
       var automata = Objects.requireNonNull(state.automata);
 
       var safetyState = Objects.requireNonNull(state.safety);
@@ -452,7 +452,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
           factories.vsFactory, Set.copyOf(anchors), acceptance) {
 
           @Override
-          public ValuationTree<Edge<SymmetricProductState>> edgeTreeImpl(
+          public MtBdd<Edge<SymmetricProductState>> edgeTreeImpl(
             SymmetricProductState state) {
             return AcceptingComponentBuilder.this.edgeTree(state);
           }

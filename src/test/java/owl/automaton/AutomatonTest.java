@@ -33,9 +33,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LTL2DAFunction;
@@ -81,15 +81,15 @@ class AutomatonTest {
   }
 
   private static Stream<Arguments> automatonProvider() {
-    ValuationSetFactory factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b"));
+    BddSetFactory factory = FactorySupplier.defaultSupplier()
+      .getBddSetFactory(List.of("a", "b"));
 
     return Stream.of(Arguments.of(
       new AbstractMemoizingAutomaton.EdgeMapImplementation<>(factory, Set.of("x"),
         AllAcceptance.INSTANCE) {
 
         @Override
-        public Map<Edge<String>, ValuationSet> edgeMapImpl(String state) {
+        public Map<Edge<String>, BddSet> edgeMapImpl(String state) {
           return Map.of(Edge.of("x"), factory.universe(), Edge.of("y"), factory.of(0));
         }
       }));
@@ -106,11 +106,11 @@ class AutomatonTest {
   <S> void edgeMapTest(Automaton<S, ?> automaton) {
     for (S state : automaton.states()) {
       var actualEdges = automaton.edgeMap(state);
-      var expectedEdges = new HashMap<Edge<S>, ValuationSet>();
+      var expectedEdges = new HashMap<Edge<S>, BddSet>();
 
       for (var valuation : BitSets.powerSet(automaton.atomicPropositions().size())) {
         automaton.edges(state, valuation).forEach(
-          x -> expectedEdges.merge(x, automaton.factory().of(valuation), ValuationSet::union));
+          x -> expectedEdges.merge(x, automaton.factory().of(valuation), BddSet::union));
       }
 
       assertEquals(expectedEdges, actualEdges);

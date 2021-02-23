@@ -59,12 +59,12 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
+import owl.bdd.MtBdd;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -102,7 +102,7 @@ public final class RabinizerBuilder {
   private final EquivalenceClass initialClass;
   private final MasterStateFactory masterStateFactory;
   private final ProductStateFactory productStateFactory;
-  private final ValuationSetFactory vsFactory;
+  private final BddSetFactory vsFactory;
 
   private RabinizerBuilder(RabinizerConfiguration configuration, Factories factories,
     Formula formula) {
@@ -122,10 +122,10 @@ public final class RabinizerBuilder {
     productStateFactory = new ProductStateFactory(configuration.eager());
   }
 
-  private static ValuationSet[][] computeMonitorPriorities(MonitorAutomaton[] monitors,
+  private static BddSet[][] computeMonitorPriorities(MonitorAutomaton[] monitors,
     List<MonitorState> monitorStates, GSet activeSet) {
     int monitorCount = monitors.length;
-    ValuationSet[][] monitorPriorities = new ValuationSet[monitorCount][];
+    BddSet[][] monitorPriorities = new BddSet[monitorCount][];
     for (int relevantIndex = 0; relevantIndex < monitorStates.size(); relevantIndex++) {
       MonitorState monitorState = monitorStates.get(relevantIndex);
 
@@ -135,7 +135,7 @@ public final class RabinizerBuilder {
       int monitorAcceptanceSets = monitor.acceptance().acceptanceSets();
 
       // Cache the priorities of the edge
-      ValuationSet[] edgePriorities = new ValuationSet[monitorAcceptanceSets];
+      BddSet[] edgePriorities = new BddSet[monitorAcceptanceSets];
 
       monitor.edgeMap(monitorState).forEach((edge, valuations) -> {
         if (edge.colours().isEmpty()) {
@@ -233,7 +233,7 @@ public final class RabinizerBuilder {
         AllAcceptance.INSTANCE) {
 
         @Override
-        protected ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(
+        protected MtBdd<Edge<EquivalenceClass>> edgeTreeImpl(
           EquivalenceClass state) {
           return masterStateFactory.edgeTree(state);
         }
@@ -366,7 +366,7 @@ public final class RabinizerBuilder {
       /* Simple part first: Compute evolution of the transition system. We only have to evolve
        * according to the product construction. */
       // TODO Maye make this an automaton?
-      Map<RabinizerState, Map<RabinizerProductEdge, ValuationSet>> transitionSystem =
+      Map<RabinizerState, Map<RabinizerProductEdge, BddSet>> transitionSystem =
         exploreTransitionSystem(scc, masterAutomaton, sccMonitors);
 
       // TODO Some state space analysis / optimization is possible here?
@@ -411,7 +411,7 @@ public final class RabinizerBuilder {
           // determine which priority a particular valuation has for a monitor with index i, one
           // simply has to find a j such that priorities[i][j] contains the valuation. Note that
           // thus it is guaranteed that for each i priorities[i][j] are disjoint for all j.
-          ValuationSet[][] monitorPriorities =
+          BddSet[][] monitorPriorities =
             computeMonitorPriorities(sccMonitors, state.monitorStates(), activeSubFormulasSet);
 
           // Iterate over all possible rankings
@@ -442,7 +442,7 @@ public final class RabinizerBuilder {
               // TODO Can we be even smarter here? This usually is the costliest part of the code
               // due to the call to monitors entail
               valuations.forEach(sensitiveAlphabet, valuation -> {
-                ValuationSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
+                BddSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
                 if (configuration.eager() && !rankingPair.monitorsEntailEager(state, valuation)) {
                   transition.addAcceptance(edgeValuation, pair.finSet());
                 } else {
@@ -548,14 +548,14 @@ public final class RabinizerBuilder {
     return monitor;
   }
 
-  private void createEdges(RabinizerState state, Map<RabinizerProductEdge, ValuationSet>
+  private void createEdges(RabinizerState state, Map<RabinizerProductEdge, BddSet>
     successors, MutableAutomaton<RabinizerState, ?> rabinizerAutomaton) {
     rabinizerAutomaton.addState(state);
 
     BitSet sensitiveAlphabet = productStateFactory.getSensitiveAlphabet(state);
     successors.forEach((cache, valuations) -> {
       RabinizerState rabinizerSuccessor = cache.getRabinizerSuccessor();
-      ValuationSet[] acceptanceCache = cache.getSuccessorAcceptance();
+      BddSet[] acceptanceCache = cache.getSuccessorAcceptance();
 
       valuations.forEach(sensitiveAlphabet, valuation -> {
         int acceptanceIndices = acceptanceCache.length;
@@ -563,7 +563,7 @@ public final class RabinizerBuilder {
 
         // Gather all sets active for this valuation
         for (int acceptanceIndex = 0; acceptanceIndex < acceptanceIndices; acceptanceIndex++) {
-          ValuationSet acceptanceValuations = acceptanceCache[acceptanceIndex];
+          BddSet acceptanceValuations = acceptanceCache[acceptanceIndex];
           if (acceptanceValuations == null) {
             continue;
           }
@@ -575,14 +575,14 @@ public final class RabinizerBuilder {
         // Create the edge
         Edge<RabinizerState> rabinizerEdge = Edge.of(rabinizerSuccessor, edgeAcceptanceSet);
         // Expand valuation to the full alphabet
-        ValuationSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
+        BddSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
         // Add edge to result
         rabinizerAutomaton.addEdge(state, edgeValuation, rabinizerEdge);
       });
     });
   }
 
-  private Map<RabinizerState, Map<RabinizerProductEdge, ValuationSet>>
+  private Map<RabinizerState, Map<RabinizerProductEdge, BddSet>>
   exploreTransitionSystem(Set<EquivalenceClass> stateSubset,
     Automaton<EquivalenceClass, ?> masterAutomaton, MonitorAutomaton[] monitors) {
     int relevantFormulaCount = monitors.length;
@@ -593,7 +593,7 @@ public final class RabinizerBuilder {
     RabinizerState initialState = RabinizerState.of(masterInitialState, monitorInitialStates);
 
     // The distinct edges in the product transition graph
-    Map<RabinizerState, Map<RabinizerProductEdge, ValuationSet>> transitionSystem = new HashMap<>();
+    Map<RabinizerState, Map<RabinizerProductEdge, BddSet>> transitionSystem = new HashMap<>();
 
     // BFS work list
     Set<RabinizerState> exploredStates = Sets.newHashSet(initialState);
@@ -614,27 +614,27 @@ public final class RabinizerBuilder {
         continue;
       }
 
-      Map<RabinizerProductEdge, ValuationSet> rabinizerSuccessors = new HashMap<>();
+      Map<RabinizerProductEdge, BddSet> rabinizerSuccessors = new HashMap<>();
       transitionSystem.put(currentState, rabinizerSuccessors);
 
       // Compute the successor matrix for all monitors. Basically, we assign a arbitrary ordering
       // on all successors for each monitor.
       MonitorState[][] monitorSuccessorMatrix = new MonitorState[relevantFormulaCount][];
-      ValuationSet[][] monitorValuationMatrix = new ValuationSet[relevantFormulaCount][];
+      BddSet[][] monitorValuationMatrix = new BddSet[relevantFormulaCount][];
       int[] successorCounts = new int[relevantFormulaCount];
 
       for (int monitorIndex = 0; monitorIndex < relevantFormulaCount; monitorIndex++) {
         MonitorState monitorState = monitorStates.get(monitorIndex);
 
-        Map<MonitorState, ValuationSet> successors = new HashMap<>();
+        Map<MonitorState, BddSet> successors = new HashMap<>();
         monitors[monitorIndex].edgeMap(monitorState).forEach((edge, valuations) ->
-          successors.merge(edge.successor(), valuations, ValuationSet::union));
+          successors.merge(edge.successor(), valuations, BddSet::union));
 
         int monitorSuccessorCount = successors.size();
         successorCounts[monitorIndex] = monitorSuccessorCount - 1;
 
         MonitorState[] successorStates = new MonitorState[monitorSuccessorCount];
-        ValuationSet[] successorValuations = new ValuationSet[monitorSuccessorCount];
+        BddSet[] successorValuations = new BddSet[monitorSuccessorCount];
         Indices.forEachIndexed(successors.entrySet(), (successorIndex, entry) -> {
           successorStates[successorIndex] = entry.getKey();
           successorValuations[successorIndex] = entry.getValue();
@@ -680,7 +680,7 @@ public final class RabinizerBuilder {
           RabinizerState rabinizerSuccessor = RabinizerState.of(masterSuccessor, monitorSuccessors);
 
           rabinizerSuccessors.merge(new RabinizerProductEdge(rabinizerSuccessor),
-            vsFactory.of(valuation, sensitiveAlphabet), ValuationSet::union);
+            vsFactory.of(valuation, sensitiveAlphabet), BddSet::union);
 
           // Update exploration queue
           if (exploredStates.add(rabinizerSuccessor)) {
@@ -703,7 +703,7 @@ public final class RabinizerBuilder {
           product:
           while (productIterator.hasNext()) {
             int[] successorSelection = productIterator.next();
-            ValuationSet productValuation = valuationSet;
+            BddSet productValuation = valuationSet;
 
             // Evolve each monitor
             MonitorState[] monitorSuccessors = new MonitorState[monitorStates.size()];
@@ -714,7 +714,7 @@ public final class RabinizerBuilder {
               int monitorMatrixIndex = successorSelection[monitorIndex];
               monitorSuccessors[monitorIndex] =
                 monitorSuccessorMatrix[monitorIndex][monitorMatrixIndex];
-              ValuationSet monitorSuccessorValuation =
+              BddSet monitorSuccessorValuation =
                 monitorValuationMatrix[monitorIndex][monitorMatrixIndex];
               productValuation = productValuation.intersection(monitorSuccessorValuation);
 
@@ -727,7 +727,7 @@ public final class RabinizerBuilder {
             // Create product successor
             RabinizerState successor = RabinizerState.of(edge.successor(), monitorSuccessors);
             rabinizerSuccessors.merge(new RabinizerProductEdge(successor), productValuation,
-              ValuationSet::union);
+              BddSet::union);
 
             // Update exploration queue
             if (exploredStates.add(successor)) {
@@ -852,14 +852,14 @@ public final class RabinizerBuilder {
     final int[] ranking;
     private final boolean[] activeFormulas;
     private final EquivalenceClassFactory eqFactory;
-    private final ValuationSet[][] monitorPriorities;
+    private final BddSet[][] monitorPriorities;
     private final boolean[] relevantFormulas;
 
     @SuppressWarnings({"PMD.ArrayIsStoredDirectly"
                       })
     GSetRanking(boolean[] relevantFormulas, boolean[] activeFormulas, GSet activeFormulaSet,
       RabinPair pair, int[] ranking, EquivalenceClassFactory eqFactory,
-      ValuationSet[][] monitorPriorities) {
+      BddSet[][] monitorPriorities) {
       assert activeFormulas.length == relevantFormulas.length;
 
       this.activeFormulaSet = activeFormulaSet;
@@ -893,9 +893,9 @@ public final class RabinizerBuilder {
 
         // Find priority of monitor edge in cache
         int priority = -1;
-        ValuationSet[] monitorEdgePriorities = monitorPriorities[relevantIndex];
+        BddSet[] monitorEdgePriorities = monitorPriorities[relevantIndex];
         for (int i = 0; i < monitorEdgePriorities.length; i++) {
-          ValuationSet priorityValuation = monitorEdgePriorities[i];
+          BddSet priorityValuation = monitorEdgePriorities[i];
           if (priorityValuation == null) {
             continue;
           }

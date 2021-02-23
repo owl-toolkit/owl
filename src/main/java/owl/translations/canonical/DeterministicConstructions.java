@@ -19,7 +19,7 @@
 
 package owl.translations.canonical;
 
-import static owl.collections.ValuationTrees.cartesianProduct;
+import static owl.bdd.MtBddOperations.cartesianProduct;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
@@ -43,9 +43,9 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.Pair;
-import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
@@ -88,11 +88,11 @@ public final class DeterministicConstructions {
       return clazz.temporalStep(valuation).unfold();
     }
 
-    static ValuationTree<EquivalenceClass> successorTreeInternal(EquivalenceClass clazz) {
+    static MtBdd<EquivalenceClass> successorTreeInternal(EquivalenceClass clazz) {
       return clazz.temporalStepTree(preSuccessor -> Set.of(preSuccessor.unfold()));
     }
 
-    static <T> ValuationTree<T> successorTreeInternal(EquivalenceClass clazz,
+    static <T> MtBdd<T> successorTreeInternal(EquivalenceClass clazz,
       Function<? super EquivalenceClass, ? extends Set<T>> edgeFunction) {
       return clazz.temporalStepTree(x -> edgeFunction.apply(x.unfold()));
     }
@@ -109,7 +109,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    public final ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
+    public final MtBdd<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
       return clazz.temporalStepTree(edgeMapper);
     }
 
@@ -171,12 +171,12 @@ public final class DeterministicConstructions {
       return factory.of(state).unfold();
     }
 
-    public ValuationTree<EquivalenceClass> successorTree(EquivalenceClass clazz) {
+    public MtBdd<EquivalenceClass> successorTree(EquivalenceClass clazz) {
       return clazz.temporalStepTree(x -> Set.of(x.unfold()));
     }
 
     @Override
-    public ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
+    public MtBdd<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
       return clazz.temporalStepTree(x -> Set.of(Edge.of(x.unfold())));
     }
   }
@@ -185,12 +185,12 @@ public final class DeterministicConstructions {
     extends Base<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance> {
 
     private final RoundRobinState<EquivalenceClass> fallbackInitialState;
-    private final ValuationTree<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>>
+    private final MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>>
       initialStatesSuccessorTree;
 
     private GfCoSafety(Factories factories, RoundRobinState<EquivalenceClass> initialState,
       RoundRobinState<EquivalenceClass> fallbackInitialState,
-      ValuationTree<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>> tree,
+      MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>> tree,
       GeneralizedBuchiAcceptance acceptance) {
       super(factories, initialState, acceptance);
       this.fallbackInitialState = fallbackInitialState;
@@ -230,7 +230,7 @@ public final class DeterministicConstructions {
 
       // Iteratively build common edge-tree.
       var initialStatesSuccessorTreeTemp
-        = ValuationTree.of(Set.of(List.<RoundRobinState<EquivalenceClass>>of()));
+        = MtBdd.of(Set.of(List.<RoundRobinState<EquivalenceClass>>of()));
 
       for (int i = 0; i < automata.size(); i++) {
         int j = i;
@@ -299,7 +299,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    public final ValuationTree<Edge<RoundRobinState<EquivalenceClass>>> edgeTreeImpl(
+    public final MtBdd<Edge<RoundRobinState<EquivalenceClass>>> edgeTreeImpl(
       RoundRobinState<EquivalenceClass> state) {
       var successorTree = successorTreeInternal(state.state());
       return cartesianProduct(successorTree, initialStatesSuccessorTree,
@@ -346,7 +346,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    public ValuationTree<Edge<BreakpointStateAccepting>>
+    public MtBdd<Edge<BreakpointStateAccepting>>
       edgeTreeImpl(BreakpointStateAccepting state) {
 
       return cartesianProduct(
@@ -510,7 +510,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    public ValuationTree<Edge<BreakpointStateRejecting>>
+    public MtBdd<Edge<BreakpointStateRejecting>>
       edgeTreeImpl(BreakpointStateRejecting state) {
 
       return cartesianProduct(

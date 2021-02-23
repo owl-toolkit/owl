@@ -42,7 +42,7 @@ public final class InputReaders {
     (commandline, environment) -> (reader, callback, stopSignal) -> {
       try {
         HoaReader.readStream(
-          reader, FactorySupplier.defaultSupplier()::getValuationSetFactory, callback::accept);
+          reader, FactorySupplier.defaultSupplier()::getBddSetFactory, callback::accept);
       } catch (ParseException e) {
         throw new PipelineException("Failed to parse input automaton", e);
       }

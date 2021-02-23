@@ -44,8 +44,8 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
@@ -206,7 +206,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       AllAcceptance.INSTANCE) {
 
       @Override
-      public ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass state) {
+      public MtBdd<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass state) {
         return tracking.successorTree(state).map(successors -> {
           var successor = Iterables.getOnlyElement(successors);
 

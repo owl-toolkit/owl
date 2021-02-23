@@ -62,9 +62,9 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -162,11 +162,11 @@ public final class NormalformDPAConstruction implements
         dbw.factory(), Set.of(initialState), acceptance) {
 
         @Override
-        protected ValuationTree<Edge<State>> edgeTreeImpl(State state) {
+        protected MtBdd<Edge<State>> edgeTreeImpl(State state) {
           var edgeTreeMap = new HashMap<>(Maps.transformValues(state.stateMap(), dbw::edgeTree));
 
           // Remember, dbw needs to be complete!
-          return ValuationTrees.uncachedNaryCartesianProduct(edgeTreeMap, y -> {
+          return MtBddOperations.uncachedNaryCartesianProduct(edgeTreeMap, y -> {
             var edge = combineEdge(state, y);
 
             if (edge.successor().stateFormula().isFalse()) {

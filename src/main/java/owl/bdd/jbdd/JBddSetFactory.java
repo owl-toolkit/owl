@@ -19,7 +19,7 @@
 
 package owl.bdd.jbdd;
 
-import static owl.bdd.jbdd.JBddValuationSetFactory.JBddValuationSet;
+import static owl.bdd.jbdd.JBddSetFactory.JBddSet;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Negation;
@@ -40,20 +40,19 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.logic.propositional.PropositionalFormula;
 
-final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSet>
-  implements ValuationSetFactory {
+final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddSetFactory {
 
   private final List<String> atomicPropositions;
   private final int trueNode;
   private final int falseNode;
 
-  JBddValuationSetFactory(Bdd factory, List<String> atomicPropositions) {
+  JBddSetFactory(Bdd factory, List<String> atomicPropositions) {
     super(factory);
 
     this.atomicPropositions = List.copyOf(atomicPropositions);
@@ -70,36 +69,36 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
   }
 
   @Override
-  public ValuationSet of() {
+  public BddSet of() {
     return create(falseNode);
   }
 
   @Override
-  public ValuationSet of(int atomicProposition) {
+  public BddSet of(int atomicProposition) {
     return create(bdd.variableNode(atomicProposition));
   }
 
   @Override
-  public ValuationSet of(BitSet valuation) {
+  public BddSet of(BitSet valuation) {
     return create(createBdd(valuation));
   }
 
   @Override
-  public ValuationSet of(BitSet valuation, BitSet restrictedAlphabet) {
+  public BddSet of(BitSet valuation, BitSet restrictedAlphabet) {
     return create(createBdd(valuation, restrictedAlphabet));
   }
 
   @Override
-  public ValuationSet universe() {
+  public BddSet universe() {
     return create(trueNode);
   }
 
   @Override
-  public <S> ValuationTree<S> toValuationTree(Map<? extends S, ? extends ValuationSet> sets) {
-    ValuationTree<S> union = ValuationTree.of(Set.of());
+  public <S> MtBdd<S> toValuationTree(Map<? extends S, ? extends BddSet> sets) {
+    MtBdd<S> union = MtBdd.of(Set.of());
 
-    for (Map.Entry<? extends S, ? extends ValuationSet> entry : sets.entrySet()) {
-      union = ValuationTrees.union(union,
+    for (Map.Entry<? extends S, ? extends BddSet> entry : sets.entrySet()) {
+      union = MtBddOperations.union(union,
         toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>()));
     }
 
@@ -121,8 +120,8 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
       Conjunction.of(Negation.of(atomicProposition), toExpression(bdd.low(node)))).normalise();
   }
 
-  private JBddValuationSet create(int node) {
-    return canonicalize(new JBddValuationSet(this, node));
+  private JBddSet create(int node) {
+    return canonicalize(new JBddSet(this, node));
   }
 
   private int createBdd(BitSet set, BitSet base) {
@@ -152,14 +151,14 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     return bdd.and(node, set.get(var) ? variableNode : bdd.not(variableNode));
   }
 
-  private int getNode(ValuationSet vs) {
+  private int getNode(BddSet vs) {
     assert this.equals(vs.factory());
-    int node = ((JBddValuationSet) vs).node;
+    int node = ((JBddSet) vs).node;
     assert bdd.getReferenceCount(node) > 0 || bdd.getReferenceCount(node) == -1;
     return node;
   }
 
-  private <E> ValuationTree<E> toTree(E value, int bddNode, Map<Integer, ValuationTree<E>> cache) {
+  private <E> MtBdd<E> toTree(E value, int bddNode, Map<Integer, MtBdd<E>> cache) {
     var tree = cache.get(bddNode);
 
     if (tree != null) {
@@ -167,11 +166,11 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     }
 
     if (bddNode == falseNode) {
-      tree = ValuationTree.of();
+      tree = MtBdd.of();
     } else if (bddNode == trueNode) {
-      tree = ValuationTree.of(Set.of(value));
+      tree = MtBdd.of(Set.of(value));
     } else {
-      tree = ValuationTree.of(bdd.variable(bddNode),
+      tree = MtBdd.of(bdd.variable(bddNode),
         toTree(value, bdd.high(bddNode), cache),
         toTree(value, bdd.low(bddNode), cache));
     }
@@ -180,9 +179,9 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     return tree;
   }
 
-  private <E> ValuationTree<E> filter(ValuationTree<E> tree, int bddNode) {
+  private <E> MtBdd<E> filter(MtBdd<E> tree, int bddNode) {
     if (bddNode == falseNode) {
-      return ValuationTree.of();
+      return MtBdd.of();
     }
 
     if (bddNode == trueNode) {
@@ -193,22 +192,22 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     int bddHigh = bdd.high(bddNode);
     int bddLow = bdd.low(bddNode);
 
-    if (tree instanceof ValuationTree.Leaf) {
-      return ValuationTree.of(bddVariable, filter(tree, bddHigh), filter(tree, bddLow));
+    if (tree instanceof MtBdd.Leaf) {
+      return MtBdd.of(bddVariable, filter(tree, bddHigh), filter(tree, bddLow));
     }
 
-    var node = (ValuationTree.Node<E>) tree;
+    var node = (MtBdd.Node<E>) tree;
 
     if (bddVariable == node.variable) {
-      return ValuationTree.of(node.variable,
+      return MtBdd.of(node.variable,
         filter(node.trueChild, bddHigh),
         filter(node.falseChild, bddLow));
     } else if (bddVariable < node.variable) {
-      return ValuationTree.of(bddVariable,
+      return MtBdd.of(bddVariable,
         filter(tree, bddHigh),
         filter(tree, bddLow));
     } else {
-      return ValuationTree.of(node.variable,
+      return MtBdd.of(node.variable,
         filter(node.trueChild, bddNode),
         filter(node.falseChild, bddNode));
     }
@@ -219,32 +218,32 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
    * uniqueness.
    */
   @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode") // We only have a "bogus" assert equals
-  static final class JBddValuationSet implements JBddNode, ValuationSet {
+  static final class JBddSet implements JBddNode, BddSet {
 
-    private final JBddValuationSetFactory factory;
+    private final JBddSetFactory factory;
     private final int node;
 
-    private JBddValuationSet(JBddValuationSetFactory factory, int node) {
+    private JBddSet(JBddSetFactory factory, int node) {
       this.factory = factory;
       this.node = node;
     }
 
     @Override
-    public ValuationSetFactory factory() {
+    public BddSetFactory factory() {
       return factory;
     }
 
-    public ValuationSet complement() {
+    public BddSet complement() {
       return factory.create(factory.bdd.not(node));
     }
 
     @Override
-    public ValuationSet project(BitSet quantifiedAtomicPropositions) {
+    public BddSet project(BitSet quantifiedAtomicPropositions) {
       return factory.create(factory.bdd.exists(node, quantifiedAtomicPropositions));
     }
 
     @Override
-    public ValuationSet relabel(IntUnaryOperator mapping) {
+    public BddSet relabel(IntUnaryOperator mapping) {
       int size = factory.atomicPropositions.size();
       int[] subsitutions = new int[size];
 
@@ -265,7 +264,7 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     }
 
     @Override
-    public <E> ValuationTree<E> filter(ValuationTree<E> tree) {
+    public <E> MtBdd<E> filter(MtBdd<E> tree) {
       return factory.filter(tree, node);
     }
 
@@ -277,7 +276,7 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     @Override
     public boolean equals(Object obj) {
       // Check that we are not comparing classes of different factories
-      assert !(obj instanceof ValuationSet) || ((ValuationSet) obj).factory() == factory();
+      assert !(obj instanceof BddSet) || ((BddSet) obj).factory() == factory();
       return this == obj;
     }
 
@@ -299,12 +298,12 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     }
 
     @Override
-    public boolean containsAll(ValuationSet valuationSet) {
+    public boolean containsAll(BddSet valuationSet) {
       return factory.bdd.implies(factory.getNode(valuationSet), node);
     }
 
     @Override
-    public boolean intersects(ValuationSet other) {
+    public boolean intersects(BddSet other) {
       return !factory.bdd.implies(node, factory.bdd.not(factory.getNode(other)));
     }
 
@@ -330,12 +329,12 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
     }
 
     @Override
-    public ValuationSet union(ValuationSet other) {
+    public BddSet union(BddSet other) {
       return factory.create(factory.bdd.or(node, factory.getNode(other)));
     }
 
     @Override
-    public ValuationSet intersection(ValuationSet other) {
+    public BddSet intersection(BddSet other) {
       return factory.create(factory.bdd.and(node, factory.getNode(other)));
     }
 
@@ -357,7 +356,7 @@ final class JBddValuationSetFactory extends JBddGcManagedFactory<JBddValuationSe
         public boolean contains(Object o) {
           if (o instanceof BitSet) {
             return ((BitSet) o).length() <= factory.atomicPropositions.size()
-              && JBddValuationSet.this.contains((BitSet) o);
+              && JBddSet.this.contains((BitSet) o);
           }
 
           return false;

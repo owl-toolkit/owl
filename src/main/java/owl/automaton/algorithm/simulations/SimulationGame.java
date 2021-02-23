@@ -27,7 +27,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationType.SimulationState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 import owl.game.Game;
 
 /**
@@ -49,7 +49,7 @@ public class SimulationGame<S, T extends SimulationState>
   }
 
   @Override
-  public Map<Edge<T>, ValuationSet> edgeMapImpl(T state) {
+  public Map<Edge<T>, BddSet> edgeMapImpl(T state) {
     return simulationType.edgeMap(state);
   }
 
