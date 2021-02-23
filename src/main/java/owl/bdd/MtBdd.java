@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections;
+package owl.bdd;
 
 import com.google.common.collect.Maps;
 import java.util.BitSet;
@@ -31,25 +31,30 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 
-public abstract class ValuationTree<E> {
-  private ValuationTree() {
-  }
+/**
+ * A multi-terminal binary decision diagram (MTBDD).
+ *
+ * <p>This class provides an implementation of ordered, but not necessarily reduced, MTBDDs.
+ *
+ * @param <E> the elements stored at the leaves of the MTBDD.
+ */
+public abstract class MtBdd<E> {
+
+  private MtBdd() {}
 
   @SuppressWarnings("unchecked")
-  public static <E> ValuationTree<E> of() {
-    return (ValuationTree<E>) Leaf.EMPTY;
+  public static <E> MtBdd<E> of() {
+    return (MtBdd<E>) Leaf.EMPTY;
   }
 
-  public static <E> ValuationTree<E> of(Collection<? extends E> value) {
+  public static <E> MtBdd<E> of(Collection<? extends E> value) {
     Set<E> set = Set.copyOf(value);
     return set.isEmpty() ? of() : new Leaf<>(set);
   }
 
-  public static <E> ValuationTree<E> of(int variable, ValuationTree<E> trueChild,
-    ValuationTree<E> falseChild) {
+  public static <E> MtBdd<E> of(int variable, MtBdd<E> trueChild,
+    MtBdd<E> falseChild) {
     if (trueChild.equals(falseChild)) {
       return trueChild;
     }
@@ -75,36 +80,36 @@ public abstract class ValuationTree<E> {
     return values;
   }
 
-  public final Map<E, ValuationSet> inverse(ValuationSetFactory factory) {
+  public final Map<E, BddSet> inverse(BddSetFactory factory) {
     return inverse(factory, IntUnaryOperator.identity());
   }
 
-  public final Map<E, ValuationSet> inverse(ValuationSetFactory factory, IntUnaryOperator mapping) {
+  public final Map<E, BddSet> inverse(BddSetFactory factory, IntUnaryOperator mapping) {
     return memoizedInverse(factory, new HashMap<>(), mapping);
   }
 
-  public final <T> ValuationTree<T> map(
+  public final <T> MtBdd<T> map(
     Function<? super Set<E>, ? extends Collection<? extends T>> mapper) {
     return memoizedMap(mapper, new HashMap<>());
   }
 
-  protected abstract <T> ValuationTree<T> memoizedMap(
+  protected abstract <T> MtBdd<T> memoizedMap(
     Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
-    Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls);
+    Map<MtBdd<E>, MtBdd<T>> memoizedCalls);
 
-  protected abstract Map<E, ValuationSet> memoizedInverse(
-    ValuationSetFactory factory,
-    Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls,
+  protected abstract Map<E, BddSet> memoizedInverse(
+    BddSetFactory factory,
+    Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
     IntUnaryOperator mapping);
 
   protected abstract <T> void memoizedFlatValues(
-    Set<T> values, Set<ValuationTree<E>> seenNodes, Function<E, T> mapper);
+    Set<T> values, Set<MtBdd<E>> seenNodes, Function<E, T> mapper);
 
   protected abstract void memoizedValues(
-    Set<Set<E>> values, Set<ValuationTree<E>> seenNodes);
+    Set<Set<E>> values, Set<MtBdd<E>> seenNodes);
 
-  public static final class Leaf<E> extends ValuationTree<E> {
-    private static final ValuationTree<?> EMPTY = new Leaf<>(Set.of());
+  public static final class Leaf<E> extends MtBdd<E> {
+    private static final MtBdd<?> EMPTY = new Leaf<>(Set.of());
 
     public final Set<E> value;
 
@@ -120,29 +125,29 @@ public abstract class ValuationTree<E> {
 
     @Override
     protected <T> void memoizedFlatValues(Set<T> values,
-      Set<ValuationTree<E>> seenNodes, Function<E, T> mapper) {
+      Set<MtBdd<E>> seenNodes, Function<E, T> mapper) {
       for (E x : value) {
         values.add(mapper.apply(x));
       }
     }
 
     @Override
-    protected void memoizedValues(Set<Set<E>> values, Set<ValuationTree<E>> seenNodes) {
+    protected void memoizedValues(Set<Set<E>> values, Set<MtBdd<E>> seenNodes) {
       values.add(value);
     }
 
     @Override
-    protected <T> ValuationTree<T> memoizedMap(
+    protected <T> MtBdd<T> memoizedMap(
       Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
-      Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
+      Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
       return memoizedCalls.computeIfAbsent(this, x -> of(mapper.apply(value)));
     }
 
     @Override
-    protected Map<E, ValuationSet> memoizedInverse(
-      ValuationSetFactory factory,
-      Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls,
+    protected Map<E, BddSet> memoizedInverse(
+      BddSetFactory factory,
+      Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
       IntUnaryOperator mapping) {
 
       return memoizedCalls.computeIfAbsent(this, x -> Maps.asMap(value, y -> factory.universe()));
@@ -164,13 +169,13 @@ public abstract class ValuationTree<E> {
     }
   }
 
-  public static final class Node<E> extends ValuationTree<E> {
+  public static final class Node<E> extends MtBdd<E> {
     public final int variable;
-    public final ValuationTree<E> trueChild;
-    public final ValuationTree<E> falseChild;
+    public final MtBdd<E> trueChild;
+    public final MtBdd<E> falseChild;
     private final int hashCode;
 
-    private Node(int variable, ValuationTree<E> trueChild, ValuationTree<E> falseChild) {
+    private Node(int variable, MtBdd<E> trueChild, MtBdd<E> falseChild) {
       if (variable < 0) {
         throw new IndexOutOfBoundsException(variable);
       }
@@ -197,7 +202,7 @@ public abstract class ValuationTree<E> {
     @Override
     protected <T> void memoizedFlatValues(
       Set<T> values,
-      Set<ValuationTree<E>> seenNodes,
+      Set<MtBdd<E>> seenNodes,
       Function<E, T> mapper) {
 
       if (!seenNodes.add(this)) {
@@ -211,7 +216,7 @@ public abstract class ValuationTree<E> {
     @Override
     protected void memoizedValues(
       Set<Set<E>> values,
-      Set<ValuationTree<E>> seenNodes) {
+      Set<MtBdd<E>> seenNodes) {
 
       if (!seenNodes.add(this)) {
         return;
@@ -223,11 +228,11 @@ public abstract class ValuationTree<E> {
 
     // Perfect for fork/join-parallesism
     @Override
-    protected <T> ValuationTree<T> memoizedMap(
+    protected <T> MtBdd<T> memoizedMap(
       Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
-      Map<ValuationTree<E>, ValuationTree<T>> memoizedCalls) {
+      Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
-      ValuationTree<T> mappedNode = memoizedCalls.get(this);
+      MtBdd<T> mappedNode = memoizedCalls.get(this);
 
       if (mappedNode != null) {
         return mappedNode;
@@ -241,12 +246,12 @@ public abstract class ValuationTree<E> {
     }
 
     @Override
-    protected Map<E, ValuationSet> memoizedInverse(
-      ValuationSetFactory factory,
-      Map<ValuationTree<E>, Map<E, ValuationSet>> memoizedCalls,
+    protected Map<E, BddSet> memoizedInverse(
+      BddSetFactory factory,
+      Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
       IntUnaryOperator mapping) {
 
-      Map<E, ValuationSet> map = memoizedCalls.get(this);
+      Map<E, BddSet> map = memoizedCalls.get(this);
 
       if (map != null) {
         return map;
@@ -254,12 +259,12 @@ public abstract class ValuationTree<E> {
 
       var trueMask = factory.of(mapping.applyAsInt(variable));
       var falseMask = trueMask.complement();
-      var newMap = new HashMap<E, ValuationSet>();
+      var newMap = new HashMap<E, BddSet>();
 
       trueChild.memoizedInverse(factory, memoizedCalls, mapping).forEach(
-        (key, set) -> newMap.merge(key, set.intersection(trueMask), ValuationSet::union));
+        (key, set) -> newMap.merge(key, set.intersection(trueMask), BddSet::union));
       falseChild.memoizedInverse(factory, memoizedCalls, mapping).forEach(
-        (key, set) -> newMap.merge(key, set.intersection(falseMask), ValuationSet::union));
+        (key, set) -> newMap.merge(key, set.intersection(falseMask), BddSet::union));
 
       memoizedCalls.put(this, newMap);
       return newMap;

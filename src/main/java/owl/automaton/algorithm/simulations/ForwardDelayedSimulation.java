@@ -19,20 +19,18 @@
 
 package owl.automaton.algorithm.simulations;
 
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 
@@ -41,7 +39,7 @@ public class ForwardDelayedSimulation<S>
 
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final ValuationSetFactory factory;
+  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -65,7 +63,7 @@ public class ForwardDelayedSimulation<S>
     this.knownPairs = known;
 
     this.factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
 
     // the initial state is a Spoiler state with one pebble for each player on the given states
     this.initialState = MultipebbleSimulationState.of(
@@ -82,10 +80,10 @@ public class ForwardDelayedSimulation<S>
   }
 
   @Override
-  public Map<Edge<MultipebbleSimulationState<S>>, ValuationSet>
+  public Map<Edge<MultipebbleSimulationState<S>>, BddSet>
   edgeMap(MultipebbleSimulationState<S> state
   ) {
-    Map<Edge<MultipebbleSimulationState<S>>, ValuationSet> out = new HashMap<>();
+    Map<Edge<MultipebbleSimulationState<S>>, BddSet> out = new HashMap<>();
 
     if (state.equals(sinkState)) {
       out.put(Edge.of(sinkState, 1), factory.universe());
@@ -108,12 +106,12 @@ public class ForwardDelayedSimulation<S>
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.toSet().forEach((Consumer<? super BitSet>) val -> {
+        valSet.toSet().forEach(val -> {
           var isAccepting = leftAutomaton.acceptance().isAcceptingEdge(edge);
           var target = MultipebbleSimulationState.of(
-              Pebble.of(edge.successor(), state.odd().flag() || isAccepting),
-              isAccepting ? state.even().setFlag(false) : state.even(),
-              val
+            Pebble.of(edge.successor(), state.odd().flag() || isAccepting),
+            isAccepting ? state.even().setFlag(false) : state.even(),
+            val
           );
           out.put(Edge.of(target, edgeParity), factory.universe());
         });
@@ -154,7 +152,7 @@ public class ForwardDelayedSimulation<S>
   }
 
   @Override
-  public ValuationSetFactory factory() {
+  public BddSetFactory factory() {
     return factory;
   }
 }

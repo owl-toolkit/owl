@@ -23,7 +23,6 @@ import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import owl.collections.ValuationTree;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -32,9 +31,9 @@ import owl.logic.propositional.PropositionalFormula;
  * <p> This interface does not extend {@code Set<BitSet>} in order to make it explicit whenever a
  * slow-path through the explicit representation is taken. </p>
  */
-public interface ValuationSet {
+public interface BddSet {
 
-  ValuationSetFactory factory();
+  BddSetFactory factory();
 
   boolean isEmpty();
 
@@ -42,17 +41,17 @@ public interface ValuationSet {
 
   boolean contains(BitSet valuation);
 
-  boolean containsAll(ValuationSet valuationSet);
+  boolean containsAll(BddSet valuationSet);
 
-  boolean intersects(ValuationSet other);
+  boolean intersects(BddSet other);
 
   void forEach(BitSet restriction, Consumer<? super BitSet> action);
 
-  ValuationSet complement();
+  BddSet complement();
 
-  ValuationSet union(ValuationSet other);
+  BddSet union(BddSet other);
 
-  ValuationSet intersection(ValuationSet other);
+  BddSet intersection(BddSet other);
 
   PropositionalFormula<Integer> toExpression();
 
@@ -61,11 +60,11 @@ public interface ValuationSet {
     return toExpression().map(atomicProposition::get);
   }
 
-  <E> ValuationTree<E> filter(ValuationTree<E> tree);
+  <E> MtBdd<E> filter(MtBdd<E> tree);
 
-  ValuationSet project(BitSet quantifiedAtomicPropositions);
+  BddSet project(BitSet quantifiedAtomicPropositions);
 
-  ValuationSet relabel(IntUnaryOperator mapping);
+  BddSet relabel(IntUnaryOperator mapping);
 
   /**
    * Returns an explicit Collection-compatible view of this ValuationSet. Note that iteration

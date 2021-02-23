@@ -43,7 +43,7 @@ import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 import owl.util.OwlVersion;
 
 public final class HoaWriter {
@@ -104,7 +104,7 @@ public final class HoaWriter {
 
       // TODO: Use Properties.java to derive properties and fix this.
       consumer.addProperties(List.of("trans-acc", "trans-label"));
-      consumer.setAPs(automaton.factory().atomicPropositions());
+      consumer.setAPs(automaton.atomicPropositions());
       consumer.notifyBodyStart();
 
       // Use a work-list algorithm in case source is an on-the-fly generated automaton and
@@ -120,10 +120,10 @@ public final class HoaWriter {
         String label = options.contains(HoaOption.ANNOTATIONS) ? state.toString() : null;
         consumer.addState(stateId, label, null, null);
 
-        for (Map.Entry<Edge<S>, ValuationSet> entry : automaton.edgeMap(state).entrySet()) {
+        for (Map.Entry<Edge<S>, BddSet> entry : automaton.edgeMap(state).entrySet()) {
           Edge<S> edge = entry.getKey();
           S successor = edge.successor();
-          ValuationSet valuationSet = entry.getValue();
+          BddSet valuationSet = entry.getValue();
 
           if (valuationSet.isEmpty()) {
             continue;

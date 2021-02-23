@@ -46,10 +46,10 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.determinization.Determinization;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.Either;
-import owl.collections.ValuationTree;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -125,19 +125,19 @@ public final class NBA2LDBA
     }
 
     @Override
-    protected ValuationTree<Edge<S>> edgeTreeImplA(S state) {
+    protected MtBdd<Edge<S>> edgeTreeImplA(S state) {
       return ngba.edgeTree(state).map(
         x -> x.stream().map(Edge::withoutAcceptance).collect(toUnmodifiableSet()));
     }
 
     @Override
-    protected ValuationTree<Edge<BreakpointState<S>>> edgeTreeImplB(BreakpointState<S> state) {
-      ValuationSetFactory factory = factory();
-      Map<Edge<BreakpointState<S>>, ValuationSet> labelledEdges = new HashMap<>();
+    protected MtBdd<Edge<BreakpointState<S>>> edgeTreeImplB(BreakpointState<S> state) {
+      BddSetFactory factory = factory();
+      Map<Edge<BreakpointState<S>>, BddSet> labelledEdges = new HashMap<>();
 
-      for (BitSet valuation : BitSets.powerSet(factory.atomicPropositions().size())) {
+      for (BitSet valuation : BitSets.powerSet(atomicPropositions().size())) {
         for (Edge<BreakpointState<S>> edge : edgesB(state, valuation)) {
-          labelledEdges.merge(edge, factory.of(valuation), ValuationSet::union);
+          labelledEdges.merge(edge, factory.of(valuation), BddSet::union);
         }
       }
 

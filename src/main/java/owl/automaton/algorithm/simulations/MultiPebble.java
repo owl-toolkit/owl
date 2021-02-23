@@ -31,7 +31,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 /**
  * Abstracts multiple pebbles controlled by Duplicator in a multipebble simulation game.
@@ -135,13 +135,13 @@ public abstract class MultiPebble<S> {
    * @param valSet A valuation set for which the pebbles should be advanced.
    * @return A set of possible successor pebbles for the given valuation set.
    */
-  public Set<MultiPebble<S>> successors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
+  public Set<MultiPebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<MultiPebble<S>> out = new HashSet<>();
     valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(successors(aut, val)));
     return out;
   }
 
-  public Set<MultiPebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, ValuationSet valSet) {
+  public Set<MultiPebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<MultiPebble<S>> out = new HashSet<>();
     valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(predecessors(aut, val)));
     return out;

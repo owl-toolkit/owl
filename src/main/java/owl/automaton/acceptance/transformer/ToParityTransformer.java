@@ -56,9 +56,9 @@ import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedSta
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Conjunction;
 import owl.logic.propositional.sat.Solver;
@@ -392,14 +392,14 @@ public final class ToParityTransformer {
       }
 
       @Override
-      public Map<Edge<ExtendedState<S, Path>>, ValuationSet> edgeMap(ExtendedState<S, Path> state) {
+      public Map<Edge<ExtendedState<S, Path>>, BddSet> edgeMap(ExtendedState<S, Path> state) {
         return Collections3.transformMap(
           automaton.edgeMap(state.state()),
           x -> transformEdge(state, x));
       }
 
       @Override
-      public ValuationTree<Edge<ExtendedState<S, Path>>> edgeTree(ExtendedState<S, Path> state) {
+      public MtBdd<Edge<ExtendedState<S, Path>>> edgeTree(ExtendedState<S, Path> state) {
         return automaton.edgeTree(state.state())
           .map(x -> Collections3.transformSet(x, y -> transformEdge(state, y)));
       }

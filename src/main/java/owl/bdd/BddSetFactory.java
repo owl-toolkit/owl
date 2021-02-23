@@ -22,9 +22,8 @@ package owl.bdd;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
-import owl.collections.ValuationTree;
 
-public interface ValuationSetFactory {
+public interface BddSetFactory {
 
   /**
    * The atomic propositions associated with this factory.
@@ -33,16 +32,16 @@ public interface ValuationSetFactory {
    */
   List<String> atomicPropositions();
 
-  ValuationSet of();
+  BddSet of();
 
-  ValuationSet of(int atomicProposition);
+  BddSet of(int atomicProposition);
 
-  ValuationSet of(BitSet valuation);
+  BddSet of(BitSet valuation);
 
-  ValuationSet of(BitSet valuation, BitSet restrictedAlphabet);
+  BddSet of(BitSet valuation, BitSet restrictedAlphabet);
 
-  ValuationSet universe();
+  BddSet universe();
 
-  <S> ValuationTree<S> toValuationTree(Map<? extends S, ? extends ValuationSet> sets);
+  <S> MtBdd<S> toValuationTree(Map<? extends S, ? extends BddSet> sets);
 
 }

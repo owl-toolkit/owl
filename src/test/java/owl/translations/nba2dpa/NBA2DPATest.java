@@ -297,7 +297,7 @@ class NBA2DPATest {
   void runTest(String input, int size) throws ParseException {
 
     var nba = OmegaAcceptanceCast.cast(HoaReader
-        .read(input, FactorySupplier.defaultSupplier()::getValuationSetFactory),
+        .read(input, FactorySupplier.defaultSupplier()::getBddSetFactory),
       GeneralizedBuchiAcceptance.class);
     var dpa = new NBA2DPA().apply(nba);
 

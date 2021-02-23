@@ -28,16 +28,16 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.LookaheadSimulationState;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
 import owl.collections.Pair;
 
 public class ForwardDirectLookaheadSimulation<S>
   implements SimulationType<S, LookaheadSimulationState<S>> {
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final ValuationSetFactory factory;
+  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final LookaheadSimulationState<S> initialState;
@@ -62,17 +62,17 @@ public class ForwardDirectLookaheadSimulation<S>
 
 
     this.factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
 
     this.initialState = LookaheadSimulationState.of(left, right);
     this.sinkState = LookaheadSimulationState.of(left, right, List.of());
   }
 
   @Override
-  public Map<Edge<SimulationStates.LookaheadSimulationState<S>>, ValuationSet> edgeMap(
+  public Map<Edge<SimulationStates.LookaheadSimulationState<S>>, BddSet> edgeMap(
     SimulationStates.LookaheadSimulationState<S> state
   ) {
-    var out = new HashMap<Edge<LookaheadSimulationState<S>>, ValuationSet>();
+    var out = new HashMap<Edge<LookaheadSimulationState<S>>, BddSet>();
 
     if (state.equals(sinkState)) {
       out.put(Edge.of(sinkState, 1), factory.universe());
@@ -118,7 +118,7 @@ public class ForwardDirectLookaheadSimulation<S>
   }
 
   @Override
-  public ValuationSetFactory factory() {
+  public BddSetFactory factory() {
     return factory;
   }
 

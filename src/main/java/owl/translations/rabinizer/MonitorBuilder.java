@@ -46,8 +46,8 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.GOperator;
@@ -62,10 +62,10 @@ final class MonitorBuilder {
   private final GSet[] relevantSets;
   private final MonitorStateFactory stateFactory;
   private final GOperator gOperator;
-  private final ValuationSetFactory vsFactory;
+  private final BddSetFactory vsFactory;
 
   private MonitorBuilder(GOperator gOperator, EquivalenceClass operand,
-    Collection<GSet> relevantSets, ValuationSetFactory vsFactory, boolean eager) {
+    Collection<GSet> relevantSets, BddSetFactory vsFactory, boolean eager) {
     this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
@@ -93,7 +93,7 @@ final class MonitorBuilder {
   }
 
   static MonitorAutomaton create(GOperator gOperator, EquivalenceClass operand,
-    Collection<GSet> relevantSets, ValuationSetFactory vsFactory, boolean eager) {
+    Collection<GSet> relevantSets, BddSetFactory vsFactory, boolean eager) {
     return new MonitorBuilder(gOperator, operand, relevantSets, vsFactory, eager).build();
   }
 
@@ -181,7 +181,7 @@ final class MonitorBuilder {
         }
 
         // Create the edges for each automaton
-        ValuationSet valuationSet = vsFactory.of(valuation, sensitiveAlphabet);
+        BddSet valuationSet = vsFactory.of(valuation, sensitiveAlphabet);
         for (int contextIndex = 0; contextIndex < relevantSets.length; contextIndex++) {
           int priority = priorities[contextIndex];
           Edge<MonitorState> edge;

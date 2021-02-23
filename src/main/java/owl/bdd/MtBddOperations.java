@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.collections;
+package owl.bdd;
 
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
@@ -37,13 +37,18 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
+import owl.collections.Collections3;
+import owl.collections.Pair;
 
-public final class ValuationTrees {
-  private ValuationTrees() {
-  }
+/**
+ * This class provides operations for MTBDDs.
+ */
+public final class MtBddOperations {
 
-  public static <L, R, E> ValuationTree<E> cartesianProduct(
-    ValuationTree<L> factor1, ValuationTree<R> factor2, BiFunction<L, R, @Nullable E> combinator) {
+  private MtBddOperations() {}
+
+  public static <L, R, E> MtBdd<E> cartesianProduct(
+    MtBdd<L> factor1, MtBdd<R> factor2, BiFunction<L, R, @Nullable E> combinator) {
     return cartesianProduct(factor1, factor2, combinator, new HashMap<>());
   }
 
@@ -55,22 +60,22 @@ public final class ValuationTrees {
    * @param <E> type
    * @return the lists might contain null.
    */
-  public static <E> ValuationTree<List<E>> cartesianProductWithNull(
-    List<? extends ValuationTree<E>> trees) {
+  public static <E> MtBdd<List<E>> cartesianProductWithNull(
+    List<? extends MtBdd<E>> trees) {
     return naryCartesianProductWithNull(trees, new HashMap<>());
   }
 
-  public static <E> ValuationTree<List<E>> cartesianProduct(
-    List<? extends ValuationTree<E>> trees) {
+  public static <E> MtBdd<List<E>> cartesianProduct(
+    List<? extends MtBdd<E>> trees) {
     return naryCartesianProduct(trees, List::copyOf, new HashMap<>());
   }
 
-  public static <K, V> ValuationTree<Map<K, V>> cartesianProduct(
-    Map<K, ? extends ValuationTree<V>> trees) {
+  public static <K, V> MtBdd<Map<K, V>> cartesianProduct(
+    Map<K, ? extends MtBdd<V>> trees) {
 
     switch (trees.size()) {
       case 0:
-        return ValuationTree.of(Set.of(Map.of()));
+        return MtBdd.of(Set.of(Map.of()));
 
       case 1:
         var entry = trees.entrySet().iterator().next();
@@ -94,12 +99,12 @@ public final class ValuationTrees {
     }
   }
 
-  public static <E> ValuationTree<Set<E>> cartesianProduct(
-    Set<? extends ValuationTree<E>> trees) {
+  public static <E> MtBdd<Set<E>> cartesianProduct(
+    Set<? extends MtBdd<E>> trees) {
 
     switch (trees.size()) {
       case 0:
-        return ValuationTree.of(Set.of(Set.of()));
+        return MtBdd.of(Set.of(Set.of()));
 
       case 1:
         return trees.iterator().next().map(
@@ -119,14 +124,14 @@ public final class ValuationTrees {
     }
   }
 
-  public static <E> ValuationTree<E> union(ValuationTree<E> tree1, ValuationTree<E> tree2) {
+  public static <E> MtBdd<E> union(MtBdd<E> tree1, MtBdd<E> tree2) {
     return union(tree1, tree2, new HashMap<>());
   }
 
-  public static <E> ValuationTree<E> union(Collection<? extends ValuationTree<E>> trees) {
+  public static <E> MtBdd<E> union(Collection<? extends MtBdd<E>> trees) {
     switch (trees.size()) {
       case 0:
-        return ValuationTree.of();
+        return MtBdd.of();
 
       case 1:
         return trees.iterator().next();
@@ -143,12 +148,12 @@ public final class ValuationTrees {
     }
   }
 
-  private static <L, R, E> ValuationTree<E> cartesianProduct(
-    ValuationTree<L> leftTree, ValuationTree<R> rightTree, BiFunction<L, R, @Nullable E> merger,
-    Map<Pair<ValuationTree<L>, ValuationTree<R>>, ValuationTree<E>> memoizedCalls) {
+  private static <L, R, E> MtBdd<E> cartesianProduct(
+    MtBdd<L> leftTree, MtBdd<R> rightTree, BiFunction<L, R, @Nullable E> merger,
+    Map<Pair<MtBdd<L>, MtBdd<R>>, MtBdd<E>> memoizedCalls) {
     var key = Pair.of(leftTree, rightTree);
 
-    ValuationTree<E> cartesianProduct = memoizedCalls.get(key);
+    MtBdd<E> cartesianProduct = memoizedCalls.get(key);
 
     if (cartesianProduct != null) {
       return cartesianProduct;
@@ -159,8 +164,8 @@ public final class ValuationTrees {
     if (variable == Integer.MAX_VALUE) {
       Set<E> elements = new HashSet<>();
 
-      for (L leftValue : ((ValuationTree.Leaf<L>) leftTree).value) {
-        for (R rightValue : ((ValuationTree.Leaf<R>) rightTree).value) {
+      for (L leftValue : ((MtBdd.Leaf<L>) leftTree).value) {
+        for (R rightValue : ((MtBdd.Leaf<R>) rightTree).value) {
           E element = merger.apply(leftValue, rightValue);
 
           if (element != null) {
@@ -169,7 +174,7 @@ public final class ValuationTrees {
         }
       }
 
-      cartesianProduct = ValuationTree.of(elements);
+      cartesianProduct = MtBdd.of(elements);
     } else {
       var falseCartesianProduct = cartesianProduct(
         descendFalseIf(leftTree, variable),
@@ -179,16 +184,16 @@ public final class ValuationTrees {
         descendTrueIf(leftTree, variable),
         descendTrueIf(rightTree, variable),
         merger, memoizedCalls);
-      cartesianProduct = ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+      cartesianProduct = MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
     }
 
     memoizedCalls.put(key, cartesianProduct);
     return cartesianProduct;
   }
 
-  private static <T> ValuationTree<List<T>> naryCartesianProductWithNull(
-    List<? extends ValuationTree<T>> trees,
-    Map<? super List<ValuationTree<T>>, ValuationTree<List<T>>> memoizedCalls) {
+  private static <T> MtBdd<List<T>> naryCartesianProductWithNull(
+    List<? extends MtBdd<T>> trees,
+    Map<? super List<MtBdd<T>>, MtBdd<List<T>>> memoizedCalls) {
 
     var cartesianProduct = memoizedCalls.get(trees);
 
@@ -201,14 +206,14 @@ public final class ValuationTrees {
     if (variable == Integer.MAX_VALUE) {
       List<T> values = new ArrayList<>(trees.size());
 
-      for (ValuationTree<T> x : trees) {
-        assert x instanceof ValuationTree.Leaf;
-        ValuationTree.Leaf<T> casted = (ValuationTree.Leaf<T>) x;
+      for (MtBdd<T> x : trees) {
+        assert x instanceof MtBdd.Leaf;
+        MtBdd.Leaf<T> casted = (MtBdd.Leaf<T>) x;
         Preconditions.checkArgument(casted.value.size() <= 1);
         values.add(Iterables.getOnlyElement(casted.value, null));
       }
 
-      cartesianProduct = ValuationTree.of(Set.of(Collections.unmodifiableList(values)));
+      cartesianProduct = MtBdd.of(Set.of(Collections.unmodifiableList(values)));
     } else {
       var falseTrees = trees.stream()
         .map(x -> descendFalseIf(x, variable))
@@ -222,19 +227,19 @@ public final class ValuationTrees {
         falseTrees, memoizedCalls);
       var trueCartesianProduct = naryCartesianProductWithNull(
         trueTrees, memoizedCalls);
-      cartesianProduct = ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+      cartesianProduct = MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
     }
 
     memoizedCalls.put(List.copyOf(trees), cartesianProduct);
     return cartesianProduct;
   }
 
-  private static <T, R> ValuationTree<R> naryCartesianProduct(
-    List<? extends ValuationTree<T>> trees,
+  private static <T, R> MtBdd<R> naryCartesianProduct(
+    List<? extends MtBdd<T>> trees,
     Function<? super List<T>, ? extends R> mapper,
-    Map<? super List<ValuationTree<T>>, ValuationTree<R>> memoizedCalls) {
+    Map<? super List<MtBdd<T>>, MtBdd<R>> memoizedCalls) {
 
-    ValuationTree<R> cartesianProduct = memoizedCalls.get(trees);
+    MtBdd<R> cartesianProduct = memoizedCalls.get(trees);
 
     if (cartesianProduct != null) {
       return cartesianProduct;
@@ -246,9 +251,9 @@ public final class ValuationTrees {
       Set<R> elements = new HashSet<>();
       List<Set<T>> values = new ArrayList<>(trees.size());
 
-      for (ValuationTree<T> x : trees) {
-        assert x instanceof ValuationTree.Leaf;
-        ValuationTree.Leaf<T> casted = (ValuationTree.Leaf<T>) x;
+      for (MtBdd<T> x : trees) {
+        assert x instanceof MtBdd.Leaf;
+        MtBdd.Leaf<T> casted = (MtBdd.Leaf<T>) x;
         values.add(casted.value);
       }
 
@@ -260,7 +265,7 @@ public final class ValuationTrees {
         }
       }
 
-      cartesianProduct = ValuationTree.of(elements);
+      cartesianProduct = MtBdd.of(elements);
     } else {
       var falseTrees = trees.stream()
         .map(x -> descendFalseIf(x, variable))
@@ -276,19 +281,19 @@ public final class ValuationTrees {
       var trueCartesianProduct = naryCartesianProduct(
         trueTrees,
         mapper, memoizedCalls);
-      cartesianProduct = ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+      cartesianProduct = MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
     }
 
     memoizedCalls.put(List.copyOf(trees), cartesianProduct);
     return cartesianProduct;
   }
 
-  public static <K, T, R> ValuationTree<R> uncachedNaryCartesianProduct(
-    Map<? extends K, ? extends ValuationTree<T>> trees,
+  public static <K, T, R> MtBdd<R> uncachedNaryCartesianProduct(
+    Map<? extends K, ? extends MtBdd<T>> trees,
     Function<Collection<Map.Entry<K, T>>, R> mapper) {
 
     List<K> lookup = new ArrayList<>(trees.size());
-    List<ValuationTree<T>> treesNew = new ArrayList<>(trees.size());
+    List<MtBdd<T>> treesNew = new ArrayList<>(trees.size());
 
     trees.forEach((k, t) -> {
       lookup.add(k);
@@ -298,8 +303,8 @@ public final class ValuationTrees {
     return naryCartesianProduct(treesNew, mapper, lookup, new HashMap<>());
   }
 
-  private static <K, T, R> ValuationTree<R> naryCartesianProduct(
-    List<ValuationTree<T>> trees,
+  private static <K, T, R> MtBdd<R> naryCartesianProduct(
+    List<MtBdd<T>> trees,
     Function<Collection<Map.Entry<K, T>>, R> mapper,
     List<? extends K> lookup,
     Map<Collection<Map.Entry<K, T>>, R> mapperCache) {
@@ -313,8 +318,8 @@ public final class ValuationTrees {
       for (int i = 0, s = lookup.size(); i < s; i++) {
         var x = trees.get(i);
         var key = lookup.get(i);
-        assert x instanceof ValuationTree.Leaf;
-        ValuationTree.Leaf<T> casted = (ValuationTree.Leaf<T>) x;
+        assert x instanceof MtBdd.Leaf;
+        MtBdd.Leaf<T> casted = (MtBdd.Leaf<T>) x;
 
         List<Map.Entry<K, T>> z = new ArrayList<>(casted.value.size());
 
@@ -334,7 +339,7 @@ public final class ValuationTrees {
         }
       }
 
-      return ValuationTree.of(elements);
+      return MtBdd.of(elements);
     }
 
     var falseTrees = new ArrayList<>(trees);
@@ -347,18 +352,18 @@ public final class ValuationTrees {
     var trueCartesianProduct
       = naryCartesianProduct(trueTrees, mapper, lookup, mapperCache);
 
-    return ValuationTree.of(variable, trueCartesianProduct, falseCartesianProduct);
+    return MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
   }
 
-  private static <E> ValuationTree<E> union(ValuationTree<E> tree1, ValuationTree<E> tree2,
-    Map<Set<?>, ValuationTree<E>> memoizedCalls) {
+  private static <E> MtBdd<E> union(MtBdd<E> tree1, MtBdd<E> tree2,
+    Map<Set<?>, MtBdd<E>> memoizedCalls) {
     if (tree1.equals(tree2)) {
       return tree1;
     }
 
     var key = Set.of(tree1, tree2);
 
-    ValuationTree<E> union = memoizedCalls.get(key);
+    MtBdd<E> union = memoizedCalls.get(key);
 
     if (union != null) {
       return union;
@@ -367,15 +372,15 @@ public final class ValuationTrees {
     int variable = nextVariable(tree1, tree2);
 
     if (variable == Integer.MAX_VALUE) {
-      Set<E> value1 = ((ValuationTree.Leaf<E>) tree1).value;
-      Set<E> value2 = ((ValuationTree.Leaf<E>) tree2).value;
+      Set<E> value1 = ((MtBdd.Leaf<E>) tree1).value;
+      Set<E> value2 = ((MtBdd.Leaf<E>) tree2).value;
 
       if (value1.isEmpty()) {
         union = tree2;
       } else if (value2.isEmpty()) {
         union = tree1;
       } else {
-        union = ValuationTree.of(Set.copyOf(Sets.union(value1, value2)));
+        union = MtBdd.of(Set.copyOf(Sets.union(value1, value2)));
       }
     } else {
       var falseUnionProduct = union(
@@ -384,48 +389,48 @@ public final class ValuationTrees {
       var trueUnionProduct = union(
         descendTrueIf(tree1, variable),
         descendTrueIf(tree2, variable), memoizedCalls);
-      union = ValuationTree.of(variable, trueUnionProduct, falseUnionProduct);
+      union = MtBdd.of(variable, trueUnionProduct, falseUnionProduct);
     }
 
     memoizedCalls.put(key, union);
     return union;
   }
 
-  private static int nextVariable(ValuationTree<?> tree1, ValuationTree<?> tree2) {
-    int variable1 = tree1 instanceof ValuationTree.Node
-      ? ((ValuationTree.Node<?>) tree1).variable
+  private static int nextVariable(MtBdd<?> tree1, MtBdd<?> tree2) {
+    int variable1 = tree1 instanceof MtBdd.Node
+      ? ((MtBdd.Node<?>) tree1).variable
       : Integer.MAX_VALUE;
 
-    int variable2 = tree2 instanceof ValuationTree.Node
-      ? ((ValuationTree.Node<?>) tree2).variable
+    int variable2 = tree2 instanceof MtBdd.Node
+      ? ((MtBdd.Node<?>) tree2).variable
       : Integer.MAX_VALUE;
 
     return Math.min(variable1, variable2);
   }
 
-  private static int nextVariable(Collection<? extends ValuationTree<?>> trees) {
+  private static int nextVariable(Collection<? extends MtBdd<?>> trees) {
     int variable = Integer.MAX_VALUE;
 
     for (var tree : trees) {
-      variable = Math.min(variable, tree instanceof ValuationTree.Node
-        ? ((ValuationTree.Node<?>) tree).variable
+      variable = Math.min(variable, tree instanceof MtBdd.Node
+        ? ((MtBdd.Node<?>) tree).variable
         : Integer.MAX_VALUE);
     }
 
     return variable;
   }
 
-  private static <E> ValuationTree<E> descendFalseIf(ValuationTree<E> tree, int variable) {
-    if (tree instanceof ValuationTree.Node && ((ValuationTree.Node<E>) tree).variable == variable) {
-      return ((ValuationTree.Node<E>) tree).falseChild;
+  private static <E> MtBdd<E> descendFalseIf(MtBdd<E> tree, int variable) {
+    if (tree instanceof MtBdd.Node && ((MtBdd.Node<E>) tree).variable == variable) {
+      return ((MtBdd.Node<E>) tree).falseChild;
     } else {
       return tree;
     }
   }
 
-  private static <E> ValuationTree<E> descendTrueIf(ValuationTree<E> tree, int variable) {
-    if (tree instanceof ValuationTree.Node && ((ValuationTree.Node<E>) tree).variable == variable) {
-      return ((ValuationTree.Node<E>) tree).trueChild;
+  private static <E> MtBdd<E> descendTrueIf(MtBdd<E> tree, int variable) {
+    if (tree instanceof MtBdd.Node && ((MtBdd.Node<E>) tree).variable == variable) {
+      return ((MtBdd.Node<E>) tree).trueChild;
     } else {
       return tree;
     }

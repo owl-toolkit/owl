@@ -29,8 +29,8 @@ import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSetFactory;
 import owl.collections.Pair;
 
 class BuchiSimulationTest {
@@ -40,7 +40,7 @@ class BuchiSimulationTest {
 
     MutableAutomaton<String, BuchiAcceptance> automaton = HashMapAutomaton.of(
       BuchiAcceptance.INSTANCE,
-      FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a")));
+      FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a")));
 
     BitSet a = new BitSet();
     a.set(0);
@@ -70,8 +70,8 @@ class BuchiSimulationTest {
   @Test
   public void directSimulationTest2() {
 
-    ValuationSetFactory factory
-      = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a", "b"));
+    BddSetFactory factory
+      = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a", "b"));
 
     MutableAutomaton<String, BuchiAcceptance> automaton = HashMapAutomaton.of(
       BuchiAcceptance.INSTANCE, factory);

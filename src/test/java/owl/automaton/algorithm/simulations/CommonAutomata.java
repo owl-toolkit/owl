@@ -35,7 +35,7 @@ public final class CommonAutomata {
   public static Automaton<Integer, BuchiAcceptance> buildAutomatonOne() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a"));
+      .getBddSetFactory(List.of("a"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
@@ -66,7 +66,7 @@ public final class CommonAutomata {
   public static Automaton<Integer, BuchiAcceptance> anotherRefinementAutomaton() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b"));
+      .getBddSetFactory(List.of("a", "b"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
@@ -94,7 +94,7 @@ public final class CommonAutomata {
   public static Automaton<Integer, BuchiAcceptance> simpleColorRefinementAutomaton() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b"));
+      .getBddSetFactory(List.of("a", "b"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
@@ -127,7 +127,7 @@ public final class CommonAutomata {
   public static Automaton<Integer, BuchiAcceptance> predecessorAutomaton() {
 
     var factory = FactorySupplier.defaultSupplier()
-      .getValuationSetFactory(List.of("a", "b"));
+      .getBddSetFactory(List.of("a", "b"));
     var acceptance = BuchiAcceptance.INSTANCE;
 
     MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);

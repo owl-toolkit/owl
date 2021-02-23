@@ -29,18 +29,18 @@ import java.util.List;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 import owl.ltl.EquivalenceClass;
 
 final class MasterStatePartition {
   final List<Set<EquivalenceClass>> sccs;
-  final ImmutableTable<EquivalenceClass, EquivalenceClass, ValuationSet>
+  final ImmutableTable<EquivalenceClass, EquivalenceClass, BddSet>
     outgoingTransitions;
   final Set<EquivalenceClass> transientStates;
 
   private MasterStatePartition(List<Set<EquivalenceClass>> sccs,
     Set<EquivalenceClass> transientStates,
-    Table<EquivalenceClass, EquivalenceClass, ValuationSet> outgoingTransitions) {
+    Table<EquivalenceClass, EquivalenceClass, BddSet> outgoingTransitions) {
     this.sccs = List.copyOf(sccs);
     this.transientStates = Set.copyOf(transientStates);
     this.outgoingTransitions = ImmutableTable.copyOf(outgoingTransitions);
@@ -50,7 +50,7 @@ final class MasterStatePartition {
     // Determine the SCC decomposition and build the sub-automata separately
     SccDecomposition<EquivalenceClass> masterSccs = SccDecomposition.of(masterAutomaton);
 
-    ImmutableTable.Builder<EquivalenceClass, EquivalenceClass, ValuationSet>
+    ImmutableTable.Builder<EquivalenceClass, EquivalenceClass, BddSet>
       outgoingTransitionsBuilder = ImmutableTable.builder();
     List<Set<EquivalenceClass>> sccListBuilder = new ArrayList<>();
     Set<EquivalenceClass> transientStatesBuilder = new HashSet<>();

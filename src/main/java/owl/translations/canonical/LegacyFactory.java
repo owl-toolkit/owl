@@ -23,7 +23,7 @@ import java.util.BitSet;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.Factories;
-import owl.collections.ValuationTree;
+import owl.bdd.MtBdd;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 
@@ -39,7 +39,7 @@ public final class LegacyFactory
   }
 
   @Override
-  public ValuationTree<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass state) {
+  public MtBdd<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass state) {
     throw new UnsupportedOperationException();
   }
 

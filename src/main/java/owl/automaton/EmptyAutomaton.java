@@ -22,23 +22,23 @@ package owl.automaton;
 import java.util.Set;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationTree;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 
 public final class EmptyAutomaton<S, A extends OmegaAcceptance>
   extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-  private EmptyAutomaton(ValuationSetFactory factory, A acceptance) {
+  private EmptyAutomaton(BddSetFactory factory, A acceptance) {
     super(factory, Set.of(), acceptance);
   }
 
   public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
-    ValuationSetFactory factory, A acceptance) {
+    BddSetFactory factory, A acceptance) {
     return new EmptyAutomaton<>(factory, acceptance);
   }
 
   @Override
-  protected ValuationTree<Edge<S>> edgeTreeImpl(S state) {
+  protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
     throw new IllegalArgumentException("There are no states in this automaton.");
   }
 }

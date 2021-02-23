@@ -31,11 +31,11 @@ import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.Either;
-import owl.collections.ValuationTree;
 
 public final class GenericConstructions {
 
@@ -57,7 +57,7 @@ public final class GenericConstructions {
       }
 
       @Override
-      public ValuationSetFactory factory() {
+      public BddSetFactory factory() {
         return automaton.factory();
       }
 
@@ -78,12 +78,12 @@ public final class GenericConstructions {
       }
 
       @Override
-      public Map<Edge<Either<Integer, S>>, ValuationSet> edgeMap(Either<Integer, S> state) {
+      public Map<Edge<Either<Integer, S>>, BddSet> edgeMap(Either<Integer, S> state) {
         return state.map(this::nextMap, y -> lift(automaton.edgeMap(y)));
       }
 
       @Override
-      public ValuationTree<Edge<Either<Integer, S>>> edgeTree(Either<Integer, S> state) {
+      public MtBdd<Edge<Either<Integer, S>>> edgeTree(Either<Integer, S> state) {
         return state.map(this::nextTree, s -> lift(automaton.edgeTree(s)));
       }
 
@@ -95,23 +95,23 @@ public final class GenericConstructions {
         return initialStateEdges;
       }
 
-      private Map<Edge<Either<Integer, S>>, ValuationSet> nextMap(int index) {
+      private Map<Edge<Either<Integer, S>>, BddSet> nextMap(int index) {
         return Maps.toMap(next(index), z -> factory().universe());
       }
 
-      private ValuationTree<Edge<Either<Integer, S>>> nextTree(int index) {
-        return ValuationTree.of(next(index));
+      private MtBdd<Edge<Either<Integer, S>>> nextTree(int index) {
+        return MtBdd.of(next(index));
       }
 
       private Set<Edge<Either<Integer, S>>> lift(Set<Edge<S>> edges) {
         return Collections3.transformSet(edges, edge -> edge.mapSuccessor(Either::right));
       }
 
-      private Map<Edge<Either<Integer, S>>, ValuationSet> lift(Map<Edge<S>, ValuationSet> edgeMap) {
+      private Map<Edge<Either<Integer, S>>, BddSet> lift(Map<Edge<S>, BddSet> edgeMap) {
         return Collections3.transformMap(edgeMap, edge -> edge.mapSuccessor(Either::right));
       }
 
-      private ValuationTree<Edge<Either<Integer, S>>> lift(ValuationTree<Edge<S>> edgeTree) {
+      private MtBdd<Edge<Either<Integer, S>>> lift(MtBdd<Edge<S>> edgeTree) {
         return edgeTree.map(this::lift);
       }
 

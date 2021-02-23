@@ -32,10 +32,10 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.sat.Solver;
 
@@ -387,7 +387,7 @@ public final class OmegaAcceptanceCast {
     }
 
     @Override
-    public ValuationSetFactory factory() {
+    public BddSetFactory factory() {
       return backingAutomaton.factory();
     }
 
@@ -420,7 +420,7 @@ public final class OmegaAcceptanceCast {
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+    public Map<Edge<S>, BddSet> edgeMap(S state) {
       var edgeMap = backingAutomaton.edgeMap(state);
 
       return edgeCast == null
@@ -429,7 +429,7 @@ public final class OmegaAcceptanceCast {
     }
 
     @Override
-    public ValuationTree<Edge<S>> edgeTree(S state) {
+    public MtBdd<Edge<S>> edgeTree(S state) {
       var edgeTree = backingAutomaton.edgeTree(state);
 
       return edgeCast == null

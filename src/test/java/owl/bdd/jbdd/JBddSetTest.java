@@ -21,13 +21,13 @@ package owl.bdd.jbdd;
 
 import de.tum.in.jbdd.BddFactory;
 import java.util.List;
-import owl.bdd.ValuationSetFactory;
-import owl.collections.ValuationSetTest;
+import owl.bdd.BddSetFactory;
+import owl.collections.BddSetTest;
 
-public class JBddValuationSetTest extends ValuationSetTest {
+public class JBddSetTest extends BddSetTest {
 
   @Override
-  protected ValuationSetFactory factory(List<String> atomicPropositions) {
-    return new JBddValuationSetFactory(BddFactory.buildBdd(1024), atomicPropositions);
+  protected BddSetFactory factory(List<String> atomicPropositions) {
+    return new JBddSetFactory(BddFactory.buildBdd(1024), atomicPropositions);
   }
 }

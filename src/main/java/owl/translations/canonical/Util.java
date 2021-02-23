@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import owl.collections.ValuationTree;
+import owl.bdd.MtBdd;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -36,13 +36,13 @@ final class Util {
 
   private Util() {}
 
-  static ValuationTree<BitSet> singleStepTree(List<Formula> singleSteps) {
+  static MtBdd<BitSet> singleStepTree(List<Formula> singleSteps) {
     return singleStepTreeRecursive(singleSteps, new HashMap<>());
   }
 
-  private static ValuationTree<BitSet> singleStepTreeRecursive(List<Formula> singleSteps,
-    Map<List<Formula>, ValuationTree<BitSet>> cache) {
-    ValuationTree<BitSet> result = cache.get(singleSteps);
+  private static MtBdd<BitSet> singleStepTreeRecursive(List<Formula> singleSteps,
+    Map<List<Formula>, MtBdd<BitSet>> cache) {
+    MtBdd<BitSet> result = cache.get(singleSteps);
 
     if (result != null) {
       return result;
@@ -66,7 +66,7 @@ final class Util {
         }
       }
 
-      result = ValuationTree.of(Set.of(acceptance));
+      result = MtBdd.of(Set.of(acceptance));
     } else {
       int variable = nextVariable;
 
@@ -81,7 +81,7 @@ final class Util {
       var trueChild = singleStepTreeRecursive(Arrays.asList(trueSingleSteps), cache);
       var falseChild = singleStepTreeRecursive(Arrays.asList(falseSingleSteps), cache);
 
-      result = ValuationTree.of(variable, trueChild, falseChild);
+      result = MtBdd.of(variable, trueChild, falseChild);
     }
 
     cache.put(singleSteps, result);

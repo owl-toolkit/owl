@@ -21,9 +21,9 @@ package owl.bdd;
 
 public final class Factories {
   public final EquivalenceClassFactory eqFactory;
-  public final ValuationSetFactory vsFactory;
+  public final BddSetFactory vsFactory;
 
-  public Factories(EquivalenceClassFactory eqFactory, ValuationSetFactory vsFactory) {
+  public Factories(EquivalenceClassFactory eqFactory, BddSetFactory vsFactory) {
     this.eqFactory = eqFactory;
     this.vsFactory = vsFactory;
   }

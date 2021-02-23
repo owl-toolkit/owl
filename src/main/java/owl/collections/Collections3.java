@@ -41,7 +41,7 @@ import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Collections3 {
@@ -410,9 +410,9 @@ public final class Collections3 {
     return transformedList;
   }
 
-  public static <K1, K2> Map<K2, ValuationSet> transformMap(Map<K1, ValuationSet> map,
+  public static <K1, K2> Map<K2, BddSet> transformMap(Map<K1, BddSet> map,
     Function<K1, K2> transformer) {
-    return transformMap(map, transformer, ValuationSet::union);
+    return transformMap(map, transformer, BddSet::union);
   }
 
   public static <K1, K2, V> Map<K2, V> transformMap(Map<K1, V> map, Function<K1, K2> transformer,

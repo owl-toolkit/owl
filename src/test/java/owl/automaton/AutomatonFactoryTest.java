@@ -32,17 +32,17 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
-import owl.bdd.ValuationSetFactory;
 import owl.ltl.parser.LtlParser;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 class AutomatonFactoryTest {
 
-  private static final ValuationSetFactory factory;
+  private static final BddSetFactory factory;
 
   static {
-    factory = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a"));
+    factory = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
   }
 
   @Test
@@ -53,7 +53,7 @@ class AutomatonFactoryTest {
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
 
-    for (BitSet valuation : BitSets.powerSet(automaton.factory().atomicPropositions().size())) {
+    for (BitSet valuation : BitSets.powerSet(automaton.atomicPropositions().size())) {
       var edge = automaton.edge(initialState, valuation);
       var matchingEdges = Maps.filterValues(edgeMap, x -> x.contains(valuation)).keySet();
 

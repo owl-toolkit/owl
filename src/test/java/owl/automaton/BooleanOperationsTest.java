@@ -33,7 +33,7 @@ class BooleanOperationsTest {
   void deterministicComplementEmpty() {
 
 
-    var factory = FactorySupplier.defaultSupplier().getValuationSetFactory(List.of("a"));
+    var factory = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
     var emptyAutomaton = EmptyAutomaton.of(factory, BuchiAcceptance.INSTANCE);
     var complementAutomaton = BooleanOperations.deterministicComplement(
       emptyAutomaton, new Object(), ParityAcceptance.class);

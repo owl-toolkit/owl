@@ -24,7 +24,7 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import owl.bdd.EquivalenceClassFactory;
-import owl.collections.ValuationTree;
+import owl.bdd.MtBdd;
 
 /**
  * A propositional equivalence class of an LTL formula.
@@ -111,11 +111,11 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
    */
   EquivalenceClass temporalStep(BitSet valuation);
 
-  default ValuationTree<EquivalenceClass> temporalStepTree() {
+  default MtBdd<EquivalenceClass> temporalStepTree() {
     return temporalStepTree(Set::of);
   }
 
-  <T> ValuationTree<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper);
+  <T> MtBdd<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper);
 
   /**
    * See {@link Formula#unfold()}.

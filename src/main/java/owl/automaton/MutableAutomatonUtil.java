@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 public final class MutableAutomatonUtil {
 
@@ -63,7 +63,7 @@ public final class MutableAutomatonUtil {
       automaton.addInitialState(sinkState);
     }
 
-    Map<S, ValuationSet> incompleteStates = AutomatonUtil.getIncompleteStates(automaton);
+    Map<S, BddSet> incompleteStates = AutomatonUtil.getIncompleteStates(automaton);
 
     if (incompleteStates.isEmpty()) {
       return Optional.empty();

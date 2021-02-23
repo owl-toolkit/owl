@@ -20,7 +20,7 @@
 package owl.translations.rabinizer;
 
 import java.util.Arrays;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 /**
  * This class is used to represent one edge in the Rabinizer product automaton. This way, we can
@@ -30,16 +30,16 @@ import owl.bdd.ValuationSet;
  * cached globally.
  */
 final class RabinizerProductEdge {
-  private static final ValuationSet[] EMPTY = new ValuationSet[0];
+  private static final BddSet[] EMPTY = new BddSet[0];
 
   private final RabinizerState successorState;
-  private ValuationSet[] successorAcceptance = EMPTY;
+  private BddSet[] successorAcceptance = EMPTY;
 
   RabinizerProductEdge(RabinizerState successorState) {
     this.successorState = successorState;
   }
 
-  void addAcceptance(ValuationSet valuations, int acceptance) {
+  void addAcceptance(BddSet valuations, int acceptance) {
     if (successorAcceptance.length <= acceptance) {
       // TODO Maybe we don't want to do this?
       successorAcceptance = Arrays.copyOf(successorAcceptance, acceptance + 1);
@@ -68,7 +68,7 @@ final class RabinizerProductEdge {
   }
 
   @SuppressWarnings({"PMD.MethodReturnsInternalArray", "AssignmentOrReturnOfFieldWithMutableType"})
-  ValuationSet[] getSuccessorAcceptance() {
+  BddSet[] getSuccessorAcceptance() {
     return successorAcceptance;
   }
 

@@ -31,8 +31,8 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 
@@ -44,7 +44,7 @@ import owl.collections.Pair;
  */
 public class ColorRefinement<S> {
   final Automaton<S, BuchiAcceptance> aut;
-  final ValuationSetFactory factory;
+  final BddSetFactory factory;
 
   final Ordering po;
   Ordering oldPo;
@@ -147,12 +147,12 @@ public class ColorRefinement<S> {
    * if the associated maximal valuation set is implied by the one associated with another color.
    */
   private void initialize() {
-    Map<S, ValuationSet> maxAcceptingVal = new HashMap<>();
-    Map<S, ValuationSet> availableVal = new HashMap<>();
-    Map<S, Pair<ValuationSet, ValuationSet>> interm = new HashMap<>();
-    Map<Pair<ValuationSet, ValuationSet>, Integer> intermC = new HashMap<>();
-    Map<ValuationSet, Integer> setColouring = new HashMap<>();
-    Map<Integer, Pair<ValuationSet, ValuationSet>> rIntermC = new HashMap<>();
+    Map<S, BddSet> maxAcceptingVal = new HashMap<>();
+    Map<S, BddSet> availableVal = new HashMap<>();
+    Map<S, Pair<BddSet, BddSet>> interm = new HashMap<>();
+    Map<Pair<BddSet, BddSet>, Integer> intermC = new HashMap<>();
+    Map<BddSet, Integer> setColouring = new HashMap<>();
+    Map<Integer, Pair<BddSet, BddSet>> rIntermC = new HashMap<>();
 
     // we iterate over all states and possible valuations to create something like a transition
     // profile for each state. We collect all symbols on which an accepting transition is available
@@ -199,7 +199,7 @@ public class ColorRefinement<S> {
     interm.forEach((key, value) -> col.set(key, intermC.get(value)));
 
     for (int c : col.values()) {
-      for (Map.Entry<Integer, Pair<ValuationSet, ValuationSet>> entry : rIntermC.entrySet()) {
+      for (Map.Entry<Integer, Pair<BddSet, BddSet>> entry : rIntermC.entrySet()) {
         var p1 = rIntermC.get(c);
         var p2 = entry.getValue();
         boolean contained = p2.fst().containsAll(p1.fst());
@@ -237,9 +237,9 @@ public class ColorRefinement<S> {
 
     public abstract boolean accepting();
 
-    public abstract ValuationSetFactory factory();
+    public abstract BddSetFactory factory();
 
-    public static NeighborType of(int colour, BitSet set, ValuationSetFactory factory, boolean a) {
+    public static NeighborType of(int colour, BitSet set, BddSetFactory factory, boolean a) {
       return new AutoValue_ColorRefinement_NeighborType(
         colour, BitSet2.toInt(set), a, factory
       );
@@ -282,9 +282,9 @@ public class ColorRefinement<S> {
   public abstract static class Neighborhood {
     public abstract Set<NeighborType> types();
 
-    public abstract ValuationSet available();
+    public abstract BddSet available();
 
-    public static Neighborhood of(Set<NeighborType> nts, ValuationSet available) {
+    public static Neighborhood of(Set<NeighborType> nts, BddSet available) {
       return new AutoValue_ColorRefinement_Neighborhood(nts, available);
     }
 
@@ -341,7 +341,7 @@ public class ColorRefinement<S> {
       // collect all possible neighbor types
       HashSet<NeighborType> nts = new HashSet<>();
 
-      ValuationSet avail = aut.factory().of();
+      BddSet avail = aut.factory().of();
       for (var e : aut.edgeMap(state).entrySet()) {
         avail = avail.union(e.getValue());
       }

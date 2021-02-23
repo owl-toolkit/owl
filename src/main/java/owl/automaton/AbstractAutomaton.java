@@ -25,7 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.OmegaAcceptance;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSetFactory;
 
 /**
  * This class provides a skeletal implementation of the {@code Automaton}
@@ -43,7 +43,7 @@ public abstract class AbstractAutomaton<S, A extends OmegaAcceptance>
 
   protected final A acceptance;
   protected final Set<S> initialStates;
-  protected final ValuationSetFactory factory;
+  protected final BddSetFactory factory;
 
   @Nullable
   private Set<S> statesCache;
@@ -57,7 +57,7 @@ public abstract class AbstractAutomaton<S, A extends OmegaAcceptance>
    * @param acceptance The acceptance condition.
    */
   public AbstractAutomaton(
-    ValuationSetFactory factory, Set<S> initialStates, A acceptance) {
+    BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
     this.factory = factory;
     this.acceptance = acceptance;
@@ -70,7 +70,7 @@ public abstract class AbstractAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
-  public final ValuationSetFactory factory() {
+  public final BddSetFactory factory() {
     return factory;
   }
 

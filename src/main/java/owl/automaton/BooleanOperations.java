@@ -50,12 +50,13 @@ import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
-import owl.bdd.ValuationSetFactory;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
+import owl.bdd.MtBdd;
+import owl.bdd.MtBddOperations;
 import owl.collections.NullablePair;
 import owl.collections.Pair;
-import owl.collections.ValuationTree;
-import owl.collections.ValuationTrees;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Disjunction;
 
@@ -133,7 +134,8 @@ public final class BooleanOperations {
   public static <S1, S2> Automaton<Pair<S1, S2>, ?>
     intersection(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
 
-    var factory = commonAlphabet(List.of(automaton1, automaton2));
+    var factory = FactorySupplier.defaultSupplier().getBddSetFactory(
+      unifyAtomicPropositions(List.of(automaton1, automaton2)));
     var intersection = new PairIntersectionAutomaton<>(automaton1, automaton2, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
@@ -142,7 +144,8 @@ public final class BooleanOperations {
     intersection(List<? extends Automaton<S, ?>> automata) {
 
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    var factory = commonAlphabet(automata);
+    var factory = FactorySupplier.defaultSupplier().getBddSetFactory(
+      unifyAtomicPropositions(automata));
     var intersection = new ListIntersectionAutomaton<>(automata, factory);
     return OmegaAcceptanceCast.castHeuristically(intersection);
   }
@@ -150,7 +153,8 @@ public final class BooleanOperations {
   public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
     deterministicUnion(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
 
-    var factory = commonAlphabet(List.of(automaton1, automaton2));
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory(
+      unifyAtomicPropositions(List.of(automaton1, automaton2)));
 
     Automaton<S1, ?> normalizedAutomaton1;
     Automaton<S2, ?> normalizedAutomaton2;
@@ -189,7 +193,8 @@ public final class BooleanOperations {
     deterministicUnion(List<? extends Automaton<S, ?>> automata) {
 
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    var factory = commonAlphabet(automata);
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory(
+      unifyAtomicPropositions(automata));
 
     List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
     List<BitSet> rejectingSets = new ArrayList<>(automata.size());
@@ -215,24 +220,20 @@ public final class BooleanOperations {
 
   // Private implementations
 
-  private static ValuationSetFactory commonAlphabet(List<? extends Automaton<?, ?>> automata) {
-    ValuationSetFactory factory = automata.get(0).factory();
+  private static List<String> unifyAtomicPropositions(List<? extends Automaton<?, ?>> automata) {
+    List<String> atomicPropositions = automata.get(0).atomicPropositions();
 
     for (Automaton<?, ?> automaton : automata) {
-      ValuationSetFactory otherFactory = automaton.factory();
+      List<String> otherAtomicPropositions = automaton.atomicPropositions();
 
-      if (Collections.indexOfSubList(
-        otherFactory.atomicPropositions(),
-        factory.atomicPropositions()) == 0) {
-        factory = otherFactory;
-      } else if (Collections.indexOfSubList(
-        factory.atomicPropositions(),
-        otherFactory.atomicPropositions()) != 0) {
-        throw new IllegalArgumentException("Could not find shared alphabet.");
+      if (Collections.indexOfSubList(otherAtomicPropositions, atomicPropositions) == 0) {
+        atomicPropositions = otherAtomicPropositions;
+      } else if (Collections.indexOfSubList(atomicPropositions, otherAtomicPropositions) != 0) {
+        throw new IllegalArgumentException("Could not find shared set of atomic propositions.");
       }
     }
 
-    return factory;
+    return atomicPropositions;
   }
 
   private static <A extends OmegaAcceptance> EmersonLeiAcceptance
@@ -263,7 +264,7 @@ public final class BooleanOperations {
     private PairIntersectionAutomaton(
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      ValuationSetFactory factory) {
+      BddSetFactory factory) {
 
       super(factory,
         Pair.allPairs(automaton1.initialStates(), automaton2.initialStates()),
@@ -275,10 +276,10 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected ValuationTree<Edge<Pair<S1, S2>>> edgeTreeImpl(Pair<S1, S2> state) {
+    protected MtBdd<Edge<Pair<S1, S2>>> edgeTreeImpl(Pair<S1, S2> state) {
       var edgeTree1 = automaton1.edgeTree(state.fst());
       var edgeTree2 = automaton2.edgeTree(state.snd());
-      return ValuationTrees.cartesianProduct(edgeTree1, edgeTree2, this::combine);
+      return MtBddOperations.cartesianProduct(edgeTree1, edgeTree2, this::combine);
     }
 
     private Edge<Pair<S1, S2>> combine(Edge<? extends S1> edge1, Edge<? extends S2> edge2) {
@@ -295,7 +296,7 @@ public final class BooleanOperations {
 
     private ListIntersectionAutomaton(
       List<? extends Automaton<S, ?>> automata,
-      ValuationSetFactory factory) {
+      BddSetFactory factory) {
 
       super(factory,
         initialStates(automata),
@@ -312,14 +313,14 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected ValuationTree<Edge<List<S>>> edgeTreeImpl(List<S> state) {
-      List<ValuationTree<Edge<S>>> edgeTrees = new ArrayList<>();
+    protected MtBdd<Edge<List<S>>> edgeTreeImpl(List<S> state) {
+      List<MtBdd<Edge<S>>> edgeTrees = new ArrayList<>();
 
       for (int i = 0, s = automata.size(); i < s; i++) {
         edgeTrees.add(automata.get(i).edgeTree(state.get(i)));
       }
 
-      return ValuationTrees
+      return MtBddOperations
         .cartesianProduct(edgeTrees)
         .map((Set<List<Edge<S>>> x) -> x.stream()
           .map(this::combine)
@@ -376,7 +377,7 @@ public final class BooleanOperations {
     private NullablePairDeterministicUnionAutomaton(
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      ValuationSetFactory factory,
+      BddSetFactory factory,
       BitSet rejectingSet1,
       BitSet rejectingSet2) {
 
@@ -443,7 +444,7 @@ public final class BooleanOperations {
 
     private MapDeterministicUnionAutomaton(
       List<? extends Automaton<S, ?>> automata,
-      ValuationSetFactory factory,
+      BddSetFactory factory,
       List<BitSet> rejectingSets) {
 
       super(factory,
@@ -529,12 +530,12 @@ public final class BooleanOperations {
     }
 
     @Override
-    public Map<Edge<S>, ValuationSet> edgeMap(S state) {
+    public Map<Edge<S>, BddSet> edgeMap(S state) {
       return backingAutomaton.edgeMap(state);
     }
 
     @Override
-    public ValuationTree<Edge<S>> edgeTree(S state) {
+    public MtBdd<Edge<S>> edgeTree(S state) {
       return backingAutomaton.edgeTree(state);
     }
 
@@ -549,7 +550,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    public ValuationSetFactory factory() {
+    public BddSetFactory factory() {
       return backingAutomaton.factory();
     }
 

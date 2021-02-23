@@ -24,7 +24,7 @@ import static owl.automaton.algorithm.simulations.CommonAutomata.predecessorAuto
 import java.util.BitSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
 
 public class PebbleTest {
   @Test
@@ -39,7 +39,7 @@ public class PebbleTest {
     var aut = predecessorAutomaton();
     BitSet a = aut.factory().of(0).toSet().iterator().next();
     BitSet b = aut.factory().of(1).toSet().iterator().next();
-    ValuationSet ab = aut.factory().of(a).union(aut.factory().of(b));
+    BddSet ab = aut.factory().of(a).union(aut.factory().of(b));
 
     assert Pebble.of(4, false).predecessors(aut, a).equals(expectedForA);
     assert Pebble.of(4, false).predecessors(aut, b).isEmpty();

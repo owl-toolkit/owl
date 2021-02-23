@@ -133,7 +133,7 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
         return HoaReader.read(reader, atomicPropositions -> {
           checkArgument(formula.atomicPropositions().containsAll(atomicPropositions));
           return FactorySupplier.defaultSupplier()
-            .getValuationSetFactory(formula.atomicPropositions());
+            .getBddSetFactory(formula.atomicPropositions());
         });
       }
     } catch (IOException | ParseException | NoSuchElementException ex) {

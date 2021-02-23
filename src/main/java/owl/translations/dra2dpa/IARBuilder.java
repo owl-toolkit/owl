@@ -62,9 +62,9 @@ import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.bdd.ValuationSet;
+import owl.bdd.BddSet;
+import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.collections.ValuationTree;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -384,14 +384,14 @@ public final class IARBuilder<R> {
     }
 
     @Override
-    public Map<Edge<IARState<S>>, ValuationSet> edgeMap(IARState<S> state) {
+    public Map<Edge<IARState<S>>, BddSet> edgeMap(IARState<S> state) {
       IntPreOrder record = state.record();
       return Collections3.transformMap(rabinAutomaton.edgeMap(state.state()),
         rabinState -> computeSuccessorEdge(record, rabinState));
     }
 
     @Override
-    public ValuationTree<Edge<IARState<S>>> edgeTree(IARState<S> state) {
+    public MtBdd<Edge<IARState<S>>> edgeTree(IARState<S> state) {
       IntPreOrder record = state.record();
       return rabinAutomaton.edgeTree(state.state()).map(edges ->
         Collections3.transformSet(edges, edge -> computeSuccessorEdge(record, edge)));
