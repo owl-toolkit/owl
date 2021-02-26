@@ -46,15 +46,14 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.Collections3;
 import owl.collections.NullablePair;
 import owl.collections.Pair;
 import owl.logic.propositional.PropositionalFormula;
@@ -69,10 +68,11 @@ public final class BooleanOperations {
 
   private BooleanOperations() {}
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> deterministicComplement(
-    Automaton<S, ?> automaton,
-    @Nullable S trapState,
-    Class<A> expectedAcceptance) {
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, ? extends A>
+    deterministicComplement(
+      Automaton<S, ?> automaton,
+      @Nullable S trapState,
+      Class<? extends A> expectedAcceptance) {
 
     int initialStatesSize = automaton.initialStates().size();
     checkArgument(initialStatesSize <= 1, "Automaton has multiple initial states");
@@ -96,8 +96,8 @@ public final class BooleanOperations {
     // Check is too costly.
     // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
 
-    OmegaAcceptance acceptance = completeAutomaton.acceptance();
-    OmegaAcceptance complementAcceptance = null;
+    EmersonLeiAcceptance acceptance = completeAutomaton.acceptance();
+    EmersonLeiAcceptance complementAcceptance = null;
 
     if (acceptance instanceof BuchiAcceptance) {
       checkArgument(isInstanceOf(CoBuchiAcceptance.class, expectedAcceptance));
@@ -108,17 +108,16 @@ public final class BooleanOperations {
     } else if (acceptance instanceof GeneralizedBuchiAcceptance) {
       checkArgument(isInstanceOf(GeneralizedCoBuchiAcceptance.class, expectedAcceptance));
       var castedAcceptance = (GeneralizedBuchiAcceptance) acceptance;
-      complementAcceptance = GeneralizedCoBuchiAcceptance.of(castedAcceptance.size);
+      complementAcceptance = GeneralizedCoBuchiAcceptance.of(castedAcceptance.acceptanceSets());
     } else if (acceptance instanceof GeneralizedCoBuchiAcceptance) {
       checkArgument(isInstanceOf(GeneralizedBuchiAcceptance.class, expectedAcceptance));
       var castedAcceptance = (GeneralizedCoBuchiAcceptance) acceptance;
-      complementAcceptance = GeneralizedBuchiAcceptance.of(castedAcceptance.size);
+      complementAcceptance = GeneralizedBuchiAcceptance.of(castedAcceptance.acceptanceSets());
     } else if (acceptance instanceof ParityAcceptance) {
       checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
       complementAcceptance = ((ParityAcceptance) automaton.acceptance()).complement();
     } else if (isInstanceOf(EmersonLeiAcceptance.class, expectedAcceptance)) {
-      complementAcceptance = new EmersonLeiAcceptance(
-        acceptance.acceptanceSets(),
+      complementAcceptance = EmersonLeiAcceptance.of(
         PropositionalFormula.Negation.of(acceptance.booleanExpression()));
     }
 
@@ -127,7 +126,7 @@ public final class BooleanOperations {
     }
 
     return OmegaAcceptanceCast.cast(
-      new ReplacedAcceptanceConditionView<>(completeAutomaton, complementAcceptance),
+      new OverrideAcceptanceCondition<>(completeAutomaton, complementAcceptance),
       expectedAcceptance);
   }
 
@@ -136,18 +135,15 @@ public final class BooleanOperations {
 
     var factory = FactorySupplier.defaultSupplier().getBddSetFactory(
       unifyAtomicPropositions(List.of(automaton1, automaton2)));
-    var intersection = new PairIntersectionAutomaton<>(automaton1, automaton2, factory);
-    return OmegaAcceptanceCast.castHeuristically(intersection);
+    return new PairIntersectionAutomaton<>(automaton1, automaton2, factory);
   }
 
   public static <S> Automaton<List<S>, ?>
     intersection(List<? extends Automaton<S, ?>> automata) {
 
-    checkArgument(!automata.isEmpty(), "List of automata is empty.");
     var factory = FactorySupplier.defaultSupplier().getBddSetFactory(
       unifyAtomicPropositions(automata));
-    var intersection = new ListIntersectionAutomaton<>(automata, factory);
-    return OmegaAcceptanceCast.castHeuristically(intersection);
+    return new ListIntersectionAutomaton<>(automata, factory);
   }
 
   public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
@@ -162,9 +158,9 @@ public final class BooleanOperations {
     // If all runs on automaton1 are accepting, transform to BuchiAcceptance to have access
     // to an rejecting acceptance set.
     if (automaton1.acceptance().rejectingSet().isEmpty()) {
-      Automaton<S1, AllAcceptance> castedAutomaton = OmegaAcceptanceCast.cast(
-        OmegaAcceptanceCast.castHeuristically(automaton1), AllAcceptance.class);
-      normalizedAutomaton1 = OmegaAcceptanceCast.cast(castedAutomaton, BuchiAcceptance.class);
+      normalizedAutomaton1 = OmegaAcceptanceCast.cast(
+        new OverrideAcceptanceCondition<>(automaton1, AllAcceptance.INSTANCE),
+        BuchiAcceptance.class);
     } else {
       normalizedAutomaton1 = automaton1;
     }
@@ -172,21 +168,19 @@ public final class BooleanOperations {
     // If all runs on automaton2 are accepting, transform to BuchiAcceptance to have access
     // to an rejecting acceptance set.
     if (automaton2.acceptance().rejectingSet().isEmpty()) {
-      Automaton<S2, AllAcceptance> castedAutomaton = OmegaAcceptanceCast.cast(
-        OmegaAcceptanceCast.castHeuristically(automaton2), AllAcceptance.class);
-      normalizedAutomaton2 = OmegaAcceptanceCast.cast(castedAutomaton, BuchiAcceptance.class);
+      normalizedAutomaton2 = OmegaAcceptanceCast.cast(
+        new OverrideAcceptanceCondition<>(automaton2, AllAcceptance.INSTANCE),
+        BuchiAcceptance.class);
     } else {
       normalizedAutomaton2 = automaton2;
     }
 
-    var union = new NullablePairDeterministicUnionAutomaton<>(
+    return new NullablePairDeterministicUnionAutomaton<>(
       normalizedAutomaton1,
       normalizedAutomaton2,
       factory,
       normalizedAutomaton1.acceptance().rejectingSet().orElseThrow(),
       normalizedAutomaton2.acceptance().rejectingSet().orElseThrow());
-
-    return OmegaAcceptanceCast.castHeuristically(union);
   }
 
   public static <S> Automaton<Map<Integer, S>, ?>
@@ -203,9 +197,9 @@ public final class BooleanOperations {
       Automaton<S, ?> normalisedAutomaton;
 
       if (automaton.acceptance().rejectingSet().isEmpty()) {
-        Automaton<S, AllAcceptance> castedAutomaton = OmegaAcceptanceCast.cast(
-          OmegaAcceptanceCast.castHeuristically(automaton), AllAcceptance.class);
-        normalisedAutomaton = OmegaAcceptanceCast.cast(castedAutomaton, BuchiAcceptance.class);
+        normalisedAutomaton = OmegaAcceptanceCast.cast(
+          new OverrideAcceptanceCondition<>(automaton, AllAcceptance.INSTANCE),
+          BuchiAcceptance.class);
       } else {
         normalisedAutomaton = automaton;
       }
@@ -214,14 +208,13 @@ public final class BooleanOperations {
       rejectingSets.add(normalisedAutomaton.acceptance().rejectingSet().orElseThrow());
     });
 
-    var union = new MapDeterministicUnionAutomaton<>(automataCopy, factory, rejectingSets);
-    return OmegaAcceptanceCast.castHeuristically(union);
+    return new MapDeterministicUnionAutomaton<>(automataCopy, factory, rejectingSets);
   }
 
   // Private implementations
 
   private static List<String> unifyAtomicPropositions(List<? extends Automaton<?, ?>> automata) {
-    List<String> atomicPropositions = automata.get(0).atomicPropositions();
+    List<String> atomicPropositions = List.of();
 
     for (Automaton<?, ?> automaton : automata) {
       List<String> otherAtomicPropositions = automaton.atomicPropositions();
@@ -236,13 +229,13 @@ public final class BooleanOperations {
     return atomicPropositions;
   }
 
-  private static <A extends OmegaAcceptance> EmersonLeiAcceptance
-    intersectionAcceptance(List<A> acceptanceConditions) {
+  private static EmersonLeiAcceptance intersectionAcceptance(
+    List<? extends EmersonLeiAcceptance> acceptanceConditions) {
 
     var intersectionConjuncts = new ArrayList<PropositionalFormula<Integer>>();
     int intersectionAcceptanceSets = 0;
 
-    for (A acceptance : acceptanceConditions) {
+    for (EmersonLeiAcceptance acceptance : acceptanceConditions) {
       var fIntersectionAcceptanceSets = intersectionAcceptanceSets;
       var shiftedExpression = acceptance.booleanExpression()
         .substitute(x -> Optional.of(Variable.of(x + fIntersectionAcceptanceSets)));
@@ -251,7 +244,7 @@ public final class BooleanOperations {
     }
 
     var intersectionExpression = Conjunction.of(intersectionConjuncts);
-    return new EmersonLeiAcceptance(intersectionAcceptanceSets, intersectionExpression);
+    return EmersonLeiAcceptance.of(intersectionExpression);
   }
 
   private static class PairIntersectionAutomaton<S1, S2>
@@ -285,6 +278,8 @@ public final class BooleanOperations {
     private Edge<Pair<S1, S2>> combine(Edge<? extends S1> edge1, Edge<? extends S2> edge2) {
       BitSet acceptance = edge1.colours().copyInto(new BitSet());
       edge2.colours().forEach((int set) -> acceptance.set(set + acceptance1Sets));
+      // Remove colours not appearing in the acceptance condition.
+      acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(Pair.of(edge1.successor(), edge2.successor()), acceptance);
     }
   }
@@ -327,7 +322,7 @@ public final class BooleanOperations {
           .collect(Collectors.toUnmodifiableSet()));
     }
 
-    private Edge<List<S>> combine(List<Edge<S>> edges) {
+    private Edge<List<S>> combine(List<? extends Edge<S>> edges) {
       List<S> successors = new ArrayList<>();
       BitSet acceptance = new BitSet();
 
@@ -343,17 +338,19 @@ public final class BooleanOperations {
         offset += automata.get(i).acceptance().acceptanceSets();
       }
 
+      // Remove colours not appearing in the acceptance condition.
+      acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(List.copyOf(successors), acceptance);
     }
   }
 
-  private static <A extends OmegaAcceptance> EmersonLeiAcceptance
-    unionAcceptance(List<A> acceptanceConditions) {
+  private static EmersonLeiAcceptance unionAcceptance(
+    List<? extends EmersonLeiAcceptance> acceptanceConditions) {
 
     var unionDisjuncts = new ArrayList<PropositionalFormula<Integer>>();
     int unionAcceptanceSets = 0;
 
-    for (A acceptance : acceptanceConditions) {
+    for (EmersonLeiAcceptance acceptance : acceptanceConditions) {
       var fUnionAcceptanceSets = unionAcceptanceSets;
       var shiftedExpression = acceptance.booleanExpression()
         .substitute(x -> Optional.of(Variable.of(x + fUnionAcceptanceSets)));
@@ -362,7 +359,7 @@ public final class BooleanOperations {
     }
 
     var unionExpression = Disjunction.of(unionDisjuncts);
-    return new EmersonLeiAcceptance(unionAcceptanceSets, unionExpression);
+    return EmersonLeiAcceptance.of(unionExpression);
   }
 
   private static class NullablePairDeterministicUnionAutomaton<S1, S2>
@@ -432,6 +429,8 @@ public final class BooleanOperations {
         edge2.colours().forEach((IntConsumer) i -> acceptance.set(i + offset));
       }
 
+      // Remove colours not appearing in the acceptance condition.
+      acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(NullablePair.of(successor1, successor2), acceptance);
     }
   }
@@ -485,7 +484,7 @@ public final class BooleanOperations {
     }
 
     @Nullable
-    private Edge<Map<Integer, S>> combine(Map<Integer, Edge<S>> edges) {
+    private Edge<Map<Integer, S>> combine(Map<Integer, ? extends Edge<S>> edges) {
       Map<Integer, S> successor = new HashMap<>();
       BitSet acceptance = new BitSet();
 
@@ -509,64 +508,28 @@ public final class BooleanOperations {
         return null;
       }
 
+      // Remove colours not appearing in the acceptance condition.
+      acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(Map.copyOf(successor), acceptance);
     }
   }
 
-  private static class ReplacedAcceptanceConditionView<S, A extends OmegaAcceptance>
-    implements Automaton<S, A> {
+  private static class OverrideAcceptanceCondition<S, A extends EmersonLeiAcceptance>
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-    private final A acceptance;
     private final Automaton<S, ?> backingAutomaton;
 
-    private ReplacedAcceptanceConditionView(Automaton<S, ?> backingAutomaton, A acceptance) {
-      this.acceptance = acceptance;
+    private OverrideAcceptanceCondition(Automaton<S, ?> backingAutomaton, A acceptance) {
+      super(backingAutomaton.factory(), backingAutomaton.initialStates(), acceptance);
       this.backingAutomaton = backingAutomaton;
     }
 
     @Override
-    public Set<Edge<S>> edges(S state, BitSet valuation) {
-      return backingAutomaton.edges(state, valuation);
-    }
-
-    @Override
-    public Map<Edge<S>, BddSet> edgeMap(S state) {
-      return backingAutomaton.edgeMap(state);
-    }
-
-    @Override
-    public MtBdd<Edge<S>> edgeTree(S state) {
-      return backingAutomaton.edgeTree(state);
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return backingAutomaton.preferredEdgeAccess();
-    }
-
-    @Override
-    public A acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public BddSetFactory factory() {
-      return backingAutomaton.factory();
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return backingAutomaton.initialStates();
-    }
-
-    @Override
-    public Set<S> states() {
-      return backingAutomaton.states();
-    }
-
-    @Override
-    public boolean is(Property property) {
-      return backingAutomaton.is(property);
+    protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
+      // Remove colours from underlying automaton that do not appear in the acceptance condition.
+      int acceptanceSets = acceptance().acceptanceSets();
+      return backingAutomaton.edgeTree(state).map(
+        x -> Collections3.transformSet(x, e -> e.mapAcceptance(i -> i < acceptanceSets ? i : -1)));
     }
   }
 }

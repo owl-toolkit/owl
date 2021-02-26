@@ -36,8 +36,8 @@ import owl.automaton.Automaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
@@ -102,7 +102,7 @@ public final class AcceptanceOptimizations {
   private AcceptanceOptimizations() {}
 
   @SuppressWarnings("unchecked")
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> optimize(
+  public static <S, A extends EmersonLeiAcceptance> MutableAutomaton<S, A> optimize(
     Automaton<S, A> automaton) {
     var mutableAutomaton = MutableAutomatonUtil.asMutable(automaton);
     var acceptance = mutableAutomaton.acceptance();
@@ -124,7 +124,7 @@ public final class AcceptanceOptimizations {
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
-  private static <S, A extends OmegaAcceptance> void apply(
+  private static <S, A extends EmersonLeiAcceptance> void apply(
     MutableAutomaton<S, ?> automaton, List<Consumer<MutableAutomaton<?, A>>> optimizations) {
     logger.log(Level.FINE, "Optimizing automaton with {0}", optimizations);
 
@@ -246,7 +246,7 @@ public final class AcceptanceOptimizations {
     automaton.trim();
   }
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A>
+  public static <S, A extends EmersonLeiAcceptance> MutableAutomaton<S, A>
   removeTransientAcceptance(MutableAutomaton<S, A> automaton) {
     SccDecomposition<S> sccDecomposition = SccDecomposition.of(automaton);
     sccDecomposition.sccs(); // Force computation of SCCs before updating edges

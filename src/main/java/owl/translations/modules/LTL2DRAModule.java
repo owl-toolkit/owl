@@ -19,18 +19,21 @@
 
 package owl.translations.modules;
 
-import static owl.translations.modules.AbstractLTL2DRAModule.Translation;
+import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.EKS16;
+import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.EKS20;
+import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.SE20;
+import static owl.translations.LtlTranslationRepository.Option;
+import static owl.translations.LtlTranslationRepository.Option.USE_DUAL;
+import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
 import static owl.translations.modules.AbstractLTL2DRAModule.options;
-import static owl.translations.modules.AbstractLTL2DRAModule.parseAsymmetric;
 import static owl.translations.modules.AbstractLTL2DRAModule.parseTranslator;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.function.Function;
-import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
@@ -40,11 +43,6 @@ import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.Transformer;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.canonical.DeterministicConstructionsPortfolio;
-import owl.translations.ltl2dra.NormalformDRAConstruction;
-import owl.translations.ltl2dra.SymmetricDRAConstruction;
-import owl.translations.rabinizer.RabinizerBuilder;
-import owl.translations.rabinizer.RabinizerConfiguration;
 
 // Split into subcommand and function.
 public final class LTL2DRAModule {
@@ -55,11 +53,36 @@ public final class LTL2DRAModule {
       + " an asymmetric construction, also known as the \"Rabinizer construction\".",
     options(),
     (commandLine, environment) -> {
-      var translator = parseTranslator(commandLine);
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
-      RabinizerConfiguration configuration = parseAsymmetric(commandLine);
-      return OwlModule.LabelledFormulaTransformer
-        .of(translation(translator, usePortfolio, configuration, true));
+      Function<LabelledFormula, Automaton<?, ? extends RabinAcceptance>> result;
+
+      switch (parseTranslator(commandLine)) {
+        case SYMMETRIC:
+          result = EKS20.translation(RabinAcceptance.class,
+            usePortfolio
+              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)
+              : EnumSet.noneOf(Option.class));
+          break;
+
+        case ASYMMETRIC:
+          result = EKS16.translation(RabinAcceptance.class,
+            usePortfolio
+              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)
+              : EnumSet.noneOf(Option.class));
+          break;
+
+        case NORMAL_FORM:
+          result = SE20.translation(RabinAcceptance.class,
+            usePortfolio
+              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, USE_DUAL)
+              : EnumSet.of(USE_DUAL));
+          break;
+
+        default:
+          throw new AssertionError("Unreachable.");
+      }
+
+      return OwlModule.LabelledFormulaTransformer.of(result);
     });
 
   private LTL2DRAModule() {}
@@ -71,49 +94,5 @@ public final class LTL2DRAModule {
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
-  }
-
-  public static Function<LabelledFormula, Automaton<?, RabinAcceptance>>
-    translation(Translation translation, boolean usePortfolio,
-    @Nullable RabinizerConfiguration configuration, boolean dual) {
-
-    Function<LabelledFormula, Automaton<?, RabinAcceptance>> translator;
-
-    switch (translation) {
-      case SYMMETRIC:
-        translator = SymmetricDRAConstruction.of(RabinAcceptance.class, true)::apply;
-        break;
-
-      case ASYMMETRIC:
-        assert configuration != null;
-        translator = labelledFormula ->
-          RabinDegeneralization.degeneralize(
-            AcceptanceOptimizations.optimize(
-              RabinizerBuilder.build(labelledFormula, configuration)));
-        break;
-
-      case NORMAL_FORM:
-        translator = NormalformDRAConstruction.of(RabinAcceptance.class, dual);
-        break;
-
-      default:
-        throw new AssertionError("Unreachable.");
-    }
-
-    DeterministicConstructionsPortfolio<RabinAcceptance> portfolio = usePortfolio
-      ? new DeterministicConstructionsPortfolio<>(RabinAcceptance.class)
-      : null;
-
-    return labelledFormula -> {
-      if (portfolio != null) {
-        var automaton = portfolio.apply(labelledFormula);
-
-        if (automaton.isPresent()) {
-          return automaton.orElseThrow();
-        }
-      }
-
-      return translator.apply(labelledFormula);
-    };
   }
 }

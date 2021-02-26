@@ -28,8 +28,8 @@ import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.hoa.HoaReader;
@@ -114,7 +114,7 @@ class TestHasAcceptingRun {
     assertEquals(LanguageEmptiness.isEmpty(dpa), !hasAcceptingRun);
 
     var complement = BooleanOperations.deterministicComplement(
-      (Automaton) dpa, new Object(), OmegaAcceptance.class);
+      (Automaton) dpa, new Object(), EmersonLeiAcceptance.class);
     HoaWriter.write(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertEquals(LanguageEmptiness.isEmpty(complement), !complementHasAcceptingRun);
   }

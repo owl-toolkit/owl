@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 
@@ -55,7 +55,7 @@ import owl.bdd.BddSet;
  *
  * <ul>
  * <li>{@link MutableAutomaton#name(String)}
- * <li>{@link MutableAutomaton#acceptance(OmegaAcceptance)}
+ * <li>{@link MutableAutomaton#acceptance(EmersonLeiAcceptance)}
  * <li>{@link MutableAutomaton#updateAcceptance(Function)}
  * <li>{@link MutableAutomaton#addInitialState(Object)}
  * <li>{@link MutableAutomaton#addEdge(Object, BitSet, Edge)}
@@ -66,7 +66,7 @@ import owl.bdd.BddSet;
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
  */
-public interface MutableAutomaton<S, A extends OmegaAcceptance> extends Automaton<S, A> {
+public interface MutableAutomaton<S, A extends EmersonLeiAcceptance> extends Automaton<S, A> {
 
   /**
    * Sets the name of the automaton.

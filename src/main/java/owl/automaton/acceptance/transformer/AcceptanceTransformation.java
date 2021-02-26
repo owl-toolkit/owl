@@ -28,7 +28,7 @@ import java.util.function.Function;
 import owl.automaton.AbstractAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
@@ -37,7 +37,7 @@ import owl.collections.Collections3;
 
 abstract class AcceptanceTransformation {
 
-  interface AcceptanceTransformer<A extends OmegaAcceptance, E> {
+  interface AcceptanceTransformer<A extends EmersonLeiAcceptance, E> {
     A transformedAcceptance();
 
     E initialExtension();
@@ -45,7 +45,7 @@ abstract class AcceptanceTransformation {
     Edge<E> transformColours(Colours edge, E extension);
   }
 
-  static <S, E, A extends OmegaAcceptance, B extends OmegaAcceptance>
+  static <S, E, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>
     Automaton<ExtendedState<S, E>, B> transform(
       Automaton<S, ? extends A> automaton,
       Function<A, ? extends AcceptanceTransformer<B, E>> constructor) {

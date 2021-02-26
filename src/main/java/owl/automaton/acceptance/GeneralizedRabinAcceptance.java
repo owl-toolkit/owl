@@ -58,25 +58,28 @@ import owl.logic.propositional.PropositionalFormula;
  * <p>According to the HOA specifications, the indices are monotonically increasing and used for
  * exactly one Fin/Inf atom.</p>
  */
-public class GeneralizedRabinAcceptance extends OmegaAcceptance {
+public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
 
-  final List<RabinPair> pairs;
-  @Nonnegative
-  private final int setCount;
+  protected final List<RabinPair> pairs;
 
   GeneralizedRabinAcceptance(List<RabinPair> pairs) {
+    super(validate(pairs));
     this.pairs = List.copyOf(pairs);
+    assert pairs == this.pairs
+      : "List.copyOf() created a copy, but pairs should have been already immutable.";
+  }
 
+  private static int validate(List<RabinPair> pairs) {
     int count = 0;
 
     // Count sets and check consistency.
-    for (RabinPair pair : this.pairs) {
+    for (RabinPair pair : pairs) {
       checkArgument(count == pair.finIndex);
       checkArgument(pair.finIndex <= pair.infIndex);
       count += pair.infSetCount() + 1;
     }
 
-    this.setCount = count;
+    return count;
   }
 
   @Override
@@ -102,16 +105,16 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   public static GeneralizedRabinAcceptance of(List<RabinPair> pairs) {
-    return new GeneralizedRabinAcceptance(pairs);
+    return new GeneralizedRabinAcceptance(List.copyOf(pairs));
   }
 
-  public static Optional<? extends GeneralizedRabinAcceptance> of(
+  public static Optional<? extends GeneralizedRabinAcceptance> ofPartial(
     BooleanExpression<AtomAcceptance> expression) {
 
-    return of(BooleanExpressions.toPropositionalFormula(expression));
+    return ofPartial(BooleanExpressions.toPropositionalFormula(expression));
   }
 
-  public static Optional<? extends GeneralizedRabinAcceptance> of(
+  public static Optional<? extends GeneralizedRabinAcceptance> ofPartial(
     PropositionalFormula<Integer> expression) {
 
     SortedMap<Integer, Range<Integer>> rabinPairs = new TreeMap<>();
@@ -167,12 +170,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public int acceptanceSets() {
-    return setCount;
-  }
-
-  @Override
-  public PropositionalFormula<Integer> booleanExpression() {
+  public PropositionalFormula<Integer> lazyBooleanExpression() {
     return Disjunction.of(
       pairs.stream().map(RabinPair::booleanExpression).collect(Collectors.toList()));
   }
@@ -206,7 +204,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.largestAcceptanceSet() < setCount;
+    return edge.largestAcceptanceSet() < acceptanceSets();
   }
 
   public GeneralizedRabinAcceptance filter(IntPredicate predicate) {
@@ -279,7 +277,7 @@ public class GeneralizedRabinAcceptance extends OmegaAcceptance {
      *
      * @return If {@code edge} is contained in any <b>Inf</b> set.
      *
-     * @see Edge#inSet(int)
+     * @see Edge#colours()
      */
     public boolean containsInfinite(Edge<?> edge) {
       for (int i = finIndex + 1; i <= infIndex; i++) {

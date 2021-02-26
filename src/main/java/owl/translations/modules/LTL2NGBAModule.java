@@ -20,12 +20,10 @@
 package owl.translations.modules;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Function;
-import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
-import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -33,8 +31,7 @@ import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.Transformer;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
-import owl.translations.ltl2nba.SymmetricNBAConstruction;
+import owl.translations.LtlTranslationRepository;
 
 public final class LTL2NGBAModule {
   public static final OwlModule<Transformer> MODULE = OwlModule.of(
@@ -43,7 +40,11 @@ public final class LTL2NGBAModule {
       + "The construction is based on the symmetric approach from [EKS: LICS'18].",
     AbstractLTL2PortfolioModule.disablePortfolio(),
     (commandLine, environment) -> OwlModule.LabelledFormulaTransformer.of(
-      translation(AbstractLTL2PortfolioModule.usePortfolio(commandLine)))
+      LtlTranslationRepository.LtlToNbaTranslation.EKS20
+        .translation(GeneralizedBuchiAcceptance.class,
+          AbstractLTL2PortfolioModule.usePortfolio(commandLine)
+            ? EnumSet.of(LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)
+            : EnumSet.noneOf(LtlTranslationRepository.Option.class)))
   );
 
   private LTL2NGBAModule() {}
@@ -55,26 +56,5 @@ public final class LTL2NGBAModule {
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
-  }
-
-  public static Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>>
-    translation(boolean usePortfolio) {
-
-    var construction = SymmetricNBAConstruction.of(GeneralizedBuchiAcceptance.class);
-    var portfolio = usePortfolio
-      ? new NonDeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class)
-      : null;
-
-    return labelledFormula -> {
-      if (portfolio != null) {
-        var automaton = portfolio.apply(labelledFormula);
-
-        if (automaton.isPresent()) {
-          return automaton.orElseThrow();
-        }
-      }
-
-      return construction.apply(labelledFormula);
-    };
   }
 }

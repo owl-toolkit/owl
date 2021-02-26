@@ -116,7 +116,7 @@ public final class SymmetricEvaluatedFixpoints
         var operand = unwrapGf(gOperator);
 
         if (operand instanceof Conjunction) {
-          for (Formula conjunct : ((Conjunction) operand).operands) {
+          for (Formula conjunct : operand.operands) {
             Formula unwrappedConjunct = unwrapX(conjunct);
 
             if (unwrappedConjunct instanceof FOperator) {

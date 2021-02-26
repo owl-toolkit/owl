@@ -20,19 +20,19 @@
 package owl.automaton;
 
 import java.util.Set;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 
-public final class EmptyAutomaton<S, A extends OmegaAcceptance>
+public final class EmptyAutomaton<S, A extends EmersonLeiAcceptance>
   extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
   private EmptyAutomaton(BddSetFactory factory, A acceptance) {
     super(factory, Set.of(), acceptance);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
     BddSetFactory factory, A acceptance) {
     return new EmptyAutomaton<>(factory, acceptance);
   }

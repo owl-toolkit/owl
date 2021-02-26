@@ -295,11 +295,11 @@ class ParityAcceptanceTest {
       mkInf(4).or(mkFin(3).and(mkInf(2).or(mkFin(1).and(mkInf(0)))))::equals);
   }
 
-  private static void checkName(OmegaAcceptance acceptance) {
+  private static void checkName(EmersonLeiAcceptance acceptance) {
     assertEquals("parity", acceptance.name());
   }
 
-  private static void checkNameExtraTypes(OmegaAcceptance acceptance) {
+  private static void checkNameExtraTypes(EmersonLeiAcceptance acceptance) {
     List<Object> extra = acceptance.nameExtra();
 
     // Check types

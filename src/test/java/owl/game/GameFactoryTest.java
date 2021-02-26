@@ -19,8 +19,11 @@
 
 package owl.game;
 
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation;
+import static owl.translations.LtlTranslationRepository.Option;
 import static owl.util.Assertions.assertThat;
 
+import java.util.EnumSet;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -35,15 +38,14 @@ import owl.game.GameViews.Node;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
 
 public class GameFactoryTest {
 
   @Test
   void testTransform() {
     var formula = LtlParser.parse("G (a <-> X b) & G F (!a | b | c)");
-    var automaton = translate(formula);
-    var game = GameFactory.copyOf(GameViews.split(automaton, List.of("a", "c")));
+    var game = GameFactory.copyOf(
+      GameViews.split(translate(formula), List.of("a", "c")));
 
     for (Node<Object> state : game.states()) {
       for (Node<Object> predecessor : game.predecessors(state)) {
@@ -59,8 +61,8 @@ public class GameFactoryTest {
   @Test
   void testAttractor() {
     var formula = LtlParser.parse("F (a <-> X b)");
-    var automaton = translate(formula);
-    var game = GameFactory.copyOf(GameViews.split(automaton, List.of("a")));
+    var game = GameFactory.copyOf(
+      GameViews.split(translate(formula), List.of("a")));
 
     var winningStates = game.states().stream()
       .filter(x -> {
@@ -78,9 +80,9 @@ public class GameFactoryTest {
       x -> !x.contains(game.onlyInitialState()));
   }
 
-  public static Automaton<Object, ParityAcceptance> translate(LabelledFormula x) {
-    var dpa = new LTL2DPAFunction(
-      LTL2DPAFunction.RECOMMENDED_ASYMMETRIC_CONFIG).apply(x);
+  public static Automaton<Object, ? extends ParityAcceptance> translate(LabelledFormula x) {
+    var dpa =
+      LtlToDpaTranslation.SEJK16_EKRS17.translation(EnumSet.noneOf(Option.class)).apply(x);
     var complete = Views.complete(
       OmegaAcceptanceCast.cast((Automaton<Object, ?>) dpa, ParityAcceptance.class),
       new MutableAutomatonUtil.Sink());

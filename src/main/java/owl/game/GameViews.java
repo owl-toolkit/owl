@@ -54,7 +54,7 @@ import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.Views;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -119,7 +119,8 @@ public final class GameViews {
 
         boolean wrapComplete = commandLine.hasOption("complete");
 
-        return AutomatonTransformer.of((Automaton<Object, ParityAcceptance> automaton) -> {
+        return AutomatonTransformer.of(
+          (Automaton<Object, ? extends ParityAcceptance> automaton) -> {
           var parityAutomaton = automaton;
 
           if (wrapComplete) {
@@ -134,28 +135,28 @@ public final class GameViews {
 
   private GameViews() {}
 
-  public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
+  public static <S, A extends EmersonLeiAcceptance> Game<S, A> filter(Game<S, A> game,
     Predicate<S> states) {
     return new FilteredGame<>(game, states, x -> true);
   }
 
-  public static <S, A extends OmegaAcceptance> Game<S, A> filter(Game<S, A> game,
+  public static <S, A extends EmersonLeiAcceptance> Game<S, A> filter(Game<S, A> game,
     Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
     return new FilteredGame<>(game, states, edgeFilter);
   }
 
-  public static <S, A extends OmegaAcceptance> Game<Node<S>, A>
+  public static <S, A extends EmersonLeiAcceptance> Game<Node<S>, A>
   split(Automaton<S, A> automaton, Collection<String> firstPropositions) {
     return new ForwardingGame<>(automaton, firstPropositions::contains);
   }
 
-  public static <S, A extends OmegaAcceptance> Game<Node<S>, A>
+  public static <S, A extends EmersonLeiAcceptance> Game<Node<S>, A>
   split(Automaton<S, A> automaton, Predicate<String> firstPropositions) {
     assert automaton.is(Property.COMPLETE) : "Only defined for complete automata.";
     return new ForwardingGame<>(automaton, firstPropositions);
   }
 
-  private static final class FilteredGame<S, A extends OmegaAcceptance> implements Game<S, A> {
+  private static final class FilteredGame<S, A extends EmersonLeiAcceptance> implements Game<S, A> {
 
     public static final List<PreferredEdgeAccess> ACCESS_MODES
       = List.of(EDGE_MAP, EDGE_TREE, EDGES);
@@ -239,8 +240,8 @@ public final class GameViews {
     }
   }
 
-  public static <S, A extends OmegaAcceptance> Game<S, A> replaceInitialStates(
-    Game<S, A> game, Set<S> initialStates) {
+  public static <S, A extends EmersonLeiAcceptance> Game<S, A> replaceInitialStates(
+    Game<S, ? extends A> game, Set<S> initialStates) {
     Set<S> immutableInitialStates = Set.copyOf(initialStates);
     return new Game<>() {
 
@@ -313,7 +314,7 @@ public final class GameViews {
    * finally updating the state based on the combined valuation, emitting the
    * corresponding acceptance.
    */
-  static final class ForwardingGame<S, A extends OmegaAcceptance>
+  static final class ForwardingGame<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeMapImplementation<Node<S>, A>
     implements Game<Node<S>, A> {
     private final Automaton<S, A> automaton;

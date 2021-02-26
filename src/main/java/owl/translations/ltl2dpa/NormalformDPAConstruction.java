@@ -57,6 +57,7 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.ToParityTransformer;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
@@ -76,6 +77,7 @@ import owl.ltl.Literal;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
 import owl.ltl.rewriter.SimplifierFactory;
+import owl.ltl.rewriter.SimplifierTransformer;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -112,9 +114,9 @@ public final class NormalformDPAConstruction implements
   public static void main(String... args) throws IOException {
     PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
       InputReaders.LTL_INPUT_MODULE,
-      List.of(),
+      List.of(SimplifierTransformer.MODULE),
       MODULE,
-      List.of(),
+      List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 

@@ -32,7 +32,7 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.ltl.LabelledFormula;
 import owl.run.Environment;
@@ -127,9 +127,10 @@ public abstract class OwlModule<M extends OwlModule.Instance> {
       return function::apply;
     }
 
-    static <A extends OmegaAcceptance, R> AutomatonTransformer of(
+    static <A extends EmersonLeiAcceptance, R> AutomatonTransformer of(
       Function<? super Automaton<Object, A>, R> function, Class<A> acceptanceBound) {
-      return object -> function.apply(OmegaAcceptanceCast.cast(object, acceptanceBound));
+      return object -> function.apply(
+        (Automaton<Object, A>) OmegaAcceptanceCast.cast(object, acceptanceBound));
     }
   }
 

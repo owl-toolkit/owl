@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 
@@ -34,7 +34,7 @@ public final class MutableAutomatonUtil {
 
   private MutableAutomatonUtil() {}
 
-  public static <S, A extends OmegaAcceptance> MutableAutomaton<S, A> asMutable(
+  public static <S, A extends EmersonLeiAcceptance> MutableAutomaton<S, A> asMutable(
     Automaton<S, A> automaton) {
 
     if (automaton instanceof MutableAutomaton) {

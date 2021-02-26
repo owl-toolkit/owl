@@ -79,7 +79,7 @@ public final class OinkGameSolver implements ParityGameSolver {
   }
 
   public static <S> Map<Integer, S> toOinkInstance(
-    Game<S, ParityAcceptance> game, PrintWriter writer) {
+    Game<S, ? extends ParityAcceptance> game, PrintWriter writer) {
     Object2IntMap<PriorityState<S>> oinkNumbering = new Object2IntLinkedOpenHashMap<>();
     oinkNumbering.defaultReturnValue(-1);
 
@@ -171,7 +171,7 @@ public final class OinkGameSolver implements ParityGameSolver {
   }
 
   @Override
-  public <S> boolean realizable(Game<S, ParityAcceptance> game) {
+  public <S> boolean realizable(Game<S, ? extends ParityAcceptance> game) {
     if (game.acceptance().parity() != ParityAcceptance.Parity.MAX_EVEN) {
       throw new IllegalArgumentException("Input game must be of type MAX_EVEN.");
     }
@@ -181,7 +181,7 @@ public final class OinkGameSolver implements ParityGameSolver {
   }
 
   @Override
-  public <S> WinningRegions<S> solve(Game<S, ParityAcceptance> game) {
+  public <S> WinningRegions<S> solve(Game<S, ? extends ParityAcceptance> game) {
     if (game.acceptance().parity() != ParityAcceptance.Parity.MAX_EVEN) {
       throw new IllegalArgumentException("Input game must be of type MAX_EVEN.");
     }

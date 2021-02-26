@@ -23,6 +23,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.fail;
+import static owl.translations.LtlTranslationRepository.LtlToDelaTranslation;
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation;
+import static owl.translations.LtlTranslationRepository.LtlToDraTranslation;
+import static owl.translations.LtlTranslationRepository.LtlToLdbaTranslation;
+import static owl.translations.LtlTranslationRepository.LtlToNbaTranslation;
+import static owl.translations.LtlTranslationRepository.Option;
+import static owl.translations.LtlTranslationRepository.Option.SIMPLIFY_AUTOMATON;
+import static owl.translations.LtlTranslationRepository.Option.USE_DUAL;
+import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.FGGF;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBEROUTER;
@@ -62,10 +71,11 @@ import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.Automaton;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.hoa.HoaWriter;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -79,17 +89,7 @@ import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
-import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
-import owl.translations.ltl2dra.SymmetricDRAConstruction;
-import owl.translations.modules.AbstractLTL2DRAModule;
-import owl.translations.modules.LTL2DGRAModule;
-import owl.translations.modules.LTL2DPAModule;
-import owl.translations.modules.LTL2DRAModule;
-import owl.translations.modules.LTL2LDBAModule;
-import owl.translations.modules.LTL2LDGBAModule;
-import owl.translations.modules.LTL2NBAModule;
-import owl.translations.modules.LTL2NGBAModule;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 public class TranslationAutomatonSummaryTest {
@@ -101,8 +101,6 @@ public class TranslationAutomatonSummaryTest {
     "aa", "ab", "ac", "ad", "ae", "af", "ag");
 
   static final List<Translator> TRANSLATORS = List.of(
-    new Translator("dpa.normalform", NormalformDPAConstruction.of(false)),
-
     new Translator("safety",
       DeterministicConstructionsPortfolio::safety),
     new Translator("safety.nondeterministic",
@@ -133,118 +131,156 @@ public class TranslationAutomatonSummaryTest {
     new Translator("safetyCoSafety", DeterministicConstructionsPortfolio::safetyCoSafety),
 
     new Translator("ldba.asymmetric",
-      LTL2LDBAModule.translation(false, false),
+      LtlToLdbaTranslation.SEJK16.translation(
+        BuchiAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldba.asymmetric.portfolio",
-      LTL2LDBAModule.translation(false, true),
+      LtlToLdbaTranslation.SEJK16.translation(
+        BuchiAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.asymmetric",
-      LTL2LDGBAModule.translation(false, false),
+      LtlToLdbaTranslation.SEJK16.translation(
+        GeneralizedBuchiAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.asymmetric.portfolio",
-      LTL2LDGBAModule.translation(false, true),
+      LtlToLdbaTranslation.SEJK16.translation(
+        GeneralizedBuchiAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("ldba.symmetric",
-      LTL2LDBAModule.translation(true, false),
+      LtlToLdbaTranslation.EKS20.translation(
+        BuchiAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldba.symmetric.portfolio",
-      LTL2LDBAModule.translation(true, true),
+      LtlToLdbaTranslation.EKS20.translation(
+        BuchiAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.symmetric",
-      LTL2LDGBAModule.translation(true, false),
+      LtlToLdbaTranslation.EKS20.translation(
+        GeneralizedBuchiAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("ldgba.symmetric.portfolio",
-      LTL2LDGBAModule.translation(true, true),
+      LtlToLdbaTranslation.EKS20.translation(
+        GeneralizedBuchiAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dpa.asymmetric",
-      LTL2DPAModule.translation(false, false, false),
+      LtlToDpaTranslation.SEJK16_EKRS17.translation(
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
     new Translator("dpa.asymmetric.portfolio",
-      LTL2DPAModule.translation(false, false, true),
+      LtlToDpaTranslation.SEJK16_EKRS17.translation(
+        EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
     new Translator("dpa.symmetric",
-      LTL2DPAModule.translation(true, false, false),
+      LtlToDpaTranslation.EKS20_EKRS17.translation(
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
     new Translator("dpa.symmetric.portfolio",
-      LTL2DPAModule.translation(true, false, true),
+      LtlToDpaTranslation.EKS20_EKRS17.translation(
+        EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
+    new Translator("dpa.normalform",
+      NormalformDPAConstruction.of(false)),
+
     new Translator("dra.symmetric",
-      LTL2DRAModule.translation(
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false),
+      LtlToDraTranslation.EKS20.translation(
+        RabinAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("dra.symmetric.portfolio",
-      LTL2DRAModule.translation(
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false),
+      LtlToDraTranslation.EKS20.translation(
+        RabinAcceptance.class,
+        EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("dra.symmetric.optimizations", x ->
-      AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(RabinAcceptance.class, true)
-          .apply(x)),
+    new Translator("dra.symmetric.optimizations",
+      LtlToDraTranslation.EKS20.translation(
+        RabinAcceptance.class,
+        EnumSet.of(SIMPLIFY_AUTOMATON)),
       Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dgra.symmetric",
-      LTL2DGRAModule.translation(
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, false, null, false),
+      LtlToDraTranslation.EKS20.translation(
+        GeneralizedRabinAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION)),
     new Translator("dgra.symmetric.portfolio",
-      LTL2DGRAModule.translation(
-        AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false),
+      LtlToDraTranslation.EKS20.translation(
+        GeneralizedRabinAcceptance.class,
+        EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION)),
-    new Translator("dgra.symmetric.optimizations", x ->
-      AcceptanceOptimizations.optimize(
-        SymmetricDRAConstruction.of(GeneralizedRabinAcceptance.class, true)
-          .apply(x)),
+    new Translator("dgra.symmetric.optimizations",
+      LtlToDraTranslation.EKS20.translation(
+        GeneralizedRabinAcceptance.class,
+        EnumSet.of(SIMPLIFY_AUTOMATON)),
       Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dra.normalform",
-      LTL2DRAModule.translation(
-        AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
+      LtlToDraTranslation.SE20.translation(
+        RabinAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dra.normalform.portfolio",
-      LTL2DRAModule.translation(
-        AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
+      LtlToDraTranslation.SE20.translation(
+        RabinAcceptance.class,
+        EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION), true),
 
     new Translator("dra.normalform.dual",
-      LTL2DRAModule.translation(
-        AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, true),
+      LtlToDraTranslation.SE20.translation(
+        RabinAcceptance.class,
+        EnumSet.of(USE_DUAL)),
       Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dra.normalform.dual.portfolio",
-      LTL2DRAModule.translation(
-        AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, true),
+      LtlToDraTranslation.SE20.translation(
+        RabinAcceptance.class,
+        EnumSet.of(USE_DUAL, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION), true),
-
     new Translator("dgra.normalform",
-      LTL2DGRAModule.translation(
-        AbstractLTL2DRAModule.Translation.NORMAL_FORM, false, null, false),
+      LtlToDraTranslation.SE20.translation(
+        GeneralizedRabinAcceptance.class,
+        EnumSet.noneOf(Option.class)),
       Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dgra.normalform.portfolio",
-      LTL2DGRAModule.translation(
-        AbstractLTL2DRAModule.Translation.NORMAL_FORM, true, null, false),
+      LtlToDraTranslation.SE20.translation(
+        GeneralizedRabinAcceptance.class,
+        EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION), true),
 
     new Translator("nba.symmetric",
-      LTL2NBAModule.translation(false)),
+      LtlToNbaTranslation.EKS20.translation(
+        BuchiAcceptance.class,
+        EnumSet.noneOf(Option.class)),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("nba.symmetric.portfolio",
-      LTL2NBAModule.translation(true)),
+      LtlToNbaTranslation.EKS20.translation(
+        BuchiAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ngba.symmetric",
-      LTL2NGBAModule.translation(false)),
+      LtlToNbaTranslation.EKS20.translation(
+        GeneralizedBuchiAcceptance.class,
+        EnumSet.noneOf(Option.class)),
+      Set.of(SYNTCOMP_SELECTION)),
     new Translator("ngba.symmetric.portfolio",
-      LTL2NGBAModule.translation(true)),
+      LtlToNbaTranslation.EKS20.translation(
+        GeneralizedBuchiAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
+      Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("delag",
-      new DelagBuilder(),
-      EnumSet.complementOf(EnumSet.of(BASE, SIZE))),
-    new Translator("ltl2da",
-      new LTL2DAFunction(),
-      EnumSet.of(SYNTCOMP_SELECTION, LIBEROUTER)),
-    new Translator("ltl2na",
-      new LTL2NAFunction(),
-      EnumSet.of(SYNTCOMP_SELECTION, LIBEROUTER))
+      LtlToDelaTranslation.MS17.translation(),
+      EnumSet.complementOf(EnumSet.of(BASE, SIZE)))
   );
 
   private static boolean containsIsomorphic(Collection<Formula> formulas, Formula formula) {
@@ -513,20 +549,20 @@ public class TranslationAutomatonSummaryTest {
   static class AutomatonSummary {
     final int size;
     final int initialStatesSize;
-    final transient OmegaAcceptance acceptance;
+    final transient EmersonLeiAcceptance acceptance;
     final String acceptanceName;
     final int acceptanceSets;
     final boolean complete;
     final boolean deterministic;
 
-    AutomatonSummary(int size, int initialStatesSize, OmegaAcceptance acceptance,
+    AutomatonSummary(int size, int initialStatesSize, EmersonLeiAcceptance acceptance,
       boolean deterministic, boolean complete, boolean ignoreSets) {
       this.acceptance = acceptance;
       this.acceptanceSets = ignoreSets
         ? -1
         : acceptance.acceptanceSets();
       this.acceptanceName = ignoreSets
-        ? OmegaAcceptance.class.getSimpleName()
+        ? EmersonLeiAcceptance.class.getSimpleName()
         : acceptance.getClass().getSimpleName();
       this.complete = complete;
       this.deterministic = deterministic;

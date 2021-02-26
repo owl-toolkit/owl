@@ -20,6 +20,7 @@
 package owl.translations.delag;
 
 import static owl.run.modules.OwlModule.Transformer;
+import static owl.translations.LtlTranslationRepository.LtlToDraTranslation;
 
 import java.io.IOException;
 import java.util.BitSet;
@@ -33,6 +34,7 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.SingletonAutomaton;
+import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
@@ -48,7 +50,6 @@ import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.ExternalTranslator;
-import owl.translations.LTL2DAFunction;
 
 public class DelagBuilder
   implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
@@ -73,11 +74,11 @@ public class DelagBuilder
   private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
   public DelagBuilder() {
-    this.fallback = new LTL2DAFunction(GeneralizedRabinAcceptance.class);
+    fallback = LtlToDraTranslation.DEFAULT.translation(GeneralizedRabinAcceptance.class);
   }
 
-  private DelagBuilder(ExternalTranslator fallback) {
-    this.fallback = fallback;
+  private DelagBuilder(ExternalTranslator externalTranslator) {
+    fallback = externalTranslator;
   }
 
   public static void main(String... args) throws IOException {
@@ -97,13 +98,13 @@ public class DelagBuilder
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
       return EmptyAutomaton.of(factories.vsFactory,
-        new EmersonLeiAcceptance(0, PropositionalFormula.falseConstant()));
+        EmersonLeiAcceptance.of(PropositionalFormula.falseConstant()));
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
       return SingletonAutomaton.of(factories.vsFactory,
         new State<>(),
-        new EmersonLeiAcceptance(0, PropositionalFormula.trueConstant()),
+        AllAcceptance.INSTANCE,
         Set.of());
     }
 
@@ -111,8 +112,6 @@ public class DelagBuilder
       new DependencyTreeFactory<>(factories, x -> (Automaton<Object, ?>) fallback.apply(x));
     DependencyTree<Object> tree = formula.formula().accept(treeConverter);
     var expression = tree.getAcceptanceExpression();
-    int sets = treeConverter.setNumber;
-
 
     ProductState<Object> initialProduct = treeConverter.buildInitialState();
     State<Object> initialState = new State<>(initialProduct,
@@ -120,7 +119,7 @@ public class DelagBuilder
         History.create(tree.getRequiredHistory(initialProduct))));
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      factories.vsFactory, Set.of(initialState), new EmersonLeiAcceptance(sets, expression)) {
+      factories.vsFactory, Set.of(initialState), EmersonLeiAcceptance.of(expression)) {
 
       private final Map<ProductState<?>, History> requiredHistory = new HashMap<>();
 

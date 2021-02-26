@@ -63,9 +63,9 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
@@ -412,7 +412,7 @@ public final class CAutomaton {
     @CEnumLookup
     public static native Acceptance fromCValue(int value);
 
-    public static Acceptance fromOmegaAcceptance(OmegaAcceptance acceptance) {
+    public static Acceptance fromOmegaAcceptance(EmersonLeiAcceptance acceptance) {
       if (acceptance instanceof AllAcceptance) {
         return SAFETY;
       }
@@ -518,8 +518,8 @@ public final class CAutomaton {
     @Nullable
     final S canonicalRejectingState;
 
-    private <A extends OmegaAcceptance> DeterministicAutomatonWrapper(
-      Automaton<S, A> automaton,
+    private <A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper(
+      Automaton<S, ? extends A> automaton,
       Acceptance acceptance,
       Class<A> acceptanceClassBound,
       Predicate<? super S> acceptingSink,
@@ -587,7 +587,7 @@ public final class CAutomaton {
       }
     }
 
-    static <S, A extends OmegaAcceptance> DeterministicAutomatonWrapper<S, ?>
+    static <S, A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper<S, ?>
       of(Automaton<S, A> automaton, int uncontrollableApSize) {
       return new DeterministicAutomatonWrapper<S, S>(
         automaton,

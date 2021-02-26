@@ -20,7 +20,7 @@
 package owl.automaton;
 
 import java.util.Set;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
 
 public final class AnnotatedStateOptimisation {
@@ -38,7 +38,7 @@ public final class AnnotatedStateOptimisation {
    * @return A copy of the automaton with the new initial state set. For performance reasons are
    *     copy is made, but this might change.
    */
-  public static <S extends AnnotatedState<?>, A extends OmegaAcceptance>
+  public static <S extends AnnotatedState<?>, A extends EmersonLeiAcceptance>
     Automaton<S, A> optimizeInitialState(Automaton<S, A> automaton) {
     var mutableAutomatonCopy = HashMapAutomaton.copyOf(automaton);
 

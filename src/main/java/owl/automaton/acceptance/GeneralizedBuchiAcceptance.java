@@ -27,23 +27,31 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnegative;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Conjunction;
 
-public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
-  @Nonnegative
-  public final int size;
+public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
 
   GeneralizedBuchiAcceptance(int size) {
-    this.size = size;
+    super(size, Conjunction.of(IntStream.range(0, size)
+      .mapToObj(Variable::of)
+      .collect(Collectors.toList())));
   }
 
   public static GeneralizedBuchiAcceptance of(int size) {
-    return size == 1 ? BuchiAcceptance.INSTANCE : new GeneralizedBuchiAcceptance(size);
+    switch (size) {
+      case 0:
+        return AllAcceptance.INSTANCE;
+
+      case 1:
+        return BuchiAcceptance.INSTANCE;
+
+      default:
+        return new GeneralizedBuchiAcceptance(size);
+    }
   }
 
-  public static Optional<? extends GeneralizedBuchiAcceptance> of(
+  public static Optional<? extends GeneralizedBuchiAcceptance> ofPartial(
     PropositionalFormula<Integer> formula) {
 
     var usedSets = new BitSet();
@@ -64,36 +72,24 @@ public class GeneralizedBuchiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public final int acceptanceSets() {
-    return size;
-  }
-
-  @Override
-  public final PropositionalFormula<Integer> booleanExpression() {
-    return Conjunction.of(IntStream.range(0, size)
-      .mapToObj(Variable::of)
-      .collect(Collectors.toList()));
-  }
-
-  @Override
   public String name() {
     return "generalized-Buchi";
   }
 
   @Override
   public List<Object> nameExtra() {
-    return List.of(size);
+    return List.of(acceptanceSets());
   }
 
   @Override
-  public Optional<BitSet> acceptingSet() {
+  public final Optional<BitSet> acceptingSet() {
     BitSet set = new BitSet();
-    set.set(0, size);
+    set.set(0, acceptanceSets());
     return Optional.of(set);
   }
 
   @Override
-  public Optional<BitSet> rejectingSet() {
-    return size == 0 ? Optional.empty() : Optional.of(new BitSet(0));
+  public final Optional<BitSet> rejectingSet() {
+    return acceptanceSets() == 0 ? Optional.empty() : Optional.of(new BitSet(0));
   }
 }

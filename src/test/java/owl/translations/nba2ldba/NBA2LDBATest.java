@@ -25,7 +25,7 @@ import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaWriter;
@@ -110,7 +110,7 @@ class NBA2LDBATest {
     var supplier = FactorySupplier.defaultSupplier();
     var nba = OmegaAcceptanceCast
       .cast(HoaReader.read(new StringReader(hoa), supplier::getBddSetFactory),
-        OmegaAcceptance.class);
+        EmersonLeiAcceptance.class);
     var ldba = new NBA2LDBA().apply(nba);
     HoaWriter.write(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     HoaWriter.write(ldba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));

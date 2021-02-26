@@ -41,7 +41,7 @@ import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.util.OwlVersion;
@@ -84,7 +84,7 @@ public final class HoaWriter {
         consumer.addStartStates(List.of(hoa.get(state)));
       }
 
-      OmegaAcceptance acceptance = automaton.acceptance();
+      EmersonLeiAcceptance acceptance = automaton.acceptance();
       String accName = acceptance.name();
 
       if (accName != null) {

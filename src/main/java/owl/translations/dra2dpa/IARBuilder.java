@@ -43,10 +43,9 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import owl.automaton.AbstractAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
@@ -62,7 +61,6 @@ import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.run.modules.InputReaders;
@@ -84,10 +82,10 @@ public final class IARBuilder<R> {
         new IARBuilder<>(automaton, parity).build(), RabinAcceptance.class);
     });
 
-  private final Automaton<R, RabinAcceptance> rabinAutomaton;
+  private final Automaton<R, ? extends RabinAcceptance> rabinAutomaton;
   private final Parity parity;
 
-  public IARBuilder(Automaton<R, RabinAcceptance> rabinAutomaton, Parity parity) {
+  public IARBuilder(Automaton<R, ? extends RabinAcceptance> rabinAutomaton, Parity parity) {
     this.rabinAutomaton = rabinAutomaton;
     this.parity = parity;
   }
@@ -327,7 +325,7 @@ public final class IARBuilder<R> {
     automaton.trim();
   }
 
-  private IARExplorer<R> explorer(Automaton<R, RabinAcceptance> rabinAutomaton,
+  private IARExplorer<R> explorer(Automaton<R, ? extends RabinAcceptance> rabinAutomaton,
     Set<RabinPair> activeRabinPairs) {
     int numberOfTrackedPairs = activeRabinPairs.size();
     IntPreOrder initialRecord = IntPreOrder.coarsest(numberOfTrackedPairs);
@@ -338,7 +336,7 @@ public final class IARBuilder<R> {
   }
 
   private MutableAutomaton<IARState<R>, ParityAcceptance>
-  build(Automaton<R, RabinAcceptance> rabinAutomaton, Set<RabinPair> activeRabinPairs) {
+    build(Automaton<R, ? extends RabinAcceptance> rabinAutomaton, Set<RabinPair> activeRabinPairs) {
     assert SccDecomposition.of(rabinAutomaton).sccs().size() == 1;
     IARExplorer<R> explorer = explorer(rabinAutomaton, activeRabinPairs);
     var resultAutomaton = MutableAutomatonUtil.asMutable(explorer);
@@ -348,58 +346,27 @@ public final class IARBuilder<R> {
     return resultAutomaton;
   }
 
-  private static final class IARExplorer<S> extends
-      AbstractAutomaton<IARState<S>, ParityAcceptance> {
-    private final Automaton<S, RabinAcceptance> rabinAutomaton;
+  private static final class IARExplorer<S>
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<IARState<S>, ParityAcceptance> {
+
+    private final Automaton<S, ? extends RabinAcceptance> rabinAutomaton;
     private final RabinPair[] indexToPair;
     private final Parity parity;
 
-    IARExplorer(Automaton<S, RabinAcceptance> rabinAutomaton, Set<IARState<S>> initialStates,
-      Set<RabinPair> trackedPairs, Parity parity) {
+    private IARExplorer(Automaton<S, ? extends RabinAcceptance> rabinAutomaton,
+      Set<IARState<S>> initialStates, Set<RabinPair> trackedPairs, Parity parity) {
+
       super(rabinAutomaton.factory(), initialStates, new ParityAcceptance(0, parity));
       this.rabinAutomaton = rabinAutomaton;
       indexToPair = trackedPairs.toArray(RabinPair[]::new);
       this.parity = parity;
     }
 
-    @Nullable
     @Override
-    public Edge<IARState<S>> edge(IARState<S> state, BitSet valuation) {
-      Edge<S> edge = rabinAutomaton.edge(state.state(), valuation);
-      return edge == null ? null : computeSuccessorEdge(state.record(), edge);
-    }
-
-    @Override
-    public Set<Edge<IARState<S>>> edges(IARState<S> state) {
-      IntPreOrder record = state.record();
-      return Collections3.transformSet(rabinAutomaton.edges(state.state()),
-        edge -> computeSuccessorEdge(record, edge));
-    }
-
-    @Override
-    public Set<Edge<IARState<S>>> edges(IARState<S> state, BitSet valuation) {
-      IntPreOrder record = state.record();
-      return Collections3.transformSet(rabinAutomaton.edges(state.state(), valuation),
-        edge -> computeSuccessorEdge(record, edge));
-    }
-
-    @Override
-    public Map<Edge<IARState<S>>, BddSet> edgeMap(IARState<S> state) {
-      IntPreOrder record = state.record();
-      return Collections3.transformMap(rabinAutomaton.edgeMap(state.state()),
-        rabinState -> computeSuccessorEdge(record, rabinState));
-    }
-
-    @Override
-    public MtBdd<Edge<IARState<S>>> edgeTree(IARState<S> state) {
+    public MtBdd<Edge<IARState<S>>> edgeTreeImpl(IARState<S> state) {
       IntPreOrder record = state.record();
       return rabinAutomaton.edgeTree(state.state()).map(edges ->
         Collections3.transformSet(edges, edge -> computeSuccessorEdge(record, edge)));
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return rabinAutomaton.preferredEdgeAccess();
     }
 
     private Edge<IARState<S>> computeSuccessorEdge(IntPreOrder record, Edge<S> rabinEdge) {

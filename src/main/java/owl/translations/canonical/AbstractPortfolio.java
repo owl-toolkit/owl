@@ -22,12 +22,12 @@ package owl.translations.canonical;
 import java.util.Optional;
 import java.util.function.Function;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.ltl.LabelledFormula;
 
-abstract class AbstractPortfolio<A extends OmegaAcceptance>
-  implements Function<LabelledFormula, Optional<Automaton<?, A>>> {
+public abstract class AbstractPortfolio<A extends EmersonLeiAcceptance>
+  implements Function<LabelledFormula, Optional<Automaton<?, ? extends A>>> {
 
   final Class<A> acceptanceBound;
 
@@ -35,11 +35,11 @@ abstract class AbstractPortfolio<A extends OmegaAcceptance>
     this.acceptanceBound = acceptanceBound;
   }
 
-  boolean isAllowed(Class<? extends OmegaAcceptance> acceptance) {
+  boolean isAllowed(Class<? extends EmersonLeiAcceptance> acceptance) {
     return OmegaAcceptanceCast.isInstanceOf(acceptance, acceptanceBound);
   }
 
-  Optional<Automaton<?, A>> box(Automaton<?, ?> automaton) {
+  Optional<Automaton<?, ? extends A>> box(Automaton<?, ?> automaton) {
     return Optional.of(OmegaAcceptanceCast.cast(automaton, acceptanceBound));
   }
 }

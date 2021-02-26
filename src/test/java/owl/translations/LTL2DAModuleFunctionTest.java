@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.Map;
+import java.util.function.Function;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -33,14 +34,15 @@ import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.edge.Edge;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
 class LTL2DAModuleFunctionTest {
   private static final String LARGE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)"
       + "& X G (x1 | x2 | x3)";
 
-  private static final LTL2DAFunction TRANSLATOR
-    = new LTL2DAFunction(ParityAcceptance.class);
+  private static final Function<LabelledFormula, Automaton<?, ? extends ParityAcceptance>>
+    TRANSLATOR = LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation();
 
   @Test
   void construct() {

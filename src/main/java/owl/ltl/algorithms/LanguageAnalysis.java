@@ -19,6 +19,7 @@
 
 package owl.ltl.algorithms;
 
+import java.util.EnumSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -27,7 +28,7 @@ import owl.ltl.Biconditional;
 import owl.ltl.Disjunction;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
-import owl.translations.LTL2NAFunction;
+import owl.translations.LtlTranslationRepository;
 
 public final class LanguageAnalysis {
 
@@ -39,7 +40,13 @@ public final class LanguageAnalysis {
     }
 
     var labelledFormula = attachDummyAlphabet(formula);
-    var translation = new LTL2NAFunction(GeneralizedBuchiAcceptance.class);
+    var translation = LtlTranslationRepository.defaultTranslation(
+      EnumSet.of(
+        LtlTranslationRepository.Option.SIMPLIFY_FORMULA,
+        LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS),
+      LtlTranslationRepository.BranchingMode.NON_DETERMINISTIC,
+      GeneralizedBuchiAcceptance.class);
+
     return !LanguageEmptiness.isEmpty(translation.apply(labelledFormula));
   }
 

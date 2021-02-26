@@ -23,13 +23,13 @@ import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 
-public final class SingletonAutomaton<S, A extends OmegaAcceptance>
+public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
   extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
   private final MtBdd<Edge<S>> selfLoopEdges;
@@ -42,17 +42,17 @@ public final class SingletonAutomaton<S, A extends OmegaAcceptance>
       : MtBdd.of(Set.of(Edge.of(singletonState, acceptanceSets)));
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
     BddSetFactory factory, S state, A acceptance) {
     return new SingletonAutomaton<>(state, factory, null, acceptance);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
     BddSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
     return new SingletonAutomaton<>(state, factory, BitSet2.copyOf(acceptanceSet), acceptance);
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> of(
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
     BddSetFactory factory, S state, A acceptance, BitSet acceptanceSet) {
     return new SingletonAutomaton<>(state, factory, acceptanceSet, acceptance);
   }

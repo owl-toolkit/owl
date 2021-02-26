@@ -55,8 +55,8 @@ public final class LanguageContainment {
   }
 
   public static boolean containsCoBuchi(
-    Automaton<?, CoBuchiAcceptance> automaton1,
-    Automaton<?, CoBuchiAcceptance> automaton2) {
+    Automaton<?, ? extends CoBuchiAcceptance> automaton1,
+    Automaton<?, ? extends CoBuchiAcceptance> automaton2) {
 
     if (automaton2.is(Property.DETERMINISTIC)) {
       return contains(automaton1, automaton2);
@@ -66,8 +66,8 @@ public final class LanguageContainment {
   }
 
   public static boolean equalsCoBuchi(
-    Automaton<?, CoBuchiAcceptance> automaton1,
-    Automaton<?, CoBuchiAcceptance> automaton2) {
+    Automaton<?, ? extends CoBuchiAcceptance> automaton1,
+    Automaton<?, ? extends CoBuchiAcceptance> automaton2) {
     return containsCoBuchi(automaton1, automaton2) && containsCoBuchi(automaton2, automaton1);
   }
 

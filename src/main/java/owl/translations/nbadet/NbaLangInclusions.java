@@ -109,7 +109,7 @@ public final class NbaLangInclusions {
    * Returns set of states with accepting loops on any symbol (i.e. on [t] marked with {0}).
    * Such states are universally accepting and hence this is a simple language inclusion to exploit.
    */
-  public static <S> Set<S> getNbaAccPseudoSinks(Automaton<S,BuchiAcceptance> aut) {
+  public static <S> Set<S> getNbaAccPseudoSinks(Automaton<S, ? extends BuchiAcceptance> aut) {
     return aut.states().stream().filter(st ->           //For each state:
     aut.edgeMap(st).entrySet().stream()                 //get outgoing edges,
     .filter(e -> e.getKey().successor().equals(st)      //keep only self-loops...

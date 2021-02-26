@@ -64,7 +64,7 @@ public final class RabinDegeneralization {
 
   private RabinDegeneralization() {}
 
-  public static <S> Automaton<?, RabinAcceptance> degeneralize(
+  public static <S> Automaton<?, ? extends RabinAcceptance> degeneralize(
     Automaton<S, ? extends GeneralizedRabinAcceptance> automaton) {
     if (automaton.acceptance() instanceof RabinAcceptance) {
       return OmegaAcceptanceCast.cast(automaton, RabinAcceptance.class);

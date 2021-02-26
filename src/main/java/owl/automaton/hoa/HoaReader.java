@@ -60,7 +60,6 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -213,7 +212,7 @@ public final class HoaReader {
     private final StoredHeader storedHeader;
     private final BddSetFactory vsFactory;
 
-    StoredConverter(StoredAutomaton storedAutomaton,
+    private StoredConverter(StoredAutomaton storedAutomaton,
       Function<List<String>, BddSetFactory> factorySupplier) throws HOAConsumerException {
       this.vsFactory = factorySupplier.apply(storedAutomaton.getStoredHeader().getAPs());
       check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported");
@@ -262,7 +261,9 @@ public final class HoaReader {
       automaton.addEdge(source, valuationSet, edge);
     }
 
-    private static OmegaAcceptance acceptance(StoredHeader header) throws HOAConsumerException {
+    private static EmersonLeiAcceptance acceptance(StoredHeader header)
+      throws HOAConsumerException {
+
       var name = Iterables.getOnlyElement(header.getAcceptanceNames(), null);
       var expression = header.getAcceptanceCondition();
       var formula = BooleanExpressions.toPropositionalFormula(expression);
@@ -270,10 +271,10 @@ public final class HoaReader {
 
       switch (name == null ? "default" : name.name.toLowerCase(Locale.ENGLISH)) {
         case "all":
-          return AllAcceptance.of(formula).orElseThrow();
+          return AllAcceptance.ofPartial(formula).orElseThrow();
 
         case "buchi":
-          return BuchiAcceptance.of(formula).orElseThrow();
+          return BuchiAcceptance.ofPartial(formula).orElseThrow();
 
         case "parity":
           check(name.extra.size() == 3, "Malformed parity condition.");
@@ -322,13 +323,14 @@ public final class HoaReader {
         case "co-buchi":
           // acc-name: co-Buchi
           // Acceptance: 1 Fin(0)
-          return CoBuchiAcceptance.of(formula).orElseThrow();
+          return CoBuchiAcceptance.ofPartial(formula).orElseThrow();
 
         case "generalized-buchi":
           // acc-name: generalized-Buchi 3
           // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
           int size1 = Integer.parseInt(name.extra.get(0).toString());
-          var generalizedBuchiAcceptance = GeneralizedBuchiAcceptance.of(formula).orElseThrow();
+          var generalizedBuchiAcceptance
+            = GeneralizedBuchiAcceptance.ofPartial(formula).orElseThrow();
           check(generalizedBuchiAcceptance.acceptanceSets() == size1, "Mismatch.");
           return generalizedBuchiAcceptance;
 
@@ -336,39 +338,31 @@ public final class HoaReader {
           // acc-name: generalized-co-Buchi 3
           // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
           int size2 = Integer.parseInt(name.extra.get(0).toString());
-          var generalizedCoBuchiAcceptance = GeneralizedCoBuchiAcceptance.of(formula).orElseThrow();
+          var generalizedCoBuchiAcceptance
+            = GeneralizedCoBuchiAcceptance.ofPartial(formula).orElseThrow();
           check(generalizedCoBuchiAcceptance.acceptanceSets() == size2, "Mismatch.");
           return generalizedCoBuchiAcceptance;
 
         case "rabin":
           // acc-name: Rabin 3
           // Acceptance: 6 (Fin(0)&Inf(1))|(Fin(2)&Inf(3))|(Fin(4)&Inf(5))
-          return RabinAcceptance.of(expression).orElseThrow(
+          return RabinAcceptance.ofPartial(expression).orElseThrow(
             () -> new IllegalArgumentException(
               String.format("Rabin Acceptance (%s) not well-formed.", expression)));
 
         case "generalized-rabin":
           // acc-name: generalized-Rabin 2 3 2
           // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
-          return GeneralizedRabinAcceptance.of(expression).orElseThrow(
+          return GeneralizedRabinAcceptance.ofPartial(expression).orElseThrow(
             () -> new IllegalArgumentException(String.format(
               "Generalized-Rabin Acceptance (%s) not well-formed.", expression)));
 
         case "streett":
           // acc-name: Streett 3
           // Acceptance: 6 (Fin(0)|Inf(1))&(Fin(2)|Inf(3))&(Fin(4)|Inf(5))
-          return new EmersonLeiAcceptance(sets, expression);
-
         default:
-          if (expression.isFALSE()) {
-            return GeneralizedCoBuchiAcceptance.of(0);
-          }
-
-          if (expression.isTRUE()) {
-            return AllAcceptance.INSTANCE;
-          }
-
-          return new EmersonLeiAcceptance(sets, expression);
+          return EmersonLeiAcceptance.of(
+            BooleanExpressions.toPropositionalFormula(expression));
       }
     }
 

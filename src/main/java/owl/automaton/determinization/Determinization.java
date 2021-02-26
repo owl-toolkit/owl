@@ -35,7 +35,7 @@ public class Determinization {
   private Determinization() {}
 
   public static <S> Automaton<Set<S>, AllAcceptance>
-    determinizeAllAcceptance(Automaton<S, AllAcceptance> automaton) {
+    determinizeAllAcceptance(Automaton<S, ? extends AllAcceptance> automaton) {
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       automaton.factory(),
@@ -53,7 +53,7 @@ public class Determinization {
   }
 
   public static <S> Automaton<BreakpointState<S>, CoBuchiAcceptance>
-    determinizeCoBuchiAcceptance(Automaton<S, CoBuchiAcceptance> ncw) {
+    determinizeCoBuchiAcceptance(Automaton<S, ? extends CoBuchiAcceptance> ncw) {
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       ncw.factory(),

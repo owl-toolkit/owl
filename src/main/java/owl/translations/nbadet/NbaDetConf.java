@@ -128,7 +128,10 @@ public abstract class NbaDetConf<S> {
    * @param args the configuration
    */
   public static <S> NbaDetConf<S> prepare(
-      Automaton<S,BuchiAcceptance> aut, Set<Pair<S,S>> incl, NbaDetArgs args) {
+      Automaton<S, ? extends BuchiAcceptance> aut,
+      Set<Pair<S,S>> incl,
+      NbaDetArgs args) {
+
     //compute SCCs
     var scci = SccDecomposition.of(aut);
 

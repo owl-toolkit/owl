@@ -2,9 +2,9 @@
   {
     "formula": "false",
     "properties": {
-      "size": 0,
-      "initialStatesSize": 0,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
@@ -15,7 +15,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,
       "complete": true,
       "deterministic": true
@@ -26,8 +26,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -37,8 +37,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -48,8 +48,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -59,7 +59,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -70,8 +70,8 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -81,8 +81,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -92,7 +92,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -103,8 +103,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -114,7 +114,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -125,8 +125,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -136,8 +136,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -147,8 +147,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -158,7 +158,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -180,7 +180,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
@@ -191,8 +191,8 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -202,8 +202,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -213,8 +213,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -224,8 +224,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -235,7 +235,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -257,7 +257,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -268,8 +268,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -279,8 +279,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -290,7 +290,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -301,7 +301,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -312,8 +312,8 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -323,7 +323,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -334,8 +334,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -345,8 +345,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -356,7 +356,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -367,8 +367,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -378,7 +378,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -389,7 +389,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -400,7 +400,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -411,8 +411,8 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -422,7 +422,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -444,7 +444,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -455,7 +455,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -466,7 +466,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -477,7 +477,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -488,7 +488,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -499,7 +499,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -510,7 +510,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -521,7 +521,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": false,
       "deterministic": true
@@ -543,7 +543,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": false,
       "deterministic": true
@@ -554,7 +554,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
@@ -565,7 +565,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -576,7 +576,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 4,
       "complete": true,
       "deterministic": true
@@ -587,7 +587,7 @@
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
@@ -598,7 +598,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -609,7 +609,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -620,7 +620,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -631,7 +631,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -642,7 +642,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -653,8 +653,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -664,8 +664,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -675,7 +675,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -686,7 +686,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -697,7 +697,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -719,7 +719,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -741,7 +741,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -752,7 +752,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -763,7 +763,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
@@ -774,7 +774,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
@@ -785,7 +785,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
@@ -807,7 +807,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -818,7 +818,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 4,
       "complete": true,
       "deterministic": true
@@ -829,7 +829,7 @@
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
@@ -840,7 +840,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -851,7 +851,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -862,7 +862,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -873,7 +873,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -884,7 +884,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -895,7 +895,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -906,7 +906,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -917,7 +917,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -928,7 +928,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -939,7 +939,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -950,7 +950,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -961,8 +961,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -972,8 +972,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -983,8 +983,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -994,8 +994,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1005,8 +1005,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": false,
       "deterministic": true
     }
@@ -1016,8 +1016,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1027,8 +1027,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1038,8 +1038,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1049,8 +1049,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1060,8 +1060,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1071,7 +1071,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1082,7 +1082,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1093,8 +1093,8 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1104,7 +1104,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1115,8 +1115,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1126,7 +1126,7 @@
     "properties": {
       "size": 1,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1137,7 +1137,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1148,7 +1148,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1159,7 +1159,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1170,8 +1170,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1181,8 +1181,8 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1192,8 +1192,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1203,7 +1203,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1214,8 +1214,8 @@
     "properties": {
       "size": 8,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1225,7 +1225,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1236,7 +1236,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1247,7 +1247,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1258,7 +1258,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1269,7 +1269,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1280,7 +1280,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1291,7 +1291,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1302,7 +1302,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1313,7 +1313,7 @@
     "properties": {
       "size": 9,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1324,7 +1324,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1335,7 +1335,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1346,8 +1346,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1357,7 +1357,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1368,7 +1368,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1379,7 +1379,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1390,7 +1390,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1401,7 +1401,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1412,7 +1412,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1423,7 +1423,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1434,7 +1434,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": false,
       "deterministic": true
@@ -1445,8 +1445,8 @@
     "properties": {
       "size": 16,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1456,8 +1456,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1467,8 +1467,8 @@
     "properties": {
       "size": 64,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1476,10 +1476,10 @@
   {
     "formula": "(GF(a & Xb) & GF(c & Xd) & GF(e & Xf))",
     "properties": {
-      "size": 8,
+      "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1489,7 +1489,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1500,7 +1500,7 @@
     "properties": {
       "size": 3,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1511,7 +1511,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1522,7 +1522,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1533,7 +1533,7 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1544,7 +1544,7 @@
     "properties": {
       "size": 2,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1555,7 +1555,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
       "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
@@ -1566,7 +1566,7 @@
     "properties": {
       "size": 17,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1577,8 +1577,8 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1588,7 +1588,7 @@
     "properties": {
       "size": 65,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1597,10 +1597,10 @@
   {
     "formula": "(FG(a | Xb) | FG(c | Xd) | FG(e | Xf))",
     "properties": {
-      "size": 8,
+      "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1610,7 +1610,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1619,9 +1619,9 @@
   {
     "formula": "FG(a | Xb | XXc)",
     "properties": {
-      "size": 8,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1632,7 +1632,7 @@
     "properties": {
       "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1641,9 +1641,9 @@
   {
     "formula": "GF(a & Xb & XXc)",
     "properties": {
-      "size": 8,
+      "size": 4,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1652,10 +1652,10 @@
   {
     "formula": "(GF(a & XXb) & GF(c & XXd))",
     "properties": {
-      "size": 16,
+      "size": 8,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1663,10 +1663,10 @@
   {
     "formula": "(GF(!a & b) & GF(a & Xb) & GF(!a & XXb))",
     "properties": {
-      "size": 4,
+      "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -1674,10 +1674,10 @@
   {
     "formula": "(GF(a & XXb) & GF(c & XXd) & GF(e & XXf))",
     "properties": {
-      "size": 64,
+      "size": 12,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1687,8 +1687,8 @@
     "properties": {
       "size": 5,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
       "complete": false,
       "deterministic": true
     }
@@ -1696,10 +1696,10 @@
   {
     "formula": "(FG(a | XXb) | FG(c | XXd))",
     "properties": {
-      "size": 16,
+      "size": 8,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 2,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1707,10 +1707,10 @@
   {
     "formula": "(FG(a | b) | FG(!a | Xb) | FG(a | XXb))",
     "properties": {
-      "size": 4,
+      "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -1718,10 +1718,10 @@
   {
     "formula": "(FG(a | XXb) | FG(c | XXd) | FG(e | XXf))",
     "properties": {
-      "size": 64,
+      "size": 12,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 3,
+      "acceptanceName": "CoBuchiAcceptance",
+      "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
     }
@@ -1731,7 +1731,7 @@
     "properties": {
       "size": 6,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
+      "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
       "complete": true,
       "deterministic": true
@@ -1740,10 +1740,10 @@
   {
     "formula": "(GF(!a & b) & GF(a & Xb) & GF(!a & XXb) & GF(a & XXXb))",
     "properties": {
-      "size": 8,
+      "size": 14,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceName": "GeneralizedBuchiAcceptance",
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }
@@ -1751,10 +1751,10 @@
   {
     "formula": "(FG(a | b) | FG(!a | Xb) | FG(a | XXb) | FG(!a | XXXb))",
     "properties": {
-      "size": 8,
+      "size": 14,
       "initialStatesSize": 1,
-      "acceptanceName": "EmersonLeiAcceptance",
-      "acceptanceSets": 4,
+      "acceptanceName": "GeneralizedCoBuchiAcceptance",
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }

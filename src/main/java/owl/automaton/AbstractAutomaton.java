@@ -24,7 +24,7 @@ import java.util.Deque;
 import java.util.HashSet;
 import java.util.Set;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.bdd.BddSetFactory;
 
 /**
@@ -38,7 +38,7 @@ import owl.bdd.BddSetFactory;
  * @param <S> the state type
  * @param <A> the acceptance condition type
  **/
-public abstract class AbstractAutomaton<S, A extends OmegaAcceptance>
+public abstract class AbstractAutomaton<S, A extends EmersonLeiAcceptance>
   implements Automaton<S, A> {
 
   protected final A acceptance;

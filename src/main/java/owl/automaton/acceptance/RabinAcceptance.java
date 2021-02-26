@@ -42,7 +42,7 @@ import owl.logic.propositional.PropositionalFormula;
  */
 public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   private RabinAcceptance(List<RabinPair> pairs) {
-    super(pairs);
+    super(List.copyOf(pairs));
 
     // Check consistency.
     checkArgument(acceptanceSets() == 2 * this.pairs.size());
@@ -67,15 +67,15 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
     return of(List.of(pairs));
   }
 
-  public static Optional<RabinAcceptance> of(BooleanExpression<AtomAcceptance> expression) {
-    return of(BooleanExpressions.toPropositionalFormula(expression));
+  public static Optional<RabinAcceptance> ofPartial(BooleanExpression<AtomAcceptance> expression) {
+    return ofPartial(BooleanExpressions.toPropositionalFormula(expression));
   }
 
-  public static Optional<RabinAcceptance> of(PropositionalFormula<Integer> formula) {
-    return of(formula, null);
+  public static Optional<RabinAcceptance> ofPartial(PropositionalFormula<Integer> formula) {
+    return ofPartial(formula, null);
   }
 
-  public static Optional<RabinAcceptance> of(
+  public static Optional<RabinAcceptance> ofPartial(
     PropositionalFormula<Integer> formula, @Nullable Map<Integer, Integer> mapping) {
 
     Builder builder = new Builder();

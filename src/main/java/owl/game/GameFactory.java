@@ -32,19 +32,19 @@ import java.util.Set;
 import java.util.function.BiFunction;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton.Property;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 
 public final class GameFactory {
   private GameFactory() {}
 
-  public static <S, A extends OmegaAcceptance> Game<S, A> copyOf(Game<S, A> game) {
+  public static <S, A extends EmersonLeiAcceptance> Game<S, A> copyOf(Game<S, A> game) {
     assert game.is(Property.COMPLETE) : "Only defined for complete game.";
     return new ImmutableGame<>(game);
   }
 
-  static final class ImmutableGame<S, A extends OmegaAcceptance>
+  static final class ImmutableGame<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeMapImplementation<S, A>
     implements Game<S, A> {
 

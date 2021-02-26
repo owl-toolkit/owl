@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
 import owl.automaton.HashMapAutomaton;
@@ -31,7 +32,7 @@ import owl.translations.mastertheorem.Normalisation;
 import owl.util.ParallelEvaluation;
 
 public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptance>
-  implements Function<LabelledFormula, Automaton<?, R>> {
+  implements Function<LabelledFormula, Automaton<?, ? extends R>> {
 
   private static final Normalisation NORMALISATION
     = Normalisation.of(false, false, false);
@@ -71,7 +72,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
   }
 
   @Override
-  public Automaton<?, R> apply(LabelledFormula formula) {
+  public Automaton<?, ? extends R> apply(LabelledFormula formula) {
     // Ensure that the input formula is in negation normal form.
     var nnfFormula = formula.nnf();
 
@@ -79,14 +80,16 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       return apply(nnfFormula, false);
     }
 
+    Supplier<Optional<Automaton<?, ? extends R>>> supplier1 = () ->
+      Optional.of(apply(nnfFormula, false));
+    Supplier<Optional<Automaton<?, ? extends R>>> supplier2 = () ->
+      Optional.of(apply(nnfFormula, true));
+
     return ParallelEvaluation.takeSmallestWildcardStateType(
-      ParallelEvaluation.evaluate(List.of(
-        () -> Optional.of(apply(nnfFormula, false)),
-        () -> Optional.of(apply(nnfFormula, true))))
-    );
+      ParallelEvaluation.evaluate(List.of(supplier1, supplier2)));
   }
 
-  private Optional<Automaton<?, R>> portfolio(LabelledFormula formula) {
+  private Optional<Automaton<?, ? extends R>> portfolio(LabelledFormula formula) {
     var result1 = pi2Portfolio.apply(formula);
 
     if (result1.isPresent()) {
@@ -97,7 +100,8 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
     return result2.map(x -> OmegaAcceptanceCast.cast(x, acceptanceClass));
   }
 
-  public Automaton<?, R> apply(LabelledFormula labelledFormula, boolean dualConstruction) {
+  public Automaton<?, ? extends R> apply(
+    LabelledFormula labelledFormula, boolean dualConstruction) {
 
     // We apply the normalisation only if the formula is outside of Δ₂.
     LabelledFormula normalForm = SyntacticFragments.DELTA_2.contains(labelledFormula)
@@ -105,7 +109,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       : (dualConstruction ? DUAL_NORMALISATION : NORMALISATION).apply(labelledFormula);
 
     // Check if the portfolio can directly deal with the normal form.
-    Optional<Automaton<?, R>> portfolioAutomaton = portfolio(normalForm);
+    Optional<Automaton<?, ? extends R>> portfolioAutomaton = portfolio(normalForm);
 
     if (portfolioAutomaton.isPresent()) {
       return portfolioAutomaton.get();
@@ -114,7 +118,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
     // Split into disjunctive normal form.
     Set<Set<Formula>> dnf = NormalForms.toDnf(normalForm.formula());
 
-    List<Automaton<Object, R>> automata = new ArrayList<>();
+    List<Automaton<?, ? extends R>> automata = new ArrayList<>();
 
     for (Set<Formula> clause : dnf) {
       Set<Formula> delta1 = new HashSet<>();
@@ -153,11 +157,11 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
         normalForm.atomicPropositions());
 
       if (pi2.isEmpty()) {
-        var singleRabinAutomaton = singleRabinPortfolio.apply(sigma2Formula).orElseGet(
-          () -> OmegaAcceptanceCast.cast(
+        Automaton<?, ? extends R> singleRabinAutomaton = singleRabinPortfolio.apply(sigma2Formula)
+          .orElseGet(() -> OmegaAcceptanceCast.cast(
             DeterministicConstructionsPortfolio.coSafetySafety(sigma2Formula),
             acceptanceClass));
-        automata.add((Automaton<Object, R>) singleRabinAutomaton);
+        automata.add(singleRabinAutomaton);
         continue;
       }
 
@@ -166,7 +170,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
           () -> OmegaAcceptanceCast.cast(
             DeterministicConstructionsPortfolio.safetyCoSafety(pi2Formula),
             acceptanceClass));
-        automata.add((Automaton<Object, R>) singleRabinAutomaton);
+        automata.add(singleRabinAutomaton);
         continue;
       }
 
@@ -182,8 +186,8 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       automata.add(OmegaAcceptanceCast.cast((Automaton) intersectionAutomaton, acceptanceClass));
     }
 
-    Automaton<Map<Integer, Object>, ?> unionAutomaton
-      = BooleanOperations.deterministicUnion(automata);
+    Automaton<Map<Integer, ?>, ?> unionAutomaton
+      = BooleanOperations.deterministicUnion((List) automata);
     var automaton
       = HashMapAutomaton.copyOf(OmegaAcceptanceCast.cast(unionAutomaton, acceptanceClass));
 

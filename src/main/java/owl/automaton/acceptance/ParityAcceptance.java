@@ -32,13 +32,11 @@ import javax.annotation.Nonnegative;
 import owl.automaton.edge.Edge;
 import owl.logic.propositional.PropositionalFormula;
 
-public final class ParityAcceptance extends OmegaAcceptance {
-  @Nonnegative
-  private final int colours;
+public final class ParityAcceptance extends EmersonLeiAcceptance {
   private final Parity parity;
 
   public ParityAcceptance(@Nonnegative int colours, Parity parity) {
-    this.colours = colours;
+    super(colours);
     this.parity = parity;
   }
 
@@ -49,7 +47,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
 
   @Override
   public List<Object> nameExtra() {
-    return List.of(parity.maxString(), parity.evenString(), colours);
+    return List.of(parity.maxString(), parity.evenString(), acceptanceSets());
   }
 
   @Override
@@ -62,7 +60,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
       set.set(1);
     }
 
-    return colours < set.length() ? Optional.empty() : Optional.of(set);
+    return acceptanceSets() < set.length() ? Optional.empty() : Optional.of(set);
   }
 
   @Override
@@ -75,7 +73,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
       set.set(0);
     }
 
-    return colours < set.length() ? Optional.empty() : Optional.of(set);
+    return acceptanceSets() < set.length() ? Optional.empty() : Optional.of(set);
   }
 
   public Parity parity() {
@@ -83,11 +81,11 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   public ParityAcceptance withParity(Parity parity) {
-    return new ParityAcceptance(colours, parity);
+    return new ParityAcceptance(acceptanceSets(), parity);
   }
 
   public ParityAcceptance complement() {
-    return new ParityAcceptance(colours, parity.flipEven());
+    return new ParityAcceptance(acceptanceSets(), parity.flipEven());
   }
 
   public boolean emptyIsAccepting() {
@@ -95,13 +93,8 @@ public final class ParityAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public int acceptanceSets() {
-    return colours;
-  }
-
-  @Override
-  public PropositionalFormula<Integer> booleanExpression() {
-    if (colours == 0) {
+  protected PropositionalFormula<Integer> lazyBooleanExpression() {
+    if (acceptanceSets() == 0) {
       return constant(emptyIsAccepting());
     }
 
@@ -109,12 +102,12 @@ public final class ParityAcceptance extends OmegaAcceptance {
 
     if (parity.max()) {
       exp = mkColor(0);
-      for (int i = 1; i < colours; i++) {
+      for (int i = 1; i < acceptanceSets(); i++) {
         exp = isAccepting(i) ? Disjunction.of(mkColor(i), exp) : Conjunction.of(mkColor(i), exp);
       }
     } else {
-      exp = mkColor(colours - 1);
-      for (int i = colours - 2; i >= 0; i--) {
+      exp = mkColor(acceptanceSets() - 1);
+      for (int i = acceptanceSets() - 2; i >= 0; i--) {
         exp = isAccepting(i) ? Disjunction.of(mkColor(i), exp) : Conjunction.of(mkColor(i), exp);
       }
     }
@@ -135,7 +128,7 @@ public final class ParityAcceptance extends OmegaAcceptance {
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
     return edge.colours().isEmpty()
-      || (edge.colours().size() == 1 && edge.colours().last() < colours);
+      || (edge.colours().size() == 1 && edge.colours().last() < acceptanceSets());
   }
 
   public ParityAcceptance withAcceptanceSets(@Nonnegative int colours) {
@@ -153,12 +146,12 @@ public final class ParityAcceptance extends OmegaAcceptance {
     }
 
     ParityAcceptance that = (ParityAcceptance) o;
-    return colours == that.colours && parity == that.parity;
+    return acceptanceSets() == that.acceptanceSets() && parity == that.parity;
   }
 
   @Override
   public int hashCode() {
-    return (31 * (31 + colours)) + parity.hashCode();
+    return (31 * (31 + acceptanceSets())) + parity.hashCode();
   }
 
   @SuppressWarnings("MethodReturnAlwaysConstant")

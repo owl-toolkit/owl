@@ -21,59 +21,194 @@ package owl.automaton.acceptance;
 
 import com.google.common.base.Preconditions;
 import java.util.BitSet;
-import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
+import java.util.Set;
+import javax.annotation.Nonnegative;
+import javax.annotation.Nullable;
+import owl.automaton.Automaton;
+import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.logic.propositional.PropositionalFormula;
-import owl.logic.propositional.PropositionalFormula.Negation;
 import owl.logic.propositional.sat.Solver;
 
-public final class EmersonLeiAcceptance extends OmegaAcceptance {
+public class EmersonLeiAcceptance {
 
-  private final PropositionalFormula<Integer> expression;
+  @Nullable
+  private PropositionalFormula<Integer> expression;
+
+  @Nonnegative
   private final int sets;
 
-  EmersonLeiAcceptance(OmegaAcceptance acceptance) {
-    this(acceptance.acceptanceSets(), acceptance.booleanExpression());
-  }
-
-  public EmersonLeiAcceptance(int sets, BooleanExpression<? extends AtomAcceptance> expression) {
-    this(sets, BooleanExpressions.toPropositionalFormula(expression));
-  }
-
-  public EmersonLeiAcceptance(int sets, PropositionalFormula<Integer> expression) {
-    Preconditions.checkArgument(expression.variables().isEmpty()
-      || Collections.max(expression.variables()) < sets);
-    this.expression = expression.nnf().normalise();
+  // package-private constructors.
+  EmersonLeiAcceptance(int sets) {
+    Preconditions.checkArgument(sets >= 0);
     this.sets = sets;
   }
 
-  @Override
-  public int acceptanceSets() {
+  // package-private constructors.
+  EmersonLeiAcceptance(PropositionalFormula<Integer> expression) {
+    this(acceptanceSets(expression), expression);
+  }
+
+  // package-private constructors.
+  EmersonLeiAcceptance(int sets, PropositionalFormula<Integer> expression) {
+    this(sets);
+    this.expression = Objects.requireNonNull(expression);
+  }
+
+  /**
+   * Find heuristically the weakest acceptance condition for the given expression and construct it.
+   * Only simple syntactic checks on the boolean expression of the acceptance conditions are
+   * performed. For advanced (and complete) techniques use the typeness implementations.
+   *
+   * @return the acceptance condition.
+   */
+  public static EmersonLeiAcceptance of(PropositionalFormula<Integer> expression) {
+    var normalisedExpression = expression.nnf().normalise();
+
+    if (Solver.model(normalisedExpression).isEmpty()) {
+      return new EmersonLeiAcceptance(0, PropositionalFormula.falseConstant());
+    }
+
+    if (Solver.model(PropositionalFormula.Negation.of(normalisedExpression)).isEmpty()) {
+      return AllAcceptance.INSTANCE;
+    }
+
+    var buchiAcceptance = BuchiAcceptance.ofPartial(normalisedExpression);
+    if (buchiAcceptance.isPresent()) {
+      return buchiAcceptance.get();
+    }
+
+    var coBuchiAcceptance = CoBuchiAcceptance.ofPartial(normalisedExpression);
+    if (coBuchiAcceptance.isPresent()) {
+      return coBuchiAcceptance.get();
+    }
+
+    var generalizedBuchiAcceptance = GeneralizedBuchiAcceptance.ofPartial(normalisedExpression);
+    if (generalizedBuchiAcceptance.isPresent()) {
+      return generalizedBuchiAcceptance.get();
+    }
+
+    var generalizedCoBuchiAcceptance = GeneralizedCoBuchiAcceptance.ofPartial(normalisedExpression);
+    if (generalizedCoBuchiAcceptance.isPresent()) {
+      return generalizedCoBuchiAcceptance.get();
+    }
+
+    var rabinAcceptance = RabinAcceptance.ofPartial(normalisedExpression);
+    if (rabinAcceptance.isPresent()) {
+      return rabinAcceptance.get();
+    }
+
+    var generalizedRabinAcceptance = GeneralizedRabinAcceptance.ofPartial(normalisedExpression);
+    if (generalizedRabinAcceptance.isPresent()) {
+      return generalizedRabinAcceptance.get();
+    }
+
+    return new EmersonLeiAcceptance(normalisedExpression);
+  }
+
+  public final int acceptanceSets() {
     return sets;
   }
 
-  @Override
-  public PropositionalFormula<Integer> booleanExpression() {
+  private static int acceptanceSets(PropositionalFormula<Integer> expression) {
+    var variables = expression.variables();
+    int max = -1;
+
+    for (int variable : variables) {
+      if (variable < 0) {
+        throw new IllegalArgumentException();
+      }
+
+      max = Math.max(max, variable);
+    }
+
+    return max + 1;
+  }
+
+  /**
+   * Get the canonical representation as {@link PropositionalFormula}.
+   */
+  public final PropositionalFormula<Integer> booleanExpression() {
+    if (expression == null) {
+      expression = Objects.requireNonNull(lazyBooleanExpression());
+      assert acceptanceSets() >= acceptanceSets(expression);
+    }
+
     return expression;
   }
 
-  @Override
+  @Nullable
+  protected PropositionalFormula<Integer> lazyBooleanExpression() {
+    return null;
+  }
+
+  @Nullable
   public String name() {
     return null;
   }
 
-  @Override
+  public List<Object> nameExtra() {
+    return List.of();
+  }
+
+  /**
+   * Returns a set of indices which repeated infinitely often are accepting or
+   * {@link Optional#empty()} if no such set exists.
+   *
+   * @see #isAccepting(BitSet)
+   */
   public Optional<BitSet> acceptingSet() {
     return Solver.model(booleanExpression()).map(BitSet2::copyOf);
   }
 
-  @Override
+  /**
+   * Returns a set of indices which repeated infinitely often are rejecting or
+   * {@link Optional#empty()} if no such set exists.
+   *
+   * @see #isAccepting(BitSet)
+   */
   public Optional<BitSet> rejectingSet() {
-    return Solver.model(Negation.of(booleanExpression())).map(BitSet2::copyOf);
+    return Solver.model(PropositionalFormula.Negation.of(booleanExpression())).map(BitSet2::copyOf);
+  }
+
+  /**
+   * Returns whether repeating these acceptance indices infinitely often would be accepting.
+   */
+  public boolean isAccepting(BitSet set) {
+    return isAccepting(BitSet2.asSet(set));
+  }
+
+  public boolean isAccepting(Set<Integer> set) {
+    return booleanExpression().evaluate(set);
+  }
+
+  /**
+   * Returns whether repeating this edge infinitely often would be accepting.
+   */
+  public boolean isAcceptingEdge(Edge<?> edge) {
+    return isAccepting(edge.colours());
+  }
+
+  /**
+   * This method determines if the given edge is a well defined edge for this acceptance condition.
+   * E.g. a parity condition might check that the edge has at most one acceptance index and the
+   * index is less than the colour count.
+   *
+   * @param edge
+   *   The edge to be checked.
+   *
+   * @return Whether the edge acceptance is well defined.
+   */
+  public boolean isWellFormedEdge(Edge<?> edge) {
+    return edge.largestAcceptanceSet() < acceptanceSets();
+  }
+
+  public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
+    return automaton.states().stream().allMatch(
+      x -> automaton.edges(x).stream().allMatch(this::isWellFormedEdge));
   }
 
   @Override
@@ -82,7 +217,7 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
       return true;
     }
 
-    if (!(o instanceof EmersonLeiAcceptance)) {
+    if (o.getClass() != EmersonLeiAcceptance.class) {
       return false;
     }
 
@@ -93,5 +228,12 @@ public final class EmersonLeiAcceptance extends OmegaAcceptance {
   @Override
   public int hashCode() {
     return 31 * expression.hashCode() + sets;
+  }
+
+  @Override
+  public final String toString() {
+    String name = name();
+    return (name == null ? getClass().getSimpleName() : name + ' ' + nameExtra()) + ": "
+      + acceptanceSets() + ' ' + booleanExpression();
   }
 }

@@ -26,15 +26,15 @@ import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
@@ -65,7 +65,7 @@ import owl.collections.Either;
  * @param <S> the state type
  * @param <A> the acceptance condition type
  **/
-public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
+public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
   implements Automaton<S, A> {
 
   private static final List<PreferredEdgeAccess> ACCESS_MODES = List.of(EDGE_TREE, EDGE_MAP, EDGES);
@@ -152,6 +152,11 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
   }
 
   @Override
+  public final List<String> atomicPropositions() {
+    return factory.atomicPropositions();
+  }
+
+  @Override
   public final BddSetFactory factory() {
     return factory;
   }
@@ -177,6 +182,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
     }
 
     freezeMemoizedEdges();
+    freezeMemoizedEdgesNotify();
     return memoizedEdges.keySet();
   }
 
@@ -185,6 +191,11 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
   private void freezeMemoizedEdges() {
     Preconditions.checkState(unexploredStates.isEmpty());
     memoizedEdges = Map.copyOf(memoizedEdges);
+  }
+
+  @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
+  protected void freezeMemoizedEdgesNotify() {
+    // do nothing. Subclasses can be notified that the transition relation is frozen.
   }
 
   /**
@@ -201,7 +212,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
-  public abstract static class EdgeTreeImplementation<S, A extends OmegaAcceptance>
+  public abstract static class EdgeTreeImplementation<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeTreeImplementation(
@@ -223,7 +234,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
-  public abstract static class EdgeMapImplementation<S, A extends OmegaAcceptance>
+  public abstract static class EdgeMapImplementation<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeMapImplementation(
@@ -252,7 +263,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
-  public abstract static class EdgesImplementation<S, A extends OmegaAcceptance>
+  public abstract static class EdgesImplementation<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgesImplementation(
@@ -298,7 +309,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
-  public abstract static class EdgeImplementation<S, A extends OmegaAcceptance>
+  public abstract static class EdgeImplementation<S, A extends EmersonLeiAcceptance>
     extends EdgesImplementation<S, A> {
 
     public EdgeImplementation(
@@ -340,11 +351,20 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
    * @param <B> the second state type
    * @param <C> the acceptance condition type
    **/
-  public abstract static class PartitionedEdgeTreeImplementation<A, B, C extends OmegaAcceptance>
+  public abstract static class
+    PartitionedEdgeTreeImplementation<A, B, C extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton<Either<A, B>, C> {
 
+    @Nullable
+    // We only memoize edges for state-type B, since only they can be visited several times via
+    // edgeTreeImpl.
+    private Map<B, MtBdd<Edge<Either<A, B>>>> memoizedEdgesB = new HashMap<>();
+
     public PartitionedEdgeTreeImplementation(
-      BddSetFactory factory, Set<A> initialStatesA, Set<B> initialStatesB, C acceptance) {
+      BddSetFactory factory,
+      Set<? extends A> initialStatesA,
+      Set<? extends B> initialStatesB,
+      C acceptance) {
 
       super(factory,
         Sets.union(
@@ -355,13 +375,31 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
 
     @Override
     protected final MtBdd<Edge<Either<A, B>>> edgeTreeImpl(Either<A, B> state) {
-      return state.map(a -> {
-        var trees = moveAtoB(a).stream()
-          .map(x -> edgeTreeImplB(x).map(this::liftB))
-          .collect(Collectors.toSet());
-        trees.add(edgeTreeImplA(a).map(this::liftA));
-        return MtBddOperations.union(trees).map(this::deduplicate);
-      }, b -> edgeTreeImplB(b).map(x -> deduplicate(liftB(x))));
+      assert memoizedEdgesB != null : "edgeTreeImpl is never called after releasing the map.";
+
+      switch (state.type()) {
+        case LEFT:
+          var aState = state.left();
+
+          List<MtBdd<Edge<Either<A, B>>>> trees = new ArrayList<>();
+          trees.add(edgeTreeImplA(aState).map(this::liftA));
+
+          for (B bState : moveAtoB(aState)) {
+            trees.add(memoizedEdgesB.computeIfAbsent(
+              bState, x -> edgeTreeImplB(x).map(this::liftB)));
+          }
+
+          return MtBddOperations.union(trees).map(this::deduplicate);
+
+        case RIGHT:
+          var b = state.right();
+          return memoizedEdgesB
+            .computeIfAbsent(b, x -> edgeTreeImplB(x).map(this::liftB))
+            .map(this::deduplicate);
+
+        default:
+          throw new AssertionError("unreachable");
+      }
     }
 
     protected abstract MtBdd<Edge<A>> edgeTreeImplA(A state);
@@ -380,6 +418,11 @@ public abstract class AbstractMemoizingAutomaton<S, A extends OmegaAcceptance>
 
     private Set<Edge<Either<A, B>>> liftB(Set<Edge<B>> bEdges) {
       return Collections3.transformSet(bEdges, edge -> edge.mapSuccessor(Either::right));
+    }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      memoizedEdgesB = null;
     }
   }
 }

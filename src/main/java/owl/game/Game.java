@@ -31,14 +31,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.collections.Collections3;
 import owl.game.output.AigConsumer;
 import owl.game.output.AigFactory;
 import owl.game.output.AigPrintable;
 import owl.game.output.LabelledAig;
 
-public interface Game<S, A extends OmegaAcceptance> extends Automaton<S, A>, AigPrintable {
+public interface Game<S, A extends EmersonLeiAcceptance> extends Automaton<S, A>, AigPrintable {
 
   default Set<S> getAttractor(Collection<S> states, Owner owner) {
     // Does not contain the states itself.
