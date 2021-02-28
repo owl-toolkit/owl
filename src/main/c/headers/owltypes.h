@@ -58,4 +58,32 @@ typedef struct {
   int size;
 } vector_double_t;
 
+typedef enum {
+  // Simplify the formula before applying the translation
+  SIMPLIFY_FORMULA,
+
+  // Simplify the automaton, e.g. remove non-accepting states.
+  // This explores the complete automaton.
+  SIMPLIFY_AUTOMATON,
+
+  // Use a portfolio of simpler constructions for fragments of LTL.
+  USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
+
+  // Translate the formula and the negation of the formula to DPWs and
+  // return the smaller one.
+  USE_COMPLEMENT,
+
+  // Use the dual normalisation procedure for the construction of DRWs.
+  USE_DUAL
+} ltl_translation_option_t;
+
+// Translations are named after corresponding publications.
+typedef enum {
+  SEJK16_EKRS17,
+  EKS20_EKRS17,
+  UNPUBLISHED_ZIELONKA,
+  SMALLEST_AUTOMATON,
+  DEFAULT // Work-around for native-image bug. Do not use this value!
+} ltl_to_dpa_translation_t;
+
 #endif

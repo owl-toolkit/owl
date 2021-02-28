@@ -87,12 +87,11 @@ public final class CInterface {
       OwlVersion.getNameAndVersion().version(), buffer, bufferSize);
   }
 
-  static class CDirectives implements CContext.Directives {
+  public static class CDirectives implements CContext.Directives {
 
     @Override
     public List<String> getHeaderFiles() {
       // The header file with the C declarations that are imported.
-
       var headerLocation = System.getProperty("owlHeader");
 
       if (headerLocation == null) {
@@ -115,8 +114,7 @@ public final class CInterface {
     }
 
     static final class ReturnObjectHandle {
-      private ReturnObjectHandle() {
-      }
+      private ReturnObjectHandle() {}
 
       static ObjectHandle handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -125,8 +123,7 @@ public final class CInterface {
     }
 
     static final class ReturnUnsignedWord {
-      private ReturnUnsignedWord() {
-      }
+      private ReturnUnsignedWord() {}
 
       static UnsignedWord handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -135,8 +132,7 @@ public final class CInterface {
     }
 
     static final class ReturnBoolean {
-      private ReturnBoolean() {
-      }
+      private ReturnBoolean() {}
 
       static boolean handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -145,8 +141,7 @@ public final class CInterface {
     }
 
     static final class ReturnInt {
-      private ReturnInt() {
-      }
+      private ReturnInt() {}
 
       static int handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -155,8 +150,7 @@ public final class CInterface {
     }
 
     static final class ReturnAcceptance {
-      private ReturnAcceptance() {
-      }
+      private ReturnAcceptance() {}
 
       static CAutomaton.Acceptance handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -165,8 +159,7 @@ public final class CInterface {
     }
 
     static final class ReturnRealizabilityStatus {
-      private ReturnRealizabilityStatus() {
-      }
+      private ReturnRealizabilityStatus() {}
 
       static CDecomposedDPA.RealizabilityStatus handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -175,8 +168,7 @@ public final class CInterface {
     }
 
     static final class ReturnNodeType {
-      private ReturnNodeType() {
-      }
+      private ReturnNodeType() {}
 
       static CDecomposedDPA.Structure.NodeType handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
@@ -185,8 +177,7 @@ public final class CInterface {
     }
 
     static final class ReturnVoid {
-      private ReturnVoid() {
-      }
+      private ReturnVoid() {}
 
       static void handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);

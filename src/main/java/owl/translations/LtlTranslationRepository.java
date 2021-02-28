@@ -32,6 +32,10 @@ import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
+import org.graalvm.nativeimage.c.CContext;
+import org.graalvm.nativeimage.c.constant.CEnum;
+import org.graalvm.nativeimage.c.constant.CEnumLookup;
+import org.graalvm.nativeimage.c.constant.CEnumValue;
 import owl.Bibliography;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -43,6 +47,7 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.cinterface.CInterface;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
@@ -63,6 +68,7 @@ import owl.util.ParallelEvaluation;
 /**
  * Central repository of all implemented LTL translations.
  */
+@CContext(CInterface.CDirectives.class)
 public final class LtlTranslationRepository {
 
   private LtlTranslationRepository() {}
@@ -259,12 +265,19 @@ public final class LtlTranslationRepository {
     DETERMINISTIC
   }
 
+  @CEnum("ltl_translation_option_t")
   public enum Option {
     SIMPLIFY_FORMULA,
     SIMPLIFY_AUTOMATON,
     USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
     USE_COMPLEMENT,
-    USE_DUAL
+    USE_DUAL;
+
+    @CEnumValue
+    public native int getCValue();
+
+    @CEnumLookup
+    public static native Option fromCValue(int value);
   }
 
   private static IllegalArgumentException iae() {
@@ -391,6 +404,7 @@ public final class LtlTranslationRepository {
     }
   }
 
+  @CEnum("ltl_to_dpa_translation_t")
   public enum LtlToDpaTranslation implements LtlTranslation<ParityAcceptance, ParityAcceptance> {
 
     SEJK16_EKRS17(Bibliography.TACAS_17_1_CITEKEY),
@@ -504,6 +518,12 @@ public final class LtlTranslationRepository {
           throw new AssertionError("Unreachable.");
       }
     }
+
+    @CEnumValue
+    public native int getCValue();
+
+    @CEnumLookup
+    public static native LtlToDpaTranslation fromCValue(int value);
   }
 
   public enum LtlToDraTranslation
