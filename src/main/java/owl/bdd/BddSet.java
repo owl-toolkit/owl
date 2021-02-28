@@ -74,4 +74,6 @@ public interface BddSet {
    */
   Set<BitSet> toSet();
 
+  BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping);
+
 }

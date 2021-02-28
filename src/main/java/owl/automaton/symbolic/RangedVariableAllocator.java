@@ -24,13 +24,15 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
+import owl.automaton.symbolic.SymbolicAutomaton.VariableType;
 
 public final class RangedVariableAllocator implements SymbolicAutomaton.VariableAllocator {
 
-  private final List<SymbolicAutomaton.VariableAllocation.VariableType> order;
+  private final List<VariableType> order;
 
-  public RangedVariableAllocator(SymbolicAutomaton.VariableAllocation.VariableType... order) {
+  public RangedVariableAllocator(VariableType... order) {
     this.order = List.of(order);
     Preconditions.checkArgument(Set.copyOf(this.order).size() == 4);
   }
@@ -47,11 +49,13 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
     private final List<VariableType> order;
     private final EnumMap<VariableType, Integer> fromIndexInclusive;
     private final EnumMap<VariableType, Integer> toIndexExclusive;
+    private final int size;
 
     private RangedAllocation(int stateVariables, int atomicPropositions, int colours,
-      List<SymbolicAutomaton.VariableAllocation.VariableType> order) {
+      List<VariableType> order) {
 
       this.order = List.copyOf(order);
+      this.size = 2 * stateVariables + atomicPropositions + colours;
       fromIndexInclusive = new EnumMap<>(VariableType.class);
       toIndexExclusive = new EnumMap<>(VariableType.class);
 
@@ -87,6 +91,22 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
       BitSet bitSet = new BitSet();
       bitSet.set(fromIndexInclusive.get(type), toIndexExclusive.get(type));
       return bitSet;
+    }
+
+    @Override
+    public int numberOfVariables() {
+      return size;
+    }
+
+    @Override
+    public VariableType typeOf(int variable) {
+      Objects.checkIndex(variable, numberOfVariables());
+      for (VariableType type : VariableType.values()) {
+        if (fromIndexInclusive.get(type) <= variable && toIndexExclusive.get(type) > variable) {
+          return type;
+        }
+      }
+      throw new AssertionError("Unreachable");
     }
 
     @Override

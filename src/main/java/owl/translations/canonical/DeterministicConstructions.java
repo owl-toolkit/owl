@@ -320,20 +320,28 @@ public final class DeterministicConstructions {
     extends Base<BreakpointStateAccepting, CoBuchiAcceptance> {
 
     private final SuspensionCheck suspensionCheck;
+    private final boolean complete;
 
     private CoSafetySafety(
-      Factories factories, BreakpointStateAccepting initialState, SuspensionCheck suspensionCheck) {
+      Factories factories, BreakpointStateAccepting initialState, SuspensionCheck suspensionCheck,
+      boolean complete) {
 
       super(factories, initialState, CoBuchiAcceptance.INSTANCE);
       this.suspensionCheck = suspensionCheck;
+      this.complete = complete;
     }
 
     public static CoSafetySafety of(Factories factories, Formula formula) {
+      return of(factories, formula, false, false);
+    }
+
+    public static CoSafetySafety of(Factories factories, Formula formula, boolean complete,
+      boolean deactivateSuspensionCheckOnInitialFormula) {
       Preconditions.checkArgument(SyntacticFragments.isCoSafetySafety(formula));
 
       var formulaClass = factories.eqFactory.of(formula);
-      var suspensionCheck = new SuspensionCheck(formulaClass);
-
+      var suspensionCheck = new SuspensionCheck(
+        deactivateSuspensionCheckOnInitialFormula ? factories.eqFactory.of(true) : formulaClass);
       BreakpointStateAccepting initialState;
 
       if (suspensionCheck.isBlocked(formulaClass.unfold())) {
@@ -342,12 +350,11 @@ public final class DeterministicConstructions {
         initialState = BreakpointStateAccepting.of(formulaClass.unfold(), accepting(formulaClass));
       }
 
-      return new CoSafetySafety(factories, initialState, suspensionCheck);
+      return new CoSafetySafety(factories, initialState, suspensionCheck, complete);
     }
 
     @Override
-    public MtBdd<Edge<BreakpointStateAccepting>>
-      edgeTreeImpl(BreakpointStateAccepting state) {
+    public MtBdd<Edge<BreakpointStateAccepting>> edgeTreeImpl(BreakpointStateAccepting state) {
 
       return cartesianProduct(
         state.all().temporalStepTree(),
@@ -364,7 +371,7 @@ public final class DeterministicConstructions {
       var allUnfold = all.unfold();
 
       if (allUnfold.isFalse()) {
-        return null;
+        return complete ? Edge.of(BreakpointStateAccepting.of(allUnfold), 0) : null;
       }
 
       if (suspensionCheck.isBlockedBySafety(allUnfold)) {
@@ -390,6 +397,7 @@ public final class DeterministicConstructions {
       if (SyntacticFragments.isFinite(acceptingUnfolded)) {
         var nextAcceptingUnfolded = acceptingUnfolded.or(accepting(all));
         assert nextAcceptingUnfolded.unfold().equals(nextAcceptingUnfolded);
+
         return Edge.of(BreakpointStateAccepting.of(allUnfold, nextAcceptingUnfolded), 0);
       }
 
@@ -510,8 +518,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    public MtBdd<Edge<BreakpointStateRejecting>>
-      edgeTreeImpl(BreakpointStateRejecting state) {
+    public MtBdd<Edge<BreakpointStateRejecting>> edgeTreeImpl(BreakpointStateRejecting state) {
 
       return cartesianProduct(
         state.all().temporalStepTree(),
