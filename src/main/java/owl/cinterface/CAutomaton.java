@@ -80,6 +80,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.SyntacticFragments;
+import owl.translations.LtlTranslationRepository;
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateAccepting;
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
@@ -148,19 +149,123 @@ public final class CAutomaton {
   @CEntryPoint(
     name = NAMESPACE + "of",
     documentation = {
-      "Translate the given formula to deterministic parity automaton. For greater performance it ",
-      "is recommended to use the decomposed DPA construction and reassemble the DPA later.",
+      "Translate the given formula to deterministic parity automaton.",
       CInterface.CALL_DESTROY
     },
     exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
   )
   public static ObjectHandle of(
     IsolateThread thread,
-    ObjectHandle cLabelledFormula) {
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation) {
+
+    return of(cLabelledFormula, translation, Set.of());
+  }
+
+  // Varargs-simulation
+
+  @CEntryPoint(
+    name = NAMESPACE + "of1",
+    documentation = {
+      "Translate the given formula to deterministic parity automaton.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    LtlTranslationRepository.Option translationOption) {
+
+    return of(cLabelledFormula, translation, Set.of(translationOption));
+  }
+
+  @CEntryPoint(
+    name = NAMESPACE + "of2",
+    documentation = {
+      "Translate the given formula to deterministic parity automaton.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    LtlTranslationRepository.Option translationOption1,
+    LtlTranslationRepository.Option translationOption2) {
+
+    return of(cLabelledFormula, translation, Set.of(translationOption1, translationOption2));
+  }
+
+  @CEntryPoint(
+    name = NAMESPACE + "of3",
+    documentation = {
+      "Translate the given formula to deterministic parity automaton.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    LtlTranslationRepository.Option o1,
+    LtlTranslationRepository.Option o2,
+    LtlTranslationRepository.Option o3) {
+
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3));
+  }
+
+  @CEntryPoint(
+    name = NAMESPACE + "of4",
+    documentation = {
+      "Translate the given formula to deterministic parity automaton.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    LtlTranslationRepository.Option o1,
+    LtlTranslationRepository.Option o2,
+    LtlTranslationRepository.Option o3,
+    LtlTranslationRepository.Option o4) {
+
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4));
+  }
+
+  @CEntryPoint(
+    name = NAMESPACE + "of5",
+    documentation = {
+      "Translate the given formula to deterministic parity automaton.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    LtlTranslationRepository.Option o1,
+    LtlTranslationRepository.Option o2,
+    LtlTranslationRepository.Option o3,
+    LtlTranslationRepository.Option o4,
+    LtlTranslationRepository.Option o5) {
+
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4, o5));
+  }
+
+  private static ObjectHandle of(ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    Set<LtlTranslationRepository.Option> translationOption) {
 
     var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
-    var automaton = DeterministicAutomatonWrapper.of(formula);
-    return ObjectHandles.getGlobal().create(automaton);
+    var automaton = translation.translation(translationOption).apply(formula);
+    return ObjectHandles.getGlobal().create(DeterministicAutomatonWrapper.of(automaton, -1));
   }
 
   @CEntryPoint(
@@ -521,7 +626,7 @@ public final class CAutomaton {
     private <A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper(
       Automaton<S, ? extends A> automaton,
       Acceptance acceptance,
-      Class<A> acceptanceClassBound,
+      Class<? extends A> acceptanceClassBound,
       Predicate<? super S> acceptingSink,
       Function<? super S, ? extends T> canonicalizer,
       ToDoubleFunction<? super Edge<S>> qualityScore,
@@ -587,8 +692,8 @@ public final class CAutomaton {
       }
     }
 
-    static <S, A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper<S, ?>
-      of(Automaton<S, A> automaton, int uncontrollableApSize) {
+    static <S> DeterministicAutomatonWrapper<S, ?>
+      of(Automaton<S, ?> automaton, int uncontrollableApSize) {
       return new DeterministicAutomatonWrapper<S, S>(
         automaton,
         Acceptance.fromOmegaAcceptance(automaton.acceptance()),

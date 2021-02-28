@@ -246,8 +246,8 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time=owl,it,com,org,jhoafparser',
         '--no-fallback',
         '--no-server',
-        '-H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy$BySpaceAndTime',
-        '-H:+PrintAnalysisCallTree',
+        // '-H:+PrintAnalysisCallTree', (reenable for performance analysis)
+        // '-H:+DashboardAll',          (reenable for performance analysis)
         '-H:+ReportExceptionStackTraces',
         '-H:-UseServiceLoaderFeature'
 }
@@ -270,8 +270,8 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time=owl,it,com,org,jhoafparser',
         '--no-fallback',
         '--no-server',
-        '-H:InitialCollectionPolicy=com.oracle.svm.core.genscavenge.CollectionPolicy$BySpaceAndTime',
-        '-H:+PrintAnalysisCallTree',
+        // '-H:+PrintAnalysisCallTree', (reenable for performance analysis)
+        // '-H:+DashboardAll',          (reenable for performance analysis)
         '-H:+ReportExceptionStackTraces',
         '-H:-UseServiceLoaderFeature'
 }
