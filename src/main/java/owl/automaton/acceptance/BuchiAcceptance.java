@@ -31,7 +31,7 @@ public final class BuchiAcceptance extends GeneralizedBuchiAcceptance {
     super(1);
   }
 
-  public static Optional<BuchiAcceptance> of(PropositionalFormula<Integer> formula) {
+  public static Optional<BuchiAcceptance> ofPartial(PropositionalFormula<Integer> formula) {
     return formula.equals(Variable.of(0)) ? Optional.of(INSTANCE) : Optional.empty();
   }
 

@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -38,13 +39,15 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.LTL2DAFunction;
+import owl.translations.LtlTranslationRepository;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class AutomatonTest {
 
-  private static LTL2DAFunction translator =
-    new LTL2DAFunction(EmersonLeiAcceptance.class);
+  private static final Function<LabelledFormula, Automaton<?, ? extends EmersonLeiAcceptance>>
+    TRANSLATOR = LtlTranslationRepository.defaultTranslation(
+      LtlTranslationRepository.BranchingMode.DETERMINISTIC,
+      EmersonLeiAcceptance.class);
 
   private static final List<LabelledFormula> FORMULAS = List.of(
     LtlParser.parse("true"),
@@ -98,7 +101,7 @@ class AutomatonTest {
   @ParameterizedTest
   @MethodSource("labelledFormulaProvider")
   void edgeMapTest(LabelledFormula formula) {
-    edgeMapTest(translator.apply(formula));
+    edgeMapTest(TRANSLATOR.apply(formula));
   }
 
   @ParameterizedTest
@@ -120,7 +123,7 @@ class AutomatonTest {
   @ParameterizedTest
   @MethodSource("labelledFormulaProvider")
   void edgeTreeTest(LabelledFormula formula) {
-    edgeTreeTest(translator.apply(formula));
+    edgeTreeTest(TRANSLATOR.apply(formula));
   }
 
   @ParameterizedTest

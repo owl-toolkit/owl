@@ -27,23 +27,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import javax.annotation.Nonnegative;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Negation;
 
-public class GeneralizedCoBuchiAcceptance extends OmegaAcceptance {
-  @Nonnegative
-  public final int size;
+public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
 
   GeneralizedCoBuchiAcceptance(int size) {
-    this.size = size;
+    super(size, Disjunction.of(IntStream.range(0, size)
+      .mapToObj(x -> Negation.of(Variable.of(x)))
+      .collect(Collectors.toList())));
   }
 
   public static GeneralizedCoBuchiAcceptance of(int size) {
     return size == 1 ? CoBuchiAcceptance.INSTANCE : new GeneralizedCoBuchiAcceptance(size);
   }
 
-  public static Optional<? extends GeneralizedCoBuchiAcceptance> of(
+  public static Optional<? extends GeneralizedCoBuchiAcceptance> ofPartial(
     PropositionalFormula<Integer> formula) {
 
     var usedSets = new BitSet();
@@ -65,36 +64,24 @@ public class GeneralizedCoBuchiAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public final int acceptanceSets() {
-    return size;
-  }
-
-  @Override
-  public final PropositionalFormula<Integer> booleanExpression() {
-    return Disjunction.of(IntStream.range(0, size)
-      .mapToObj(x -> Negation.of(Variable.of(x)))
-      .collect(Collectors.toList()));
-  }
-
-  @Override
   public String name() {
     return "generalized-co-Buchi";
   }
 
   @Override
   public List<Object> nameExtra() {
-    return List.of(size);
+    return List.of(acceptanceSets());
   }
 
   @Override
   public Optional<BitSet> acceptingSet() {
-    return size == 0 ? Optional.empty() : Optional.of(new BitSet(0));
+    return acceptanceSets() == 0 ? Optional.empty() : Optional.of(new BitSet(0));
   }
 
   @Override
   public Optional<BitSet> rejectingSet() {
     BitSet set = new BitSet();
-    set.set(0, size);
+    set.set(0, acceptanceSets());
     return Optional.of(set);
   }
 }

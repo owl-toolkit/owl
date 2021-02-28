@@ -38,8 +38,8 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
@@ -59,7 +59,7 @@ public final class DeterministicConstructions {
 
   private DeterministicConstructions() {}
 
-  abstract static class Base<S, A extends OmegaAcceptance>
+  abstract static class Base<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     final EquivalenceClassFactory factory;
@@ -98,7 +98,7 @@ public final class DeterministicConstructions {
     }
   }
 
-  private abstract static class Looping<A extends OmegaAcceptance>
+  private abstract static class Looping<A extends EmersonLeiAcceptance>
     extends Base<EquivalenceClass, A> {
 
     private final Function<EquivalenceClass, Set<Edge<EquivalenceClass>>>

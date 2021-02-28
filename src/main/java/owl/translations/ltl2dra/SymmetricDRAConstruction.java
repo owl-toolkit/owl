@@ -50,6 +50,9 @@ import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 
+/**
+ * Implements the construction of {@link owl.Bibliography#LICS_18}.
+ */
 public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance>
   implements Function<LabelledFormula, Automaton<SymmetricRankingState, R>> {
 

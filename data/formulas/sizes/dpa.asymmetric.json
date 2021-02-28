@@ -5445,6 +5445,17 @@
     }
   },
   {
+    "formula": "(Ga & G(!b | (((!c | ((b) R (!a)))) U ((b | c)))))",
+    "properties": {
+      "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Ga & GF(a & XXa))",
     "properties": {
       "size": 2,
@@ -5624,6 +5635,17 @@
     "formula": "(Fa | FG(a | XXa))",
     "properties": {
       "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(F!a | F(b & (((c & ((!b) U (a)))) R ((!b & !c)))))",
+    "properties": {
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,

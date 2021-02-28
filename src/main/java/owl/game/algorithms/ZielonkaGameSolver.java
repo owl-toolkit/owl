@@ -52,7 +52,7 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
   // The convention here is that player 2 wants to satisfy the parity condition
   // that is, get a minimal colour appearing infinitely often to be accepting.
   // Also, player 1 chooses actions BEFORE player 2 does
-  private static <S> WinningRegions<S> recursiveZielonka(Game<S, ParityAcceptance> game) {
+  private static <S> WinningRegions<S> recursiveZielonka(Game<S, ? extends ParityAcceptance> game) {
     Set<S> states = game.states();
     ParityAcceptance acceptance = game.acceptance();
     boolean max = acceptance.parity().max();
@@ -130,18 +130,18 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
     return newSubWinning;
   }
 
-  public static <S> boolean zielonkaRealizability(Game<S, ParityAcceptance> game) {
+  public static <S> boolean zielonkaRealizability(Game<S, ? extends ParityAcceptance> game) {
     return recursiveZielonka(GameViews.replaceInitialStates(game, game.states()))
       .player2.contains(game.onlyInitialState());
   }
 
   @Override
-  public <S> boolean realizable(Game<S, ParityAcceptance> game) {
+  public <S> boolean realizable(Game<S, ? extends ParityAcceptance> game) {
     return ZielonkaGameSolver.zielonkaRealizability(game);
   }
 
   @Override
-  public <S> WinningRegions<S> solve(Game<S, ParityAcceptance> game) {
+  public <S> WinningRegions<S> solve(Game<S, ? extends ParityAcceptance> game) {
     return ZielonkaGameSolver.recursiveZielonka(game);
   }
 }

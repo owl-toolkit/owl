@@ -202,9 +202,8 @@ class HoaReaderTest {
 
   @Test
   void readAutomatonBuchi() throws ParseException {
-    Automaton<HoaState, BuchiAcceptance> automaton = OmegaAcceptanceCast.cast(
-      HoaReader.read(HOA_BUCHI, FACTORY_SUPPLIER),
-      BuchiAcceptance.class);
+    var automaton = OmegaAcceptanceCast.cast(
+      HoaReader.read(HOA_BUCHI, FACTORY_SUPPLIER), BuchiAcceptance.class);
     assertThat(automaton.states().size(), x -> x == 2);
     var stateMap = getStates(automaton);
     BddSetFactory valuationSetFactory = automaton.factory();

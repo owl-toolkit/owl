@@ -30,6 +30,7 @@ import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
@@ -39,6 +40,7 @@ import owl.automaton.BooleanOperations;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.ParityUtil;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
 import owl.bdd.FactorySupplier;
@@ -49,18 +51,12 @@ import owl.util.ParallelEvaluation;
 
 public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, ParityAcceptance>> {
 
-  public static final EnumSet<Configuration> RECOMMENDED_ASYMMETRIC_CONFIG = EnumSet.of(
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
-
-  public static final EnumSet<Configuration> RECOMMENDED_SYMMETRIC_CONFIG = EnumSet.of(SYMMETRIC,
-    OPTIMISE_INITIAL_STATE, COMPLEMENT_CONSTRUCTION_EXACT, COMPRESS_COLOURS);
-
   private final EnumSet<Configuration> configuration;
 
   private final AsymmetricDPAConstruction asymmetricDPAConstruction;
   private final SymmetricDPAConstruction symmetricDPAConstruction;
 
-  public LTL2DPAFunction(EnumSet<Configuration> configuration) {
+  public LTL2DPAFunction(Set<Configuration> configuration) {
     checkArgument(!configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)
       || !configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC),
       "COMPLEMENT_CONSTRUCTION_EXACT and HEURISTIC cannot be used together.");
@@ -73,8 +69,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
   @Override
   public Automaton<?, ParityAcceptance> apply(LabelledFormula formula) {
-    Supplier<Optional<Automaton<?, ParityAcceptance>>> automatonSupplier;
-    Supplier<Optional<Automaton<?, ParityAcceptance>>> complementSupplier;
+    Supplier<Optional<Automaton<?, ? extends ParityAcceptance>>> automatonSupplier;
+    Supplier<Optional<Automaton<?, ? extends ParityAcceptance>>> complementSupplier;
 
     if (configuration.contains(COMPLEMENT_CONSTRUCTION_HEURISTIC)) {
       int fixpoints = configuration.contains(SYMMETRIC)
@@ -114,8 +110,10 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       }
     }
 
-    return ParallelEvaluation.takeSmallestWildcardStateType(
-      ParallelEvaluation.evaluate(List.of(automatonSupplier, complementSupplier)));
+    return OmegaAcceptanceCast.cast(
+      ParallelEvaluation.takeSmallest((List)
+        ParallelEvaluation.evaluate(List.of(automatonSupplier, complementSupplier))),
+      ParityAcceptance.class);
   }
 
   private Result<AsymmetricRankingState> asymmetricConstruction(LabelledFormula formula) {
@@ -175,7 +173,7 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       }
     }
 
-    Automaton<T, ParityAcceptance> complement() {
+    Automaton<T, ? extends ParityAcceptance> complement() {
       if (automaton instanceof MutableAutomaton
         || automaton.acceptance().parity() != ParityAcceptance.Parity.MIN_ODD) {
         return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton), sinkState);

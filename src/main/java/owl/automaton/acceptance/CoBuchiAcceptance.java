@@ -33,7 +33,7 @@ public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
     super(1);
   }
 
-  public static Optional<CoBuchiAcceptance> of(PropositionalFormula<Integer> formula) {
+  public static Optional<CoBuchiAcceptance> ofPartial(PropositionalFormula<Integer> formula) {
     return formula.equals(Negation.of(Variable.of(0))) ? Optional.of(INSTANCE) : Optional.empty();
   }
 

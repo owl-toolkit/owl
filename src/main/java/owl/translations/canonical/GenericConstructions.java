@@ -29,7 +29,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
@@ -39,14 +39,15 @@ import owl.collections.Either;
 
 public final class GenericConstructions {
 
-  private GenericConstructions() {
-  }
+  private GenericConstructions() {}
 
-  public static <S, A extends OmegaAcceptance> Automaton<Either<Integer, S>, A> delay(
+  public static <S, A extends EmersonLeiAcceptance> Automaton<Either<Integer, S>, A> delay(
     Automaton<S, A> automaton, int steps) {
     Preconditions.checkArgument(steps > 0, "steps needs to be positive.");
-    List<Either<Integer, S>> delayingStates = IntStream.range(0, steps)
-      .mapToObj(Either::<Integer, S>left).collect(Collectors.toUnmodifiableList());
+    List<Either<Integer, S>> delayingStates = IntStream
+      .range(0, steps)
+      .mapToObj(Either::<Integer, S>left)
+      .collect(Collectors.toUnmodifiableList());
     Set<Edge<Either<Integer, S>>> initialStateEdges = Set.copyOf(
       Collections3.transformSet(automaton.initialStates(), x -> Edge.of(Either.right(x))));
 

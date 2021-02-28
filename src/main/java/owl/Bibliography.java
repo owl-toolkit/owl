@@ -56,6 +56,7 @@ public class Bibliography {
   private static final String FMSD = "Formal Methods in System Design";
   private static final String GANDALF = "GandALF";
   private static final String ICALP = "ICALP";
+  private static final String JACM = "Journal of the ACM";
   private static final String LICS = "LICS";
   private static final String TACAS = "TACAS";
   private static final String TUM = "TUM";
@@ -193,6 +194,17 @@ public class Bibliography {
     2020,
     "10.1145/3373718.3394743",
     "DBLP:conf/lics/SickertE20"
+  );
+
+  public static final String JACM_20_CITEKEY = "EKS20";
+
+  public static final Publication JACM_20 = Publication.of(
+    List.of(ESPARZA, KRETINSKY, SICKERT),
+    "A Unified Translation of Linear Temporal Logic to ω-Automata",
+    JACM,
+    2020,
+    "10.1145/3417995",
+    "DBLP:journals/jacm/EsparzaKS20"
   );
 
   // This field is initialised with values obtained through reflection.

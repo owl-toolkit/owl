@@ -36,8 +36,8 @@ import java.util.stream.Collectors;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.EquivalenceClassFactory;
@@ -69,7 +69,7 @@ public final class NonDeterministicConstructions {
   private NonDeterministicConstructions() {
   }
 
-  abstract static class Base<S, A extends OmegaAcceptance>
+  abstract static class Base<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     final EquivalenceClassFactory factory;
@@ -260,7 +260,7 @@ public final class NonDeterministicConstructions {
     }
   }
 
-  private abstract static class Terminal<A extends OmegaAcceptance> extends Base<Formula, A> {
+  private abstract static class Terminal<A extends EmersonLeiAcceptance> extends Base<Formula, A> {
     private Terminal(Factories factories, Set<Formula> initialStates, A acceptance) {
       super(factories, initialStates, acceptance);
     }
@@ -275,7 +275,7 @@ public final class NonDeterministicConstructions {
   }
 
   // These automata are not looping in the initial state.
-  private abstract static class NonLooping<A extends OmegaAcceptance> extends Terminal<A> {
+  private abstract static class NonLooping<A extends EmersonLeiAcceptance> extends Terminal<A> {
     private NonLooping(Factories factories, Formula formula, A acceptance) {
       super(factories, reducedDnf(factories.eqFactory.of(formula)), acceptance);
     }

@@ -20,7 +20,6 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,14 +29,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.EmptyAutomaton;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
-import owl.logic.propositional.PropositionalFormula;
-import owl.logic.propositional.sat.Solver;
 
 /**
  * This class provides functionality to cast an automaton to an automaton with a more generic
@@ -46,36 +42,35 @@ import owl.logic.propositional.sat.Solver;
  */
 public final class OmegaAcceptanceCast {
 
-  private static final Map<Class<? extends OmegaAcceptance>,
-    Function<AllAcceptance, OmegaAcceptance>> ALL_CAST_MAP;
-  private static final Map<Class<? extends OmegaAcceptance>,
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
+    Function<AllAcceptance, EmersonLeiAcceptance>> ALL_CAST_MAP;
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
     BiConsumer<AllAcceptance, BitSet>> ALL_EDGE_CAST_MAP;
 
-  private static final Map<Class<? extends OmegaAcceptance>,
-    Function<BuchiAcceptance, OmegaAcceptance>> BUCHI_CAST_MAP;
-  private static final Map<Class<? extends OmegaAcceptance>,
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
+    Function<BuchiAcceptance, EmersonLeiAcceptance>> BUCHI_CAST_MAP;
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
     BiConsumer<BuchiAcceptance, BitSet>> BUCHI_EDGE_CAST_MAP;
 
-  private static final Map<Class<? extends OmegaAcceptance>,
-    Function<CoBuchiAcceptance, OmegaAcceptance>> CO_BUCHI_CAST_MAP;
-  private static final Map<Class<? extends OmegaAcceptance>,
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
+    Function<CoBuchiAcceptance, EmersonLeiAcceptance>> CO_BUCHI_CAST_MAP;
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
     BiConsumer<CoBuchiAcceptance, BitSet>> CO_BUCHI_EDGE_CAST_MAP;
 
-  private static final Map<Class<? extends OmegaAcceptance>,
-    Function<GeneralizedBuchiAcceptance, OmegaAcceptance>> GENERALIZED_BUCHI_CAST_MAP;
-  private static final Map<Class<? extends OmegaAcceptance>,
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
+    Function<GeneralizedBuchiAcceptance, EmersonLeiAcceptance>> GENERALIZED_BUCHI_CAST_MAP;
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
     BiConsumer<GeneralizedBuchiAcceptance, BitSet>> GENERALIZED_BUCHI_EDGE_CAST_MAP;
 
-  private static final Map<Class<? extends OmegaAcceptance>,
-    Function<GeneralizedCoBuchiAcceptance, OmegaAcceptance>> GENERALIZED_CO_BUCHI_CAST_MAP;
-  private static final Map<Class<? extends OmegaAcceptance>,
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
+    Function<GeneralizedCoBuchiAcceptance, EmersonLeiAcceptance>> GENERALIZED_CO_BUCHI_CAST_MAP;
+  private static final Map<Class<? extends EmersonLeiAcceptance>,
     BiConsumer<GeneralizedCoBuchiAcceptance, BitSet>> GENERALIZED_CO_BUCHI_EDGE_CAST_MAP;
 
   static {
     ALL_CAST_MAP = Map.of(
       BuchiAcceptance.class, x -> BuchiAcceptance.INSTANCE,
       CoBuchiAcceptance.class, x -> CoBuchiAcceptance.INSTANCE,
-      GeneralizedBuchiAcceptance.class, x -> GeneralizedBuchiAcceptance.of(0),
       GeneralizedRabinAcceptance.class, x -> GeneralizedRabinAcceptance.of(
         GeneralizedRabinAcceptance.RabinPair.ofGeneralized(0, 0)),
       ParityAcceptance.class, x -> new ParityAcceptance(2, ParityAcceptance.Parity.MIN_EVEN),
@@ -106,7 +101,7 @@ public final class OmegaAcceptanceCast {
 
     CO_BUCHI_CAST_MAP = Map.of(
       GeneralizedRabinAcceptance.class,
-      x -> GeneralizedRabinAcceptance.of(x.booleanExpression()).orElseThrow(),
+      x -> GeneralizedRabinAcceptance.ofPartial(x.booleanExpression()).orElseThrow(),
       ParityAcceptance.class, x -> new ParityAcceptance(2, ParityAcceptance.Parity.MIN_ODD),
       RabinAcceptance.class, x -> RabinAcceptance.of(1)
     );
@@ -134,16 +129,16 @@ public final class OmegaAcceptanceCast {
     );
 
     GENERALIZED_CO_BUCHI_CAST_MAP = Map.of(
-      RabinAcceptance.class, x -> RabinAcceptance.of(x.size),
+      RabinAcceptance.class, x -> RabinAcceptance.of(x.acceptanceSets()),
       GeneralizedRabinAcceptance.class, x -> GeneralizedRabinAcceptance.of(
-        IntStream.range(0, x.size)
+        IntStream.range(0, x.acceptanceSets())
           .mapToObj(i -> GeneralizedRabinAcceptance.RabinPair.ofGeneralized(i, 0))
           .collect(Collectors.toList())
         )
     );
 
     GENERALIZED_CO_BUCHI_EDGE_CAST_MAP = Map.of(
-      RabinAcceptance.class, (x, y) -> OmegaAcceptanceCast.bitSetSpread(x.size, y)
+      RabinAcceptance.class, (x, y) -> OmegaAcceptanceCast.bitSetSpread(x.acceptanceSets(), y)
     );
   }
 
@@ -164,27 +159,25 @@ public final class OmegaAcceptanceCast {
    * @param <B> The desired acceptance type.
    * @return A view on the given automaton with the necessary changes.
    */
-  public static <S, A extends OmegaAcceptance, B extends OmegaAcceptance> Automaton<S, B>
-    cast(Automaton<S, A> automaton, Class<B> acceptanceClass) {
+  public static <S, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>
+    Automaton<S, ? extends B>
+    cast(Automaton<S, A> automaton, Class<? extends B> acceptanceClass) {
     A oldAcceptance = automaton.acceptance();
 
-    @SuppressWarnings("unchecked")
-    var oldAcceptanceClass = (Class<A>) oldAcceptance.getClass();
 
-    if (acceptanceClass.isAssignableFrom(oldAcceptanceClass)) {
+
+    if (acceptanceClass.isAssignableFrom(oldAcceptance.getClass())) {
       @SuppressWarnings("unchecked")
-      var castedAutomaton = (Automaton<S, B>) automaton;
+      var castedAutomaton = (Automaton<S, ? extends B>) automaton;
       return castedAutomaton;
     }
 
-    if (acceptanceClass.equals(EmersonLeiAcceptance.class)) {
-      return new CastedAutomaton<>(
-        (Automaton<S, ?>) automaton, acceptanceClass
-        .cast(new EmersonLeiAcceptance(((Automaton<S, ?>) automaton).acceptance())), null);
-    }
+    assert !acceptanceClass.equals(EmersonLeiAcceptance.class);
 
+    @SuppressWarnings("unchecked")
+    var oldAcceptanceClass = (Class<A>) oldAcceptance.getClass();
     var edgeCast = edgeCastMap(oldAcceptanceClass).get(acceptanceClass);
-    return new CastedAutomaton<>((Automaton<S, ?>) automaton,
+    return new CastedAutomaton<>(automaton,
       cast(oldAcceptance, oldAcceptanceClass, acceptanceClass),
       edgeCast == null ? null : edge -> {
         BitSet set = edge.colours().copyInto(new BitSet());
@@ -193,91 +186,9 @@ public final class OmegaAcceptanceCast {
       });
   }
 
-  /**
-   * Find heuristically the weakest acceptance condition for the given automaton and cast it to it.
-   * Only simple syntactic checks on the boolean expression of the acceptance conditions are
-   * performed. For advanced (and complete) techniques use the typeness implementations.
-   *
-   * @param automaton The automaton. It is assumed that after calling this method the automaton is
-   *     not modified anymore.
-   * @param <S> The state type.
-   * @return A view on the given automaton with the necessary changes.
-   */
-  public static <S> Automaton<S, ?> castHeuristically(Automaton<S, ?> automaton) {
-    var formula = automaton.acceptance().booleanExpression().nnf().normalise();
-
-    if (Solver.model(formula).isEmpty()) {
-      return EmptyAutomaton.of(automaton.factory(), AllAcceptance.INSTANCE);
-    }
-
-    if (Solver.model(PropositionalFormula.Negation.of(formula)).isEmpty()) {
-      return castHeuristically(automaton, AllAcceptance.INSTANCE);
-    }
-
-    var buchiAcceptance = BuchiAcceptance.of(formula);
-    if (buchiAcceptance.isPresent()) {
-      return castHeuristically(automaton, buchiAcceptance.get());
-    }
-
-    var coBuchiAcceptance = CoBuchiAcceptance.of(formula);
-    if (coBuchiAcceptance.isPresent()) {
-      return castHeuristically(automaton, coBuchiAcceptance.get());
-    }
-
-    var generalizedBuchiAcceptance = GeneralizedBuchiAcceptance.of(formula);
-    if (generalizedBuchiAcceptance.isPresent()) {
-      return castHeuristically(automaton, generalizedBuchiAcceptance.get());
-    }
-
-    var generalizedCoBuchiAcceptance = GeneralizedCoBuchiAcceptance.of(formula);
-    if (generalizedCoBuchiAcceptance.isPresent()) {
-      return castHeuristically(automaton, generalizedCoBuchiAcceptance.get());
-    }
-
-    var mapping = new HashMap<Integer, Integer>();
-    var rabinAcceptance = RabinAcceptance.of(formula, mapping);
-    if (rabinAcceptance.isPresent()) {
-      return new CastedAutomaton<>(
-        automaton, rabinAcceptance.get(), edge -> edge.mapAcceptance(mapping::get));
-    }
-
-    var generalizedRabinAcceptance = GeneralizedRabinAcceptance.of(formula);
-    if (generalizedRabinAcceptance.isPresent()) {
-      return castHeuristically(automaton, generalizedRabinAcceptance.get());
-    }
-
-    return automaton;
-  }
-
-  private static <S, A extends OmegaAcceptance> Automaton<S, A> castHeuristically(
-    Automaton<S, ?> automaton, A acceptance) {
-
-    int sets = acceptance.acceptanceSets();
-    return new CastedAutomaton<>(automaton, acceptance,
-    // Remove unused acceptance marks.
-    edge -> edge.mapAcceptance(x -> x >= sets ? -1 : x));
-  }
-
-  public static <A extends OmegaAcceptance, B extends OmegaAcceptance> B
-    cast(A acceptance, Class<B> acceptanceClass) {
-
-    @SuppressWarnings("unchecked")
-    var oldAcceptanceClass = (Class<A>) acceptance.getClass();
-
-    if (acceptanceClass.isAssignableFrom(oldAcceptanceClass)) {
-      return acceptanceClass.cast(acceptance);
-    }
-
-    if (acceptanceClass.equals(EmersonLeiAcceptance.class)) {
-      return acceptanceClass.cast(new EmersonLeiAcceptance(acceptance));
-    }
-
-    return cast(acceptance, oldAcceptanceClass, acceptanceClass);
-  }
-
   public static boolean isInstanceOf(
-    Class<? extends OmegaAcceptance> clazz1,
-    Class<? extends OmegaAcceptance> clazz2) {
+    Class<? extends EmersonLeiAcceptance> clazz1,
+    Class<? extends EmersonLeiAcceptance> clazz2) {
     return clazz2.isAssignableFrom(clazz1)
       || clazz2.equals(EmersonLeiAcceptance.class)
       || castMap(clazz1).containsKey(clazz2);
@@ -299,9 +210,9 @@ public final class OmegaAcceptanceCast {
     }
   }
 
-  private static <A extends OmegaAcceptance, B extends OmegaAcceptance>
+  private static <A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>
     B cast(A acceptance, Class<A> oldClass, Class<B> newClass) {
-    Function<A, OmegaAcceptance> cast = castMap(oldClass).get(newClass);
+    Function<A, EmersonLeiAcceptance> cast = castMap(oldClass).get(newClass);
 
     if (cast == null) {
       throw new ClassCastException(String.format("Cannot cast %s (%s) to %s.",
@@ -312,8 +223,8 @@ public final class OmegaAcceptanceCast {
   }
 
   @SuppressWarnings("unchecked")
-  private static <A extends OmegaAcceptance> Map<Class<? extends OmegaAcceptance>,
-    Function<A, OmegaAcceptance>> castMap(Class<A> clazz) {
+  private static <A extends EmersonLeiAcceptance> Map<Class<? extends EmersonLeiAcceptance>,
+    Function<A, EmersonLeiAcceptance>> castMap(Class<A> clazz) {
     if (AllAcceptance.class.equals(clazz)) {
       return (Map) ALL_CAST_MAP;
     }
@@ -338,7 +249,7 @@ public final class OmegaAcceptanceCast {
   }
 
   @SuppressWarnings("unchecked")
-  private static <A extends OmegaAcceptance> Map<Class<? extends OmegaAcceptance>,
+  private static <A extends EmersonLeiAcceptance> Map<Class<? extends EmersonLeiAcceptance>,
     BiConsumer<A, BitSet>> edgeCastMap(Class<A> clazz) {
     if (AllAcceptance.class.equals(clazz)) {
       return (Map) ALL_EDGE_CAST_MAP;
@@ -363,17 +274,17 @@ public final class OmegaAcceptanceCast {
     return Map.of();
   }
 
-  private static class CastedAutomaton<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
+  private static class CastedAutomaton<S, A extends EmersonLeiAcceptance>
     implements Automaton<S, A> {
 
     private final A acceptance;
-    private final Automaton<S, B> backingAutomaton;
+    private final Automaton<S, ?> backingAutomaton;
 
     @Nullable
     private final Function<Edge<S>, Edge<S>> edgeCast;
 
     private CastedAutomaton(
-      Automaton<S, B> backingAutomaton,
+      Automaton<S, ?> backingAutomaton,
       A acceptance,
       @Nullable Function<Edge<S>, Edge<S>> edgeCast) {
       this.acceptance = acceptance;
@@ -402,8 +313,8 @@ public final class OmegaAcceptanceCast {
     }
 
     @Override
-    public Set<Edge<S>> edges(S state, BitSet valuation) {
-      var edges = backingAutomaton.edges(state, valuation);
+    public Set<Edge<S>> edges(S state) {
+      var edges = backingAutomaton.edges(state);
 
       return edgeCast == null
         ? edges
@@ -411,8 +322,8 @@ public final class OmegaAcceptanceCast {
     }
 
     @Override
-    public Set<Edge<S>> edges(S state) {
-      var edges = backingAutomaton.edges(state);
+    public Set<Edge<S>> edges(S state, BitSet valuation) {
+      var edges = backingAutomaton.edges(state, valuation);
 
       return edgeCast == null
         ? edges

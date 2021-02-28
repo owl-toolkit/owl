@@ -29,10 +29,10 @@ import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -47,7 +47,7 @@ public final class LanguageEmptiness {
   }
 
   public static <S> boolean isEmpty(Automaton<S, ?> automaton, Set<S> initialStates) {
-    OmegaAcceptance acceptance = automaton.acceptance();
+    EmersonLeiAcceptance acceptance = automaton.acceptance();
     // TODO: move to exploration stage.
     assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
@@ -176,6 +176,7 @@ public final class LanguageEmptiness {
   }
 
   private static final class Buchi {
+
     private Buchi() {}
 
     private static <S> boolean containsAcceptingLasso(
@@ -186,8 +187,8 @@ public final class LanguageEmptiness {
     private static <S> boolean containsAcceptingScc(
       Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, Set<S> initialStates) {
       Predicate<Set<S>> acceptingScc = scc -> {
-        BitSet remaining = new BitSet(automaton.acceptance().size);
-        remaining.set(0, automaton.acceptance().size);
+        BitSet remaining = new BitSet(automaton.acceptance().acceptanceSets());
+        remaining.set(0, automaton.acceptance().acceptanceSets());
 
         for (S state : scc) {
           for (Edge<S> successorEdge : automaton.edges(state)) {
@@ -215,7 +216,7 @@ public final class LanguageEmptiness {
     private Parity() {}
 
     private static <S> boolean containsAcceptingLasso(
-      Automaton<S, ParityAcceptance> automaton, S initialState) {
+      Automaton<S, ? extends ParityAcceptance> automaton, S initialState) {
       if (automaton.acceptance().parity().max()) {
         throw new UnsupportedOperationException("Only min-{even,odd} conditions supported.");
       }
@@ -256,7 +257,7 @@ public final class LanguageEmptiness {
     private Rabin() {}
 
     private static <S> boolean containsAcceptingLasso(
-      Automaton<S, RabinAcceptance> automaton, S initialState) {
+      Automaton<S, ? extends RabinAcceptance> automaton, S initialState) {
       for (RabinPair pair : automaton.acceptance().pairs()) {
         if (hasAcceptingLasso(automaton, initialState, pair.infSet(),
           pair.finSet(), false)) {

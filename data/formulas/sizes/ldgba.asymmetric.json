@@ -6281,6 +6281,17 @@
     }
   },
   {
+    "formula": "(Ga & G(!b | (((!c | ((b) R (!a)))) U ((b | c)))))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
     "formula": "(Ga & GF(a & XXa))",
     "properties": {
       "size": 3,
@@ -6471,6 +6482,17 @@
     "formula": "(Fa | FG(a | XXa))",
     "properties": {
       "size": 6,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": false
+    }
+  },
+  {
+    "formula": "(F!a | F(b & (((c & ((!b) U (a)))) R ((!b & !c)))))",
+    "properties": {
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,

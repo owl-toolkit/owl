@@ -39,17 +39,15 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.modules.AbstractLTL2DRAModule;
-import owl.translations.modules.LTL2DRAModule;
-import owl.translations.modules.LTL2NBAModule;
+import owl.translations.LtlTranslationRepository;
 
 public class SymbolicAutomatonTest {
 
-  private static final Function<LabelledFormula, Automaton<?, RabinAcceptance>> LTL_TO_DRA
-    = LTL2DRAModule.translation(AbstractLTL2DRAModule.Translation.SYMMETRIC, true, null, false);
+  private static final Function<LabelledFormula, Automaton<?, ? extends RabinAcceptance>> LTL_TO_DRA
+    = LtlTranslationRepository.LtlToDraTranslation.EKS20.translation(RabinAcceptance.class);
 
-  private static final Function<LabelledFormula, Automaton<?, BuchiAcceptance>> LTL_TO_NBA
-    = LTL2NBAModule.translation(false);
+  private static final Function<LabelledFormula, Automaton<?, ? extends BuchiAcceptance>> LTL_TO_NBA
+    = LtlTranslationRepository.LtlToNbaTranslation.EKS20.translation(BuchiAcceptance.class);
 
   @Test
   protected void testEmpty() {

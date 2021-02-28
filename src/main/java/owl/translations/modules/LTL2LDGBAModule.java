@@ -20,25 +20,22 @@
 package owl.translations.modules;
 
 import static owl.run.modules.OwlModule.Transformer;
+import static owl.translations.LtlTranslationRepository.LtlToLdbaTranslation.EKS20;
+import static owl.translations.LtlTranslationRepository.LtlToLdbaTranslation.SEJK16;
+import static owl.translations.LtlTranslationRepository.Option;
 import static owl.translations.modules.AbstractLTL2LDBAModule.symmetric;
 
 import java.io.IOException;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.function.Function;
-import owl.automaton.Automaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
-import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.canonical.DeterministicConstructionsPortfolio;
-import owl.translations.ltl2ldba.AnnotatedLDBA;
-import owl.translations.ltl2ldba.AsymmetricLDBAConstruction;
-import owl.translations.ltl2ldba.SymmetricLDBAConstruction;
 
 public final class LTL2LDGBAModule {
   public static final OwlModule<Transformer> MODULE = OwlModule.of(
@@ -48,8 +45,14 @@ public final class LTL2LDGBAModule {
     (commandLine, environment) -> {
       boolean useSymmetric = commandLine.hasOption(symmetric().getOpt());
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
-      return OwlModule.LabelledFormulaTransformer
-        .of(translation(useSymmetric, usePortfolio));
+
+      return OwlModule.LabelledFormulaTransformer.of(useSymmetric
+        ? EKS20.translation(GeneralizedBuchiAcceptance.class, usePortfolio
+          ? EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)
+          : EnumSet.noneOf(Option.class))
+        : SEJK16.translation(GeneralizedBuchiAcceptance.class, usePortfolio
+          ? EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)
+          : EnumSet.noneOf(Option.class)));
     }
   );
 
@@ -62,31 +65,5 @@ public final class LTL2LDGBAModule {
       MODULE,
       List.of(AcceptanceOptimizations.MODULE),
       OutputWriters.HOA_OUTPUT_MODULE));
-  }
-
-  public static Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>>
-    translation(boolean useSymmetric, boolean usePortfolio) {
-
-    Function<LabelledFormula, Automaton<?, GeneralizedBuchiAcceptance>> construction = useSymmetric
-      ? SymmetricLDBAConstruction.of(GeneralizedBuchiAcceptance.class)
-      ::applyWithShortcuts
-      : AsymmetricLDBAConstruction.of(GeneralizedBuchiAcceptance.class)
-        .andThen(AnnotatedLDBA::copyAsMutable);
-
-    DeterministicConstructionsPortfolio<GeneralizedBuchiAcceptance> portfolio = usePortfolio
-      ? new DeterministicConstructionsPortfolio<>(GeneralizedBuchiAcceptance.class)
-      : null;
-
-    return labelledFormula -> {
-      if (portfolio != null) {
-        var automaton = portfolio.apply(labelledFormula);
-
-        if (automaton.isPresent()) {
-          return automaton.orElseThrow();
-        }
-      }
-
-      return construction.apply(labelledFormula);
-    };
   }
 }

@@ -17,7 +17,9 @@ API:
 * Add rudimentary support for propositional logic and a SAT-solving
   infrastructure.
 
-* Migrate OmegaAcceptance to new propositional logic datatype.
+* Migrate OmegaAcceptance-classes to new propositional logic datatype
+  and remove abstract super class. All types of OmegaAcceptance now
+  extend EmersonLeiAcceptance.
 
 * Disentangle `Colours`-related API from `Edge` datatype.
 

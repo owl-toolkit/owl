@@ -6281,6 +6281,17 @@
     }
   },
   {
+    "formula": "(Ga & G(!b | (((!c | ((b) R (!a)))) U ((b | c)))))",
+    "properties": {
+      "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 3,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Ga & GF(a & XXa))",
     "properties": {
       "size": 2,
@@ -6474,6 +6485,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(F!a | F(b & (((c & ((!b) U (a)))) R ((!b & !c)))))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 2,
       "complete": true,
       "deterministic": true
     }

@@ -35,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -51,8 +52,9 @@ import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EnumSource;
 import owl.automaton.Automaton;
+import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -66,8 +68,6 @@ import owl.translations.ExternalTranslator.InputMode;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dra.NormalformDRAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
-import owl.translations.modules.LTL2DPAModule;
-import owl.translations.modules.LTL2LDBAModule;
 import owl.translations.rabinizer.RabinizerBuilder;
 import owl.translations.rabinizer.RabinizerConfiguration;
 import owl.util.Statistics;
@@ -310,10 +310,12 @@ class TranslationReport {
     // Without Portfolio.
 
     var dpa_ldba_asymmetric = new Translator("\\LDone",
-      LTL2DPAModule.translation(false, false, false));
+        LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
+            EnumSet.noneOf(LtlTranslationRepository.Option.class)));
 
     var dpa_ldba_symmetric = new Translator("\\LDtwo",
-      LTL2DPAModule.translation(true, false, false));
+        LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
+            EnumSet.noneOf(LtlTranslationRepository.Option.class)));
 
     var dpa_iar_asymmetric = new Translator("\\Done", formula -> {
       var dgra = RabinizerBuilder.build(formula, configuration);
@@ -337,10 +339,16 @@ class TranslationReport {
     // With Portfolio
 
     var dpa_ldba_asymmetric_portfolio = new Translator("\\LDp", labelledFormula -> {
+
       var automaton1
-        = LTL2DPAModule.translation(false, true, true).apply(labelledFormula);
+        = LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
+          EnumSet.of(LtlTranslationRepository.Option.USE_COMPLEMENT,
+              LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)).apply(labelledFormula);
+
       var automaton2
-        = LTL2DPAModule.translation(true, true, true).apply(labelledFormula);
+        = LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
+          EnumSet.of(LtlTranslationRepository.Option.USE_COMPLEMENT,
+              LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)).apply(labelledFormula);
       return automaton1.states().size() <= automaton2.states().size() ? automaton1 : automaton2;
     });
 
@@ -401,7 +409,7 @@ class TranslationReport {
       set.name().toLowerCase(),
       formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
       resultTable,
-      OmegaAcceptance::acceptanceSets, 10, false);
+      EmersonLeiAcceptance::acceptanceSets, 10, false);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
@@ -421,10 +429,14 @@ class TranslationReport {
     // Without Portfolio.
 
     var dpa_ldba_asymmetric = new Translator("\\LDone",
-      LTL2LDBAModule.translation(false, false));
+        LtlTranslationRepository.LtlToLdbaTranslation.SEJK16.translation(BuchiAcceptance.class,
+            EnumSet.noneOf(
+                LtlTranslationRepository.Option.class)));
 
     var dpa_ldba_symmetric = new Translator("\\LDtwo",
-      LTL2LDBAModule.translation(true, false));
+        LtlTranslationRepository.LtlToLdbaTranslation.EKS20.translation(BuchiAcceptance.class,
+            EnumSet.noneOf(
+                LtlTranslationRepository.Option.class)));
 
     var dpa_iar_asymmetric = new Translator("\\Done", formula -> {
       var dgra = RabinizerBuilder.build(formula, configuration);
@@ -480,7 +492,7 @@ class TranslationReport {
       set.name().toLowerCase(),
       formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
       resultTable,
-      OmegaAcceptance::acceptanceSets, 100, false);
+      EmersonLeiAcceptance::acceptanceSets, 100, false);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
@@ -562,7 +574,7 @@ class TranslationReport {
       String formulaSetName,
       List<Formula> formulas,
       Table<Formula, String, AutomatonSummary> results,
-      Function<OmegaAcceptance, Integer> normalisation,
+      Function<EmersonLeiAcceptance, Integer> normalisation,
       int threshold,
       boolean rotateHeader) {
       return new LatexReport(groupedTranslators, readableTranslatorNames,
@@ -573,7 +585,7 @@ class TranslationReport {
       return results.column(tool).values().stream().mapToInt(x -> x.size).toArray();
     }
 
-    private String report(int lines, Function<OmegaAcceptance, Integer> normalisation) {
+    private String report(int lines, Function<EmersonLeiAcceptance, Integer> normalisation) {
       Set<Formula> referencedFormulas = new HashSet<>();
       String mainTables = createTables(false, lines, normalisation, referencedFormulas);
       String referencedFormulasDescription = createFormulaTables(referencedFormulas);
@@ -678,7 +690,7 @@ class TranslationReport {
     }
 
     private String createTables(boolean appendix, int lines,
-      Function<OmegaAcceptance, Integer> normalisation, @Nullable Set<Formula> referencedFormulas) {
+      Function<EmersonLeiAcceptance, Integer> normalisation, @Nullable Set<Formula> referencedFormulas) {
 
       var tableBuilder = new StringBuilder(tableHeader());
 

@@ -124,8 +124,8 @@ public final class AutomatonUtil {
   }
 
   public static <S, B extends GeneralizedBuchiAcceptance>
-    Optional<LimitDeterministicGeneralizedBuchiAutomaton<S, B>>
-    ldbaSplit(Automaton<S, B> automaton) {
+    Optional<LimitDeterministicGeneralizedBuchiAutomaton<S, ? extends B>>
+    ldbaSplit(Automaton<S, ? extends B> automaton) {
     Set<S> acceptingSccs = new HashSet<>();
 
     for (Set<S> scc : SccDecomposition.of(automaton).sccs()) {

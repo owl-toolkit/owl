@@ -35,6 +35,7 @@ import java.util.function.Function;
 import owl.automaton.AbstractMemoizingAutomaton.PartitionedEdgeTreeImplementation;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
+import owl.automaton.AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.AllAcceptance;
@@ -57,7 +58,7 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 
 public final class NBA2LDBA
-  implements Function<Automaton<?, ?>, Automaton<?, BuchiAcceptance>> {
+  implements Function<Automaton<?, ?>, Automaton<?, ? extends BuchiAcceptance>> {
 
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "nba2ldba",
@@ -67,11 +68,11 @@ public final class NBA2LDBA
       .of(automaton -> new NBA2LDBA().apply(automaton)));
 
   @Override
-  public Automaton<?, BuchiAcceptance> apply(Automaton<?, ?> automaton) {
+  public Automaton<?, ? extends BuchiAcceptance> apply(Automaton<?, ?> automaton) {
     return applyLDBA(automaton).automaton();
   }
 
-  public static AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<?, BuchiAcceptance>
+  public static LimitDeterministicGeneralizedBuchiAutomaton<?, ? extends BuchiAcceptance>
     applyLDBA(Automaton<?, ?> automaton) {
     Automaton<?, ? extends GeneralizedBuchiAcceptance> ngba;
 
@@ -87,7 +88,8 @@ public final class NBA2LDBA
     }
 
     if (automaton.acceptance() instanceof BuchiAcceptance) {
-      var ldba = AutomatonUtil.ldbaSplit(OmegaAcceptanceCast.cast(ngba, BuchiAcceptance.class));
+      var nba = OmegaAcceptanceCast.cast(ngba, BuchiAcceptance.class);
+      var ldba = AutomatonUtil.ldbaSplit(nba);
 
       if (ldba.isPresent()) {
         return ldba.get();
@@ -97,7 +99,7 @@ public final class NBA2LDBA
     MutableAutomaton<Either<?, ?>, BuchiAcceptance> ldba =
       (MutableAutomaton) MutableAutomatonUtil.asMutable(new BreakpointAutomaton<>(ngba));
     AcceptanceOptimizations.removeDeadStates(ldba);
-    return AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton.of(ldba,
+    return LimitDeterministicGeneralizedBuchiAutomaton.of(ldba,
       ldba.states().stream().filter(x -> x.type() == Either.Type.LEFT).collect(toSet()));
   }
 

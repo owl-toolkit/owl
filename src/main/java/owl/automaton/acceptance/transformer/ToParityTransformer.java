@@ -47,7 +47,6 @@ import owl.automaton.HashMapAutomaton;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
@@ -256,7 +255,7 @@ public final class ToParityTransformer {
       && implies(automaton, scc, edgePredicate2, edgePredicate1);
   }
 
-  private static <S, A extends OmegaAcceptance>
+  private static <S, A extends EmersonLeiAcceptance>
     Automaton<ExtendedState<S, Path>, ParityAcceptance> transformSccBased(
     Automaton<S, A> automaton, SccDecomposition<S> sccDecomposition, boolean stutter) {
 
@@ -301,21 +300,20 @@ public final class ToParityTransformer {
         }
       }
 
-      OmegaAcceptance simplifiedAcceptance = new EmersonLeiAcceptance(
-      acceptance.acceptanceSets(),
-      acceptance.booleanExpression().substitute((Integer acceptanceMark) -> {
-        if (allEdges.get(acceptanceMark)) {
-          assert someEdges.get(acceptanceMark);
-          return Optional.of(trueConstant());
-        }
+      EmersonLeiAcceptance simplifiedAcceptance = EmersonLeiAcceptance.of(
+        acceptance.booleanExpression().substitute((Integer acceptanceMark) -> {
+          if (allEdges.get(acceptanceMark)) {
+            assert someEdges.get(acceptanceMark);
+            return Optional.of(trueConstant());
+          }
 
-        if (!someEdges.get(acceptanceMark)) {
-          assert !allEdges.get(acceptanceMark);
-          return Optional.of(PropositionalFormula.falseConstant());
-        }
+          if (!someEdges.get(acceptanceMark)) {
+            assert !allEdges.get(acceptanceMark);
+            return Optional.of(PropositionalFormula.falseConstant());
+          }
 
-        return Optional.of(PropositionalFormula.Variable.of(mapping.get(acceptanceMark)));
-      }));
+          return Optional.of(PropositionalFormula.Variable.of(mapping.get(acceptanceMark)));
+        }));
 
       Set<Integer> variables = simplifiedAcceptance.booleanExpression().variables();
       List<PropositionalFormula<Integer>> facts = new ArrayList<>();
@@ -445,13 +443,13 @@ public final class ToParityTransformer {
     public abstract boolean stutter();
 
     public static ZielonkaTreeRoot of(
-      OmegaAcceptance alpha, boolean stutter) {
+      EmersonLeiAcceptance alpha, boolean stutter) {
 
       return of(alpha, trueConstant(), stutter);
     }
 
     public static ZielonkaTreeRoot of(
-      OmegaAcceptance alpha, PropositionalFormula<Integer> beta, boolean stutter) {
+      EmersonLeiAcceptance alpha, PropositionalFormula<Integer> beta, boolean stutter) {
 
       return of(alpha.booleanExpression(), beta, stutter);
     }

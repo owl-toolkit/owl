@@ -23,13 +23,10 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import owl.automaton.AbstractAutomaton;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
@@ -43,7 +40,6 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
-import owl.bdd.BddSet;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.run.modules.OwlModule;
@@ -64,7 +60,7 @@ public final class GfgCoBuchiMinimization {
   private GfgCoBuchiMinimization() {}
 
   public static <S> Automaton<Set<S>, CoBuchiAcceptance> minimize(
-    Automaton<S, CoBuchiAcceptance> dcw) {
+    Automaton<S, ? extends CoBuchiAcceptance> dcw) {
 
     Preconditions.checkArgument(dcw.is(Automaton.Property.DETERMINISTIC));
 
@@ -89,7 +85,7 @@ public final class GfgCoBuchiMinimization {
     return safeMinimized;
   }
 
-  private static <S> List<Set<S>> safeComponents(Automaton<S, CoBuchiAcceptance> ncw) {
+  private static <S> List<Set<S>> safeComponents(Automaton<S, ? extends CoBuchiAcceptance> ncw) {
     return SccDecomposition.of(
       ncw.states(),
       state -> ncw.edges(state).stream()
@@ -99,7 +95,7 @@ public final class GfgCoBuchiMinimization {
       .sccs();
   }
 
-  private static <S> void normalize(MutableAutomaton<S, CoBuchiAcceptance> ncw,
+  private static <S> void normalize(MutableAutomaton<S, ? extends CoBuchiAcceptance> ncw,
     List<Set<S>> safeComponents) {
 
     ncw.updateEdges((state, edge) -> {
@@ -113,58 +109,47 @@ public final class GfgCoBuchiMinimization {
     ncw.trim();
   }
 
-  private static <S> boolean languageEquivalent(Automaton<S, CoBuchiAcceptance> ncw, S q, S p) {
+  private static <S> boolean languageEquivalent(
+    Automaton<S, ? extends CoBuchiAcceptance> ncw, S q, S p) {
+
     return LanguageContainment.equalsCoBuchi(
       Views.filtered(ncw, Views.Filter.of(Set.of(q))),
       Views.filtered(ncw, Views.Filter.of(Set.of(p))));
   }
 
   private static <S> Automaton<S, AllAcceptance>
-    safeView(Automaton<S, CoBuchiAcceptance> ncw, S q) {
+    safeView(Automaton<S, ? extends CoBuchiAcceptance> ncw, S q) {
 
-    return new AbstractAutomaton<>(ncw.factory(), Set.of(q), AllAcceptance.INSTANCE) {
-      @Override
-      public Set<Edge<S>> edges(S state, BitSet valuation) {
-        var edges = new HashSet<>(ncw.edges(state, valuation));
-        edges.removeIf(sEdge -> !sEdge.colours().isEmpty());
-        return edges;
-      }
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      ncw.factory(), Set.of(q), AllAcceptance.INSTANCE) {
 
       @Override
-      public Map<Edge<S>, BddSet> edgeMap(S state) {
-        var edgeMap = new HashMap<>(ncw.edgeMap(state));
-        edgeMap.keySet().removeIf(sEdge -> !sEdge.colours().isEmpty());
-        return edgeMap;
-      }
-
-      @Override
-      public MtBdd<Edge<S>> edgeTree(S state) {
+      public MtBdd<Edge<S>> edgeTreeImpl(S state) {
         return ncw.edgeTree(state).map(edges -> {
           var edgesCopy = new HashSet<>(edges);
           edgesCopy.removeIf(sEdge -> !sEdge.colours().isEmpty());
           return edgesCopy;
         });
       }
-
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return ncw.preferredEdgeAccess();
-      }
     };
   }
 
-  private static <S> boolean subsafeEquivalent(Automaton<S, CoBuchiAcceptance> ncw, S q, S p) {
+  private static <S> boolean subsafeEquivalent(
+    Automaton<S, ? extends CoBuchiAcceptance> ncw, S q, S p) {
+
     return languageEquivalent(ncw, q, p)
       && LanguageContainment.containsAll(safeView(ncw, q), safeView(ncw, p));
   }
 
-  private static <S> boolean stronglyEquivalent(Automaton<S, CoBuchiAcceptance> ncw, S q, S p) {
+  private static <S> boolean stronglyEquivalent(
+    Automaton<S, ? extends CoBuchiAcceptance> ncw, S q, S p) {
+
     return languageEquivalent(ncw, q, p)
       && LanguageContainment.equalsAll(safeView(ncw, q), safeView(ncw, p));
   }
 
   private static <S> Automaton<S, CoBuchiAcceptance> safeCentralize(
-    Automaton<S, CoBuchiAcceptance> ncw, List<Set<S>> safeComponents) {
+    Automaton<S, ? extends CoBuchiAcceptance> ncw, List<Set<S>> safeComponents) {
 
     var frontier = Collections3.maximalElements(safeComponents, (component1, component2) -> {
       S representative1 = component1.iterator().next();
@@ -240,7 +225,7 @@ public final class GfgCoBuchiMinimization {
   }
 
   private static <S> Automaton<Set<S>, CoBuchiAcceptance>
-    safeMinimize(Automaton<S, CoBuchiAcceptance> ncw) {
+    safeMinimize(Automaton<S, ? extends CoBuchiAcceptance> ncw) {
 
     List<Set<S>> equivalenceClasses = new ArrayList<>();
 

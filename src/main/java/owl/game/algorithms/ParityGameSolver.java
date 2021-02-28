@@ -27,9 +27,9 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.game.Game;
 
 public interface ParityGameSolver {
-  <S> boolean realizable(Game<S, ParityAcceptance> game);
+  <S> boolean realizable(Game<S, ? extends ParityAcceptance> game);
 
-  <S> WinningRegions<S> solve(Game<S, ParityAcceptance> game);
+  <S> WinningRegions<S> solve(Game<S, ? extends ParityAcceptance> game);
 
   final class WinningRegions<S> {
     final Set<S> player1;

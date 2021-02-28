@@ -24,28 +24,21 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.function.Function;
 import org.junit.jupiter.api.Test;
-import owl.automaton.Automaton;
 import owl.automaton.UltimatelyPeriodicWord;
+import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.collections.BitSet2;
-import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.LTL2DAFunction;
-import owl.translations.LTL2NAFunction;
+import owl.translations.LtlTranslationRepository;
 
 class LanguageMembershipTest {
 
-  private static final Function<LabelledFormula, Automaton<?, ?>> deterministicTranslation
-    = new LTL2DAFunction(RabinAcceptance.class);
-
-  private static final Function<LabelledFormula, Automaton<?, ?>> nondeterministicTranslation
-    = new LTL2NAFunction();
-
   @Test
   void containsDeterministic() {
-    var automaton = deterministicTranslation.apply(LtlParser.parse("F G a | G F b | X X c"));
+    var automaton = LtlTranslationRepository.defaultTranslation(
+      LtlTranslationRepository.BranchingMode.DETERMINISTIC,
+      RabinAcceptance.class).apply(LtlParser.parse("F G a | G F b | X X c"));
 
     var wordA = new UltimatelyPeriodicWord(List.of(new BitSet()), List.of(BitSet2.of(0)));
     var wordAandB = new UltimatelyPeriodicWord(List.of(), List.of(BitSet2.of(0), BitSet2.of(1)));
@@ -60,7 +53,9 @@ class LanguageMembershipTest {
 
   @Test
   void containsNondeterministic() {
-    var automaton = nondeterministicTranslation.apply(LtlParser.parse("F G a | G F b | X X c"));
+    var automaton = LtlTranslationRepository.defaultTranslation(
+      LtlTranslationRepository.BranchingMode.NON_DETERMINISTIC,
+      GeneralizedBuchiAcceptance.class).apply(LtlParser.parse("F G a | G F b | X X c"));
 
     var wordA = new UltimatelyPeriodicWord(List.of(new BitSet()), List.of(BitSet2.of(0)));
     var wordAandB = new UltimatelyPeriodicWord(List.of(), List.of(BitSet2.of(0), BitSet2.of(1)));

@@ -24,8 +24,8 @@ import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.bdd.FactorySupplier;
 import owl.ltl.Conjunction;
 import owl.ltl.Formula;
@@ -33,7 +33,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 
-public final class NonDeterministicConstructionsPortfolio<A extends OmegaAcceptance>
+public final class NonDeterministicConstructionsPortfolio<A extends EmersonLeiAcceptance>
   extends AbstractPortfolio<A> {
 
   public NonDeterministicConstructionsPortfolio(Class<A> acceptance) {
@@ -41,7 +41,7 @@ public final class NonDeterministicConstructionsPortfolio<A extends OmegaAccepta
   }
 
   @Override
-  public Optional<Automaton<?, A>> apply(LabelledFormula formula) {
+  public Optional<Automaton<?, ? extends A>> apply(LabelledFormula formula) {
     if (isAllowed(AllAcceptance.class)
       && SyntacticFragments.isSafety(formula.formula())) {
       return box(safety(formula));

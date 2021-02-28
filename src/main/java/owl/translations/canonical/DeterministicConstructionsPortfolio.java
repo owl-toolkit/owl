@@ -26,9 +26,9 @@ import owl.automaton.BooleanOperations;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.bdd.FactorySupplier;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -38,7 +38,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
 
-public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance>
+public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAcceptance>
   extends AbstractPortfolio<A> {
 
   public DeterministicConstructionsPortfolio(Class<A> acceptanceBound) {
@@ -46,7 +46,7 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
   }
 
   @Override
-  public Optional<Automaton<?, A>> apply(LabelledFormula formula) {
+  public Optional<Automaton<?, ? extends A>> apply(LabelledFormula formula) {
     if (isAllowed(AllAcceptance.class)
       && SyntacticFragments.isSafety(formula.formula())) {
       return box(safety(formula));
@@ -133,7 +133,7 @@ public final class DeterministicConstructionsPortfolio<A extends OmegaAcceptance
     return DeterministicConstructions.GfCoSafety.of(factories, formulas, generalized);
   }
 
-  public static Automaton<RoundRobinState<EquivalenceClass>, GeneralizedCoBuchiAcceptance>
+  public static Automaton<RoundRobinState<EquivalenceClass>, ? extends GeneralizedCoBuchiAcceptance>
     fgSafety(LabelledFormula formula, boolean generalized) {
     var automaton = gfCoSafety(formula.not(), generalized);
     return BooleanOperations

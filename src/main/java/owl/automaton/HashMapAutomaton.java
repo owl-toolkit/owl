@@ -50,7 +50,7 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
@@ -58,7 +58,7 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
-public final class HashMapAutomaton<S, A extends OmegaAcceptance>
+public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   implements MutableAutomaton<S, A> {
 
   private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
@@ -421,12 +421,12 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
    *
    * @return Empty automaton with the specified parameters.
    */
-  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> of(A acceptance,
+  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> of(A acceptance,
     BddSetFactory vsFactory) {
     return new HashMapAutomaton<>(vsFactory, acceptance);
   }
 
-  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> of(A acceptance,
+  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> of(A acceptance,
     BddSetFactory vsFactory, Collection<S> initialStates,
     BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
     HashMapAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
@@ -472,7 +472,7 @@ public final class HashMapAutomaton<S, A extends OmegaAcceptance>
     return automaton;
   }
 
-  public static <S, A extends OmegaAcceptance> HashMapAutomaton<S, A> copyOf(
+  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> copyOf(
     Automaton<S, ? extends A> source) {
     HashMapAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
     source.initialStates().forEach(target::addInitialState);

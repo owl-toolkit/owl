@@ -36,7 +36,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
@@ -51,7 +51,7 @@ import owl.bdd.MtBdd;
  * @param <A> the acceptance class
  */
 @AutoValue
-public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
+public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public abstract List<String> atomicPropositions();
 
@@ -66,7 +66,7 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
   /**
    * Package-private constructor that is only available to trusted implementations.
    */
-  static <A extends OmegaAcceptance> SymbolicAutomaton<A> of(
+  static <A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
     List<String> atomicPropositions,
     BddSet initialStates,
     BddSet transitionRelation,
@@ -84,7 +84,7 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
     );
   }
 
-  public static <S, A extends OmegaAcceptance> SymbolicAutomaton<A> of(
+  public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
     Automaton<S, ? extends A> automaton) {
 
     return of(
@@ -97,7 +97,7 @@ public abstract class SymbolicAutomaton<A extends OmegaAcceptance> {
         SUCCESSOR_STATE));
   }
 
-  public static <S, A extends OmegaAcceptance> SymbolicAutomaton<A> of(
+  public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
     Automaton<S, ? extends A> automaton,
     StateEncoderFactory encoderFactory,
     VariableAllocator allocator) {

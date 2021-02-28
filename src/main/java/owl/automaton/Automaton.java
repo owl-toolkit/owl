@@ -29,8 +29,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -60,7 +60,7 @@ import owl.bdd.MtBdd;
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
  */
-public interface Automaton<S, A extends OmegaAcceptance> {
+public interface Automaton<S, A extends EmersonLeiAcceptance> {
 
   // Parameters
 

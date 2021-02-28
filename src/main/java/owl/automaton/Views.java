@@ -39,7 +39,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
@@ -71,7 +71,7 @@ public final class Views {
       acceptance = ((ParityAcceptance) acceptance).withAcceptanceSets(2);
     }
 
-    OmegaAcceptance finalAcceptance = acceptance;
+    EmersonLeiAcceptance finalAcceptance = acceptance;
     BitSet rejectingSet = acceptance.rejectingSet()
       .orElseThrow(() -> new NoSuchElementException("No rejecting set for " + finalAcceptance));
     return new Complete<>(automaton, Edge.of(trapState, rejectingSet), acceptance);
@@ -88,12 +88,12 @@ public final class Views {
    * @param <A> the type of
    * @return a on-the-fly generated view on the automaton.
    */
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> filtered(
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> filtered(
     Automaton<S, A> automaton, Filter<S> filter) {
     return new AutomatonView<>(automaton, filter);
   }
 
-  private static class Complete<S, A extends OmegaAcceptance, B extends OmegaAcceptance>
+  private static class Complete<S, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>
     implements Automaton<S, B> {
 
     private final Edge<S> sinkEdge;
@@ -278,7 +278,7 @@ public final class Views {
     }
   }
 
-  private static final class AutomatonView<S, A extends OmegaAcceptance>
+  private static final class AutomatonView<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     private final Automaton<S, A> backingAutomaton;
@@ -390,7 +390,7 @@ public final class Views {
    * @param mappingFunction function from S to T
    * @return Output automaton where states are mapped from S to T (and possibly quotiented)
    */
-  public static <S, T, A extends OmegaAcceptance> Automaton<T, A>
+  public static <S, T, A extends EmersonLeiAcceptance> Automaton<T, A>
     quotientAutomaton(Automaton<S, A> automaton, Function<? super S, ? extends T> mappingFunction) {
 
     Map<S, T> mapping = new HashMap<>();
@@ -405,7 +405,7 @@ public final class Views {
     return new QuotientAutomaton<>(automaton, Map.copyOf(mapping), reverseMappingBuilder.build());
   }
 
-  private static class QuotientAutomaton<S, T, A extends OmegaAcceptance>
+  private static class QuotientAutomaton<S, T, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, A> {
 
     private final Automaton<S, A> automaton;

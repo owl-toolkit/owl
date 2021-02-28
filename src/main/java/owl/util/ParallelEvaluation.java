@@ -30,7 +30,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.function.Supplier;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 
 /**
  * This class provides static methods that evaluate the list of suppliers in parallel.
@@ -42,7 +42,7 @@ public final class ParallelEvaluation {
   @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
   public static <T> List<T> evaluate(List<? extends Supplier<Optional<T>>> suppliers) {
     ExecutorService executorService = Executors.newCachedThreadPool();
-    List<Future<Optional<T>>> futures = new ArrayList<>();
+    List<Future<Optional<? extends T>>> futures = new ArrayList<>();
 
     // All suppliers, except the first one, are executed by the executor, i.e., on another thread.
     for (int i = 1, s = suppliers.size(); i < s; i++) {
@@ -53,7 +53,7 @@ public final class ParallelEvaluation {
     suppliers.get(0).get().ifPresent(results::add);
 
     // Retrieve results.
-    for (Future<Optional<T>> future : futures) {
+    for (Future<Optional<? extends T>> future : futures) {
       try {
         Uninterruptibles.getUninterruptibly(future).ifPresent(results::add);
       } catch (ExecutionException e) {
@@ -65,8 +65,8 @@ public final class ParallelEvaluation {
     return results;
   }
 
-  public static <S, A extends OmegaAcceptance> Automaton<S, A> takeSmallest(
-    List<? extends Automaton<S, A>> automata) {
+  public static <A extends EmersonLeiAcceptance> Automaton<?, A> takeSmallest(
+    List<? extends Automaton<?, A>> automata) {
 
     if (automata.isEmpty()) {
       throw new NoSuchElementException();
@@ -98,8 +98,9 @@ public final class ParallelEvaluation {
   }
 
   @SuppressWarnings({"unchecked", "raw"})
-  public static <A extends OmegaAcceptance> Automaton<?, A> takeSmallestWildcardStateType(
-    List<Automaton<?, A>> automata) {
+  public static <A extends EmersonLeiAcceptance> Automaton<?, ? extends A>
+    takeSmallestWildcardStateType(
+    List<? extends Automaton<?, ? extends A>> automata) {
     return takeSmallest((List) automata);
   }
 }

@@ -19,27 +19,19 @@
 
 package owl.automaton.acceptance;
 
-import java.util.BitSet;
+import java.util.List;
 import java.util.Optional;
 import owl.logic.propositional.PropositionalFormula;
 
-public final class AllAcceptance extends OmegaAcceptance {
+public final class AllAcceptance extends GeneralizedBuchiAcceptance {
   public static final AllAcceptance INSTANCE = new AllAcceptance();
 
-  private AllAcceptance() {}
+  private AllAcceptance() {
+    super(0);
+  }
 
-  public static Optional<AllAcceptance> of(PropositionalFormula<Integer> formula) {
+  public static Optional<AllAcceptance> ofPartial(PropositionalFormula<Integer> formula) {
     return formula.isTrue() ? Optional.of(INSTANCE) : Optional.empty();
-  }
-
-  @Override
-  public int acceptanceSets() {
-    return 0;
-  }
-
-  @Override
-  public PropositionalFormula<Integer> booleanExpression() {
-    return PropositionalFormula.trueConstant();
   }
 
   @Override
@@ -48,12 +40,7 @@ public final class AllAcceptance extends OmegaAcceptance {
   }
 
   @Override
-  public Optional<BitSet> acceptingSet() {
-    return Optional.of(new BitSet(0));
-  }
-
-  @Override
-  public Optional<BitSet> rejectingSet() {
-    return Optional.empty();
+  public List<Object> nameExtra() {
+    return List.of();
   }
 }

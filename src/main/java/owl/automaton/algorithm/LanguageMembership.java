@@ -27,7 +27,7 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.UltimatelyPeriodicWord;
-import owl.automaton.acceptance.OmegaAcceptance;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 
 public final class LanguageMembership {
@@ -35,7 +35,7 @@ public final class LanguageMembership {
   private LanguageMembership() {
   }
 
-  public static <S, A extends OmegaAcceptance> boolean contains(Automaton<S, A> automaton,
+  public static <S, A extends EmersonLeiAcceptance> boolean contains(Automaton<S, A> automaton,
     UltimatelyPeriodicWord word) {
     return !LanguageEmptiness.isEmpty(new IndexedAutomaton<>(automaton, word));
   }
@@ -52,7 +52,7 @@ public final class LanguageMembership {
     }
   }
 
-  private static final class IndexedAutomaton<S, A extends OmegaAcceptance>
+  private static final class IndexedAutomaton<S, A extends EmersonLeiAcceptance>
     extends
     AbstractMemoizingAutomaton.EdgesImplementation<IndexedState<S>, A> {
 

@@ -27,6 +27,8 @@ import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.DN
 import static owl.cinterface.StateFeatures.extract;
 import static owl.cinterface.StateFeatures.extractFeaturesFromEquivalenceClass;
 import static owl.collections.Collections3.hasDistinctValues;
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation;
+import static owl.translations.LtlTranslationRepository.Option;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.CHECK;
@@ -54,6 +56,7 @@ import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -66,13 +69,13 @@ import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.parser.LtlParser;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
-import owl.translations.modules.LTL2DPAModule;
 
 public class CAutomatonTest {
 
@@ -220,7 +223,9 @@ public class CAutomatonTest {
     {"PMD.EmptyCatchBlock", "PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingNPE"})
   @Test
   void testStateFeaturesExtractionForFormulaDatabase() throws IOException {
-    var translation = LTL2DPAModule.translation(false, false, true);
+    var translation = LtlToDpaTranslation.SEJK16_EKRS17.translation(
+      ParityAcceptance.class,
+      EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS));
 
     for (var test : TEST_DATA.entrySet()) {
       List<TestCase> features = new ArrayList<>();
