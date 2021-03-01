@@ -1,4 +1,4 @@
-FROM ubuntu:latest
+FROM ubuntu:20.10
 
 MAINTAINER Salomon Sickert
 
@@ -20,18 +20,18 @@ RUN apt-get -q update \
 
 ## Download, verify, unpack, and install
 
-RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/graalvm-ce-java11-linux-amd64-20.3.0.tar.gz \
-    && echo '557aafd6f4fb8c103ce853adda452a7dc3eeca2ef1af00940b70efafe00fb3d5 graalvm-ce-java11-linux-amd64-20.3.0.tar.gz' | sha256sum --check \
-    && tar -zxvf graalvm-ce-java11-linux-amd64-20.3.0.tar.gz \
-    && rm graalvm-ce-java11-linux-amd64-20.3.0.tar.gz \
-    && mv graalvm-ce-java11-20.3.0 /opt/
+RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.0.0.2/graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
+    && echo 'bd3fbe796e803c4fe5cd089371588d3d716fa3cdb653fe8dd6dba31b57bef934 graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz' | sha256sum --check \
+    && tar -zxvf graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
+    && rm graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
+    && mv graalvm-ce-java11-21.0.0.2 /opt/
 
-ENV PATH=/opt/graalvm-ce-java11-20.3.0/bin/:$PATH
-ENV JAVA_HOME=/opt/graalvm-ce-java11-20.3.0/
+ENV PATH=/opt/graalvm-ce-java11-21.0.0.2/bin/:$PATH
+ENV JAVA_HOME=/opt/graalvm-ce-java11-21.0.0.2/
 
-RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-20.3.0/native-image-installable-svm-java11-linux-amd64-20.3.0.jar \
-    && echo '6e67f3c5cc329956fe9bc33d571c2e771eff8f4f541bca275bb62744026d3726 native-image-installable-svm-java11-linux-amd64-20.3.0.jar' | sha256sum --check \
-    && gu -L install native-image-installable-svm-java11-linux-amd64-20.3.0.jar
+RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.0.0.2/native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar \
+    && echo '24e5a08e2714aee343b22c266285090721ff882ab0a31b7e8e4a68585c38f421 native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar' | sha256sum --check \
+    && gu -L install native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar
 
 # Spot
 
