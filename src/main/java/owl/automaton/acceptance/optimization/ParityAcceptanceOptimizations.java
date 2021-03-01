@@ -19,10 +19,10 @@
 
 package owl.automaton.acceptance.optimization;
 
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -64,8 +64,7 @@ public final class ParityAcceptanceOptimizations {
     int usedAcceptanceSets = 0;
 
     for (Set<S> scc : sccs) {
-      Int2IntMap reductionMapping = new Int2IntOpenHashMap();
-      reductionMapping.defaultReturnValue(-1);
+      Map<Integer, Integer> reductionMapping = new HashMap<>();
       SortedSet<Integer> usedPriorities = new TreeSet<>();
 
       // Determine the used priorities
@@ -91,9 +90,9 @@ public final class ParityAcceptanceOptimizations {
         usedAcceptanceSets = Math.max(usedAcceptanceSets, currentTarget + 1);
       }
 
-      automaton.updateEdges(scc, (state, edge) -> scc.contains(edge.successor()) && !edge.colours()
-          .isEmpty()
-        ? edge.withAcceptance(reductionMapping.get(edge.smallestAcceptanceSet()))
+      automaton.updateEdges(scc, (state, edge) -> scc.contains(edge.successor())
+        && !edge.colours().isEmpty()
+        ? edge.withAcceptance(reductionMapping.getOrDefault(edge.smallestAcceptanceSet(), -1))
         : edge.withoutAcceptance());
       automaton.trim();
     }

@@ -20,10 +20,6 @@
 package owl.game.algorithms;
 
 import com.google.auto.value.AutoValue;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -36,6 +32,7 @@ import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
+import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -80,8 +77,7 @@ public final class OinkGameSolver implements ParityGameSolver {
 
   public static <S> Map<Integer, S> toOinkInstance(
     Game<S, ? extends ParityAcceptance> game, PrintWriter writer) {
-    Object2IntMap<PriorityState<S>> oinkNumbering = new Object2IntLinkedOpenHashMap<>();
-    oinkNumbering.defaultReturnValue(-1);
+    Map<PriorityState<S>, Integer> oinkNumbering = new HashMap<>();
 
     Map<Integer, S> reverseMapping = new HashMap<>();
 
@@ -142,13 +138,13 @@ public final class OinkGameSolver implements ParityGameSolver {
       }
 
       boolean first = true;
-      IntSet printed = new IntOpenHashSet();
+      BitSet printed = new BitSet();
       while (it.hasNext()) {
         Edge<S> edge = it.next();
         S successor = edge.successor();
         int statePriority = edge.largestAcceptanceSet();
-        int successorIndex = oinkNumbering.getInt(PriorityState.of(successor, statePriority));
-        if (printed.add(successorIndex)) {
+        int successorIndex = oinkNumbering.get(PriorityState.of(successor, statePriority));
+        if (printed.get(successorIndex)) {
           if (successorIndex < 0) {
             throw new OinkExecutionException("Illegal successor index.");
           }
@@ -158,6 +154,7 @@ public final class OinkGameSolver implements ParityGameSolver {
           first = false;
           writer.print(successorIndex);
         }
+        printed.set(successorIndex);
       }
       writer.print(" \"");
       writer.print(pair.state());

@@ -20,11 +20,11 @@
 package owl.bdd.jbdd;
 
 import de.tum.in.jbdd.Bdd;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.annotation.Nullable;
@@ -33,8 +33,8 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
   private static final Logger logger = Logger.getLogger(JBddGcManagedFactory.class.getName());
 
   final Bdd bdd;
-  private final Int2ObjectMap<JBddNodeReference<V>> gcObjects = new Int2ObjectOpenHashMap<>();
-  private final Int2ObjectMap<V> nonGcObjects = new Int2ObjectOpenHashMap<>();
+  private final Map<Integer, JBddNodeReference<V>> gcObjects = new HashMap<>();
+  private final Map<Integer, V> nonGcObjects = new HashMap<>();
   private final ReferenceQueue<V> queue = new ReferenceQueue<>();
 
   JBddGcManagedFactory(Bdd bdd) {

@@ -29,7 +29,6 @@ import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.base.Preconditions;
 import de.tum.in.jbdd.Bdd;
-import de.tum.in.naturals.bitset.BitSets;
 import java.math.BigInteger;
 import java.util.AbstractSet;
 import java.util.BitSet;
@@ -44,6 +43,7 @@ import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.BitSet2;
 import owl.logic.propositional.PropositionalFormula;
 
 final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddSetFactory {
@@ -312,14 +312,14 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       // TODO Make this native to the bdd?
       int variables = factory.bdd.numberOfVariables();
 
-      BitSet restrictedVariables = owl.collections.BitSet2.copyOf(restriction);
+      BitSet restrictedVariables = BitSet2.copyOf(restriction);
       restrictedVariables.flip(0, variables);
 
       int restrict = factory.bdd.restrict(node, restrictedVariables, new BitSet());
       factory.bdd.forEachPath(restrict, (solution, solutionSupport) -> {
         assert !solution.intersects(restrictedVariables);
         solutionSupport.xor(restriction);
-        BitSets.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
+        BitSet2.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
           solution.or(nonRelevantValuation);
           action.accept(solution);
           solution.andNot(nonRelevantValuation);

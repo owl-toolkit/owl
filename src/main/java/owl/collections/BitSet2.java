@@ -155,19 +155,19 @@ public final class BitSet2 {
   }
 
   public static BitSet union(BitSet a, BitSet b) {
-    BitSet ret = (BitSet)a.clone();
+    BitSet ret = (BitSet) a.clone();
     ret.or(b);
     return ret;
   }
 
   public static BitSet intersection(BitSet a, BitSet b) {
-    BitSet ret = (BitSet)a.clone();
+    BitSet ret = (BitSet) a.clone();
     ret.and(b);
     return ret;
   }
 
   public static BitSet without(BitSet a, BitSet b) {
-    BitSet ret = (BitSet)a.clone();
+    BitSet ret = (BitSet) a.clone();
     ret.andNot(b);
     return ret;
   }
@@ -318,6 +318,99 @@ public final class BitSet2 {
     @Override
     public int size() {
       return bitSet.cardinality();
+    }
+  }
+
+  /**
+   * Returns an iterator over all BitSets with length at most i.
+   *
+   * @param i the maximal length.
+   * @return each next()-call constructs a fresh BitSet.
+   */
+  public static Iterable<BitSet> powerSet(int i) {
+    return () -> new PowerBitSetSimpleIterator(i);
+  }
+
+  public static Iterable<BitSet> powerSet(BitSet basis) {
+    int length = basis.length();
+
+    if (length == basis.cardinality()) {
+      return powerSet(length);
+    }
+
+    return () -> new PowerBitSetIterator(copyOf(basis));
+  }
+
+  private static final class PowerBitSetSimpleIterator implements Iterator<BitSet> {
+
+    private final long maxValue;
+    private long value;
+
+    private PowerBitSetSimpleIterator(int size) {
+      Objects.checkIndex(size, 40);
+      this.maxValue =  1L << ((long) size);
+      this.value = 0;
+    }
+
+    @Override
+    public boolean hasNext() {
+      return value < maxValue;
+    }
+
+    @Override
+    public BitSet next() {
+      if (!hasNext()) {
+        throw new NoSuchElementException("No next element");
+      }
+
+      BitSet bitSet = BitSet.valueOf(new long[]{value});
+      value++;
+      return bitSet;
+    }
+  }
+
+  private static final class PowerBitSetIterator implements Iterator<BitSet> {
+    private final BitSet baseSet;
+    private final BitSet iteration;
+    private final int baseCardinality;
+    private int numSetBits = -1;
+
+    private PowerBitSetIterator(BitSet baseSet) {
+      this.baseSet = baseSet;
+      this.baseCardinality = baseSet.cardinality();
+      this.iteration = new BitSet(baseSet.length());
+    }
+
+    @Override
+    public boolean hasNext() {
+      return numSetBits < baseCardinality;
+    }
+
+    @Override
+    public BitSet next() {
+      if (numSetBits == -1) {
+        numSetBits = 0;
+        return iteration;
+      }
+
+      if (numSetBits == baseCardinality) {
+        throw new NoSuchElementException("No next element");
+      }
+
+      var iterator = baseSet.stream().iterator();
+      while (iterator.hasNext()) {
+        int index = iterator.nextInt();
+        if (iteration.get(index)) {
+          iteration.clear(index);
+          numSetBits -= 1;
+        } else {
+          iteration.set(index);
+          numSetBits += 1;
+          break;
+        }
+      }
+
+      return iteration;
     }
   }
 }

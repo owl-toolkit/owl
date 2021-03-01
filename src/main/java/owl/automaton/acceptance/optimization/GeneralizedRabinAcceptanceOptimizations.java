@@ -25,21 +25,14 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.SortedSetMultimap;
 import com.google.common.collect.TreeMultimap;
-import de.tum.in.naturals.Indices;
-import de.tum.in.naturals.bitset.BitSets;
-import it.unimi.dsi.fastutil.ints.Int2ObjectAVLTreeMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.ints.IntAVLTreeSet;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.ints.IntSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.SortedMap;
@@ -50,7 +43,6 @@ import java.util.function.IntConsumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.MutableAutomaton;
@@ -76,11 +68,11 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     List<RabinPair> pairs = acceptance.pairs().stream()
       .filter(RabinPair::hasInfSet)
       .collect(Collectors.toList());
-    List<IntSet> pairComplementaryInfSets = new ArrayList<>(pairs.size());
+    List<BitSet> pairComplementaryInfSets = new ArrayList<>(pairs.size());
 
     for (RabinPair pair : pairs) {
-      IntSet pairInfSets = new IntAVLTreeSet();
-      pair.forEachInfSet(pairInfSets::add);
+      BitSet pairInfSets = new BitSet();
+      pair.forEachInfSet(pairInfSets::set);
       pairComplementaryInfSets.add(pairInfSets);
     }
 
@@ -90,10 +82,16 @@ public final class GeneralizedRabinAcceptanceOptimizations {
         int pairIndex = iterator.nextIndex();
         RabinPair pair = iterator.next();
 
-        IntSet pairComplementary = pairComplementaryInfSets.get(pairIndex);
+        BitSet pairComplementary = pairComplementaryInfSets.get(pairIndex);
         assert !pairComplementary.isEmpty();
         boolean finEdge = edge.colours().contains(pair.finSet());
-        pairComplementary.removeIf((int i) -> finEdge == edge.colours().contains(i));
+
+        for (int i = pairComplementary.nextSetBit(0); i >= 0;
+             i = pairComplementary.nextSetBit(i + 1)) {
+          if (finEdge == edge.colours().contains(i)) {
+            pairComplementary.clear(i);
+          }
+        }
 
         if (pairComplementary.isEmpty()) {
           iterator.remove();
@@ -102,8 +100,8 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       }
     });
 
-    IntSet indicesToRemove = new IntAVLTreeSet();
-    pairComplementaryInfSets.forEach(indicesToRemove::addAll);
+    BitSet indicesToRemove = new BitSet();
+    pairComplementaryInfSets.forEach(indicesToRemove::or);
 
     if (indicesToRemove.isEmpty()) {
       return;
@@ -112,7 +110,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     logger.log(Level.FINER, "Removing complementary indices {0}", indicesToRemove);
 
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    automaton.acceptance(acceptance.filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -134,11 +132,15 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> edge.colours().forEach(
       (int index) -> {
         BitSet consequences = impliesMap[index];
-        BitSets.forEach(consequences, consequent -> {
-          if (!edge.colours().contains(consequent)) {
-            consequences.clear(consequent);
+
+        for (int i = consequences.nextSetBit(0);
+             i >= 0;
+             i = consequences.nextSetBit(i + 1)) {
+
+          if (!edge.colours().contains(i)) {
+            consequences.clear(i);
           }
-        });
+        }
       }));
 
     if (logger.isLoggable(Level.FINER)) {
@@ -148,22 +150,21 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       for (int index = 0; index < acceptanceSets; index++) {
         builder.append("\n  ").append(index).append(" => ");
         BitSet antecedent = impliesMap[index];
-        int i = index;
-        BitSets.forEach(antecedent, otherIndex -> {
-          if (i != otherIndex) {
-            builder.append(otherIndex).append(' ');
+        for (int i = antecedent.nextSetBit(0); i >= 0; i = antecedent.nextSetBit(i + 1)) {
+          if (index != i) {
+            builder.append(i).append(' ');
           }
-        });
+        }
       }
 
       logger.log(Level.FINER, builder.toString());
     }
 
-    IntSet indicesToRemove = new IntAVLTreeSet();
+    BitSet indicesToRemove = new BitSet();
 
     for (RabinPair pair : acceptance.pairs()) {
       pair.forEachInfSet(index -> {
-        if (indicesToRemove.contains(index)) {
+        if (indicesToRemove.get(index)) {
           // Avoid removing both sides of a bi-implication
           return;
         }
@@ -171,9 +172,9 @@ public final class GeneralizedRabinAcceptanceOptimizations {
         BitSet consequences = impliesMap[index];
         for (int consequenceIndex = consequences.nextSetBit(0); consequenceIndex >= 0;
              consequenceIndex = consequences.nextSetBit(consequenceIndex + 1)) {
-          if (consequenceIndex != index && !indicesToRemove.contains(consequenceIndex) && pair
+          if (consequenceIndex != index && !indicesToRemove.get(consequenceIndex) && pair
             .isInfinite(consequenceIndex)) {
-            indicesToRemove.add(consequenceIndex);
+            indicesToRemove.set(consequenceIndex);
           }
         }
       });
@@ -182,7 +183,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     logger.log(Level.FINEST, "Implication removal: {0}", indicesToRemove);
 
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    automaton.acceptance(acceptance.filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -199,16 +200,17 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       return;
     }
 
-    SortedMap<RabinPair, IntSet> pairActiveSccs = new TreeMap<>();
-    Indices.forEachIndexed(
-      SccDecomposition.of(automaton).sccsWithoutTransient(), (sccIndex, scc) -> {
-      Colours indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
-      pairs.forEach(pair -> {
+    SortedMap<RabinPair, BitSet> pairActiveSccs = new TreeMap<>();
+    List<Set<S>> elements = SccDecomposition.of(automaton).sccsWithoutTransient();
+
+    for (int i = 0, s = elements.size(); i < s; i++) {
+      Colours indices = AutomatonUtil.getAcceptanceSets(automaton, elements.get(i));
+      for (RabinPair pair : pairs) {
         if (pair.contains(indices)) {
-          pairActiveSccs.computeIfAbsent(pair, k -> new IntOpenHashSet()).add(sccIndex);
+          pairActiveSccs.computeIfAbsent(pair, k -> new BitSet()).set(i);
         }
-      });
-    });
+      }
+    }
 
     List<MergeClass> mergeClasses = new ArrayList<>(pairs.size());
     pairActiveSccs.forEach((pair, activeSccs) ->
@@ -230,36 +232,39 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       }
     }
 
-    Int2ObjectMap<IntSet> remapping = new Int2ObjectAVLTreeMap<>();
-    mergeClasses.forEach(mergeClass -> {
-      if (mergeClass.pairs.size() == 1) {
-        Iterables.getOnlyElement(mergeClass.pairs).forEachIndex(index ->
-          remapping.put(index, IntSets.singleton(index)));
+    Map<Integer, BitSet> remapping = new HashMap<>();
+
+    for (MergeClass aClass : mergeClasses) {
+      if (aClass.pairs.size() == 1) {
+        Iterables.getOnlyElement(aClass.pairs).forEachIndex(index ->
+          remapping.put(index, BitSet2.of(index)));
       }
 
       @Nonnegative
-      int representativeFin = mergeClass.representativeFin;
-      IntSet representativeInf = mergeClass.representativeInf;
-      int representativeInfCount = representativeInf.size();
+      int representativeFin = aClass.representativeFin;
+      BitSet representativeInf = aClass.representativeInf;
+      int representativeInfCount = representativeInf.cardinality();
 
-      for (RabinPair mergedPair : mergeClass.pairs) {
+      for (RabinPair mergedPair : aClass.pairs) {
         assert mergedPair.hasInfSet();
-        remapping.put(mergedPair.finSet(), IntSets.singleton(representativeFin));
+        remapping.put(mergedPair.finSet(), BitSet2.of(representativeFin));
 
         int mergedInfiniteCount = mergedPair.infSetCount();
         assert mergedInfiniteCount <= representativeInfCount;
-        PrimitiveIterator.OfInt infIterator = representativeInf.iterator();
+        PrimitiveIterator.OfInt infIterator = representativeInf.stream().iterator();
+
         for (int infiniteNumber = 0; infiniteNumber < mergedInfiniteCount - 1; infiniteNumber++) {
           remapping.put(mergedPair.infSet(infiniteNumber),
-            IntSets.singleton(infIterator.nextInt()));
+            BitSet2.of(infIterator.nextInt()));
         }
+
         int finalIndex = mergedPair.infSet(mergedInfiniteCount - 1);
-        IntSet finalSet = new IntAVLTreeSet();
-        infIterator.forEachRemaining((IntConsumer) finalSet::add);
+        BitSet finalSet = new BitSet();
+        infIterator.forEachRemaining((IntConsumer) finalSet::set);
         assert !finalSet.isEmpty();
         remapping.put(finalIndex, finalSet);
       }
-    });
+    }
 
     if (logger.isLoggable(Level.FINER)) {
       List<MergeClass> trueMerges = mergeClasses.stream()
@@ -273,11 +278,11 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       BitSet newAcceptance = new BitSet();
 
       edge.colours().forEach((int index) -> {
-        IntSet indexRemapping = remapping.get(index);
+        BitSet indexRemapping = remapping.get(index);
         if (indexRemapping == null) {
           newAcceptance.set(index);
         } else {
-          indexRemapping.forEach((IntConsumer) newAcceptance::set);
+          newAcceptance.or(indexRemapping);
         }
       });
 
@@ -285,10 +290,10 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     });
 
     // Delete the now superfluous indices
-    IntSet indicesToRemove = new IntAVLTreeSet(remapping.keySet());
-    remapping.values().forEach(indicesToRemove::removeAll);
+    BitSet indicesToRemove = new BitSet();
+    remapping.values().forEach(x -> indicesToRemove.andNot(x));
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.acceptance(automaton.acceptance().filter(indicesToRemove::contains));
+    automaton.acceptance(automaton.acceptance().filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -370,12 +375,18 @@ public final class GeneralizedRabinAcceptanceOptimizations {
             continue;
           }
 
-          edge.colours().forEach((int index) ->
-            BitSets.forEach(impliesMap[index], consequent -> {
-              if (!edge.colours().contains(consequent)) {
-                impliesMap[index].clear(consequent);
+          edge.colours().forEach((int index) -> {
+            var consequent = impliesMap[index];
+
+            for (int i = consequent.nextSetBit(0);
+                 i >= 0;
+                 i = consequent.nextSetBit(i + 1)) {
+
+              if (!edge.colours().contains(i)) {
+                consequent.clear(i);
               }
-            }));
+            }
+          });
         }
       }
 
@@ -505,11 +516,11 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       AcceptanceOptimizations.removeIndices(automaton, scc, indicesToRemoveInScc);
     }
 
-    IntSet indicesToRemove = new IntAVLTreeSet();
-    toRemove.forEach(pair -> pair.forEachIndex(indicesToRemove::add));
+    BitSet indicesToRemove = new BitSet();
+    toRemove.forEach(pair -> pair.forEachIndex(indicesToRemove::set));
 
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.acceptance(acceptance.filter(indicesToRemove::contains));
+    automaton.acceptance(acceptance.filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -568,19 +579,19 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       AcceptanceOptimizations.removeIndices(automaton, scc, indicesToRemove);
     }
 
-    IntSet indicesOnEveryEdge = new IntOpenHashSet(
-      IntStream.range(0, acceptance.acceptanceSets()).iterator());
-    IntSet occurringIndices = new IntOpenHashSet();
+    BitSet indicesOnEveryEdge = new BitSet();
+    indicesOnEveryEdge.set(0, acceptance.acceptanceSets());
+    BitSet occurringIndices = new BitSet();
 
     AutomatonUtil.forEachNonTransientEdge(automaton, (state, edge) -> {
-      edge.colours().forEach((IntConsumer) occurringIndices::add);
-      indicesOnEveryEdge.removeIf((int index) -> !edge.colours().contains(index));
+      edge.colours().copyInto(occurringIndices);
+      indicesOnEveryEdge.and(edge.colours().copyInto(new BitSet()));
     });
 
     Set<RabinPair> impossiblePairs = new HashSet<>();
 
     for (RabinPair pair : acceptance.pairs()) {
-      if (indicesOnEveryEdge.contains(pair.finSet())) {
+      if (indicesOnEveryEdge.get(pair.finSet())) {
         impossiblePairs.add(pair);
         continue;
       }
@@ -590,7 +601,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
       for (int i = 0; i < pair.infSetCount() && (!anyInfOccurring || !impossibleInfFound); i++) {
         int infiniteIndex = pair.infSet(i);
-        if (occurringIndices.contains(infiniteIndex)) {
+        if (occurringIndices.get(infiniteIndex)) {
           anyInfOccurring = true;
         } else {
           impossibleInfFound = true;
@@ -601,11 +612,11 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
     logger.log(Level.FINER, "Removing impossible pairs {0}", new Object[] {impossiblePairs});
 
-    IntSet indicesToRemove = new IntOpenHashSet();
-    impossiblePairs.forEach(pair -> pair.forEachIndex(indicesToRemove::add));
+    BitSet indicesToRemove = new BitSet();
+    impossiblePairs.forEach(pair -> pair.forEachIndex(indicesToRemove::set));
 
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.updateAcceptance(x -> x.filter(indicesToRemove::contains));
+    automaton.updateAcceptance(x -> x.filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
@@ -639,29 +650,29 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       }));
 
     // Remap and update acceptance condition.
-    var indicesToRemove = new IntOpenHashSet();
-    indicesToRemoveFin.stream().forEach(indicesToRemove::add);
-    indicesToRemoveInf.stream().forEach(indicesToRemove::add);
+    var indicesToRemove = new BitSet();
+    indicesToRemoveFin.stream().forEach(indicesToRemove::set);
+    indicesToRemoveInf.stream().forEach(indicesToRemove::set);
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
-    automaton.updateAcceptance(x -> x.filter(indicesToRemove::contains));
+    automaton.updateAcceptance(x -> x.filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
   }
 
   private static final class MergeClass {
-    final IntSet activeSccIndices;
+    final BitSet activeSccIndices;
     final SortedSet<RabinPair> pairs;
 
     @Nonnegative
     final int representativeFin;
-    final IntSet representativeInf;
+    final BitSet representativeInf;
 
-    MergeClass(RabinPair pair, IntSet activeIndices) {
+    MergeClass(RabinPair pair, BitSet activeIndices) {
       this.pairs = new TreeSet<>();
       this.pairs.add(pair);
-      this.activeSccIndices = new IntAVLTreeSet(activeIndices);
+      this.activeSccIndices = BitSet2.copyOf(activeIndices);
       representativeFin = pair.finSet();
-      representativeInf = new IntAVLTreeSet();
-      pair.forEachInfSet(representativeInf::add);
+      representativeInf = new BitSet();
+      pair.forEachInfSet(representativeInf::set);
     }
 
     @Override
@@ -676,18 +687,18 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
       assert Sets.intersection(pairs, other.pairs).isEmpty();
 
-      if (!Collections.disjoint(activeSccIndices, other.activeSccIndices)) {
+      if (activeSccIndices.intersects(other.activeSccIndices)) {
         return false;
       }
 
-      if (representativeInf.size() < other.representativeInf.size()) {
+      if (representativeInf.cardinality() < other.representativeInf.cardinality()) {
         return false;
       }
 
       assert other.pairs.stream().allMatch(pair ->
-        pair.infSetCount() <= representativeInf.size());
+        pair.infSetCount() <= representativeInf.cardinality());
 
-      this.activeSccIndices.addAll(other.activeSccIndices);
+      this.activeSccIndices.or(other.activeSccIndices);
       this.pairs.addAll(other.pairs);
       return true;
     }

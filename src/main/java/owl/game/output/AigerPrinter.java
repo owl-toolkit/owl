@@ -21,7 +21,6 @@ package owl.game.output;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import de.tum.in.naturals.Indices;
 import java.io.BufferedWriter;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -230,23 +229,23 @@ public class AigerPrinter implements AigConsumer {
      */
 
     // print symbol table
-    Indices.forEachIndexed(inputNames, (j, name) -> {
-      if (!name.isEmpty()) {
-        writer.println("i" + j + ' ' + name);
+    for (int i2 = 0, s2 = inputNames.size(); i2 < s2; i2++) {
+      if (!inputNames.get(i2).isEmpty()) {
+        writer.println("i" + i2 + ' ' + inputNames.get(i2));
       }
-    });
+    }
 
-    Indices.forEachIndexed(latchNames, (j, name) -> {
-      if (!name.isEmpty()) {
-        writer.println("l" + j + ' ' + name);
+    for (int i1 = 0, s1 = latchNames.size(); i1 < s1; i1++) {
+      if (!latchNames.get(i1).isEmpty()) {
+        writer.println("l" + i1 + ' ' + latchNames.get(i1));
       }
-    });
+    }
 
-    Indices.forEachIndexed(outputNames, (j, name) -> {
-      if (!name.isEmpty()) {
-        writer.println("o" + j + ' ' + name);
+    for (int i = 0, s = outputNames.size(); i < s; i++) {
+      if (!outputNames.get(i).isEmpty()) {
+        writer.println("o" + i + ' ' + outputNames.get(i));
       }
-    });
+    }
 
     // print comments
     if (!comments.isEmpty()) {

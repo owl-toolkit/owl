@@ -22,10 +22,9 @@ package owl.automaton.hoa;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.common.collect.Iterables;
-import it.unimi.dsi.fastutil.ints.Int2ObjectLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -207,7 +206,7 @@ public final class HoaReader {
     private final MutableAutomaton<HoaState, ?> automaton;
     @Nullable
     private final int[] remapping;
-    private final Int2ObjectMap<HoaState> states;
+    private final List<HoaState> states;
     private final StoredAutomaton storedAutomaton;
     private final StoredHeader storedHeader;
     private final BddSetFactory vsFactory;
@@ -240,7 +239,7 @@ public final class HoaReader {
       if (name != null) {
         automaton.name(name);
       }
-      states = new Int2ObjectLinkedOpenHashMap<>(storedAutomaton.getNumberOfStates());
+      states = Arrays.asList(new HoaState[storedAutomaton.getNumberOfStates()]);
     }
 
     private static void check(boolean condition, String formatString, Object... args)
@@ -376,8 +375,8 @@ public final class HoaReader {
         int stateId = storedState.getStateId();
         HoaState state = new HoaState(stateId, storedState.getInfo());
 
-        assert !states.containsKey(stateId);
-        states.put(stateId, state);
+        assert states.get(stateId) == null;
+        states.set(stateId, state);
       }
 
       for (List<Integer> startState : storedHeader.getStartStates()) {

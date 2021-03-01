@@ -31,13 +31,13 @@ import static owl.cinterface.DecomposedDPA.Tree;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 
 import com.google.common.collect.Iterables;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
@@ -447,7 +447,7 @@ public final class CAutomaton {
         } else if (state.equals(automaton.canonicalRejectingState)) {
           featuresBuilder.add(REJECTING);
         } else {
-          featuresBuilder.add(automaton.state2indexMap.getInt(state));
+          featuresBuilder.add(automaton.state2indexMap.get(state));
         }
 
         for (StateFeatures.Feature feature : stateFeatures) {
@@ -591,9 +591,6 @@ public final class CAutomaton {
     static final int REJECTING = -1;
     static final int INITIAL = 0;
 
-    // Internal constants
-    private static final int UNKNOWN = Integer.MIN_VALUE;
-
     final Automaton<S, ?> automaton;
     final Acceptance acceptance;
     final int uncontrollableApSize;
@@ -601,12 +598,12 @@ public final class CAutomaton {
     // Mapping information
     private final Predicate<? super S> acceptingSink;
     private final List<S> index2StateMap;
-    private final Object2IntMap<S> state2indexMap;
+    private final Map<S, Integer> state2indexMap;
 
     // Additional features for C interface
     private final ToDoubleFunction<? super Edge<S>> qualityScore;
     private final Function<? super S, ? extends T> canonicalizer;
-    private final Object2IntMap<T> canonicalObjectId;
+    private final Map<T, Integer> canonicalObjectId;
 
     // Initial state caching.
     @Nullable
@@ -646,12 +643,10 @@ public final class CAutomaton {
       this.index2StateMap = new ArrayList<>();
       this.index2StateMap.add(this.automaton.onlyInitialState());
 
-      this.state2indexMap = new Object2IntOpenHashMap<>();
+      this.state2indexMap = new HashMap<>();
       this.state2indexMap.put(this.automaton.onlyInitialState(), INITIAL);
-      this.state2indexMap.defaultReturnValue(UNKNOWN);
 
-      this.canonicalObjectId = new Object2IntOpenHashMap<>();
-      this.canonicalObjectId.defaultReturnValue(UNKNOWN);
+      this.canonicalObjectId = new HashMap<>();
 
       this.canonicalizer = canonicalizer;
       this.uncontrollableApSize = uncontrollableApSize;
@@ -854,7 +849,7 @@ public final class CAutomaton {
 
       // TODO: better caching...
       T canonicalObject = this.canonicalizer.apply(index2StateMap.get(stateIndex));
-      return canonicalObjectId.computeIntIfAbsent(canonicalObject, x -> canonicalObjectId.size());
+      return canonicalObjectId.computeIfAbsent(canonicalObject, x -> canonicalObjectId.size());
     }
 
     private int index(@Nullable S state) {
@@ -866,12 +861,12 @@ public final class CAutomaton {
         return ACCEPTING;
       }
 
-      int index = state2indexMap.getInt(state);
+      Integer index = state2indexMap.get(state);
 
-      if (index == UNKNOWN) {
+      if (index == null) {
+        index = index2StateMap.size();
         index2StateMap.add(state);
-        state2indexMap.put(state, index2StateMap.size() - 1);
-        index = index2StateMap.size() - 1;
+        state2indexMap.put(state, index);
       }
 
       return index;
@@ -881,12 +876,12 @@ public final class CAutomaton {
       MtBdd<Edge<S>> edgeTree,
       SerialisedEdgeTree buffers,
       int treeBufferWriteBackPosition,
-      Object2IntMap<MtBdd<Edge<S>>> cachedPositions) {
+      Map<MtBdd<Edge<S>>, Integer> cachedPositions) {
 
       var treeBuffer = buffers.tree;
-      int position = cachedPositions.getInt(edgeTree);
+      Integer position = cachedPositions.get(edgeTree);
 
-      if (position == Integer.MIN_VALUE) {
+      if (position == null) {
 
         if (edgeTree instanceof MtBdd.Node) {
           var node = (MtBdd.Node<Edge<S>>) edgeTree;
@@ -979,9 +974,7 @@ public final class CAutomaton {
       }
 
       var serialisedEdgeTree = new SerialisedEdgeTree(computeScores);
-      var cachedPositions = new Object2IntOpenHashMap<MtBdd<Edge<S>>>();
-      cachedPositions.defaultReturnValue(Integer.MIN_VALUE);
-      serialise(edgeTree, serialisedEdgeTree, -1, cachedPositions);
+      serialise(edgeTree, serialisedEdgeTree, -1, new HashMap<>());
       return serialisedEdgeTree;
     }
   }

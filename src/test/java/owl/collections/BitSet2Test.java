@@ -20,11 +20,17 @@
 package owl.collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
+import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 public class BitSet2Test {
 
@@ -107,5 +113,22 @@ public class BitSet2Test {
     assertTrue(!bsFI.get(0) && !bsFI.get(2) && !bsFI.get(4)  && !bsFI.get(6));
     assertTrue(bsFI.get(1) && bsFI.get(3) && bsFI.get(5));
     assertEquals(intSet, BitSet2.toInt(bsFI));
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7, 21})
+  void bitSetPowerSet(int i) {
+    // i = 21 takes 350ms on a MacBook Pro 2019.
+    assertTimeout(Duration.ofSeconds(1), () -> {
+      List<BitSet> bitSetList = new ArrayList<>();
+
+      for (BitSet bitSet : BitSet2.powerSet(i)) {
+        assertTrue(bitSet.length() <= i);
+        bitSetList.add(bitSet);
+      }
+
+      assertEquals(1 << i, bitSetList.size());
+      assertTrue(Collections3.isDistinct(bitSetList));
+    });
   }
 }

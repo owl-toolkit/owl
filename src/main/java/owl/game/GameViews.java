@@ -29,8 +29,6 @@ import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
-import de.tum.in.naturals.Indices;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -61,6 +59,7 @@ import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
+import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
@@ -336,7 +335,7 @@ public final class GameViews {
           this.firstPlayer.set(index);
         }
       }
-      secondPlayer = owl.collections.BitSet2.copyOf(this.firstPlayer);
+      secondPlayer = BitSet2.copyOf(this.firstPlayer);
       secondPlayer.flip(0, automaton.atomicPropositions().size());
     }
 
@@ -354,17 +353,17 @@ public final class GameViews {
       if (node.isFirstPlayersTurn()) {
         // First player chooses his part of the valuation
 
-        for (BitSet valuation : BitSets.powerSet(firstPlayer)) {
+        for (BitSet valuation : BitSet2.powerSet(firstPlayer)) {
           BddSet valuationSet = factory.of(valuation, firstPlayer);
           edges.merge(Edge.of(Node.of(node.state(), valuation)), valuationSet, BddSet::union);
         }
       } else {
         // Second player completes the valuation, yielding a transition in the automaton
 
-        for (BitSet valuation : BitSets.powerSet(secondPlayer)) {
+        for (BitSet valuation : BitSet2.powerSet(secondPlayer)) {
           BddSet vs = factory.of(valuation, secondPlayer);
 
-          BitSet joined = owl.collections.BitSet2.copyOf(valuation);
+          BitSet joined = BitSet2.copyOf(valuation);
           joined.or(node.firstPlayerChoice());
           Edge<S> edge = automaton.edge(node.state(), joined);
           checkNotNull(edge, "Automaton not complete in state %s with valuation %s",
@@ -395,7 +394,7 @@ public final class GameViews {
         automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
           if (successor.state().equals(edge.successor())) {
             valuations.toSet().forEach((Consumer<? super BitSet>) set -> {
-              BitSet localSet = owl.collections.BitSet2.copyOf(set);
+              BitSet localSet = BitSet2.copyOf(set);
               localSet.and(firstPlayer);
               predecessors.add(Node.of(predecessor, localSet));
             });
@@ -415,12 +414,13 @@ public final class GameViews {
     @Override
     public List<String> variables(Owner owner) {
       List<String> variables = new ArrayList<>();
+      List<String> elements = atomicPropositions();
 
-      Indices.forEachIndexed(atomicPropositions(), (i, s) -> {
+      for (int i = 0, s = elements.size(); i < s; i++) {
         if (owner == Owner.PLAYER_1 ^ !firstPlayer.get(i)) {
-          variables.add(s);
+          variables.add(elements.get(i));
         }
-      });
+      }
 
       return variables;
     }
@@ -437,7 +437,7 @@ public final class GameViews {
       if (owner == Owner.PLAYER_1) {
         BitSet choice = state.firstPlayerChoice();
         assert choice != null;
-        return owl.collections.BitSet2.copyOf(choice);
+        return BitSet2.copyOf(choice);
       }
 
       var valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
@@ -462,7 +462,7 @@ public final class GameViews {
     }
 
     static <S> Node<S> of(S state, BitSet choice) {
-      return new AutoValue_GameViews_Node<>(state, owl.collections.BitSet2.copyOf(choice));
+      return new AutoValue_GameViews_Node<>(state, BitSet2.copyOf(choice));
     }
 
     @Override

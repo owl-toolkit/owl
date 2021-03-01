@@ -45,7 +45,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParseException;
 import com.google.gson.reflect.TypeToken;
-import de.tum.in.naturals.bitset.BitSets;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -70,6 +69,7 @@ import javax.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.collections.BitSet2;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -117,7 +117,7 @@ public class CAutomatonTest {
     var states = automaton.states();
 
     var expectedDnfFeatures = new HashSet<Feature>();
-    BitSets.powerSet(4).forEach(x -> {
+    BitSet2.powerSet(4).forEach(x -> {
       var profile = (BitSet) x.clone();
       profile.set(0);
       expectedDnfFeatures.add(

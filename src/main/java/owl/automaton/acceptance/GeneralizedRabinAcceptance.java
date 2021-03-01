@@ -378,7 +378,7 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
 
   public static final class Builder {
     private final List<RabinPair> pairs = new ArrayList<>();
-    private int sets;
+    private int sets = 0;
 
     public RabinPair add(@Nonnegative int infSets) {
       RabinPair pair = new RabinPair(sets, sets + infSets);

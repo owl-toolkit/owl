@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import com.google.common.collect.Maps;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +33,7 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
+import owl.collections.BitSet2;
 import owl.ltl.parser.LtlParser;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
@@ -53,7 +53,7 @@ class AutomatonFactoryTest {
     var initialState = automaton.onlyInitialState();
     var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
 
-    for (BitSet valuation : BitSets.powerSet(automaton.atomicPropositions().size())) {
+    for (BitSet valuation : BitSet2.powerSet(automaton.atomicPropositions().size())) {
       var edge = automaton.edge(initialState, valuation);
       var matchingEdges = Maps.filterValues(edgeMap, x -> x.contains(valuation)).keySet();
 

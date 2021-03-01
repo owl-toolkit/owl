@@ -30,7 +30,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.BitSet;
 import java.util.Collection;
@@ -45,7 +44,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -424,52 +422,6 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> of(A acceptance,
     BddSetFactory vsFactory) {
     return new HashMapAutomaton<>(vsFactory, acceptance);
-  }
-
-  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> of(A acceptance,
-    BddSetFactory vsFactory, Collection<S> initialStates,
-    BiFunction<S, BitSet, Edge<S>> successors, Function<S, BitSet> alphabet) {
-    HashMapAutomaton<S, A> automaton = new HashMapAutomaton<>(vsFactory, acceptance);
-    initialStates.forEach(automaton::addInitialState);
-    Set<S> exploredStates = new HashSet<>(initialStates);
-    Deque<S> workQueue = new ArrayDeque<>(exploredStates);
-
-    int alphabetSize = automaton.atomicPropositions().size();
-
-    while (!workQueue.isEmpty()) {
-      S state = workQueue.remove();
-
-      BitSet sensitiveAlphabet = alphabet.apply(state);
-      Set<BitSet> bitSets = sensitiveAlphabet == null
-        ? BitSets.powerSet(alphabetSize)
-        : BitSets.powerSet(sensitiveAlphabet);
-
-      for (BitSet valuation : bitSets) {
-        Edge<S> edge = successors.apply(state, valuation);
-
-        if (edge == null) {
-          continue;
-        }
-
-        BddSet valuationSet;
-
-        if (sensitiveAlphabet == null) {
-          valuationSet = vsFactory.of(valuation);
-        } else {
-          valuationSet = vsFactory.of(valuation, sensitiveAlphabet);
-        }
-
-        S successorState = edge.successor();
-
-        if (exploredStates.add(successorState)) {
-          workQueue.add(successorState);
-        }
-
-        automaton.addEdge(state, valuationSet, edge);
-      }
-    }
-
-    return automaton;
   }
 
   public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> copyOf(

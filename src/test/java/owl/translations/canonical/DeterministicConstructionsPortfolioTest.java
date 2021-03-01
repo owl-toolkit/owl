@@ -29,7 +29,6 @@ import static owl.translations.canonical.DeterministicConstructionsPortfolio.saf
 import static owl.translations.canonical.DeterministicConstructionsPortfolio.safetyCoSafety;
 import static owl.util.Assertions.assertThat;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -46,6 +45,7 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.hoa.HoaWriter;
+import owl.collections.BitSet2;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -234,7 +234,7 @@ class DeterministicConstructionsPortfolioTest {
     for (S state : automaton.states()) {
       var expectedEdges = automaton.edgeTree(state);
 
-      for (var valuation : BitSets.powerSet(automaton.atomicPropositions().size())) {
+      for (var valuation : BitSet2.powerSet(automaton.atomicPropositions().size())) {
         assertEquals(expectedEdges.get(valuation), automaton.edges(state, valuation));
       }
     }

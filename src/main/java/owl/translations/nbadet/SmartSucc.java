@@ -21,7 +21,6 @@ package owl.translations.nbadet;
 
 import com.google.common.graph.SuccessorsFunction;
 import com.google.common.graph.Traverser;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -75,7 +74,7 @@ public class SmartSucc<S> {
     if (node.isEmpty()) {
       return List.of(); //no states in this subtrie
     }
-    if (!BitSets.isDisjoint(pref, msk.fst())) {
+    if (pref.intersects(msk.fst())) {
       return List.of(); //seen forbidden states that have to stay high in the tree
     }
     if (i < msk.snd().size() && !BitSet2.without(msk.snd().get(i), pref).isEmpty()) {
@@ -363,7 +362,7 @@ public class SmartSucc<S> {
     var tmp = new BitSet();
     for (int i = k; i < th.size(); ++i) {
       tmp.or(th.get(i));
-      masks.add((BitSet)tmp.clone());
+      masks.add((BitSet) tmp.clone());
     }
     forbidden = BitSet2.without(th.get(0), tmp);
     return Pair.of(forbidden, masks);
@@ -381,9 +380,9 @@ public class SmartSucc<S> {
 
     final var msk = kCutMask(th2, k); //given k, gives latest appearance level and forbidden states
 
-    var tmp = new BitSet();
+    BitSet tmp = new BitSet();
     for (int i = k; i < th1.size(); i++) {
-      if (!BitSet2.intersection(th1.get(i), msk.fst()).isEmpty()) {
+      if (th1.get(i).intersects(msk.fst())) {
         return false; //states with ranks <k in th2 may not appear at >=k in th1
       }
 

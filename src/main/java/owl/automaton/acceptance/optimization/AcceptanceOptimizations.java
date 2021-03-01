@@ -20,12 +20,11 @@
 package owl.automaton.acceptance.optimization;
 
 import com.google.common.collect.Sets;
-import it.unimi.dsi.fastutil.ints.Int2IntAVLTreeMap;
-import it.unimi.dsi.fastutil.ints.Int2IntMap;
-import it.unimi.dsi.fastutil.ints.IntSet;
 import java.util.BitSet;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
@@ -217,32 +216,25 @@ public final class AcceptanceOptimizations {
     automaton.trim();
   }
 
-  static <S> Automaton<S, ?> collapseFinInf(Automaton<S, ?> automaton) {
-    return null;
-  }
-
-  static void removeAndRemapIndices(MutableAutomaton<?, ?> automaton, IntSet indicesToRemove) {
+  static void removeAndRemapIndices(MutableAutomaton<?, ?> automaton, BitSet indicesToRemove) {
     if (indicesToRemove.isEmpty()) {
       automaton.trim();
       return;
     }
 
     int acceptanceSets = automaton.acceptance().acceptanceSets();
-    Int2IntMap remapping = new Int2IntAVLTreeMap();
-    remapping.defaultReturnValue(Integer.MAX_VALUE);
+    Map<Integer, Integer> remapping = new HashMap<>();
 
     int newIndex = 0;
     for (int index = 0; index < acceptanceSets; index++) {
-      if (indicesToRemove.contains(index)) {
-        remapping.put(index, -1);
-      } else {
+      if (!indicesToRemove.get(index)) {
         remapping.put(index, newIndex);
         newIndex += 1;
       }
     }
 
     logger.log(Level.FINER, "Remapping acceptance indices: {0}", remapping);
-    automaton.updateEdges((state, edge) -> edge.mapAcceptance(remapping));
+    automaton.updateEdges((state, edge) -> edge.mapAcceptance(x -> remapping.getOrDefault(x, -1)));
     automaton.trim();
   }
 

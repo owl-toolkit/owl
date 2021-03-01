@@ -26,7 +26,6 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
-import de.tum.in.naturals.Indices;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -125,12 +124,12 @@ public final class RabinDegeneralization {
       // this SCC)
       Colours indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       List<Integer> sccTrackedPairs = new ArrayList<>(trackedPairsCount);
-      Indices.forEachIndexed(trackedPairs, (pairIndex, pair) -> {
-        assert pair.hasInfSet();
-        if (pair.infSetStream().allMatch(indices::contains)) {
-          sccTrackedPairs.add(pairIndex);
+      for (int i = 0, s = trackedPairs.size(); i < s; i++) {
+        assert trackedPairs.get(i).hasInfSet();
+        if (trackedPairs.get(i).infSetStream().allMatch(indices::contains)) {
+          sccTrackedPairs.add(i);
         }
-      });
+      }
 
       assert sccTrackedPairs.size() <= trackedPairsCount;
 
@@ -218,14 +217,13 @@ public final class RabinDegeneralization {
               }
 
               // Deal with sets which have no Fin set separately
-              Indices.forEachIndexed(noInfPairs, (noInfIndex, pair) -> {
-                int currentPairIndex = trackedPairsCount + noInfIndex;
+              for (int i = 0, s = noInfPairs.size(); i < s; i++) {
+                int currentPairIndex = trackedPairsCount + i;
                 RabinPair currentPair = rabinAcceptance.pairs().get(currentPairIndex);
-
-                edgeAcceptance.set(edge.colours().contains(pair.finSet())
+                edgeAcceptance.set(edge.colours().contains(noInfPairs.get(i).finSet())
                   ? currentPair.finSet()
                   : currentPair.infSet());
-              });
+              }
 
               var successor =
                 DegeneralizedRabinState.of(generalizedSuccessor, successorAwaitedIndices);

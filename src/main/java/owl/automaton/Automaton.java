@@ -20,7 +20,6 @@
 package owl.automaton;
 
 import com.google.common.collect.Iterables;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -37,6 +36,7 @@ import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
+import owl.collections.BitSet2;
 
 /**
  * An automaton over infinite words.
@@ -176,7 +176,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
       case EDGES:
         var edges = new HashSet<Edge<S>>();
 
-        for (BitSet valuation : BitSets.powerSet(atomicPropositions().size())) {
+        for (BitSet valuation : BitSet2.powerSet(atomicPropositions().size())) {
           edges.addAll(edges(state, valuation));
         }
 

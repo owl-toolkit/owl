@@ -20,21 +20,18 @@
 package owl.collections;
 
 import com.google.common.base.Preconditions;
-import it.unimi.dsi.fastutil.longs.LongArrayList;
-import it.unimi.dsi.fastutil.longs.LongList;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSet;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
-import java.util.PrimitiveIterator;
 import java.util.stream.Collectors;
+import javax.annotation.Nullable;
+import owl.util.ArraysSupport;
 
 /**
  * Bucket-based implementation of an upward-closed set.
  */
 public final class UpwardClosedSet {
-  private static final long[] EMPTY_ARRAY = new long[0];
+  private static final long[] EMPTY_ARRAY = {};
   private static final long[][] EMPTY_BUCKETS = {};
 
   private static final UpwardClosedSet EMPTY = new UpwardClosedSet();
@@ -44,7 +41,7 @@ public final class UpwardClosedSet {
 
   private UpwardClosedSet() {
     this.buckets = EMPTY_BUCKETS;
-    checkInvariants();
+    assert checkInvariants();
   }
 
   private UpwardClosedSet(long element) {
@@ -52,10 +49,10 @@ public final class UpwardClosedSet {
     this.buckets = new long[i + 1][];
     Arrays.fill(buckets, EMPTY_ARRAY);
     this.buckets[i] = new long[] {element};
-    checkInvariants();
+    assert checkInvariants();
   }
 
-  private UpwardClosedSet(LongList[] buckets) {
+  private UpwardClosedSet(long[][] buckets) {
     int size = buckets.length;
 
     while (0 < size && buckets[size - 1] == null) {
@@ -65,10 +62,10 @@ public final class UpwardClosedSet {
     this.buckets = new long[size][];
     Arrays.setAll(this.buckets, i -> {
       var bucket = buckets[i];
-      return bucket == null ? EMPTY_ARRAY : bucket.toLongArray();
+      return bucket == null ? EMPTY_ARRAY : bucket.clone();
     });
 
-    checkInvariants();
+    assert checkInvariants();
   }
 
   public static UpwardClosedSet of() {
@@ -101,16 +98,26 @@ public final class UpwardClosedSet {
   }
 
   public UpwardClosedSet intersection(UpwardClosedSet otherSet) {
-    LongList[] newBuckets = new LongList[this.buckets.length * otherSet.buckets.length];
-    LongSet seenElements = new LongOpenHashSet();
+    long[][] newBuckets = new long[this.buckets.length * otherSet.buckets.length][];
+    long[] seenElements = new long[newBuckets.length >> 1];
+    Arrays.fill(seenElements, Long.MAX_VALUE);
 
     for (long[] bucket1 : buckets) {
       for (long[] bucket2 : otherSet.buckets) {
         for (long element1 : bucket1) {
+          if (element1 == Long.MAX_VALUE) {
+            break;
+          }
+
           for (long element2 : bucket2) {
+            if (element2 == Long.MAX_VALUE) {
+              break;
+            }
+
             long intersection = element1 | element2;
 
-            if (seenElements.add(intersection)) {
+            if (Arrays.binarySearch(seenElements, intersection) < 0) {
+              insert(seenElements, intersection);
               insert(newBuckets, intersection);
             }
           }
@@ -124,6 +131,7 @@ public final class UpwardClosedSet {
   public List<BitSet> representatives() {
     return Arrays.stream(buckets)
       .flatMapToLong(Arrays::stream)
+      .filter(x -> x != Long.MAX_VALUE)
       .mapToObj(x -> BitSet.valueOf(new long[]{x}))
       .collect(Collectors.toUnmodifiableList());
   }
@@ -133,18 +141,28 @@ public final class UpwardClosedSet {
       return otherSet.union(this);
     }
 
-    LongList[] newBuckets = new LongList[this.buckets.length];
-    LongSet seenElements = new LongOpenHashSet();
+    long[][] newBuckets = new long[this.buckets.length][];
+    long[] seenElements = new long[this.buckets.length >> 1];
+    Arrays.fill(seenElements, Long.MAX_VALUE);
 
     Arrays.setAll(newBuckets, i -> {
-      var bucket = new LongArrayList(this.buckets[i]);
-      seenElements.addAll(bucket);
+      long[] bucket = this.buckets[i].clone();
+
+      for (long element : bucket) {
+        if (element == Long.MAX_VALUE) {
+          break;
+        }
+
+        insert(seenElements, element);
+      }
+
       return bucket;
     });
 
     for (long[] bucket : otherSet.buckets) {
       for (long element : bucket) {
-        if (!seenElements.contains(element)) {
+        // the element is new.
+        if (Arrays.binarySearch(seenElements, element) < 0) {
           insert(newBuckets, element);
         }
       }
@@ -153,24 +171,30 @@ public final class UpwardClosedSet {
     return new UpwardClosedSet(newBuckets);
   }
 
-  private void checkInvariants() {
+  private boolean checkInvariants() {
     for (int i = 0; i < buckets.length; i++) {
-      for (long element : buckets[i]) {
-        assert Long.bitCount(element) == i;
+      long[] bucket = buckets[i];
+
+      for (int j = 0; j < bucket.length; j++) {
+        long element = bucket[j];
+        long nextElement = j < bucket.length - 1 ? bucket[j + 1] : Long.MAX_VALUE;
+        assert element < nextElement
+          || (element == Long.MAX_VALUE && nextElement == Long.MAX_VALUE);
+        assert element == Long.MAX_VALUE || Long.bitCount(element) == i;
       }
     }
+
+    return true;
   }
 
-  private static void insert(LongList[] buckets, long newElement) {
+  private static void insert(long[][] buckets, long newElement) {
     int bitCount = Long.bitCount(newElement);
 
     for (int i = 0; i < bitCount; i++) {
       var bucket = buckets[i];
 
       if (bucket != null) {
-        for (PrimitiveIterator.OfLong iterator = bucket.iterator(); iterator.hasNext(); ) {
-          long oldElement = iterator.nextLong();
-
+        for (long oldElement : bucket) {
           if ((oldElement & newElement) == oldElement) {
             return;
           }
@@ -182,25 +206,51 @@ public final class UpwardClosedSet {
       var bucket = buckets[i];
 
       if (bucket != null) {
-        for (PrimitiveIterator.OfLong iterator = bucket.iterator(); iterator.hasNext(); ) {
-          long oldElement = iterator.nextLong();
+        for (int j = 0; j < bucket.length; j++) {
+          long oldElement = bucket[j];
 
           if ((oldElement & newElement) == newElement) {
-            iterator.remove();
+            bucket[j] = Long.MAX_VALUE;
           }
         }
+
+        // Move free-space to the end of array.
+        Arrays.sort(bucket);
       }
     }
 
-    var bucket = buckets[bitCount];
+    buckets[bitCount] = insert(buckets[bitCount], newElement);
+  }
 
-    if (bucket == null) {
-      bucket = new LongArrayList();
-      bucket.add(newElement);
-      buckets[bitCount] = bucket;
-    } else {
-      bucket.add(newElement);
+  private static long[] insert(@Nullable long[] bucket, long element) {
+    Preconditions.checkArgument(element != Long.MAX_VALUE);
+
+    if (bucket == null || bucket.length == 0) {
+      return new long[]{
+        element,        Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE,
+        Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE, Long.MAX_VALUE};
     }
+
+    if (bucket[bucket.length - 1] == Long.MAX_VALUE) {
+      int insertionPoint = -(Arrays.binarySearch(bucket, element) + 1);
+
+      if (insertionPoint < 0) {
+        return bucket;
+      }
+
+      System.arraycopy(
+        bucket, insertionPoint, // from
+        bucket, insertionPoint + 1, // to
+        bucket.length - 1 - insertionPoint);
+      bucket[insertionPoint] = element;
+      return bucket;
+    }
+
+    long[] newArray = Arrays.copyOf(bucket, ArraysSupport.newLength(bucket.length,
+      1, /* minimum growth */
+      bucket.length >> 1));
+    Arrays.fill(newArray, bucket.length, newArray.length, Long.MAX_VALUE);
+    return insert(newArray, element);
   }
 }
 

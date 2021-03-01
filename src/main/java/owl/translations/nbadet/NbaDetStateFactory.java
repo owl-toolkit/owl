@@ -20,7 +20,6 @@
 package owl.translations.nbadet;
 
 import com.google.common.collect.ImmutableBiMap;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -229,14 +228,14 @@ final class NbaDetStateFactory<S> {
     int offset = -1;
     if (c.args().sepAccCyc()) {
       for (int i = 0; i < c.sets().asccsStates().size(); i++) {
-        if (!BitSets.isDisjoint(prevAScc, c.sets().asccsStates().get(i))) {
+        if (prevAScc.intersects(c.sets().asccsStates().get(i))) {
           offset = i; //previously active SCC found
           break;
         }
       }
 
       if (offset > -1 && aSccs.isPresent()) {
-        final var curAScc = c.sets().asccsStates().get(offset);
+        BitSet curAScc = c.sets().asccsStates().get(offset);
         //move states that are in asccs but left the current ascc back into ascc buffer
         aSccsBuffer.or(BitSet2.without(aSccs.get().fst(), curAScc));
         aSccs.get().fst().and(curAScc);
@@ -484,7 +483,7 @@ final class NbaDetStateFactory<S> {
       return Edge.of(NbaDetState.of(conf, new BitSet()), 1);
     }
 
-    if (!BitSets.isDisjoint(ret.powerSet, conf.accSinks())) {
+    if (ret.powerSet.intersects(conf.accSinks())) {
       //if we reached an accepting sink,
       //return some state representing the accepting sink, with a good transition priority
       if (logger.getLevel().equals(Level.FINEST)) {
