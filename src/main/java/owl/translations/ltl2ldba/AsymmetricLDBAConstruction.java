@@ -293,25 +293,36 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
     @Override
     public MutableAutomaton<AsymmetricProductState, B> build() {
-      return HashMapAutomaton.of(
-        acceptanceClass.cast(GeneralizedBuchiAcceptance.of(acceptanceSets)),
-        factories.vsFactory,
-        anchors,
-        this::edge, state -> {
-          BitSet sensitiveAlphabet = state.currentCoSafety.atomicPropositions();
-          sensitiveAlphabet.or(state.safety.atomicPropositions());
 
-          for (EquivalenceClass clazz : state.nextCoSafety) {
-            sensitiveAlphabet.or(clazz.atomicPropositions());
+      return HashMapAutomaton.copyOf(
+        new AbstractMemoizingAutomaton.EdgeImplementation<>(
+          factories.vsFactory,
+          Set.copyOf(anchors),
+          acceptanceClass.cast(GeneralizedBuchiAcceptance.of(acceptanceSets))) {
+
+          @Override
+          protected BitSet stateAtomicPropositions(AsymmetricProductState state) {
+            BitSet sensitiveAlphabet = state.currentCoSafety.atomicPropositions();
+            sensitiveAlphabet.or(state.safety.atomicPropositions());
+
+            for (EquivalenceClass clazz : state.nextCoSafety) {
+              sensitiveAlphabet.or(clazz.atomicPropositions());
+            }
+
+            for (EquivalenceClass clazz : state.automata.fCoSafety) {
+              sensitiveAlphabet.or(clazz.atomicPropositions());
+            }
+
+            sensitiveAlphabet.or(state.evaluatedFixpoints.language().atomicPropositions(true));
+
+            return sensitiveAlphabet;
           }
 
-          for (EquivalenceClass clazz : state.automata.fCoSafety) {
-            sensitiveAlphabet.or(clazz.atomicPropositions());
+          @Override
+          protected Edge<AsymmetricProductState> edgeImpl(
+            AsymmetricProductState state, BitSet valuation) {
+            return AcceptingComponentBuilder.this.edge(state, valuation);
           }
-
-          sensitiveAlphabet.or(state.evaluatedFixpoints.language().atomicPropositions(true));
-
-          return sensitiveAlphabet;
         });
     }
 

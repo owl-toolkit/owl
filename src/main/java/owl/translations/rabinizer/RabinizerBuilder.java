@@ -21,14 +21,9 @@ package owl.translations.rabinizer;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
-import com.google.common.primitives.Booleans;
-import de.tum.in.naturals.Indices;
-import de.tum.in.naturals.bitset.BitSets;
-import de.tum.in.naturals.set.NatCartesianProductIterator;
-import de.tum.in.naturals.set.NatCartesianProductSet;
-import de.tum.in.naturals.set.PowerSetIterator;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +42,7 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
@@ -65,6 +61,7 @@ import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
+import owl.collections.BitSet2;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -187,11 +184,11 @@ public final class RabinizerBuilder {
       GSet subset = activeSet.set;
 
       tableBuilder.append("\n ").append(subset);
-      Iterator<int[]> rankingIterator = activeSet.rankings.iterator();
+      Iterator<List<Integer>> rankingIterator = activeSet.rankings.iterator();
       int index = 0;
       while (rankingIterator.hasNext()) {
         RabinPair pair = activeSet.getPairForRanking(index);
-        tableBuilder.append("\n  ").append(Arrays.toString(rankingIterator.next()))
+        tableBuilder.append("\n  ").append(rankingIterator.next())
           .append(" -> ").append(pair);
         index += 1;
       }
@@ -264,10 +261,14 @@ public final class RabinizerBuilder {
     @SuppressWarnings({"unchecked"})
     Set<GOperator>[] sccRelevantGList = new Set[partitionSize];
 
-    Indices.forEachIndexed(masterSccPartition.sccs, (index, stateSubset) ->
-      sccRelevantGList[index] = stateSubset.stream()
-        .map(this::relevantSubFormulas).flatMap(Collection::stream)
-        .collect(Collectors.toUnmodifiableSet()));
+    for (int i = 0, s = masterSccPartition.sccs.size(); i < s; i++) {
+      sccRelevantGList[i] = masterSccPartition.sccs.get(i)
+        .stream()
+        .map(this::relevantSubFormulas)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toUnmodifiableSet());
+    }
+
     Set<GOperator> allRelevantGFormulas = Arrays
       .stream(sccRelevantGList)
       .flatMap(Collection::stream)
@@ -340,20 +341,20 @@ public final class RabinizerBuilder {
       boolean suspendable = configuration.suspendableFormulaDetection()
         && isSuspendableScc(scc, sccRelevantOperators);
 
-      boolean[] relevantFormulas;
+      BitSet relevantFormulas;
       MonitorAutomaton[] sccMonitors;
 
       if (suspendable) {
         sccMonitors = EMPTY_MONITORS;
-        relevantFormulas = new boolean[]{};
+        relevantFormulas = new BitSet();
         logger.log(Level.FINE, "Suspending all Gs on SCC {0}", sccIndex);
       } else {
-        relevantFormulas = new boolean[gFormulas.length];
+        relevantFormulas = new BitSet();
         sccMonitors = new MonitorAutomaton[sccRelevantOperators.size()];
         int subsetRelevantIndex = 0;
         for (int gIndex = 0; gIndex < gFormulas.length; gIndex++) {
           boolean indexRelevant = sccRelevantOperators.contains(gFormulas[gIndex]);
-          relevantFormulas[gIndex] = indexRelevant;
+          relevantFormulas.set(gIndex, indexRelevant);
           if (indexRelevant) {
             sccMonitors[subsetRelevantIndex] = monitors[gIndex];
             subsetRelevantIndex += 1;
@@ -397,13 +398,12 @@ public final class RabinizerBuilder {
         // they implicitly will not accept in this SCC.
 
         BitSet sensitiveAlphabet = productStateFactory.getSensitiveAlphabet(state);
-        PowerSetIterator activeSubFormulasIterator = new PowerSetIterator(relevantFormulas);
-        boolean[] empty = activeSubFormulasIterator.next(); // Empty set is handled separately
-        assert Booleans.countTrue(empty) == 0;
+        Iterator<BitSet> activeSubFormulasIterator = BitSet2.powerSet(relevantFormulas).iterator();
+        activeSubFormulasIterator.next(); // Empty set is handled separately
 
         while (activeSubFormulasIterator.hasNext()) {
-          boolean[] activeSubFormulas = activeSubFormulasIterator.next();
-          ActiveSet activeSet = activeSets[activeSubFormulasIterator.currentIndex() - 1];
+          BitSet activeSubFormulas = activeSubFormulasIterator.next();
+          ActiveSet activeSet = activeSets[BitSet2.toInt(activeSubFormulas) - 1];
           GSet activeSubFormulasSet = activeSet.set;
 
           // Pre-compute the monitor transition priorities, as they are independent of the ranking.
@@ -415,12 +415,11 @@ public final class RabinizerBuilder {
             computeMonitorPriorities(sccMonitors, state.monitorStates(), activeSubFormulasSet);
 
           // Iterate over all possible rankings
-          Iterator<int[]> rankingIterator = activeSet.rankings.iterator();
+          Iterator<List<Integer>> rankingIterator = activeSet.rankings.iterator();
           int rankingIndex = -1;
           while (rankingIterator.hasNext()) {
             rankingIndex += 1;
-            int[] ranking = rankingIterator.next();
-            assert ranking.length == Booleans.countTrue(activeSubFormulas);
+            List<Integer> ranking = rankingIterator.next();
             RabinPair pair = activeSet.getPairForRanking(rankingIndex);
 
             GSetRanking rankingPair = new GSetRanking(relevantFormulas, activeSubFormulas,
@@ -635,10 +634,12 @@ public final class RabinizerBuilder {
 
         MonitorState[] successorStates = new MonitorState[monitorSuccessorCount];
         BddSet[] successorValuations = new BddSet[monitorSuccessorCount];
-        Indices.forEachIndexed(successors.entrySet(), (successorIndex, entry) -> {
-          successorStates[successorIndex] = entry.getKey();
-          successorValuations[successorIndex] = entry.getValue();
-        });
+        int index = 0;
+        for (Map.Entry<MonitorState, BddSet> element : successors.entrySet()) {
+          successorStates[index] = element.getKey();
+          successorValuations[index] = element.getValue();
+          index += 1;
+        }
         monitorSuccessorMatrix[monitorIndex] = successorStates;
         monitorValuationMatrix[monitorIndex] = successorValuations;
       }
@@ -648,12 +649,12 @@ public final class RabinizerBuilder {
       long powerSetSize = (1L << (sensitiveAlphabet.size() + 2));
       // This is an over-approximation, since a lot of branches might be "empty"
       long totalSuccessorCounts = masterSuccessors.size()
-        * NatCartesianProductSet.numberOfElements(successorCounts);
+        * NatCartesianProductIterator.numberOfElements(successorCounts);
 
       if (totalSuccessorCounts > (1L << (powerSetSize + 2))) {
         // Approach 1: Simple power set iteration
 
-        for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
+        for (BitSet valuation : BitSet2.powerSet(sensitiveAlphabet)) {
           // Get the edge in the master automaton
           Edge<EquivalenceClass> masterEdge = masterAutomaton.edge(masterState, valuation);
           if (masterEdge == null) {
@@ -799,12 +800,12 @@ public final class RabinizerBuilder {
 
   private static final class ActiveSet {
     final GSet set;
-    final Set<int[]> rankings;
+    final List<List<Integer>> rankings;
     private final RabinPair[] rankingPairs;
 
     @SuppressWarnings({"PMD.ArrayIsStoredDirectly"
                       })
-    ActiveSet(GSet set, Set<int[]> rankings, RabinPair[] rankingPairs) {
+    ActiveSet(GSet set, List<List<Integer>> rankings, RabinPair[] rankingPairs) {
       this.set = set;
       this.rankings = rankings;
       this.rankingPairs = rankingPairs;
@@ -835,7 +836,10 @@ public final class RabinizerBuilder {
       }
 
       // Allocate the acceptance caches
-      Set<int[]> rankings = new NatCartesianProductSet(maximalRanks);
+      List<List<Integer>> preRankings = Arrays.stream(maximalRanks)
+        .mapToObj(i -> IntStream.rangeClosed(0, i).boxed().collect(Collectors.toList()))
+        .collect(Collectors.toList());
+      List<List<Integer>> rankings = Lists.cartesianProduct(preRankings);
       RabinPair[] rankingPairs = new RabinPair[rankings.size()];
       Arrays.setAll(rankingPairs, i -> builder.add(subset.size()));
       return new ActiveSet(subset, rankings, rankingPairs);
@@ -849,18 +853,18 @@ public final class RabinizerBuilder {
   private static final class GSetRanking {
     final GSet activeFormulaSet;
     final RabinPair pair;
-    final int[] ranking;
-    private final boolean[] activeFormulas;
+    final List<Integer> ranking;
+    private final BitSet activeFormulas;
     private final EquivalenceClassFactory eqFactory;
     private final BddSet[][] monitorPriorities;
-    private final boolean[] relevantFormulas;
+    private final BitSet relevantFormulas;
 
     @SuppressWarnings({"PMD.ArrayIsStoredDirectly"
                       })
-    GSetRanking(boolean[] relevantFormulas, boolean[] activeFormulas, GSet activeFormulaSet,
-      RabinPair pair, int[] ranking, EquivalenceClassFactory eqFactory,
+    GSetRanking(BitSet relevantFormulas, BitSet activeFormulas, GSet activeFormulaSet,
+      RabinPair pair, List<Integer> ranking, EquivalenceClassFactory eqFactory,
       BddSet[][] monitorPriorities) {
-      assert activeFormulas.length == relevantFormulas.length;
+      assert activeFormulas.length() <= relevantFormulas.length();
 
       this.activeFormulaSet = activeFormulaSet;
       this.pair = pair;
@@ -881,12 +885,12 @@ public final class RabinizerBuilder {
       int relevantIndex = -1;
       int activeIndex = -1;
 
-      for (int gIndex = 0; gIndex < activeFormulas.length; gIndex++) {
-        if (!relevantFormulas[gIndex]) {
+      for (int gIndex = 0; gIndex < activeFormulas.length(); gIndex++) {
+        if (!relevantFormulas.get(gIndex)) {
           continue;
         }
         relevantIndex += 1;
-        if (!activeFormulas[gIndex]) {
+        if (!activeFormulas.get(gIndex)) {
           continue;
         }
         activeIndex += 1;
@@ -915,7 +919,7 @@ public final class RabinizerBuilder {
           edgeAcceptanceSet.set(pair.finSet());
           return edgeAcceptanceSet;
         }
-        int succeedPriority = 2 * ranking[activeIndex] + 1;
+        int succeedPriority = 2 * ranking.get(activeIndex) + 1;
         if (priority > succeedPriority) {
           // Nothing relevant happened
           continue;
@@ -951,19 +955,19 @@ public final class RabinizerBuilder {
           eqFactory.of(BooleanConstant.TRUE));
       int relevantIndex2 = -1;
       int activeIndex2 = -1;
-      for (int gIndex1 = 0; gIndex1 < activeFormulas.length; gIndex1++) {
-        if (!relevantFormulas[gIndex1]) {
+      for (int gIndex1 = 0; gIndex1 < activeFormulas.length(); gIndex1++) {
+        if (!relevantFormulas.get(gIndex1)) {
           continue;
         }
         relevantIndex2 += 1;
-        if (!activeFormulas[gIndex1]) {
+        if (!activeFormulas.get(gIndex1)) {
           continue;
         }
         activeIndex2 += 1;
         MonitorState monitorState = monitorStates.get(relevantIndex2);
 
         List<EquivalenceClass> monitorStateRanking = monitorState.formulaRanking();
-        int rank = ranking[activeIndex2];
+        int rank = ranking.get(activeIndex2);
         for (int stateIndex = rank; stateIndex < monitorStateRanking.size(); stateIndex++) {
           EquivalenceClass rankEntry = monitorStateRanking.get(stateIndex);
           EquivalenceClass state = eager ? rankEntry.temporalStep(valuation) : rankEntry;
@@ -1002,25 +1006,25 @@ public final class RabinizerBuilder {
 
         int relevantIndex1 = -1;
         int activeIndex1 = -1;
-        for (int gIndex = 0; gIndex < activeFormulas.length; gIndex++) {
-          if (!relevantFormulas[gIndex]) {
+        for (int gIndex = 0; gIndex < activeFormulas.length(); gIndex++) {
+          if (!relevantFormulas.get(gIndex)) {
             continue;
           }
           relevantIndex1 += 1;
-          if (!activeFormulas[gIndex]) {
+          if (!activeFormulas.get(gIndex)) {
             continue;
           }
           activeIndex1 += 1;
           List<EquivalenceClass> monitorStateRanking =
             monitorStates.get(relevantIndex1).formulaRanking();
-          int rank = ranking[activeIndex1];
+          int rank = ranking.get(activeIndex1);
 
           int size = monitorStateRanking.size();
           if (rank <= size) {
             activeMonitorStates.addAll(monitorStateRanking.subList(rank, size));
           }
         }
-        String rankingString = Arrays.toString(ranking);
+        String rankingString = ranking.toString();
         String log = String.format("Subset %s, ranking %s, and monitor states %s (strengthened: "
             + "%s), valuation %s; entails %s (weakened: %s): %s", activeFormulaSet, rankingString,
           activeMonitorStates, strengthenedAntecedent, valuation, consequent,

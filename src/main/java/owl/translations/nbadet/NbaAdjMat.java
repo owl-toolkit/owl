@@ -21,7 +21,6 @@ package owl.translations.nbadet;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.ImmutableBiMap;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Set;
@@ -128,7 +127,7 @@ public final class NbaAdjMat<S> {
     });
 
     //if one accepting sink is reached, we replace state with accepting sink
-    if (aSinks != null && !BitSets.isDisjoint(allSuccs, aSinks)) {
+    if (aSinks != null && allSuccs.intersects(aSinks)) {
       return Pair.of(aSinks, aSinks);
     }
 

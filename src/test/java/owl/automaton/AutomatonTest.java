@@ -21,7 +21,6 @@ package owl.automaton;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +36,7 @@ import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
+import owl.collections.BitSet2;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LtlTranslationRepository;
@@ -111,7 +111,7 @@ class AutomatonTest {
       var actualEdges = automaton.edgeMap(state);
       var expectedEdges = new HashMap<Edge<S>, BddSet>();
 
-      for (var valuation : BitSets.powerSet(automaton.atomicPropositions().size())) {
+      for (var valuation : BitSet2.powerSet(automaton.atomicPropositions().size())) {
         automaton.edges(state, valuation).forEach(
           x -> expectedEdges.merge(x, automaton.factory().of(valuation), BddSet::union));
       }
@@ -133,7 +133,7 @@ class AutomatonTest {
       var expectedEdges = automaton.edgeMap(state);
       var actualEdges = automaton.edgeTree(state);
 
-      for (var valuation : BitSets.powerSet(automaton.atomicPropositions().size())) {
+      for (var valuation : BitSet2.powerSet(automaton.atomicPropositions().size())) {
         assertEquals(actualEdges.get(valuation), automaton.edges(state, valuation));
       }
 

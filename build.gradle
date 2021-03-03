@@ -47,7 +47,7 @@ project.mainClassName = 'owl.run.DefaultCli'
 def defaultEncoding = 'UTF-8'
 
 tasks.withType(JavaCompile) {
-    // GraalVM only supports JDK 11.
+    // JDK 11 is the latest release supported by GraalVM (native-image).
     options.release = 11
 
     // Linter
@@ -74,31 +74,22 @@ if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     }
 }
 
-
 apply from: 'gradle/analysis.gradle'
 apply from: 'gradle/antlr.gradle'
 
 repositories {
     mavenCentral()
-    jcenter() // required for naturals-util / roaring bitmap
 }
 
 dependencies {
     // https://github.com/google/guava
-    implementation 'com.google.guava:guava:30.0-jre'
+    implementation 'com.google.guava:guava:30.1-jre'
 
     // https://commons.apache.org/proper/commons-cli/
     implementation 'commons-cli:commons-cli:1.4'
 
     // https://github.com/incaseoftrouble/jbdd
     implementation 'de.tum.in:jbdd:0.5.2'
-
-    // https://github.com/incaseoftrouble/naturals-util
-    implementation 'de.tum.in:naturals-util:0.15.0'
-
-    // https://github.com/vigna/fastutil
-    // https://mvnrepository.com/artifact/it.unimi.dsi/fastutil
-    implementation 'it.unimi.dsi:fastutil:8.3.1'
 
     // http://www.antlr.org/
     // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
@@ -109,9 +100,7 @@ dependencies {
 
     // https://www.graalvm.org/
     // https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk
-    implementation 'org.graalvm.sdk:graal-sdk:20.3.0'
-
-    implementation group: 'com.zaxxer', name: 'SparseBitSet', version: '1.2'
+    implementation 'org.graalvm.sdk:graal-sdk:21.0.0.2'
 
     // https://github.com/google/gson
     testImplementation 'com.google.code.gson:gson:2.8.5'
@@ -126,10 +115,9 @@ dependencies {
     // TODO: Reenable
     // errorprone 'com.google.errorprone:error_prone_core:2.3.4'
 
-
     // https://mvnrepository.com/artifact/com.google.auto.value/auto-value
-    implementation 'com.google.auto.value:auto-value-annotations:1.7.1'
-    annotationProcessor 'com.google.auto.value:auto-value:1.7.1'
+    implementation 'com.google.auto.value:auto-value-annotations:1.7.4'
+    annotationProcessor 'com.google.auto.value:auto-value:1.7.4'
 }
 
 test {
@@ -246,10 +234,13 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time=owl,it,com,org,jhoafparser',
         '--no-fallback',
         '--no-server',
-        // '-H:+PrintAnalysisCallTree', (reenable for performance analysis)
-        // '-H:+DashboardAll',          (reenable for performance analysis)
+        // (uncomment for performance analysis)
+        // '-H:+PrintAnalysisCallTree',
+        // '-H:DashboardDump=reports/graalvm-dashboard.dump',
+        // '-H:+DashboardAll',
         '-H:+ReportExceptionStackTraces',
-        '-H:-UseServiceLoaderFeature'
+        '-H:-UseServiceLoaderFeature',
+        '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
 }
 
 task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
@@ -270,10 +261,13 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time=owl,it,com,org,jhoafparser',
         '--no-fallback',
         '--no-server',
-        // '-H:+PrintAnalysisCallTree', (reenable for performance analysis)
-        // '-H:+DashboardAll',          (reenable for performance analysis)
+        // (uncomment for performance analysis)
+        // '-H:+PrintAnalysisCallTree',
+        // '-H:DashboardDump=reports/graalvm-dashboard.dump',
+        // '-H:+DashboardAll',
         '-H:+ReportExceptionStackTraces',
-        '-H:-UseServiceLoaderFeature'
+        '-H:-UseServiceLoaderFeature',
+        '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
 }
 
 // ---------------- Script Jobs ----------------

@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static owl.util.Assertions.assertThat;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +34,6 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.bdd.BddSet;
@@ -84,10 +82,13 @@ public abstract class BddSetTest {
       set.toSet().forEach(
         (Consumer<? super BitSet>) solution -> forEach.add(BitSet2.copyOf(solution)));
 
-      Set<BitSet> collect = BitSets.powerSet(4).stream()
-        .filter(set::contains)
-        .map(BitSet2::copyOf)
-        .collect(Collectors.toSet());
+      Set<BitSet> collect = new HashSet<>();
+
+      for (BitSet bitSet : BitSet2.powerSet(4)) {
+        if (set.contains(bitSet)) {
+          collect.add(BitSet2.copyOf(bitSet));
+        }
+      }
 
       assertEquals(collect, forEach);
     }
@@ -103,10 +104,12 @@ public abstract class BddSetTest {
       Set<BitSet> forEach = new HashSet<>();
       set.forEach(restriction, solution -> forEach.add(BitSet2.copyOf(solution)));
 
-      Set<BitSet> collect = BitSets.powerSet(restriction).stream()
-        .filter(set::contains)
-        .map(BitSet2::copyOf)
-        .collect(Collectors.toSet());
+      Set<BitSet> collect = new HashSet<>();
+      for (BitSet bitSet : BitSet2.powerSet(restriction)) {
+        if (set.contains(bitSet)) {
+          collect.add(BitSet2.copyOf(bitSet));
+        }
+      }
 
       assertEquals(collect, forEach);
     }
@@ -154,7 +157,7 @@ public abstract class BddSetTest {
     var factory = factory(ATOMIC_PROPOSITIONS);
     var empty = factory.of();
 
-    for (BitSet element : BitSets.powerSet(ATOMIC_PROPOSITIONS.size())) {
+    for (BitSet element : BitSet2.powerSet(ATOMIC_PROPOSITIONS.size())) {
       assertTrue(factory.universe().contains(element));
       empty = empty.union(factory.of(element));
     }

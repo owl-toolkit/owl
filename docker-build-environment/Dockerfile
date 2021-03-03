@@ -32,6 +32,7 @@ ENV JAVA_HOME=/opt/graalvm-ce-java11-21.0.0.2/
 RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.0.0.2/native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar \
     && echo '24e5a08e2714aee343b22c266285090721ff882ab0a31b7e8e4a68585c38f421 native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar' | sha256sum --check \
     && gu -L install native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar
+    && rm native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar
 
 # Spot
 

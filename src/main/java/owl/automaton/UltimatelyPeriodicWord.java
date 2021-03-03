@@ -22,10 +22,10 @@ package owl.automaton;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 import com.google.common.base.Preconditions;
-import de.tum.in.naturals.bitset.ImmutableBitSet;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
+import owl.collections.BitSet2;
 
 public final class UltimatelyPeriodicWord {
 
@@ -33,8 +33,8 @@ public final class UltimatelyPeriodicWord {
   public final List<BitSet> period;
 
   public UltimatelyPeriodicWord(List<BitSet> prefix, List<BitSet> period) {
-    this.prefix = prefix.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
-    this.period = period.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
+    this.prefix = prefix.stream().map(BitSet2::copyOf).collect(toUnmodifiableList());
+    this.period = period.stream().map(BitSet2::copyOf).collect(toUnmodifiableList());
     Preconditions.checkArgument(!this.period.isEmpty());
   }
 

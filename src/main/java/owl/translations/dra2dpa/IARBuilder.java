@@ -29,8 +29,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
-import de.tum.in.naturals.IntPreOrder;
-import it.unimi.dsi.fastutil.ints.IntSets;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -63,6 +61,7 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
+import owl.collections.IntPreOrder;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -441,7 +440,7 @@ public final class IARBuilder<R> {
       successorRecord = record;
 
       for (int i = seenFin.nextSetBit(0); i >= 0; i = seenFin.nextSetBit(i + 1)) {
-        successorRecord = successorRecord.generation(IntSets.singleton(i));
+        successorRecord = successorRecord.generation(Set.of(i));
 
         if (i == Integer.MAX_VALUE) {
           break; // or (i+1) would overflow

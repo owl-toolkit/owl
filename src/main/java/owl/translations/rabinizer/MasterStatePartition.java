@@ -22,7 +22,6 @@ package owl.translations.rabinizer;
 import com.google.common.collect.ImmutableTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Table;
-import de.tum.in.naturals.Indices;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -80,8 +79,9 @@ final class MasterStatePartition {
     if (!transientStates.isEmpty()) {
       builder.append("\n  Transient: ").append(transientStates);
     }
-    Indices.forEachIndexed(sccs, (index, element) ->
-      builder.append("\n  ").append(index).append(": ").append(element));
+    for (int i = 0, s = sccs.size(); i < s; i++) {
+      builder.append("\n  ").append(i).append(": ").append(sccs.get(i));
+    }
     return builder.toString();
   }
 }

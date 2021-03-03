@@ -25,7 +25,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.util.Assertions.assertThat;
 
-import de.tum.in.naturals.bitset.BitSets;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashSet;
@@ -36,6 +35,7 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.bdd.EquivalenceClassFactory;
+import owl.collections.BitSet2;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierFactory;
@@ -368,7 +368,7 @@ abstract class EquivalenceClassTest {
     var formula3 = formula2.temporalStep(new BitSet()).unfold();
     var tree3 = tree2.get(new BitSet()).iterator().next().unfold().temporalStepTree();
 
-    for (BitSet set : BitSets.powerSet(4)) {
+    for (BitSet set : BitSet2.powerSet(4)) {
       assertEquals(Set.of(factory.of(formula1.temporalStep(set))), tree1.get(set));
       assertEquals(Set.of(factory.of(formula2.temporalStep(set))), tree2.get(set));
       assertEquals(Set.of(factory.of(formula3.temporalStep(set))), tree3.get(set));

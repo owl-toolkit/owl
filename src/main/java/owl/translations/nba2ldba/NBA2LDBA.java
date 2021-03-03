@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toSet;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.google.common.collect.Sets;
-import de.tum.in.naturals.bitset.BitSets;
 import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
@@ -50,6 +49,7 @@ import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
+import owl.collections.BitSet2;
 import owl.collections.Either;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -137,7 +137,7 @@ public final class NBA2LDBA
       BddSetFactory factory = factory();
       Map<Edge<BreakpointState<S>>, BddSet> labelledEdges = new HashMap<>();
 
-      for (BitSet valuation : BitSets.powerSet(atomicPropositions().size())) {
+      for (BitSet valuation : BitSet2.powerSet(atomicPropositions().size())) {
         for (Edge<BreakpointState<S>> edge : edgesB(state, valuation)) {
           labelledEdges.merge(edge, factory.of(valuation), BddSet::union);
         }

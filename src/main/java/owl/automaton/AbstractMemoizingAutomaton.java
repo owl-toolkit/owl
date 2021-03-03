@@ -274,25 +274,38 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
     protected abstract Set<Edge<S>> edgesImpl(S state, BitSet valuation);
 
+    protected BitSet stateAtomicPropositions(S state) {
+      int atomicPropositionsSize = atomicPropositions().size();
+      BitSet stateAtomicPropositions = new BitSet(atomicPropositionsSize);
+      stateAtomicPropositions.set(0, atomicPropositionsSize);
+      return stateAtomicPropositions;
+    }
+
     @Override
     protected final MtBdd<Edge<S>> edgeTreeImpl(S state) {
-      return edgeTreeImplRecursive(state, new BitSet(), 0);
+      var stateAtomicPropositions = stateAtomicPropositions(state);
+      return edgeTreeImplRecursive(state,
+        new BitSet(),
+        stateAtomicPropositions,
+        stateAtomicPropositions.nextSetBit(0));
     }
 
     private MtBdd<Edge<S>> edgeTreeImplRecursive(
-      S state, BitSet partialValuation, int currentVariable) {
+      S state, BitSet partialValuation, BitSet stateAtomicPropositions, int currentVariable) {
 
-      if (currentVariable < atomicPropositions().size()) {
+      int nextVariable = stateAtomicPropositions.nextSetBit(currentVariable + 1);
+
+      if (currentVariable >= 0) {
         partialValuation.set(currentVariable);
+        partialValuation.clear(currentVariable + 1, atomicPropositions().size());
         var trueChild
-          = edgeTreeImplRecursive(state, partialValuation, currentVariable + 1);
-        partialValuation.clear(currentVariable);
+          = edgeTreeImplRecursive(state, partialValuation, stateAtomicPropositions, nextVariable);
+        partialValuation.clear(currentVariable, atomicPropositions().size());
         var falseChild
-          = edgeTreeImplRecursive(state, partialValuation, currentVariable + 1);
+          = edgeTreeImplRecursive(state, partialValuation, stateAtomicPropositions, nextVariable);
         return MtBdd.of(currentVariable, trueChild, falseChild);
       }
 
-      assert currentVariable == atomicPropositions().size();
       return MtBdd.of(edgesImpl(state, (BitSet) partialValuation.clone()));
     }
   }

@@ -24,7 +24,6 @@ import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFacto
 import static owl.translations.rabinizer.RabinizerStateFactory.MonitorStateFactory.isSink;
 
 import com.google.common.collect.Iterables;
-import de.tum.in.naturals.bitset.BitSets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,6 +47,7 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
+import owl.collections.BitSet2;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.GOperator;
@@ -158,7 +158,7 @@ final class MonitorBuilder {
       MonitorState currentState = workQueue.poll();
       BitSet sensitiveAlphabet = stateFactory.getSensitiveAlphabet(currentState);
 
-      for (BitSet valuation : BitSets.powerSet(sensitiveAlphabet)) {
+      for (BitSet valuation : BitSet2.powerSet(sensitiveAlphabet)) {
         MonitorState successorState;
 
         switch (fragment) {

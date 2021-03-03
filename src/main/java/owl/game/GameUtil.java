@@ -22,16 +22,15 @@ package owl.game;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
-import it.unimi.dsi.fastutil.ints.IntOpenHashSet;
-import it.unimi.dsi.fastutil.ints.IntSet;
-import it.unimi.dsi.fastutil.objects.Object2IntLinkedOpenHashMap;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import java.io.PrintWriter;
 import java.util.ArrayDeque;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Queue;
 import java.util.Set;
 import java.util.function.ToIntFunction;
@@ -70,9 +69,7 @@ public final class GameUtil {
     checkArgument(game.initialStates().size() == 1, "Multiple initial states not supported");
 
     // The format does not support transition acceptance, thus acceptance is encoded into states
-    Object2IntMap<PriorityState<S>> stateNumbering = new Object2IntLinkedOpenHashMap<>();
-    stateNumbering.defaultReturnValue(-1);
-
+    Map<PriorityState<S>, Integer> stateNumbering = new HashMap<>();
     int highestPriority = acceptance.acceptanceSets() - 1;
 
     S initialState = game.onlyInitialState();
@@ -125,7 +122,7 @@ public final class GameUtil {
         output.print(' ');
 
         boolean first = true;
-        IntSet printedIndices = new IntOpenHashSet();
+        Set<Integer> printedIndices = new HashSet<>();
         while (iterator.hasNext()) {
           Edge<S> edge = iterator.next();
           assert acceptance.isWellFormedEdge(edge);
@@ -133,8 +130,8 @@ public final class GameUtil {
           S successor = edge.successor();
           int stateAcceptance = getAcceptance.applyAsInt(edge);
 
-          int successorIndex = stateNumbering.getInt(PriorityState.of(successor, stateAcceptance));
-          if (printedIndices.add(successorIndex)) {
+          Integer successorIndex = stateNumbering.get(PriorityState.of(successor, stateAcceptance));
+          if (printedIndices.add(Objects.requireNonNull(successorIndex))) {
             assert successorIndex >= 0;
             if (!first) { // NOPMD
               output.print(',');
