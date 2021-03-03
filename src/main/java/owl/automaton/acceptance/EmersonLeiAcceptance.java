@@ -41,19 +41,13 @@ public class EmersonLeiAcceptance {
   @Nonnegative
   private final int sets;
 
-  // package-private constructors.
+  // package-private constructor for sub-classes.
   EmersonLeiAcceptance(int sets) {
     Preconditions.checkArgument(sets >= 0);
     this.sets = sets;
   }
 
-  // package-private constructors.
-  EmersonLeiAcceptance(PropositionalFormula<Integer> expression) {
-    this(acceptanceSets(expression), expression);
-  }
-
-  // package-private constructors.
-  EmersonLeiAcceptance(int sets, PropositionalFormula<Integer> expression) {
+  private EmersonLeiAcceptance(int sets, PropositionalFormula<Integer> expression) {
     this(sets);
     this.expression = Objects.requireNonNull(expression);
   }
@@ -73,7 +67,7 @@ public class EmersonLeiAcceptance {
     }
 
     if (Solver.model(PropositionalFormula.Negation.of(normalisedExpression)).isEmpty()) {
-      return AllAcceptance.INSTANCE;
+      return AllAcceptance.ofPartial(PropositionalFormula.trueConstant()).orElseThrow();
     }
 
     var buchiAcceptance = BuchiAcceptance.ofPartial(normalisedExpression);
@@ -106,7 +100,7 @@ public class EmersonLeiAcceptance {
       return generalizedRabinAcceptance.get();
     }
 
-    return new EmersonLeiAcceptance(normalisedExpression);
+    return new EmersonLeiAcceptance(acceptanceSets(normalisedExpression), normalisedExpression);
   }
 
   public final int acceptanceSets() {

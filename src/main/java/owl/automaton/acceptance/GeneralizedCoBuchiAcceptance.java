@@ -19,7 +19,6 @@
 
 package owl.automaton.acceptance;
 
-import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import java.util.BitSet;
@@ -33,9 +32,7 @@ import owl.logic.propositional.PropositionalFormula.Negation;
 public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
 
   GeneralizedCoBuchiAcceptance(int size) {
-    super(size, Disjunction.of(IntStream.range(0, size)
-      .mapToObj(x -> Negation.of(Variable.of(x)))
-      .collect(Collectors.toList())));
+    super(size);
   }
 
   public static GeneralizedCoBuchiAcceptance of(int size) {
@@ -61,6 +58,13 @@ public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
     }
 
     return Optional.empty();
+  }
+
+  @Override
+  protected final PropositionalFormula<Integer> lazyBooleanExpression() {
+    return PropositionalFormula.Disjunction.of(IntStream.range(0, acceptanceSets())
+      .mapToObj(x -> Negation.of(Variable.of(x)))
+      .collect(Collectors.toList()));
   }
 
   @Override

@@ -11,6 +11,7 @@ variables:
   GRADLE: ./.gradle
   GRADLE_HOME: $GRADLE
   GRADLE_USER_HOME: $GRADLE
+  GRAAL_HOME: "/opt/graalvm-ce-java11-21.0.0.2"
 
 # Building
 
@@ -21,7 +22,8 @@ Build:
     paths:
     - $GRADLE
   script:
-    - ./gradlew check distZip
+    - /opt/graalvm-ce-java11-21.0.0.2/bin/native-image --version
+    - ./gradlew distZip check --stacktrace
     - unzip -d build/unzipped build/distributions/*.zip
     - scripts/check_binaries.sh build/unzipped/owl-*/bin
     - mv build/unzipped/owl-*/bin build

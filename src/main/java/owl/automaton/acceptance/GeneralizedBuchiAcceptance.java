@@ -28,14 +28,11 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.logic.propositional.PropositionalFormula;
-import owl.logic.propositional.PropositionalFormula.Conjunction;
 
 public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
 
   GeneralizedBuchiAcceptance(int size) {
-    super(size, Conjunction.of(IntStream.range(0, size)
-      .mapToObj(Variable::of)
-      .collect(Collectors.toList())));
+    super(size);
   }
 
   public static GeneralizedBuchiAcceptance of(int size) {
@@ -69,6 +66,13 @@ public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
     }
 
     return Optional.empty();
+  }
+
+  @Override
+  protected final PropositionalFormula<Integer> lazyBooleanExpression() {
+    return PropositionalFormula.Conjunction.of(IntStream.range(0, acceptanceSets())
+      .mapToObj(Variable::of)
+      .collect(Collectors.toList()));
   }
 
   @Override
