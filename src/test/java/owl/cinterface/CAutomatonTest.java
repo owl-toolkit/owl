@@ -21,6 +21,7 @@ package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.cinterface.StateFeatures.Feature;
 import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.CNF;
 import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.DNF;
@@ -54,6 +55,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -105,6 +107,7 @@ public class CAutomatonTest {
       .coSafety(formula);
     var states = automaton.states();
 
+    // Takes ~35 seconds on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
     Assertions.assertTimeout(Duration.ofSeconds(60),
       () -> extractFeaturesFromEquivalenceClass(states));
   }
@@ -284,6 +287,36 @@ public class CAutomatonTest {
         }
       }
     }
+  }
+
+  @Test
+  void testAcceptingSink() {
+    var translation
+      = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(EnumSet.noneOf(Option.class));
+
+    var automaton1 = translation.apply(LtlParser.parse("a | G F b"));
+    var cAutomaton1 = CAutomaton.DeterministicAutomatonWrapper.of(automaton1, -1);
+
+    assertTrue(Arrays.stream(cAutomaton1.edgeTree(0, false).edges.toArray())
+      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+    assertTrue(Arrays.stream(cAutomaton1.edgeTree(1, false).edges.toArray())
+      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+
+    var automaton2 = translation.apply(LtlParser.parse("G a | G F b"));
+    var cAutomaton2 = CAutomaton.DeterministicAutomatonWrapper.of(automaton2, -1);
+
+    assertTrue(Arrays.stream(cAutomaton2.edgeTree(0, false).edges.toArray())
+      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+    assertTrue(Arrays.stream(cAutomaton2.edgeTree(1, false).edges.toArray())
+      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+
+    var automaton3 = translation.apply(LtlParser.parse("X a & (G F a | G F !a)"));
+    var cAutomaton3 = CAutomaton.DeterministicAutomatonWrapper.of(automaton3, -1);
+
+    assertTrue(Arrays.stream(cAutomaton3.edgeTree(0, false).edges.toArray())
+      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+    assertTrue(Arrays.stream(cAutomaton3.edgeTree(1, false).edges.toArray())
+      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
   }
 
   private static class FeatureDeserializer implements JsonDeserializer<Feature> {

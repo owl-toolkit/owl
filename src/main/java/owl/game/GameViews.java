@@ -21,9 +21,6 @@ package owl.game;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGES;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_MAP;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
@@ -157,9 +154,6 @@ public final class GameViews {
 
   private static final class FilteredGame<S, A extends EmersonLeiAcceptance> implements Game<S, A> {
 
-    public static final List<PreferredEdgeAccess> ACCESS_MODES
-      = List.of(EDGE_MAP, EDGE_TREE, EDGES);
-
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
     private final Function<Owner, List<String>> variableOwnership;
@@ -232,11 +226,6 @@ public final class GameViews {
     public MtBdd<Edge<S>> edgeTree(S state) {
       return factory().toValuationTree(edgeMap(state));
     }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return ACCESS_MODES;
-    }
   }
 
   public static <S, A extends EmersonLeiAcceptance> Game<S, A> replaceInitialStates(
@@ -282,11 +271,6 @@ public final class GameViews {
       @Override
       public MtBdd<Edge<S>> edgeTree(S state) {
         return game.edgeTree(state);
-      }
-
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return game.preferredEdgeAccess();
       }
 
       @Override

@@ -22,9 +22,6 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.base.Verify.verify;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGES;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_MAP;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashMultimap;
@@ -39,7 +36,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -60,7 +56,6 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   implements MutableAutomaton<S, A> {
 
   private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
-  private static final List<PreferredEdgeAccess> ACCESS_MODES = List.of(EDGE_MAP, EDGE_TREE, EDGES);
 
   private A acceptance;
   private final Set<S> initialStates;
@@ -438,11 +433,6 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   @Override
   public Set<Edge<S>> edges(S state, BitSet valuation) {
     return Maps.filterValues(edgeMap(state), x -> x.contains(valuation)).keySet();
-  }
-
-  @Override
-  public List<PreferredEdgeAccess> preferredEdgeAccess() {
-    return ACCESS_MODES;
   }
 
   private enum State {

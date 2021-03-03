@@ -20,7 +20,6 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -346,11 +345,6 @@ public final class OmegaAcceptanceCast {
       return edgeCast == null
         ? edgeTree
         : edgeTree.map(x -> Collections3.transformSet(x, edgeCast));
-    }
-
-    @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return backingAutomaton.preferredEdgeAccess();
     }
   }
 }

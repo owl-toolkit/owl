@@ -19,10 +19,6 @@
 
 package owl.automaton;
 
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGES;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_MAP;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -67,8 +63,6 @@ import owl.collections.Either;
  **/
 public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
   implements Automaton<S, A> {
-
-  private static final List<PreferredEdgeAccess> ACCESS_MODES = List.of(EDGE_TREE, EDGE_MAP, EDGES);
 
   protected final A acceptance;
   protected final Set<S> initialStates;
@@ -139,11 +133,6 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   @Override
   public final S successor(S state, BitSet valuation) {
     return Iterables.getFirst(Edges.successors(edgeTree(state).get(valuation)), null);
-  }
-
-  @Override
-  public final List<PreferredEdgeAccess> preferredEdgeAccess() {
-    return ACCESS_MODES;
   }
 
   @Override
