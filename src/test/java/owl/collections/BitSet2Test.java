@@ -118,7 +118,7 @@ public class BitSet2Test {
   @ParameterizedTest
   @ValueSource(ints = {0, 1, 2, 3, 4, 5, 6, 7, 21})
   void bitSetPowerSet(int i) {
-    // i = 21 takes 350ms on a MacBook Pro 2019.
+    // i = 21: Takes ~350 ms on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
     assertTimeout(Duration.ofSeconds(1), () -> {
       List<BitSet> bitSetList = new ArrayList<>();
 

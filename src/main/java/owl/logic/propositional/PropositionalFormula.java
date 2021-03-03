@@ -48,7 +48,7 @@ public abstract class PropositionalFormula<T> {
   public static PropositionalFormula<?> TRUE = new Conjunction<>(List.of());
   public static PropositionalFormula<?> FALSE = new Disjunction<>(List.of());
 
-  public abstract boolean evaluate(Set<T> assignment);
+  public abstract boolean evaluate(Set<? extends T> assignment);
 
   /**
    * Construct an equivalent expression in negation normal form.
@@ -119,7 +119,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean evaluate(Set<T> assignment) {
+    public boolean evaluate(Set<? extends T> assignment) {
       return conjuncts.stream().allMatch(x -> x.evaluate(assignment));
     }
 
@@ -234,7 +234,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean evaluate(Set<T> assignment) {
+    public boolean evaluate(Set<? extends T> assignment) {
       return disjuncts.stream().anyMatch(x -> x.evaluate(assignment));
     }
 
@@ -361,7 +361,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean evaluate(Set<T> assignment) {
+    public boolean evaluate(Set<? extends T> assignment) {
       return !operand.evaluate(assignment);
     }
 
@@ -484,7 +484,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean evaluate(Set<T> assignment) {
+    public boolean evaluate(Set<? extends T> assignment) {
       return assignment.contains(variable);
     }
   }

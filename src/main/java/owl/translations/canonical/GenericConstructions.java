@@ -115,11 +115,6 @@ public final class GenericConstructions {
       private MtBdd<Edge<Either<Integer, S>>> lift(MtBdd<Edge<S>> edgeTree) {
         return edgeTree.map(this::lift);
       }
-
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return automaton.preferredEdgeAccess();
-      }
     };
   }
 }

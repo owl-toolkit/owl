@@ -38,10 +38,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.function.ToDoubleFunction;
 import javax.annotation.Nullable;
 import jhoafparser.parser.generated.ParseException;
@@ -331,21 +331,6 @@ public final class CAutomaton {
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "edge_tree_masking",
-    documentation = {
-      "Return true if edge masking could speed up computation."
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnInt.class
-  )
-  public static boolean edgeTreeMasking(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton) {
-
-    return get(cDeterministicAutomaton).automaton.preferredEdgeAccess().get(0)
-      == Automaton.PreferredEdgeAccess.EDGES;
-  }
-
-  @CEntryPoint(
     name = NAMESPACE + "edge_tree",
     documentation = {
       "Serialise the edges leaving the given state into a tree buffer, edge buffer, and an ",
@@ -596,7 +581,7 @@ public final class CAutomaton {
     final int uncontrollableApSize;
 
     // Mapping information
-    private final Predicate<? super S> acceptingSink;
+    private final Function<? super S, OptionalInt> sinkDetection;
     private final List<S> index2StateMap;
     private final Map<S, Integer> state2indexMap;
 
@@ -623,8 +608,8 @@ public final class CAutomaton {
     private <A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper(
       Automaton<S, ? extends A> automaton,
       Acceptance acceptance,
-      Class<? extends A> acceptanceClassBound,
-      Predicate<? super S> acceptingSink,
+      @Nullable Class<? extends A> acceptanceClassBound,
+      Function<? super S, OptionalInt> sinkDetection,
       Function<? super S, ? extends T> canonicalizer,
       ToDoubleFunction<? super Edge<S>> qualityScore,
       int uncontrollableApSize,
@@ -632,49 +617,43 @@ public final class CAutomaton {
       @Nullable S canonicalRejectingState) {
 
       checkArgument(automaton.initialStates().size() == 1);
-      checkArgument(acceptanceClassBound.isInstance(automaton.acceptance()));
+      checkArgument(acceptanceClassBound == null
+        || acceptanceClassBound.isInstance(automaton.acceptance()));
+
       assert automaton.is(Automaton.Property.DETERMINISTIC);
 
       this.automaton = automaton;
       this.acceptance = acceptance;
-      this.acceptingSink = acceptingSink;
+      this.sinkDetection = sinkDetection;
       this.qualityScore = qualityScore;
 
       this.index2StateMap = new ArrayList<>();
-      this.index2StateMap.add(this.automaton.onlyInitialState());
-
       this.state2indexMap = new HashMap<>();
-      this.state2indexMap.put(this.automaton.onlyInitialState(), INITIAL);
-
       this.canonicalObjectId = new HashMap<>();
 
       this.canonicalizer = canonicalizer;
       this.uncontrollableApSize = uncontrollableApSize;
 
-      if (automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_TREE) {
-        this.initialStateEdgeTree = automaton.edgeTree(this.automaton.onlyInitialState());
+      index(automaton.onlyInitialState());
 
-        var reachableStatesIndices = new HashSet<Integer>();
+      this.initialStateEdgeTree = automaton.edgeTree(this.automaton.onlyInitialState());
+      var reachableStatesIndices = new HashSet<Integer>();
 
-        for (Set<Edge<S>> edges : initialStateEdgeTree.values()) {
-          if (edges.isEmpty()) {
-            reachableStatesIndices.add(REJECTING);
-          } else {
-            reachableStatesIndices.add(index(Iterables.getOnlyElement(edges).successor()));
-          }
+      for (Set<Edge<S>> edges : initialStateEdgeTree.values()) {
+        if (edges.isEmpty()) {
+          reachableStatesIndices.add(REJECTING);
+        } else {
+          reachableStatesIndices.add(index(Iterables.getOnlyElement(edges).successor()));
         }
-
-        this.initialStateSuccessors = Set.of(reachableStatesIndices.toArray(Integer[]::new));
-      } else {
-        this.initialStateEdgeTree = null;
-        this.initialStateSuccessors = null;
       }
+
+      this.initialStateSuccessors = Set.of(reachableStatesIndices.toArray(Integer[]::new));
 
       this.canonicalAcceptingState = canonicalAcceptingState;
       this.canonicalRejectingState = canonicalRejectingState;
 
       assert this.canonicalAcceptingState == null
-        || this.acceptingSink.test(this.canonicalAcceptingState);
+        || this.sinkDetection.apply(this.canonicalAcceptingState).orElseThrow() == ACCEPTING;
 
       if (ImageInfo.inImageCode()) {
         boolean consistentDeclarations = INITIAL == CInterface.owlInitialState()
@@ -689,11 +668,28 @@ public final class CAutomaton {
 
     static <S> DeterministicAutomatonWrapper<S, ?>
       of(Automaton<S, ?> automaton, int uncontrollableApSize) {
-      return new DeterministicAutomatonWrapper<S, S>(
+
+      Function<S, OptionalInt> sinkDetection = (S state) -> {
+        var edges = automaton.edges(state);
+
+        if (edges.size() != 1) {
+          return OptionalInt.empty();
+        }
+
+        var edge = edges.iterator().next();
+
+        if (!edge.successor().equals(state)) {
+          return OptionalInt.empty();
+        }
+
+        return OptionalInt.of(automaton.acceptance().isAcceptingEdge(edge) ? ACCEPTING : REJECTING);
+      };
+
+      return new DeterministicAutomatonWrapper<>(
         automaton,
         Acceptance.fromOmegaAcceptance(automaton.acceptance()),
-        (Class) automaton.acceptance().getClass(),
-        x -> false,
+        null,
+        sinkDetection,
         Function.identity(),
         x -> 0.5d,
         uncontrollableApSize,
@@ -713,7 +709,7 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           automaton,
           SAFETY, AllAcceptance.class,
-          EquivalenceClass::isTrue,
+          x -> x.isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
           Function.identity(),
           edge -> edge.successor().trueness(),
           -1,
@@ -730,7 +726,7 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           automaton,
           Acceptance.CO_SAFETY, BuchiAcceptance.class,
-          EquivalenceClass::isTrue,
+          x -> x.isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
           Function.identity(),
           edge -> edge.successor().trueness(),
           -1,
@@ -747,7 +743,7 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           DeterministicConstructionsPortfolio.gfCoSafety(nnfFormula, false),
           BUCHI, GeneralizedBuchiAcceptance.class,
-          x -> false,
+          x -> OptionalInt.empty(),
           x -> nnfFormula,
           x -> x.colours().contains(0) ? 1.0d : 0.5d,
           -1,
@@ -764,7 +760,7 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           DeterministicConstructionsPortfolio.fgSafety(nnfFormula, false),
           CO_BUCHI, GeneralizedCoBuchiAcceptance.class,
-          x -> false,
+          x -> OptionalInt.empty(),
           x -> nnfFormula,
           x -> x.colours().contains(0) ? 0.0d : 0.5d,
           -1,
@@ -781,7 +777,9 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           automaton,
           BUCHI, BuchiAcceptance.class,
-          x -> x.all().isTrue() && x.rejecting().isTrue(),
+          x -> x.all().isTrue() && x.rejecting().isTrue()
+            ? OptionalInt.of(ACCEPTING)
+            : OptionalInt.empty(),
           BreakpointStateRejecting::all,
           x -> x.colours().contains(0) ? 1.0d : x.successor().rejecting().trueness(),
           -1,
@@ -798,7 +796,7 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           automaton,
           CO_BUCHI, CoBuchiAcceptance.class,
-          x -> x.all().isTrue(),
+          x -> x.all().isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
           BreakpointStateAccepting::all,
           x -> x.colours().contains(0) ? 0.0d : x.successor().accepting().trueness(),
           -1,
@@ -809,14 +807,14 @@ public final class CAutomaton {
 
       var function = new LTL2DPAFunction(
           EnumSet.of(COMPLEMENT_CONSTRUCTION_HEURISTIC));
-      Automaton<AnnotatedState<EquivalenceClass>, ParityAcceptance> automaton =
+      Automaton<? extends AnnotatedState<EquivalenceClass>, ParityAcceptance> automaton =
         (Automaton) function.apply(nnfFormula);
 
       if (automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD) {
         return new DeterministicAutomatonWrapper<>(
           automaton,
           PARITY_MIN_ODD, ParityAcceptance.class,
-          x -> x.state().isTrue(),
+          x -> x.state().isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
           AnnotatedState::state,
           x -> x.successor().state().trueness(),
           -1,
@@ -828,7 +826,7 @@ public final class CAutomaton {
         return new DeterministicAutomatonWrapper<>(
           automaton,
           PARITY_MIN_EVEN, ParityAcceptance.class,
-          x -> x.state().isFalse(),
+          x -> x.state().isFalse() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
           AnnotatedState::state,
           x -> 1 - x.successor().state().trueness(),
           -1,
@@ -857,15 +855,18 @@ public final class CAutomaton {
         return REJECTING;
       }
 
-      if (acceptingSink.test(state)) {
-        return ACCEPTING;
-      }
-
       Integer index = state2indexMap.get(state);
 
       if (index == null) {
-        index = index2StateMap.size();
-        index2StateMap.add(state);
+        OptionalInt sink = sinkDetection.apply(state);
+
+        if (sink.isEmpty()) {
+          index = index2StateMap.size();
+          index2StateMap.add(state);
+        } else {
+          index = sink.getAsInt();
+        }
+
         state2indexMap.put(state, index);
       }
 
@@ -952,11 +953,13 @@ public final class CAutomaton {
 
       // Load installed global filter.
       var filter = this.filter;
-      S state = index2StateMap.get(stateIndex);
-      MtBdd<Edge<S>> edgeTree;
 
-      assert automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_TREE
-        || automaton.preferredEdgeAccess().get(0) == Automaton.PreferredEdgeAccess.EDGE_MAP;
+      // If the automaton accepts everything, then index2stateMap is empty.
+      S state = stateIndex == INITIAL && index2StateMap.isEmpty()
+        ? automaton.onlyInitialState()
+        : index2StateMap.get(stateIndex);
+
+      MtBdd<Edge<S>> edgeTree;
 
       if (filter == null) {
 

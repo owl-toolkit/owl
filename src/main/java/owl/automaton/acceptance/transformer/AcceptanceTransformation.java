@@ -20,18 +20,13 @@
 package owl.automaton.acceptance.transformer;
 
 import com.google.auto.value.AutoValue;
-import java.util.BitSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.function.Function;
-import owl.automaton.AbstractAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 
@@ -55,32 +50,13 @@ abstract class AcceptanceTransformation {
     var initialStates = Collections3.transformSet(
       automaton.initialStates(), s -> ExtendedState.of(s, initialExtension));
 
-    return new AbstractAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       automaton.factory(), initialStates, transformer.transformedAcceptance()) {
 
       @Override
-      public Set<Edge<ExtendedState<S, E>>> edges(ExtendedState<S, E> state, BitSet valuation) {
-        return Collections3.transformSet(
-          automaton.edges(state.state(), valuation),
-          x -> transformEdge(x, state.extension()));
-      }
-
-      @Override
-      public Map<Edge<ExtendedState<S, E>>, BddSet> edgeMap(ExtendedState<S, E> state) {
-        return Collections3.transformMap(
-          automaton.edgeMap(state.state()),
-          x -> transformEdge(x, state.extension()));
-      }
-
-      @Override
-      public MtBdd<Edge<ExtendedState<S, E>>> edgeTree(ExtendedState<S, E> state) {
+      protected MtBdd<Edge<ExtendedState<S, E>>> edgeTreeImpl(ExtendedState<S, E> state) {
         return automaton.edgeTree(state.state())
           .map(x -> Collections3.transformSet(x, y -> transformEdge(y, state.extension())));
-      }
-
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return automaton.preferredEdgeAccess();
       }
 
       private Edge<ExtendedState<S, E>> transformEdge(Edge<? extends S> edge, E annotation) {

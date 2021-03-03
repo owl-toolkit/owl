@@ -36,7 +36,6 @@ import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
-import owl.collections.BitSet2;
 
 /**
  * An automaton over infinite words.
@@ -172,25 +171,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
    * @return The set of edges originating from {@code state}
    */
   default Set<Edge<S>> edges(S state) {
-    switch (preferredEdgeAccess().get(0)) {
-      case EDGES:
-        var edges = new HashSet<Edge<S>>();
-
-        for (BitSet valuation : BitSet2.powerSet(atomicPropositions().size())) {
-          edges.addAll(edges(state, valuation));
-        }
-
-        return edges;
-
-      case EDGE_TREE:
-        return edgeTree(state).flatValues();
-
-      case EDGE_MAP:
-        return edgeMap(state).keySet();
-
-      default:
-        throw new AssertionError("Unreachable.");
-    }
+    return edgeTree(state).flatValues();
   }
 
   // Transition function - Symbolic versions
@@ -282,23 +263,6 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   }
 
   // Properties
-
-  /**
-   * Indicate if the automaton implements a fast (e.g. symbolic) computation of edges. Returns a
-   * {@code List} containing all supported {@code PreferredEdgeAccess} ordered by their preference.
-   * Meaning the element at first position (index 0) is the most preferred. Accordingly algorithms
-   * can change the use of {@link Automaton#edges(Object, BitSet)},
-   * {@link Automaton#edgeMap(Object)}, or {@link Automaton#edgeTree(Object)} for accessing all
-   * outgoing edges of a state. This information is also used to dispatch to the right visitor
-   * style.
-   *
-   * @return An ordered list of the traversal methods. The returned list is always complete.
-   */
-  List<PreferredEdgeAccess> preferredEdgeAccess();
-
-  enum PreferredEdgeAccess {
-    EDGES, EDGE_MAP, EDGE_TREE;
-  }
 
   default boolean is(Property property) {
     switch (property) {

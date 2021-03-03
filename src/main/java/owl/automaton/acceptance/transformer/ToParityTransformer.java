@@ -41,7 +41,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.cli.Options;
-import owl.automaton.AbstractAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.SuccessorFunction;
@@ -55,7 +55,6 @@ import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedSta
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.logic.propositional.PropositionalFormula;
@@ -377,34 +376,13 @@ public final class ToParityTransformer {
         return ExtendedState.of(s, transformer.initialExtension());
       });
 
-    return new AbstractAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       automaton.factory(), initialStates, globalAcceptance) {
 
       @Override
-      public Set<Edge<ExtendedState<S, Path>>>
-        edges(ExtendedState<S, Path> state, BitSet valuation) {
-
-        return Collections3.transformSet(
-          automaton.edges(state.state(), valuation),
-          x -> transformEdge(state, x));
-      }
-
-      @Override
-      public Map<Edge<ExtendedState<S, Path>>, BddSet> edgeMap(ExtendedState<S, Path> state) {
-        return Collections3.transformMap(
-          automaton.edgeMap(state.state()),
-          x -> transformEdge(state, x));
-      }
-
-      @Override
-      public MtBdd<Edge<ExtendedState<S, Path>>> edgeTree(ExtendedState<S, Path> state) {
+      protected MtBdd<Edge<ExtendedState<S, Path>>> edgeTreeImpl(ExtendedState<S, Path> state) {
         return automaton.edgeTree(state.state())
           .map(x -> Collections3.transformSet(x, y -> transformEdge(state, y)));
-      }
-
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return automaton.preferredEdgeAccess();
       }
 
       private Edge<ExtendedState<S, Path>> transformEdge(

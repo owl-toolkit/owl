@@ -22,18 +22,14 @@ package owl.automaton.acceptance.degeneralization;
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import java.io.IOException;
-import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import owl.automaton.AbstractAutomaton;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.run.modules.InputReaders;
@@ -104,47 +100,21 @@ public final class BuchiDegeneralization {
     // Compute the set of initial states.
     var initialStates = Collections3.transformSet(automaton.initialStates(), IndexedState::of);
 
-    // We map the three different ways of accessing edges to the implementation of the backing
-    // automaton. Hence we only extend AbstractImmutableAutomaton and none of the subclasses.
-    return new AbstractAutomaton<>(
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       automaton.factory(), initialStates, BuchiAcceptance.INSTANCE) {
 
       private final Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton = automaton;
       private final int sets = backingAutomaton.acceptance().acceptanceSets();
 
-      // This is the simple explicit exploration.
-      @Override
-      public Set<Edge<IndexedState<S>>> edges(IndexedState<S> state, BitSet valuation) {
-        return transformEdges(backingAutomaton.edges(state.state()), state.index());
-      }
-
-      // All possible letters for an edge are symbolically encoded in ValuationSet.
-      @Override
-      public Map<Edge<IndexedState<S>>, BddSet> edgeMap(IndexedState<S> state) {
-        return Collections3.transformMap(
-          backingAutomaton.edgeMap(state.state()),
-          edge -> transformEdge(edge, state.index()));
-      }
-
       // All possible edges are encoded in a binary decision diagram with multiple terminals.
       @Override
-      public MtBdd<Edge<IndexedState<S>>> edgeTree(
-        IndexedState<S> state) {
+      public MtBdd<Edge<IndexedState<S>>> edgeTreeImpl(IndexedState<S> state) {
         return backingAutomaton.edgeTree(state.state())
-          .map(edges -> transformEdges(edges, state.index()));
+          .map(edges -> Collections3.transformSet(edges,
+            edge -> transformEdge(edge, state.index())));
       }
 
-      @Override
-      public List<PreferredEdgeAccess> preferredEdgeAccess() {
-        return backingAutomaton.preferredEdgeAccess();
-      }
-
-      private Set<Edge<IndexedState<S>>> transformEdges(Set<Edge<S>> edges, int currentIndex) {
-        return Collections3.transformSet(edges, edge -> transformEdge(edge, currentIndex));
-      }
-
-      // The common operation to compute the new edge.
-      private Edge<IndexedState<S>> transformEdge(Edge<S> edge, int currentIndex) {
+      private Edge<IndexedState<S>> transformEdge(Edge<? extends S> edge, int currentIndex) {
         int nextIndex = currentIndex;
 
         while (nextIndex < sets && edge.colours().contains(nextIndex)) {

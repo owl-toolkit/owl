@@ -20,7 +20,6 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.Automaton.PreferredEdgeAccess.EDGE_TREE;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableListMultimap;
@@ -126,11 +125,6 @@ public final class Views {
     }
 
     @Override
-    public List<PreferredEdgeAccess> preferredEdgeAccess() {
-      return automaton.preferredEdgeAccess();
-    }
-
-    @Override
     public Set<S> initialStates() {
       return automaton.initialStates();
     }
@@ -181,9 +175,7 @@ public final class Views {
         return Sets.union(automaton.edges(state), sinkEdgeSet);
       }
 
-      return preferredEdgeAccess().get(0) == EDGE_TREE
-         ? edgeTree(state).flatValues()
-         : edgeMap(state).keySet();
+      return edgeTree(state).flatValues();
     }
 
     @Override
