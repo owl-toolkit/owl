@@ -23,7 +23,7 @@ Build:
     - $GRADLE
   script:
     - /opt/graalvm-ce-java11-21.0.0.2/bin/native-image --version
-    - ./gradlew distZip check --stacktrace
+    - ./gradlew distZip check
     - unzip -d build/unzipped build/distributions/*.zip
     - scripts/check_binaries.sh build/unzipped/owl-*/bin
     - mv build/unzipped/owl-*/bin build

@@ -239,7 +239,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         // '-H:+PrintAnalysisCallTree',
         // '-H:DashboardDump=reports/graalvm-dashboard.dump',
         // '-H:+DashboardAll',
-        // '-H:+ReportExceptionStackTraces',
+        '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
         '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
 }
@@ -267,7 +267,7 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         // '-H:+PrintAnalysisCallTree',
         // '-H:DashboardDump=reports/graalvm-dashboard.dump',
         // '-H:+DashboardAll',
-        // '-H:+ReportExceptionStackTraces',
+        '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
         '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
 }
