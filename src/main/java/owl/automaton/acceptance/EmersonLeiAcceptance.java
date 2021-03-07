@@ -221,7 +221,7 @@ public class EmersonLeiAcceptance {
 
   @Override
   public int hashCode() {
-    return 31 * expression.hashCode() + sets;
+    return 31 * booleanExpression().hashCode() + sets;
   }
 
   @Override

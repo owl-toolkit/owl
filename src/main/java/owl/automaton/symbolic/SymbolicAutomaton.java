@@ -20,14 +20,15 @@
 package owl.automaton.symbolic;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableAllocation.VariableType.ATOMIC_PROPOSITION;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableAllocation.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableAllocation.VariableType.STATE;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableAllocation.VariableType.SUCCESSOR_STATE;
+import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.ATOMIC_PROPOSITION;
+import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
+import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
+import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.SUCCESSOR_STATE;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import java.util.ArrayDeque;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashSet;
@@ -48,7 +49,8 @@ import owl.bdd.MtBdd;
  *
  * <p>This class provides a symbolic automaton representation.
  *
- * @param <A> the acceptance class
+ * @param <A>
+ *   the acceptance class
  */
 @AutoValue
 public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
@@ -63,6 +65,12 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public abstract VariableAllocation variableAllocation();
 
+  public abstract Set<Automaton.Property> properties();
+
+  public boolean is(Automaton.Property property) {
+    return properties().contains(property);
+  }
+
   /**
    * Package-private constructor that is only available to trusted implementations.
    */
@@ -71,7 +79,8 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     BddSet initialStates,
     BddSet transitionRelation,
     A acceptance,
-    VariableAllocation variableAllocation) {
+    VariableAllocation variableAllocation,
+    Set<Automaton.Property> properties) {
 
     checkArgument(initialStates.factory() == transitionRelation.factory());
 
@@ -80,7 +89,8 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       initialStates,
       transitionRelation,
       acceptance,
-      variableAllocation
+      variableAllocation,
+      Set.copyOf(properties)
     );
   }
 
@@ -148,11 +158,16 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       }
     }
 
+    var properties = Arrays.stream(Automaton.Property.values())
+      .filter(automaton::is)
+      .collect(Collectors.toSet());
+
     return of(atomicPropositions,
       initialStates,
       transitionRelation,
       automaton.acceptance(),
-      allocation);
+      allocation,
+      properties);
   }
 
   // TODO: add memoization for ValuationTrees.
@@ -259,9 +274,24 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   }
 
+  enum VariableType {
+    STATE, COLOUR, ATOMIC_PROPOSITION, SUCCESSOR_STATE
+  }
+
   public interface VariableAllocation {
 
     BitSet variables(VariableType type);
+
+    int numberOfVariables();
+
+    default VariableType typeOf(int variable) {
+      for (var type : VariableType.values()) {
+        if (variables(type).get(variable)) {
+          return type;
+        }
+      }
+      throw new IllegalArgumentException(variable + " is not a variable!");
+    }
 
     List<String> variableNames();
 
@@ -269,13 +299,47 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
     int globalToLocal(int variable, VariableType type);
 
-    BitSet localToGlobal(BitSet bitSet, VariableType type);
-
-    BitSet globalToLocal(BitSet bitSet, VariableType type);
-
-    enum VariableType {
-      STATE, COLOUR, ATOMIC_PROPOSITION, SUCCESSOR_STATE
+    default BitSet localToGlobal(BitSet bitSet, VariableType type) {
+      BitSet result = new BitSet();
+      for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
+        result.set(localToGlobal(i, type));
+      }
+      return result;
     }
+
+    default BitSet globalToLocal(BitSet bitSet, VariableType type) {
+      BitSet result = new BitSet();
+      BitSet variables = variables(type);
+      for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
+        if (variables.get(i)) {
+          result.set(globalToLocal(i, type));
+        }
+      }
+      return result;
+    }
+
   }
 
+  interface AllocationCombiner extends VariableAllocation {
+
+    int localToGlobal(int variable, VariableAllocation allocation);
+
+    int globalToLocal(int variable, VariableAllocation allocation);
+
+    default BitSet localToGlobal(BitSet bitSet, VariableAllocation allocation) {
+      BitSet result = new BitSet();
+      for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
+        result.set(localToGlobal(i, allocation));
+      }
+      return result;
+    }
+
+    default BitSet globalToLocal(BitSet bitSet, VariableAllocation allocation) {
+      BitSet result = new BitSet();
+      for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
+        result.set(globalToLocal(i, allocation));
+      }
+      return result;
+    }
+  }
 }

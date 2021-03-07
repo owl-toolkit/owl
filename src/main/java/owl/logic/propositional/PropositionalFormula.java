@@ -34,7 +34,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 /**
@@ -61,6 +60,10 @@ public abstract class PropositionalFormula<T> {
 
   public abstract PropositionalFormula<T> substitute(
     Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution);
+
+  public abstract <S> PropositionalFormula<S> substituteTo(
+    Function<? super T, ? extends PropositionalFormula<S>> substitutions
+  );
 
   public abstract void visit(Consumer<? super PropositionalFormula<T>> consumer);
 
@@ -199,17 +202,26 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    public <S> PropositionalFormula<S> substituteTo(
+      Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
+      return new Conjunction<S>(mapOperands(x -> x.<S>substituteTo(substitutions)));
+    }
+
+    @Override
     public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
       conjuncts.forEach(operand -> operand.visit(consumer));
     }
 
-    protected List<PropositionalFormula<T>> mapOperands(
-      UnaryOperator<PropositionalFormula<T>> mapper) {
-      var operands = new ArrayList<>(this.conjuncts);
-      operands.replaceAll(mapper);
+    private <S> List<PropositionalFormula<S>> mapOperands(
+      Function<PropositionalFormula<T>, PropositionalFormula<S>> mapper) {
+      var operands = new ArrayList<PropositionalFormula<S>>(this.conjuncts.size());
+      for (var conjunct : this.conjuncts) {
+        operands.add(mapper.apply(conjunct));
+      }
       return operands;
     }
+
   }
 
   public static final class Disjunction<T> extends PropositionalFormula<T> {
@@ -313,15 +325,23 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    public <S> PropositionalFormula<S> substituteTo(
+      Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
+      return new Disjunction<S>(mapOperands(x -> x.substituteTo(substitutions)));
+    }
+
+    @Override
     public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
       disjuncts.forEach(operand -> operand.visit(consumer));
     }
 
-    protected List<PropositionalFormula<T>> mapOperands(
-      UnaryOperator<PropositionalFormula<T>> mapper) {
-      var operands = new ArrayList<>(this.disjuncts);
-      operands.replaceAll(mapper);
+    private <S> List<PropositionalFormula<S>> mapOperands(
+      Function<PropositionalFormula<T>, PropositionalFormula<S>> mapper) {
+      var operands = new ArrayList<PropositionalFormula<S>>(this.disjuncts.size());
+      for (var conjunct : this.disjuncts) {
+        operands.add(mapper.apply(conjunct));
+      }
       return operands;
     }
   }
@@ -413,6 +433,12 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    public <S> PropositionalFormula<S> substituteTo(
+      Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
+      return new Negation<>(operand.substituteTo(substitutions));
+    }
+
+    @Override
     public void visit(Consumer<? super PropositionalFormula<T>> consumer) {
       consumer.accept(this);
       operand.visit(consumer);
@@ -471,6 +497,12 @@ public abstract class PropositionalFormula<T> {
       Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
       var replacement = substitution.apply(variable);
       return replacement.isEmpty() ? this : replacement.get();
+    }
+
+    @Override
+    public <S> PropositionalFormula<S> substituteTo(
+      Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
+      return substitutions.apply(variable);
     }
 
     @Override
