@@ -1,13 +1,11 @@
 # Setup
 
 A working Intelji IDEA development environment can be obtained by `./gradlew idea` and then importing the generated project (`owl.ipr`) to IDEA.
-
 If you instead want to work with the IDEA Gradle plugin, import the project as usual ("Open Project" > `build.gradle`) and perform the following configuration:
 
  * "Code Style": Import from `config/idea-codestyle.xml`
  * "Inspections": Import from `config/idea-inspection-profile.xml`
  * "Dictionary": Add from `config/dictionary.dic`
-
 
 # Checks
 
@@ -16,15 +14,22 @@ Apart from jUnit tests, static code analysis is performed using [PMD](https://pm
 Further, [checkstyle](http://checkstyle.sourceforge.net/) is used to check compliance with the [Google Java Style Guide](https://google.github.io/styleguide/javaguide.html).
 Passing all these tests is mandatory for submitted code.
 
-
 # Coding Conventions
 
-In general, features of Java 11, like Lambdas, Streams, `Collections.of`, `forEach`-style, etc., can and should be used frequently.
-Streams should only be used for prototypes or in non-performance critical code, since they do add noticeable overhead.
-Typical "best practises" like KISS and DRY should be adhered to, some performance can be sacrificed for clear and concise code.
-Nevertheless, performance must not be neglected.
+### Collections and Streams
 
-## Exceptions and Checks
+Owl currently targets Java 11 and thus `Stream` can be used.
+However, for performance-critical code it might be better to replace them by equivalent `for`-loops.
+It is recommended to use immutable collection for fields that do not require mutation.
+Depending on your use-case make use of `List.of`, `List.copyOf`, `Set.of`, `Set.copyOf`, `Map.of`, or `Map.copyOf`.
+If your use case is not covered by one of JDK collections you can make use of Guava's collections or Owl's own `Collections3` and `BitSet2`.
+
+### Records
+
+For classes that are data classes, i.e., named tuples, [AutoValue](https://github.com/google/auto/tree/master/value) should be used.
+This is only an intermediate solution until Java 16 is supported by GraalVM.
+
+### Exceptions and Validation
 
  * Use `assert` and Guavas `Precondition` methods frequently, it drastically simplifies debugging and even can help reading code.
    Usually, asserts should only be used for internal consistency checks, i.e. double-checking your own implementation.
@@ -37,23 +42,7 @@ The following conventions should be followed:
    * `UnsupportedOperationException`: The operation is not supported yet, but this could change in the future.
    * `IllegalArgumentException`: This operation will never be supported (for the given input).
 
-## Utilities
-
-Where applicable, JDK functionality should be preferred (e.g., JDK `List.of` over Guava `ImmutableList.of`).
-If the JDK does not offer some particular functionality, Guava usually provides it and that should be used.
-Before implementing your own methods, double check that none of owl's utility libraries provide it already.
-
- * See `Collections3` for some specific collection methods.
- * Where applicable, use the primitive versions of collections provided by `fastutil`.
- * For anything related to natural numbers, see `naturals-util` for more specific implementations (e.g., index maps).
-
-## Immutable tuples
-
-For classes that are simple structured carriers, i.e. data containers or tuples, [AutoValue](https://github.com/google/auto/tree/master/value) should be used.
-Hiding the implementation class (by, e.g., giving it package visibility) is recommended, since Java may support value types natively in the near future.
-Finally, for performance critical code, double-check that the generated code is doing what you expect from it (e.g., no superfluous copies are performed).
-
-## Naming
+### Naming
 
 In general, everything should have self-explanatory, english names.
 Also, the following naming schemes should be followed:
@@ -61,21 +50,21 @@ Also, the following naming schemes should be followed:
  * formulas (instead of formulae)
  * -ize (instead of -ise)
 
-## Sorting
+### Sorting
 
 Members of a class can be sorted alphabetically (adhering to the general order), but a logical structure is preferred.
 For example, one can keep setters and getter together or group methods by their type (e.g., simple property accessor, complex mutation, ...).
 For tuples (see above), the convention is the following: "fields", derived fields, factory methods ("`of`"), constructor-like methods ("`with...`"), other methods.
 
-## Javadoc
+### Javadoc
 
-Javadoc isn't required everywhere, but strongly encouraged.
+Javadoc is not required everywhere, but strongly encouraged.
 Code without any documentation is not accepted.
 The [Oracle](http://www.oracle.com/technetwork/java/javase/tech/index-137868.html) and [Google](https://google.github.io/styleguide/javaguide.html#s7-javadoc) style guides apply.
 Specifically, block tags (like `@throws`, `@return`, etc.) should be continued by a lower-case sentence.
 For example, `@throws IllegalArgumentException if the argument is not allowed` or `@return the thing`.
 
-## Windows
+# Developing on Windows
 
 To use development tools on Windows:
 

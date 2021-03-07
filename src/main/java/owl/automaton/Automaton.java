@@ -292,23 +292,29 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   enum Property {
 
     /**
-     * An automaton is complete if there is at least on initial state and every state has at least
-     * one successor for each valuation.
+     * An automaton is complete if there is at least one initial state and every state has at least
+     * one successor for each letter of the alphabet.
      */
     COMPLETE,
 
     /**
      * An automaton is deterministic if there is at most one initial state and every state has at
-     * most one successor for each valuation.
+     * most one successor for each letter of the alphabet.
      */
     DETERMINISTIC,
 
     /**
-     * An automaton is semi-deterministic if there is at most one initial state and every state has
-     * at most one successor for each valuation.
+     * An automaton is semi-deterministic if every state has at most one successor for each
+     * letter of the alphabet.
      */
     SEMI_DETERMINISTIC,
 
+    /**
+     * An automaton is limit-deterministic if it is has (generalised) Büchi acceptance condition
+     * and every state reachable from an edge with an acceptance marking is deterministic. Thus
+     * all accepting runs are eventually trapped within a subset of the states that have
+     * deterministic transition relation.
+     */
     LIMIT_DETERMINISTIC
   }
 }
