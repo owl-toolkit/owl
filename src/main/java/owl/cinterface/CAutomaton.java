@@ -670,13 +670,23 @@ public final class CAutomaton {
       of(Automaton<S, ?> automaton, int uncontrollableApSize) {
 
       Function<S, OptionalInt> sinkDetection = (S state) -> {
-        var edges = automaton.edges(state);
+        Set<Set<Edge<S>>> edgeSetSet = automaton.edgeTree(state).values();
 
-        if (edges.size() != 1) {
+        // We have multiple options, thus this not a (trivial) sink state.
+        if (edgeSetSet.size() != 1) {
           return OptionalInt.empty();
         }
 
-        var edge = edges.iterator().next();
+        Set<Edge<S>> edgeSet = Iterables.getOnlyElement(edgeSetSet);
+
+        // The run stops.
+        if (edgeSet.isEmpty()) {
+          return OptionalInt.of(REJECTING);
+        }
+
+        assert edgeSet.size() == 1 : "automaton is not deterministic";
+
+        Edge<S> edge = Iterables.getOnlyElement(edgeSet);
 
         if (!edge.successor().equals(state)) {
           return OptionalInt.empty();
