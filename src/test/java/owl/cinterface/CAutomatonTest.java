@@ -317,6 +317,18 @@ public class CAutomatonTest {
       .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
     assertTrue(Arrays.stream(cAutomaton3.edgeTree(1, false).edges.toArray())
       .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+
+    var automaton4 = translation.apply(LtlParser.parse("a & X G ! a"));
+    var cAutomaton4 = CAutomaton.DeterministicAutomatonWrapper.of(automaton4, -1);
+
+    assertTrue(Arrays.stream(cAutomaton4.edgeTree(0, false).edges.toArray())
+      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+    assertTrue(Arrays.stream(cAutomaton4.edgeTree(0, false).edges.toArray())
+      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.REJECTING));
+    assertTrue(Arrays.stream(cAutomaton4.edgeTree(1, false).edges.toArray())
+      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
+    assertTrue(Arrays.stream(cAutomaton4.edgeTree(1, false).edges.toArray())
+      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.REJECTING));
   }
 
   private static class FeatureDeserializer implements JsonDeserializer<Feature> {
