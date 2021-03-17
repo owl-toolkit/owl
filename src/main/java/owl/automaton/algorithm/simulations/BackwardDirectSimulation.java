@@ -19,18 +19,14 @@
 
 package owl.automaton.algorithm.simulations;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 
@@ -39,7 +35,6 @@ public class BackwardDirectSimulation<S>
 
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -62,9 +57,6 @@ public class BackwardDirectSimulation<S>
     this.pebbleCount = pebbleCount;
     this.knownPairs = known;
 
-    this.factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a"));
-
     this.initialState = MultipebbleSimulationState.of(
       Pebble.of(left, false),
       MultiPebble.of(right, false, pebbleCount)
@@ -77,21 +69,19 @@ public class BackwardDirectSimulation<S>
   }
 
   @Override
-  public Map<Edge<MultipebbleSimulationState<S>>, BddSet> edgeMap(
-    MultipebbleSimulationState<S> state
-  ) {
-    Map<Edge<MultipebbleSimulationState<S>>, BddSet> out = new HashMap<>();
+  public Set<Edge<MultipebbleSimulationState<S>>> edges(MultipebbleSimulationState<S> state) {
 
     if (state.equals(sinkState)) {
-      out.put(Edge.of(sinkState, 1), factory.universe());
-      return out;
+      return Set.of(Edge.of(sinkState, 1));
     }
+
+    Set<Edge<MultipebbleSimulationState<S>>> out = new HashSet<>();
 
     if (state.owner().isOdd()) {
       if (state.even().isSingleton()
         && knownPairs.contains(Pair.of(state.odd().state(), state.even().onlyState()))) {
-        out.put(Edge.of(state, 0), factory.universe());
-        return out;
+
+        return Set.of(Edge.of(state, 0));
       }
 
       // check if Duplicator has a pebble on an initial state
@@ -101,26 +91,24 @@ public class BackwardDirectSimulation<S>
       if ((!containsInitial && leftAutomaton.initialStates().contains(state.odd().state()))
         || (!state.even().flag() && state.odd().flag())) {
         // Spoiler reached an initial state while Duplicator did not, go to sink
-        out.put(Edge.of(sinkState, 1), factory.universe());
-        return out;
+        return Set.of(Edge.of(sinkState, 1));
       }
 
       // we obtain the entrySet to be able to exit prematurely if no predecessors are available
       var predecessors = leftAutomaton.predecessors(state.odd().state());
       if (predecessors.isEmpty()) {
-        out.put(Edge.of(state, 0), factory.universe());
-        return out;
+        return Set.of(Edge.of(state, 0));
       }
 
       predecessors.forEach(pred -> leftAutomaton.edgeMap(pred).forEach((e, vS) -> {
         if (e.successor().equals(state.odd().state())) {
-          vS.toSet().forEach(
+          vS.toSet(leftAutomaton.atomicPropositions().size()).forEach(
             val -> state.odd().predecessors(leftAutomaton, val)
               .forEach(p -> {
                 var target = MultipebbleSimulationState.of(
                   p, state.even().setFlag(false), val
                 );
-                out.put(Edge.of(target, 0), factory.universe());
+                out.add(Edge.of(target, 0));
               }));
         }
       }));
@@ -128,8 +116,7 @@ public class BackwardDirectSimulation<S>
       var possibilities = state.even()
         .predecessors(leftAutomaton, BitSet2.fromInt(state.valuation()));
       if (possibilities.isEmpty()) {
-        out.put(Edge.of(sinkState, 1), factory.universe());
-        return out;
+        return Set.of(Edge.of(sinkState, 1));
       }
 
       possibilities.forEach(p -> {
@@ -137,9 +124,9 @@ public class BackwardDirectSimulation<S>
           var target = MultipebbleSimulationState.of(
             state.odd(), p
           );
-          out.put(Edge.of(target, 0), factory.universe());
+          out.add(Edge.of(target, 0));
         } else {
-          out.put(Edge.of(sinkState, 1), factory.universe());
+          out.add(Edge.of(sinkState, 1));
         }
       });
     }
@@ -155,10 +142,5 @@ public class BackwardDirectSimulation<S>
   @Override
   public Set<MultipebbleSimulationState<S>> initialStates() {
     return Set.of(initialState);
-  }
-
-  @Override
-  public BddSetFactory factory() {
-    return factory;
   }
 }

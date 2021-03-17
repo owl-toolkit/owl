@@ -19,22 +19,17 @@
 
 package owl.automaton.algorithm.simulations;
 
-import java.util.Map;
 import java.util.Set;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
 import owl.game.Game;
 
 public interface SimulationType<S, T extends SimulationType.SimulationState> {
-  Map<Edge<T>, BddSet> edgeMap(T state);
+  Set<Edge<T>> edges(T state);
 
   ParityAcceptance acceptance();
 
   Set<T> initialStates();
-
-  BddSetFactory factory();
 
   abstract class SimulationState {
     public abstract Game.Owner owner();

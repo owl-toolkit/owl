@@ -25,16 +25,13 @@ import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
-import owl.bdd.FactorySupplier;
 
 class BooleanOperationsTest {
 
   @Test
   void deterministicComplementEmpty() {
 
-
-    var factory = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
-    var emptyAutomaton = EmptyAutomaton.of(factory, BuchiAcceptance.INSTANCE);
+    var emptyAutomaton = EmptyAutomaton.of(List.of("a"), BuchiAcceptance.INSTANCE);
     var complementAutomaton = BooleanOperations.deterministicComplement(
       emptyAutomaton, new Object(), ParityAcceptance.class);
 

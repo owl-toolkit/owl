@@ -21,13 +21,12 @@ package owl.automaton.algorithm.simulations;
 
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationType.SimulationState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
-import owl.bdd.BddSet;
+import owl.bdd.MtBdd;
 import owl.game.Game;
 
 /**
@@ -38,19 +37,19 @@ import owl.game.Game;
  * @param <T> Type of simulation state that is used.
  */
 public class SimulationGame<S, T extends SimulationState>
-  extends AbstractMemoizingAutomaton.EdgeMapImplementation<T, ParityAcceptance>
+  extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, ParityAcceptance>
   implements Game<T, ParityAcceptance> {
 
   final SimulationType<S, T> simulationType;
 
   public SimulationGame(SimulationType<S, T> type) {
-    super(type.factory(), type.initialStates(), type.acceptance());
+    super(List.of("a"), type.initialStates(), type.acceptance());
     simulationType = type;
   }
 
   @Override
-  public Map<Edge<T>, BddSet> edgeMapImpl(T state) {
-    return simulationType.edgeMap(state);
+  public MtBdd<Edge<T>> edgeTreeImpl(T state) {
+    return MtBdd.of(simulationType.edges(state));
   }
 
   @Override

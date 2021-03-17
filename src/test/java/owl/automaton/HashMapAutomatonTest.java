@@ -40,20 +40,13 @@ import owl.automaton.Automaton.Property;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 
 class HashMapAutomatonTest {
-  private static final BddSetFactory FACTORY;
-
-  static {
-
-    FACTORY = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
-  }
 
   @Test
   void testEmptyAutomaton() {
-    HashMapAutomaton<?, ?> automaton = new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
+    HashMapAutomaton<?, ?> automaton
+      = HashMapAutomaton.create(List.of("a"), AllAcceptance.INSTANCE);
     assertFalse(automaton.is(Property.COMPLETE));
     assertTrue(automaton.is(Property.DETERMINISTIC));
     assertThat(AutomatonUtil.getIncompleteStates(automaton).keySet(), Collection::isEmpty);
@@ -65,7 +58,8 @@ class HashMapAutomatonTest {
   void testRemapAcceptanceDuplicate() {
     // Test that edges which are equal after a remapAcceptance call get merged.
 
-    MutableAutomaton<String, ?> automaton = new HashMapAutomaton<>(FACTORY, AllAcceptance.INSTANCE);
+    MutableAutomaton<String, ?> automaton
+      = HashMapAutomaton.create(List.of("a"), AllAcceptance.INSTANCE);
 
     automaton.addInitialState("1");
     automaton.addInitialState("2");
@@ -76,26 +70,28 @@ class HashMapAutomatonTest {
     automaton.addEdge("1", other, Edge.of("2"));
     automaton.addEdge("1", new BitSet(), Edge.of("2", 1));
     automaton.updateEdges((state, edge) -> {
-      if (edge.successor().equals("2")) {
-        return Edge.of(edge.successor());
-      }
+      switch (edge.successor()) {
+        case "1":
+          return null;
 
-      if (edge.successor().equals("1")) {
-        return null;
-      }
+        case "2":
+          return Edge.of(edge.successor());
 
-      return edge;
+        default:
+          return edge;
+      }
     });
     automaton.trim();
 
     assertThat(automaton.edgeMap("1").entrySet(),
-      x -> x.contains(Map.entry(Edge.of("2"), FACTORY.universe())));
+      x -> x.contains(Map.entry(Edge.of("2"), automaton.factory().of(true))));
   }
 
   @Test
   void testSimpleAutomaton() {
     // Test various parts of the implementation on a simple, two-state automaton
-    var automaton = new HashMapAutomaton<>(FACTORY, BuchiAcceptance.INSTANCE);
+    var automaton
+      = HashMapAutomaton.create(List.of("a"), BuchiAcceptance.INSTANCE);
 
     automaton.addState("1");
     automaton.addState("2");
@@ -118,13 +114,13 @@ class HashMapAutomatonTest {
 
     // Add edge
     var edge = Edge.of("2");
-    automaton.addEdge("1", FACTORY.universe(), edge);
+    automaton.addEdge("1", automaton.factory().of(true), edge);
     automaton.trim();
 
     assertAll(
       () -> assertEquals(edge, automaton.edge("1", new BitSet())),
       () -> assertEquals(Set.of(edge), automaton.edges("1", new BitSet())),
-      () -> assertEquals(Map.of(edge, FACTORY.universe()), automaton.edgeMap("1")),
+      () -> assertEquals(Map.of(edge, automaton.factory().of(true)), automaton.edgeMap("1")),
 
       () -> assertEquals(Set.of("1", "2"), automaton.states()),
       () -> assertEquals(Set.of("1", "2"), getReachableStates(automaton)),
@@ -135,13 +131,13 @@ class HashMapAutomatonTest {
     );
 
     // Add duplicate edge
-    automaton.addEdge("1", FACTORY.of(new BitSet()), edge);
+    automaton.addEdge("1", automaton.factory().of(new BitSet(), 1), edge);
     automaton.trim();
 
     assertAll(
       () -> assertEquals(edge, automaton.edge("1", new BitSet())),
       () -> assertEquals(Set.of(edge), automaton.edges("1", new BitSet())),
-      () -> assertEquals(Map.of(edge, FACTORY.universe()), automaton.edgeMap("1")),
+      () -> assertEquals(Map.of(edge, automaton.factory().of(true)), automaton.edgeMap("1")),
 
       () -> assertEquals(Set.of("1", "2"), automaton.states()),
       () -> assertEquals(Set.of("1", "2"), getReachableStates(automaton)),
@@ -153,13 +149,15 @@ class HashMapAutomatonTest {
 
     // Add edge with different acceptance
     var edgeWithAcceptance = edge.withAcceptance(0);
-    automaton.addEdge("1", FACTORY.of(new BitSet()), edgeWithAcceptance);
+    automaton.addEdge("1", automaton.factory().of(new BitSet(), 1), edgeWithAcceptance);
     automaton.trim();
 
     assertAll(
       () -> assertEquals(Set.of(edge, edgeWithAcceptance), automaton.edges("1", new BitSet())),
       () -> assertEquals(
-        Map.of(edge, FACTORY.universe(), edgeWithAcceptance, FACTORY.of(new BitSet())),
+        Map.of(
+          edge, automaton.factory().of(true),
+          edgeWithAcceptance, automaton.factory().of(new BitSet(), 1)),
         automaton.edgeMap("1")),
 
       () -> assertEquals(Set.of("1", "2"), automaton.states()),
@@ -172,7 +170,7 @@ class HashMapAutomatonTest {
 
     // Add loop edge
     var loop = Edge.of("1", 0);
-    automaton.addEdge("1", FACTORY.universe(), loop);
+    automaton.addEdge("1", automaton.factory().of(true), loop);
     automaton.trim();
 
     assertAll(

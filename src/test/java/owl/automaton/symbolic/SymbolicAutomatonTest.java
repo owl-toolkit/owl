@@ -36,7 +36,6 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.LanguageContainment;
-import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LtlTranslationRepository;
@@ -52,7 +51,7 @@ public class SymbolicAutomatonTest {
   @Test
   protected void testEmpty() {
     var emptyAutomaton = EmptyAutomaton.of(
-      FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a")),
+      List.of("a"),
       AllAcceptance.INSTANCE);
 
     var symbolicEmptyAutomaton = SymbolicAutomaton.of(emptyAutomaton);
@@ -63,7 +62,7 @@ public class SymbolicAutomatonTest {
   @Test
   protected void testSingleton() {
     var singletonAutomaton = SingletonAutomaton.of(
-      FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a", "b")),
+      List.of("a", "b"),
       new Object(),
       BuchiAcceptance.INSTANCE,
       Set.of(0));

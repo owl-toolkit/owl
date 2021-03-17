@@ -21,11 +21,13 @@ package owl.automaton;
 
 import com.google.common.base.Preconditions;
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 
@@ -34,27 +36,97 @@ public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
 
   private final MtBdd<Edge<S>> selfLoopEdges;
 
-  private SingletonAutomaton(S singletonState, BddSetFactory factory,
-    @Nullable BitSet acceptanceSets, A acceptance) {
-    super(factory, Set.of(singletonState), acceptance);
+  private SingletonAutomaton(
+    List<String> atomicPropositions,
+    S singletonState,
+    BddSetFactory factory,
+    @Nullable BitSet acceptanceSets,
+    A acceptance) {
+
+    super(atomicPropositions, factory, Set.of(singletonState), acceptance);
     this.selfLoopEdges = acceptanceSets == null
       ? MtBdd.of()
       : MtBdd.of(Set.of(Edge.of(singletonState, acceptanceSets)));
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    BddSetFactory factory, S state, A acceptance) {
-    return new SingletonAutomaton<>(state, factory, null, acceptance);
+    List<String> atomicPropositions, S state, A acceptance) {
+
+    return new SingletonAutomaton<>(
+      atomicPropositions,
+      state,
+      FactorySupplier.defaultSupplier().getBddSetFactory(),
+      null,
+      acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    BddSetFactory factory, S state, A acceptance, Set<Integer> acceptanceSet) {
-    return new SingletonAutomaton<>(state, factory, BitSet2.copyOf(acceptanceSet), acceptance);
+    List<String> atomicPropositions, BddSetFactory factory, S state, A acceptance) {
+
+    return new SingletonAutomaton<>(
+      atomicPropositions,
+      state,
+      factory,
+      null,
+      acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    BddSetFactory factory, S state, A acceptance, BitSet acceptanceSet) {
-    return new SingletonAutomaton<>(state, factory, acceptanceSet, acceptance);
+    List<String> atomicPropositions,
+    S state,
+    A acceptance,
+    Set<Integer> acceptanceSet) {
+
+    return new SingletonAutomaton<>(
+      atomicPropositions,
+      state,
+      FactorySupplier.defaultSupplier().getBddSetFactory(),
+      BitSet2.copyOf(acceptanceSet),
+      acceptance);
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
+    List<String> atomicPropositions,
+    BddSetFactory factory,
+    S state,
+    A acceptance,
+    Set<Integer> acceptanceSet) {
+
+    return new SingletonAutomaton<>(
+      atomicPropositions,
+      state,
+      factory,
+      BitSet2.copyOf(acceptanceSet),
+      acceptance);
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
+    List<String> atomicPropositions,
+    S state,
+    A acceptance,
+    BitSet acceptanceSet) {
+
+    return new SingletonAutomaton<>(
+      atomicPropositions,
+      state,
+      FactorySupplier.defaultSupplier().getBddSetFactory(),
+      acceptanceSet,
+      acceptance);
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
+    List<String> atomicPropositions,
+    BddSetFactory factory,
+    S state,
+    A acceptance,
+    BitSet acceptanceSet) {
+
+    return new SingletonAutomaton<>(
+      atomicPropositions,
+      state,
+      factory,
+      acceptanceSet,
+      acceptance);
   }
 
   @Override

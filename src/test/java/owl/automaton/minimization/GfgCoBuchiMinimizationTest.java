@@ -38,7 +38,6 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.determinization.Determinization;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaWriter;
-import owl.bdd.FactorySupplier;
 import owl.ltl.parser.LtlParser;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
@@ -90,13 +89,10 @@ class GfgCoBuchiMinimizationTest {
 
   private static Automaton<?, CoBuchiAcceptance> graphPermutationLanguage(int n) {
 
-    var factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a", "b"));
-
     var initialState = IntStream.range(1, n + 1).boxed().collect(Collectors.toUnmodifiableList());
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      factory, Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
+      List.of("a", "b"), Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
 
       @Override
       public Edge<List<Integer>> edgeImpl(List<Integer> state, BitSet valuation) {
@@ -144,11 +140,8 @@ class GfgCoBuchiMinimizationTest {
 
   private static Automaton<Integer, CoBuchiAcceptance> graphPermutationLanguage2(int n) {
 
-    var factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a", "b"));
-
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
-      factory, Set.of(1), CoBuchiAcceptance.INSTANCE) {
+      List.of("a", "b"), Set.of(1), CoBuchiAcceptance.INSTANCE) {
 
       @Override
       public Set<Edge<Integer>> edgesImpl(Integer index, BitSet valuation) {

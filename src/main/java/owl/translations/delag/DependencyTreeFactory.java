@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.bdd.EquivalenceClassFactory;
-import owl.bdd.Factories;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -51,9 +50,9 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
   private final Map<Formula, Automaton<T, ?>> automatonCache = new HashMap<>();
   int setNumber;
 
-  DependencyTreeFactory(Factories factory,
+  DependencyTreeFactory(EquivalenceClassFactory factory,
     Function<LabelledFormula, ? extends Automaton<T, ?>> constructor) {
-    this.factory = factory.eqFactory;
+    this.factory = factory;
     setNumber = 0;
     builder = ProductState.builder();
     this.constructor = formula -> automatonCache.computeIfAbsent(formula, x ->

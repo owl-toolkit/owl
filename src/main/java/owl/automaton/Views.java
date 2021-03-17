@@ -115,6 +115,11 @@ public final class Views {
     }
 
     @Override
+    public List<String> atomicPropositions() {
+      return automaton.atomicPropositions();
+    }
+
+    @Override
     public B acceptance() {
       return acceptance;
     }
@@ -183,7 +188,7 @@ public final class Views {
       BddSetFactory factory = automaton.factory();
 
       if (sink.equals(state)) {
-        return Map.of(sinkEdge, factory.universe());
+        return Map.of(sinkEdge, factory.of(true));
       }
 
       if (incompleteStates != null && !incompleteStates.containsKey(state)) {
@@ -192,7 +197,7 @@ public final class Views {
 
       Map<Edge<S>, BddSet> edges = new HashMap<>(automaton.edgeMap(state));
       BddSet valuationSet = incompleteStates == null
-        ? edges.values().stream().reduce(factory.of(), BddSet::union).complement()
+        ? edges.values().stream().reduce(factory.of(false), BddSet::union).complement()
         : incompleteStates.get(state);
 
       if (!valuationSet.isEmpty()) {
@@ -282,7 +287,9 @@ public final class Views {
     private final BiPredicate<S, Edge<S>> edgeFilter;
 
     private AutomatonView(Automaton<S, A> automaton, Filter<S> settings) {
-      super(automaton.factory(),
+      super(
+        automaton.atomicPropositions(),
+        automaton.factory(),
         initialStates(automaton, settings),
         automaton.acceptance());
 
@@ -406,7 +413,9 @@ public final class Views {
 
     private QuotientAutomaton(Automaton<S, A> automaton, Map<S, T> mapping,
       ImmutableListMultimap<T, S> reverseMapping) {
-      super(automaton.factory(),
+      super(
+        automaton.atomicPropositions(),
+        automaton.factory(),
         automaton.initialStates().stream().map(mapping::get).collect(Collectors.toSet()),
         automaton.acceptance());
 

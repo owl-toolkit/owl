@@ -28,17 +28,19 @@ import static owl.logic.propositional.PropositionalFormula.falseConstant;
 import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Iterators;
 import de.tum.in.jbdd.Bdd;
-import java.math.BigInteger;
 import java.util.AbstractSet;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
+import javax.annotation.Nullable;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
@@ -48,53 +50,57 @@ import owl.logic.propositional.PropositionalFormula;
 
 final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddSetFactory {
 
-  private final List<String> atomicPropositions;
   private final int trueNode;
   private final int falseNode;
+  private int variables;
 
-  JBddSetFactory(Bdd factory, List<String> atomicPropositions) {
+  JBddSetFactory(Bdd factory) {
     super(factory);
 
-    this.atomicPropositions = List.copyOf(atomicPropositions);
-    this.trueNode = factory.trueNode();
-    this.falseNode = factory.falseNode();
-
-    factory.createVariables(this.atomicPropositions.size());
-    assert factory.numberOfVariables() == this.atomicPropositions.size();
+    trueNode = factory.trueNode();
+    falseNode = factory.falseNode();
+    variables = 0;
   }
 
   @Override
-  public List<String> atomicPropositions() {
-    return atomicPropositions;
+  public BddSet of(boolean booleanConstant) {
+    return create(booleanConstant ? trueNode : falseNode);
   }
 
   @Override
-  public BddSet of() {
-    return create(falseNode);
+  public BddSet of(int variable) {
+    return create(variableNode(variable));
   }
 
   @Override
-  public BddSet of(int atomicProposition) {
-    return create(bdd.variableNode(atomicProposition));
+  public BddSet of(BitSet valuation, int upTo) {
+    int node = bdd.trueNode();
+
+    for (int i = 0; i < upTo; i++) {
+      node = createBddUpdateHelper(valuation, i, node);
+    }
+
+    return create(node);
   }
 
   @Override
-  public BddSet of(BitSet valuation) {
-    return create(createBdd(valuation));
+  public BddSet of(BitSet valuation, BitSet support) {
+    int node = bdd.trueNode();
+
+    for (int i = support.nextSetBit(0); i != -1; i = support.nextSetBit(i + 1)) {
+      node = createBddUpdateHelper(valuation, i, node);
+    }
+
+    return create(node);
   }
 
   @Override
-  public BddSet of(BitSet valuation, BitSet restrictedAlphabet) {
-    return create(createBdd(valuation, restrictedAlphabet));
+  public BddSet of(PropositionalFormula<Integer> expression) {
+    return null;
   }
 
   @Override
-  public BddSet universe() {
-    return create(trueNode);
-  }
-
-  @Override
-  public <S> MtBdd<S> toValuationTree(Map<? extends S, ? extends BddSet> sets) {
+  public <S> MtBdd<S> toMtBdd(Map<? extends S, ? extends BddSet> sets) {
     MtBdd<S> union = MtBdd.of(Set.of());
 
     for (Map.Entry<? extends S, ? extends BddSet> entry : sets.entrySet()) {
@@ -120,45 +126,34 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       Conjunction.of(Negation.of(atomicProposition), toExpression(bdd.low(node)))).normalise();
   }
 
+  private int variableNode(int variable) {
+    if (variable >= variables) {
+      bdd.createVariables((variable + 1) - variables);
+      variables = bdd.numberOfVariables();
+    }
+
+    Objects.checkIndex(variable, variables);
+    return bdd.variableNode(variable);
+  }
+
   private JBddSet create(int node) {
     return canonicalize(new JBddSet(this, node));
   }
 
-  private int createBdd(BitSet set, BitSet base) {
-    assert base.length() <= atomicPropositions.size();
-    int node = bdd.trueNode();
-
-    for (int i = base.nextSetBit(0); i != -1; i = base.nextSetBit(i + 1)) {
-      node = createBddUpdateHelper(set, i, node);
-    }
-
-    return node;
-  }
-
-  private int createBdd(BitSet set) {
-    int node = bdd.trueNode();
-
-    for (int i = 0; i < atomicPropositions.size(); i++) {
-      node = createBddUpdateHelper(set, i, node);
-    }
-
-    return node;
-  }
-
   private int createBddUpdateHelper(BitSet set, int var, int node) {
-    int variableNode = bdd.variableNode(var);
+    int variableNode = variableNode(var);
     assert bdd.isVariable(variableNode);
     return bdd.and(node, set.get(var) ? variableNode : bdd.not(variableNode));
   }
 
   private int getNode(BddSet vs) {
-    assert this.equals(vs.factory());
+    Preconditions.checkArgument(this == vs.factory());
     int node = ((JBddSet) vs).node;
     assert bdd.getReferenceCount(node) > 0 || bdd.getReferenceCount(node) == -1;
     return node;
   }
 
-  private <E> MtBdd<E> toTree(E value, int bddNode, Map<Integer, MtBdd<E>> cache) {
+  private <E> MtBdd<E> toTree(E value, int bddNode, Map<? super Integer, MtBdd<E>> cache) {
     var tree = cache.get(bddNode);
 
     if (tree != null) {
@@ -223,6 +218,9 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     private final JBddSetFactory factory;
     private final int node;
 
+    @Nullable
+    private BitSet supportCache;
+
     private JBddSet(JBddSetFactory factory, int node) {
       this.factory = factory;
       this.node = node;
@@ -244,26 +242,28 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
     @Override
     public BddSet relabel(IntUnaryOperator mapping) {
-      int size = factory.atomicPropositions.size();
-      int[] subsitutions = new int[size];
+      BitSet support = support();
+      int[] substitutions = new int[support.length()];
+      Arrays.fill(substitutions, -1);
 
-      for (int i = 0; i < size; i++) {
+      for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
         int j = mapping.applyAsInt(i);
 
         if (j == -1) {
-          subsitutions[i] = -1;
-        } else if (0 <= j && j < size) {
-          subsitutions[i] = factory.bdd.variableNode(j);
+          substitutions[i] = -1;
+        } else if (j >= 0) {
+          substitutions[i] = factory.variableNode(j);
         } else {
           throw new IllegalArgumentException(
             String.format("Invalid mapping: {%s} -> {%s}", i, j));
         }
       }
 
-      return factory.create(factory.bdd.compose(node, subsitutions));
+      return factory.create(factory.bdd.compose(node, substitutions));
     }
 
     @Override
+    @Deprecated(forRemoval = true)
     public BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping) {
       Preconditions
         .checkArgument(newFactory instanceof JBddSetFactory && !newFactory.equals(factory));
@@ -273,10 +273,11 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     // TODO: add memoization to avoid (worst-case) exponential runtime blow-up.
+    @Deprecated(forRemoval = true)
     private int transferTo(JBddSetFactory newFactory, IntUnaryOperator mapping, int node) {
       Bdd newBdd = newFactory.bdd;
       Bdd oldBdd = factory.bdd;
-      
+
       if (node == oldBdd.trueNode()) {
         return newBdd.trueNode();
       }
@@ -289,14 +290,14 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       int oldLow = oldBdd.low(node);
       int oldHigh = oldBdd.high(node);
 
-      int newVariableNode = newBdd.variableNode(mapping.applyAsInt(oldVariable));
+      int newVariableNode = newFactory.variableNode(mapping.applyAsInt(oldVariable));
       int newLow = transferTo(newFactory, mapping, oldLow);
       int newHigh = transferTo(newFactory, mapping, oldHigh);
       return newBdd.consume(newBdd.ifThenElse(newVariableNode, newHigh, newLow), newHigh, newLow);
     }
 
     @Override
-    public <E> MtBdd<E> filter(MtBdd<E> tree) {
+    public <E> MtBdd<E> intersection(MtBdd<E> tree) {
       return factory.filter(tree, node);
     }
 
@@ -317,40 +318,12 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
     @Override
     public boolean contains(BitSet valuation) {
-      Preconditions.checkArgument(valuation.length() <= factory.atomicPropositions.size(),
-        "Valuation refers to indices not covered by atomicPropositions.");
       return factory.bdd.evaluate(node, valuation);
     }
 
     @Override
     public boolean containsAll(BddSet valuationSet) {
       return factory.bdd.implies(factory.getNode(valuationSet), node);
-    }
-
-    @Override
-    public boolean intersects(BddSet other) {
-      return !factory.bdd.implies(node, factory.bdd.not(factory.getNode(other)));
-    }
-
-    @Override
-    public void forEach(BitSet restriction, Consumer<? super BitSet> action) {
-      // TODO Make this native to the bdd?
-      int variables = factory.bdd.numberOfVariables();
-
-      BitSet restrictedVariables = BitSet2.copyOf(restriction);
-      restrictedVariables.flip(0, variables);
-
-      int restrict = factory.bdd.restrict(node, restrictedVariables, new BitSet());
-      factory.bdd.forEachPath(restrict, (solution, solutionSupport) -> {
-        assert !solution.intersects(restrictedVariables);
-        solutionSupport.xor(restriction);
-        BitSet2.powerSet(solutionSupport).forEach(nonRelevantValuation -> {
-          solution.or(nonRelevantValuation);
-          action.accept(solution);
-          solution.andNot(nonRelevantValuation);
-        });
-        solutionSupport.xor(restriction);
-      });
     }
 
     @Override
@@ -370,18 +343,18 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
     @Override
     public String toString() {
-      return '[' + this.toExpressionNamed().toString() + ']';
+      return '[' + this.toExpression().toString() + ']';
     }
 
     @Override
-    public Set<BitSet> toSet() {
-      return new AbstractSet<>() {
+    public Set<BitSet> toSet(int upToVariable) {
+      Preconditions.checkArgument(this.support().length() <= upToVariable);
 
+      return new AbstractSet<>() {
         @Override
         public boolean contains(Object o) {
           if (o instanceof BitSet) {
-            return ((BitSet) o).length() <= factory.atomicPropositions.size()
-              && JBddSet.this.contains((BitSet) o);
+            return ((BitSet) o).length() <= upToVariable && JBddSet.this.contains((BitSet) o);
           }
 
           return false;
@@ -394,16 +367,63 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
         @Override
         public Iterator<BitSet> iterator() {
-          return factory.bdd.solutionIterator(node);
+          return Iterators.filter(BitSet2.powerSet(upToVariable).iterator(), this::contains);
         }
 
         @Override
         public int size() {
-          return factory.bdd.countSatisfyingAssignments(node)
-            .min(BigInteger.valueOf(Integer.MAX_VALUE))
-            .intValueExact();
+          return isEmpty() ? 0 : Iterators.size(iterator());
         }
       };
+    }
+
+    @Override
+    public Set<BitSet> toSet(BitSet support) {
+      return new AbstractSet<>() {
+        @Override
+        public boolean contains(Object o) {
+          if (o instanceof BitSet) {
+            return JBddSet.this.contains((BitSet) o);
+          }
+
+          return false;
+        }
+
+        @Override
+        public boolean isEmpty() {
+          return node == factory.falseNode;
+        }
+
+        @Override
+        public Iterator<BitSet> iterator() {
+          return Iterators.filter(BitSet2.powerSet(support).iterator(), this::contains);
+        }
+
+        @Override
+        public int size() {
+          return isEmpty() ? 0 : Iterators.size(iterator());
+        }
+      };
+    }
+
+    @Override
+    public Optional<BitSet> element() {
+      if (this.isEmpty()) {
+        return Optional.empty();
+      }
+
+      return Optional.of(factory.bdd.getSatisfyingAssignment(node));
+    }
+
+    @Override
+    public BitSet support() {
+      if (supportCache == null) {
+        BitSet support = factory.bdd.support(node);
+        supportCache = BitSet2.copyOf(support);
+        return support;
+      }
+
+      return BitSet2.copyOf(supportCache);
     }
   }
 }

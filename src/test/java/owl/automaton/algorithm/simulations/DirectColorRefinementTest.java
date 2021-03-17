@@ -23,14 +23,10 @@ import static owl.automaton.algorithm.simulations.CommonAutomata.anotherRefineme
 import static owl.automaton.algorithm.simulations.CommonAutomata.simpleColorRefinementAutomaton;
 
 import org.junit.jupiter.api.Test;
-import owl.game.algorithms.OinkGameSolver;
 
 public class DirectColorRefinementTest {
   @Test
   void simpleAutomatonTest() {
-    if (!OinkGameSolver.checkOinkExecutable()) {
-      return;
-    }
     var aut = simpleColorRefinementAutomaton();
     var otherAut = anotherRefinementAutomaton();
 

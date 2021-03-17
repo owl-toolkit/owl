@@ -93,8 +93,8 @@ public class AutomatonSccDecompositionTest {
   void testNbaSccs() throws ParseException {
 
     final var supplier = FactorySupplier.defaultSupplier();
-    final var parsed = HoaReader.read(new StringReader(HOA_NBA_SCCS),
-      supplier::getBddSetFactory);
+    final var parsed = HoaReader.read(
+      new StringReader(HOA_NBA_SCCS), supplier::getBddSetFactory, null);
     final var nba = OmegaAcceptanceCast.cast(parsed, BuchiAcceptance.class);
 
     //ugly hack to access state IDs, relies on fact that toString stringifies State ID from HOA file

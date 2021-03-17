@@ -34,8 +34,6 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.BitSet2;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -84,16 +82,13 @@ class AutomatonTest {
   }
 
   private static Stream<Arguments> automatonProvider() {
-    BddSetFactory factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a", "b"));
-
     return Stream.of(Arguments.of(
-      new AbstractMemoizingAutomaton.EdgeMapImplementation<>(factory, Set.of("x"),
+      new AbstractMemoizingAutomaton.EdgeMapImplementation<>(List.of("a", "b"), Set.of("x"),
         AllAcceptance.INSTANCE) {
 
         @Override
         public Map<Edge<String>, BddSet> edgeMapImpl(String state) {
-          return Map.of(Edge.of("x"), factory.universe(), Edge.of("y"), factory.of(0));
+          return Map.of(Edge.of("x"), factory.of(true), Edge.of("y"), factory.of(0));
         }
       }));
   }
@@ -110,10 +105,12 @@ class AutomatonTest {
     for (S state : automaton.states()) {
       var actualEdges = automaton.edgeMap(state);
       var expectedEdges = new HashMap<Edge<S>, BddSet>();
+      int atomicPropositionsSize = automaton.atomicPropositions().size();
 
-      for (var valuation : BitSet2.powerSet(automaton.atomicPropositions().size())) {
+      for (var valuation : BitSet2.powerSet(atomicPropositionsSize)) {
         automaton.edges(state, valuation).forEach(
-          x -> expectedEdges.merge(x, automaton.factory().of(valuation), BddSet::union));
+          x -> expectedEdges.merge(x,
+            automaton.factory().of(valuation, atomicPropositionsSize), BddSet::union));
       }
 
       assertEquals(expectedEdges, actualEdges);
@@ -137,7 +134,7 @@ class AutomatonTest {
         assertEquals(actualEdges.get(valuation), automaton.edges(state, valuation));
       }
 
-      assertEquals(actualEdges, automaton.factory().toValuationTree(expectedEdges));
+      assertEquals(actualEdges, automaton.factory().toMtBdd(expectedEdges));
     }
   }
 }

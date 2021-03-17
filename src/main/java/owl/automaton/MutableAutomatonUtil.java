@@ -72,7 +72,7 @@ public final class MutableAutomatonUtil {
     // Add edges to the sink state.
     Edge<S> sinkEdge = Edge.of(sinkState, automaton.acceptance().rejectingSet().orElseThrow());
     incompleteStates.forEach((state, valuation) -> automaton.addEdge(state, valuation, sinkEdge));
-    automaton.addEdge(sinkState, automaton.factory().universe(), sinkEdge);
+    automaton.addEdge(sinkState, automaton.factory().of(true), sinkEdge);
     return Optional.of(sinkState);
   }
 

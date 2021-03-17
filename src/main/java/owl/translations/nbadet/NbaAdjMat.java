@@ -148,7 +148,8 @@ public final class NbaAdjMat<S> {
     var succs = succ(st, sym);
     var aSuccs = BitSet2.asSet(succs.snd(), stmap);
     var nSuccs = BitSet2.asSet(BitSet2.without(succs.fst(), succs.snd()), stmap);
-    var symStr = aut.factory().of(BitSet2.fromInt(sym)).toExpression().toString();
+    var symStr = aut.factory()
+      .of(BitSet2.fromInt(sym), aut.atomicPropositions().size()).toString();
 
     if (aSuccs.isEmpty() && nSuccs.isEmpty()) {
       return "";

@@ -82,9 +82,8 @@ public final class DecomposedDPA {
     var atomicPropositions = labelledFormula.atomicPropositions();
     var builder = new TreeBuilder(atomicPropositions);
     var tree = labelledFormula.formula().accept(builder);
-    var globalFactory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(atomicPropositions);
-    tree.initializeFilter(builder.automata, builder.sharedAutomata, globalFactory.universe());
+    var globalFactory = FactorySupplier.defaultSupplier().getBddSetFactory();
+    tree.initializeFilter(builder.automata, builder.sharedAutomata, globalFactory.of(true));
     return new DecomposedDPA(tree, List.copyOf(builder.automata));
   }
 
@@ -472,20 +471,26 @@ public final class DecomposedDPA {
         }
 
         var referencedAutomaton = referencedAutomata.get(index);
+        BitSet globalFilterSupport = globalFilter.support();
         BitSet unusedAtomicPropositions = new BitSet();
 
-        for (int i = 0; i < globalToLocalMapping.length(); i++) {
-          if (globalToLocalMapping.get(i) == -1) {
+        for (int i = globalFilterSupport.nextSetBit(0);
+             i >= 0;
+             i = globalFilterSupport.nextSetBit(i + 1)) {
+
+          if (i >= globalToLocalMapping.length() || globalToLocalMapping.get(i) == -1) {
             unusedAtomicPropositions.set(i);
+          }
+
+          // operate on index i here
+          if (i == Integer.MAX_VALUE) {
+            break; // or (i+1) would overflow
           }
         }
 
-        int globalApSize = globalFilter.factory().atomicPropositions().size();
-        unusedAtomicPropositions.set(globalToLocalMapping.length(), globalApSize);
-
         var newFilter = globalFilter
           .project(unusedAtomicPropositions)
-          .relabel(x -> x < globalToLocalMapping.length() ? globalToLocalMapping.get(x) : -1);
+          .relabel(globalToLocalMapping::get);
 
         if (!newFilter.isUniverse()) {
           assert referencedAutomaton.filter == null;
@@ -565,7 +570,7 @@ public final class DecomposedDPA {
           filterSources.add(leaf);
           nodeFilter = leafFilter
             .inverse(globalFilter.factory(), leaf.localToGlobalMapping::get)
-            .getOrDefault(Boolean.TRUE, globalFilter.factory().of())
+            .getOrDefault(Boolean.TRUE, globalFilter.factory().of(false))
             .intersection(nodeFilter);
         }
 

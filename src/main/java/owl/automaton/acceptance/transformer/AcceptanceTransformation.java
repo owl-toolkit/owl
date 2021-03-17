@@ -51,7 +51,10 @@ abstract class AcceptanceTransformation {
       automaton.initialStates(), s -> ExtendedState.of(s, initialExtension));
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.factory(), initialStates, transformer.transformedAcceptance()) {
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      initialStates,
+      transformer.transformedAcceptance()) {
 
       @Override
       protected MtBdd<Edge<ExtendedState<S, E>>> edgeTreeImpl(ExtendedState<S, E> state) {

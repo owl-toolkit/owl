@@ -314,7 +314,7 @@ public final class BuchiSimulation {
     Set<Pair<S, S>> seen = ConcurrentHashMap.newKeySet();
 
     var stats = Pair.allPairs(left.states(), right.states())
-      .parallelStream()
+      .stream()
       .filter(p -> !known.contains(p))
       .map(pair -> {
         if (seen.add(pair)) {

@@ -100,8 +100,11 @@ public final class ParityUtil {
     // Automaton currently accepts nothing
     if (acceptance.acceptanceSets() == 0 && !acceptance.emptyIsAccepting()) {
       var parityAcceptance = new ParityAcceptance(1, Parity.MIN_EVEN);
-      var universalAutomaton = SingletonAutomaton.of(automaton.factory(),
-        sinkState, parityAcceptance, parityAcceptance.acceptingSet().orElseThrow());
+      var universalAutomaton = SingletonAutomaton.of(
+        automaton.atomicPropositions(),
+        sinkState,
+        parityAcceptance,
+        parityAcceptance.acceptingSet().orElseThrow());
       return HashMapAutomaton.copyOf(universalAutomaton);
     }
 

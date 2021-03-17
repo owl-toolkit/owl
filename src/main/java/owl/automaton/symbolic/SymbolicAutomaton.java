@@ -119,10 +119,8 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       atomicPropositions.size(),
       automaton.acceptance().acceptanceSets());
 
-    BddSetFactory factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(allocation.variableNames());
-
-    BddSet initialStates = factory.of();
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
+    BddSet initialStates = factory.of(false);
 
     // Work-list algorithm.
     Deque<S> workList = new ArrayDeque<>();
@@ -137,7 +135,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       exploredStates.add(initialState);
     }
 
-    BddSet transitionRelation = factory.of();
+    BddSet transitionRelation = factory.of(false);
 
     while (!workList.isEmpty()) {
       S state = workList.remove();
@@ -180,7 +178,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     if (edgeTree instanceof MtBdd.Leaf) {
       var leaf = (MtBdd.Leaf<Edge<S>>) edgeTree;
 
-      BddSet edges = factory.of();
+      BddSet edges = factory.of(false);
 
       for (Edge<S> edge : leaf.value) {
         BitSet successorEncoding
@@ -211,23 +209,21 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   @Memoized
   public Automaton<BitSet, A> toAutomaton() {
-    Set<BitSet> initialStates = new HashSet<>();
-    VariableAllocation allocation = variableAllocation();
 
-    initialStates().forEach(allocation.variables(STATE), x -> {
-      initialStates.add(allocation.globalToLocal(x, STATE));
-    });
+    VariableAllocation allocation = variableAllocation();
+    Set<BitSet> initialStates = initialStates().toSet(allocation.variables(STATE)).stream()
+      .map(x -> allocation.globalToLocal(x, STATE))
+      .collect(Collectors.toUnmodifiableSet());
 
     // TODO: Use AbstractMemoizingAutomaton.EdgeTreeImplementation for faster computation.
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
-      FactorySupplier.defaultSupplier().getBddSetFactory(atomicPropositions()),
+      atomicPropositions(),
+      transitionRelation().factory(),
       initialStates,
       acceptance()) {
 
       @Override
       protected Set<Edge<BitSet>> edgesImpl(BitSet state, BitSet valuation) {
-        BddSetFactory factory = transitionRelation().factory();
-
         BddSet stateSingletonSet = factory.of(
           allocation.localToGlobal(state, STATE),
           allocation.variables(STATE));
@@ -240,7 +236,8 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
           .intersection(atomicPropositionsSingletonSet)
           .intersection(transitionRelation());
 
-        return edgesSet.toSet().stream()
+        // TODO: replace this rough over-approximation by a more precise check.
+        return edgesSet.toSet(allocation.numberOfVariables()).stream()
           .map((BitSet edge) -> {
             assert state.equals(allocation.globalToLocal(edge, STATE));
             assert valuation.equals(allocation.globalToLocal(edge, ATOMIC_PROPOSITION));

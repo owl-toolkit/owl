@@ -53,16 +53,19 @@ public final class LanguageMembership {
   }
 
   private static final class IndexedAutomaton<S, A extends EmersonLeiAcceptance>
-    extends
-    AbstractMemoizingAutomaton.EdgesImplementation<IndexedState<S>, A> {
+    extends AbstractMemoizingAutomaton.EdgesImplementation<IndexedState<S>, A> {
 
     private final Automaton<S, A> automaton;
     private final UltimatelyPeriodicWord word;
 
     private IndexedAutomaton(Automaton<S, A> automaton, UltimatelyPeriodicWord word) {
-      super(automaton.factory(), automaton.initialStates().stream()
-        .map(x -> IndexedState.of(-word.prefix.size(), x))
-        .collect(Collectors.toUnmodifiableSet()), automaton.acceptance());
+      super(
+        automaton.atomicPropositions(),
+        automaton.factory(),
+        automaton.initialStates().stream()
+          .map(x -> IndexedState.of(-word.prefix.size(), x))
+          .collect(Collectors.toUnmodifiableSet()),
+        automaton.acceptance());
       this.automaton = automaton;
       this.word = word;
     }

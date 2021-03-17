@@ -40,9 +40,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.ToDoubleFunction;
+import java.util.regex.Pattern;
 import javax.annotation.Nullable;
 import jhoafparser.parser.generated.ParseException;
 import org.graalvm.nativeimage.ImageInfo;
@@ -90,6 +90,7 @@ import owl.translations.ltl2dpa.LTL2DPAFunction;
 public final class CAutomaton {
 
   private static final String NAMESPACE = "automaton_";
+  private static final Pattern WHITE_SPACE = Pattern.compile("\\s+");
 
   private CAutomaton() {}
 
@@ -109,40 +110,64 @@ public final class CAutomaton {
 
     var hoa = CTypeConversion.toJavaString(cCharPointer);
 
-    var fieldName = "controllable-AP: ";
-    int controllableAPStringIndex = hoa.indexOf(fieldName);
+    // Parse controllable-AP
+
     BitSet controllableAPIndices = new BitSet();
 
-    if (controllableAPStringIndex >= 0) {
-      String begin = hoa.substring(controllableAPStringIndex + fieldName.length());
-      String indices = begin.substring(0, begin.indexOf('\n'));
+    {
+      String fieldName = "controllable-AP: ";
+      int controllableAPStringIndex = hoa.indexOf(fieldName);
 
-      for (String index : indices.split("\\s+")) {
-        controllableAPIndices.set(Integer.parseInt(index));
+      if (controllableAPStringIndex >= 0) {
+        String begin = hoa.substring(controllableAPStringIndex + fieldName.length());
+        String indices = begin.substring(0, begin.indexOf('\n'));
+
+        for (String index : WHITE_SPACE.split(indices)) {
+          controllableAPIndices.set(Integer.parseInt(index));
+        }
       }
     }
 
-    AtomicInteger uncontrollableApSize = new AtomicInteger(-1);
+    // Parse AP:
 
-    Function<List<String>, BddSetFactory> factoryFunction = (atomicPropositions) -> {
-      List<String> uncontrollableAp = new ArrayList<>();
-      List<String> controllableAp = new ArrayList<>();
+    List<String> atomicPropositions = new ArrayList<>();
 
-      for (int i = 0, s = atomicPropositions.size(); i < s; i++) {
-        if (controllableAPIndices.get(i)) {
-          controllableAp.add(atomicPropositions.get(i));
-        } else {
-          uncontrollableAp.add(atomicPropositions.get(i));
-        }
+    {
+      String fieldName = "AP: ";
+      int APStringIndex = hoa.indexOf(fieldName);
+
+      checkArgument(APStringIndex >= 0, "Malformed HOA file.");
+
+      String begin = hoa.substring(APStringIndex + fieldName.length());
+      String indices = begin.substring(0, begin.indexOf('\n'));
+      String[] splitString = WHITE_SPACE.split(indices);
+
+      int size = Integer.parseInt(splitString[0]);
+
+      for (int i = 1; i < splitString.length; i++) {
+        atomicPropositions.add(splitString[i]);
       }
 
-      uncontrollableApSize.set(uncontrollableAp.size());
-      uncontrollableAp.addAll(controllableAp);
-      return FactorySupplier.defaultSupplier().getBddSetFactory(uncontrollableAp);
-    };
+      checkArgument(atomicPropositions.size() == size, "Malformed HOA file.");
+    }
+
+    List<String> reorderedAtomicPropositions = new ArrayList<>();
+    List<String> uncontrollableAp = new ArrayList<>();
+    List<String> controllableAp = new ArrayList<>();
+
+    for (int i = 0, s = atomicPropositions.size(); i < s; i++) {
+      if (controllableAPIndices.get(i)) {
+        controllableAp.add(atomicPropositions.get(i));
+      } else {
+        uncontrollableAp.add(atomicPropositions.get(i));
+      }
+    }
+
+    reorderedAtomicPropositions.addAll(uncontrollableAp);
+    reorderedAtomicPropositions.addAll(controllableAp);
 
     var automaton = DeterministicAutomatonWrapper.of(
-      HoaReader.read(hoa, factoryFunction), uncontrollableApSize.get());
+      HoaReader.read(hoa, FactorySupplier.defaultSupplier()::getBddSetFactory, List.copyOf(reorderedAtomicPropositions)), uncontrollableAp.size());
     return ObjectHandles.getGlobal().create(automaton);
   }
 
@@ -943,11 +968,11 @@ public final class CAutomaton {
 
         BddSet falseChildSet = falseChild >= 0
           ? cache[falseChild / 3]
-          : (falseChild == REJECTING ? factory.of() : factory.universe());
+          : (falseChild == REJECTING ? factory.of(false) : factory.of(true));
 
         BddSet trueChildSet = trueChild >= 0
           ? cache[trueChild / 3]
-          : (trueChild == REJECTING ? factory.of() : factory.universe());
+          : (trueChild == REJECTING ? factory.of(false) : factory.of(true));
 
         BddSet trueBranch = factory.of(atomicProposition);
         BddSet falseBranch = trueBranch.complement();
@@ -979,7 +1004,7 @@ public final class CAutomaton {
 
       } else {
 
-        edgeTree = filter.filter(
+        edgeTree = filter.intersection(
           stateIndex == 0 && initialStateEdgeTree != null
             ? initialStateEdgeTree
             : automaton.edgeTree(state));

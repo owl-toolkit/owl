@@ -29,8 +29,6 @@ import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.Pair;
 
 class BuchiSimulationTest {
@@ -38,9 +36,8 @@ class BuchiSimulationTest {
   @Test
   public void directSimulationTest() {
 
-    MutableAutomaton<String, BuchiAcceptance> automaton = HashMapAutomaton.of(
-      BuchiAcceptance.INSTANCE,
-      FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a")));
+    MutableAutomaton<String, BuchiAcceptance> automaton = HashMapAutomaton.create(
+      List.of("a"), BuchiAcceptance.INSTANCE);
 
     BitSet a = new BitSet();
     a.set(0);
@@ -70,11 +67,8 @@ class BuchiSimulationTest {
   @Test
   public void directSimulationTest2() {
 
-    BddSetFactory factory
-      = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a", "b"));
-
-    MutableAutomaton<String, BuchiAcceptance> automaton = HashMapAutomaton.of(
-      BuchiAcceptance.INSTANCE, factory);
+    MutableAutomaton<String, BuchiAcceptance> automaton = HashMapAutomaton.create(
+      List.of("a", "b"), BuchiAcceptance.INSTANCE);
 
     String initialState = "0";
     String acceptingState = "1";
@@ -82,10 +76,10 @@ class BuchiSimulationTest {
     automaton.addInitialState(initialState);
     automaton.addState(acceptingState);
 
-    automaton.addEdge(initialState,   factory.of(0), Edge.of(initialState));
-    automaton.addEdge(initialState,   factory.of(1), Edge.of(initialState));
-    automaton.addEdge(initialState,   factory.of(1), Edge.of(acceptingState, 0));
-    automaton.addEdge(acceptingState, factory.of(0), Edge.of(acceptingState, 0));
+    automaton.addEdge(initialState,   automaton.factory().of(0), Edge.of(initialState));
+    automaton.addEdge(initialState,   automaton.factory().of(1), Edge.of(initialState));
+    automaton.addEdge(initialState,   automaton.factory().of(1), Edge.of(acceptingState, 0));
+    automaton.addEdge(acceptingState, automaton.factory().of(0), Edge.of(acceptingState, 0));
 
     automaton.trim();
 

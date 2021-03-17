@@ -19,22 +19,39 @@
 
 package owl.automaton;
 
+import java.util.List;
 import java.util.Set;
+import javax.annotation.Nullable;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 
 public final class EmptyAutomaton<S, A extends EmersonLeiAcceptance>
   extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-  private EmptyAutomaton(BddSetFactory factory, A acceptance) {
-    super(factory, Set.of(), acceptance);
+  private EmptyAutomaton(
+    List<String> atomicPropositions,
+    @Nullable BddSetFactory factory,
+    A acceptance) {
+
+    super(atomicPropositions,
+      factory == null ? FactorySupplier.defaultSupplier().getBddSetFactory() : factory,
+      Set.of(),
+      acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    BddSetFactory factory, A acceptance) {
-    return new EmptyAutomaton<>(factory, acceptance);
+    List<String> atomicPropositions, A acceptance) {
+
+    return new EmptyAutomaton<>(atomicPropositions, null, acceptance);
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
+    List<String> atomicPropositions, BddSetFactory factory, A acceptance) {
+
+    return new EmptyAutomaton<>(atomicPropositions, factory, acceptance);
   }
 
   @Override

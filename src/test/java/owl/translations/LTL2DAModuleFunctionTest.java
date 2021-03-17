@@ -83,6 +83,6 @@ class LTL2DAModuleFunctionTest {
     // Check true sink.
     BitSet empty = new BitSet();
     assertEquals(edge, automaton.edge(state, empty));
-    assertEquals(Map.of(edge, automaton.factory().universe()), automaton.edgeMap(state));
+    assertEquals(Map.of(edge, automaton.factory().of(true)), automaton.edgeMap(state));
   }
 }

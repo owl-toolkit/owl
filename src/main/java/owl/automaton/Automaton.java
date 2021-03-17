@@ -74,15 +74,13 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
    */
   A acceptance();
 
-  default List<String> atomicPropositions() {
-    return factory().atomicPropositions();
-  }
+  List<String> atomicPropositions();
 
   /**
    * Returns the backing engine for the symbolic representation of edges. Only this engine might be
    * used for the access to edges.
    *
-   * @return The symbolic engine used to generate ValuationSets.
+   * @return The symbolic engine used to generate BddSets.
    */
   BddSetFactory factory();
 

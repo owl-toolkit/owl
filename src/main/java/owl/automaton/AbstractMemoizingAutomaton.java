@@ -35,6 +35,7 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
@@ -67,18 +68,31 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   protected final A acceptance;
   protected final Set<S> initialStates;
   protected final BddSetFactory factory;
+  protected final List<String> atomicPropositions;
 
   // Memoization.
   private final Set<S> unexploredStates;
   private Map<S, MtBdd<Edge<S>>> memoizedEdges = new HashMap<>();
 
   private AbstractMemoizingAutomaton(
-    BddSetFactory factory, Set<S> initialStates, A acceptance) {
+    List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
+
+    this(atomicPropositions,
+      FactorySupplier.defaultSupplier().getBddSetFactory(),
+      initialStates,
+      acceptance);
+  }
+
+  private AbstractMemoizingAutomaton(
+    List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
     this.acceptance = acceptance;
+    this.atomicPropositions = List.copyOf(atomicPropositions);
     this.initialStates = Set.copyOf(initialStates);
     this.factory = factory;
     this.unexploredStates = new HashSet<>(this.initialStates);
+
+    Preconditions.checkArgument(Collections3.isDistinct(this.atomicPropositions));
   }
 
   @Override
@@ -142,7 +156,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final List<String> atomicPropositions() {
-    return factory.atomicPropositions();
+    return atomicPropositions;
   }
 
   @Override
@@ -205,9 +219,15 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeTreeImplementation(
-      BddSetFactory factory, Set<S> initialStates, A acceptance) {
+      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
-      super(factory, initialStates, acceptance);
+      super(atomicPropositions, initialStates, acceptance);
+    }
+
+    public EdgeTreeImplementation(
+      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+
+      super(atomicPropositions, factory, initialStates, acceptance);
     }
   }
 
@@ -227,16 +247,22 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeMapImplementation(
-      BddSetFactory factory, Set<S> initialStates, A acceptance) {
+      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
-      super(factory, initialStates, acceptance);
+      super(atomicPropositions, initialStates, acceptance);
+    }
+
+    public EdgeMapImplementation(
+      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+
+      super(atomicPropositions, factory, initialStates, acceptance);
     }
 
     protected abstract Map<Edge<S>, BddSet> edgeMapImpl(S state);
 
     @Override
     protected final MtBdd<Edge<S>> edgeTreeImpl(S state) {
-      return factory.toValuationTree(edgeMapImpl(state));
+      return factory.toMtBdd(edgeMapImpl(state));
     }
   }
 
@@ -256,9 +282,15 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgesImplementation(
-      BddSetFactory factory, Set<S> initialStates, A acceptance) {
+      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
-      super(factory, initialStates, acceptance);
+      super(atomicPropositions, initialStates, acceptance);
+    }
+
+    public EdgesImplementation(
+      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+
+      super(atomicPropositions, factory, initialStates, acceptance);
     }
 
     protected abstract Set<Edge<S>> edgesImpl(S state, BitSet valuation);
@@ -315,9 +347,15 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     extends EdgesImplementation<S, A> {
 
     public EdgeImplementation(
-      BddSetFactory factory, Set<S> initialStates, A acceptance) {
+      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
-      super(factory, initialStates, acceptance);
+      super(atomicPropositions, initialStates, acceptance);
+    }
+
+    public EdgeImplementation(
+      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+
+      super(atomicPropositions, factory, initialStates, acceptance);
     }
 
     @Nullable
@@ -363,12 +401,29 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     private Map<B, MtBdd<Edge<Either<A, B>>>> memoizedEdgesB = new HashMap<>();
 
     public PartitionedEdgeTreeImplementation(
+      List<String> atomicPropositions,
+      Set<? extends A> initialStatesA,
+      Set<? extends B> initialStatesB,
+      C acceptance) {
+
+      super(
+        atomicPropositions,
+        Sets.union(
+          Collections3.transformSet(initialStatesA, Either::left),
+          Collections3.transformSet(initialStatesB, Either::right)),
+        acceptance);
+    }
+
+    public PartitionedEdgeTreeImplementation(
+      List<String> atomicPropositions,
       BddSetFactory factory,
       Set<? extends A> initialStatesA,
       Set<? extends B> initialStatesB,
       C acceptance) {
 
-      super(factory,
+      super(
+        atomicPropositions,
+        factory,
         Sets.union(
           Collections3.transformSet(initialStatesA, Either::left),
           Collections3.transformSet(initialStatesB, Either::right)),

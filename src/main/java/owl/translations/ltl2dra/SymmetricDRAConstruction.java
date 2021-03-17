@@ -84,7 +84,10 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
     var ldba = ldbaConstruction.apply(formula);
     var builder = new Builder(ldba);
     var automaton = new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      ldba.factory(), Collections3.ofNullable(builder.initialState), builder.acceptance) {
+      ldba.acceptingComponent().atomicPropositions(),
+      ldba.factory(),
+      Collections3.ofNullable(builder.initialState),
+      builder.acceptance) {
 
       @Override
       public Edge<SymmetricRankingState> edgeImpl(SymmetricRankingState state, BitSet valuation) {

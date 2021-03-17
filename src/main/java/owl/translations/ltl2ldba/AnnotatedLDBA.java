@@ -160,7 +160,9 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     AbstractMemoizingAutomaton.PartitionedEdgeTreeImplementation<S, T, B> {
 
     private AutomatonView() {
-      super(acceptingComponent.factory(),
+      super(
+        acceptingComponent.atomicPropositions(),
+        acceptingComponent.factory(),
         initialComponent.initialStates(),
         Set.of(),
         acceptingComponent.acceptance());

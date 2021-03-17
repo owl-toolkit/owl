@@ -22,22 +22,20 @@ package owl.bdd;
 import java.util.List;
 import owl.bdd.jbdd.JBddSupplier;
 
-public abstract class FactorySupplier {
+public interface FactorySupplier {
 
-  public static FactorySupplier defaultSupplier() {
+  static FactorySupplier defaultSupplier() {
     // TODO: add compile-time switch (JDD vs sylvan)
-    return JBddSupplier.INSTANCE;
+    return JBddSupplier.JBDD_SUPPLIER_INSTANCE;
   }
 
-  public abstract BddSetFactory
-    getBddSetFactory(List<String> atomicPropositions);
+  BddSetFactory getBddSetFactory();
 
-  public abstract EquivalenceClassFactory
-    getEquivalenceClassFactory(List<String> atomicPropositions);
+  EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions);
 
-  public Factories getFactories(List<String> atomicPropositions) {
+  default Factories getFactories(List<String> atomicPropositions) {
     return new Factories(
       getEquivalenceClassFactory(atomicPropositions),
-      getBddSetFactory(atomicPropositions));
+      getBddSetFactory());
   }
 }

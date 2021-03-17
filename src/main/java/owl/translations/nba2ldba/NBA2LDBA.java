@@ -120,7 +120,13 @@ public final class NBA2LDBA
     private final int acceptanceSets;
 
     BreakpointAutomaton(Automaton<S, ? extends GeneralizedBuchiAcceptance> ngba) {
-      super(ngba.factory(), ngba.initialStates(), Set.of(), BuchiAcceptance.INSTANCE);
+      super(
+        ngba.atomicPropositions(),
+        ngba.factory(),
+        ngba.initialStates(),
+        Set.of(),
+        BuchiAcceptance.INSTANCE);
+
       this.ngba = ngba;
       this.sccs = SccDecomposition.of(ngba).sccsWithoutTransient();
       this.acceptanceSets = Math.max(ngba.acceptance().acceptanceSets(), 1);
@@ -136,14 +142,15 @@ public final class NBA2LDBA
     protected MtBdd<Edge<BreakpointState<S>>> edgeTreeImplB(BreakpointState<S> state) {
       BddSetFactory factory = factory();
       Map<Edge<BreakpointState<S>>, BddSet> labelledEdges = new HashMap<>();
+      int upTo = atomicPropositions.size();
 
-      for (BitSet valuation : BitSet2.powerSet(atomicPropositions().size())) {
+      for (BitSet valuation : BitSet2.powerSet(upTo)) {
         for (Edge<BreakpointState<S>> edge : edgesB(state, valuation)) {
-          labelledEdges.merge(edge, factory.of(valuation), BddSet::union);
+          labelledEdges.merge(edge, factory.of(valuation, upTo), BddSet::union);
         }
       }
 
-      return factory.toValuationTree(labelledEdges);
+      return factory.toMtBdd(labelledEdges);
     }
 
     protected Set<Edge<BreakpointState<S>>> edgesB(BreakpointState<S> ldbaState, BitSet valuation) {

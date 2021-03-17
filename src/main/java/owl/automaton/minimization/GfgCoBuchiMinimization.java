@@ -68,7 +68,7 @@ public final class GfgCoBuchiMinimization {
     var safeComponents = safeComponents(dcwCopy);
 
     if (dcwCopy.initialStates().isEmpty()) {
-      return EmptyAutomaton.of(dcw.factory(), CoBuchiAcceptance.INSTANCE);
+      return EmptyAutomaton.of(dcw.atomicPropositions(), CoBuchiAcceptance.INSTANCE);
     }
 
     normalize(dcwCopy, safeComponents);
@@ -121,7 +121,7 @@ public final class GfgCoBuchiMinimization {
     safeView(Automaton<S, ? extends CoBuchiAcceptance> ncw, S q) {
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      ncw.factory(), Set.of(q), AllAcceptance.INSTANCE) {
+      ncw.atomicPropositions(), ncw.factory(), Set.of(q), AllAcceptance.INSTANCE) {
 
       @Override
       public MtBdd<Edge<S>> edgeTreeImpl(S state) {
@@ -187,7 +187,7 @@ public final class GfgCoBuchiMinimization {
     assert initialState != null;
 
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
-      ncw.factory(), Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
+      ncw.atomicPropositions(), ncw.factory(), Set.of(initialState), CoBuchiAcceptance.INSTANCE) {
 
       @Override
       protected Set<Edge<S>> edgesImpl(S state, BitSet valuation) {
@@ -254,6 +254,7 @@ public final class GfgCoBuchiMinimization {
       .collect(Collectors.toUnmodifiableSet());
 
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
+      ncw.atomicPropositions(),
       ncw.factory(),
       initialStates,
       CoBuchiAcceptance.INSTANCE) {

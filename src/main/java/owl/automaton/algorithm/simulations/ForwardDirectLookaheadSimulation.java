@@ -19,25 +19,20 @@
 
 package owl.automaton.algorithm.simulations;
 
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.LookaheadSimulationState;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.Pair;
 
 public class ForwardDirectLookaheadSimulation<S>
   implements SimulationType<S, LookaheadSimulationState<S>> {
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final LookaheadSimulationState<S> initialState;
@@ -60,47 +55,40 @@ public class ForwardDirectLookaheadSimulation<S>
     this.maxLookahead = maxLookahead;
     this.knownPairs = known;
 
-
-    this.factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a"));
-
     this.initialState = LookaheadSimulationState.of(left, right);
     this.sinkState = LookaheadSimulationState.of(left, right, List.of());
   }
 
   @Override
-  public Map<Edge<SimulationStates.LookaheadSimulationState<S>>, BddSet> edgeMap(
-    SimulationStates.LookaheadSimulationState<S> state
-  ) {
-    var out = new HashMap<Edge<LookaheadSimulationState<S>>, BddSet>();
+  public Set<Edge<SimulationStates.LookaheadSimulationState<S>>> edges(
+    SimulationStates.LookaheadSimulationState<S> state) {
 
     if (state.equals(sinkState)) {
-      out.put(Edge.of(sinkState, 1), factory.universe());
-      return out;
+      return Set.of(Edge.of(sinkState, 1));
     }
+
+    var out = new HashSet<Edge<LookaheadSimulationState<S>>>();
 
     if (state.owner().isOdd()) {
       var possible = Transition.universe(state.odd(), leftAutomaton, maxLookahead);
       if (possible.isEmpty()) {
-        out.put(Edge.of(state, 0), factory.universe());
-        return out;
+        return Set.of(Edge.of(state, 0));
       }
       possible.forEach(moves -> {
         var target = LookaheadSimulationState.of(state.odd(), state.even(), moves);
-        out.put(Edge.of(target, 0), factory.universe());
+        out.add(Edge.of(target, 0));
       });
     } else {
       var possible = Transition.directMatching(state.even(), rightAutomaton, state.moves());
       if (possible.isEmpty()) {
-        out.put(Edge.of(sinkState, 1), factory.universe());
-        return out;
+        return Set.of(Edge.of(sinkState, 1));
       }
       possible.forEach(move -> {
         var target = LookaheadSimulationState.of(
           Transition.at(state.moves(), move.size()),
           Transition.end(move)
         );
-        out.put(Edge.of(target, 0), factory.universe());
+        out.add(Edge.of(target, 0));
       });
     }
 
@@ -116,10 +104,4 @@ public class ForwardDirectLookaheadSimulation<S>
   public Set<SimulationStates.LookaheadSimulationState<S>> initialStates() {
     return Set.of(initialState);
   }
-
-  @Override
-  public BddSetFactory factory() {
-    return factory;
-  }
-
 }

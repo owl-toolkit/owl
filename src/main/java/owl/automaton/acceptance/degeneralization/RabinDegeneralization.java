@@ -98,7 +98,7 @@ public final class RabinDegeneralization {
       HashBasedTable.create();
 
     MutableAutomaton<DegeneralizedRabinState<S>, RabinAcceptance> resultAutomaton =
-      HashMapAutomaton.of(rabinAcceptance, automaton.factory());
+      HashMapAutomaton.create(automaton.atomicPropositions(), automaton.factory(), rabinAcceptance);
 
     var sccDecomposition = SccDecomposition.of(automaton);
 
@@ -152,8 +152,11 @@ public final class RabinDegeneralization {
       // Deal with sets which have no Fin set separately
 
       Automaton<DegeneralizedRabinState<S>, RabinAcceptance> sourceAutomaton =
-        new AbstractMemoizingAutomaton.EdgeMapImplementation<>(resultAutomaton.factory(),
-          Set.of(initialSccState), resultAutomaton.acceptance()) {
+        new AbstractMemoizingAutomaton.EdgeMapImplementation<>(
+          resultAutomaton.atomicPropositions(),
+          resultAutomaton.factory(),
+          Set.of(initialSccState),
+          resultAutomaton.acceptance()) {
 
           @Override
           public Map<Edge<DegeneralizedRabinState<S>>, BddSet> edgeMapImpl(

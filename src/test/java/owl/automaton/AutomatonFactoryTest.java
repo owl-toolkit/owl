@@ -31,19 +31,11 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.BitSet2;
 import owl.ltl.parser.LtlParser;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
 class AutomatonFactoryTest {
-
-  private static final BddSetFactory factory;
-
-  static {
-    factory = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
-  }
 
   @Test
   void testCopy() {
@@ -70,8 +62,7 @@ class AutomatonFactoryTest {
     var state = new Object();
     var states = Set.of(state);
     var edge = Edge.of(state);
-    var automaton = SingletonAutomaton
-        .of(factory, state, AllAcceptance.INSTANCE, Set.of());
+    var automaton = SingletonAutomaton.of(List.of("a"), state, AllAcceptance.INSTANCE, Set.of());
 
     assertAll(
       () -> assertEquals(states, automaton.states()),
@@ -79,7 +70,7 @@ class AutomatonFactoryTest {
       () -> assertEquals(states, HashMapAutomatonTest.getReachableStates(automaton)),
 
       () -> assertEquals(Set.of(edge), automaton.edges(state)),
-      () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
+      () -> assertEquals(Map.of(edge, automaton.factory().of(true)), automaton.edgeMap(state)),
       () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
 
       () -> assertSame(AllAcceptance.INSTANCE, automaton.acceptance())
@@ -91,8 +82,7 @@ class AutomatonFactoryTest {
     var state = new Object();
     var states = Set.of(state);
     var edge = Edge.of(state);
-    var automaton = SingletonAutomaton
-        .of(factory, state, AllAcceptance.INSTANCE, Set.of());
+    var automaton = SingletonAutomaton.of(List.of("a"), state, AllAcceptance.INSTANCE, Set.of());
 
     assertAll(
       () -> assertEquals(states, automaton.states()),
@@ -100,12 +90,10 @@ class AutomatonFactoryTest {
       () -> assertEquals(states, HashMapAutomatonTest.getReachableStates(automaton)),
 
       () -> assertEquals(Set.of(edge), automaton.edges(state)),
-      () -> assertEquals(Map.of(edge, factory.universe()), automaton.edgeMap(state)),
+      () -> assertEquals(Map.of(edge, automaton.factory().of(true)), automaton.edgeMap(state)),
       () -> assertEquals(Map.of(), AutomatonUtil.getIncompleteStates(automaton)),
 
       () -> assertSame(AllAcceptance.INSTANCE, automaton.acceptance())
     );
   }
-
-
 }

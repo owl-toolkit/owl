@@ -93,23 +93,28 @@ public class DelagBuilder
   @Override
   public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = inputFormula.nnf();
-    Factories factories = FactorySupplier.defaultSupplier()
-      .getFactories(formula.atomicPropositions());
+    List<String> atomicPropositions = List.copyOf(formula.atomicPropositions());
 
     if (formula.formula().equals(BooleanConstant.FALSE)) {
-      return EmptyAutomaton.of(factories.vsFactory,
+      return EmptyAutomaton.of(
+        atomicPropositions,
         EmersonLeiAcceptance.of(PropositionalFormula.falseConstant()));
     }
 
     if (formula.formula().equals(BooleanConstant.TRUE)) {
-      return SingletonAutomaton.of(factories.vsFactory,
+      return SingletonAutomaton.of(
+        atomicPropositions,
         new State<>(),
         AllAcceptance.INSTANCE,
         Set.of());
     }
 
+    Factories factories = FactorySupplier.defaultSupplier().getFactories(atomicPropositions);
+
     DependencyTreeFactory<Object> treeConverter =
-      new DependencyTreeFactory<>(factories, x -> (Automaton<Object, ?>) fallback.apply(x));
+      new DependencyTreeFactory<>(
+        factories.eqFactory, x -> (Automaton<Object, ?>) fallback.apply(x));
+
     DependencyTree<Object> tree = formula.formula().accept(treeConverter);
     var expression = tree.getAcceptanceExpression();
 
@@ -119,7 +124,10 @@ public class DelagBuilder
         History.create(tree.getRequiredHistory(initialProduct))));
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      factories.vsFactory, Set.of(initialState), EmersonLeiAcceptance.of(expression)) {
+      atomicPropositions,
+      factories.vsFactory,
+      Set.of(initialState),
+      EmersonLeiAcceptance.of(expression)) {
 
       private final Map<ProductState<?>, History> requiredHistory = new HashMap<>();
 

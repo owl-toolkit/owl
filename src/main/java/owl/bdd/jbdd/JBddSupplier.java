@@ -27,10 +27,8 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.FactorySupplier;
 
-public final class JBddSupplier extends FactorySupplier {
-  public static final JBddSupplier INSTANCE = new JBddSupplier();
-
-  private JBddSupplier() {}
+public enum JBddSupplier implements FactorySupplier {
+  JBDD_SUPPLIER_INSTANCE;
 
   private static Bdd create(int size) {
     var configuration = ImmutableBddConfiguration.builder()
@@ -53,9 +51,7 @@ public final class JBddSupplier extends FactorySupplier {
   }
 
   @Override
-  public BddSetFactory getBddSetFactory(List<String> atomicPropositions) {
-    int alphabetSize = atomicPropositions.size();
-    Bdd vsFactoryBdd = create(Math.abs(13 * alphabetSize));
-    return new JBddSetFactory(vsFactoryBdd, atomicPropositions);
+  public BddSetFactory getBddSetFactory() {
+    return new JBddSetFactory(create(1024));
   }
 }

@@ -390,7 +390,7 @@ public final class BitSet2 {
     public BitSet next() {
       if (numSetBits == -1) {
         numSetBits = 0;
-        return iteration;
+        return copyOf(iteration);
       }
 
       if (numSetBits == baseCardinality) {
@@ -410,7 +410,7 @@ public final class BitSet2 {
         }
       }
 
-      return iteration;
+      return copyOf(iteration);
     }
   }
 }

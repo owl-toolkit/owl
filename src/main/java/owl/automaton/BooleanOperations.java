@@ -49,8 +49,6 @@ import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
@@ -81,7 +79,7 @@ public final class BooleanOperations {
 
     if (initialStatesSize == 0) {
       completeAutomaton = SingletonAutomaton.of(
-        automaton.factory(),
+        automaton.atomicPropositions(),
         Objects.requireNonNull(trapState),
         automaton.acceptance(),
         automaton.acceptance().rejectingSet().orElseThrow());
@@ -133,24 +131,22 @@ public final class BooleanOperations {
   public static <S1, S2> Automaton<Pair<S1, S2>, ?>
     intersection(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
 
-    var factory = FactorySupplier.defaultSupplier().getBddSetFactory(
-      unifyAtomicPropositions(List.of(automaton1, automaton2)));
-    return new PairIntersectionAutomaton<>(automaton1, automaton2, factory);
+    return new PairIntersectionAutomaton<>(
+      unifyAtomicPropositions(List.of(automaton1, automaton2)),
+      automaton1,
+      automaton2);
   }
 
   public static <S> Automaton<List<S>, ?>
     intersection(List<? extends Automaton<S, ?>> automata) {
 
-    var factory = FactorySupplier.defaultSupplier().getBddSetFactory(
-      unifyAtomicPropositions(automata));
-    return new ListIntersectionAutomaton<>(automata, factory);
+    return new ListIntersectionAutomaton<>(
+      unifyAtomicPropositions(automata),
+      automata);
   }
 
   public static <S1, S2> Automaton<NullablePair<S1, S2>, ?>
     deterministicUnion(Automaton<S1, ?> automaton1, Automaton<S2, ?> automaton2) {
-
-    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory(
-      unifyAtomicPropositions(List.of(automaton1, automaton2)));
 
     Automaton<S1, ?> normalizedAutomaton1;
     Automaton<S2, ?> normalizedAutomaton2;
@@ -176,9 +172,9 @@ public final class BooleanOperations {
     }
 
     return new NullablePairDeterministicUnionAutomaton<>(
+      unifyAtomicPropositions(List.of(automaton1, automaton2)),
       normalizedAutomaton1,
       normalizedAutomaton2,
-      factory,
       normalizedAutomaton1.acceptance().rejectingSet().orElseThrow(),
       normalizedAutomaton2.acceptance().rejectingSet().orElseThrow());
   }
@@ -187,8 +183,6 @@ public final class BooleanOperations {
     deterministicUnion(List<? extends Automaton<S, ?>> automata) {
 
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
-    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory(
-      unifyAtomicPropositions(automata));
 
     List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
     List<BitSet> rejectingSets = new ArrayList<>(automata.size());
@@ -208,7 +202,10 @@ public final class BooleanOperations {
       rejectingSets.add(normalisedAutomaton.acceptance().rejectingSet().orElseThrow());
     });
 
-    return new MapDeterministicUnionAutomaton<>(automataCopy, factory, rejectingSets);
+    return new MapDeterministicUnionAutomaton<>(
+      unifyAtomicPropositions(automata),
+      automataCopy,
+      rejectingSets);
   }
 
   // Private implementations
@@ -255,11 +252,11 @@ public final class BooleanOperations {
     private final int acceptance1Sets;
 
     private PairIntersectionAutomaton(
+      List<String> atomicPropositions,
       Automaton<S1, ?> automaton1,
-      Automaton<S2, ?> automaton2,
-      BddSetFactory factory) {
+      Automaton<S2, ?> automaton2) {
 
-      super(factory,
+      super(atomicPropositions,
         Pair.allPairs(automaton1.initialStates(), automaton2.initialStates()),
         intersectionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
 
@@ -290,10 +287,9 @@ public final class BooleanOperations {
     private final List<? extends Automaton<S, ?>> automata;
 
     private ListIntersectionAutomaton(
-      List<? extends Automaton<S, ?>> automata,
-      BddSetFactory factory) {
+      List<String> atomicPropositions, List<? extends Automaton<S, ?>> automata) {
 
-      super(factory,
+      super(atomicPropositions,
         initialStates(automata),
         intersectionAcceptance(
           automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
@@ -372,13 +368,13 @@ public final class BooleanOperations {
     private final BitSet rejectingSet2;
 
     private NullablePairDeterministicUnionAutomaton(
+      List<String> atomicPropositions,
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      BddSetFactory factory,
       BitSet rejectingSet1,
       BitSet rejectingSet2) {
 
-      super(factory,
+      super(atomicPropositions,
         Set.of(initialState(automaton1, automaton2)),
         unionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
       this.automaton1 = automaton1;
@@ -442,11 +438,11 @@ public final class BooleanOperations {
     private final List<BitSet> rejectingSets;
 
     private MapDeterministicUnionAutomaton(
+      List<String> atomicPropositions,
       List<? extends Automaton<S, ?>> automata,
-      BddSetFactory factory,
       List<BitSet> rejectingSets) {
 
-      super(factory,
+      super(atomicPropositions,
         Set.of(initialState(automata)),
         unionAcceptance(automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
       this.automata = List.copyOf(automata);
@@ -520,7 +516,12 @@ public final class BooleanOperations {
     private final Automaton<S, ?> backingAutomaton;
 
     private OverrideAcceptanceCondition(Automaton<S, ?> backingAutomaton, A acceptance) {
-      super(backingAutomaton.factory(), backingAutomaton.initialStates(), acceptance);
+      super(
+        backingAutomaton.atomicPropositions(),
+        backingAutomaton.factory(),
+        backingAutomaton.initialStates(),
+        acceptance);
+
       this.backingAutomaton = backingAutomaton;
     }
 

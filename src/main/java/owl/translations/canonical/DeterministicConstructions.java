@@ -65,7 +65,11 @@ public final class DeterministicConstructions {
     final EquivalenceClassFactory factory;
 
     Base(Factories factories, S initialState, A acceptance) {
-      super(factories.vsFactory, Set.of(initialState), acceptance);
+      super(factories.eqFactory.atomicPropositions(),
+        factories.vsFactory,
+        Set.of(initialState),
+        acceptance);
+
       this.factory = factories.eqFactory;
     }
 

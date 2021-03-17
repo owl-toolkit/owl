@@ -67,7 +67,7 @@ public final class AutomatonUtil {
     Map<S, BddSet> incompleteStates = new HashMap<>();
 
     for (S state : automaton.states()) {
-      BddSet union = automaton.factory().of();
+      BddSet union = automaton.factory().of(false);
 
       for (BddSet valuationSet : automaton.edgeMap(state).values()) {
         union = union.union(valuationSet);

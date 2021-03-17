@@ -225,6 +225,7 @@ public final class RabinizerBuilder {
 
     Automaton<EquivalenceClass, AllAcceptance> masterAutomaton =
       new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+        eqFactory.atomicPropositions(),
         vsFactory,
         Set.of(masterStateFactory.initialState(this.initialClass)),
         AllAcceptance.INSTANCE) {
@@ -324,7 +325,7 @@ public final class RabinizerBuilder {
     }
 
     MutableAutomaton<RabinizerState, GeneralizedRabinAcceptance> rabinizerAutomaton =
-      HashMapAutomaton.of(builder.build(), vsFactory);
+      HashMapAutomaton.create(eqFactory.atomicPropositions(), vsFactory, builder.build());
 
     // Process each subset separately
     // TODO Parallel
@@ -440,7 +441,11 @@ public final class RabinizerBuilder {
             successors.forEach((transition, valuations) -> {
               // TODO Can we be even smarter here? This usually is the costliest part of the code
               // due to the call to monitors entail
-              valuations.forEach(sensitiveAlphabet, valuation -> {
+              for (BitSet valuation : BitSet2.powerSet(sensitiveAlphabet)) {
+                if (!valuations.contains(valuation)) {
+                  continue;
+                }
+
                 BddSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
                 if (configuration.eager() && !rankingPair.monitorsEntailEager(state, valuation)) {
                   transition.addAcceptance(edgeValuation, pair.finSet());
@@ -448,7 +453,7 @@ public final class RabinizerBuilder {
                   rankingPair.getAcceptance(valuation).stream().forEach(
                     acceptance -> transition.addAcceptance(edgeValuation, acceptance));
                 }
-              });
+              }
             });
           }
         }
@@ -510,8 +515,8 @@ public final class RabinizerBuilder {
         trueState);
 
       RabinPair truePair = builder.add(1);
-      rabinizerAutomaton.removeEdge(trueState, rabinizerAutomaton.factory().universe(), trueState);
-      rabinizerAutomaton.addEdge(trueState, vsFactory.universe(),
+      rabinizerAutomaton.removeEdge(trueState, rabinizerAutomaton.factory().of(true), trueState);
+      rabinizerAutomaton.addEdge(trueState, vsFactory.of(true),
         Edge.of(trueState, truePair.infSet()));
       rabinizerAutomaton.acceptance(builder.build());
       rabinizerAutomaton.trim();
@@ -556,28 +561,34 @@ public final class RabinizerBuilder {
       RabinizerState rabinizerSuccessor = cache.getRabinizerSuccessor();
       BddSet[] acceptanceCache = cache.getSuccessorAcceptance();
 
-      valuations.forEach(sensitiveAlphabet, valuation -> {
-        int acceptanceIndices = acceptanceCache.length;
-        BitSet edgeAcceptanceSet = new BitSet(acceptanceIndices);
+      // Gather all sets active for this valuation
+      // Create the edge
+      // Expand valuation to the full alphabet
+      // Add edge to result
+      for (BitSet valuation : BitSet2.powerSet(sensitiveAlphabet)) {
+        if (valuations.contains(valuation)) {
+          int acceptanceIndices = acceptanceCache.length;
+          BitSet edgeAcceptanceSet = new BitSet(acceptanceIndices);
 
-        // Gather all sets active for this valuation
-        for (int acceptanceIndex = 0; acceptanceIndex < acceptanceIndices; acceptanceIndex++) {
-          BddSet acceptanceValuations = acceptanceCache[acceptanceIndex];
-          if (acceptanceValuations == null) {
-            continue;
+          // Gather all sets active for this valuation
+          for (int acceptanceIndex = 0; acceptanceIndex < acceptanceIndices; acceptanceIndex++) {
+            BddSet acceptanceValuations = acceptanceCache[acceptanceIndex];
+            if (acceptanceValuations == null) {
+              continue;
+            }
+            if (acceptanceValuations.contains(valuation)) {
+              edgeAcceptanceSet.set(acceptanceIndex);
+            }
           }
-          if (acceptanceValuations.contains(valuation)) {
-            edgeAcceptanceSet.set(acceptanceIndex);
-          }
+
+          // Create the edge
+          Edge<RabinizerState> rabinizerEdge = Edge.of(rabinizerSuccessor, edgeAcceptanceSet);
+          // Expand valuation to the full alphabet
+          BddSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
+          // Add edge to result
+          rabinizerAutomaton.addEdge(state, edgeValuation, rabinizerEdge);
         }
-
-        // Create the edge
-        Edge<RabinizerState> rabinizerEdge = Edge.of(rabinizerSuccessor, edgeAcceptanceSet);
-        // Expand valuation to the full alphabet
-        BddSet edgeValuation = vsFactory.of(valuation, sensitiveAlphabet);
-        // Add edge to result
-        rabinizerAutomaton.addEdge(state, edgeValuation, rabinizerEdge);
-      });
+      }
     });
   }
 

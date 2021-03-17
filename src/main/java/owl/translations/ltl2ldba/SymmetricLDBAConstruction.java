@@ -191,6 +191,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       };
 
     var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      factories.eqFactory.atomicPropositions(),
       factories.vsFactory,
       Collections3.ofNullable(initialState),
       AllAcceptance.INSTANCE) {
@@ -449,7 +450,10 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     public MutableAutomaton<SymmetricProductState, B> build() {
       return HashMapAutomaton.copyOf(
         new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-          factories.vsFactory, Set.copyOf(anchors), acceptance) {
+          factories.eqFactory.atomicPropositions(),
+          factories.vsFactory,
+          Set.copyOf(anchors),
+          acceptance) {
 
           @Override
           public MtBdd<Edge<SymmetricProductState>> edgeTreeImpl(

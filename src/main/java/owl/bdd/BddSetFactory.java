@@ -20,28 +20,21 @@
 package owl.bdd;
 
 import java.util.BitSet;
-import java.util.List;
 import java.util.Map;
+import owl.logic.propositional.PropositionalFormula;
 
 public interface BddSetFactory {
 
-  /**
-   * The atomic propositions associated with this factory.
-   *
-   * @return the list of atomic propositions.
-   */
-  List<String> atomicPropositions();
+  BddSet of(boolean booleanConstant);
 
-  BddSet of();
+  BddSet of(int variable);
 
-  BddSet of(int atomicProposition);
+  BddSet of(BitSet valuation, int upTo);
 
-  BddSet of(BitSet valuation);
+  BddSet of(BitSet valuation, BitSet support);
 
-  BddSet of(BitSet valuation, BitSet restrictedAlphabet);
+  BddSet of(PropositionalFormula<Integer> expression);
 
-  BddSet universe();
-
-  <S> MtBdd<S> toValuationTree(Map<? extends S, ? extends BddSet> sets);
+  <S> MtBdd<S> toMtBdd(Map<? extends S, ? extends BddSet> sets);
 
 }

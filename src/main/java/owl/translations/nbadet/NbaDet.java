@@ -182,10 +182,12 @@ public final class NbaDet {
     logger.log(Level.FINE, "Start naive exploration of DPA.");
     var succHelper = new SmartSucc<S>(conf);
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
+      conf.aut().original().atomicPropositions(),
       conf.aut().original().factory(),
       Set.of(NbaDetState.of(conf, conf.aut().original().initialStates())),
       NbaDetState.getAcceptance(conf)) {
       private boolean logOverridden;
+
       @Override
       public Edge<NbaDetState<S>> edgeImpl(NbaDetState<S> state, BitSet val) {
         if (!logOverridden) {
@@ -256,8 +258,13 @@ public final class NbaDet {
     var dpaInitial = Pair.of(sccOf.get(psInitial), repMap.get(psInitial));
     var toPS = new HashMap<Pair<Integer,NbaDetState<S>>, BitSet>();
     toPS.put(dpaInitial, psInitial);
+
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      conf.aut().original().factory(), Set.of(dpaInitial), NbaDetState.getAcceptance(conf)) {
+      conf.aut().original().atomicPropositions(),
+      conf.aut().original().factory(),
+      Set.of(dpaInitial),
+      NbaDetState.getAcceptance(conf)) {
+
       @Override
       public Edge<Pair<Integer,NbaDetState<S>>> edgeImpl(
           Pair<Integer,NbaDetState<S>> state, BitSet val) {
@@ -271,9 +278,10 @@ public final class NbaDet {
 
         //if same SCC -> return existing edge of partial automaton
         //if between SCCs -> edge was missing in partial -> insert new edge to a representative
-        var retSt = psScc == sucScc ? sccDpa.get(psScc).edge(state.snd(), val)
-                                    : Edge.of(Objects.requireNonNull(repMap.get(sucPSet)));
-        assert retSt != null;
+        var retSt = psScc == sucScc
+          ? Objects.requireNonNull(sccDpa.get(psScc).edge(state.snd(), val))
+          : Edge.of(Objects.requireNonNull(repMap.get(sucPSet)));
+
         var ret = retSt.mapSuccessor(x -> Pair.of(sucScc, x));
 
         if (!toPS.containsKey(ret.successor())) { // map from detstate to pset state, if new state
@@ -309,24 +317,28 @@ public final class NbaDet {
     //where the SCC decomp. claims that there are no bottom SCCs, which is obviously impossible
     var sccAut = MutableAutomatonUtil.asMutable(
       new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      conf.aut().original().factory(), Set.of(initDpa), NbaDetState.getAcceptance(conf)) {
-      @Override
-      public Edge<NbaDetState<S>> edgeImpl(NbaDetState<S> state, BitSet val) {
-        var pSet = toPS.get(state); //associated powerset
-        var refSuc = refScc.successors(pSet, val);
-        if (refSuc.isEmpty()) {
-          return null; //successor of powerset leaves SCC -> abort exploration here (for now)
-        }
-        assert refSuc.size() == 1;                  // should be exactly one successor
-        var sucPSet = refSuc.iterator().next();     // get the unique powerset successor
+        conf.aut().original().atomicPropositions(),
+        conf.aut().original().factory(),
+        Set.of(initDpa),
+        NbaDetState.getAcceptance(conf)) {
 
-        var suc = succHelper.successor(state, val); // compute determinization successor
-        if (!toPS.containsKey(suc.successor())) {   // map from detstate to pset state, if new state
-          toPS.put(suc.successor(), sucPSet);
+        @Override
+        public Edge<NbaDetState<S>> edgeImpl(NbaDetState<S> state, BitSet val) {
+          var pSet = toPS.get(state); //associated powerset
+          var refSuc = refScc.successors(pSet, val);
+          if (refSuc.isEmpty()) {
+            return null; //successor of powerset leaves SCC -> abort exploration here (for now)
+          }
+          assert refSuc.size() == 1;                  // should be exactly one successor
+          var sucPSet = refSuc.iterator().next();     // get the unique powerset successor
+
+          var suc = succHelper.successor(state, val); // compute determinization successor
+          if (!toPS.containsKey(suc.successor())) { // map from detstate to pset state, if new state
+            toPS.put(suc.successor(), sucPSet);
+          }
+          return suc; // computed successor + priority
         }
-        return suc; // computed successor + priority
-      }
-    });
+      });
 
     //compute SCCs in partial DPA, get smallest bottom SCC
     var compScci = SccDecomposition.of(sccAut);
@@ -353,7 +365,8 @@ public final class NbaDet {
       var curr = toVisit.pop();
       for (var e : refScc.edgeMap(curr).entrySet()) {
         var suc = e.getKey().successor();
-        var sym = e.getValue().toSet().iterator().next(); // some sym
+        var sym = e.getValue().toSet(refScc.atomicPropositions().size())
+          .iterator().next(); // some sym
         if (!repMap.containsKey(suc)) {
           repMap.put(suc, trimmedPartialDpa.successor(repMap.get(curr), sym));
           toVisit.push(suc);
@@ -372,9 +385,11 @@ public final class NbaDet {
    */
   public static <S> Automaton<BitSet, AllAcceptance> createPowerSetAutomaton(NbaAdjMat<S> adjMat) {
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
+      adjMat.original().atomicPropositions(),
       adjMat.original().factory(),
       Set.of(BitSet2.copyOf(adjMat.original().initialStates(), adjMat.stateMap()::get)),
       AllAcceptance.INSTANCE) {
+
       @Override
       public Edge<BitSet> edgeImpl(BitSet state, BitSet val) {
         return Edge.of(adjMat.powerSucc(state, val).fst());

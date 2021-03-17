@@ -27,23 +27,14 @@ import org.junit.jupiter.api.Test;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.run.modules.OutputWriters;
 
 public class HoaWriterTest {
 
-  private static final BddSetFactory FACTORY;
-
-  static {
-
-    FACTORY = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a"));
-  }
-
   @Test
   void testStateWithoutOutgoingEdgesBug() {
     var automaton = new AbstractMemoizingAutomaton.EdgesImplementation<>(
-      FACTORY, Set.of(1, 2), BuchiAcceptance.INSTANCE) {
+      List.of("a"), Set.of(1, 2), BuchiAcceptance.INSTANCE) {
 
       @Override
       public Set<Edge<Integer>> edgesImpl(Integer state, BitSet valuation) {
