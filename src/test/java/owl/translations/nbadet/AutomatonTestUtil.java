@@ -31,7 +31,6 @@ import owl.bdd.FactorySupplier;
 
 public final class AutomatonTestUtil {
 
-  // make PMD silent.
   private AutomatonTestUtil() {}
 
   /** Read from HOA string and transform such that
@@ -39,9 +38,9 @@ public final class AutomatonTestUtil {
   public static <A extends EmersonLeiAcceptance> Automaton<Integer, ? extends A> autFromString(
       String hoa, Class<A> acc) throws ParseException {
 
-    final var supplier = FactorySupplier.defaultSupplier();
-    final var parsed = HoaReader.read(new StringReader(hoa), supplier::getBddSetFactory);
-    final var aut = OmegaAcceptanceCast.cast(parsed, acc);
+    var parsed = HoaReader.read(
+      new StringReader(hoa), FactorySupplier.defaultSupplier()::getBddSetFactory, null);
+    var aut = OmegaAcceptanceCast.cast(parsed, acc);
 
     var stateMap = new HashMap<HoaReader.HoaState, Integer>();
     aut.states().forEach(st -> stateMap.put(st, Integer.valueOf(st.toString())));

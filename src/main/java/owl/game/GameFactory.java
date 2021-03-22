@@ -55,7 +55,7 @@ public final class GameFactory {
     private final BiFunction<S, Owner, BitSet> choice;
 
     ImmutableGame(Game<S, A> game) {
-      super(game.factory(), game.initialStates(), game.acceptance());
+      super(game.atomicPropositions(), game.factory(), game.initialStates(), game.acceptance());
 
       Set<S> player1NodesBuilder = new HashSet<>();
       MutableValueGraph<S, ValueEdge> graph =

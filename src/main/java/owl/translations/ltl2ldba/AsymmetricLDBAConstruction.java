@@ -201,6 +201,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       = x -> jumps.getOrDefault(x, Set.of());
 
     var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      factories.eqFactory.atomicPropositions(),
       factories.vsFactory,
       initialState.isFalse() ? Set.<EquivalenceClass>of() : Set.of(initialState),
       AllAcceptance.INSTANCE) {
@@ -296,6 +297,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       return HashMapAutomaton.copyOf(
         new AbstractMemoizingAutomaton.EdgeImplementation<>(
+          factories.eqFactory.atomicPropositions(),
           factories.vsFactory,
           Set.copyOf(anchors),
           acceptanceClass.cast(GeneralizedBuchiAcceptance.of(acceptanceSets))) {

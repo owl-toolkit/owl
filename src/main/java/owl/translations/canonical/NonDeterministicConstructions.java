@@ -75,17 +75,17 @@ public final class NonDeterministicConstructions {
     final EquivalenceClassFactory factory;
 
     Base(Factories factories, Set<S> initialStates, A acceptance) {
-      super(factories.vsFactory, initialStates, acceptance);
+      super(
+        factories.eqFactory.atomicPropositions(),
+        factories.vsFactory,
+        initialStates,
+        acceptance);
+
       this.factory = factories.eqFactory;
     }
 
     private static Formula unfoldWithSuspension(Formula formula) {
       return formula.accept(UnfoldWithSuspension.INSTANCE);
-    }
-
-    <T> Set<T> successorsInternal(Formula state, BitSet valuation,
-      Function<? super Set<Formula>, ? extends Set<T>> mapper) {
-      return successorsInternal(state, valuation, mapper, factory);
     }
 
     <T> MtBdd<T> successorTreeInternal(Formula state,
@@ -440,6 +440,7 @@ public final class NonDeterministicConstructions {
         (x, y) -> Pair.of(List.copyOf(x), y));
 
       RoundRobinState<Formula> fallbackInitialState = RoundRobinState.of(0, automata.get(0));
+
       // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
       // performing a single step.
       Set<RoundRobinState<Formula>> initialStates = Edges.successors(

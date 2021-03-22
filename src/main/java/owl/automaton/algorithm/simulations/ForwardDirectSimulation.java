@@ -20,10 +20,8 @@
 package owl.automaton.algorithm.simulations;
 
 import java.util.BitSet;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import owl.automaton.Automaton;
@@ -31,9 +29,6 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 
@@ -46,7 +41,6 @@ public class ForwardDirectSimulation<S>
   implements SimulationType<S, SimulationStates.MultipebbleSimulationState<S>> {
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -79,10 +73,6 @@ public class ForwardDirectSimulation<S>
     this.pebbleCount = pebbleCount;
     this.knownPairs = Set.copyOf(known);
 
-
-    this.factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a"));
-
     this.initialState = SimulationStates.MultipebbleSimulationState.of(
       Pebble.of(left, false),
       MultiPebble.of(List.of(Pebble.of(right, false)), pebbleCount)
@@ -95,34 +85,35 @@ public class ForwardDirectSimulation<S>
   }
 
   @Override
-  public Map<Edge<SimulationStates.MultipebbleSimulationState<S>>, BddSet> edgeMap(
-    SimulationStates.MultipebbleSimulationState<S> state
-  ) {
-    Map<Edge<SimulationStates.MultipebbleSimulationState<S>>, BddSet> out = new HashMap<>();
+  public Set<Edge<SimulationStates.MultipebbleSimulationState<S>>> edges(
+    SimulationStates.MultipebbleSimulationState<S> state) {
 
     if (state.equals(sinkState)) {
-      return Map.of(Edge.of(sinkState, 1), factory.universe());
+      return Set.of(Edge.of(sinkState, 1));
     }
+
+    Set<Edge<SimulationStates.MultipebbleSimulationState<S>>> out = new HashSet<>();
 
     if (state.owner().isOdd()) {
       if (1 == state.even().count()
         && knownPairs.contains(Pair.of(state.odd().state(), state.even().onlyState()))) {
 
-        return Map.of(Edge.of(state, 0), factory.universe());
+        return Set.of(Edge.of(state, 0));
       }
 
       if (!state.even().flag() && state.odd().flag()) {
-        return Map.of(Edge.of(sinkState, 1), factory.universe());
+        return Set.of(Edge.of(sinkState, 1));
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.toSet().forEach((Consumer<? super BitSet>) valuation -> {
+        valSet.toSet(leftAutomaton.atomicPropositions().size()).forEach(
+          (Consumer<? super BitSet>) valuation -> {
           var target = MultipebbleSimulationState.of(
             Pebble.of(edge.successor(), leftAutomaton.acceptance().isAcceptingEdge(edge)),
             state.even().setFlag(false),
             valuation
           );
-          out.put(Edge.of(target, 0), factory.universe());
+          out.add(Edge.of(target, 0));
         });
       });
 
@@ -136,7 +127,7 @@ public class ForwardDirectSimulation<S>
         .successors(rightAutomaton, BitSet2.fromInt(state.valuation()));
 
       if (possibilities.isEmpty()) {
-        return Map.of(Edge.of(sinkState, 1), factory.universe());
+        return Set.of(Edge.of(sinkState, 1));
       }
 
       possibilities.forEach(p -> {
@@ -154,9 +145,9 @@ public class ForwardDirectSimulation<S>
           var target = MultipebbleSimulationState.of(
             state.odd(), p
           );
-          out.put(Edge.of(target, 0), factory.universe());
+          out.add(Edge.of(target, 0));
         } else {
-          out.put(Edge.of(sinkState, 1), factory.universe());
+          out.add(Edge.of(sinkState, 1));
         }
       });
     }
@@ -172,10 +163,5 @@ public class ForwardDirectSimulation<S>
   @Override
   public Set<SimulationStates.MultipebbleSimulationState<S>> initialStates() {
     return Set.of(initialState);
-  }
-
-  @Override
-  public BddSetFactory factory() {
-    return factory;
   }
 }

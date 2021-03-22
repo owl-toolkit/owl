@@ -27,10 +27,9 @@ import static owl.util.Assertions.assertThat;
 import java.time.Duration;
 import java.util.BitSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.function.Supplier;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -51,12 +50,8 @@ import owl.bdd.FactorySupplier;
 
 class HoaReaderTest {
 
-  private static final Function<List<String>, BddSetFactory> FACTORY_SUPPLIER;
-
-  static {
-
-    FACTORY_SUPPLIER = FactorySupplier.defaultSupplier()::getBddSetFactory;
-  }
+  private static final Supplier<BddSetFactory> FACTORY_SUPPLIER
+    = FactorySupplier.defaultSupplier()::getBddSetFactory;
 
   private static final String HOA_BUCHI = "HOA: v1\n"
     + "States: 2\n"
@@ -203,7 +198,7 @@ class HoaReaderTest {
   @Test
   void readAutomatonBuchi() throws ParseException {
     var automaton = OmegaAcceptanceCast.cast(
-      HoaReader.read(HOA_BUCHI, FACTORY_SUPPLIER), BuchiAcceptance.class);
+      HoaReader.read(HOA_BUCHI, FACTORY_SUPPLIER, null), BuchiAcceptance.class);
     assertThat(automaton.states().size(), x -> x == 2);
     var stateMap = getStates(automaton);
     BddSetFactory valuationSetFactory = automaton.factory();
@@ -212,24 +207,25 @@ class HoaReaderTest {
     assertThat(automaton.edgeMap(stateMap.get(1)),
       Map.of(Edge.of(stateMap.get(0)), valuationSetFactory.of(0))::equals);
     assertThat(automaton.edgeMap(stateMap.get(0)),
-      Map.of(Edge.of(stateMap.get(0), 0), valuationSetFactory.universe())::equals);
+      Map.of(Edge.of(stateMap.get(0), 0), valuationSetFactory.of(true))::equals);
   }
 
   @Test
   void readAutomatonInvalid() {
     Assertions.assertThrows(ParseException.class,
-      () -> HoaReader.read(HOA_INVALID, FACTORY_SUPPLIER));
+      () -> HoaReader.read(HOA_INVALID, FACTORY_SUPPLIER, null));
   }
 
   @Test
   void readAutomatonMissingAccName() {
     Assertions.assertThrows(ParseException.class,
-      () -> HoaReader.read(HOA_MISSING_ACC_NAME, FACTORY_SUPPLIER));
+      () -> HoaReader.read(HOA_MISSING_ACC_NAME, FACTORY_SUPPLIER, null));
   }
 
   @Test
   void readAutomatonParity() throws ParseException {
-    var automaton = HoaReader.read(HOA_PARITY, FACTORY_SUPPLIER);
+    var automaton
+      = HoaReader.read(HOA_PARITY, FACTORY_SUPPLIER, null);
 
     assertThat(automaton.acceptance(), ParityAcceptance.class::isInstance);
 
@@ -256,7 +252,7 @@ class HoaReaderTest {
 
   @Test
   void readAutomatonSimple() throws ParseException {
-    var automaton = HoaReader.read(HOA_SIMPLE, FACTORY_SUPPLIER);
+    var automaton = HoaReader.read(HOA_SIMPLE, FACTORY_SUPPLIER, null);
     assertThat(automaton.states().size(), x -> x == 2);
     assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);
 
@@ -273,7 +269,7 @@ class HoaReaderTest {
 
   @Test
   void testAcceptanceGeneralizedBuchi() throws ParseException {
-    var automaton = HoaReader.read(HOA_GENERALIZED_BUCHI, FACTORY_SUPPLIER);
+    var automaton = HoaReader.read(HOA_GENERALIZED_BUCHI, FACTORY_SUPPLIER, null);
 
     assertThat(automaton.states().size(), x -> x == 1);
     assertThat(automaton.acceptance(), GeneralizedBuchiAcceptance.class::isInstance);
@@ -282,7 +278,7 @@ class HoaReaderTest {
 
   @Test
   void testAcceptanceGeneralizedRabin() throws ParseException {
-    var automaton = HoaReader.read(HOA_GENERALIZED_RABIN, FACTORY_SUPPLIER);
+    var automaton = HoaReader.read(HOA_GENERALIZED_RABIN, FACTORY_SUPPLIER, null);
 
     assertThat(automaton.states().size(), x -> x == 2);
     assertThat(automaton.acceptance(), GeneralizedRabinAcceptance.class::isInstance);
@@ -291,7 +287,7 @@ class HoaReaderTest {
 
   @Test
   void testAcceptanceGeneric() throws ParseException {
-    var automaton = HoaReader.read(HOA_GENERIC, FACTORY_SUPPLIER);
+    var automaton = HoaReader.read(HOA_GENERIC, FACTORY_SUPPLIER, null);
 
     assertThat(automaton.states().size(), x -> x == 3);
     assertThat(automaton.acceptance(), EmersonLeiAcceptance.class::isInstance);
@@ -300,7 +296,7 @@ class HoaReaderTest {
 
   @Test
   void testAcceptanceRabin() throws ParseException {
-    var automaton = HoaReader.read(HOA_RABIN, FACTORY_SUPPLIER);
+    var automaton = HoaReader.read(HOA_RABIN, FACTORY_SUPPLIER, null);
 
     assertThat(automaton.states().size(), x -> x == 3);
     assertThat(automaton.acceptance(), RabinAcceptance.class::isInstance);
@@ -322,10 +318,10 @@ class HoaReaderTest {
   void testLargeAlphabet() {
     // Assert that parsing happens fast enough. On my machine this takes less than 2s.
     assertTimeout(Duration.ofSeconds(10), () -> {
-      var automaton = HoaReader.read(HoaConstants.LARGE_ALPHABET, FACTORY_SUPPLIER);
+      var automaton = HoaReader.read(HoaConstants.LARGE_ALPHABET, FACTORY_SUPPLIER, null);
 
       assertEquals(125, automaton.states().size());
-      assertEquals(213, automaton.factory().atomicPropositions().size());
+      assertEquals(213, automaton.atomicPropositions().size());
     });
   }
 }

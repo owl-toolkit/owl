@@ -158,18 +158,20 @@ public class ColorRefinement<S> {
     // profile for each state. We collect all symbols on which an accepting transition is available
     // to initialize the colouring.
     aut.states().forEach(state -> {
-      maxAcceptingVal.put(state, aut.factory().of());
-      aut.factory().universe().toSet().forEach(valuation -> {
+      maxAcceptingVal.put(state, aut.factory().of(false));
+      BitSet2.powerSet(aut.atomicPropositions().size()).forEach(
+        valuation -> {
         boolean hasAcceptingEdge = aut.edges(state, valuation)
           .stream().anyMatch(edge -> aut.acceptance().isAcceptingEdge(edge));
         if (hasAcceptingEdge) {
-          maxAcceptingVal.put(state, maxAcceptingVal.get(state).union(aut.factory().of(valuation)));
+          maxAcceptingVal.put(state, maxAcceptingVal.get(state).union(
+            aut.factory().of(valuation, aut.atomicPropositions().size())));
         }
       });
     });
 
     aut.states().forEach(state -> {
-      availableVal.put(state, aut.factory().of());
+      availableVal.put(state, aut.factory().of(false));
       aut.edgeMap(state).forEach((edge, vSet) -> {
         availableVal.put(state, availableVal.get(state).union(vSet));
       });
@@ -269,7 +271,7 @@ public class ColorRefinement<S> {
       return "("
         + colour()
         + ", \""
-        + factory().of(BitSet2.fromInt(valuation())).toExpression()
+        + BitSet2.fromInt(valuation())
         + "\") ";
     }
   }
@@ -341,7 +343,7 @@ public class ColorRefinement<S> {
       // collect all possible neighbor types
       HashSet<NeighborType> nts = new HashSet<>();
 
-      BddSet avail = aut.factory().of();
+      BddSet avail = aut.factory().of(false);
       for (var e : aut.edgeMap(state).entrySet()) {
         avail = avail.union(e.getValue());
       }
@@ -350,7 +352,7 @@ public class ColorRefinement<S> {
       // happen that one valuation of a set is covered by two distinct transitions later on, which
       // the algorithm could otherwise not pick up on.
       aut.edgeMap(state).forEach((edge, valSet) -> valSet
-        .toSet().forEach((Consumer<? super BitSet>) val -> {
+        .toSet(aut.atomicPropositions().size()).forEach((Consumer<? super BitSet>) val -> {
           nts.add(NeighborType.of(
             col.get(edge.successor()),
             val,

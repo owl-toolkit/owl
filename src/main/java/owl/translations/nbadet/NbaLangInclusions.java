@@ -110,15 +110,15 @@ public final class NbaLangInclusions {
    * Such states are universally accepting and hence this is a simple language inclusion to exploit.
    */
   public static <S> Set<S> getNbaAccPseudoSinks(Automaton<S, ? extends BuchiAcceptance> aut) {
-    return aut.states().stream().filter(st ->           //For each state:
-    aut.edgeMap(st).entrySet().stream()                 //get outgoing edges,
-    .filter(e -> e.getKey().successor().equals(st)      //keep only self-loops...
-       && aut.acceptance().isAcceptingEdge(e.getKey())) //...that are accepting,
-    .map(Map.Entry::getValue)                           //get associated expressions...
-    .reduce(BddSet::union)                        //...and fold them
-    .orElse(aut.factory().of())                      //(default fallback value is [f]).
-    .isUniverse()                                       //Keep states with universal loop ([t])
-    ).collect(Collectors.toSet());                      //and return them as set.
+    return aut.states().stream()
+      .filter(st -> aut.edgeMap(st).entrySet().stream()     //get outgoing edges,
+        .filter(e -> e.getKey().successor().equals(st)      //keep only self-loops...
+           && aut.acceptance().isAcceptingEdge(e.getKey())) //...that are accepting,
+        .map(Map.Entry::getValue)                           //get associated expressions...
+        .reduce(BddSet::union)                              //...and fold them
+        .orElse(aut.factory().of(false))      //(default fallback value is [f]).
+        .isUniverse())                                      //Keep states with universal loop ([t])
+      .collect(Collectors.toSet());                         //and return them as set.
   }
 
   // --------------------------------

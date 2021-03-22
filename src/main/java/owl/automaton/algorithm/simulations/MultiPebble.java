@@ -24,14 +24,11 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.bdd.BddSet;
 
 /**
  * Abstracts multiple pebbles controlled by Duplicator in a multipebble simulation game.
@@ -78,7 +75,7 @@ public abstract class MultiPebble<S> {
     var pV = possibleValues
       .stream()
       .map(Pebble::universe)
-      .flatMap(Collection::parallelStream)
+      .flatMap(Collection::stream)
       .collect(Collectors.toSet());
 
     // todo: test and decide if this is the better version
@@ -105,7 +102,7 @@ public abstract class MultiPebble<S> {
   public MultiPebble<S> setFlag(boolean b) {
     return MultiPebble.of(
       pebbles()
-        .parallelStream()
+        .stream()
         .map(p -> p.withFlag(b))
         .collect(Collectors.toList()),
       size()
@@ -126,25 +123,6 @@ public abstract class MultiPebble<S> {
     return pebbles()
       .stream()
       .allMatch(Pebble::flag);
-  }
-
-  /**
-   * Computes possible successor multipebbles for a given set of valuations and automaton.
-   *
-   * @param aut    The automaton the pebbles are advanced in.
-   * @param valSet A valuation set for which the pebbles should be advanced.
-   * @return A set of possible successor pebbles for the given valuation set.
-   */
-  public Set<MultiPebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
-    Set<MultiPebble<S>> out = new HashSet<>();
-    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(successors(aut, val)));
-    return out;
-  }
-
-  public Set<MultiPebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
-    Set<MultiPebble<S>> out = new HashSet<>();
-    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(predecessors(aut, val)));
-    return out;
   }
 
   /**
@@ -176,7 +154,7 @@ public abstract class MultiPebble<S> {
       .collect(Collectors.toSet());
 
     return kMultiplex(predecessors, size())
-      .parallelStream()
+      .stream()
       .map(peb -> MultiPebble.of(peb, size()))
       .collect(Collectors.toSet());
   }

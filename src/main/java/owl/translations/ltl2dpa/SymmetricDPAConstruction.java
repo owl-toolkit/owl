@@ -62,12 +62,17 @@ final class SymmetricDPAConstruction {
     var ldba = ldbaConstruction.apply(labelledFormula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
-      return EmptyAutomaton.of(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
+      return EmptyAutomaton.of(
+        ldba.acceptingComponent().atomicPropositions(),
+        new ParityAcceptance(3, Parity.MIN_ODD));
     }
 
     var builder = new SymmetricDPAConstruction.Builder(ldba);
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      builder.ldba.factory(), Set.of(builder.initialState), builder.acceptance) {
+      builder.ldba.acceptingComponent().atomicPropositions(),
+      builder.ldba.factory(),
+      Set.of(builder.initialState),
+      builder.acceptance) {
 
       @Override
       protected Edge<SymmetricRankingState>

@@ -28,6 +28,6 @@ public class JBddSetTest extends BddSetTest {
 
   @Override
   protected BddSetFactory factory(List<String> atomicPropositions) {
-    return new JBddSetFactory(BddFactory.buildBdd(1024), atomicPropositions);
+    return new JBddSetFactory(BddFactory.buildBdd(1024));
   }
 }

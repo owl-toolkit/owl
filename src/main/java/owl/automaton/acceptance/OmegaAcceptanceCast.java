@@ -20,6 +20,7 @@
 package owl.automaton.acceptance;
 
 import java.util.BitSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -294,6 +295,11 @@ public final class OmegaAcceptanceCast {
     @Override
     public A acceptance() {
       return acceptance;
+    }
+
+    @Override
+    public List<String> atomicPropositions() {
+      return backingAutomaton.atomicPropositions();
     }
 
     @Override

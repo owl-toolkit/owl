@@ -36,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -49,7 +50,9 @@ import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
+import owl.collections.Collections3;
 
 @SuppressWarnings("ObjectEquality") // We use identity hash maps
 public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
@@ -57,6 +60,7 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
 
   private static final Logger logger = Logger.getLogger(HashMapAutomaton.class.getName());
 
+  private final List<String> atomicPropositions;
   private A acceptance;
   private final Set<S> initialStates;
   private IdentityHashMap<S, Map<Edge<S>, BddSet>> transitions;
@@ -67,9 +71,15 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   private String name;
   private State state = State.READ;
 
-  HashMapAutomaton(BddSetFactory valuationSetFactory, A acceptance) {
+  private HashMapAutomaton(
+    List<String> atomicPropositions,
+    BddSetFactory valuationSetFactory,
+    A acceptance) {
+
     this.valuationSetFactory = valuationSetFactory;
     this.acceptance = acceptance;
+    this.atomicPropositions = List.copyOf(atomicPropositions);
+    checkArgument(Collections3.isDistinct(this.atomicPropositions));
 
     // Warning: Before doing ANY operation on transitions one needs to make the key unique!
     transitions = new IdentityHashMap<>();
@@ -84,6 +94,11 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   @Override
   public A acceptance() {
     return acceptance;
+  }
+
+  @Override
+  public List<String> atomicPropositions() {
+    return atomicPropositions;
   }
 
   @Override
@@ -201,7 +216,7 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
     readMode();
     S uniqueState = uniqueStates.get(Objects.requireNonNull(state));
     checkArgument(uniqueState != null, "state (%s) is not present in the automaton.", state);
-    return cachedTrees.computeIfAbsent(uniqueState, x -> factory().toValuationTree(edgeMap(x)));
+    return cachedTrees.computeIfAbsent(uniqueState, x -> factory().toMtBdd(edgeMap(x)));
   }
 
   @Override
@@ -404,6 +419,24 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
   }
 
   /**
+   * Creates an empty automaton with given acceptance condition.
+   *
+   * @param <S> The states of the automaton.
+   * @param <A> The acceptance condition of the automaton.
+   *
+   * @return Empty automaton with the specified parameters.
+   */
+  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> create(
+    List<String> atomicPropositions,
+    A acceptance) {
+
+    return new HashMapAutomaton<>(
+      atomicPropositions,
+      FactorySupplier.defaultSupplier().getBddSetFactory(),
+      acceptance);
+  }
+
+  /**
    * Creates an empty automaton with given acceptance condition. The {@code valuationSetFactory} is
    * used as transition backend.
    *
@@ -414,14 +447,18 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
    *
    * @return Empty automaton with the specified parameters.
    */
-  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> of(A acceptance,
-    BddSetFactory vsFactory) {
-    return new HashMapAutomaton<>(vsFactory, acceptance);
+  public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> create(
+    List<String> atomicPropositions,
+    BddSetFactory vsFactory,
+    A acceptance) {
+
+    return new HashMapAutomaton<>(atomicPropositions, vsFactory, acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> copyOf(
-    Automaton<S, ? extends A> source) {
-    HashMapAutomaton<S, A> target = new HashMapAutomaton<>(source.factory(), source.acceptance());
+    Automaton<S, A> source) {
+    HashMapAutomaton<S, A> target = new HashMapAutomaton<>(
+      source.atomicPropositions(), source.factory(), source.acceptance());
     source.initialStates().forEach(target::addInitialState);
     MutableAutomatonUtil.copyInto(source, target);
     target.trim();

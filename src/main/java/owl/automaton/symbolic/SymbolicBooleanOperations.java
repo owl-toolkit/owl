@@ -91,11 +91,10 @@ public final class SymbolicBooleanOperations {
       automata.stream().map(SymbolicAutomaton::variableAllocation).collect(Collectors.toList())
     );
 
-    var bddSetFactory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(allocationCombiner.variableNames());
+    var bddSetFactory = FactorySupplier.defaultSupplier().getBddSetFactory();
 
-    BddSet productInitialStates = bddSetFactory.universe();
-    BddSet productTransitionRelation = bddSetFactory.universe();
+    BddSet productInitialStates = bddSetFactory.of(true);
+    BddSet productTransitionRelation = bddSetFactory.of(true);
 
     for (SymbolicAutomaton<?> automaton : automata) {
       productInitialStates = productInitialStates.intersection(

@@ -101,7 +101,10 @@ public final class BuchiDegeneralization {
     var initialStates = Collections3.transformSet(automaton.initialStates(), IndexedState::of);
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.factory(), initialStates, BuchiAcceptance.INSTANCE) {
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      initialStates,
+      BuchiAcceptance.INSTANCE) {
 
       private final Automaton<S, GeneralizedBuchiAcceptance> backingAutomaton = automaton;
       private final int sets = backingAutomaton.acceptance().acceptanceSets();

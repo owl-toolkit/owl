@@ -79,7 +79,10 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
     };
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      automaton.factory(), Set.of(initialState), AllAcceptance.INSTANCE) {
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      Set.of(initialState),
+      AllAcceptance.INSTANCE) {
 
       @Override
       public Edge<Counter<S>> edgeImpl(Counter<S> state, BitSet valuation) {

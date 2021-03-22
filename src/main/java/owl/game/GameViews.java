@@ -37,7 +37,6 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -168,6 +167,11 @@ public final class GameViews {
     }
 
     @Override
+    public List<String> atomicPropositions() {
+      return filteredAutomaton.atomicPropositions();
+    }
+
+    @Override
     public BitSet choice(S state, Owner owner) {
       return choice.apply(state, owner);
     }
@@ -224,7 +228,7 @@ public final class GameViews {
 
     @Override
     public MtBdd<Edge<S>> edgeTree(S state) {
-      return factory().toValuationTree(edgeMap(state));
+      return factory().toMtBdd(edgeMap(state));
     }
   }
 
@@ -232,6 +236,11 @@ public final class GameViews {
     Game<S, ? extends A> game, Set<S> initialStates) {
     Set<S> immutableInitialStates = Set.copyOf(initialStates);
     return new Game<>() {
+
+      @Override
+      public List<String> atomicPropositions() {
+        return game.atomicPropositions();
+      }
 
       @Override
       public A acceptance() {
@@ -305,7 +314,9 @@ public final class GameViews {
     private final BitSet secondPlayer;
 
     ForwardingGame(Automaton<S, A> automaton, Predicate<String> firstPlayer) {
-      super(automaton.factory(),
+      super(
+        automaton.atomicPropositions(),
+        automaton.factory(),
         Collections3.transformSet(automaton.initialStates(), Node::of),
         automaton.acceptance());
 
@@ -377,7 +388,7 @@ public final class GameViews {
       for (S predecessor : automaton.states()) {
         automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
           if (successor.state().equals(edge.successor())) {
-            valuations.toSet().forEach((Consumer<? super BitSet>) set -> {
+            valuations.toSet(automaton.atomicPropositions().size()).forEach(set -> {
               BitSet localSet = BitSet2.copyOf(set);
               localSet.and(firstPlayer);
               predecessors.add(Node.of(predecessor, localSet));
@@ -425,7 +436,7 @@ public final class GameViews {
       }
 
       var valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
-      return valuationSet.toSet().iterator().next();
+      return valuationSet.toSet(atomicPropositions.size()).iterator().next();
     }
   }
 

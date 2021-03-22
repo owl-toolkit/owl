@@ -42,7 +42,9 @@ class MonitorAutomaton
   MonitorAutomaton(GOperator formula,
     Automaton<MonitorState, ParityAcceptance> anyAutomaton,
     Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
-    super(anyAutomaton.factory(),
+    super(
+      anyAutomaton.atomicPropositions(),
+      anyAutomaton.factory(),
       anyAutomaton.initialStates(),
       AllAcceptance.INSTANCE);
 

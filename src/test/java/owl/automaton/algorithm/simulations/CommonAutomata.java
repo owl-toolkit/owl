@@ -23,130 +23,111 @@ import java.util.BitSet;
 import java.util.List;
 import owl.automaton.Automaton;
 import owl.automaton.HashMapAutomaton;
-import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.FactorySupplier;
 
 public final class CommonAutomata {
-  // silence PMD
+
   private CommonAutomata() {}
 
   public static Automaton<Integer, BuchiAcceptance> buildAutomatonOne() {
 
-    var factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a"));
-    var acceptance = BuchiAcceptance.INSTANCE;
+    var automaton = HashMapAutomaton.<Integer, BuchiAcceptance>
+      create(List.of("a"), BuchiAcceptance.INSTANCE);
 
-    MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = new BitSet();
+    automaton.addInitialState(1);
+    automaton.addState(2);
+    automaton.addState(3);
+    automaton.addState(4);
+    automaton.addState(5);
 
-    aut.addState(1);
-    aut.addInitialState(1);
-    aut.addState(2);
-    aut.addState(3);
-    aut.addState(4);
-    aut.addState(5);
+    automaton.addEdge(1, new BitSet(), Edge.of(2));
+    automaton.addEdge(1, new BitSet(), Edge.of(3));
+    automaton.addEdge(2, new BitSet(), Edge.of(4));
+    automaton.addEdge(3, new BitSet(), Edge.of(5));
+    automaton.addEdge(4, new BitSet(), Edge.of(4, 0));
+    automaton.addEdge(5, new BitSet(), Edge.of(5, 0));
 
-    aut.addEdge(1, a, Edge.of(2));
-    aut.addEdge(1, a, Edge.of(3));
-
-    aut.addEdge(2, a, Edge.of(4));
-
-    aut.addEdge(3, a, Edge.of(5));
-
-    aut.addEdge(4, a, Edge.of(4, 0));
-
-    aut.addEdge(5, a, Edge.of(5, 0));
-
-    aut.trim();
-    return aut;
+    automaton.trim();
+    return automaton;
   }
 
   public static Automaton<Integer, BuchiAcceptance> anotherRefinementAutomaton() {
 
-    var factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a", "b"));
-    var acceptance = BuchiAcceptance.INSTANCE;
+    var automaton = HashMapAutomaton.<Integer, BuchiAcceptance>
+      create(List.of("a", "b"), BuchiAcceptance.INSTANCE);
 
-    MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.of(0).toSet().iterator().next();
-    BitSet b = factory.of(1).toSet().iterator().next();
+    BitSet a = new BitSet();
+    a.set(0);
+    BitSet b = new BitSet();
+    b.set(1);
 
-    aut.addState(0);
-    aut.addInitialState(0);
-    aut.addState(1);
-    aut.addState(2);
-    aut.addState(3);
+    automaton.addInitialState(0);
+    automaton.addState(1);
+    automaton.addState(2);
+    automaton.addState(3);
 
-    aut.addEdge(0, a, Edge.of(1));
-    aut.addEdge(0, a, Edge.of(2));
-    aut.addEdge(0, b, Edge.of(2));
-    aut.addEdge(1, a, Edge.of(1, 0));
-    aut.addEdge(1, b, Edge.of(3));
-    aut.addEdge(3, b, Edge.of(1));
-    aut.addEdge(2, a, Edge.of(2, 0));
-    aut.trim();
+    automaton.addEdge(0, a, Edge.of(1));
+    automaton.addEdge(0, a, Edge.of(2));
+    automaton.addEdge(0, b, Edge.of(2));
+    automaton.addEdge(1, a, Edge.of(1, 0));
+    automaton.addEdge(1, b, Edge.of(3));
+    automaton.addEdge(3, b, Edge.of(1));
+    automaton.addEdge(2, a, Edge.of(2, 0));
 
-    return aut;
+    automaton.trim();
+    return automaton;
   }
 
   public static Automaton<Integer, BuchiAcceptance> simpleColorRefinementAutomaton() {
 
-    var factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a", "b"));
-    var acceptance = BuchiAcceptance.INSTANCE;
+    var automaton = HashMapAutomaton.<Integer, BuchiAcceptance>
+      create(List.of("a", "b"), BuchiAcceptance.INSTANCE);
 
-    MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.of(0).toSet().iterator().next();
-    BitSet b = factory.of(1).toSet().iterator().next();
+    BitSet a = new BitSet();
+    a.set(0);
+    BitSet b = new BitSet();
+    b.set(1);
 
-    aut.addState(1);
-    aut.addInitialState(1);
-    aut.addState(2);
-    aut.addState(3);
-    aut.addState(4);
-    aut.addState(5);
+    automaton.addInitialState(1);
+    automaton.addState(2);
+    automaton.addState(3);
+    automaton.addState(4);
+    automaton.addState(5);
 
-    aut.addEdge(1, a, Edge.of(2));
-    aut.addEdge(1, a, Edge.of(3));
+    automaton.addEdge(1, a, Edge.of(2));
+    automaton.addEdge(1, a, Edge.of(3));
+    automaton.addEdge(2, a, Edge.of(4));
+    automaton.addEdge(3, a, Edge.of(5));
+    automaton.addEdge(4, a, Edge.of(4, 0));
+    automaton.addEdge(4, b, Edge.of(4, 0));
+    automaton.addEdge(5, a, Edge.of(5, 0));
 
-    aut.addEdge(2, a, Edge.of(4));
-
-    aut.addEdge(3, a, Edge.of(5));
-
-    aut.addEdge(4, a, Edge.of(4, 0));
-    aut.addEdge(4, b, Edge.of(4, 0));
-
-    aut.addEdge(5, a, Edge.of(5, 0));
-
-    aut.trim();
-    return aut;
+    automaton.trim();
+    return automaton;
   }
 
   public static Automaton<Integer, BuchiAcceptance> predecessorAutomaton() {
 
-    var factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a", "b"));
-    var acceptance = BuchiAcceptance.INSTANCE;
+    var automaton = HashMapAutomaton.<Integer, BuchiAcceptance>
+      create(List.of("a", "b"), BuchiAcceptance.INSTANCE);
 
-    MutableAutomaton<Integer, BuchiAcceptance> aut = HashMapAutomaton.of(acceptance, factory);
-    BitSet a = factory.of(0).toSet().iterator().next();
+    BitSet a = new BitSet();
+    a.set(0);
 
-    aut.addState(1);
-    aut.addState(2);
-    aut.addState(3);
-    aut.addState(4);
-    aut.addInitialState(1);
+    automaton.addInitialState(1);
+    automaton.addState(2);
+    automaton.addState(3);
+    automaton.addState(4);
 
-    aut.addEdge(1, a, Edge.of(2));
-    aut.addEdge(1, a, Edge.of(3));
-    aut.addEdge(2, a, Edge.of(4));
-    aut.addEdge(3, a, Edge.of(4));
-    aut.addEdge(4, a, Edge.of(4, 0));
-    aut.trim();
-    assert 4 == aut.states().size();
-    return aut;
+    automaton.addEdge(1, a, Edge.of(2));
+    automaton.addEdge(1, a, Edge.of(3));
+    automaton.addEdge(2, a, Edge.of(4));
+    automaton.addEdge(3, a, Edge.of(4));
+    automaton.addEdge(4, a, Edge.of(4, 0));
+
+    automaton.trim();
+    assert 4 == automaton.states().size();
+    return automaton;
   }
-
 }

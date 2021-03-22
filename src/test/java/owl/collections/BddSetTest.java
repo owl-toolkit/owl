@@ -53,12 +53,12 @@ public abstract class BddSetTest {
   void beforeEach() {
     BddSetFactory factory = factory(List.of("a", "b", "c", "d"));
 
-    empty = factory.of();
-    universe = factory.universe();
+    empty = factory.of(false);
+    universe = factory.of(true);
 
     BitSet bs = new BitSet(4);
     bs.flip(0, 4);
-    abcd = factory.of(bs);
+    abcd = factory.of(bs, 4);
 
     bs.clear();
     bs.set(0);
@@ -79,33 +79,12 @@ public abstract class BddSetTest {
   void testForEach() {
     for (BddSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.toSet().forEach(
+      set.toSet(4).forEach(
         (Consumer<? super BitSet>) solution -> forEach.add(BitSet2.copyOf(solution)));
 
       Set<BitSet> collect = new HashSet<>();
 
       for (BitSet bitSet : BitSet2.powerSet(4)) {
-        if (set.contains(bitSet)) {
-          collect.add(BitSet2.copyOf(bitSet));
-        }
-      }
-
-      assertEquals(collect, forEach);
-    }
-  }
-
-  @Test
-  void testForEachRestrict() {
-    BitSet restriction = new BitSet();
-    restriction.set(1);
-    restriction.set(3);
-
-    for (BddSet set : List.of(abcd, containsA, empty, universe)) {
-      Set<BitSet> forEach = new HashSet<>();
-      set.forEach(restriction, solution -> forEach.add(BitSet2.copyOf(solution)));
-
-      Set<BitSet> collect = new HashSet<>();
-      for (BitSet bitSet : BitSet2.powerSet(restriction)) {
         if (set.contains(bitSet)) {
           collect.add(BitSet2.copyOf(bitSet));
         }
@@ -126,22 +105,22 @@ public abstract class BddSetTest {
   @Test
   void testIterator() {
     Set<BitSet> seen = new HashSet<>();
-    universe.toSet().forEach((Consumer<? super BitSet>) valuation3 -> {
+    universe.toSet(4).forEach((Consumer<? super BitSet>) valuation3 -> {
       assertTrue(valuation3.cardinality() <= 4);
       assertTrue(seen.add(valuation3));
     });
 
     containsA
-      .toSet().forEach((Consumer<? super BitSet>) valuation2 -> assertTrue(valuation2.get(0)));
+      .toSet(4).forEach((Consumer<? super BitSet>) valuation2 -> assertTrue(valuation2.get(0)));
 
-    abcd.toSet().forEach((Consumer<? super BitSet>) valuation1 -> {
+    abcd.toSet(4).forEach((Consumer<? super BitSet>) valuation1 -> {
       assertTrue(valuation1.get(0));
       assertTrue(valuation1.get(1));
       assertTrue(valuation1.get(2));
       assertTrue(valuation1.get(3));
     });
 
-    empty.toSet().forEach((Consumer<? super BitSet>) valuation -> fail(
+    empty.toSet(4).forEach((Consumer<? super BitSet>) valuation -> fail(
       "empty should be empty, but it contains " + valuation));
   }
 
@@ -149,26 +128,20 @@ public abstract class BddSetTest {
   @Test
   void testCreateEmptyValuationSet() {
     var factory = factory(ATOMIC_PROPOSITIONS);
-    assertThat(factory.of(), BddSet::isEmpty);
+    assertThat(factory.of(false), BddSet::isEmpty);
   }
 
   @Test
   void testCreateUniverseValuationSet() {
     var factory = factory(ATOMIC_PROPOSITIONS);
-    var empty = factory.of();
+    var empty = factory.of(false);
 
     for (BitSet element : BitSet2.powerSet(ATOMIC_PROPOSITIONS.size())) {
-      assertTrue(factory.universe().contains(element));
-      empty = empty.union(factory.of(element));
+      assertTrue(factory.of(true).contains(element));
+      empty = empty.union(factory.of(element, ATOMIC_PROPOSITIONS.size()));
     }
 
-    assertEquals(factory.universe(), empty);
-  }
-
-  @Test
-  void testGetAlphabet() {
-    var factory = factory(ATOMIC_PROPOSITIONS);
-    assertEquals(ATOMIC_PROPOSITIONS.size(), factory.atomicPropositions().size());
+    assertEquals(factory.of(true), empty);
   }
 
   @Test
@@ -197,9 +170,9 @@ public abstract class BddSetTest {
       return -1;
     };
 
-    assertEquals(factory.of(), factory.of().relabel(mapping));
+    assertEquals(factory.of(false), factory.of(false).relabel(mapping));
     assertEquals(valuationSetAfter, valuationSetBefore.relabel(mapping));
-    assertEquals(factory.universe(), factory.universe().relabel(mapping));
+    assertEquals(factory.of(true), factory.of(true).relabel(mapping));
   }
 
   @Test
@@ -207,12 +180,13 @@ public abstract class BddSetTest {
     var factory = factory(ATOMIC_PROPOSITIONS);
 
     assertThrows(IllegalArgumentException.class, () -> {
-      factory.universe().relabel(i -> -2);
+      factory.of(1).relabel(i -> -2);
     });
 
-    assertThrows(IllegalArgumentException.class, () -> {
-      factory.universe().relabel(i -> 10);
-    });
+    // A new variable should be inserted.
+    assertEquals(
+      factory.of(1).relabel(i -> 10),
+      factory.of(10));
   }
 
   @Test
@@ -224,7 +198,7 @@ public abstract class BddSetTest {
 
     assertEquals(
       MtBdd.of(0, MtBdd.of(Set.of(true)), MtBdd.of()),
-      filter.filter(tree));
+      filter.intersection(tree));
   }
 
   // Inefficient, but simple.

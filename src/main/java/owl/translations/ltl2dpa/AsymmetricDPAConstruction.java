@@ -69,12 +69,17 @@ final class AsymmetricDPAConstruction {
     var ldba = ldbaConstruction.apply(nnfLabelledFormula);
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
-      return EmptyAutomaton.of(ldba.factory(), new ParityAcceptance(3, Parity.MIN_ODD));
+      return EmptyAutomaton.of(
+        ldba.acceptingComponent().atomicPropositions(),
+        new ParityAcceptance(3, Parity.MIN_ODD));
     }
 
     var builder = new Builder(nnfLabelledFormula.formula(), ldba);
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      builder.ldba.factory(), Set.of(builder.initialState), builder.acceptance) {
+      builder.ldba.acceptingComponent().atomicPropositions(),
+      builder.ldba.factory(),
+      Set.of(builder.initialState),
+      builder.acceptance) {
 
       @Override
       protected MtBdd<Edge<AsymmetricRankingState>> edgeTreeImpl(

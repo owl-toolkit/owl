@@ -20,8 +20,8 @@
 package owl.bdd;
 
 import java.util.BitSet;
+import java.util.Optional;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -43,9 +43,7 @@ public interface BddSet {
 
   boolean containsAll(BddSet valuationSet);
 
-  boolean intersects(BddSet other);
-
-  void forEach(BitSet restriction, Consumer<? super BitSet> action);
+  Optional<BitSet> element();
 
   BddSet complement();
 
@@ -53,27 +51,30 @@ public interface BddSet {
 
   BddSet intersection(BddSet other);
 
+  <E> MtBdd<E> intersection(MtBdd<E> tree);
+
   PropositionalFormula<Integer> toExpression();
-
-  default PropositionalFormula<String> toExpressionNamed() {
-    var atomicProposition = factory().atomicPropositions();
-    return toExpression().map(atomicProposition::get);
-  }
-
-  <E> MtBdd<E> filter(MtBdd<E> tree);
 
   BddSet project(BitSet quantifiedAtomicPropositions);
 
   BddSet relabel(IntUnaryOperator mapping);
 
   /**
-   * Returns an explicit Collection-compatible view of this ValuationSet. Note that iteration
+   * Returns an explicit Collection-compatible view of this BddSet. Note that iteration
    * and other operation on this set should not be used in performance sensitive-code.
    *
    * @return a set view.
    */
-  Set<BitSet> toSet();
+  Set<BitSet> toSet(int upTo);
 
+  Set<BitSet> toSet(BitSet support);
+
+  @Deprecated
   BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping);
 
+  /*
+   * Returns the support, i.e., the set of variables on which a decision is taken
+   * for this BddSet.
+   */
+  BitSet support();
 }

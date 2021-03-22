@@ -130,11 +130,9 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
       //noinspection NestedTryStatement
       try (Reader reader = new BufferedReader(
         new InputStreamReader(process.getInputStream(), Charset.defaultCharset()))) {
-        return HoaReader.read(reader, atomicPropositions -> {
-          checkArgument(formula.atomicPropositions().containsAll(atomicPropositions));
-          return FactorySupplier.defaultSupplier()
-            .getBddSetFactory(formula.atomicPropositions());
-        });
+        return HoaReader.read(reader,
+          FactorySupplier.defaultSupplier()::getBddSetFactory,
+          formula.atomicPropositions());
       }
     } catch (IOException | ParseException | NoSuchElementException ex) {
       throw new CompletionException("Exception occurred while using external translator.", ex);

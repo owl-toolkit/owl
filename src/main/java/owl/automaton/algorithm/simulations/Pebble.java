@@ -24,7 +24,6 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -65,9 +64,9 @@ public abstract class Pebble<S> {
    */
   public static <S> Set<Pebble<S>> universe(Automaton<S, BuchiAcceptance> aut) {
     return aut.states()
-      .parallelStream()
+      .stream()
       .map(Pebble::universe)
-      .flatMap(Collection::parallelStream)
+      .flatMap(Collection::stream)
       .collect(Collectors.toSet());
   }
 
@@ -99,13 +98,15 @@ public abstract class Pebble<S> {
    */
   public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
-    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(successors(aut, val)));
+    valSet.toSet(aut.atomicPropositions().size()).forEach(
+      val -> out.addAll(successors(aut, val)));
     return out;
   }
 
   public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
-    valSet.toSet().forEach((Consumer<? super BitSet>) val -> out.addAll(predecessors(aut, val)));
+    valSet.toSet(aut.atomicPropositions().size()).forEach(
+      val -> out.addAll(predecessors(aut, val)));
     return out;
   }
 

@@ -100,7 +100,9 @@ public final class IARBuilder<R> {
 
   public Automaton<IARState<R>, ParityAcceptance> build() {
     if (rabinAutomaton.initialStates().isEmpty()) {
-      return EmptyAutomaton.of(rabinAutomaton.factory(), new ParityAcceptance(1, parity));
+      return EmptyAutomaton.of(
+        rabinAutomaton.atomicPropositions(),
+        new ParityAcceptance(1, parity));
     }
 
     RabinAcceptance rabinAcceptance = rabinAutomaton.acceptance();
@@ -110,8 +112,11 @@ public final class IARBuilder<R> {
       R rabinState = rabinAutomaton.initialStates().iterator().next();
 
       ParityAcceptance acceptance = new ParityAcceptance(parity.even() ? 2 : 1, parity);
-      return SingletonAutomaton.of(rabinAutomaton.factory(), IARState.of(rabinState),
-        acceptance, acceptance.rejectingSet().orElseThrow());
+      return SingletonAutomaton.of(
+        rabinAutomaton.atomicPropositions(),
+        IARState.of(rabinState),
+        acceptance,
+        acceptance.rejectingSet().orElseThrow());
     }
 
     MutableAutomaton<IARState<R>, ParityAcceptance> resultAutomaton;
@@ -119,7 +124,8 @@ public final class IARBuilder<R> {
     Multimap<R, IARState<R>> stateMap = HashMultimap.create();
 
     ParityAcceptance acceptance = new ParityAcceptance(0, parity);
-    resultAutomaton = HashMapAutomaton.of(acceptance, rabinAutomaton.factory());
+    resultAutomaton = HashMapAutomaton.create(
+      rabinAutomaton.atomicPropositions(), rabinAutomaton.factory(), acceptance);
 
     List<Set<R>> decomposition = SccDecomposition.of(rabinAutomaton).sccsWithoutTransient();
 
@@ -352,10 +358,18 @@ public final class IARBuilder<R> {
     private final RabinPair[] indexToPair;
     private final Parity parity;
 
-    private IARExplorer(Automaton<S, ? extends RabinAcceptance> rabinAutomaton,
-      Set<IARState<S>> initialStates, Set<RabinPair> trackedPairs, Parity parity) {
+    private IARExplorer(
+      Automaton<S, ? extends RabinAcceptance> rabinAutomaton,
+      Set<IARState<S>> initialStates,
+      Set<RabinPair> trackedPairs,
+      Parity parity) {
 
-      super(rabinAutomaton.factory(), initialStates, new ParityAcceptance(0, parity));
+      super(
+        rabinAutomaton.atomicPropositions(),
+        rabinAutomaton.factory(),
+        initialStates,
+        new ParityAcceptance(0, parity));
+
       this.rabinAutomaton = rabinAutomaton;
       indexToPair = trackedPairs.toArray(RabinPair[]::new);
       this.parity = parity;

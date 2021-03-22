@@ -377,7 +377,7 @@ public final class ToParityTransformer {
       });
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.factory(), initialStates, globalAcceptance) {
+      automaton.atomicPropositions(), automaton.factory(), initialStates, globalAcceptance) {
 
       @Override
       protected MtBdd<Edge<ExtendedState<S, Path>>> edgeTreeImpl(ExtendedState<S, Path> state) {

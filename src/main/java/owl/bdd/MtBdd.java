@@ -150,7 +150,7 @@ public abstract class MtBdd<E> {
       Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
       IntUnaryOperator mapping) {
 
-      return memoizedCalls.computeIfAbsent(this, x -> Maps.asMap(value, y -> factory.universe()));
+      return memoizedCalls.computeIfAbsent(this, x -> Maps.asMap(value, y -> factory.of(true)));
     }
 
     @Override

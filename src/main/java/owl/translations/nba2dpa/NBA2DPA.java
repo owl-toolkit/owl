@@ -91,10 +91,17 @@ public final class NBA2DPA
 
     private final Map<Pair<Set<S>, S>, Boolean> greaterOrEqualCache;
 
-    RankingAutomaton(
+    private RankingAutomaton(
       AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton<S, BuchiAcceptance> LDGBA,
-      RankingState<S> initialState, ParityAcceptance acceptance) {
-      super(LDGBA.automaton().factory(), Set.of(initialState), acceptance);
+      RankingState<S> initialState,
+      ParityAcceptance acceptance) {
+
+      super(
+        LDGBA.automaton().atomicPropositions(),
+        LDGBA.automaton().factory(),
+        Set.of(initialState),
+        acceptance);
+
       nba = LDGBA.automaton();
       initialComponent = Set.copyOf(LDGBA.initialComponent());
       greaterOrEqualCache = new HashMap<>();

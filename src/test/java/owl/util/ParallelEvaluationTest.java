@@ -26,27 +26,22 @@ import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.SingletonAutomaton;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 
 class ParallelEvaluationTest {
 
   @Test
   void takeSmallest() {
-    BddSetFactory factory
-      = FactorySupplier.defaultSupplier().getBddSetFactory(List.of("a", "b"));
-
     Automaton<Object, GeneralizedBuchiAcceptance> empty1
-      = EmptyAutomaton.of(factory, GeneralizedBuchiAcceptance.of(1));
+      = EmptyAutomaton.of(List.of("a", "b"), GeneralizedBuchiAcceptance.of(1));
 
     Automaton<Object, GeneralizedBuchiAcceptance> empty2
-      = EmptyAutomaton.of(factory, GeneralizedBuchiAcceptance.of(2));
+      = EmptyAutomaton.of(List.of("a", "b"), GeneralizedBuchiAcceptance.of(2));
 
     Automaton<Object, GeneralizedBuchiAcceptance> singleton1
-      = SingletonAutomaton.of(factory, new Object(), GeneralizedBuchiAcceptance.of(1));
+      = SingletonAutomaton.of(List.of("a", "b"), new Object(), GeneralizedBuchiAcceptance.of(1));
 
     Automaton<Object, GeneralizedBuchiAcceptance> singleton2
-      = SingletonAutomaton.of(factory, new Object(), GeneralizedBuchiAcceptance.of(2));
+      = SingletonAutomaton.of(List.of("a", "b"), new Object(), GeneralizedBuchiAcceptance.of(2));
 
     Assertions.assertEquals(empty1,
       ParallelEvaluation.takeSmallest(List.of(empty1, empty2, singleton1, singleton2)));

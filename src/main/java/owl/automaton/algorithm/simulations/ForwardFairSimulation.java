@@ -20,9 +20,8 @@
 package owl.automaton.algorithm.simulations;
 
 import java.util.BitSet;
-import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import owl.automaton.Automaton;
@@ -30,17 +29,14 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.algorithm.simulations.SimulationStates.MultipebbleSimulationState;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
-import owl.bdd.FactorySupplier;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
 
 public class ForwardFairSimulation<S>
   implements SimulationType<S, SimulationStates.MultipebbleSimulationState<S>> {
+
   final Automaton<S, BuchiAcceptance> leftAutomaton;
   final Automaton<S, BuchiAcceptance> rightAutomaton;
-  final BddSetFactory factory;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -63,10 +59,6 @@ public class ForwardFairSimulation<S>
     this.pebbleCount = pebbleCount;
     this.knownPairs = known;
 
-
-    this.factory = FactorySupplier.defaultSupplier()
-      .getBddSetFactory(List.of("a"));
-
     this.initialState = SimulationStates.MultipebbleSimulationState.of(
       Pebble.of(left, false),
       MultiPebble.of(right, false, pebbleCount)
@@ -79,26 +71,27 @@ public class ForwardFairSimulation<S>
   }
 
   @Override
-  public Map<Edge<MultipebbleSimulationState<S>>, BddSet>
-  edgeMap(SimulationStates.MultipebbleSimulationState<S> state) {
-    Map<Edge<MultipebbleSimulationState<S>>, BddSet> out = new HashMap<>();
+  public Set<Edge<MultipebbleSimulationState<S>>>
+    edges(SimulationStates.MultipebbleSimulationState<S> state) {
+
+    Set<Edge<MultipebbleSimulationState<S>>> out = new HashSet<>();
 
     if (state.equals(sinkState)) {
-      out.put(Edge.of(sinkState, 1), factory.universe());
-      return out;
+      return Set.of(Edge.of(sinkState, 1));
     }
 
     if (state.owner().isOdd()) {
       if (1 == state.even().count()
         && knownPairs.contains(Pair.of(state.odd().state(), state.even().onlyState()))) {
-        out.put(Edge.of(state, 2), factory.universe());
-        return out;
+
+        return Set.of(Edge.of(state, 2));
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
         // if Duplicator has an accepting Multipebble, we assign a good parity, otherwise the
         // parity is determined by whether or not Spoiler sees an accepting edge
-        valSet.toSet().forEach((Consumer<? super BitSet>) val -> {
+        valSet.toSet(leftAutomaton.atomicPropositions().size()).forEach(
+          (Consumer<? super BitSet>) val -> {
           boolean isAccepting = leftAutomaton.acceptance().isAcceptingEdge(edge);
           // if Duplicator has an accepting Multipebble, we assign a good parity, otherwise the
           // parity is determined by whether or not Spoiler sees an accepting edge
@@ -108,7 +101,7 @@ public class ForwardFairSimulation<S>
               state.even().flag() ? state.even().setFlag(false) : state.even(),
               val
           );
-          out.put(Edge.of(target, edgeParity), factory.universe());
+          out.add(Edge.of(target, edgeParity));
         });
       });
     } else {
@@ -116,14 +109,13 @@ public class ForwardFairSimulation<S>
         .even()
         .successors(rightAutomaton, BitSet2.fromInt(state.valuation()));
       if (possible.isEmpty()) {
-        out.put(Edge.of(sinkState, 1), factory.universe());
-        return out;
+        return Set.of(Edge.of(sinkState, 1));
       }
       possible.forEach(p -> {
         var target = SimulationStates.MultipebbleSimulationState.of(
           state.odd(), p
         );
-        out.put(Edge.of(target, 0), factory.universe());
+        out.add(Edge.of(target, 0));
       });
     }
 
@@ -138,10 +130,5 @@ public class ForwardFairSimulation<S>
   @Override
   public Set<SimulationStates.MultipebbleSimulationState<S>> initialStates() {
     return Set.of(initialState);
-  }
-
-  @Override
-  public BddSetFactory factory() {
-    return factory;
   }
 }

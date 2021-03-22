@@ -154,7 +154,7 @@ public interface MutableAutomaton<S, A extends EmersonLeiAcceptance> extends Aut
    *     If {@code source} is not contained in the automaton.
    */
   default void addEdge(S source, BitSet valuation, Edge<? extends S> edge) {
-    addEdge(source, factory().of(valuation), edge);
+    addEdge(source, factory().of(valuation, atomicPropositions().size()), edge);
   }
 
   /**
@@ -188,7 +188,7 @@ public interface MutableAutomaton<S, A extends EmersonLeiAcceptance> extends Aut
    * @see #removeEdge(Object, BddSet, Object)
    */
   default void removeEdge(S source, BitSet valuation, S destination) {
-    removeEdge(source, factory().of(valuation), destination);
+    removeEdge(source, factory().of(valuation, atomicPropositions().size()), destination);
   }
 
   /**

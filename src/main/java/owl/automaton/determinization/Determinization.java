@@ -38,6 +38,7 @@ public class Determinization {
     determinizeAllAcceptance(Automaton<S, ? extends AllAcceptance> automaton) {
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
+      automaton.atomicPropositions(),
       automaton.factory(),
       Set.of(automaton.initialStates()),
       AllAcceptance.INSTANCE) {
@@ -56,6 +57,7 @@ public class Determinization {
     determinizeCoBuchiAcceptance(Automaton<S, ? extends CoBuchiAcceptance> ncw) {
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
+      ncw.atomicPropositions(),
       ncw.factory(),
       Set.of(BreakpointState.of(ncw.initialStates(), ncw.initialStates())),
       CoBuchiAcceptance.INSTANCE) {

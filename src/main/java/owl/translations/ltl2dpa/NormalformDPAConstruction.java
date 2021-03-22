@@ -161,7 +161,7 @@ public final class NormalformDPAConstruction implements
         initialState.stateMap().size() + 2, ParityAcceptance.Parity.MIN_EVEN);
 
       return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-        dbw.factory(), Set.of(initialState), acceptance) {
+        dbw.atomicPropositions(), dbw.factory(), Set.of(initialState), acceptance) {
 
         @Override
         protected MtBdd<Edge<State>> edgeTreeImpl(State state) {

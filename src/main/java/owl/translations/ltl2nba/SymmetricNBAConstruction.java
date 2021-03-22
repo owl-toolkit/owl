@@ -217,12 +217,21 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
     private final Factories factories;
     private final String name;
 
-    public SymmetricNBA(Set<Formula> initialStatesA,
+    public SymmetricNBA(
+      Set<Formula> initialStatesA,
       Set<ProductState> initialStatesB, B acceptance,
-      NonDeterministicConstructions.Tracking trackingAutomaton, int acceptanceSets,
-      Factories factories, String name,
+      NonDeterministicConstructions.Tracking trackingAutomaton,
+      int acceptanceSets,
+      Factories factories,
+      String name,
       Function<Formula, Set<ProductState>> moveAtoB) {
-      super(factories.vsFactory, initialStatesA, initialStatesB, acceptance);
+
+      super(
+        factories.eqFactory.atomicPropositions(),
+        factories.vsFactory,
+        initialStatesA,
+        initialStatesB,
+        acceptance);
 
       this.moveAtoB = moveAtoB;
       this.trackingAutomaton = trackingAutomaton;

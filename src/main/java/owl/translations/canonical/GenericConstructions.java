@@ -58,6 +58,11 @@ public final class GenericConstructions {
       }
 
       @Override
+      public List<String> atomicPropositions() {
+        return automaton.atomicPropositions();
+      }
+
+      @Override
       public BddSetFactory factory() {
         return automaton.factory();
       }
@@ -97,7 +102,7 @@ public final class GenericConstructions {
       }
 
       private Map<Edge<Either<Integer, S>>, BddSet> nextMap(int index) {
-        return Maps.toMap(next(index), z -> factory().universe());
+        return Maps.toMap(next(index), z -> factory().of(true));
       }
 
       private MtBdd<Edge<Either<Integer, S>>> nextTree(int index) {

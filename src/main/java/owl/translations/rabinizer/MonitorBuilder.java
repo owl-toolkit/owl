@@ -119,8 +119,10 @@ final class MonitorBuilder {
     MonitorState initialState = MonitorState.of(initialClass);
 
     for (int i = 0; i < monitorAutomata.length; i++) {
-      MutableAutomaton<MonitorState, ParityAcceptance> monitor = HashMapAutomaton
-        .of(new ParityAcceptance(0, Parity.MIN_ODD), vsFactory);
+      MutableAutomaton<MonitorState, ParityAcceptance> monitor = HashMapAutomaton.create(
+        initialClass.factory().atomicPropositions(),
+        vsFactory,
+        new ParityAcceptance(0, Parity.MIN_ODD));
       monitor.name(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addInitialState(initialState);
       monitorAutomata[i] = monitor;

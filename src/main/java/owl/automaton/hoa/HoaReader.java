@@ -33,8 +33,8 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
+import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -71,24 +71,33 @@ public final class HoaReader {
 
   private HoaReader() {}
 
-  public static void readStream(Reader reader,
-    Function<List<String>, BddSetFactory> factorySupplier,
-    Consumer<Automaton<HoaState, ?>> consumer) throws ParseException {
+  public static void readStream(
+    Reader reader,
+    Supplier<BddSetFactory> factorySupplier,
+    @Nullable List<String> predefinedAtomicPropositions,
+    Consumer<? super Automaton<HoaState, ?>> consumer) throws ParseException {
 
-    HOAFParserFixed.parseHOA(reader, () -> new ToTransitionAcceptance(
-      new HoaConsumerAutomatonSupplier(consumer, factorySupplier)));
+    HOAFParserFixed.parseHOA(reader,
+      () -> new ToTransitionAcceptance(
+        new HoaConsumerAutomatonSupplier(consumer, factorySupplier, predefinedAtomicPropositions)));
   }
 
-  public static Automaton<HoaState, ?> read(String string,
-    Function<List<String>, BddSetFactory> factorySupplier) throws ParseException {
-    return read(new StringReader(string), factorySupplier);
+  public static Automaton<HoaState, ?> read(
+    String string,
+    Supplier<BddSetFactory> factorySupplier,
+    @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
+
+    return read(new StringReader(string), factorySupplier, predefinedAtomicPropositions);
   }
 
-  public static Automaton<HoaState, ?> read(Reader reader,
-    Function<List<String>, BddSetFactory> factorySupplier) throws ParseException {
+  public static Automaton<HoaState, ?> read(
+    Reader reader,
+    Supplier<BddSetFactory> factorySupplier,
+    @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
+
     AtomicReference<Automaton<HoaState, ?>> reference = new AtomicReference<>();
 
-    readStream(reader, factorySupplier, automaton -> {
+    readStream(reader, factorySupplier, predefinedAtomicPropositions, automaton -> {
       var oldValue = reference.getAndSet(automaton);
       if (oldValue != null) {
         throw new IllegalArgumentException(
@@ -111,11 +120,11 @@ public final class HoaReader {
     @Nullable Map<String, ? extends BooleanExpression<AtomLabel>> aliases) {
 
     if (expression.isFALSE()) {
-      return valuationSetFactory.of();
+      return valuationSetFactory.of(false);
     }
 
     if (expression.isTRUE()) {
-      return valuationSetFactory.universe();
+      return valuationSetFactory.of(true);
     }
 
     if (expression.isAtom()) {
@@ -153,18 +162,27 @@ public final class HoaReader {
 
   private static final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
     private final Consumer<? super Automaton<HoaState, ?>> consumer;
-    private final Function<List<String>, BddSetFactory> factorySupplier;
+    private final Supplier<BddSetFactory> factorySupplier;
+    @Nullable
+    private final List<String> predefinedAtomicPropositions;
 
-    HoaConsumerAutomatonSupplier(Consumer<? super Automaton<HoaState, ?>> consumer,
-      Function<List<String>, BddSetFactory> factorySupplier) {
+    HoaConsumerAutomatonSupplier(
+      Consumer<? super Automaton<HoaState, ?>> consumer,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) {
+
       this.consumer = consumer;
       this.factorySupplier = factorySupplier;
+      this.predefinedAtomicPropositions = predefinedAtomicPropositions == null
+        ? null
+        : List.copyOf(predefinedAtomicPropositions);
     }
 
     @Override
     public void notifyEnd() throws HOAConsumerException {
       super.notifyEnd();
-      consumer.accept(new StoredConverter(getStoredAutomaton(), factorySupplier).transform());
+      consumer.accept(new StoredConverter(
+        getStoredAutomaton(), factorySupplier, predefinedAtomicPropositions).transform());
     }
   }
 
@@ -212,33 +230,40 @@ public final class HoaReader {
     private final BddSetFactory vsFactory;
 
     private StoredConverter(StoredAutomaton storedAutomaton,
-      Function<List<String>, BddSetFactory> factorySupplier) throws HOAConsumerException {
-      this.vsFactory = factorySupplier.apply(storedAutomaton.getStoredHeader().getAPs());
-      check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported");
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) throws HOAConsumerException {
 
       this.storedAutomaton = storedAutomaton;
       this.storedHeader = storedAutomaton.getStoredHeader();
+      this.vsFactory = factorySupplier.get();
 
-      List<String> variables = storedHeader.getAPs();
-      List<String> alphabet = vsFactory.atomicPropositions();
+      check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported.");
 
-      if (variables.equals(alphabet)) {
+      List<String> atomicPropositions = List.copyOf(storedHeader.getAPs());
+
+      if (predefinedAtomicPropositions == null
+        || predefinedAtomicPropositions.equals(atomicPropositions)) {
         remapping = null;
       } else {
-        remapping = new int[variables.size()];
-        ListIterator<String> variableIterator = variables.listIterator();
+        remapping = new int[atomicPropositions.size()];
+        ListIterator<String> variableIterator = atomicPropositions.listIterator();
         while (variableIterator.hasNext()) {
-          int variableIndex = alphabet.indexOf(variableIterator.next());
-          checkArgument(variableIndex >= 0);
+          int variableIndex = predefinedAtomicPropositions.indexOf(variableIterator.next());
+          checkArgument(variableIndex >= 0,
+            "Failed to map to predefined atomic propositions.");
           remapping[variableIterator.previousIndex()] = variableIndex;
         }
       }
 
-      automaton = HashMapAutomaton.of(acceptance(storedHeader), this.vsFactory);
-      String name = storedAutomaton.getStoredHeader().getName();
-      if (name != null) {
-        automaton.name(name);
+      automaton = HashMapAutomaton.create(
+        remapping == null ? atomicPropositions : predefinedAtomicPropositions,
+        this.vsFactory,
+        acceptance(storedHeader));
+
+      if (storedHeader.getName() != null) {
+        automaton.name(storedHeader.getName());
       }
+
       states = Arrays.asList(new HoaState[storedAutomaton.getNumberOfStates()]);
     }
 
@@ -402,8 +427,13 @@ public final class HoaReader {
 
             HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
 
-            // TODO Pretty sure we have to remap here, too?
-            BddSet valuationSet = vsFactory.of(BooleanExpression.fromImplicit(counter));
+            BddSet valuationSet = vsFactory.of(
+              BooleanExpression.fromImplicit(counter), automaton.atomicPropositions().size());
+
+            if (remapping != null) {
+              valuationSet = valuationSet.relabel(x -> remapping[x]);
+            }
+
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
             addEdge(state, valuationSet, edgeAcceptance, successorState);
             counter += 1;
