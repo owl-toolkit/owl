@@ -40,12 +40,14 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.Pair;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 
@@ -438,5 +440,27 @@ public final class Views {
         return set;
       });
     }
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<Pair<S, Colours>, A>
+  stateAcceptanceAutomaton(Automaton<S, A> automaton) {
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      automaton.initialStates().stream().map(state ->
+        Pair.of(state, Colours.of())
+      ).collect(Collectors.toSet()),
+      automaton.acceptance()
+    ) {
+      @Override
+      protected MtBdd<Edge<Pair<S, Colours>>> edgeTreeImpl(
+        Pair<S, Colours> state) {
+        return automaton.edgeTree(state.fst()).map(edges ->
+          edges.stream()
+            .map(edge -> Edge.of(Pair.of(edge.successor(), edge.colours()), edge.colours()))
+            .collect(Collectors.toSet()
+            ));
+      }
+    };
   }
 }

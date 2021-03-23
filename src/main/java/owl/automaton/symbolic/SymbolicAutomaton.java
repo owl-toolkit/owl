@@ -67,6 +67,65 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public abstract Set<Automaton.Property> properties();
 
+  public BddSet successors(BddSet statesAndValuation) {
+    checkArgument(statesAndValuation.factory() == transitionRelation().factory());
+    BitSet quantifyOver = variableAllocation().variables(STATE);
+    quantifyOver.or(variableAllocation().variables(ATOMIC_PROPOSITION));
+    BitSet states = variableAllocation().variables(STATE);
+    BitSet successorStates = variableAllocation().variables(SUCCESSOR_STATE);
+    return transitionRelation()
+      .intersection(statesAndValuation
+        .project(variableAllocation().variables(COLOUR))
+      )
+      .project(quantifyOver)
+      .relabel(variable -> {
+        if (states.get(variable)) {
+          return variableAllocation()
+            .localToGlobal(variableAllocation().globalToLocal(variable, STATE), SUCCESSOR_STATE);
+        } else if (successorStates.get(variable)) {
+          return variableAllocation()
+            .localToGlobal(variableAllocation().globalToLocal(variable, SUCCESSOR_STATE), STATE);
+        } else {
+          return variable;
+        }
+      });
+  }
+
+  public BddSet predecessors(BddSet statesAndValuation) {
+    checkArgument(statesAndValuation.factory() == transitionRelation().factory());
+    BitSet quantifyOver = variableAllocation().variables(STATE);
+    quantifyOver.flip(0, variableAllocation().numberOfVariables());
+    BitSet successorStates = variableAllocation().variables(SUCCESSOR_STATE);
+    BitSet states = variableAllocation().variables(STATE);
+    return transitionRelation()
+      .intersection(statesAndValuation
+        .relabel(variable -> {
+          if (successorStates.get(variable)) {
+            return variableAllocation()
+              .localToGlobal(variableAllocation().globalToLocal(variable, SUCCESSOR_STATE), STATE);
+          } else if (states.get(variable)) {
+            return variableAllocation()
+              .localToGlobal(variableAllocation().globalToLocal(variable, STATE), SUCCESSOR_STATE);
+          } else {
+            return variable;
+          }
+        })
+      )
+      .project(quantifyOver);
+  }
+
+  public BddSet reachableStates() {
+    BddSet previousStates = initialStates().factory().of(false);
+    BddSet currentStates = initialStates().intersection(
+      initialStates().factory().of(new BitSet(), variableAllocation().variables(COLOUR))
+    );
+    while (!previousStates.equals(currentStates)) {
+      previousStates = currentStates;
+      currentStates = currentStates.union(successors(currentStates));
+    }
+    return currentStates;
+  }
+
   public boolean is(Automaton.Property property) {
     return properties().contains(property);
   }
@@ -314,7 +373,6 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       }
       return result;
     }
-
   }
 
   interface AllocationCombiner extends VariableAllocation {
