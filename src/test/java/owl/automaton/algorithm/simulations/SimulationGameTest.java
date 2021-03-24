@@ -42,7 +42,7 @@ public class SimulationGameTest {
 
     MutableAutomaton<Integer, BuchiAcceptance> aut
       = HashMapAutomaton.create(List.of("a"), BuchiAcceptance.INSTANCE);
-    BitSet a = aut.factory().of(0).toSet(1).iterator().next();
+    BitSet a = aut.factory().of(0).iterator(1).next();
 
     aut.addInitialState(1);
     aut.addState(2);
@@ -72,10 +72,10 @@ public class SimulationGameTest {
     MutableAutomaton<Integer, BuchiAcceptance> right
       = HashMapAutomaton.create(List.of("a", "b", "c", "d"), factory, BuchiAcceptance.INSTANCE);
 
-    BitSet a = factory.of(0).toSet(4).iterator().next();
-    BitSet b = factory.of(1).toSet(4).iterator().next();
-    BitSet c = factory.of(2).toSet(4).iterator().next();
-    BitSet d = factory.of(3).toSet(4).iterator().next();
+    BitSet a = factory.of(0).iterator(4).next();
+    BitSet b = factory.of(1).iterator(4).next();
+    BitSet c = factory.of(2).iterator(4).next();
+    BitSet d = factory.of(3).iterator(4).next();
 
     left.addState(1);
     left.addInitialState(1);
@@ -117,7 +117,7 @@ public class SimulationGameTest {
 
     var factory = FactorySupplier.defaultSupplier()
       .getBddSetFactory();
-    BitSet a = factory.of(0).toSet(1).iterator().next();
+    BitSet a = factory.of(0).iterator(1).next();
 
     MutableAutomaton<Integer, BuchiAcceptance> l
       = HashMapAutomaton.create(List.of("a"), factory, BuchiAcceptance.INSTANCE);
@@ -156,7 +156,7 @@ public class SimulationGameTest {
 
     var factory = FactorySupplier.defaultSupplier()
       .getBddSetFactory();
-    BitSet a = factory.of(0).toSet(1).iterator().next();
+    BitSet a = factory.of(0).iterator(1).next();
 
     MutableAutomaton<Integer, BuchiAcceptance> l = HashMapAutomaton.create(
       List.of("a"), factory, BuchiAcceptance.INSTANCE);
@@ -201,9 +201,9 @@ public class SimulationGameTest {
     MutableAutomaton<Integer, BuchiAcceptance> right
       = HashMapAutomaton.create(List.of("a", "b", "c"), factory, BuchiAcceptance.INSTANCE);
 
-    BitSet a = factory.of(0).toSet(3).iterator().next();
-    BitSet b = factory.of(1).toSet(3).iterator().next();
-    BitSet c = factory.of(2).toSet(3).iterator().next();
+    BitSet a = factory.of(0).iterator(3).next();
+    BitSet b = factory.of(1).iterator(3).next();
+    BitSet c = factory.of(2).iterator(3).next();
 
     left.addState(1);
     left.addInitialState(1);

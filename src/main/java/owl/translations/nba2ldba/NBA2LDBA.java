@@ -153,7 +153,7 @@ public final class NBA2LDBA
       return factory.toMtBdd(labelledEdges);
     }
 
-    protected Set<Edge<BreakpointState<S>>> edgesB(BreakpointState<S> ldbaState, BitSet valuation) {
+    private Set<Edge<BreakpointState<S>>> edgesB(BreakpointState<S> ldbaState, BitSet valuation) {
       Optional<Set<S>> optionalScc = sccs.stream().filter(x -> x.containsAll(ldbaState.mx()))
         .findAny();
 

@@ -46,10 +46,9 @@ public abstract class SymbolicSccDecomposition {
       var states = variableAllocation.variables(STATE);
       states.or(variableAllocation.variables(COLOUR));
       // Get some arbitrary state from consideredStates
-      // (toSet returns a generator so there is no performance penalty here)
       BddSet node = transitionRelation
         .factory()
-        .of(consideredStates.toSet(states).iterator().next(), states);
+        .of(consideredStates.element().orElseThrow(), states);
       BddSet forwardSet = node;
       BddSet backwardSet = node;
       BddSet successors = node;

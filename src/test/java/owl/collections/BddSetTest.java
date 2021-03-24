@@ -23,16 +23,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 import static owl.util.Assertions.assertThat;
 
+import java.time.Duration;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.function.IntUnaryOperator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,8 +43,6 @@ import owl.bdd.MtBdd;
 
 public abstract class BddSetTest {
 
-  private static final List<String> ATOMIC_PROPOSITIONS = List.of("a", "b", "c", "d", "e", "f");
-
   private BddSet abcd;
   private BddSet containsA;
   private BddSet empty;
@@ -51,7 +50,7 @@ public abstract class BddSetTest {
 
   @BeforeEach
   void beforeEach() {
-    BddSetFactory factory = factory(List.of("a", "b", "c", "d"));
+    BddSetFactory factory = factory();
 
     empty = factory.of(false);
     universe = factory.of(true);
@@ -65,7 +64,7 @@ public abstract class BddSetTest {
     containsA = factory.of(bs, bs);
   }
 
-  protected abstract BddSetFactory factory(List<String> atomicPropositions);
+  protected abstract BddSetFactory factory();
 
   @Test
   void testComplement() {
@@ -79,8 +78,8 @@ public abstract class BddSetTest {
   void testForEach() {
     for (BddSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();
-      set.toSet(4).forEach(
-        (Consumer<? super BitSet>) solution -> forEach.add(BitSet2.copyOf(solution)));
+      set.iterator(4).forEachRemaining(
+        solution -> forEach.add(BitSet2.copyOf(solution)));
 
       Set<BitSet> collect = new HashSet<>();
 
@@ -105,40 +104,39 @@ public abstract class BddSetTest {
   @Test
   void testIterator() {
     Set<BitSet> seen = new HashSet<>();
-    universe.toSet(4).forEach((Consumer<? super BitSet>) valuation3 -> {
+    universe.iterator(4).forEachRemaining(valuation3 -> {
       assertTrue(valuation3.cardinality() <= 4);
       assertTrue(seen.add(valuation3));
     });
 
-    containsA
-      .toSet(4).forEach((Consumer<? super BitSet>) valuation2 -> assertTrue(valuation2.get(0)));
+    containsA.iterator(4).forEachRemaining(valuation2 -> assertTrue(valuation2.get(0)));
 
-    abcd.toSet(4).forEach((Consumer<? super BitSet>) valuation1 -> {
+    abcd.iterator(4).forEachRemaining(valuation1 -> {
       assertTrue(valuation1.get(0));
       assertTrue(valuation1.get(1));
       assertTrue(valuation1.get(2));
       assertTrue(valuation1.get(3));
     });
 
-    empty.toSet(4).forEach((Consumer<? super BitSet>) valuation -> fail(
+    empty.iterator(4).forEachRemaining(valuation -> fail(
       "empty should be empty, but it contains " + valuation));
   }
 
 
   @Test
   void testCreateEmptyValuationSet() {
-    var factory = factory(ATOMIC_PROPOSITIONS);
+    var factory = factory();
     assertThat(factory.of(false), BddSet::isEmpty);
   }
 
   @Test
   void testCreateUniverseValuationSet() {
-    var factory = factory(ATOMIC_PROPOSITIONS);
+    var factory = factory();
     var empty = factory.of(false);
 
-    for (BitSet element : BitSet2.powerSet(ATOMIC_PROPOSITIONS.size())) {
+    for (BitSet element : BitSet2.powerSet(6)) {
       assertTrue(factory.of(true).contains(element));
-      empty = empty.union(factory.of(element, ATOMIC_PROPOSITIONS.size()));
+      empty = empty.union(factory.of(element, 6));
     }
 
     assertEquals(factory.of(true), empty);
@@ -146,7 +144,7 @@ public abstract class BddSetTest {
 
   @Test
   void testRelabel() {
-    var factory = factory(ATOMIC_PROPOSITIONS);
+    var factory = factory();
 
     BitSet valuation1 = bitSetOf(false, true, true, false, false, true);
     BitSet valuation2 = bitSetOf(false, true, false, true, false, true);
@@ -177,7 +175,7 @@ public abstract class BddSetTest {
 
   @Test
   void testRelabelThrows() {
-    var factory = factory(ATOMIC_PROPOSITIONS);
+    var factory = factory();
 
     assertThrows(IllegalArgumentException.class, () -> {
       factory.of(1).relabel(i -> -2);
@@ -191,7 +189,7 @@ public abstract class BddSetTest {
 
   @Test
   void testFilter() {
-    var factory = factory(ATOMIC_PROPOSITIONS);
+    var factory = factory();
 
     var tree = MtBdd.of(Set.of(true));
     var filter = factory.of(0);
@@ -210,5 +208,36 @@ public abstract class BddSetTest {
     }
 
     return bitSet;
+  }
+
+  @Test
+  void testIteratorIllegalArgumentException() {
+    BddSetFactory factory = factory();
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      BddSet set = factory.of(3);
+      set.iterator(2);
+    });
+
+    assertThrows(IllegalArgumentException.class, () -> {
+      BddSet set = factory.of(3);
+      BitSet support = BitSet2.of(1, 4);
+      set.iterator(support);
+    });
+  }
+
+  @Test
+  void testIteratorPerformance() {
+    BddSetFactory factory = factory();
+
+    assertTimeout(Duration.ofMillis(300), () -> {
+      BddSet set = factory.of(new BitSet(), 300);
+      assertEquals(new BitSet(), set.iterator(300).next());
+    });
+
+    assertTimeout(Duration.ofMillis(300), () -> {
+      BddSet set = factory.of(new BitSet(), 300);
+      assertNotEquals(new BitSet(), set.complement().iterator(300).next());
+    });
   }
 }

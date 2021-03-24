@@ -106,7 +106,7 @@ public class ForwardDirectSimulation<S>
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.toSet(leftAutomaton.atomicPropositions().size()).forEach(
+        valSet.iterator(leftAutomaton.atomicPropositions().size()).forEachRemaining(
           (Consumer<? super BitSet>) valuation -> {
           var target = MultipebbleSimulationState.of(
             Pebble.of(edge.successor(), leftAutomaton.acceptance().isAcceptingEdge(edge)),

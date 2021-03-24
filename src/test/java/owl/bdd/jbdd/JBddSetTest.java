@@ -20,14 +20,13 @@
 package owl.bdd.jbdd;
 
 import de.tum.in.jbdd.BddFactory;
-import java.util.List;
 import owl.bdd.BddSetFactory;
 import owl.collections.BddSetTest;
 
 public class JBddSetTest extends BddSetTest {
 
   @Override
-  protected BddSetFactory factory(List<String> atomicPropositions) {
+  protected BddSetFactory factory() {
     return new JBddSetFactory(BddFactory.buildBdd(1024));
   }
 }

@@ -95,7 +95,7 @@ public class ForwardDelayedSimulation<S>
       }
 
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
-        valSet.toSet(leftAutomaton.atomicPropositions().size()).forEach(val -> {
+        valSet.iterator(leftAutomaton.atomicPropositions().size()).forEachRemaining(val -> {
           var isAccepting = leftAutomaton.acceptance().isAcceptingEdge(edge);
           var target = MultipebbleSimulationState.of(
             Pebble.of(edge.successor(), state.odd().flag() || isAccepting),

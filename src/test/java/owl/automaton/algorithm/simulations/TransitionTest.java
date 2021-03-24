@@ -31,7 +31,7 @@ public class TransitionTest {
     var aut = predecessorAutomaton();
     var factory = aut.factory();
 
-    BitSet a = factory.of(0).toSet(aut.atomicPropositions().size()).iterator().next();
+    BitSet a = factory.of(0).iterator(aut.atomicPropositions().size()).next();
 
     assert Transition.of(a, 2, false).isValid(1, aut);
     assert !Transition.of(a, 3, true).isValid(1, aut);

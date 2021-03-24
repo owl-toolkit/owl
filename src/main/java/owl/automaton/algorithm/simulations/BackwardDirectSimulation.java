@@ -102,7 +102,7 @@ public class BackwardDirectSimulation<S>
 
       predecessors.forEach(pred -> leftAutomaton.edgeMap(pred).forEach((e, vS) -> {
         if (e.successor().equals(state.odd().state())) {
-          vS.toSet(leftAutomaton.atomicPropositions().size()).forEach(
+          vS.iterator(leftAutomaton.atomicPropositions().size()).forEachRemaining(
             val -> state.odd().predecessors(leftAutomaton, val)
               .forEach(p -> {
                 var target = MultipebbleSimulationState.of(

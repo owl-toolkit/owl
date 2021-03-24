@@ -90,7 +90,7 @@ public class ForwardFairSimulation<S>
       leftAutomaton.edgeMap(state.odd().state()).forEach((edge, valSet) -> {
         // if Duplicator has an accepting Multipebble, we assign a good parity, otherwise the
         // parity is determined by whether or not Spoiler sees an accepting edge
-        valSet.toSet(leftAutomaton.atomicPropositions().size()).forEach(
+        valSet.iterator(leftAutomaton.atomicPropositions().size()).forEachRemaining(
           (Consumer<? super BitSet>) val -> {
           boolean isAccepting = leftAutomaton.acceptance().isAcceptingEdge(edge);
           // if Duplicator has an accepting Multipebble, we assign a good parity, otherwise the

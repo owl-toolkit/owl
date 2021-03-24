@@ -20,8 +20,8 @@
 package owl.bdd;
 
 import java.util.BitSet;
+import java.util.Iterator;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -53,28 +53,50 @@ public interface BddSet {
 
   <E> MtBdd<E> intersection(MtBdd<E> tree);
 
-  PropositionalFormula<Integer> toExpression();
-
   BddSet project(BitSet quantifiedAtomicPropositions);
 
   BddSet relabel(IntUnaryOperator mapping);
-
-  /**
-   * Returns an explicit Collection-compatible view of this BddSet. Note that iteration
-   * and other operation on this set should not be used in performance sensitive-code.
-   *
-   * @return a set view.
-   */
-  Set<BitSet> toSet(int upTo);
-
-  Set<BitSet> toSet(BitSet support);
-
-  @Deprecated
-  BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping);
 
   /*
    * Returns the support, i.e., the set of variables on which a decision is taken
    * for this BddSet.
    */
   BitSet support();
+
+  PropositionalFormula<Integer> toExpression();
+
+  /**
+   * Returns a {@code Iterator<BitSet>}-view of this BddSet.
+   *
+   * <p>Since the number of variables is dynamic, an explicit support needs to be given. All
+   * returned BitSets are a subset of this support.</p>
+   *
+   * @param support the upper-bound for all elements of the returned view.
+   *
+   * @return {@code Iterator<BitSet>}-view of this BddSet
+   *
+   * @throws IllegalArgumentException
+   *     This method throws an exception if the {@param support}
+   *     is smaller than the largest element of {@link BddSet#support()}.
+   */
+  Iterator<BitSet> iterator(int support);
+
+  /**
+   * Returns a {@code Iterator<BitSet>}-view of this BddSet.
+   *
+   * <p>Since the number of variables is dynamic, an explicit support needs to be given. All
+   * returned BitSets are a subset of this support.</p>
+   *
+   * @param support the upper-bound for all elements of the returned view.
+   *
+   * @return {@code Iterator<BitSet>}-view of this BddSet
+   *
+   * @throws IllegalArgumentException
+   *     This method throws an exception if the {@param support} does not contain all elements
+   *     of {@link BddSet#support()}.
+   */
+  Iterator<BitSet> iterator(BitSet support);
+
+  @Deprecated
+  BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping);
 }

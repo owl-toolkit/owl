@@ -98,14 +98,14 @@ public abstract class Pebble<S> {
    */
   public Set<Pebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
-    valSet.toSet(aut.atomicPropositions().size()).forEach(
+    valSet.iterator(aut.atomicPropositions().size()).forEachRemaining(
       val -> out.addAll(successors(aut, val)));
     return out;
   }
 
   public Set<Pebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BddSet valSet) {
     Set<Pebble<S>> out = new HashSet<>();
-    valSet.toSet(aut.atomicPropositions().size()).forEach(
+    valSet.iterator(aut.atomicPropositions().size()).forEachRemaining(
       val -> out.addAll(predecessors(aut, val)));
     return out;
   }

@@ -37,8 +37,8 @@ public class PebbleTest {
     );
 
     var aut = predecessorAutomaton();
-    BitSet a = aut.factory().of(0).toSet(aut.atomicPropositions().size()).iterator().next();
-    BitSet b = aut.factory().of(1).toSet(aut.atomicPropositions().size()).iterator().next();
+    BitSet a = aut.factory().of(0).iterator(aut.atomicPropositions().size()).next();
+    BitSet b = aut.factory().of(1).iterator(aut.atomicPropositions().size()).next();
     BddSet ab = aut.factory().of(a,
       aut.atomicPropositions().size()).union(aut.factory().of(b, aut.atomicPropositions().size()));
 

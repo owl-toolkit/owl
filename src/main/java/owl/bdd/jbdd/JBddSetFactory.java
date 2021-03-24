@@ -28,13 +28,13 @@ import static owl.logic.propositional.PropositionalFormula.falseConstant;
 import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import de.tum.in.jbdd.Bdd;
-import java.util.AbstractSet;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -347,63 +347,129 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
-    public Set<BitSet> toSet(int upToVariable) {
-      Preconditions.checkArgument(this.support().length() <= upToVariable);
-
-      return new AbstractSet<>() {
-        @Override
-        public boolean contains(Object o) {
-          if (o instanceof BitSet) {
-            return ((BitSet) o).length() <= upToVariable && JBddSet.this.contains((BitSet) o);
-          }
-
-          return false;
-        }
-
-        @Override
-        public boolean isEmpty() {
-          return node == factory.falseNode;
-        }
-
-        @Override
-        public Iterator<BitSet> iterator() {
-          return Iterators.filter(BitSet2.powerSet(upToVariable).iterator(), this::contains);
-        }
-
-        @Override
-        public int size() {
-          return isEmpty() ? 0 : Iterators.size(iterator());
-        }
-      };
+    public Iterator<BitSet> iterator(int support) {
+      BitSet supportBitSet = new BitSet();
+      supportBitSet.set(0, support);
+      return iterator(supportBitSet);
     }
 
     @Override
-    public Set<BitSet> toSet(BitSet support) {
-      return new AbstractSet<>() {
-        @Override
-        public boolean contains(Object o) {
-          if (o instanceof BitSet) {
-            return JBddSet.this.contains((BitSet) o);
+    public Iterator<BitSet> iterator(BitSet support) {
+      BitSet supportCopy = BitSet2.copyOf(support);
+      return createBddIterator(supportCopy, supportCopy.nextSetBit(0), node, new BitSet());
+    }
+
+    private Iterator<BitSet> createBddIterator(
+      BitSet support, int currentVariable, int node, BitSet path) {
+
+      if (node == factory.falseNode) {
+        return Collections.emptyIterator();
+      }
+
+      if (node == factory.trueNode) {
+        if (currentVariable < 0) {
+          return List.of(BitSet2.copyOf(path)).iterator();
+        }
+
+        return new BddIterator(support, currentVariable, node, path);
+      }
+
+      int bddVariable = factory.bdd.variable(node);
+
+      if (bddVariable < currentVariable || !support.get(bddVariable)) {
+        throw new IllegalArgumentException("Detected a BDD-variable that is not in the support.");
+      }
+
+      assert 0 <= bddVariable;
+      assert 0 <= currentVariable;
+      assert currentVariable <= bddVariable;
+
+      // Kicking down the can.
+      return new BddIterator(support, currentVariable, node, path);
+    }
+
+    // This is a non-static class in order to keep the JBddSet alive and thus protect its node from
+    // the GC.
+    private class BddIterator implements Iterator<BitSet> {
+
+      private final int variable;
+      private final int node;
+      private final BitSet support;
+      private final BitSet path;
+
+      @Nullable
+      private Iterator<BitSet> lowIterator;
+      @Nullable
+      private Iterator<BitSet> highIterator;
+
+      private BddIterator(BitSet support, int variable, int node, BitSet path) {
+        Bdd bdd = factory.bdd;
+
+        assert node != factory.falseNode;
+
+        this.variable = variable;
+        this.node = node;
+        this.support = support;
+        this.path = path;
+
+        lowIterator = createBddIterator(support,
+          support.nextSetBit(variable + 1),
+          node != factory.trueNode && variable == bdd.variable(node)
+            ? bdd.low(node)
+            : node,
+          path);
+      }
+
+      private void initHighIterator() {
+        assert !lowIterator.hasNext();
+        lowIterator = null;
+        path.clear(variable + 1, support.length());
+        path.set(variable);
+        highIterator = createBddIterator(
+          support,
+          support.nextSetBit(variable + 1),
+          node != factory.trueNode && variable == factory.bdd.variable(node)
+            ? factory.bdd.high(node)
+            : node,
+          path);
+      }
+
+      private void checkInvariants() {
+        assert lowIterator == null || highIterator == null;
+        assert lowIterator != null || highIterator != null;
+      }
+
+      @Override
+      public boolean hasNext() {
+        checkInvariants();
+
+        if (lowIterator != null) {
+          if (lowIterator.hasNext()) {
+            return true;
           }
 
-          return false;
+          initHighIterator();
         }
 
-        @Override
-        public boolean isEmpty() {
-          return node == factory.falseNode;
+        checkInvariants();
+        return highIterator.hasNext();
+      }
+
+      @Override
+      public BitSet next() {
+        checkInvariants();
+
+        if (lowIterator != null) {
+          if (lowIterator.hasNext()) {
+            return lowIterator.next();
+          }
+
+          initHighIterator();
         }
 
-        @Override
-        public Iterator<BitSet> iterator() {
-          return Iterators.filter(BitSet2.powerSet(support).iterator(), this::contains);
-        }
-
-        @Override
-        public int size() {
-          return isEmpty() ? 0 : Iterators.size(iterator());
-        }
-      };
+        checkInvariants();
+        return highIterator.next();
+      }
     }
 
     @Override
