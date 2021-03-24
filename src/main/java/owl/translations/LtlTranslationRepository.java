@@ -269,8 +269,11 @@ public final class LtlTranslationRepository {
     SIMPLIFY_FORMULA,
     SIMPLIFY_AUTOMATON,
     USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
-    USE_COMPLEMENT,
-    USE_DUAL;
+
+    X_DPA_USE_COMPLEMENT,
+    X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS,
+
+    X_DRA_NORMAL_FORM_USE_DUAL;
 
     @CEnumValue
     public native int getCValue();
@@ -441,7 +444,7 @@ public final class LtlTranslationRepository {
         case SEJK16_EKRS17: {
           var configuration = EnumSet.of(POST_PROCESS);
 
-          if (translationOptions.contains(Option.USE_COMPLEMENT)) {
+          if (translationOptions.contains(Option.X_DPA_USE_COMPLEMENT)) {
             configuration.add(COMPLEMENT_CONSTRUCTION_EXACT);
           }
 
@@ -457,7 +460,7 @@ public final class LtlTranslationRepository {
         case EKS20_EKRS17: {
           var configuration = EnumSet.of(SYMMETRIC, POST_PROCESS);
 
-          if (translationOptions.contains(Option.USE_COMPLEMENT)) {
+          if (translationOptions.contains(Option.X_DPA_USE_COMPLEMENT)) {
             configuration.add(COMPLEMENT_CONSTRUCTION_EXACT);
           }
 
@@ -471,7 +474,10 @@ public final class LtlTranslationRepository {
         }
 
         case UNPUBLISHED_ZIELONKA: {
-          var translation = NormalformDPAConstruction.of(false);
+
+          var translation = NormalformDPAConstruction.of(
+            false,
+            translationOptions.contains(Option.X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS));
 
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(translation.apply(x), acceptanceClass),
@@ -483,7 +489,7 @@ public final class LtlTranslationRepository {
 
         case SMALLEST_AUTOMATON:
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
-          copiedTranslationOptions.add(Option.USE_COMPLEMENT);
+          copiedTranslationOptions.add(Option.X_DPA_USE_COMPLEMENT);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
 
           var portfolioTranslation = portfolioWithPreAndPostProcessing(
@@ -590,15 +596,15 @@ public final class LtlTranslationRepository {
           return applyPreAndPostProcessing(
             NormalformDRAConstruction.of(
               acceptanceClass,
-              translationOptions.contains(Option.USE_DUAL)),
+              translationOptions.contains(Option.X_DRA_NORMAL_FORM_USE_DUAL)),
             BranchingMode.DETERMINISTIC,
             translationOptions,
             acceptanceClass);
 
         case SMALLEST_AUTOMATON:
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
-          copiedTranslationOptions.add(Option.USE_COMPLEMENT);
-          copiedTranslationOptions.add(Option.USE_DUAL);
+          copiedTranslationOptions.add(Option.X_DPA_USE_COMPLEMENT);
+          copiedTranslationOptions.add(Option.X_DRA_NORMAL_FORM_USE_DUAL);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
 
           var portfolioTranslation = portfolioWithPreAndPostProcessing(
@@ -678,7 +684,7 @@ public final class LtlTranslationRepository {
 
         case SMALLEST_AUTOMATON:
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
-          copiedTranslationOptions.add(Option.USE_COMPLEMENT);
+          copiedTranslationOptions.add(Option.X_DPA_USE_COMPLEMENT);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
 
           var portfolioTranslation = portfolioWithPreAndPostProcessing(

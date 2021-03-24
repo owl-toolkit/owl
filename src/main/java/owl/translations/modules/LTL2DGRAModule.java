@@ -22,8 +22,8 @@ package owl.translations.modules;
 import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.EKS16;
 import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.EKS20;
 import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.SE20;
-import static owl.translations.LtlTranslationRepository.Option.USE_DUAL;
 import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
+import static owl.translations.LtlTranslationRepository.Option.X_DRA_NORMAL_FORM_USE_DUAL;
 import static owl.translations.modules.AbstractLTL2DRAModule.parseTranslator;
 
 import java.io.IOException;
@@ -72,8 +72,8 @@ public final class LTL2DGRAModule {
         case NORMAL_FORM:
           result = SE20.translation(GeneralizedRabinAcceptance.class,
             usePortfolio
-              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, USE_DUAL)
-              : EnumSet.of(USE_DUAL));
+              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, X_DRA_NORMAL_FORM_USE_DUAL)
+              : EnumSet.of(X_DRA_NORMAL_FORM_USE_DUAL));
           break;
 
         default:

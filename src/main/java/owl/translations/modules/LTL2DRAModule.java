@@ -23,8 +23,8 @@ import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.EKS1
 import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.EKS20;
 import static owl.translations.LtlTranslationRepository.LtlToDraTranslation.SE20;
 import static owl.translations.LtlTranslationRepository.Option;
-import static owl.translations.LtlTranslationRepository.Option.USE_DUAL;
 import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
+import static owl.translations.LtlTranslationRepository.Option.X_DRA_NORMAL_FORM_USE_DUAL;
 import static owl.translations.modules.AbstractLTL2DRAModule.options;
 import static owl.translations.modules.AbstractLTL2DRAModule.parseTranslator;
 
@@ -74,8 +74,8 @@ public final class LTL2DRAModule {
         case NORMAL_FORM:
           result = SE20.translation(RabinAcceptance.class,
             usePortfolio
-              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, USE_DUAL)
-              : EnumSet.of(USE_DUAL));
+              ? EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, X_DRA_NORMAL_FORM_USE_DUAL)
+              : EnumSet.of(X_DRA_NORMAL_FORM_USE_DUAL));
           break;
 
         default:

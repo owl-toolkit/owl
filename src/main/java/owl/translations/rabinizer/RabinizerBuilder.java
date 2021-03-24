@@ -164,7 +164,7 @@ public final class RabinizerBuilder {
     for (EquivalenceClass state : scc) {
       EvaluateVisitor visitor = new EvaluateVisitor(relevantOperators, state);
       EquivalenceClass substitute = state.substitute(visitor);
-      BitSet externalAtoms = substitute.atomicPropositions();
+      BitSet externalAtoms = substitute.atomicPropositions().copyInto(new BitSet());
       substitute.temporalOperators().forEach(x -> externalAtoms.or(x.atomicPropositions(true)));
 
       // Check if external atoms are non-empty and disjoint.

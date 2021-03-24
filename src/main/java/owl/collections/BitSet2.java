@@ -73,7 +73,11 @@ public final class BitSet2 {
   }
 
   public static BitSet copyOf(BitSet bitSet) {
-    // Do not use clone(), since the method can be overridden and might produce unexpected results.
+    if (bitSet.getClass() == BitSet.class) {
+      return (BitSet) bitSet.clone();
+    }
+
+    // Manual copy, because the passed bitSet was subclassed and might do wonky stuff in clone().
     BitSet copy = new BitSet();
     copy.or(bitSet);
     return copy;

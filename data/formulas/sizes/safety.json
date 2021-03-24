@@ -1131,6 +1131,9 @@
     "formula": "((((a) U (Gb))) W (a))"
   },
   {
+    "formula": "(a & F(a & ((b) M (!a))))"
+  },
+  {
     "formula": "(!a & ((b) M ((!a & ((b) M (a))))))"
   },
   {
@@ -1325,6 +1328,17 @@
     "formula": "(a | ((b) W ((a | ((b) W (!a))))))",
     "properties": {
       "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "AllAcceptance",
+      "acceptanceSets": 0,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(!a | G(!a | ((b) W (a))))",
+    "properties": {
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "AllAcceptance",
       "acceptanceSets": 0,

@@ -113,8 +113,8 @@ public final class GfgCoBuchiMinimization {
     Automaton<S, ? extends CoBuchiAcceptance> ncw, S q, S p) {
 
     return LanguageContainment.equalsCoBuchi(
-      Views.filtered(ncw, Views.Filter.of(Set.of(q))),
-      Views.filtered(ncw, Views.Filter.of(Set.of(p))));
+      Views.replaceInitialStates(ncw, Set.of(q)),
+      Views.replaceInitialStates(ncw, Set.of(p)));
   }
 
   private static <S> Automaton<S, AllAcceptance>

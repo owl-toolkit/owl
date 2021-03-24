@@ -24,6 +24,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Sets;
+import java.util.ArrayDeque;
+import java.util.BitSet;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -39,6 +42,8 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSet;
+import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
@@ -145,11 +150,6 @@ public final class Views {
       return new AutoValue_Views_Filter.Builder<>();
     }
 
-    public static <S> Filter<S> of(Set<S> initialStates) {
-      Builder<S> builder = builder();
-      return builder.initialStates(initialStates).build();
-    }
-
     public static <S> Filter<S> of(Set<S> initialStates, Predicate<S> stateFilter) {
       Builder<S> builder = builder();
       return builder.initialStates(initialStates).stateFilter(stateFilter).build();
@@ -175,6 +175,79 @@ public final class Views {
 
       public abstract Filter<S> build();
     }
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A>
+    replaceInitialStates(Automaton<S, ? extends A> automaton, Set<? extends S> initialStates) {
+
+    Set<S> initialStatesCopy = Set.copyOf(initialStates);
+
+    return new Automaton<>() {
+
+      @Nullable
+      private Set<S> statesCache = null;
+
+      @Override
+      public A acceptance() {
+        return automaton.acceptance();
+      }
+
+      @Override
+      public List<String> atomicPropositions() {
+        return automaton.atomicPropositions();
+      }
+
+      @Override
+      public BddSetFactory factory() {
+        return automaton.factory();
+      }
+
+      @Override
+      public Set<S> initialStates() {
+        return initialStatesCopy;
+      }
+
+      @Override
+      public Set<S> states() {
+        if (statesCache == null) {
+          Deque<S> workList = new ArrayDeque<>(initialStatesCopy);
+          Set<S> reachableStates = new HashSet<>();
+
+          while (!workList.isEmpty()) {
+            S state = workList.remove();
+            reachableStates.add(state);
+
+            for (S successor : automaton.successors(state)) {
+              if (reachableStates.add(successor)) {
+                workList.add(successor);
+              }
+            }
+          }
+
+          statesCache = Set.copyOf(reachableStates);
+        }
+
+        return statesCache;
+      }
+
+      @Override
+      public Set<Edge<S>> edges(S state, BitSet valuation) {
+        checkArgument(statesCache == null || statesCache.contains(state));
+        return automaton.edges(state, valuation);
+      }
+
+      @Override
+      public Map<Edge<S>, BddSet> edgeMap(S state) {
+        checkArgument(statesCache == null || statesCache.contains(state));
+        return automaton.edgeMap(state);
+      }
+
+      @Override
+      public MtBdd<Edge<S>> edgeTree(S state) {
+        checkArgument(statesCache == null || statesCache.contains(state));
+        return automaton.edgeTree(state);
+      }
+    };
   }
 
   private static final class AutomatonView<S, A extends EmersonLeiAcceptance>

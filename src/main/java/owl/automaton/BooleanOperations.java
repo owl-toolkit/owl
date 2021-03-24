@@ -65,6 +65,15 @@ public final class BooleanOperations {
 
   private BooleanOperations() {}
 
+  public static <S> Automaton<S, ?>
+    deterministicComplementOfCompleteAutomaton(
+      Automaton<S, ?> completeAutomaton) {
+
+    return deterministicComplementOfCompleteAutomaton(
+      completeAutomaton,
+      EmersonLeiAcceptance.class);
+  }
+
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, ? extends A>
     deterministicComplementOfCompleteAutomaton(
       Automaton<S, ?> completeAutomaton,
@@ -107,6 +116,12 @@ public final class BooleanOperations {
     return OmegaAcceptanceCast.cast(
       new OverrideAcceptanceCondition<>(completeAutomaton, complementAcceptance, true),
       expectedAcceptance);
+  }
+
+  public static <S> Automaton<Optional<S>, ?>
+    deterministicComplement(Automaton<S, ?> automaton) {
+
+    return deterministicComplement(automaton, EmersonLeiAcceptance.class);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<Optional<S>, ? extends A>

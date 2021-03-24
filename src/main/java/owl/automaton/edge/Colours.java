@@ -20,6 +20,8 @@
 package owl.automaton.edge;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import com.google.common.collect.Iterators;
 import java.util.AbstractSet;
 import java.util.Arrays;
@@ -39,6 +41,8 @@ import owl.collections.BitSet2;
 // TODO: implement SortedSet<Integer>; override all mutators with UOE; Cache small instances.
 public abstract class Colours extends AbstractSet<Integer> implements Comparable<Colours> {
 
+  private static final Interner<Colours> INTERNER = Interners.newWeakInterner();
+
   // Hide constructor.
   private Colours() {}
 
@@ -48,7 +52,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
   public static Colours of(int colour) {
     Preconditions.checkArgument(colour >= 0);
-    return new Small(colour);
+    return INTERNER.intern(new Small(colour));
   }
 
   public static Colours of(int firstColour, int... moreColours) {
@@ -56,7 +60,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     colours.set(firstColour);
 
     for (int colour : moreColours) {
-      Preconditions.checkArgument(!colours.get(colour));
+      Preconditions.checkArgument(!colours.get(colour), "duplicate element: " + colour);
       colours.set(colour);
     }
 

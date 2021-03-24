@@ -33,6 +33,7 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,6 +44,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
+import owl.automaton.edge.Colours;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
@@ -409,17 +411,20 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     // Caches
     @Nullable
-    private Set<TemporalOperator> temporalOperatorsCache;
-    @Nullable
     private JBddEquivalenceClass unfoldCache;
     @Nullable
     private List<List<Integer>> zeroPathsCache;
     @Nullable
     private List<List<Integer>> onePathsCache;
+
     @Nullable
-    private BitSet atomicPropositionsCache;
+    private Colours atomicPropositionsCache;
     @Nullable
-    private BitSet atomicPropositionsCacheIncludeNested;
+    private Colours atomicPropositionsCacheIncludeNested;
+    @Nullable
+    private Set<TemporalOperator> temporalOperatorsCache;
+    @Nullable
+    private Set<TemporalOperator> temporalOperatorsCacheIncludeNested;
 
     private double truenessCache = Double.NaN;
 
@@ -480,50 +485,70 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     @Override
-    public BitSet atomicPropositions() {
-      if (atomicPropositionsCache == null) {
-        atomicPropositionsCache = BitSet2.copyOf(
-          factory.bdd.support(node, factory.atomicPropositions.size()));
+    public Colours atomicPropositions(boolean includeNested) {
+      if (atomicPropositionsCache == null || atomicPropositionsCacheIncludeNested == null) {
+        initialiseSupportBasedCaches();
       }
 
-      return BitSet2.copyOf(atomicPropositionsCache);
+      assert atomicPropositionsCache != null;
+      assert atomicPropositionsCacheIncludeNested != null;
+      return includeNested ? atomicPropositionsCacheIncludeNested : atomicPropositionsCache;
     }
 
     @Override
-    public BitSet atomicPropositions(boolean includeNested) {
-      if (!includeNested) {
-        return atomicPropositions();
+    public Set<TemporalOperator> temporalOperators(boolean includeNested) {
+      if (temporalOperatorsCache == null || temporalOperatorsCacheIncludeNested == null) {
+        initialiseSupportBasedCaches();
       }
 
-      if (atomicPropositionsCacheIncludeNested == null) {
-        BitSet atomicPropositions = BitSet2.copyOf(factory.bdd.support(node));
-        int literalOffset = factory.atomicPropositions.size();
-        int i = atomicPropositions.nextSetBit(literalOffset);
-
-        for (; i >= 0; i = atomicPropositions.nextSetBit(i + 1)) {
-          atomicPropositions.clear(i);
-          atomicPropositions.or(
-            factory.reverseMapping[i - literalOffset].atomicPropositions(true));
-        }
-
-        atomicPropositionsCacheIncludeNested = atomicPropositions;
-      }
-
-      return BitSet2.copyOf(atomicPropositionsCacheIncludeNested);
+      assert temporalOperatorsCache != null;
+      assert temporalOperatorsCacheIncludeNested != null;
+      return includeNested ? temporalOperatorsCacheIncludeNested : temporalOperatorsCache;
     }
 
-    @Override
-    public Set<TemporalOperator> temporalOperators() {
-      if (temporalOperatorsCache == null) {
-        BitSet support = factory.bdd.support(node);
-        int literalOffset = factory.atomicPropositions.size();
-        support.clear(0, literalOffset);
-        temporalOperatorsCache = support.stream()
-          .mapToObj(i -> factory.reverseMapping[i - literalOffset])
-          .collect(Collectors.toUnmodifiableSet());
+    private void initialiseSupportBasedCaches() {
+      int atomicPropositionsSize = factory.atomicPropositions.size();
+      BitSet support = factory.bdd.support(node);
+
+      // Compute atomicPropositions(false)
+      BitSet atomicPropositions = BitSet2.copyOf(support);
+      if (atomicPropositionsSize < atomicPropositions.length()) {
+        atomicPropositions.clear(atomicPropositionsSize, atomicPropositions.length());
       }
 
-      return temporalOperatorsCache;
+      // Compute temporalOperators(false)
+      support.clear(0, atomicPropositionsSize);
+      TemporalOperator[] temporalOperators = support.stream()
+        .mapToObj(i -> factory.reverseMapping[i - atomicPropositionsSize])
+        .toArray(TemporalOperator[]::new);
+
+      // Compute atomicPropositions(true), temporalOperators(true)
+      BitSet atomicPropositionsIncludeNested = BitSet2.copyOf(atomicPropositions);
+      Set<TemporalOperator> temporalOperatorsIncludeNested
+        = new HashSet<>(5 * temporalOperators.length);
+
+      for (TemporalOperator temporalOperator : temporalOperators) {
+        atomicPropositionsIncludeNested.or(temporalOperator.atomicPropositions(true));
+        temporalOperatorsIncludeNested.addAll(temporalOperator.subformulas(TemporalOperator.class));
+      }
+
+      assert atomicPropositionsCache == null;
+      atomicPropositionsCache = Colours.copyOf(atomicPropositions);
+
+      assert atomicPropositionsCacheIncludeNested == null;
+      atomicPropositionsCacheIncludeNested =
+        atomicPropositions.equals(atomicPropositionsIncludeNested)
+          ? atomicPropositionsCache
+          : Colours.copyOf(atomicPropositionsIncludeNested);
+
+      assert temporalOperatorsCache == null;
+      temporalOperatorsCache = Set.of(temporalOperators);
+
+      assert temporalOperatorsCacheIncludeNested == null;
+      temporalOperatorsCacheIncludeNested =
+        temporalOperators.length == temporalOperatorsIncludeNested.size()
+          ? temporalOperatorsCache
+          : Set.of(temporalOperatorsIncludeNested.toArray(TemporalOperator[]::new));
     }
 
     @Override

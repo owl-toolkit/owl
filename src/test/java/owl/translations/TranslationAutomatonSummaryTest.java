@@ -30,8 +30,9 @@ import static owl.translations.LtlTranslationRepository.LtlToLdbaTranslation;
 import static owl.translations.LtlTranslationRepository.LtlToNbaTranslation;
 import static owl.translations.LtlTranslationRepository.Option;
 import static owl.translations.LtlTranslationRepository.Option.SIMPLIFY_AUTOMATON;
-import static owl.translations.LtlTranslationRepository.Option.USE_DUAL;
 import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
+import static owl.translations.LtlTranslationRepository.Option.X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS;
+import static owl.translations.LtlTranslationRepository.Option.X_DRA_NORMAL_FORM_USE_DUAL;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.FGGF;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBEROUTER;
@@ -89,7 +90,6 @@ import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
-import owl.translations.ltl2dpa.NormalformDPAConstruction;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 public class TranslationAutomatonSummaryTest {
@@ -191,7 +191,8 @@ public class TranslationAutomatonSummaryTest {
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
     new Translator("dpa.normalform",
-      NormalformDPAConstruction.of(false)),
+      LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(
+        EnumSet.of(X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS))),
 
     new Translator("dra.symmetric",
       LtlToDraTranslation.EKS20.translation(
@@ -239,12 +240,12 @@ public class TranslationAutomatonSummaryTest {
     new Translator("dra.normalform.dual",
       LtlToDraTranslation.SE20.translation(
         RabinAcceptance.class,
-        EnumSet.of(USE_DUAL)),
+        EnumSet.of(X_DRA_NORMAL_FORM_USE_DUAL)),
       Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dra.normalform.dual.portfolio",
       LtlToDraTranslation.SE20.translation(
         RabinAcceptance.class,
-        EnumSet.of(USE_DUAL, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
+        EnumSet.of(X_DRA_NORMAL_FORM_USE_DUAL, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)),
       Set.of(SYNTCOMP_SELECTION), true),
     new Translator("dgra.normalform",
       LtlToDraTranslation.SE20.translation(

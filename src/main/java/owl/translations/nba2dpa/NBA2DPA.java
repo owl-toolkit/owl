@@ -171,9 +171,9 @@ public final class NBA2DPA
 
       return greaterOrEqualCache.computeIfAbsent(Pair.of(Set.copyOf(language1), language2), pair ->
         LanguageContainment.contains(
-        Views.filtered(nba, Views.Filter.of(Set.of(pair.snd()))),
+        Views.replaceInitialStates(nba, Set.of(pair.snd())),
         BooleanOperations.deterministicUnion(pair.fst().stream()
-          .map(x -> Views.filtered(nba, Views.Filter.of(Set.of(x))))
+          .map(x -> Views.replaceInitialStates(nba, Set.of(x)))
           .collect(Collectors.toList())))
       );
     }

@@ -137,7 +137,7 @@ public final class AutomatonUtil {
       }
     }
 
-    var acceptingComponentAutomaton = Views.filtered(automaton, Views.Filter.of(acceptingSccs));
+    var acceptingComponentAutomaton = Views.replaceInitialStates(automaton, acceptingSccs);
     if (!acceptingComponentAutomaton.is(Automaton.Property.SEMI_DETERMINISTIC)) {
       return Optional.empty();
     }

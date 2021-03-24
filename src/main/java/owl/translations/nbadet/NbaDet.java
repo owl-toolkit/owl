@@ -235,8 +235,8 @@ public final class NbaDet {
       var sccInit = psScc.contains(psInitial) ? psInitial : psScc.iterator().next();
 
       //partial determinization only while staying inside powerset SCC
-      var psSccAut = Views.filtered(psAut, Views.Filter.<BitSet>builder()
-        .initialStates(Set.of(sccInit)).stateFilter(psScc::contains).build());
+      var psSccAut
+        = Views.filtered(psAut, Views.Filter.of(Set.of(sccInit), psScc::contains));
 
       logger.log(Level.FINE, "Partial exploration of DPA for SCC " + i);
       var ret = determinizeNbaAlongScc(psSccAut, conf);
@@ -349,8 +349,7 @@ public final class NbaDet {
     var repScc = compScci.sccs().get(minBScc);
 
     //keep only the bottom SCC
-    var onlyTheBotScc = Views.Filter.<NbaDetState<S>>builder()
-      .initialStates(repScc).stateFilter(repScc::contains).build();
+    var onlyTheBotScc = Views.Filter.of(repScc, repScc::contains);
     var trimmedPartialDpa = Views.filtered(sccAut, onlyTheBotScc);
 
     //get mapping between PS SCC states and a representative in bottom SCC:

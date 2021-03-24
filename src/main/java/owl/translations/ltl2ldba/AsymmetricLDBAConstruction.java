@@ -304,18 +304,21 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
           @Override
           protected BitSet stateAtomicPropositions(AsymmetricProductState state) {
-            BitSet sensitiveAlphabet = state.currentCoSafety.atomicPropositions();
-            sensitiveAlphabet.or(state.safety.atomicPropositions());
+            BitSet sensitiveAlphabet = new BitSet();
+
+            state.currentCoSafety.atomicPropositions().copyInto(sensitiveAlphabet);
+            state.safety.atomicPropositions().copyInto(sensitiveAlphabet);
 
             for (EquivalenceClass clazz : state.nextCoSafety) {
-              sensitiveAlphabet.or(clazz.atomicPropositions());
+              clazz.atomicPropositions().copyInto(sensitiveAlphabet);
             }
 
             for (EquivalenceClass clazz : state.automata.fCoSafety) {
-              sensitiveAlphabet.or(clazz.atomicPropositions());
+              clazz.atomicPropositions().copyInto(sensitiveAlphabet);
             }
 
-            sensitiveAlphabet.or(state.evaluatedFixpoints.language().atomicPropositions(true));
+            state.evaluatedFixpoints.language()
+              .atomicPropositions(true).copyInto(sensitiveAlphabet);
 
             return sensitiveAlphabet;
           }
@@ -449,10 +452,10 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
   private static boolean dependsOnExternalAtoms(EquivalenceClass remainder,
     AsymmetricEvaluatedFixpoints obligation) {
-    BitSet remainderAP = remainder.atomicPropositions(true);
-    BitSet atoms = obligation.language().atomicPropositions(true);
+    BitSet remainderAP = remainder.atomicPropositions(true).copyInto(new BitSet());
+    BitSet atoms = obligation.language().atomicPropositions(true).copyInto(new BitSet());
     assert !remainderAP.isEmpty();
     assert !atoms.isEmpty();
-    return !remainderAP.intersects(atoms);
+    return !(remainderAP.intersects(atoms));
   }
 }

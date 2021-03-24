@@ -739,6 +739,9 @@
     "formula": "((((a) U (Gb))) W (a))"
   },
   {
+    "formula": "(a & F(a & ((b) M (!a))))"
+  },
+  {
     "formula": "(!a & ((b) M ((!a & ((b) M (a))))))"
   },
   {
@@ -915,6 +918,9 @@
   },
   {
     "formula": "(a | ((b) W ((a | ((b) W (!a))))))"
+  },
+  {
+    "formula": "(!a | G(!a | ((b) W (a))))"
   },
   {
     "formula": "(Fa | G(b | Xc))"
