@@ -6,6 +6,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.automaton.BooleanOperations;
 import owl.automaton.algorithm.LanguageContainment;
+import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.ltl.parser.LtlParser;
 import owl.translations.canonical.DeterministicConstructions;
@@ -22,9 +23,10 @@ public class SymbolicBooleanOperationsTest {
       DeterministicConstructions.CoSafetySafety.of(FactorySupplier.defaultSupplier()
         .getFactories(aps), LtlParser.parse("FG (b & X a)", aps).formula());
     var explicitProduct = BooleanOperations.intersection(automaton1, automaton2);
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var symbolicProduct = SymbolicBooleanOperations.intersection(
-      SymbolicAutomaton.of(automaton1),
-      SymbolicAutomaton.of(automaton2)
+      SymbolicAutomaton.of(automaton1, factory),
+      SymbolicAutomaton.of(automaton2, factory)
     );
     var explicitProduct2 = symbolicProduct.toAutomaton();
     assertTrue(LanguageContainment.contains(explicitProduct, explicitProduct2));
@@ -40,9 +42,10 @@ public class SymbolicBooleanOperationsTest {
       DeterministicConstructions.SafetyCoSafety.of(FactorySupplier.defaultSupplier()
         .getFactories(aps), LtlParser.parse("GF (b & X a)", aps).formula());
     var explicitProduct = BooleanOperations.intersection(automaton1, automaton2);
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var symbolicProduct = SymbolicBooleanOperations.intersection(
-      SymbolicAutomaton.of(automaton1),
-      SymbolicAutomaton.of(automaton2)
+      SymbolicAutomaton.of(automaton1, factory),
+      SymbolicAutomaton.of(automaton2, factory)
     );
     var explicitProduct2 = symbolicProduct.toAutomaton();
     assertTrue(LanguageContainment.contains(explicitProduct, explicitProduct2));
@@ -58,9 +61,10 @@ public class SymbolicBooleanOperationsTest {
       DeterministicConstructions.SafetyCoSafety.of(FactorySupplier.defaultSupplier()
         .getFactories(aps), LtlParser.parse("GF (b & X a)", aps).formula());
     var explicitProduct = BooleanOperations.deterministicUnion(automaton1, automaton2);
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var symbolicProduct = SymbolicBooleanOperations.deterministicUnion(
-      SymbolicAutomaton.of(automaton1),
-      SymbolicAutomaton.of(automaton2)
+      SymbolicAutomaton.of(automaton1, factory),
+      SymbolicAutomaton.of(automaton2, factory)
     );
     var explicitProduct2 = symbolicProduct.toAutomaton();
     assertTrue(LanguageContainment.contains(explicitProduct, explicitProduct2));

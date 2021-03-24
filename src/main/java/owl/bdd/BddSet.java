@@ -96,7 +96,4 @@ public interface BddSet {
    *     of {@link BddSet#support()}.
    */
   Iterator<BitSet> iterator(BitSet support);
-
-  @Deprecated
-  BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping);
 }

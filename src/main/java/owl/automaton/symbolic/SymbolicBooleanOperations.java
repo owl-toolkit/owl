@@ -29,7 +29,7 @@ import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.bdd.BddSet;
-import owl.bdd.FactorySupplier;
+import owl.bdd.BddSetFactory;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -85,27 +85,28 @@ public final class SymbolicBooleanOperations {
     Preconditions.checkArgument(!automata.isEmpty()
       && automata.stream().allMatch(automaton -> automaton.is(Automaton.Property.COMPLETE)
       && automaton.atomicPropositions().equals(automata.get(0).atomicPropositions())
+      && automaton.factory().equals(automata.get(0).factory())
     ));
 
     var allocationCombiner = new SequentialVariableAllocationCombiner(
       automata.stream().map(SymbolicAutomaton::variableAllocation).collect(Collectors.toList())
     );
 
-    var bddSetFactory = FactorySupplier.defaultSupplier().getBddSetFactory();
+    BddSetFactory bddSetFactory = automata.get(0).factory();
 
     BddSet productInitialStates = bddSetFactory.of(true);
     BddSet productTransitionRelation = bddSetFactory.of(true);
 
     for (SymbolicAutomaton<?> automaton : automata) {
       productInitialStates = productInitialStates.intersection(
-        automaton.initialStates().transferTo(
-          bddSetFactory, i -> allocationCombiner.localToGlobal(i, automaton.variableAllocation())
+        automaton.initialStates().relabel(
+          i -> allocationCombiner.localToGlobal(i, automaton.variableAllocation())
         )
       );
 
       productTransitionRelation = productTransitionRelation.intersection(
-        automaton.transitionRelation().transferTo(
-          bddSetFactory, i -> allocationCombiner.localToGlobal(i, automaton.variableAllocation())
+        automaton.transitionRelation().relabel(
+          i -> allocationCombiner.localToGlobal(i, automaton.variableAllocation())
         )
       );
     }
