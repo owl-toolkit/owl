@@ -27,6 +27,7 @@ import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.SUCCESSOR_ST
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
+import com.google.common.collect.Streams;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -270,7 +271,8 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   public Automaton<BitSet, A> toAutomaton() {
 
     VariableAllocation allocation = variableAllocation();
-    Set<BitSet> initialStates = initialStates().toSet(allocation.variables(STATE)).stream()
+    Set<BitSet> initialStates = Streams
+      .stream(initialStates().iterator(allocation.variables(STATE)))
       .map(x -> allocation.globalToLocal(x, STATE))
       .collect(Collectors.toUnmodifiableSet());
 
@@ -296,7 +298,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
           .intersection(transitionRelation());
 
         // TODO: replace this rough over-approximation by a more precise check.
-        return edgesSet.toSet(allocation.numberOfVariables()).stream()
+        return Streams.stream(edgesSet.iterator(allocation.numberOfVariables()))
           .map((BitSet edge) -> {
             assert state.equals(allocation.globalToLocal(edge, STATE));
             assert valuation.equals(allocation.globalToLocal(edge, ATOMIC_PROPOSITION));

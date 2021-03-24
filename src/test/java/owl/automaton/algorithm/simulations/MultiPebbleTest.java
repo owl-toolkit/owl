@@ -29,8 +29,7 @@ public class MultiPebbleTest {
   @Test
   void predecessorsTest() {
     var aut = predecessorAutomaton();
-    BitSet a = aut.factory().of(0)
-      .toSet(aut.atomicPropositions().size()).iterator().next();
+    BitSet a = aut.factory().of(0).iterator(aut.atomicPropositions().size()).next();
 
     var peb1 = Pebble.of(4, false);
     var peb2 = Pebble.of(3, false);

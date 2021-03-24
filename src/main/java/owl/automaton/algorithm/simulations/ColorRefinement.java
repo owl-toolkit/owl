@@ -27,10 +27,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.collections.BitSet2;
@@ -157,29 +157,25 @@ public class ColorRefinement<S> {
     // we iterate over all states and possible valuations to create something like a transition
     // profile for each state. We collect all symbols on which an accepting transition is available
     // to initialize the colouring.
-    aut.states().forEach(state -> {
+    for (S state : aut.states()) {
       maxAcceptingVal.put(state, aut.factory().of(false));
-      BitSet2.powerSet(aut.atomicPropositions().size()).forEach(
-        valuation -> {
-        boolean hasAcceptingEdge = aut.edges(state, valuation)
-          .stream().anyMatch(edge -> aut.acceptance().isAcceptingEdge(edge));
-        if (hasAcceptingEdge) {
-          maxAcceptingVal.put(state, maxAcceptingVal.get(state).union(
-            aut.factory().of(valuation, aut.atomicPropositions().size())));
+
+      Map<Edge<S>, BddSet> edgeMap = aut.edgeMap(state);
+
+      edgeMap.forEach((edge, valuation) -> {
+        if (aut.acceptance().isAcceptingEdge(edge)) {
+          maxAcceptingVal.computeIfPresent(state, (key, oldValue) -> valuation.union(oldValue));
         }
       });
-    });
 
-    aut.states().forEach(state -> {
       availableVal.put(state, aut.factory().of(false));
-      aut.edgeMap(state).forEach((edge, vSet) -> {
+
+      edgeMap.forEach((edge, vSet) -> {
         availableVal.put(state, availableVal.get(state).union(vSet));
       });
-    });
 
-    aut.states().forEach(state -> {
       interm.put(state, Pair.of(availableVal.get(state), maxAcceptingVal.get(state)));
-    });
+    }
 
     // collect all distinct valuation sets and assign increasing colours to them
     int i = 0;
@@ -352,7 +348,7 @@ public class ColorRefinement<S> {
       // happen that one valuation of a set is covered by two distinct transitions later on, which
       // the algorithm could otherwise not pick up on.
       aut.edgeMap(state).forEach((edge, valSet) -> valSet
-        .toSet(aut.atomicPropositions().size()).forEach((Consumer<? super BitSet>) val -> {
+        .iterator(aut.atomicPropositions().size()).forEachRemaining(val -> {
           nts.add(NeighborType.of(
             col.get(edge.successor()),
             val,

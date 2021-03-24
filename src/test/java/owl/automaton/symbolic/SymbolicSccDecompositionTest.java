@@ -2,6 +2,7 @@ package owl.automaton.symbolic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.google.common.collect.Iterators;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
@@ -188,9 +189,9 @@ public class SymbolicSccDecompositionTest {
         var allocation = actual.variableAllocation();
         BitSet variables = allocation.variables(SymbolicAutomaton.VariableType.STATE);
         variables.or(allocation.variables(SymbolicAutomaton.VariableType.COLOUR));
-        return bddSet.toSet(variables);
+        return bddSet.iterator(variables);
       })
-      .map(Set::size)
+      .map(Iterators::size)
       .sorted()
       .collect(Collectors.toList());
     assertEquals(expectedSccs, actualSccs);

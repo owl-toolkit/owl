@@ -54,7 +54,7 @@ public abstract class Transition<S> {
 
     var out2 = new HashSet<Transition<S>>();
     aut.edgeMap(state).forEach((edge1, valSet1) -> {
-      valSet1.toSet(aut.atomicPropositions().size()).forEach(val1 -> {
+      valSet1.iterator(aut.atomicPropositions().size()).forEachRemaining(val1 -> {
         out2.add(Transition.of(
           val1, edge1.successor(), aut.acceptance().isAcceptingEdge(edge1)
         ));
@@ -69,7 +69,7 @@ public abstract class Transition<S> {
         var last = t.get(t.size() - 1);
         var out1 = new HashSet<Transition<S>>();
         aut.edgeMap(last.target()).forEach((edge, valSet) -> {
-          valSet.toSet(aut.atomicPropositions().size()).forEach(val -> {
+          valSet.iterator(aut.atomicPropositions().size()).forEachRemaining(val -> {
             out1.add(Transition.of(
               val, edge.successor(), aut.acceptance().isAcceptingEdge(edge)
             ));

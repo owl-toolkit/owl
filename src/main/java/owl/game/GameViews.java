@@ -388,7 +388,7 @@ public final class GameViews {
       for (S predecessor : automaton.states()) {
         automaton.edgeMap(predecessor).forEach((edge, valuations) -> {
           if (successor.state().equals(edge.successor())) {
-            valuations.toSet(automaton.atomicPropositions().size()).forEach(set -> {
+            valuations.iterator(automaton.atomicPropositions().size()).forEachRemaining(set -> {
               BitSet localSet = BitSet2.copyOf(set);
               localSet.and(firstPlayer);
               predecessors.add(Node.of(predecessor, localSet));
@@ -436,7 +436,7 @@ public final class GameViews {
       }
 
       var valuationSet = Iterables.getOnlyElement(edgeMap(state).entrySet()).getValue();
-      return valuationSet.toSet(atomicPropositions.size()).iterator().next();
+      return valuationSet.iterator(atomicPropositions.size()).next();
     }
   }
 
