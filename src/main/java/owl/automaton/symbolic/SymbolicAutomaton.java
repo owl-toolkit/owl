@@ -69,7 +69,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   public abstract Set<Automaton.Property> properties();
 
   public BddSet successors(BddSet statesAndValuation) {
-    checkArgument(statesAndValuation.factory() == transitionRelation().factory());
+    checkArgument(statesAndValuation.factory() == factory());
     BitSet quantifyOver = variableAllocation().variables(STATE);
     quantifyOver.or(variableAllocation().variables(ATOMIC_PROPOSITION));
     BitSet states = variableAllocation().variables(STATE);
@@ -93,7 +93,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   }
 
   public BddSet predecessors(BddSet statesAndValuation) {
-    checkArgument(statesAndValuation.factory() == transitionRelation().factory());
+    checkArgument(statesAndValuation.factory() == factory());
     BitSet quantifyOver = variableAllocation().variables(STATE);
     quantifyOver.flip(0, variableAllocation().numberOfVariables());
     BitSet successorStates = variableAllocation().variables(SUCCESSOR_STATE);
@@ -131,6 +131,10 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     return properties().contains(property);
   }
 
+  public BddSetFactory factory() {
+    return transitionRelation().factory();
+  }
+
   /**
    * Package-private constructor that is only available to trusted implementations.
    */
@@ -142,7 +146,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     VariableAllocation variableAllocation,
     Set<Automaton.Property> properties) {
 
-    checkArgument(initialStates.factory() == transitionRelation.factory());
+    checkArgument(initialStates.factory().equals(transitionRelation.factory()));
 
     return new AutoValue_SymbolicAutomaton<>(
       List.copyOf(atomicPropositions),
@@ -155,10 +159,20 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   }
 
   public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
-    Automaton<S, ? extends A> automaton) {
+    Automaton<S, ? extends A> automaton
+  ) {
+    return of(
+      automaton,
+      FactorySupplier.defaultSupplier().getBddSetFactory()
+    );
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
+    Automaton<S, ? extends A> automaton, BddSetFactory factory) {
 
     return of(
       automaton,
+      factory,
       NumberingStateEncoderFactory.INSTANCE,
       new RangedVariableAllocator(
         ATOMIC_PROPOSITION,
@@ -169,6 +183,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
     Automaton<S, ? extends A> automaton,
+    BddSetFactory factory,
     StateEncoderFactory encoderFactory,
     VariableAllocator allocator) {
 
@@ -179,7 +194,6 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       atomicPropositions.size(),
       automaton.acceptance().acceptanceSets());
 
-    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     BddSet initialStates = factory.of(false);
 
     // Work-list algorithm.
@@ -279,7 +293,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     // TODO: Use AbstractMemoizingAutomaton.EdgeTreeImplementation for faster computation.
     return new AbstractMemoizingAutomaton.EdgesImplementation<>(
       atomicPropositions(),
-      transitionRelation().factory(),
+      factory(),
       initialStates,
       acceptance()) {
 

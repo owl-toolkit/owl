@@ -263,40 +263,6 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
-    @Deprecated(forRemoval = true)
-    public BddSet transferTo(BddSetFactory newFactory, IntUnaryOperator mapping) {
-      Preconditions
-        .checkArgument(newFactory instanceof JBddSetFactory && !newFactory.equals(factory));
-      JBddSetFactory newJBddFactory = (JBddSetFactory) newFactory;
-      int newNode = newJBddFactory.bdd.dereference(transferTo(newJBddFactory, mapping, node));
-      return newJBddFactory.create(newNode);
-    }
-
-    // TODO: add memoization to avoid (worst-case) exponential runtime blow-up.
-    @Deprecated(forRemoval = true)
-    private int transferTo(JBddSetFactory newFactory, IntUnaryOperator mapping, int node) {
-      Bdd newBdd = newFactory.bdd;
-      Bdd oldBdd = factory.bdd;
-
-      if (node == oldBdd.trueNode()) {
-        return newBdd.trueNode();
-      }
-
-      if (node == oldBdd.falseNode()) {
-        return newBdd.falseNode();
-      }
-
-      int oldVariable = oldBdd.variable(node);
-      int oldLow = oldBdd.low(node);
-      int oldHigh = oldBdd.high(node);
-
-      int newVariableNode = newFactory.variableNode(mapping.applyAsInt(oldVariable));
-      int newLow = transferTo(newFactory, mapping, oldLow);
-      int newHigh = transferTo(newFactory, mapping, oldHigh);
-      return newBdd.consume(newBdd.ifThenElse(newVariableNode, newHigh, newLow), newHigh, newLow);
-    }
-
-    @Override
     public <E> MtBdd<E> intersection(MtBdd<E> tree) {
       return factory.filter(tree, node);
     }
