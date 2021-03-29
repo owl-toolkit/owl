@@ -242,6 +242,11 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
         '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
+
+    def cCompiler = System.getenv("CC")
+    if (cCompiler != null) {
+        args "-H:CCompilerPath=${cCompiler}"
+    }
 }
 
 task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
@@ -270,6 +275,11 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
         '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
+
+    def cCompiler = System.getenv("CC")
+    if (cCompiler != null) {
+        args "-H:CCompilerPath=${cCompiler}"
+    }
 }
 
 // ---------------- Script Jobs ----------------
