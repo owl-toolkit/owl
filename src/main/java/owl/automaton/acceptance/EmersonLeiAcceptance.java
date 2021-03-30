@@ -28,6 +28,7 @@ import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.logic.propositional.PropositionalFormula;
@@ -154,8 +155,8 @@ public class EmersonLeiAcceptance {
    *
    * @see #isAccepting(BitSet)
    */
-  public Optional<BitSet> acceptingSet() {
-    return Solver.model(booleanExpression()).map(BitSet2::copyOf);
+  public Optional<Colours> acceptingSet() {
+    return Solver.model(booleanExpression()).map(Colours::copyOf);
   }
 
   /**
@@ -164,8 +165,8 @@ public class EmersonLeiAcceptance {
    *
    * @see #isAccepting(BitSet)
    */
-  public Optional<BitSet> rejectingSet() {
-    return Solver.model(PropositionalFormula.Negation.of(booleanExpression())).map(BitSet2::copyOf);
+  public Optional<Colours> rejectingSet() {
+    return Solver.model(PropositionalFormula.Negation.of(booleanExpression())).map(Colours::copyOf);
   }
 
   /**

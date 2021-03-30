@@ -141,6 +141,10 @@ public abstract class Edge<S> {
     return of(successor(), acceptance);
   }
 
+  public Edge<S> withAcceptance(Colours acceptance) {
+    return of(successor(), acceptance);
+  }
+
   public Edge<S> mapAcceptance(IntUnaryOperator transformer) {
     PrimitiveIterator.OfInt iter = colours().intIterator();
 

@@ -83,21 +83,21 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
   }
 
   @Override
-  public Optional<BitSet> acceptingSet() {
+  public Optional<Colours> acceptingSet() {
     if (pairs.isEmpty()) {
       return Optional.empty();
     }
 
     BitSet set = new BitSet();
     pairs.get(0).forEachInfSet(set::set);
-    return Optional.of(set);
+    return Optional.of(Colours.copyOf(set));
   }
 
   @Override
-  public Optional<BitSet> rejectingSet() {
+  public Optional<Colours> rejectingSet() {
     BitSet set = new BitSet();
     pairs.forEach(x -> set.set(x.finIndex));
-    return Optional.of(set);
+    return Optional.of(Colours.copyOf(set));
   }
 
   public static GeneralizedRabinAcceptance of(RabinPair... pairs) {

@@ -39,7 +39,8 @@ public final class AnnotatedStateOptimisation {
    *     copy is made, but this might change.
    */
   public static <S extends AnnotatedState<?>, A extends EmersonLeiAcceptance>
-    Automaton<S, A> optimizeInitialState(Automaton<S, A> automaton) {
+    MutableAutomaton<S, A> optimizeInitialState(Automaton<S, A> automaton) {
+
     var mutableAutomatonCopy = HashMapAutomaton.copyOf(automaton);
 
     if (mutableAutomatonCopy.initialStates().isEmpty()) {

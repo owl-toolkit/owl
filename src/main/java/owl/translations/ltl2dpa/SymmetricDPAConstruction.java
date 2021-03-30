@@ -38,6 +38,7 @@ import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
+import owl.automaton.SingletonAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
@@ -52,33 +53,50 @@ import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 
 final class SymmetricDPAConstruction {
-  private final SymmetricLDBAConstruction<BuchiAcceptance> ldbaConstruction;
+  private static final SymmetricLDBAConstruction<BuchiAcceptance> LDBA_CONSTRUCTION
+    = SymmetricLDBAConstruction.of(BuchiAcceptance.class);
 
-  SymmetricDPAConstruction() {
-    ldbaConstruction = SymmetricLDBAConstruction.of(BuchiAcceptance.class);
-  }
+  Automaton<SymmetricRankingState, ParityAcceptance> of(
+    LabelledFormula labelledFormula, boolean complete) {
 
-  Automaton<SymmetricRankingState, ParityAcceptance> of(LabelledFormula labelledFormula) {
-    var ldba = ldbaConstruction.apply(labelledFormula);
+    var ldba = LDBA_CONSTRUCTION.apply(labelledFormula);
+    var atomicPropositions = ldba.acceptingComponent().atomicPropositions();
 
     if (ldba.initialComponent().initialStates().isEmpty()) {
-      return EmptyAutomaton.of(
-        ldba.acceptingComponent().atomicPropositions(),
-        new ParityAcceptance(3, Parity.MIN_ODD));
+      var acceptance = new ParityAcceptance(3, Parity.MIN_ODD);
+
+      return complete
+        ? SingletonAutomaton.of(
+            atomicPropositions,
+            SymmetricRankingState.of(Map.of()),
+            acceptance,
+            acceptance.rejectingSet().orElseThrow())
+        : EmptyAutomaton.of(
+            atomicPropositions,
+            acceptance);
     }
 
-    var builder = new SymmetricDPAConstruction.Builder(ldba);
+    var builder = new SymmetricDPAConstruction.Builder(ldba, complete);
+
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      builder.ldba.acceptingComponent().atomicPropositions(),
+      atomicPropositions,
       builder.ldba.factory(),
       Set.of(builder.initialState),
       builder.acceptance) {
+
+      @Nullable
+      private Builder internalBuilder = builder;
 
       @Override
       protected Edge<SymmetricRankingState>
         edgeImpl(SymmetricRankingState state, BitSet valuation) {
 
-        return builder.edge(state, valuation);
+        return internalBuilder.edge(state, valuation);
+      }
+
+      @Override
+      protected void freezeMemoizedEdgesNotify() {
+        internalBuilder = null;
       }
     };
   }
@@ -91,16 +109,22 @@ final class SymmetricDPAConstruction {
       BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
       Set<SymmetricProductState>>> ldba;
 
+    @Nullable
+    private final Edge<SymmetricRankingState> rejectingEdge;
+
     private Builder(AnnotatedLDBA<Map<Integer, EquivalenceClass>,
           SymmetricProductState, BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>,
-          BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba) {
+          BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba,
+          boolean complete) {
       this.ldba = ldba;
-      this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
-      // Identify  safety components.
+      initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       acceptance = new ParityAcceptance(
-        2 * Math.max(1, ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
+        2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
       Map<Integer, EquivalenceClass> ldbaInitialState = ldba.initialComponent().onlyInitialState();
       initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
+      rejectingEdge = complete
+        ? Edge.of(SymmetricRankingState.of(Map.of()), acceptance.rejectingSet().orElseThrow())
+        : null;
     }
 
     private Edge<SymmetricRankingState> edge(Map<Integer, EquivalenceClass> successor,
@@ -245,12 +269,17 @@ final class SymmetricDPAConstruction {
 
     @Nullable
     Edge<SymmetricRankingState> edge(SymmetricRankingState state, BitSet valuation) {
+      // Check if the run is in the rejecting sink.
+      if (rejectingEdge != null && rejectingEdge.successor().equals(state)) {
+        return rejectingEdge;
+      }
+
       // We obtain the successor of the state in the initial component.
       var successor = ldba.initialComponent().successor(state.state(), valuation);
 
-      // The initial component moved to a rejecting sink. Thus all runs die.
+      // The initial component moved to a rejecting sink and all runs stop.
       if (successor == null) {
-        return null;
+        return rejectingEdge;
       }
 
       // If a SCC switch occurs, the ranking and the safety progress is reset.

@@ -22,8 +22,8 @@ package owl.automaton.acceptance;
 import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
-import java.util.BitSet;
 import java.util.Optional;
+import owl.automaton.edge.Colours;
 import owl.logic.propositional.PropositionalFormula;
 
 public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
@@ -43,14 +43,12 @@ public final class CoBuchiAcceptance extends GeneralizedCoBuchiAcceptance {
   }
 
   @Override
-  public Optional<BitSet> acceptingSet() {
-    return Optional.of(new BitSet());
+  public Optional<Colours> acceptingSet() {
+    return Optional.of(Colours.of());
   }
 
   @Override
-  public Optional<BitSet> rejectingSet() {
-    BitSet set = new BitSet();
-    set.set(0);
-    return Optional.of(set);
+  public Optional<Colours> rejectingSet() {
+    return Optional.of(Colours.of(0));
   }
 }

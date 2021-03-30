@@ -20,8 +20,7 @@
 package owl.translations;
 
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.POST_PROCESS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
 import com.google.common.base.Preconditions;
@@ -440,8 +439,7 @@ public final class LtlTranslationRepository {
 
       switch (this) {
         case SEJK16_EKRS17: {
-          var configuration
-            = EnumSet.of(OPTIMISE_INITIAL_STATE, COMPRESS_COLOURS);
+          var configuration = EnumSet.of(POST_PROCESS);
 
           if (translationOptions.contains(Option.USE_COMPLEMENT)) {
             configuration.add(COMPLEMENT_CONSTRUCTION_EXACT);
@@ -457,8 +455,7 @@ public final class LtlTranslationRepository {
         }
 
         case EKS20_EKRS17: {
-          var configuration
-            = EnumSet.of(SYMMETRIC, OPTIMISE_INITIAL_STATE, COMPRESS_COLOURS);
+          var configuration = EnumSet.of(SYMMETRIC, POST_PROCESS);
 
           if (translationOptions.contains(Option.USE_COMPLEMENT)) {
             configuration.add(COMPLEMENT_CONSTRUCTION_EXACT);

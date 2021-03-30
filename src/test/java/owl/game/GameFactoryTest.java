@@ -25,11 +25,11 @@ import static owl.util.Assertions.assertThat;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -47,13 +47,13 @@ public class GameFactoryTest {
     var game = GameFactory.copyOf(
       GameViews.split(translate(formula), List.of("a", "c")));
 
-    for (Node<Object> state : game.states()) {
-      for (Node<Object> predecessor : game.predecessors(state)) {
-        assertThat(state, game.successors(predecessor)::contains);
+    for (Node<?> state : game.states()) {
+      for (Node<?> predecessor : game.predecessors((Node<Optional<?>>) state)) {
+        assertThat(state, game.successors((Node<Optional<?>>) predecessor)::contains);
       }
 
-      for (Node<Object> successors : game.successors(state)) {
-        assertThat(state, game.predecessors(successors)::contains);
+      for (Node<?> successors : game.successors((Node<Optional<?>>) state)) {
+        assertThat(state, game.predecessors((Node<Optional<?>>) successors)::contains);
       }
     }
   }
@@ -66,7 +66,7 @@ public class GameFactoryTest {
 
     var winningStates = game.states().stream()
       .filter(x -> {
-        var state = (AnnotatedState) x.state();
+        var state = (AnnotatedState) x.state().orElseThrow();
         return ((EquivalenceClass) state.state()).isTrue();
       }).collect(Collectors.toSet());
     assertThat(winningStates, x -> !x.isEmpty());
@@ -80,12 +80,9 @@ public class GameFactoryTest {
       x -> !x.contains(game.onlyInitialState()));
   }
 
-  public static Automaton<Object, ? extends ParityAcceptance> translate(LabelledFormula x) {
+  public static Automaton<Optional<?>, ? extends ParityAcceptance> translate(LabelledFormula x) {
     var dpa =
       LtlToDpaTranslation.SEJK16_EKRS17.translation(EnumSet.noneOf(Option.class)).apply(x);
-    var complete = Views.complete(
-      OmegaAcceptanceCast.cast((Automaton<Object, ?>) dpa, ParityAcceptance.class),
-      new MutableAutomatonUtil.Sink());
-    return OmegaAcceptanceCast.cast(complete, ParityAcceptance.class);
+    return OmegaAcceptanceCast.cast((Automaton) Views.complete(dpa), ParityAcceptance.class);
   }
 }

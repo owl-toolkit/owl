@@ -24,29 +24,24 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Sets;
-import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
-import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
-import owl.automaton.edge.Edges;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.Collections3;
 import owl.collections.Pair;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
@@ -56,26 +51,67 @@ public final class Views {
   public static final OwlModule<OwlModule.Transformer> COMPLETE_MODULE = OwlModule.of(
     "complete",
     "Make the transition relation of an automaton complete by adding a sink-state.",
-    (commandLine, environment) ->
-      AutomatonTransformer.of(automaton ->
-        Views.complete(automaton, new MutableAutomatonUtil.Sink())));
+    (commandLine, environment) -> AutomatonTransformer.of(Views::complete));
 
   private Views() {}
 
-  public static <S> Automaton<S, ?> complete(Automaton<S, ?> automaton, S trapState) {
-    var acceptance = automaton.acceptance();
+  public static <S> Automaton<Optional<S>, ?> complete(Automaton<S, ?> automaton) {
+
+    Set<Optional<S>> initialStates = automaton.initialStates().isEmpty()
+      ? Set.of(Optional.empty())
+      : automaton.initialStates()
+        .stream()
+        .map(Optional::of)
+        .collect(Collectors.toUnmodifiableSet());
+
+    Optional<Colours> rejectingSet = automaton.acceptance().rejectingSet();
+    EmersonLeiAcceptance acceptance;
+    boolean dropAcceptanceSets;
+    Edge<Optional<S>> sinkEdge;
 
     // Patch acceptance, if necessary.
-    if (acceptance instanceof AllAcceptance) {
+    if (rejectingSet.isEmpty()) {
       acceptance = CoBuchiAcceptance.INSTANCE;
-    } else if (acceptance instanceof ParityAcceptance && acceptance.acceptanceSets() <= 1) {
-      acceptance = ((ParityAcceptance) acceptance).withAcceptanceSets(2);
+      dropAcceptanceSets = true;
+      sinkEdge = Edge.of(Optional.empty(), Colours.of(0));
+    } else {
+      acceptance = automaton.acceptance();
+      dropAcceptanceSets = false;
+      sinkEdge = Edge.of(Optional.empty(), rejectingSet.get());
     }
 
-    EmersonLeiAcceptance finalAcceptance = acceptance;
-    BitSet rejectingSet = acceptance.rejectingSet()
-      .orElseThrow(() -> new NoSuchElementException("No rejecting set for " + finalAcceptance));
-    return new Complete<>(automaton, Edge.of(trapState, rejectingSet), acceptance);
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      initialStates,
+      acceptance) {
+
+      @Override
+      protected MtBdd<Edge<Optional<S>>> edgeTreeImpl(Optional<S> state) {
+        if (state.isEmpty()) {
+          return MtBdd.of(Set.of(sinkEdge));
+        }
+
+        var edgeTree = automaton.edgeTree(state.get());
+
+        if (dropAcceptanceSets) {
+          return edgeTree.map(edges -> edges.isEmpty()
+            ? Set.of(sinkEdge)
+            : Collections3.transformSet(edges,
+              edge -> Edge.of(Optional.of(edge.successor()))));
+        }
+
+        return edgeTree.map(edges -> edges.isEmpty()
+          ? Set.of(sinkEdge)
+          : Collections3.transformSet(edges,
+            edge -> edge.withSuccessor(Optional.of(edge.successor()))));
+      }
+
+      @Override
+      public boolean is(Property property) {
+        return property == Property.COMPLETE || super.is(property);
+      }
+    };
   }
 
   /**
@@ -92,142 +128,6 @@ public final class Views {
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> filtered(
     Automaton<S, A> automaton, Filter<S> filter) {
     return new AutomatonView<>(automaton, filter);
-  }
-
-  private static class Complete<S, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>
-    implements Automaton<S, B> {
-
-    private final Edge<S> sinkEdge;
-    private final Set<Edge<S>> sinkEdgeSet;
-    private final Automaton<S, A> automaton;
-    private final S sink;
-    private final Set<S> sinkSet;
-    private final B acceptance;
-
-    @Nullable
-    private Map<S, BddSet> incompleteStates;
-
-    Complete(Automaton<S, A> automaton, Edge<S> sinkEdge, B acceptance) {
-      this.automaton = automaton;
-      this.sink = sinkEdge.successor();
-      this.sinkSet = Set.of(sink);
-      this.sinkEdge = sinkEdge;
-      this.sinkEdgeSet = Set.of(sinkEdge);
-      this.acceptance = acceptance;
-    }
-
-    @Override
-    public List<String> atomicPropositions() {
-      return automaton.atomicPropositions();
-    }
-
-    @Override
-    public B acceptance() {
-      return acceptance;
-    }
-
-    @Override
-    public BddSetFactory factory() {
-      return automaton.factory();
-    }
-
-    @Override
-    public Set<S> initialStates() {
-      return automaton.initialStates();
-    }
-
-    @Override
-    public Set<S> states() {
-      if (incompleteStates == null) {
-        incompleteStates = AutomatonUtil.getIncompleteStates(automaton);
-      }
-
-      if (incompleteStates.isEmpty()) {
-        return automaton.states();
-      } else {
-        return Sets.union(automaton.states(), sinkSet);
-      }
-    }
-
-    @Override
-    public Set<S> successors(S state) {
-      if (sink.equals(state)) {
-        return sinkSet;
-      }
-
-      if (incompleteStates != null && incompleteStates.containsKey(state)) {
-        return Sets.union(automaton.states(), sinkSet);
-      }
-
-      return Edges.successors(edgeMap(state).keySet());
-    }
-
-    @Override
-    public Set<Edge<S>> edges(S state, BitSet valuation) {
-      if (sink.equals(state)) {
-        return sinkEdgeSet;
-      }
-
-      Set<Edge<S>> edges = automaton.edges(state, valuation);
-      return edges.isEmpty() ? sinkEdgeSet : edges;
-    }
-
-    @Override
-    public Set<Edge<S>> edges(S state) {
-      if (sink.equals(state)) {
-        return sinkEdgeSet;
-      }
-
-      if (incompleteStates != null && incompleteStates.containsKey(state)) {
-        return Sets.union(automaton.edges(state), sinkEdgeSet);
-      }
-
-      return edgeTree(state).flatValues();
-    }
-
-    @Override
-    public Map<Edge<S>, BddSet> edgeMap(S state) {
-      BddSetFactory factory = automaton.factory();
-
-      if (sink.equals(state)) {
-        return Map.of(sinkEdge, factory.of(true));
-      }
-
-      if (incompleteStates != null && !incompleteStates.containsKey(state)) {
-        return automaton.edgeMap(state);
-      }
-
-      Map<Edge<S>, BddSet> edges = new HashMap<>(automaton.edgeMap(state));
-      BddSet valuationSet = incompleteStates == null
-        ? edges.values().stream().reduce(factory.of(false), BddSet::union).complement()
-        : incompleteStates.get(state);
-
-      if (!valuationSet.isEmpty()) {
-        edges.put(sinkEdge, valuationSet);
-      }
-
-      return edges;
-    }
-
-    @Override
-    public MtBdd<Edge<S>> edgeTree(S state) {
-      if (sink.equals(state)) {
-        return MtBdd.of(sinkEdgeSet);
-      }
-
-      var valuationTree = automaton.edgeTree(state);
-
-      if (incompleteStates != null && !incompleteStates.containsKey(state)) {
-        return valuationTree;
-      }
-
-      return valuationTree.map(x -> x.isEmpty() ? sinkEdgeSet : x);
-    }
-
-    @Override
-    public boolean is(Property property) {
-      return property == Property.COMPLETE || automaton.is(property);
-    }
   }
 
   @AutoValue
@@ -379,7 +279,7 @@ public final class Views {
   }
 
   /**
-   * This is essentially {@code fmap :: (S -> T) -> Automaton<S,A> -> Automaton<T,A>}.
+   * This is essentially {@code fmap :: (S -> T) -> Automaton<S, A> -> Automaton<T, A>}.
    * When the function is injective, the effect is just replacing states of type S with states of
    * type T. If it is not, the result will be a quotient wrt. the equivalence classes induced by
    * the preimages.
@@ -443,23 +343,23 @@ public final class Views {
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<Pair<S, Colours>, A>
-  stateAcceptanceAutomaton(Automaton<S, A> automaton) {
+    stateAcceptanceAutomaton(Automaton<S, ? extends A> automaton) {
+
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       automaton.atomicPropositions(),
       automaton.factory(),
-      automaton.initialStates().stream().map(state ->
-        Pair.of(state, Colours.of())
-      ).collect(Collectors.toSet()),
-      automaton.acceptance()
-    ) {
+      automaton.initialStates().stream()
+        .map(state -> Pair.of(state, Colours.of()))
+        .collect(Collectors.toUnmodifiableSet()),
+      automaton.acceptance()) {
+
       @Override
-      protected MtBdd<Edge<Pair<S, Colours>>> edgeTreeImpl(
-        Pair<S, Colours> state) {
-        return automaton.edgeTree(state.fst()).map(edges ->
-          edges.stream()
-            .map(edge -> Edge.of(Pair.of(edge.successor(), edge.colours()), edge.colours()))
-            .collect(Collectors.toSet()
-            ));
+      protected MtBdd<Edge<Pair<S, Colours>>> edgeTreeImpl(Pair<S, Colours> state) {
+
+        return automaton.edgeTree(state.fst()).map(edges -> edges.stream()
+          .map(edge -> edge.mapSuccessor(successor -> Pair.of(successor, edge.colours())))
+          .collect(Collectors.toUnmodifiableSet()));
+
       }
     };
   }

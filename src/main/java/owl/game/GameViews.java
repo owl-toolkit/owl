@@ -49,7 +49,6 @@ import owl.automaton.Automaton;
 import owl.automaton.Automaton.Property;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
@@ -76,9 +75,6 @@ public final class GameViews {
         Option systemPrefixes = new Option(null, "sysprefix", true,
           "Prefixes of system APs");
 
-        Option complete = new Option("c", "complete", false,
-          "Make automaton complete (may decrease performance)");
-
         OptionGroup apGroup = new OptionGroup()
           .addOption(environmentPropositions)
           .addOption(environmentPrefixes)
@@ -87,8 +83,7 @@ public final class GameViews {
         apGroup.getOptions().forEach(option -> option.setArgs(Option.UNLIMITED_VALUES));
 
         return new Options()
-          .addOptionGroup(apGroup)
-          .addOption(complete);
+          .addOptionGroup(apGroup);
       },
       (commandLine, environment) -> {
         // At most one of those is non-null
@@ -112,18 +107,9 @@ public final class GameViews {
           isEnvironmentAp = ap -> ap.charAt(0) == 'i';
         }
 
-        boolean wrapComplete = commandLine.hasOption("complete");
-
         return AutomatonTransformer.of(
           (Automaton<Object, ? extends ParityAcceptance> automaton) -> {
-          var parityAutomaton = automaton;
-
-          if (wrapComplete) {
-            parityAutomaton = OmegaAcceptanceCast.cast(
-              Views.complete(parityAutomaton, new Object()), ParityAcceptance.class);
-          }
-
-          return GameViews.split(parityAutomaton, isEnvironmentAp);
+            return GameViews.split(Views.complete(automaton), isEnvironmentAp);
         }, ParityAcceptance.class);
       });
 

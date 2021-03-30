@@ -114,7 +114,7 @@ class TestHasAcceptingRun {
     assertEquals(LanguageEmptiness.isEmpty(dpa), !hasAcceptingRun);
 
     var complement = BooleanOperations.deterministicComplement(
-      (Automaton) dpa, new Object(), EmersonLeiAcceptance.class);
+      (Automaton) dpa, EmersonLeiAcceptance.class);
     HoaWriter.write(complement, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
     assertEquals(LanguageEmptiness.isEmpty(complement), !complementHasAcceptingRun);
   }
