@@ -137,7 +137,7 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
     fgSafety(LabelledFormula formula, boolean generalized) {
     var automaton = gfCoSafety(formula.not(), generalized);
     return BooleanOperations
-      .deterministicComplement(automaton, null, GeneralizedCoBuchiAcceptance.class);
+      .deterministicComplementOfCompleteAutomaton(automaton, GeneralizedCoBuchiAcceptance.class);
   }
 
   public static Automaton<DeterministicConstructions.BreakpointStateAccepting, CoBuchiAcceptance>

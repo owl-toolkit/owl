@@ -33,7 +33,7 @@ class BooleanOperationsTest {
 
     var emptyAutomaton = EmptyAutomaton.of(List.of("a"), BuchiAcceptance.INSTANCE);
     var complementAutomaton = BooleanOperations.deterministicComplement(
-      emptyAutomaton, new Object(), ParityAcceptance.class);
+      emptyAutomaton, ParityAcceptance.class);
 
     Assertions.assertTrue(complementAutomaton.is(Automaton.Property.DETERMINISTIC));
     Assertions.assertTrue(complementAutomaton.is(Automaton.Property.COMPLETE));
@@ -41,7 +41,7 @@ class BooleanOperationsTest {
     Assertions.assertFalse(LanguageEmptiness.isEmpty(complementAutomaton));
 
     var complementComplementAutomaton = BooleanOperations.deterministicComplement(
-      complementAutomaton, null, ParityAcceptance.class);
+      complementAutomaton, ParityAcceptance.class);
 
     Assertions.assertTrue(complementComplementAutomaton.is(Automaton.Property.DETERMINISTIC));
     Assertions.assertTrue(complementComplementAutomaton.is(Automaton.Property.COMPLETE));

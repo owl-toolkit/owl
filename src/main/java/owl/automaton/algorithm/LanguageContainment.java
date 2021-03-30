@@ -47,9 +47,10 @@ public final class LanguageContainment {
     Preconditions.checkArgument(automaton2.is(Property.DETERMINISTIC),
       "Second argument needs to be deterministic.");
 
-    var automaton2Complement = BooleanOperations.deterministicComplement(
-      (Automaton<Object, ?>) automaton2, new Object(), EmersonLeiAcceptance.class);
-    var intersection = BooleanOperations.intersection(automaton1, automaton2Complement);
+    var automaton2Complement
+      = BooleanOperations.deterministicComplement(automaton2, EmersonLeiAcceptance.class);
+    var intersection
+      = BooleanOperations.intersection(automaton1, automaton2Complement);
 
     return LanguageEmptiness.isEmpty(intersection);
   }

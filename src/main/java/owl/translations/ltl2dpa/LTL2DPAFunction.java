@@ -22,29 +22,23 @@ package owl.translations.ltl2dpa;
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPRESS_COLOURS;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE;
+import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.POST_PROCESS;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.SYMMETRIC;
 
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
+import owl.automaton.AnnotatedState;
 import owl.automaton.AnnotatedStateOptimisation;
 import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
-import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
-import owl.automaton.ParityUtil;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.ParityAcceptanceOptimizations;
-import owl.bdd.FactorySupplier;
-import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.translations.mastertheorem.Selector;
 import owl.util.ParallelEvaluation;
@@ -87,24 +81,36 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
 
       if (fixpoints <= negationFixpoints) {
         automatonSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(symmetricConstruction(formula).automaton)
-          : () -> Optional.of(asymmetricConstruction(formula).automaton);
+          ? () -> Optional.of(postProcess(symmetricDPAConstruction.of(formula, false)))
+          : () -> Optional.of(postProcess(asymmetricDPAConstruction.of(formula, false)));
         complementSupplier = Optional::empty;
       } else {
         automatonSupplier = Optional::empty;
         complementSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(symmetricConstruction(formula.not()).complement())
-          : () -> Optional.of(asymmetricConstruction(formula.not()).complement());
+          ? () -> Optional.of(
+            BooleanOperations.deterministicComplementOfCompleteAutomaton(
+              postProcess(symmetricDPAConstruction.of(formula.not(), true)),
+              ParityAcceptance.class))
+          : () -> Optional.of(
+            BooleanOperations.deterministicComplementOfCompleteAutomaton(
+              postProcess(asymmetricDPAConstruction.of(formula.not(), true)),
+              ParityAcceptance.class));
       }
     } else {
       automatonSupplier = configuration.contains(SYMMETRIC)
-        ? () -> Optional.of(symmetricConstruction(formula).automaton)
-        : () -> Optional.of(asymmetricConstruction(formula).automaton);
+        ? () -> Optional.of(postProcess(symmetricDPAConstruction.of(formula, false)))
+        : () -> Optional.of(postProcess(asymmetricDPAConstruction.of(formula, false)));
 
       if (configuration.contains(COMPLEMENT_CONSTRUCTION_EXACT)) {
         complementSupplier = configuration.contains(SYMMETRIC)
-          ? () -> Optional.of(symmetricConstruction(formula.not()).complement())
-          : () -> Optional.of(asymmetricConstruction(formula.not()).complement());
+          ? () -> Optional.of(
+            BooleanOperations.deterministicComplementOfCompleteAutomaton(
+              postProcess(symmetricDPAConstruction.of(formula.not(), true)),
+              ParityAcceptance.class))
+          : () -> Optional.of(
+            BooleanOperations.deterministicComplementOfCompleteAutomaton(
+              postProcess(asymmetricDPAConstruction.of(formula.not(), true)),
+              ParityAcceptance.class));
       } else {
         complementSupplier = Optional::empty;
       }
@@ -116,33 +122,15 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
       ParityAcceptance.class);
   }
 
-  private Result<AsymmetricRankingState> asymmetricConstruction(LabelledFormula formula) {
-    var dpa = asymmetricDPAConstruction.of(formula);
-    var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
-      ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
-      : dpa;
+  private <T extends AnnotatedState<?>> Automaton<T, ParityAcceptance> postProcess(
+    Automaton<T, ParityAcceptance> automaton) {
 
-    if (optimisedDpa.initialStates().isEmpty()) {
-      var factory = FactorySupplier.defaultSupplier()
-        .getEquivalenceClassFactory(formula.atomicPropositions());
-      return new Result<>(optimisedDpa,
-        AsymmetricRankingState.of(factory.of(BooleanConstant.FALSE)),
-        configuration.contains(COMPRESS_COLOURS));
+    if (!configuration.contains(POST_PROCESS)) {
+      return automaton;
     }
 
-    return new Result<>(optimisedDpa,
-      AsymmetricRankingState.of(dpa.onlyInitialState().state().factory().of(BooleanConstant.FALSE)),
-      configuration.contains(COMPRESS_COLOURS));
-  }
-
-  private Result<SymmetricRankingState> symmetricConstruction(LabelledFormula formula) {
-    var dpa = symmetricDPAConstruction.of(formula);
-    var optimisedDpa = configuration.contains(OPTIMISE_INITIAL_STATE)
-      ? MutableAutomatonUtil.asMutable(AnnotatedStateOptimisation.optimizeInitialState(dpa))
-      : dpa;
-    return new Result<>(optimisedDpa,
-      SymmetricRankingState.of(Map.of()),
-      configuration.contains(COMPRESS_COLOURS));
+    return ParityAcceptanceOptimizations.minimizePriorities(
+      AnnotatedStateOptimisation.optimizeInitialState(automaton));
   }
 
   public enum Configuration {
@@ -153,36 +141,8 @@ public class LTL2DPAFunction implements Function<LabelledFormula, Automaton<?, P
     COMPLEMENT_CONSTRUCTION_EXACT,
     COMPLEMENT_CONSTRUCTION_HEURISTIC,
 
-    // Postprocessing
-    OPTIMISE_INITIAL_STATE,
-    COMPRESS_COLOURS
-  }
-
-  private static final class Result<T> {
-    final Automaton<T, ParityAcceptance> automaton;
-    final T sinkState;
-
-    Result(Automaton<T, ParityAcceptance> automaton, T sinkState, boolean compressColours) {
-      this.sinkState = sinkState;
-
-      if (compressColours) {
-        this.automaton = ParityAcceptanceOptimizations
-          .minimizePriorities(MutableAutomatonUtil.asMutable(automaton));
-      } else {
-        this.automaton = automaton;
-      }
-    }
-
-    Automaton<T, ? extends ParityAcceptance> complement() {
-      if (automaton instanceof MutableAutomaton
-        || automaton.acceptance().parity() != ParityAcceptance.Parity.MIN_ODD) {
-        return ParityUtil.complement(MutableAutomatonUtil.asMutable(automaton), sinkState);
-      }
-
-      assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD;
-      return BooleanOperations
-        .deterministicComplement(automaton, sinkState, ParityAcceptance.class);
-    }
+    // Postprocessing (optimise initial state and compress colours)
+    POST_PROCESS
   }
 
   private static int getOrMaxInt(IntSupplier supplier) {

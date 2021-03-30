@@ -28,9 +28,27 @@ class LTL2DPAFunctionTest {
   @Test
   void testComplete() {
     var translation = new LTL2DPAFunction(EnumSet.of(
-      LTL2DPAFunction.Configuration.OPTIMISE_INITIAL_STATE,
-      LTL2DPAFunction.Configuration.COMPRESS_COLOURS));
+      LTL2DPAFunction.Configuration.POST_PROCESS));
 
     translation.apply(LtlParser.parse("ff"));
+  }
+
+  @Test
+  void testParallelSymmetric() {
+    var translation = new LTL2DPAFunction(EnumSet.of(
+      LTL2DPAFunction.Configuration.SYMMETRIC,
+      LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT,
+      LTL2DPAFunction.Configuration.POST_PROCESS));
+
+    translation.apply(LtlParser.parse("a"));
+  }
+
+  @Test
+  void testParallelAsymmetric() {
+    var translation = new LTL2DPAFunction(EnumSet.of(
+      LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_EXACT,
+      LTL2DPAFunction.Configuration.POST_PROCESS));
+
+    translation.apply(LtlParser.parse("a"));
   }
 }

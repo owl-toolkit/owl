@@ -25,10 +25,10 @@ import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 import static owl.logic.propositional.PropositionalFormula.constant;
 
-import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnegative;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -51,29 +51,29 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
   }
 
   @Override
-  public Optional<BitSet> acceptingSet() {
-    BitSet set = new BitSet();
+  public Optional<Colours> acceptingSet() {
+    Colours colours;
 
     if (parity.even()) {
-      set.set(0);
+      colours = Colours.of(0);
     } else {
-      set.set(1);
+      colours = Colours.of(1);
     }
 
-    return acceptanceSets() < set.length() ? Optional.empty() : Optional.of(set);
+    return acceptanceSets() <= colours.last() ? Optional.empty() : Optional.of(colours);
   }
 
   @Override
-  public Optional<BitSet> rejectingSet() {
-    BitSet set = new BitSet();
+  public Optional<Colours> rejectingSet() {
+    Colours colours;
 
     if (parity.even()) {
-      set.set(1);
+      colours = Colours.of(1);
     } else {
-      set.set(0);
+      colours = Colours.of(0);
     }
 
-    return acceptanceSets() < set.length() ? Optional.empty() : Optional.of(set);
+    return acceptanceSets() <= colours.last() ? Optional.empty() : Optional.of(colours);
   }
 
   public Parity parity() {

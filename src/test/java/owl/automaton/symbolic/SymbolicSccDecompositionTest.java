@@ -166,14 +166,14 @@ public class SymbolicSccDecompositionTest {
   @Test
   void sccDecompositionTest() {
     for (var formula : tests) {
-      var dra = Views.complete((Automaton) LTL_TO_DRA.apply(formula), new Object());
-      var nba = Views.complete((Automaton) LTL_TO_NBA.apply(formula), new Object());
+      var dra = Views.complete(LTL_TO_DRA.apply(formula));
+      var nba = Views.complete(LTL_TO_NBA.apply(formula));
       assertSccs(Views.stateAcceptanceAutomaton(dra), SymbolicAutomaton.of(dra));
       assertSccs(Views.stateAcceptanceAutomaton(nba), SymbolicAutomaton.of(nba));
     }
   }
 
-  private static void assertSccs(Automaton<?,?> expected, SymbolicAutomaton<?> actual) {
+  private static void assertSccs(Automaton<?, ?> expected, SymbolicAutomaton<?> actual) {
     // Since there is no relation between the explicit and the symbolic states,
     // we check whether the sizes of the SCCs are the same.
     List<Integer> expectedSccs = SccDecomposition

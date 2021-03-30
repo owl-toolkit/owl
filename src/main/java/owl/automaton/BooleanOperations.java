@@ -20,7 +20,6 @@
 package owl.automaton;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.Automaton.Property.COMPLETE;
 import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Variable;
@@ -48,10 +47,10 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
-import owl.collections.Collections3;
 import owl.collections.NullablePair;
 import owl.collections.Pair;
 import owl.logic.propositional.PropositionalFormula;
@@ -67,32 +66,14 @@ public final class BooleanOperations {
   private BooleanOperations() {}
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, ? extends A>
-    deterministicComplement(
-      Automaton<S, ?> automaton,
-      @Nullable S trapState,
+    deterministicComplementOfCompleteAutomaton(
+      Automaton<S, ?> completeAutomaton,
       Class<? extends A> expectedAcceptance) {
 
-    int initialStatesSize = automaton.initialStates().size();
+    int initialStatesSize = completeAutomaton.initialStates().size();
+
+    checkArgument(initialStatesSize >= 1, "Automaton has no initial state");
     checkArgument(initialStatesSize <= 1, "Automaton has multiple initial states");
-
-    Automaton<S, ?> completeAutomaton;
-
-    if (initialStatesSize == 0) {
-      completeAutomaton = SingletonAutomaton.of(
-        automaton.atomicPropositions(),
-        Objects.requireNonNull(trapState),
-        automaton.acceptance(),
-        automaton.acceptance().rejectingSet().orElseThrow());
-    } else if (trapState == null) {
-      completeAutomaton = automaton;
-    } else {
-      completeAutomaton = Views.complete(automaton, trapState);
-    }
-
-    checkArgument(completeAutomaton.is(COMPLETE), "Automaton is not complete.");
-
-    // Check is too costly.
-    // checkArgument(completeAutomaton.is(DETERMINISTIC), "Automaton is not deterministic.");
 
     EmersonLeiAcceptance acceptance = completeAutomaton.acceptance();
     EmersonLeiAcceptance complementAcceptance = null;
@@ -113,7 +94,7 @@ public final class BooleanOperations {
       complementAcceptance = GeneralizedBuchiAcceptance.of(castedAcceptance.acceptanceSets());
     } else if (acceptance instanceof ParityAcceptance) {
       checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
-      complementAcceptance = ((ParityAcceptance) automaton.acceptance()).complement();
+      complementAcceptance = ((ParityAcceptance) completeAutomaton.acceptance()).complement();
     } else if (isInstanceOf(EmersonLeiAcceptance.class, expectedAcceptance)) {
       complementAcceptance = EmersonLeiAcceptance.of(
         PropositionalFormula.Negation.of(acceptance.booleanExpression()));
@@ -124,8 +105,26 @@ public final class BooleanOperations {
     }
 
     return OmegaAcceptanceCast.cast(
-      new OverrideAcceptanceCondition<>(completeAutomaton, complementAcceptance),
+      new OverrideAcceptanceCondition<>(completeAutomaton, complementAcceptance, true),
       expectedAcceptance);
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<Optional<S>, ? extends A>
+    deterministicComplement(Automaton<S, ?> automaton, Class<? extends A> expectedAcceptance) {
+
+    Automaton<Optional<S>, ?> completeAutomaton;
+
+    if (automaton.initialStates().isEmpty()) {
+      completeAutomaton = SingletonAutomaton.of(
+        automaton.atomicPropositions(),
+        Optional.empty(),
+        automaton.acceptance(),
+        automaton.acceptance().rejectingSet().orElseThrow());
+    } else {
+      completeAutomaton = Views.complete(automaton);
+    }
+
+    return deterministicComplementOfCompleteAutomaton(completeAutomaton, expectedAcceptance);
   }
 
   public static <S1, S2> Automaton<Pair<S1, S2>, ?>
@@ -155,7 +154,7 @@ public final class BooleanOperations {
     // to an rejecting acceptance set.
     if (automaton1.acceptance().rejectingSet().isEmpty()) {
       normalizedAutomaton1 = OmegaAcceptanceCast.cast(
-        new OverrideAcceptanceCondition<>(automaton1, AllAcceptance.INSTANCE),
+        new OverrideAcceptanceCondition<>(automaton1, AllAcceptance.INSTANCE, false),
         BuchiAcceptance.class);
     } else {
       normalizedAutomaton1 = automaton1;
@@ -165,7 +164,7 @@ public final class BooleanOperations {
     // to an rejecting acceptance set.
     if (automaton2.acceptance().rejectingSet().isEmpty()) {
       normalizedAutomaton2 = OmegaAcceptanceCast.cast(
-        new OverrideAcceptanceCondition<>(automaton2, AllAcceptance.INSTANCE),
+        new OverrideAcceptanceCondition<>(automaton2, AllAcceptance.INSTANCE, false),
         BuchiAcceptance.class);
     } else {
       normalizedAutomaton2 = automaton2;
@@ -185,14 +184,14 @@ public final class BooleanOperations {
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
 
     List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
-    List<BitSet> rejectingSets = new ArrayList<>(automata.size());
+    List<Colours> rejectingSets = new ArrayList<>(automata.size());
 
     automata.forEach(automaton -> {
       Automaton<S, ?> normalisedAutomaton;
 
       if (automaton.acceptance().rejectingSet().isEmpty()) {
         normalisedAutomaton = OmegaAcceptanceCast.cast(
-          new OverrideAcceptanceCondition<>(automaton, AllAcceptance.INSTANCE),
+          new OverrideAcceptanceCondition<>(automaton, AllAcceptance.INSTANCE, false),
           BuchiAcceptance.class);
       } else {
         normalisedAutomaton = automaton;
@@ -247,8 +246,11 @@ public final class BooleanOperations {
   private static class PairIntersectionAutomaton<S1, S2>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Pair<S1, S2>, EmersonLeiAcceptance> {
 
-    private final Automaton<S1, ?> automaton1;
-    private final Automaton<S2, ?> automaton2;
+    @Nullable
+    private Automaton<S1, ?> automaton1;
+    @Nullable
+    private Automaton<S2, ?> automaton2;
+
     private final int acceptance1Sets;
 
     private PairIntersectionAutomaton(
@@ -279,12 +281,19 @@ public final class BooleanOperations {
       acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(Pair.of(edge1.successor(), edge2.successor()), acceptance);
     }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      automaton1 = null;
+      automaton2 = null;
+    }
   }
 
   private static class ListIntersectionAutomaton<S>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<List<S>, EmersonLeiAcceptance> {
 
-    private final List<? extends Automaton<S, ?>> automata;
+    @Nullable
+    private List<? extends Automaton<S, ?>> automata;
 
     private ListIntersectionAutomaton(
       List<String> atomicPropositions, List<? extends Automaton<S, ?>> automata) {
@@ -338,6 +347,11 @@ public final class BooleanOperations {
       acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(List.copyOf(successors), acceptance);
     }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      automata = null;
+    }
   }
 
   private static EmersonLeiAcceptance unionAcceptance(
@@ -361,18 +375,20 @@ public final class BooleanOperations {
   private static class NullablePairDeterministicUnionAutomaton<S1, S2>
     extends EdgeImplementation<NullablePair<S1, S2>, EmersonLeiAcceptance> {
 
-    private final Automaton<S1, ?> automaton1;
-    private final Automaton<S2, ?> automaton2;
+    @Nullable
+    private Automaton<S1, ?> automaton1;
+    @Nullable
+    private Automaton<S2, ?> automaton2;
 
-    private final BitSet rejectingSet1;
-    private final BitSet rejectingSet2;
+    private final Colours rejectingSet1;
+    private final Colours rejectingSet2;
 
     private NullablePairDeterministicUnionAutomaton(
       List<String> atomicPropositions,
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      BitSet rejectingSet1,
-      BitSet rejectingSet2) {
+      Colours rejectingSet1,
+      Colours rejectingSet2) {
 
       super(atomicPropositions,
         Set.of(initialState(automaton1, automaton2)),
@@ -408,7 +424,7 @@ public final class BooleanOperations {
 
       if (edge1 == null) {
         successor1 = null;
-        acceptance.or(rejectingSet1);
+        rejectingSet1.copyInto(acceptance);
       } else {
         successor1 = edge1.successor();
         edge1.colours().copyInto(acceptance);
@@ -419,28 +435,35 @@ public final class BooleanOperations {
 
       if (edge2 == null) {
         successor2 = null;
-        rejectingSet2.stream().forEach(i -> acceptance.set(i + offset));
+        rejectingSet2.forEach((int i) -> acceptance.set(i + offset));
       } else {
         successor2 = edge2.successor();
-        edge2.colours().forEach((IntConsumer) i -> acceptance.set(i + offset));
+        edge2.colours().forEach((int i) -> acceptance.set(i + offset));
       }
 
       // Remove colours not appearing in the acceptance condition.
       acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(NullablePair.of(successor1, successor2), acceptance);
     }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      automaton1 = null;
+      automaton2 = null;
+    }
   }
 
   private static class MapDeterministicUnionAutomaton<S>
     extends EdgeImplementation<Map<Integer, S>, EmersonLeiAcceptance> {
 
-    private final List<? extends Automaton<S, ?>> automata;
-    private final List<BitSet> rejectingSets;
+    @Nullable
+    private List<? extends Automaton<S, ?>> automata;
+    private final List<Colours> rejectingSets;
 
     private MapDeterministicUnionAutomaton(
       List<String> atomicPropositions,
       List<? extends Automaton<S, ?>> automata,
-      List<BitSet> rejectingSets) {
+      List<Colours> rejectingSets) {
 
       super(atomicPropositions,
         Set.of(initialState(automata)),
@@ -491,10 +514,10 @@ public final class BooleanOperations {
         int offsetFinal = offset;
 
         if (edge == null) {
-          rejectingSets.get(i).stream().forEach(set -> acceptance.set(set + offsetFinal));
+          rejectingSets.get(i).forEach((int set) -> acceptance.set(set + offsetFinal));
         } else {
           successor.put(i, edge.successor());
-          edge.colours().forEach((IntConsumer) set -> acceptance.set(set + offsetFinal));
+          edge.colours().forEach((int set) -> acceptance.set(set + offsetFinal));
         }
 
         offset += automata.get(i).acceptance().acceptanceSets();
@@ -508,14 +531,23 @@ public final class BooleanOperations {
       acceptance.clear(acceptance().acceptanceSets(), Integer.MAX_VALUE);
       return Edge.of(Map.copyOf(successor), acceptance);
     }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      automata = null;
+    }
   }
 
-  private static class OverrideAcceptanceCondition<S, A extends EmersonLeiAcceptance>
+  private static final class OverrideAcceptanceCondition<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-    private final Automaton<S, ?> backingAutomaton;
+    @Nullable
+    private Automaton<S, ?> backingAutomaton;
+    private final boolean assertComplete;
 
-    private OverrideAcceptanceCondition(Automaton<S, ?> backingAutomaton, A acceptance) {
+    private OverrideAcceptanceCondition(
+      Automaton<S, ?> backingAutomaton, A acceptance, boolean assertComplete) {
+
       super(
         backingAutomaton.atomicPropositions(),
         backingAutomaton.factory(),
@@ -523,14 +555,53 @@ public final class BooleanOperations {
         acceptance);
 
       this.backingAutomaton = backingAutomaton;
+      this.assertComplete = assertComplete;
+
+      if (assertComplete && initialStates().isEmpty()) {
+        throw new IllegalArgumentException("Automaton is not complete.");
+      }
+
+      if (initialStates().size() > 1) {
+        throw new IllegalArgumentException("Automaton is non-deterministic.");
+      }
     }
 
     @Override
     protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
       // Remove colours from underlying automaton that do not appear in the acceptance condition.
       int acceptanceSets = acceptance().acceptanceSets();
-      return backingAutomaton.edgeTree(state).map(
-        x -> Collections3.transformSet(x, e -> e.mapAcceptance(i -> i < acceptanceSets ? i : -1)));
+
+      return Objects.requireNonNull(backingAutomaton, "freezeMemoizedEdgesNotify already called.")
+        .edgeTree(state).map(edges -> {
+          switch (edges.size()) {
+            case 0:
+              if (assertComplete) {
+                throw new IllegalArgumentException("Automaton is not complete.");
+              }
+
+              return Set.of();
+
+            case 1:
+              return Set.of(
+                edges.iterator().next().mapAcceptance(i -> i < acceptanceSets ? i : -1));
+
+            default:
+              throw new IllegalArgumentException("Automaton is not deterministic.");
+          }
+        });
+    }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      backingAutomaton = null;
+    }
+
+    @Override
+    public boolean is(Property property) {
+      return property == Property.DETERMINISTIC
+        || property == Property.SEMI_DETERMINISTIC
+        || (assertComplete && property == Property.COMPLETE)
+        || super.is(property);
     }
   }
 }
