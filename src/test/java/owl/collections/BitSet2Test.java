@@ -39,7 +39,7 @@ public class BitSet2Test {
     Pair<Integer,Integer> p1 = Pair.of(1,2);
     Pair<Integer,Integer> p1b = Pair.of(1,2);
 
-    assertEquals("(1,2)", p1.toString());
+    assertEquals("(1, 2)", p1.toString());
 
     var p2 = p1b.swap();
     var p1c = p2.swap();

@@ -485,4 +485,25 @@ public final class Collections3 {
     int value = Arrays.compare(a1, a2);
     return value;
   }
+  
+  /**
+   * Returns the index of the first occurrence of the specified element
+   * in this list of sets, or -1 if this list does not contain the element.
+   * More formally, returns the lowest index {@code i} such that
+   * {@code get(i).contains(o)}, or -1 if there is no such index.
+   *
+   * @param sets list of sets
+   * @param element element to search for
+   * @return the index of the first occurrence of the specified element in
+   *         this list, or -1 if this list does not contain the element
+   */
+  public static <E> int indexOf(List<Set<E>> sets, E element) {
+    for (int i = 0, s = sets.size(); i < s; i++) {
+      if (sets.get(i).contains(element)) {
+        return i;
+      }
+    }
+
+    return -1;
+  }
 }

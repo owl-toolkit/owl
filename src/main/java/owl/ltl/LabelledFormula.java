@@ -36,6 +36,12 @@ public abstract class LabelledFormula {
     int atomicPropositionsSize = formula.atomicPropositions(true).length();
     checkArgument(Collections3.isDistinct(atomicPropositions));
     checkArgument(atomicPropositionsSize <= atomicPropositions.size());
+
+    // Avoid creating a subList.
+    if (atomicPropositionsSize == atomicPropositions.size()) {
+      return new AutoValue_LabelledFormula(List.copyOf(atomicPropositions), formula);
+    }
+
     return new AutoValue_LabelledFormula(
       List.copyOf(atomicPropositions.subList(0, atomicPropositionsSize)), formula);
   }
