@@ -120,6 +120,7 @@ public final class AcceptanceOptimizations {
       logger.log(Level.FINE, "Received unsupported acceptance type {0}", acceptance.getClass());
     }
 
+    assert mutableAutomaton.acceptance().getClass().equals(automaton.acceptance().getClass());
     return mutableAutomaton;
   }
 
@@ -275,4 +276,3 @@ public final class AcceptanceOptimizations {
     }
   }
 }
-

@@ -71,7 +71,7 @@ public abstract class Pair<A, B> {
   }
 
   @Override
-  public String toString() {
-    return "(" + fst() + ',' + snd() + ')';
+  public final String toString() {
+    return String.format("(%s, %s)", fst(), snd());
   }
 }

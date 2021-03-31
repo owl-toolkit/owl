@@ -71,4 +71,8 @@ public interface SuccessorFunction<S> extends Function<S, Collection<S>> {
       return successors;
     };
   }
+
+  static <S> SuccessorFunction<S> of(Function<S, ? extends Collection<S>> successorFunction) {
+    return successorFunction::apply;
+  }
 }

@@ -43,8 +43,7 @@ import owl.ltl.visitors.BinaryVisitor;
 
 public final class FormulaIsomorphism {
 
-  private FormulaIsomorphism() {
-  }
+  private FormulaIsomorphism() {}
 
   @SuppressWarnings("PMD.ReturnEmptyArrayRatherThanNull")
   @Nullable
