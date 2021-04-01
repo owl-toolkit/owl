@@ -39,6 +39,9 @@ import owl.ltl.rewriter.NormalForms;
 import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.PropositionalVisitor;
 
+/**
+ * Δ₂-Normalisation according to {@link owl.Bibliography#LICS_20}.
+ */
 public class Normalisation implements UnaryOperator<LabelledFormula> {
 
   private final boolean dual;
