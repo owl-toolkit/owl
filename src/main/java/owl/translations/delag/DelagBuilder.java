@@ -144,7 +144,13 @@ public class DelagBuilder
         var history = History.stepHistory(state.past, valuation,
           requiredHistory.computeIfAbsent(successor,
             x -> History.create(tree.getRequiredHistory(successor))));
-        return Edge.of(new State<>(successor, history), tree.getAcceptance(state, valuation, acc));
+        var acceptance = tree.getAcceptance(state, valuation, acc);
+
+        if (acceptance().acceptanceSets() <= acceptance.length()) {
+          acceptance.clear(acceptance().acceptanceSets(), acceptance.length());
+        }
+
+        return Edge.of(new State<>(successor, history), acceptance);
       }
     };
   }

@@ -19,8 +19,6 @@
 
 package owl.ltl.rewriter;
 
-import static java.util.stream.Collectors.toSet;
-
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -32,6 +30,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import owl.collections.Collections3;
 import owl.collections.UpwardClosedSet;
@@ -45,12 +44,19 @@ import owl.ltl.visitors.PropositionalVisitor;
 
 public final class NormalForms {
   public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
-    SYNTHETIC_CO_SAFETY_LITERAL =
-    x -> x.operands.stream().filter(SyntacticFragments::isCoSafety).collect(toSet());
+    SYNTHETIC_CO_SAFETY_LITERAL = x -> x.operands.stream()
+      .filter(SyntacticFragments::isCoSafety)
+      .collect(Collectors.toUnmodifiableSet());
 
   public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
-    SYNTHETIC_SAFETY_LITERAL =
-    x -> x.operands.stream().filter(SyntacticFragments::isSafety).collect(toSet());
+    SYNTHETIC_SAFETY_LITERAL = x -> x.operands.stream()
+      .filter(SyntacticFragments::isSafety)
+      .collect(Collectors.toUnmodifiableSet());
+
+  public static final Function<Formula.NaryPropositionalOperator, Set<Formula>>
+    SYNTHETIC_DELTA2_LITERAL = x -> x.operands.stream()
+      .filter(SyntacticFragments.DELTA_2::contains)
+      .collect(Collectors.toUnmodifiableSet());
 
   private NormalForms() {}
 
@@ -66,7 +72,7 @@ public final class NormalForms {
 
   public static Set<Set<Formula>> toCnf(Formula formula,
     Function<? super Formula.NaryPropositionalOperator,
-      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      ? extends Set<Formula>> syntheticLiteralFactory) {
     var visitor = new ConjunctiveNormalFormVisitor(syntheticLiteralFactory);
     var cnf = formula.accept(visitor).representatives();
     return new ClausesView(cnf, visitor.literals());
@@ -84,7 +90,7 @@ public final class NormalForms {
 
   public static Set<Set<Formula>> toDnf(Formula formula,
     Function<? super Formula.NaryPropositionalOperator,
-      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      ? extends Set<Formula>> syntheticLiteralFactory) {
     var visitor = new DisjunctiveNormalFormVisitor(syntheticLiteralFactory);
     var dnf = formula.accept(visitor).representatives();
     return new ClausesView(dnf, visitor.literals());
@@ -93,12 +99,12 @@ public final class NormalForms {
   private abstract static class AbstractNormalFormVisitor
     extends PropositionalVisitor<UpwardClosedSet> {
 
-    final Function<? super Formula.NaryPropositionalOperator, ? extends Collection<Formula>>
+    final Function<? super Formula.NaryPropositionalOperator, ? extends Set<Formula>>
       syntheticLiteralFactory;
     private final Map<Formula, Integer> literals;
 
     private AbstractNormalFormVisitor(Function<? super Formula.NaryPropositionalOperator,
-      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      ? extends Set<Formula>> syntheticLiteralFactory) {
       this.literals = new LinkedHashMap<>();
       this.syntheticLiteralFactory = syntheticLiteralFactory;
     }
@@ -127,7 +133,7 @@ public final class NormalForms {
   private static final class ConjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
 
     private ConjunctiveNormalFormVisitor(Function<? super Formula.NaryPropositionalOperator,
-      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      ? extends Set<Formula>> syntheticLiteralFactory) {
       super(syntheticLiteralFactory);
     }
 
@@ -140,7 +146,7 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Conjunction conjunction) {
-      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(conjunction);
+      Set<Formula> syntheticLiteral = syntheticLiteralFactory.apply(conjunction);
 
       UpwardClosedSet set = syntheticLiteral.isEmpty()
         ? UpwardClosedSet.of()
@@ -176,7 +182,7 @@ public final class NormalForms {
   private static final class DisjunctiveNormalFormVisitor extends AbstractNormalFormVisitor {
 
     private DisjunctiveNormalFormVisitor(Function<? super Formula.NaryPropositionalOperator,
-      ? extends Collection<Formula>> syntheticLiteralFactory) {
+      ? extends Set<Formula>> syntheticLiteralFactory) {
       super(syntheticLiteralFactory);
     }
 
@@ -189,7 +195,7 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Conjunction conjunction) {
-      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(conjunction);
+      Set<Formula> syntheticLiteral = syntheticLiteralFactory.apply(conjunction);
 
       UpwardClosedSet set = syntheticLiteral.isEmpty()
         ? UpwardClosedSet.of(new BitSet())
@@ -206,7 +212,7 @@ public final class NormalForms {
 
     @Override
     public UpwardClosedSet visit(Disjunction disjunction) {
-      Collection<Formula> syntheticLiteral = syntheticLiteralFactory.apply(disjunction);
+      Set<Formula> syntheticLiteral = syntheticLiteralFactory.apply(disjunction);
 
       UpwardClosedSet set = syntheticLiteral.isEmpty()
         ? UpwardClosedSet.of()

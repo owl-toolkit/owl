@@ -38,7 +38,8 @@ public final class LTL2NormalFormModule {
     "Translate LTL to the Delta_2 normal-form.",
     options(),
     (commandLine, environment) -> OwlModule.LabelledFormulaTransformer.of(
-      Normalisation.of(commandLine.hasOption("s"), commandLine.hasOption("d"), false)));
+      Normalisation.of(
+        commandLine.hasOption("d"), commandLine.hasOption("l"), commandLine.hasOption("s"))));
 
   private static Options options() {
     var options = new Options();
