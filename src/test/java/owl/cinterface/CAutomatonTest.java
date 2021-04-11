@@ -107,8 +107,8 @@ public class CAutomatonTest {
       .coSafety(formula);
     var states = automaton.states();
 
-    // Takes ~35 seconds on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(60),
+    // Takes ~50 seconds on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(90),
       () -> extractFeaturesFromEquivalenceClass(states));
   }
 
@@ -219,8 +219,6 @@ public class CAutomatonTest {
       assertFalse(cnfFeatures.containsValue(null));
     }
   }
-
-
 
   @SuppressWarnings(
     {"PMD.EmptyCatchBlock", "PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingNPE"})

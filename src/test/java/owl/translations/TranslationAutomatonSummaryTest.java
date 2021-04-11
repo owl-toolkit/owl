@@ -200,7 +200,7 @@ public class TranslationAutomatonSummaryTest {
     new Translator("dpa.normalform-typeness.symbolic",
       SymbolicDPAConstruction.of().andThen(SymbolicAutomaton::toAutomaton),
       EnumSet.complementOf(EnumSet.of(BASE, SIZE, DWYER))),
-    
+
     new Translator("dra.symmetric",
       LtlToDraTranslation.EKS20.translation(
         RabinAcceptance.class,
