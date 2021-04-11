@@ -23,9 +23,12 @@ import com.google.common.base.Preconditions;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import owl.automaton.edge.Colours;
 import owl.automaton.symbolic.SymbolicAutomaton.VariableType;
 
 public final class RangedVariableAllocator implements SymbolicAutomaton.VariableAllocator {
@@ -49,12 +52,14 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
     private final List<VariableType> order;
     private final EnumMap<VariableType, Integer> fromIndexInclusive;
     private final EnumMap<VariableType, Integer> toIndexExclusive;
+    private final Map<Set<VariableType>, Colours> variables;
     private final int size;
 
     private RangedAllocation(int stateVariables, int atomicPropositions, int colours,
       List<VariableType> order) {
 
       this.order = List.copyOf(order);
+      this.variables = new HashMap<>();
       this.size = 2 * stateVariables + atomicPropositions + colours;
       fromIndexInclusive = new EnumMap<>(VariableType.class);
       toIndexExclusive = new EnumMap<>(VariableType.class);
@@ -87,10 +92,14 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
     }
 
     @Override
-    public BitSet variables(VariableType type) {
-      BitSet bitSet = new BitSet();
-      bitSet.set(fromIndexInclusive.get(type), toIndexExclusive.get(type));
-      return bitSet;
+    public Colours variables(VariableType... types) {
+      return variables.computeIfAbsent(Set.of(types), variableTypes -> {
+        BitSet bitSet = new BitSet();
+        for (var type : variableTypes) {
+          bitSet.set(fromIndexInclusive.get(type), toIndexExclusive.get(type));
+        }
+        return Colours.copyOf(bitSet);
+      });
     }
 
     @Override

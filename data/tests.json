@@ -145,7 +145,8 @@
                 "ltl2dpa#symmetric,disable-portfolio",
                 "ltl2dpa#symmetric,disable-complement,disable-portfolio",
                 "ltl2dpaZielonka",
-                "ltl2dpaZielonka#simple"
+                "ltl2dpaZielonka#simple",
+                "ltl2dpa#symbolic"
             ],
             "data": "L"
         },

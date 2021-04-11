@@ -1,32 +1,20 @@
 package owl.automaton.symbolic;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.Iterators;
-import java.util.BitSet;
 import java.util.List;
-import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
-import owl.automaton.Automaton;
 import owl.automaton.Views;
-import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.algorithm.LanguageContainment;
+import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.LtlTranslationRepository;
+import owl.translations.ltl2dra.NormalformDRAConstruction;
 
-public class SymbolicSccDecompositionTest {
-
-  private static final Function<LabelledFormula, Automaton<?, ? extends RabinAcceptance>> LTL_TO_DRA
-    = LtlTranslationRepository.LtlToDraTranslation.EKS20.translation(RabinAcceptance.class);
-
-  private static final Function<LabelledFormula, Automaton<?, ? extends BuchiAcceptance>> LTL_TO_NBA
-    = LtlTranslationRepository.LtlToNbaTranslation.EKS20.translation(BuchiAcceptance.class);
+public class SymbolicDRA2DPAConstructionTest {
 
   private final List<LabelledFormula> tests = List.of(
     "0",
@@ -62,9 +50,6 @@ public class SymbolicSccDecompositionTest {
     "X a | F b",
     "X a | G b",
     "X a | X b",
-    "X a | X !a",
-    "X X a | X X !a",
-    "X X X a | X X X !a",
     "F a & X F !a",
     "F a | X F !a",
     "G a & X G !a",
@@ -166,34 +151,22 @@ public class SymbolicSccDecompositionTest {
   ).stream().map(LtlParser::parse).collect(Collectors.toList());
 
   @Test
-  void sccDecompositionTest() {
+  void symbolicDRA2DPAConstructionTest() {
+    BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     for (var formula : tests) {
-      var dra = Views.complete(LTL_TO_DRA.apply(formula));
-      var nba = Views.complete(LTL_TO_NBA.apply(formula));
-      assertSccs(Views.stateAcceptanceAutomaton(dra), SymbolicAutomaton.of(dra));
-      assertSccs(Views.stateAcceptanceAutomaton(nba), SymbolicAutomaton.of(nba));
+      var construction = NormalformDRAConstruction.of(RabinAcceptance.class, false);
+      var rabin = Views.complete(construction.apply(formula));
+      var streett = Views.complete(construction.apply(formula.not()));
+      var product = SymbolicBooleanOperations.deterministicStructureProduct(
+        SymbolicAutomaton.of(rabin, factory),
+        SymbolicAutomaton.of(streett, factory)
+      );
+      var dpw = SymbolicDRA2DPAConstruction
+        .of(product)
+        .toParity()
+        .toAutomaton();
+      assertTrue(LanguageContainment.contains(dpw, rabin));
+      assertTrue(LanguageContainment.contains(rabin, dpw));
     }
-  }
-
-  private static void assertSccs(Automaton<?, ?> expected, SymbolicAutomaton<?> actual) {
-    // Since there is no relation between the explicit and the symbolic states,
-    // we check whether the sizes of the SCCs are the same.
-    List<Integer> expectedSccs = SccDecomposition
-      .of(Views.stateAcceptanceAutomaton(expected))
-      .sccs()
-      .stream()
-      .map(Set::size)
-      .sorted()
-      .collect(Collectors.toList());
-    List<Integer> actualSccs = SymbolicSccDecomposition.of(actual).sccs()
-      .stream()
-      .map(bddSet ->
-        bddSet.iterator(actual.variableAllocation()
-          .variables(STATE, COLOUR)
-          .copyInto(new BitSet())))
-      .map(Iterators::size)
-      .sorted()
-      .collect(Collectors.toList());
-    assertEquals(expectedSccs, actualSccs);
   }
 }
