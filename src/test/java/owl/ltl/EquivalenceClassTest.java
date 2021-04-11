@@ -34,6 +34,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import owl.automaton.edge.Colours;
 import owl.bdd.EquivalenceClassFactory;
 import owl.collections.BitSet2;
 import owl.ltl.parser.LtlParser;
@@ -94,15 +95,18 @@ abstract class EquivalenceClassTest {
     LabelledFormula formula = LtlParser.parse("a & (a | b) & (F c)");
     EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
 
-    assertThat(clazz.atomicPropositions(false),
-      x -> x.get(0) && x.length() == 1);
-    assertThat(clazz.atomicPropositions(true),
-      x -> x.get(0) && !x.get(1) && x.get(2) && x.length() == 3);
-
-    assertThat(clazz.unfold().atomicPropositions(false),
-      x -> x.get(0) && !x.get(1) && x.get(2) && x.length() == 3);
-    assertThat(clazz.unfold().atomicPropositions(true),
-      x -> x.get(0) && !x.get(1) && x.get(2) && x.length() == 3);
+    assertEquals(
+      Colours.of(0),
+      clazz.atomicPropositions(false));
+    assertEquals(
+      Colours.of(0, 2),
+      clazz.atomicPropositions(true));
+    assertEquals(
+      Colours.of(0, 2),
+      clazz.unfold().atomicPropositions(false));
+    assertEquals(
+      Colours.of(0, 2),
+      clazz.unfold().atomicPropositions(true));
   }
 
   @Test
@@ -110,36 +114,34 @@ abstract class EquivalenceClassTest {
     LabelledFormula formula = LtlParser.parse("F((a) | ((b) W (!(a))))");
     EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
 
-    assertThat(clazz.atomicPropositions(false),
-      x -> x.length() == 0);
-    assertThat(clazz.atomicPropositions(true),
-      x -> x.get(0) && x.get(1) && x.length() == 2);
+    assertEquals(
+      Colours.of(),
+      clazz.atomicPropositions(false));
+    assertEquals(
+      Colours.of(0, 1),
+      clazz.atomicPropositions(true));
 
-    assertThat(clazz.unfold().atomicPropositions(false),
-      x -> x.length() == 0);
-    assertThat(clazz.unfold().atomicPropositions(true),
-      x -> x.length() == 0);
+    assertEquals(
+      Colours.of(),
+      clazz.unfold().atomicPropositions(false));
+    assertEquals(
+      Colours.of(),
+      clazz.unfold().atomicPropositions(true));
   }
 
   @Test
   void testGetAtoms2() {
     LabelledFormula formula = LtlParser.parse("(a | (b & X a) | (F a)) & (c | (b & X a) | (F a))");
-    EquivalenceClassFactory factory = obtainFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula());
-    BitSet atoms = new BitSet();
-    atoms.set(0, 3);
-    assertEquals(atoms, clazz.atomicPropositions());
+    EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
+    assertEquals(Colours.of(0, 1, 2), clazz.atomicPropositions());
   }
 
   @Test
   void testAtomicPropositionsEmpty() {
     LabelledFormula formula = LtlParser.parse("G a");
-    EquivalenceClassFactory factory = obtainFactory(formula);
-    EquivalenceClass clazz = factory.of(formula.formula());
-    BitSet atoms = new BitSet();
-    assertEquals(atoms, clazz.atomicPropositions());
-    atoms.set(0);
-    assertEquals(atoms, clazz.unfold().atomicPropositions());
+    EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
+    assertEquals(Colours.of(), clazz.atomicPropositions());
+    assertEquals(Colours.of(0), clazz.unfold().atomicPropositions());
   }
 
   @Test

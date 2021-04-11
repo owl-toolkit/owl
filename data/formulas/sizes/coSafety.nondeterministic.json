@@ -1147,6 +1147,17 @@
     "formula": "((((a) U (Gb))) W (a))"
   },
   {
+    "formula": "(a & F(a & ((b) M (!a))))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "BuchiAcceptance",
+      "acceptanceSets": 1,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(!a & ((b) M ((!a & ((b) M (a))))))",
     "properties": {
       "size": 0,
@@ -1323,6 +1334,9 @@
   },
   {
     "formula": "(a | ((b) W ((a | ((b) W (!a))))))"
+  },
+  {
+    "formula": "(!a | G(!a | ((b) W (a))))"
   },
   {
     "formula": "(Fa | G(b | Xc))"

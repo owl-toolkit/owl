@@ -46,7 +46,7 @@ public final class BlockingElements {
       return true;
     }
 
-    int stateAtomicPropositionsSize = state.atomicPropositions(true).cardinality();
+    int stateAtomicPropositionsSize = state.atomicPropositions(true).size();
     int stateTemporalOperatorsSize = state.temporalOperators(true).size();
 
     for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
@@ -78,7 +78,7 @@ public final class BlockingElements {
       return true;
     }
 
-    int stateAtomicPropositionsSize = state.atomicPropositions(true).cardinality();
+    int stateAtomicPropositionsSize = state.atomicPropositions(true).size();
     int stateTemporalOperatorsSize = state.temporalOperators(true).size();
 
     for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
@@ -106,7 +106,7 @@ public final class BlockingElements {
   public static boolean isBlockedByTransient(EquivalenceClass state) {
     assert state.equals(state.unfold());
 
-    int stateAtomicPropositionsSize = state.atomicPropositions(true).cardinality();
+    int stateAtomicPropositionsSize = state.atomicPropositions(true).size();
     int stateTemporalOperatorsSize = state.temporalOperators(true).size();
 
     for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
@@ -140,10 +140,17 @@ public final class BlockingElements {
     }).orElseThrow();
   }
 
+  public static boolean containedInDifferentSccs(
+    EquivalenceClass state1, EquivalenceClass state2) {
+
+    return !state1.atomicPropositions(true).equals(state2.atomicPropositions(true))
+      || !state1.temporalOperators(true).equals(state2.temporalOperators(true));
+  }
+
   private static boolean detectSccChange(
     int stateAtomicPropositionsSize, int stateTemporalOperatorsSize, EquivalenceClass successor) {
 
-    return successor.atomicPropositions(true).cardinality() < stateAtomicPropositionsSize
+    return successor.atomicPropositions(true).size() < stateAtomicPropositionsSize
       || successor.temporalOperators(true).size() < stateTemporalOperatorsSize;
   }
 

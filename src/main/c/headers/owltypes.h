@@ -71,10 +71,13 @@ typedef enum {
 
   // Translate the formula and the negation of the formula to DPWs and
   // return the smaller one.
-  USE_COMPLEMENT,
+  X_DPA_USE_COMPLEMENT,
 
   // Use the dual normalisation procedure for the construction of DRWs.
-  USE_DUAL
+  X_DRA_NORMAL_FORM_USE_DUAL,
+
+  // Use advanced language analysis based on the LTL-labels of a state-formula. Very expensive.
+  X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS
 } ltl_translation_option_t;
 
 // Translations are named after corresponding publications.

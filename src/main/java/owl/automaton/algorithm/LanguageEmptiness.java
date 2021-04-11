@@ -49,7 +49,7 @@ public final class LanguageEmptiness {
   public static <S> boolean isEmpty(Automaton<S, ?> automaton, Set<S> initialStates) {
     EmersonLeiAcceptance acceptance = automaton.acceptance();
     // TODO: move to exploration stage.
-    assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
+    // assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
 
     if (acceptance instanceof AllAcceptance) {
       return initialStates.stream().noneMatch(

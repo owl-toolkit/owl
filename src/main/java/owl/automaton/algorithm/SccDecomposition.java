@@ -362,10 +362,7 @@ public abstract class SccDecomposition<S> {
       Set<S> scc = sccs().get(i);
 
       //restrict automaton to just the SCC and check for non-det states
-      Views.Filter<S> sccFilter = Views.Filter.<S>builder()
-        .initialStates(scc)
-        .stateFilter(scc::contains)
-        .build();
+      Views.Filter<S> sccFilter = Views.Filter.of(scc, scc::contains);
 
       if (Views.filtered(automaton(), sccFilter).is(Automaton.Property.SEMI_DETERMINISTIC)) {
         deterministicSccs.add(i);
@@ -386,16 +383,21 @@ public abstract class SccDecomposition<S> {
     Preconditions.checkState(automaton().acceptance() instanceof BuchiAcceptance);
 
     for (int i = 0, s = sccs().size(); i < s; i++) {
+      if (transientSccs().contains(i) || rejectingSccs().contains(i)) {
+        continue;
+      }
+
       Set<S> scc = sccs().get(i);
 
       //if all SCCs in SCC sub-aut. with only rejecting edges are trivial, there is no rej. loop
       Views.Filter<S> justRej = Views.Filter.<S>builder()
-        .initialStates(scc).stateFilter(scc::contains)
+        .initialStates(scc)
+        .stateFilter(scc::contains)
         .edgeFilter((state, e) -> !automaton().acceptance().isAcceptingEdge(e)).build();
-      final var rejSubAut = Views.filtered(automaton(), justRej);
+      var rejSubAut = Views.filtered(automaton(), justRej);
 
-      final var sccScci = SccDecomposition.of(rejSubAut);
-      final var noRejLoops = sccScci.sccs().stream().allMatch(sccScci::isTransientScc);
+      var sccScci = SccDecomposition.of(rejSubAut);
+      var noRejLoops = sccScci.sccs().stream().allMatch(sccScci::isTransientScc);
 
       //no bad lasso and not trivial (i.e. has some good + has only good cycles) -> weak accepting
       if (noRejLoops && !transientSccs().contains(i)) {
@@ -417,14 +419,9 @@ public abstract class SccDecomposition<S> {
     for (int i = 0, s = sccs().size(); i < s; i++) {
       Set<S> scc = sccs().get(i);
 
-      Views.Filter<S> sccFilter = Views.Filter.<S>builder()
-        .initialStates(scc)
-        .stateFilter(scc::contains)
-        .build();
+      Views.Filter<S> sccFilter = Views.Filter.of(Set.of(scc.iterator().next()), scc::contains);
 
-      if (LanguageEmptiness
-        .isEmpty(Views.filtered(automaton(), sccFilter), Set.of(scc.iterator().next()))) {
-
+      if (LanguageEmptiness.isEmpty(Views.filtered(automaton(), sccFilter))) {
         rejectingSccs.add(i);
       }
     }

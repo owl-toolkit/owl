@@ -38,12 +38,12 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Table;
-import com.google.common.graph.Graphs;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -65,6 +65,7 @@ import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
@@ -84,6 +85,7 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.BlockingElements;
 import owl.translations.mastertheorem.Normalisation;
 
 public final class NormalformDPAConstruction implements
@@ -102,13 +104,17 @@ public final class NormalformDPAConstruction implements
       "Disable optimisations and only use the simple base construction."),
     (commandLine, environment) ->
       OwlModule.LabelledFormulaTransformer.of(
-        x -> of(commandLine.hasOption("simple")).apply(x))
+        x -> of(commandLine.hasOption("simple"), true).apply(x))
   );
 
   private final boolean simpleConstruction;
+  private final boolean advancedLanguageAnalysis;
 
-  public NormalformDPAConstruction(boolean simpleConstruction) {
+  private NormalformDPAConstruction(
+    boolean simpleConstruction, boolean advancedLanguageAnalysis) {
+
     this.simpleConstruction = simpleConstruction;
+    this.advancedLanguageAnalysis = advancedLanguageAnalysis;
   }
 
   public static void main(String... args) throws IOException {
@@ -120,8 +126,10 @@ public final class NormalformDPAConstruction implements
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 
-  public static NormalformDPAConstruction of(boolean simpleConstruction) {
-    return new NormalformDPAConstruction(simpleConstruction);
+  public static NormalformDPAConstruction of(
+    boolean simpleConstruction, boolean advancedLanguageAnalysis) {
+
+    return new NormalformDPAConstruction(simpleConstruction, advancedLanguageAnalysis);
   }
 
   @Override
@@ -129,7 +137,8 @@ public final class NormalformDPAConstruction implements
     // Ensure that the input formula is in negation normal form and that
     // X-operators occur only in-front of temporal operators.
     var normalisedFormula = PushNextThroughPropositionalVisitor.apply(formula.nnf());
-    return new Construction(normalisedFormula, simpleConstruction).automaton();
+    return new Construction(normalisedFormula, simpleConstruction, advancedLanguageAnalysis)
+      .automaton();
   }
 
   private static class Construction {
@@ -142,9 +151,17 @@ public final class NormalformDPAConstruction implements
       ToParityTransformer.ZielonkaTreeRoot> zielonkaTreeCache = HashBasedTable.create();
     private final LabelledFormula formula;
 
-    private final boolean simpleConstruction;
+    private final Map<PropositionalFormula<BreakpointStateRejecting>, EquivalenceClass>
+      languageCache = new HashMap<>();
 
-    private Construction(LabelledFormula formula, boolean simpleConstruction) {
+    private final Set<BreakpointStateRejecting> skipSccDecomposition = new HashSet<>();
+
+    private final boolean simpleConstruction;
+    private final boolean advancedLanguageAnalysis;
+
+    private Construction(LabelledFormula formula,
+      boolean simpleConstruction,
+      boolean advancedLanguageAnalysis) {
 
       var factories
         = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
@@ -153,6 +170,7 @@ public final class NormalformDPAConstruction implements
       this.dbw = SafetyCoSafety.of(factories, BooleanConstant.TRUE, true, true);
       this.formula = formula;
       this.simpleConstruction = simpleConstruction;
+      this.advancedLanguageAnalysis = advancedLanguageAnalysis;
     }
 
     private Automaton<State, ParityAcceptance> automaton() {
@@ -223,7 +241,7 @@ public final class NormalformDPAConstruction implements
 
       // Is it the same?
       if (state.zielonkaTreeRoot().equals(zielonkaTreeRoot)) {
-        // Yes, Update path and generate colours
+        // Yes, update path and generate colours
         var zielonkaEdge = zielonkaTreeRoot.transformColours(
           Colours.copyOf(acceptanceSet), state.zielonkaTreePath());
         successor = State.of(successorFormula,
@@ -286,8 +304,14 @@ public final class NormalformDPAConstruction implements
         return status;
       }
 
-      var automaton = Views.filtered(dbw, Views.Filter.of(Set.of(state)));
-      var sccDecomposition = SccDecomposition.of(automaton);
+      var sccFilter = Views.Filter.<BreakpointStateRejecting>builder()
+        .initialStates(Set.of(state))
+        .edgeFilter((localState, edge) ->
+          !BlockingElements.containedInDifferentSccs(localState.all(), edge.successor().all()))
+        .build();
+
+      var sccDecomposition
+        = SccDecomposition.of(Views.filtered(dbw, sccFilter));
 
       for (Set<BreakpointStateRejecting> scc : sccDecomposition.sccs()) {
         for (BreakpointStateRejecting sccState : scc) {
@@ -319,14 +343,7 @@ public final class NormalformDPAConstruction implements
         return memoize(Set.of(state), TERMINAL_REJECTING);
       }
 
-      var condensationGraph = sccDecomposition.condensation();
       int index = sccDecomposition.index(state);
-
-      if (sccDecomposition.rejectingSccs().equals(
-        Graphs.reachableNodes(condensationGraph, index))) {
-
-        return memoize(Set.of(state), TERMINAL_REJECTING);
-      }
 
       // Check for transient SCCs.
       if (dbw.suspensionCheck.isBlockedByTransient(state.all())) {
@@ -399,9 +416,9 @@ public final class NormalformDPAConstruction implements
           }
         }).normalise();
 
-      newStateFormula = simpleConstruction
+      newStateFormula = simpleConstruction || !advancedLanguageAnalysis
         ? newStateFormula
-        : simplifyStateFormula(newStateFormula, stateMap, new HashMap<>()).normalise();
+        : simplifyStateFormula(newStateFormula, stateMap).normalise();
 
       var remainingVariables = newStateFormula.variables();
       statusMap.keySet().retainAll(remainingVariables);
@@ -410,24 +427,39 @@ public final class NormalformDPAConstruction implements
       return newStateFormula;
     }
 
-    private static PropositionalFormula<Integer> simplifyStateFormula(
+    private PropositionalFormula<Integer> simplifyStateFormula(
       PropositionalFormula<Integer> stateFormula,
-      Map<Integer, ? extends BreakpointStateRejecting> stateMap,
-      Map<PropositionalFormula<Integer>, EquivalenceClass> languageCache) {
+      Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
 
+      // Nothing to do.
       if (stateFormula.isTrue() || stateFormula.isFalse()) {
         return stateFormula;
       }
 
-      // Nothing to do.
-      if (stateFormula instanceof PropositionalFormula.Variable
-        || stateFormula instanceof PropositionalFormula.Negation) {
+      if (stateFormula instanceof PropositionalFormula.Variable) {
+        var language = language(stateFormula, stateMap);
+
+        if (language.isTrue()) {
+          return PropositionalFormula.trueConstant();
+        }
+
+        if (language.isFalse()) {
+          return PropositionalFormula.falseConstant();
+        }
+
         return stateFormula;
+      }
+
+      if (stateFormula instanceof PropositionalFormula.Negation) {
+        return PropositionalFormula.Negation.of(
+          simplifyStateFormula(
+            ((PropositionalFormula.Negation<Integer>) stateFormula).operand,
+            stateMap));
       }
 
       if (stateFormula instanceof PropositionalFormula.Conjunction) {
         var conjuncts = PropositionalFormula.conjuncts(stateFormula).stream()
-          .map(x -> simplifyStateFormula(x, stateMap, languageCache))
+          .map(x -> simplifyStateFormula(x, stateMap))
           .collect(Collectors.toList());
 
         assert !conjuncts.isEmpty();
@@ -439,7 +471,7 @@ public final class NormalformDPAConstruction implements
           return normalisedFormula;
         }
 
-        var language = language(normalisedFormula, stateMap, languageCache);
+        var language = language(normalisedFormula, stateMap);
 
         if (language.isTrue()) {
           return PropositionalFormula.trueConstant();
@@ -452,8 +484,7 @@ public final class NormalformDPAConstruction implements
         conjuncts = Collections3.maximalElements(
           PropositionalFormula.conjuncts(normalisedFormula),
           (x, y) -> {
-            return language(y, stateMap, languageCache).implies(
-              language(x, stateMap, languageCache));
+            return language(y, stateMap).implies(language(x, stateMap));
           });
 
         return PropositionalFormula.Conjunction.of(conjuncts).normalise();
@@ -461,7 +492,7 @@ public final class NormalformDPAConstruction implements
 
       assert stateFormula instanceof PropositionalFormula.Disjunction;
       var disjuncts = PropositionalFormula.disjuncts(stateFormula).stream()
-        .map(x -> simplifyStateFormula(x, stateMap, languageCache))
+        .map(x -> simplifyStateFormula(x, stateMap))
         .collect(Collectors.toList());
 
       assert !disjuncts.isEmpty();
@@ -473,7 +504,7 @@ public final class NormalformDPAConstruction implements
         return normalisedFormula;
       }
 
-      var language = language(normalisedFormula, stateMap, languageCache);
+      var language = language(normalisedFormula, stateMap);
 
       if (language.isTrue()) {
         return PropositionalFormula.trueConstant();
@@ -486,49 +517,81 @@ public final class NormalformDPAConstruction implements
       disjuncts = Collections3.maximalElements(
         PropositionalFormula.disjuncts(normalisedFormula),
         (x, y) -> {
-          return language(x, stateMap, languageCache).implies(
-            language(y, stateMap, languageCache));
+          return language(x, stateMap).implies(language(y, stateMap));
         });
 
       return PropositionalFormula.Disjunction.of(disjuncts).normalise();
     }
 
-    private static EquivalenceClass language(
+    private EquivalenceClass language(
       PropositionalFormula<Integer> stateFormula,
-      Map<Integer, ? extends BreakpointStateRejecting> stateMap,
-      Map<PropositionalFormula<Integer>, EquivalenceClass> languageCache) {
+      Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
 
-      EquivalenceClass language = languageCache.get(stateFormula);
+      PropositionalFormula<BreakpointStateRejecting> resolvedStateFormula
+        = stateFormula.substituteTo(x -> PropositionalFormula.Variable.of(stateMap.get(x)));
+      EquivalenceClass language = languageCache.get(resolvedStateFormula);
 
       if (language != null) {
         return language;
       }
 
-      if (stateFormula instanceof PropositionalFormula.Variable) {
-        language
-          = stateMap.get(((PropositionalFormula.Variable<Integer>) stateFormula).variable).all();
+      if (resolvedStateFormula instanceof PropositionalFormula.Variable) {
+
+        var state =
+          ((PropositionalFormula.Variable<BreakpointStateRejecting>) resolvedStateFormula).variable;
+        language = state.all();
+
+        if (!skipSccDecomposition.contains(state)) {
+          var sccDecomposition
+            = SccDecomposition.of(Views.replaceInitialStates(dbw, Set.of(state)));
+
+          var acceptingSccs = BitSet2.copyOf(sccDecomposition.acceptingSccs());
+          acceptingSccs.or(BitSet2.copyOf(sccDecomposition.transientSccs()));
+          var rejectingSccs = BitSet2.copyOf(sccDecomposition.rejectingSccs());
+          rejectingSccs.or(BitSet2.copyOf(sccDecomposition.transientSccs()));
+
+          // all sccs are either accepting or transient.
+          if (acceptingSccs.cardinality() == sccDecomposition.sccs().size()) {
+            var trueConstant = language.factory().of(true);
+            language = trueConstant;
+            sccDecomposition.sccs().forEach(
+              x -> x.forEach(
+                y -> languageCache.put(PropositionalFormula.Variable.of(y), trueConstant)));
+          } else if (rejectingSccs.cardinality() == sccDecomposition.sccs().size()) {
+            // all sccs are either rejecting or transient.
+            assert acceptingSccs.cardinality() < sccDecomposition.sccs().size();
+            var falseConstant = language.factory().of(false);
+            language = falseConstant;
+            sccDecomposition.sccs().forEach(
+              x -> x.forEach(
+                y -> languageCache.put(PropositionalFormula.Variable.of(y), falseConstant)));
+          } else {
+            skipSccDecomposition.addAll(sccDecomposition.sccs().get(0));
+          }
+        }
+
       } else if (stateFormula instanceof PropositionalFormula.Negation) {
         var castedStateFormula
           = ((PropositionalFormula.Negation<Integer>) stateFormula);
         var complementLanguage
-          = language(castedStateFormula.operand, stateMap, languageCache);
-        var languageFormula = complementLanguage.canonicalRepresentativeDnf().not();
+          = language(castedStateFormula.operand, stateMap);
+        var languageFormula = complementLanguage.canonicalRepresentativeCnf().not();
         language = complementLanguage.factory().of(languageFormula);
       } else if (stateFormula instanceof PropositionalFormula.Conjunction) {
         var castedStateFormula = ((PropositionalFormula.Conjunction<Integer>) stateFormula);
         language = castedStateFormula.conjuncts.stream()
-          .map(conjunct -> language(conjunct, stateMap, languageCache))
+          .map(conjunct -> language(conjunct, stateMap))
           .reduce(EquivalenceClass::and)
           .orElseThrow();
       } else {
         var castedStateFormula = ((PropositionalFormula.Disjunction<Integer>) stateFormula);
         language = castedStateFormula.disjuncts.stream()
-          .map(disjunct -> language(disjunct, stateMap, languageCache))
+          .map(disjunct -> language(disjunct, stateMap))
           .reduce(EquivalenceClass::or)
           .orElseThrow();
       }
 
-      languageCache.put(stateFormula, language);
+      languageCache.put(resolvedStateFormula, language);
       return language;
     }
 

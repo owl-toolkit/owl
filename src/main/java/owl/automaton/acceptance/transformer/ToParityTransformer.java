@@ -23,7 +23,11 @@ import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
+import com.google.common.primitives.ImmutableIntArray;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -414,6 +418,8 @@ public final class ToParityTransformer {
   public abstract static class ZielonkaTreeRoot
     implements AcceptanceTransformer<ParityAcceptance, Path> {
 
+    private static final Interner<ZielonkaTreeRoot> INTERNER = Interners.newWeakInterner();
+
     public abstract ZielonkaTree root();
 
     public abstract boolean rootAccepting();
@@ -438,7 +444,8 @@ public final class ToParityTransformer {
       Set<Integer> colours = alpha.variables();
       ZielonkaTree root = ZielonkaTree.of(Colours.copyOf(colours), alpha, beta);
       boolean accepting = alpha.evaluate(root.colours());
-      return new AutoValue_ToParityTransformer_ZielonkaTreeRoot(root, accepting, stutter);
+      return INTERNER.intern(
+        new AutoValue_ToParityTransformer_ZielonkaTreeRoot(root, accepting, stutter));
     }
 
     @Override
@@ -460,7 +467,10 @@ public final class ToParityTransformer {
       List<Integer> successorPathBuilder = new ArrayList<>();
       Path successorPath = null;
 
-      for (Integer edgeIndex : currentPath.indices()) {
+      var indices = currentPath.indices();
+
+      for (int i = 0, s = indices.length(); i < s; i++) {
+        int edgeIndex = indices.get(i);
         var child = node.children().get(edgeIndex);
 
         if (child.colours().containsAll(colours)) {
@@ -500,7 +510,7 @@ public final class ToParityTransformer {
       }
 
       if (successorPath == null) {
-        successorPath = Path.of(successorPathBuilder);
+        successorPath = Path.of(ImmutableIntArray.copyOf(successorPathBuilder));
       }
 
       return Edge.of(successorPath, rootAccepting() ? anchorLevel : anchorLevel + 1);
@@ -508,18 +518,26 @@ public final class ToParityTransformer {
 
     private Path extendPathToLeaf(List<Integer> path) {
       var localNode = root().subtree(path);
+      var pathBuilder = ImmutableIntArray.builder(
+        path.size() + localNode.height());
+      pathBuilder.addAll(path);
 
       while (!localNode.children().isEmpty()) {
         localNode = localNode.children().get(0);
-        path.add(0);
+        pathBuilder.add(0);
       }
 
-      return Path.of(path);
+      return Path.of(pathBuilder.build());
     }
   }
 
+  @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode")
   @AutoValue
   public abstract static class ZielonkaTree {
+
+    private static final Interner<ZielonkaTree> INTERNER = Interners.newWeakInterner();
+
+    public abstract int height();
 
     public abstract Colours colours();
 
@@ -556,29 +574,23 @@ public final class ToParityTransformer {
         .toArray(Colours[]::new);
 
       var children = new ArrayList<ZielonkaTree>();
+      int height = 0;
 
       for (Colours childColours : maximalModels) {
-        children.add(of(childColours, alpha, beta, cache));
+        var child = of(childColours, alpha, beta, cache);
+        height = Math.max(height, child.height() + 1);
+        children.add(child);
       }
 
-      zielonkaTree = new AutoValue_ToParityTransformer_ZielonkaTree(colours, List.copyOf(children));
+      zielonkaTree = INTERNER.intern(
+        new AutoValue_ToParityTransformer_ZielonkaTree(height, colours, List.copyOf(children)));
 
       cache.put(colours, zielonkaTree);
       return zielonkaTree;
     }
 
-    public int height() {
-      int max = 0;
-
-      for (ZielonkaTree child : children()) {
-        max = Math.max(max, child.height() + 1);
-      }
-
-      return max;
-    }
-
     public ZielonkaTree subtree(Path path) {
-      return subtree(path.indices());
+      return subtree(path.indices().asList());
     }
 
     public ZielonkaTree subtree(List<Integer> path) {
@@ -590,15 +602,21 @@ public final class ToParityTransformer {
 
       return subtree;
     }
+
+    @Memoized
+    @Override
+    public abstract int hashCode();
   }
 
   @AutoValue
   public abstract static class Path {
 
-    public abstract List<Integer> indices();
+    private static final Interner<Path> INTERNER = Interners.newWeakInterner();
 
-    public static Path of(List<Integer> indices) {
-      return new AutoValue_ToParityTransformer_Path(List.copyOf(indices));
+    public abstract ImmutableIntArray indices();
+
+    public static Path of(ImmutableIntArray indices) {
+      return INTERNER.intern(new AutoValue_ToParityTransformer_Path(indices.trimmed()));
     }
   }
 }

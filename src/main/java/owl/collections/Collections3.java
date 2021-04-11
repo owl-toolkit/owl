@@ -218,19 +218,6 @@ public final class Collections3 {
     checkArgument(!iterator1.hasNext() && !iterator2.hasNext(), "Length mismatch.");
   }
 
-  public static <K, V1, V2> void forEachJointKey(
-    Map<? extends K, ? extends V1> map1,
-    Map<? extends K, ? extends V2> map2,
-    TriConsumer<? super K, ? super V1, ? super V2> consumer) {
-
-    map1.forEach((K key, V1 value1) -> {
-      V2 value2 = map2.get(key);
-      if (value2 != null) {
-        consumer.accept(key, value1, value2);
-      }
-    });
-  }
-
   public static <E> boolean isDistinct(List<E> list) {
     Set<E> set = new HashSet<>(list.size());
 
@@ -485,7 +472,7 @@ public final class Collections3 {
     int value = Arrays.compare(a1, a2);
     return value;
   }
-  
+
   /**
    * Returns the index of the first occurrence of the specified element
    * in this list of sets, or -1 if this list does not contain the element.

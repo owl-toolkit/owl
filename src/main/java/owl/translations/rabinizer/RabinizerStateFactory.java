@@ -25,6 +25,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.ltl.Conjunction;
@@ -47,7 +48,7 @@ class RabinizerStateFactory {
     this.eager = eager;
   }
 
-  BitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
+  Colours getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
     return eager
       ? equivalenceClass.atomicPropositions()
       : equivalenceClass.unfold().atomicPropositions();
@@ -59,10 +60,11 @@ class RabinizerStateFactory {
     }
 
     BitSet getSensitiveAlphabet(RabinizerState state) {
-      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(state.masterState());
+      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(state.masterState())
+        .copyInto(new BitSet());
       for (MonitorState monitorState : state.monitorStates()) {
         for (EquivalenceClass rankedFormula : monitorState.formulaRanking()) {
-          sensitiveAlphabet.or(getClassSensitiveAlphabet(rankedFormula));
+          getClassSensitiveAlphabet(rankedFormula).copyInto(sensitiveAlphabet);
         }
       }
       return sensitiveAlphabet;
@@ -150,9 +152,9 @@ class RabinizerStateFactory {
       }
 
       Iterator<EquivalenceClass> iterator = ranking.iterator();
-      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(iterator.next());
+      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(iterator.next()).copyInto(new BitSet());
       while (iterator.hasNext()) {
-        sensitiveAlphabet.or(getClassSensitiveAlphabet(iterator.next()));
+        getClassSensitiveAlphabet(iterator.next()).copyInto(sensitiveAlphabet);
       }
       return sensitiveAlphabet;
     }

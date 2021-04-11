@@ -342,12 +342,12 @@ class TranslationReport {
 
       var automaton1
         = LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
-          EnumSet.of(LtlTranslationRepository.Option.USE_COMPLEMENT,
+          EnumSet.of(LtlTranslationRepository.Option.X_DPA_USE_COMPLEMENT,
               LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)).apply(labelledFormula);
 
       var automaton2
         = LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
-          EnumSet.of(LtlTranslationRepository.Option.USE_COMPLEMENT,
+          EnumSet.of(LtlTranslationRepository.Option.X_DPA_USE_COMPLEMENT,
               LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS)).apply(labelledFormula);
       return automaton1.states().size() <= automaton2.states().size() ? automaton1 : automaton2;
     });

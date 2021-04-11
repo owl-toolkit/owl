@@ -2211,6 +2211,17 @@
     }
   },
   {
+    "formula": "(a & F(a & ((b) M (!a))))",
+    "properties": {
+      "size": 0,
+      "initialStatesSize": 0,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 0,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(!a & ((b) M ((!a & ((b) M (a))))))",
     "properties": {
       "size": 0,
@@ -2731,6 +2742,17 @@
     "formula": "(a | ((b) W ((a | ((b) W (!a))))))",
     "properties": {
       "size": 1,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(!a | G(!a | ((b) W (a))))",
+    "properties": {
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 2,

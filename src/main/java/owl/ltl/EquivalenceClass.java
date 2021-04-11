@@ -22,7 +22,7 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import owl.automaton.edge.Colours;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
 
@@ -34,9 +34,32 @@ import owl.bdd.MtBdd;
  */
 public interface EquivalenceClass extends LtlLanguageExpressible {
 
+  /**
+   * See {@link Formula#atomicPropositions(boolean)}.
+   */
+  default Colours atomicPropositions() {
+    return atomicPropositions(false);
+  }
+
+  /**
+   * Collects all literals used in the bdd and stores the corresponding atomic propositions in
+   * the BitSet. See also {@link Formula#atomicPropositions(boolean)}.
+   */
+  Colours atomicPropositions(boolean includeNested);
+
   Set<Set<Formula>> conjunctiveNormalForm();
 
   Set<Set<Formula>> disjunctiveNormalForm();
+
+  /**
+   * The canonical representative for this equivalence class, which is defined as the formula
+   * representation of the {@link EquivalenceClass#conjunctiveNormalForm}.
+   *
+   * @return The canonical representative.
+   */
+  default Formula canonicalRepresentativeCnf() {
+    return Conjunction.of(conjunctiveNormalForm().stream().map(Disjunction::of));
+  }
 
   /**
    * The canonical representative for this equivalence class, which is defined as the formula
@@ -48,46 +71,17 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
     return Disjunction.of(disjunctiveNormalForm().stream().map(Conjunction::of));
   }
 
-  /**
-   * The canonical representative for this equivalence class, which is defined as the formula
-   * representation of the {@link EquivalenceClass#conjunctiveNormalForm()}.
-   *
-   * @return The canonical representative.
-   */
-  default Formula canonicalRepresentativeCnf() {
-    return Conjunction.of(conjunctiveNormalForm().stream().map(Disjunction::of));
-  }
-
   EquivalenceClassFactory factory();
 
   boolean isFalse();
 
   boolean isTrue();
 
-  /**
-   * See {@link Formula#atomicPropositions(boolean)}.
-   */
-  default BitSet atomicPropositions() {
-    return atomicPropositions(false);
+  default Set<Formula.TemporalOperator> temporalOperators() {
+    return temporalOperators(false);
   }
 
-  /**
-   * Collects all literals used in the bdd and stores the corresponding atomic propositions in
-   * the BitSet. See also {@link Formula#atomicPropositions(boolean)}.
-   */
-  BitSet atomicPropositions(boolean includeNested);
-
-  Set<Formula.TemporalOperator> temporalOperators();
-
-  default Set<Formula.TemporalOperator> temporalOperators(boolean includeNested) {
-    if (includeNested) {
-      return temporalOperators().stream()
-        .flatMap(x -> x.subformulas(Formula.TemporalOperator.class).stream())
-        .collect(Collectors.toSet());
-    }
-
-    return temporalOperators();
-  }
+  Set<Formula.TemporalOperator> temporalOperators(boolean includeNested);
 
   boolean implies(EquivalenceClass other);
 

@@ -173,7 +173,7 @@ public final class AcceptanceOptimizations {
       } else {
         S state = scc.iterator().next();
 
-        Automaton<S, ?> filtered = Views.filtered(automaton, Views.Filter.of(scc));
+        Automaton<S, ?> filtered = Views.replaceInitialStates(automaton, scc);
         if (LanguageEmptiness.isEmpty(filtered, Set.of(state))) {
           // Scc is not accepting on its own
           var successors

@@ -19,6 +19,9 @@
 
 package owl.translations.modules;
 
+import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
+import static owl.translations.LtlTranslationRepository.Option.X_DPA_USE_COMPLEMENT;
+
 import java.io.IOException;
 import java.util.EnumSet;
 import java.util.List;
@@ -49,23 +52,23 @@ public final class LTL2DPAModule {
           ? (useComplement
           ? (usePortfolio
           ? LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
-          EnumSet.of(Option.USE_COMPLEMENT, Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
+          EnumSet.of(X_DPA_USE_COMPLEMENT, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
           : LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
-            EnumSet.of(Option.USE_COMPLEMENT)))
+            EnumSet.of(X_DPA_USE_COMPLEMENT)))
           : (usePortfolio
             ? LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
-            EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
+            EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
             : LtlTranslationRepository.LtlToDpaTranslation.EKS20_EKRS17.translation(
               EnumSet.noneOf(Option.class))))
           : (useComplement
             ? (usePortfolio
             ? LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
-            EnumSet.of(Option.USE_COMPLEMENT, Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
+            EnumSet.of(X_DPA_USE_COMPLEMENT, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
             : LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
-              EnumSet.of(Option.USE_COMPLEMENT)))
+              EnumSet.of(X_DPA_USE_COMPLEMENT)))
             : (usePortfolio
               ? LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
-              EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
+              EnumSet.of(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
               : LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation(
                 EnumSet.noneOf(Option.class)))));
     }

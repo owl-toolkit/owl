@@ -292,7 +292,8 @@ public class CAutomatonTest {
   @Test
   void testAcceptingSink() {
     var translation
-      = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(EnumSet.noneOf(Option.class));
+      = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(
+        EnumSet.of(Option.X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS));
 
     var automaton1 = translation.apply(LtlParser.parse("a | G F b"));
     var cAutomaton1 = CAutomaton.DeterministicAutomatonWrapper.of(automaton1, -1);
@@ -330,6 +331,7 @@ public class CAutomatonTest {
     assertTrue(Arrays.stream(cAutomaton4.edgeTree(1, false).edges.toArray())
       .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.REJECTING));
   }
+
 
   private static class FeatureDeserializer implements JsonDeserializer<Feature> {
 
