@@ -5,8 +5,10 @@ import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
 import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
 
 import com.google.auto.value.AutoValue;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
@@ -37,14 +39,13 @@ public abstract class SymbolicSccDecomposition {
     }
     BddSet transitionRelation = automaton().transitionRelation();
     SymbolicAutomaton.VariableAllocation variableAllocation = automaton().variableAllocation();
+    BitSet states = variableAllocation.variables(STATE, COLOUR).copyInto(new BitSet());
     checkArgument(restrictedTo.factory() == transitionRelation.factory());
     Deque<BddSet> worklist = new ArrayDeque<>();
     worklist.push(restrictedTo);
     List<BddSet> sccs = new ArrayList<>();
     while (!worklist.isEmpty()) {
       BddSet consideredStates = worklist.pop();
-      var states = variableAllocation.variables(STATE);
-      states.or(variableAllocation.variables(COLOUR));
       // Get some arbitrary state from consideredStates
       BddSet node = transitionRelation
         .factory()
@@ -95,7 +96,12 @@ public abstract class SymbolicSccDecomposition {
     return sccs;
   }
 
+  @Memoized
   public List<BddSet> sccs() {
     return sccs(automaton().reachableStates());
+  }
+
+  public boolean isTrivialScc(BddSet scc) {
+    return automaton().successors(scc).intersection(scc).isEmpty();
   }
 }

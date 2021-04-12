@@ -2,8 +2,12 @@ package owl.automaton.symbolic;
 
 import com.google.common.annotations.VisibleForTesting;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.EnumSet;
 import java.util.List;
+import java.util.Set;
+import owl.automaton.edge.Colours;
 import owl.automaton.symbolic.SymbolicAutomaton.VariableType;
 
 public class ManualVariableAllocation implements SymbolicAutomaton.VariableAllocation {
@@ -20,14 +24,15 @@ public class ManualVariableAllocation implements SymbolicAutomaton.VariableAlloc
   }
 
   @Override
-  public BitSet variables(VariableType type) {
+  public Colours variables(VariableType... types) {
     BitSet bitset = new BitSet();
+    Set<VariableType> typeSet = EnumSet.copyOf(Arrays.asList(types));
     for (int i = 0; i < variables.size(); i++) {
-      if (variables.get(i) == type) {
+      if (typeSet.contains(variables.get(i))) {
         bitset.set(i);
       }
     }
-    return bitset;
+    return Colours.copyOf(bitset);
   }
 
   @Override

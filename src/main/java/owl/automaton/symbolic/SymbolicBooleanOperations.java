@@ -69,17 +69,23 @@ public final class SymbolicBooleanOperations {
       ), automata);
   }
 
+  public static SymbolicAutomaton<?> deterministicStructureProduct(
+    SymbolicAutomaton<?> automaton1, SymbolicAutomaton<?> automaton2
+  ) {
+    return deterministicProduct(
+      PropositionalFormula.Variable.of(0),
+      List.of(automaton1, automaton2)
+    );
+  }
+
   public static SymbolicAutomaton<?> deterministicProduct(
     PropositionalFormula<Integer> automatonFormula, List<? extends SymbolicAutomaton<?>> automata) {
 
     Preconditions.checkArgument(
-      automatonFormula
-        .variables()
-        .equals(
-          IntStream.range(0, automata.size())
-            .boxed()
-            .collect(Collectors.toSet())
-        )
+      IntStream.range(0, automata.size())
+        .boxed()
+        .collect(Collectors.toSet())
+        .containsAll(automatonFormula.variables())
     );
 
     Preconditions.checkArgument(!automata.isEmpty()
@@ -140,8 +146,4 @@ public final class SymbolicBooleanOperations {
       properties
     );
   }
-
-
-
-
 }

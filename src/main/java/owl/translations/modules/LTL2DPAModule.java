@@ -27,6 +27,7 @@ import java.util.EnumSet;
 import java.util.List;
 import org.apache.commons.cli.Options;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
@@ -36,6 +37,7 @@ import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
 import owl.translations.LtlTranslationRepository;
 import owl.translations.LtlTranslationRepository.Option;
+import owl.translations.ltl2dpa.SymbolicDPAConstruction;
 
 public final class LTL2DPAModule {
   public static final OwlModule<Transformer> MODULE = OwlModule.of(
@@ -43,6 +45,11 @@ public final class LTL2DPAModule {
     "Translate LTL to deterministic parity automata, using LDBA constructions.",
     options(),
     (commandLine, environment) -> {
+      if (commandLine.hasOption("symbolic")) {
+        return OwlModule.LabelledFormulaTransformer.of(SymbolicDPAConstruction.of()
+          .andThen(SymbolicAutomaton::toAutomaton)
+        );
+      }
       boolean useSymmetric = commandLine.hasOption(AbstractLTL2LDBAModule.symmetric().getOpt());
       boolean useComplement = !commandLine.hasOption("disable-complement");
       boolean usePortfolio = AbstractLTL2PortfolioModule.usePortfolio(commandLine);
@@ -83,7 +90,10 @@ public final class LTL2DPAModule {
         "Disable the parallel computation of a DPA for the negation of the formula. If "
           + "the parallel computation is left not disabled, then two DPAs are computed and the "
           + "smaller (number of states) is returned.")
-      .addOption(AbstractLTL2PortfolioModule.disablePortfolio());
+      .addOption(AbstractLTL2PortfolioModule.disablePortfolio())
+      .addOption(null, "symbolic", false,
+        "Use a symbolic construction (ignores other options)."
+      );
   }
 
   public static void main(String... args) throws IOException {

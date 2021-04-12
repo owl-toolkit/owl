@@ -34,6 +34,7 @@ import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR
 import static owl.translations.LtlTranslationRepository.Option.X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS;
 import static owl.translations.LtlTranslationRepository.Option.X_DRA_NORMAL_FORM_USE_DUAL;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.BASE;
+import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.DWYER;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.FGGF;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.LIBEROUTER;
 import static owl.translations.TranslationAutomatonSummaryTest.FormulaSet.PARAMETRISED_HARDNESS;
@@ -78,6 +79,7 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.hoa.HoaWriter;
+import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
@@ -90,6 +92,7 @@ import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
+import owl.translations.ltl2dpa.SymbolicDPAConstruction;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 public class TranslationAutomatonSummaryTest {
@@ -194,6 +197,10 @@ public class TranslationAutomatonSummaryTest {
       LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(
         EnumSet.of(X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS))),
 
+    new Translator("dpa.normalform-typeness.symbolic",
+      SymbolicDPAConstruction.of().andThen(SymbolicAutomaton::toAutomaton),
+      EnumSet.complementOf(EnumSet.of(BASE, SIZE, DWYER))),
+
     new Translator("dra.symmetric",
       LtlToDraTranslation.EKS20.translation(
         RabinAcceptance.class,
@@ -282,6 +289,8 @@ public class TranslationAutomatonSummaryTest {
     new Translator("delag",
       LtlToDelaTranslation.MS17.translation(),
       EnumSet.complementOf(EnumSet.of(BASE, SIZE)))
+
+
   );
 
   private static boolean containsIsomorphic(Collection<Formula> formulas, Formula formula) {

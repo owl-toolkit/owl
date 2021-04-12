@@ -88,4 +88,10 @@ public final class LanguageContainment {
     Automaton<?, AllAcceptance> automaton2) {
     return containsAll(automaton1, automaton2) && containsAll(automaton2, automaton1);
   }
+
+  public static boolean languageEquivalent(Automaton<?, ?> automaton1,
+    Automaton<?, ?> automaton2) {
+    return LanguageContainment.contains(automaton1, automaton2)
+      && LanguageContainment.contains(automaton2, automaton1);
+  }
 }

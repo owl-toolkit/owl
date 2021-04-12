@@ -32,8 +32,7 @@ import owl.automaton.edge.Edge;
 
 public final class LanguageMembership {
 
-  private LanguageMembership() {
-  }
+  private LanguageMembership() {}
 
   public static <S, A extends EmersonLeiAcceptance> boolean contains(Automaton<S, A> automaton,
     UltimatelyPeriodicWord word) {

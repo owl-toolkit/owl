@@ -61,7 +61,8 @@
                 "asymmetric": "--asymmetric",
                 "symmetric": "--symmetric",
                 "disable-complement": "--disable-complement",
-                "disable-portfolio": "--disable-portfolio"
+                "disable-portfolio": "--disable-portfolio",
+                "symbolic": "--symbolic"
             },
             "pre": [
                 "simplify-ltl"

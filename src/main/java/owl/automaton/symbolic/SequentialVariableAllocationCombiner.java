@@ -7,9 +7,15 @@ import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.ATOMIC_PROPO
 
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
+import owl.automaton.edge.Colours;
 
 /**
  * Combines variable allocations in sequence and moves atomic propositions
@@ -22,6 +28,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   private final int[] offsets;
   private final int nrOfAps;
   private final boolean startWithAtomicPropositions;
+  private final Map<Set<VariableType>, Colours> variables;
 
   SequentialVariableAllocationCombiner(
     List<? extends VariableAllocation> allocations,
@@ -32,17 +39,18 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
 
     this.offsets = new int[this.allocations.size()];
     this.startWithAtomicPropositions = startWithAtomicPropositions;
+    this.variables = new HashMap<>();
     this.nrOfAps = this.allocations
       .get(0)
       .variables(ATOMIC_PROPOSITION)
-      .cardinality();
+      .size();
     Preconditions.checkArgument(this.allocations.stream()
-      .allMatch(allocation -> allocation.variables(ATOMIC_PROPOSITION).cardinality() == nrOfAps));
+      .allMatch(allocation -> allocation.variables(ATOMIC_PROPOSITION).size() == nrOfAps));
     offsets[0] = startWithAtomicPropositions ? nrOfAps : 0;
 
     for (int i = 0; i < this.allocations.size() - 1; i++) {
       var allocation = this.allocations.get(i);
-      assert allocation.variables(ATOMIC_PROPOSITION).cardinality() == nrOfAps;
+      assert allocation.variables(ATOMIC_PROPOSITION).size() == nrOfAps;
       offsets[i + 1] = offsets[i] + allocation.numberOfVariables() - nrOfAps;
     }
   }
@@ -61,7 +69,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
     }
     for (int i = 0; i < allocations.size(); i++) {
       var allocation = allocations.get(i);
-      BitSet aps = allocation.variables(ATOMIC_PROPOSITION);
+      BitSet aps = allocation.variables(ATOMIC_PROPOSITION).copyInto(new BitSet());
       List<String> localNames = allocation.variableNames();
       for (int j = aps.nextClearBit(0);
            j < allocation.numberOfVariables(); j = aps.nextClearBit(j + 1)) {
@@ -84,7 +92,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
     int ctr = 0;
     for (int i = 0; i < allocations.size(); i++) {
       var allocation = allocations.get(i);
-      int nrOfVariablesInAllocation = allocation.variables(type).cardinality();
+      int nrOfVariablesInAllocation = allocation.variables(type).size();
       if (ctr + nrOfVariablesInAllocation > variable) {
         int allocationLocal = allocation.localToGlobal(variable - ctr, type);
         return offsets[i] + withoutAtomicPropositions(allocation, allocationLocal);
@@ -104,7 +112,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
         var allocation = allocations.get(i);
         int allocationLocalVariable = withAtomicPropositions(allocation, variable - offsets[i]);
         int offset = IntStream.range(0, i)
-          .map(j -> allocations.get(j).variables(type).cardinality())
+          .map(j -> allocations.get(j).variables(type).size())
           .reduce(0, Integer::sum);
         return offset + allocation.globalToLocal(allocationLocalVariable, type);
       }
@@ -113,17 +121,22 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   }
 
   @Override
-  public BitSet variables(VariableType type) {
-    BitSet bitset = new BitSet();
-    if (type == ATOMIC_PROPOSITION) {
-      bitset.set(startWithAtomicPropositions ? 0 : numberOfVariables() - nrOfAps,
-        startWithAtomicPropositions ? nrOfAps : numberOfVariables());
-    } else {
-      for (var allocation : allocations) {
-        bitset.or(localToGlobal(allocation.variables(type), allocation));
+  public Colours variables(VariableType... types) {
+    Set<VariableType> typeSet = EnumSet.copyOf(Arrays.asList(types));
+    return variables.computeIfAbsent(typeSet, variableTypes -> {
+      BitSet bitSet = new BitSet();
+      for (VariableType type : typeSet) {
+        if (type == ATOMIC_PROPOSITION) {
+          bitSet.set(startWithAtomicPropositions ? 0 : numberOfVariables() - nrOfAps,
+            startWithAtomicPropositions ? nrOfAps : numberOfVariables());
+        } else {
+          for (var allocation : allocations) {
+            bitSet.or(localToGlobal(allocation.variables(type).copyInto(new BitSet()), allocation));
+          }
+        }
       }
-    }
-    return bitset;
+      return Colours.copyOf(bitSet);
+    });
   }
 
   @Override
@@ -149,10 +162,10 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
     throw new UnsupportedOperationException("Not implemented");
   }
 
-  private static int getNrOfSetBitsUntilVariable(BitSet bitSet, int var) {
+  private static int getNrOfSetBitsUntilVariable(Colours bitSet, int var) {
     int i = 0;
-    for (int j = bitSet.nextSetBit(0); j >= 0; j = bitSet.nextSetBit(j + 1)) {
-      if (j >= var) {
+    for (var it = bitSet.intIterator(); it.hasNext(); ) {
+      if (it.nextInt() >= var) {
         break;
       }
       i++;
@@ -161,8 +174,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   }
 
   private static int withAtomicPropositions(VariableAllocation allocation, int var) {
-
-    BitSet aps = allocation.variables(ATOMIC_PROPOSITION);
+    BitSet aps = allocation.variables(ATOMIC_PROPOSITION).copyInto(new BitSet());
     int i = 0;
     int j = -1;
     while (i <= var) {
@@ -173,9 +185,8 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   }
 
   private static int withoutAtomicPropositions(VariableAllocation allocation, int var) {
-
-    BitSet aps = allocation.variables(ATOMIC_PROPOSITION);
-    assert !aps.get(var);
+    Colours aps = allocation.variables(ATOMIC_PROPOSITION);
+    assert !aps.contains(var);
     return var - getNrOfSetBitsUntilVariable(aps, var);
   }
 }
