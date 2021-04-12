@@ -135,16 +135,18 @@ public final class RabinizerBuilder {
       BddSet[] edgePriorities = new BddSet[monitorAcceptanceSets];
 
       monitor.edgeMap(monitorState).forEach((edge, valuations) -> {
-        if (edge.colours().isEmpty()) {
+        var colours = edge.colours();
+
+        var priority = colours.first();
+
+        if (priority.isEmpty()) {
           return;
         }
 
-        int priority = edge.smallestAcceptanceSet();
-        assert priority == edge.largestAcceptanceSet();
-
-        edgePriorities[priority] = edgePriorities[priority] == null
+        assert priority.equals(colours.last());
+        edgePriorities[priority.getAsInt()] = edgePriorities[priority.getAsInt()] == null
           ? valuations
-          : valuations.union(edgePriorities[priority]);
+          : valuations.union(edgePriorities[priority.getAsInt()]);
       });
 
       monitorPriorities[relevantIndex] = edgePriorities;

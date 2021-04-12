@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
@@ -46,6 +47,7 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddSetFactory {
@@ -236,8 +238,9 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
-    public BddSet project(BitSet quantifiedAtomicPropositions) {
-      return factory.create(factory.bdd.exists(node, quantifiedAtomicPropositions));
+    public BddSet project(ImmutableBitSet quantifiedAtomicPropositions) {
+      return factory.create(
+        factory.bdd.exists(node, quantifiedAtomicPropositions.copyInto(new BitSet())));
     }
 
     @Override
@@ -316,42 +319,44 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     public Iterator<BitSet> iterator(int support) {
       BitSet supportBitSet = new BitSet();
       supportBitSet.set(0, support);
-      return iterator(supportBitSet);
+      return iterator(ImmutableBitSet.copyOf(supportBitSet));
     }
 
     @Override
-    public Iterator<BitSet> iterator(BitSet support) {
-      BitSet supportCopy = BitSet2.copyOf(support);
-      return createBddIterator(supportCopy, supportCopy.nextSetBit(0), node, new BitSet());
+    public Iterator<BitSet> iterator(ImmutableBitSet support) {
+      return createBddIterator(support, support.first(), node, new BitSet());
     }
 
     private Iterator<BitSet> createBddIterator(
-      BitSet support, int currentVariable, int node, BitSet path) {
+      ImmutableBitSet support, OptionalInt currentVariable, int node, BitSet path) {
 
       if (node == factory.falseNode) {
         return Collections.emptyIterator();
       }
 
       if (node == factory.trueNode) {
-        if (currentVariable < 0) {
+        if (currentVariable.isEmpty()) {
           return List.of(BitSet2.copyOf(path)).iterator();
         }
 
-        return new BddIterator(support, currentVariable, node, path);
+        return new BddIterator(support, currentVariable.getAsInt(), node, path);
       }
 
       int bddVariable = factory.bdd.variable(node);
 
-      if (bddVariable < currentVariable || !support.get(bddVariable)) {
+      if (currentVariable.isEmpty()
+        || bddVariable < currentVariable.getAsInt()
+        || !support.contains(bddVariable)) {
+
         throw new IllegalArgumentException("Detected a BDD-variable that is not in the support.");
       }
 
       assert 0 <= bddVariable;
-      assert 0 <= currentVariable;
-      assert currentVariable <= bddVariable;
+      assert 0 <= currentVariable.getAsInt();
+      assert currentVariable.getAsInt() <= bddVariable;
 
       // Kicking down the can.
-      return new BddIterator(support, currentVariable, node, path);
+      return new BddIterator(support, currentVariable.getAsInt(), node, path);
     }
 
     // This is a non-static class in order to keep the JBddSet alive and thus protect its node from
@@ -360,7 +365,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
       private final int variable;
       private final int node;
-      private final BitSet support;
+      private final ImmutableBitSet support;
       private final BitSet path;
 
       @Nullable
@@ -368,7 +373,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       @Nullable
       private Iterator<BitSet> highIterator;
 
-      private BddIterator(BitSet support, int variable, int node, BitSet path) {
+      private BddIterator(ImmutableBitSet support, int variable, int node, BitSet path) {
         Bdd bdd = factory.bdd;
 
         assert node != factory.falseNode;
@@ -379,7 +384,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
         this.path = path;
 
         lowIterator = createBddIterator(support,
-          support.nextSetBit(variable + 1),
+          support.higher(variable),
           node != factory.trueNode && variable == bdd.variable(node)
             ? bdd.low(node)
             : node,
@@ -389,11 +394,11 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       private void initHighIterator() {
         assert !lowIterator.hasNext();
         lowIterator = null;
-        path.clear(variable + 1, support.length());
+        path.clear(variable + 1, support.last().orElseThrow() + 1);
         path.set(variable);
         highIterator = createBddIterator(
           support,
-          support.nextSetBit(variable + 1),
+          support.higher(variable),
           node != factory.trueNode && variable == factory.bdd.variable(node)
             ? factory.bdd.high(node)
             : node,

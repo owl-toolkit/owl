@@ -29,7 +29,7 @@ import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
-import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 
 public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
   extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
@@ -40,7 +40,7 @@ public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
     List<String> atomicPropositions,
     S singletonState,
     BddSetFactory factory,
-    @Nullable BitSet acceptanceSets,
+    @Nullable ImmutableBitSet acceptanceSets,
     A acceptance) {
 
     super(atomicPropositions, factory, Set.of(singletonState), acceptance);
@@ -81,7 +81,7 @@ public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
       atomicPropositions,
       state,
       FactorySupplier.defaultSupplier().getBddSetFactory(),
-      BitSet2.copyOf(acceptanceSet),
+      ImmutableBitSet.copyOf(acceptanceSet),
       acceptance);
   }
 
@@ -96,7 +96,7 @@ public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
       atomicPropositions,
       state,
       factory,
-      BitSet2.copyOf(acceptanceSet),
+      ImmutableBitSet.copyOf(acceptanceSet),
       acceptance);
   }
 
@@ -110,7 +110,7 @@ public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
       atomicPropositions,
       state,
       FactorySupplier.defaultSupplier().getBddSetFactory(),
-      acceptanceSet,
+      ImmutableBitSet.copyOf(acceptanceSet),
       acceptance);
   }
 
@@ -125,7 +125,7 @@ public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
       atomicPropositions,
       state,
       factory,
-      acceptanceSet,
+      ImmutableBitSet.copyOf(acceptanceSet),
       acceptance);
   }
 

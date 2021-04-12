@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import owl.automaton.edge.Colours;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
@@ -87,14 +87,14 @@ public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
   }
 
   @Override
-  public final Optional<Colours> acceptingSet() {
+  public final Optional<ImmutableBitSet> acceptingSet() {
     BitSet set = new BitSet();
     set.set(0, acceptanceSets());
-    return Optional.of(Colours.copyOf(set));
+    return Optional.of(ImmutableBitSet.copyOf(set));
   }
 
   @Override
-  public final Optional<Colours> rejectingSet() {
-    return acceptanceSets() == 0 ? Optional.empty() : Optional.of(Colours.of());
+  public final Optional<ImmutableBitSet> rejectingSet() {
+    return acceptanceSets() == 0 ? Optional.empty() : Optional.of(ImmutableBitSet.of());
   }
 }

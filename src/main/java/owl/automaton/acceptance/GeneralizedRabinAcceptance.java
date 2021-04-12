@@ -45,8 +45,8 @@ import javax.annotation.Nonnegative;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -83,21 +83,21 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
   }
 
   @Override
-  public Optional<Colours> acceptingSet() {
+  public Optional<ImmutableBitSet> acceptingSet() {
     if (pairs.isEmpty()) {
       return Optional.empty();
     }
 
     BitSet set = new BitSet();
     pairs.get(0).forEachInfSet(set::set);
-    return Optional.of(Colours.copyOf(set));
+    return Optional.of(ImmutableBitSet.copyOf(set));
   }
 
   @Override
-  public Optional<Colours> rejectingSet() {
+  public Optional<ImmutableBitSet> rejectingSet() {
     BitSet set = new BitSet();
     pairs.forEach(x -> set.set(x.finIndex));
-    return Optional.of(Colours.copyOf(set));
+    return Optional.of(ImmutableBitSet.copyOf(set));
   }
 
   public static GeneralizedRabinAcceptance of(RabinPair... pairs) {
@@ -202,11 +202,6 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
     return pairs;
   }
 
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.largestAcceptanceSet() < acceptanceSets();
-  }
-
   public GeneralizedRabinAcceptance filter(IntPredicate predicate) {
     List<RabinPair> newPairs = new ArrayList<>(pairs.size());
     int removedIndices = 0;
@@ -261,7 +256,7 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
       return new RabinPair(finIndex, finIndex + infSets);
     }
 
-    public boolean contains(Colours indices) {
+    public boolean contains(ImmutableBitSet indices) {
       return !indices.copyInto(new BitSet()).get(finIndex, infIndex + 1).isEmpty();
     }
 

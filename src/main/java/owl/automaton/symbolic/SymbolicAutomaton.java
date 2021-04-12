@@ -39,12 +39,12 @@ import java.util.stream.Collectors;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
+import owl.collections.ImmutableBitSet;
 
 /**
  * An automaton over infinite words.
@@ -73,14 +73,14 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public BddSet successors(BddSet statesAndValuation) {
     checkArgument(statesAndValuation.factory() == factory());
-    Colours quantifyOver = variableAllocation().variables(STATE, ATOMIC_PROPOSITION);
-    Colours states = variableAllocation().variables(STATE);
-    Colours successorStates = variableAllocation().variables(SUCCESSOR_STATE);
+    ImmutableBitSet quantifyOver = variableAllocation().variables(STATE, ATOMIC_PROPOSITION);
+    ImmutableBitSet states = variableAllocation().variables(STATE);
+    ImmutableBitSet successorStates = variableAllocation().variables(SUCCESSOR_STATE);
     return transitionRelation()
       .intersection(statesAndValuation
-        .project(variableAllocation().variables(COLOUR).copyInto(new BitSet()))
+        .project(variableAllocation().variables(COLOUR))
       )
-      .project(quantifyOver.copyInto(new BitSet()))
+      .project(quantifyOver)
       .relabel(variable -> {
         if (states.contains(variable)) {
           return variableAllocation()
@@ -96,13 +96,13 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public BddSet predecessors(BddSet statesAndValuation) {
     checkArgument(statesAndValuation.factory() == factory());
-    Colours quantifyOver = variableAllocation().variables(
+    ImmutableBitSet quantifyOver = variableAllocation().variables(
       SUCCESSOR_STATE,
       ATOMIC_PROPOSITION,
       COLOUR
     );
-    Colours successorStates = variableAllocation().variables(SUCCESSOR_STATE);
-    Colours states = variableAllocation().variables(STATE);
+    ImmutableBitSet successorStates = variableAllocation().variables(SUCCESSOR_STATE);
+    ImmutableBitSet states = variableAllocation().variables(STATE);
     return transitionRelation()
       .intersection(statesAndValuation
         .relabel(variable -> {
@@ -117,7 +117,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
           }
         })
       )
-      .project(quantifyOver.copyInto(new BitSet()));
+      .project(quantifyOver);
   }
 
   public BddSet reachableStates() {
@@ -251,9 +251,9 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
         stateValuationSet.intersection(
           encodeEdgeTree(factory, edgeTree, stateEncoder, allocation)));
 
-      for (S successor : edgeTree.flatValues(Edge::successor)) {
-        if (exploredStates.add(successor)) {
-          workList.add(successor);
+      for (Edge<S> edge : edgeTree.flatValues()) {
+        if (exploredStates.add(edge.successor())) {
+          workList.add(edge.successor());
         }
       }
     }
@@ -289,9 +289,8 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
           = allocation.localToGlobal(edge.colours().copyInto(new BitSet()), COLOUR);
         successorEncoding.or(coloursEncoding);
 
-        Colours mask = allocation.variables(SUCCESSOR_STATE, COLOUR);
-
-        edges = edges.union(factory.of(successorEncoding, mask.copyInto(new BitSet())));
+        ImmutableBitSet mask = allocation.variables(SUCCESSOR_STATE, COLOUR);
+        edges = edges.union(factory.of(successorEncoding, mask));
       }
 
       return edges;
@@ -309,11 +308,11 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   }
 
   @Memoized
-  public Automaton<BitSet, A> toAutomaton() {
+  public Automaton<ImmutableBitSet, A> toAutomaton() {
 
     VariableAllocation allocation = variableAllocation();
-    Set<BitSet> initialStates = Streams
-      .stream(initialStates().iterator(allocation.variables(STATE).copyInto(new BitSet())))
+    Set<ImmutableBitSet> initialStates = Streams
+      .stream(initialStates().iterator(allocation.variables(STATE)))
       .map(x -> allocation.globalToLocal(x, STATE))
       .collect(Collectors.toUnmodifiableSet());
 
@@ -325,9 +324,9 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       acceptance()) {
 
       @Override
-      protected Set<Edge<BitSet>> edgesImpl(BitSet state, BitSet valuation) {
+      protected Set<Edge<ImmutableBitSet>> edgesImpl(ImmutableBitSet state, BitSet valuation) {
         BddSet stateSingletonSet = factory.of(
-          allocation.localToGlobal(state, STATE),
+          allocation.localToGlobal(state.copyInto(new BitSet()), STATE),
           allocation.variables(STATE).copyInto(new BitSet()));
 
         BddSet atomicPropositionsSingletonSet = factory.of(
@@ -342,12 +341,12 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
         return Streams.stream(edgesSet.iterator(allocation.numberOfVariables()))
           .map((BitSet edge) -> {
             assert state.equals(allocation.globalToLocal(edge, STATE));
-            assert valuation.equals(allocation.globalToLocal(edge, ATOMIC_PROPOSITION));
+            // assert valuation.equals(allocation.globalToLocal(edge, ATOMIC_PROPOSITION));
 
             return Edge.of(
               allocation.globalToLocal(edge, SUCCESSOR_STATE),
-              allocation.globalToLocal(edge, COLOUR)
-            .get(colourOffset(), colourOffset() + acceptance().acceptanceSets()));
+              allocation.globalToLocal(edge, COLOUR).copyInto(new BitSet())
+                .get(colourOffset(), colourOffset() + acceptance().acceptanceSets()));
           })
           .collect(Collectors.toUnmodifiableSet());
       }
@@ -380,7 +379,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public interface VariableAllocation {
 
-    Colours variables(VariableType... type);
+    ImmutableBitSet variables(VariableType... type);
 
     default int numberOfVariables() {
       return variables(VariableType.values()).size();
@@ -409,15 +408,15 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       return result;
     }
 
-    default BitSet globalToLocal(BitSet bitSet, VariableType type) {
+    default ImmutableBitSet globalToLocal(BitSet bitSet, VariableType type) {
       BitSet result = new BitSet();
-      Colours variables = variables(type);
+      ImmutableBitSet variables = variables(type);
       for (int i = bitSet.nextSetBit(0); i >= 0; i = bitSet.nextSetBit(i + 1)) {
         if (variables.contains(i)) {
           result.set(globalToLocal(i, type));
         }
       }
-      return result;
+      return ImmutableBitSet.copyOf(result);
     }
   }
 

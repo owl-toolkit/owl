@@ -44,7 +44,9 @@ import owl.automaton.edge.Edge;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
 import owl.bdd.MtBdd;
+import owl.collections.BitSet2;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
@@ -90,6 +92,10 @@ public final class DeterministicConstructions {
 
     static EquivalenceClass successorInternal(EquivalenceClass clazz, BitSet valuation) {
       return clazz.temporalStep(valuation).unfold();
+    }
+
+    static EquivalenceClass successorInternal(EquivalenceClass clazz, ImmutableBitSet valuation) {
+      return successorInternal(clazz, BitSet2.copyOf(valuation));
     }
 
     static MtBdd<EquivalenceClass> successorTreeInternal(EquivalenceClass clazz) {
@@ -189,12 +195,12 @@ public final class DeterministicConstructions {
     extends Base<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance> {
 
     private final RoundRobinState<EquivalenceClass> fallbackInitialState;
-    private final MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>>
+    private final MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet>>
       initialStatesSuccessorTree;
 
     private GfCoSafety(Factories factories, RoundRobinState<EquivalenceClass> initialState,
       RoundRobinState<EquivalenceClass> fallbackInitialState,
-      MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, BitSet>> tree,
+      MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet>> tree,
       GeneralizedBuchiAcceptance acceptance) {
       super(factories, initialState, acceptance);
       this.fallbackInitialState = fallbackInitialState;
@@ -258,7 +264,7 @@ public final class DeterministicConstructions {
       // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
       // performing a single step.
       var initialState = buildEdge(0,
-        successorInternal(fallbackInitialState.state(), new BitSet()),
+        successorInternal(fallbackInitialState.state(), ImmutableBitSet.of()),
         initialStatesSuccessorTree.get(new BitSet()).iterator().next(),
         fallbackInitialState).successor();
 
@@ -270,7 +276,7 @@ public final class DeterministicConstructions {
 
     private static Edge<RoundRobinState<EquivalenceClass>> buildEdge(int index,
       EquivalenceClass successor,
-      Pair<List<RoundRobinState<EquivalenceClass>>, BitSet> initialStateSuccessors,
+      Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet> initialStateSuccessors,
       RoundRobinState<EquivalenceClass> fallbackInitialState) {
 
       if (!successor.isTrue()) {
@@ -287,7 +293,7 @@ public final class DeterministicConstructions {
       }
 
       // We finished all goals, thus we can mark the edge as accepting.
-      BitSet acceptance = (BitSet) initialStateSuccessors.snd().clone();
+      BitSet acceptance = BitSet2.copyOf(initialStateSuccessors.snd());
       acceptance.set(0);
 
       // Look at automata before the index.

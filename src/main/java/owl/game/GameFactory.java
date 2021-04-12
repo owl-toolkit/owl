@@ -68,8 +68,8 @@ public final class GameFactory {
 
         game.edgeMap(state).forEach((edge, valuations) ->
           graph.putEdgeValue(state, edge.successor(),
-            new AutoValue_GameFactory_ImmutableGame_ValueEdge(
-              edge.smallestAcceptanceSet(), valuations)));
+            new AutoValue_GameFactory_ImmutableGame_ValueEdge(edge.colours().first()
+              .orElse(Integer.MAX_VALUE), valuations)));
       }
 
       this.graph = ImmutableValueGraph.copyOf(graph);

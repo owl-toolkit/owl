@@ -40,7 +40,7 @@ public final class ParityAcceptanceOptimizations {
     int maximalAcceptance = automaton.states().stream()
       .map(automaton::edges)
       .flatMap(Collection::stream)
-      .mapToInt(Edge::largestAcceptanceSet)
+      .flatMapToInt(sEdge -> sEdge.colours().last().stream())
       .max()
       .orElse(-1);
     automaton.acceptance(automaton.acceptance().withAcceptanceSets(maximalAcceptance + 1));
@@ -70,8 +70,8 @@ public final class ParityAcceptanceOptimizations {
       // Determine the used priorities
       for (S state : scc) {
         for (Edge<S> edge : automaton.edges(state)) {
-          if (!edge.colours().isEmpty() && scc.contains(edge.successor())) {
-            usedPriorities.add(edge.smallestAcceptanceSet());
+          if (scc.contains(edge.successor())) {
+            edge.colours().first().ifPresent(usedPriorities::add);
           }
         }
       }
@@ -92,7 +92,8 @@ public final class ParityAcceptanceOptimizations {
 
       automaton.updateEdges(scc, (state, edge) -> scc.contains(edge.successor())
         && !edge.colours().isEmpty()
-        ? edge.withAcceptance(reductionMapping.getOrDefault(edge.smallestAcceptanceSet(), -1))
+        ? edge.withAcceptance(
+          reductionMapping.getOrDefault(edge.colours().first().orElseThrow(), -1))
         : edge.withoutAcceptance());
       automaton.trim();
     }

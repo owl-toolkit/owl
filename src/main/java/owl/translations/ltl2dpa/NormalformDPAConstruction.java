@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.function.Function;
@@ -60,13 +61,13 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.ToParityTransformer;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -237,23 +238,23 @@ public final class NormalformDPAConstruction implements
       }
 
       State successor;
-      int colour = -1;
+      OptionalInt colour = OptionalInt.empty();
 
       // Is it the same?
       if (state.zielonkaTreeRoot().equals(zielonkaTreeRoot)) {
         // Yes, update path and generate colours
         var zielonkaEdge = zielonkaTreeRoot.transformColours(
-          Colours.copyOf(acceptanceSet), state.zielonkaTreePath());
+          ImmutableBitSet.copyOf(acceptanceSet), state.zielonkaTreePath());
         successor = State.of(successorFormula,
           stateMap, zielonkaTreeRoot, zielonkaEdge.successor(), statusMap);
-        colour = zielonkaEdge.smallestAcceptanceSet();
+        colour = zielonkaEdge.colours().first();
       } else {
         // No, return updated state, but no colour.
         successor = State.of(successorFormula, stateMap,
           zielonkaTreeRoot, zielonkaTreeRoot.initialExtension(), statusMap);
       }
 
-      return colour == -1 ? Edge.of(successor) : Edge.of(successor, colour);
+      return colour.isEmpty() ? Edge.of(successor) : Edge.of(successor, colour.getAsInt());
     }
 
     private State initialState() {

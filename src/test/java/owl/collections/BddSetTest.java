@@ -221,7 +221,7 @@ public abstract class BddSetTest {
 
     assertThrows(IllegalArgumentException.class, () -> {
       BddSet set = factory.of(3);
-      BitSet support = BitSet2.of(1, 4);
+      ImmutableBitSet support = ImmutableBitSet.of(1, 4);
       set.iterator(support);
     });
   }

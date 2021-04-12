@@ -29,7 +29,6 @@ import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
-import owl.automaton.edge.Edge;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -141,11 +140,6 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   @Override
   public List<Object> nameExtra() {
     return List.of(pairs.size());
-  }
-
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.largestAcceptanceSet() < 2 * pairs.size();
   }
 
   public static final class Builder {

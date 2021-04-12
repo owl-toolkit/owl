@@ -28,9 +28,9 @@ import java.util.Set;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.sat.Solver;
 
@@ -155,8 +155,8 @@ public class EmersonLeiAcceptance {
    *
    * @see #isAccepting(BitSet)
    */
-  public Optional<Colours> acceptingSet() {
-    return Solver.model(booleanExpression()).map(Colours::copyOf);
+  public Optional<ImmutableBitSet> acceptingSet() {
+    return Solver.model(booleanExpression()).map(ImmutableBitSet::copyOf);
   }
 
   /**
@@ -165,8 +165,10 @@ public class EmersonLeiAcceptance {
    *
    * @see #isAccepting(BitSet)
    */
-  public Optional<Colours> rejectingSet() {
-    return Solver.model(PropositionalFormula.Negation.of(booleanExpression())).map(Colours::copyOf);
+  public Optional<ImmutableBitSet> rejectingSet() {
+    return Solver
+      .model(PropositionalFormula.Negation.of(booleanExpression()))
+      .map(ImmutableBitSet::copyOf);
   }
 
   /**
@@ -198,7 +200,7 @@ public class EmersonLeiAcceptance {
    * @return Whether the edge acceptance is well defined.
    */
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.largestAcceptanceSet() < acceptanceSets();
+    return edge.colours().last().orElse(-1) < acceptanceSets();
   }
 
   public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {

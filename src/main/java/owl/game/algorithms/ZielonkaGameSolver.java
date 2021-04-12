@@ -26,7 +26,6 @@ import static owl.game.Game.Owner.PLAYER_2;
 import com.google.common.collect.Sets;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Predicate;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
@@ -58,17 +57,19 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
     boolean max = acceptance.parity().max();
 
     // get the minimal colour in the game
-    AtomicInteger extremalColour = new AtomicInteger(max ? -1 : acceptance.acceptanceSets());
+    int extremalColour = max ? -1 : acceptance.acceptanceSets();
 
     for (S state : states) {
-      game.edges(state).forEach(edge ->
-        extremalColour.getAndUpdate(
-          c -> max
-            ? Math.max(c, edge.largestAcceptanceSet())
-            : Math.min(c, edge.smallestAcceptanceSet())));
+      for (Edge<S> edge : game.edges(state)) {
+        if (max) {
+          extremalColour = Math.max(extremalColour, edge.colours().last().orElse(extremalColour));
+        } else {
+          extremalColour = Math.min(extremalColour, edge.colours().first().orElse(extremalColour));
+        }
+      }
     }
 
-    int theExtremalColour = extremalColour.get();
+    int theExtremalColour = extremalColour;
 
     // if the extremal colour did not change, we have a winner
     Game.Owner ourHorse = acceptance.isAccepting(theExtremalColour) ? PLAYER_2 : PLAYER_1;
@@ -82,8 +83,8 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
     // which states have one (or all) successors of the minimal
     // colour
     Predicate<Edge<S>> hasExtremalColour = y -> max
-      ? y.largestAcceptanceSet() == theExtremalColour
-      : y.smallestAcceptanceSet() == theExtremalColour;
+      ? y.colours().last().orElse(-2) == theExtremalColour
+      : y.colours().first().orElse(-2) == theExtremalColour;
 
     Set<S> winningStates = Sets.filter(states, state -> {
       Objects.requireNonNull(state);

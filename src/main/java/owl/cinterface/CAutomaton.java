@@ -937,7 +937,7 @@ public final class CAutomaton {
           if (edge == null) {
             edgeBuffer.add(REJECTING, REJECTING);
           } else {
-            edgeBuffer.add(index(edge.successor()), edge.largestAcceptanceSet());
+            edgeBuffer.add(index(edge.successor()), edge.colours().last().orElse(REJECTING));
           }
 
           var scoreBuffer = buffers.scores;

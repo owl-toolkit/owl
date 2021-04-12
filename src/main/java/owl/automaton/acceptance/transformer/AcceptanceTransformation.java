@@ -25,10 +25,10 @@ import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 
 abstract class AcceptanceTransformation {
 
@@ -37,7 +37,7 @@ abstract class AcceptanceTransformation {
 
     E initialExtension();
 
-    Edge<E> transformColours(Colours edge, E extension);
+    Edge<E> transformColours(ImmutableBitSet edge, E extension);
   }
 
   static <S, E, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>

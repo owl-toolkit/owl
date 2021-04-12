@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import owl.automaton.edge.Colours;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Negation;
 
@@ -79,14 +79,14 @@ public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
   }
 
   @Override
-  public Optional<Colours> acceptingSet() {
-    return acceptanceSets() == 0 ? Optional.empty() : Optional.of(Colours.of());
+  public Optional<ImmutableBitSet> acceptingSet() {
+    return acceptanceSets() == 0 ? Optional.empty() : Optional.of(ImmutableBitSet.of());
   }
 
   @Override
-  public Optional<Colours> rejectingSet() {
+  public Optional<ImmutableBitSet> rejectingSet() {
     BitSet set = new BitSet();
     set.set(0, acceptanceSets());
-    return Optional.of(Colours.copyOf(set));
+    return Optional.of(ImmutableBitSet.copyOf(set));
   }
 }

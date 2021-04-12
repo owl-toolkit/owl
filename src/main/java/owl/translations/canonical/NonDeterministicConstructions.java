@@ -43,7 +43,9 @@ import owl.automaton.edge.Edges;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
 import owl.bdd.MtBdd;
+import owl.collections.BitSet2;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -374,12 +376,12 @@ public final class NonDeterministicConstructions {
     extends Base<RoundRobinState<Formula>, GeneralizedBuchiAcceptance> {
 
     private final RoundRobinState<Formula> fallbackInitialState;
-    private final MtBdd<Pair<List<RoundRobinState<Formula>>, BitSet>>
+    private final MtBdd<Pair<List<RoundRobinState<Formula>>, ImmutableBitSet>>
       initialStatesSuccessorTree;
 
     private GfCoSafety(Factories factories, Set<RoundRobinState<Formula>> initialState,
       RoundRobinState<Formula> fallbackInitialState,
-      MtBdd<Pair<List<RoundRobinState<Formula>>, BitSet>> tree,
+      MtBdd<Pair<List<RoundRobinState<Formula>>, ImmutableBitSet>> tree,
       GeneralizedBuchiAcceptance acceptance) {
       super(factories, initialState, acceptance);
       this.fallbackInitialState = fallbackInitialState;
@@ -462,7 +464,7 @@ public final class NonDeterministicConstructions {
 
     private static Set<Edge<RoundRobinState<Formula>>> edges(
       RoundRobinState<Formula> state, BitSet valuation, EquivalenceClassFactory factory,
-      MtBdd<Pair<List<RoundRobinState<Formula>>, BitSet>> initialStatesSuccessorTree,
+      MtBdd<Pair<List<RoundRobinState<Formula>>, ImmutableBitSet>> initialStatesSuccessorTree,
       RoundRobinState<Formula> fallbackInitialState) {
 
       Set<Edge<RoundRobinState<Formula>>> edges = new HashSet<>();
@@ -478,7 +480,7 @@ public final class NonDeterministicConstructions {
     }
 
     private static Edge<RoundRobinState<Formula>> buildEdge(int index, Formula successor,
-      Pair<List<RoundRobinState<Formula>>, BitSet> initialStateSuccessors,
+      Pair<List<RoundRobinState<Formula>>, ImmutableBitSet> initialStateSuccessors,
       RoundRobinState<Formula> fallbackInitialState) {
 
       if (!BooleanConstant.TRUE.equals(successor)) {
@@ -495,7 +497,7 @@ public final class NonDeterministicConstructions {
       }
 
       // We finished all goals, thus we can mark the edge as accepting.
-      BitSet acceptance = (BitSet) initialStateSuccessors.snd().clone();
+      BitSet acceptance = BitSet2.copyOf(initialStateSuccessors.snd());
       acceptance.set(0);
 
       // Look at automata before the index.

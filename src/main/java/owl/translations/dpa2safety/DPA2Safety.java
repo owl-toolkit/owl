@@ -58,7 +58,7 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       }
 
       int[] counters = x.counters.toArray();
-      int colour = edge.smallestAcceptanceSet();
+      int colour = edge.colours().first().orElseThrow();
       int i = (colour == Integer.MAX_VALUE ? d : colour) / 2;
 
       if (isAcceptingColour.test(colour)) {

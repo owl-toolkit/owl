@@ -107,7 +107,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     memoizedEdges.put(state, edgeTree);
 
     // Update the set of unexplored states.
-    unexploredStates.addAll(edgeTree.flatValues(Edge::successor));
+    edgeTree.flatValues().forEach(x -> unexploredStates.add(x.successor()));
     unexploredStates.removeAll(memoizedEdges.keySet());
     return edgeTree;
   }
@@ -135,7 +135,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final Set<S> successors(S state) {
-    return edgeTree(state).flatValues(Edge::successor);
+    return Edges.successors(edgeTree(state).flatValues());
   }
 
   @Override

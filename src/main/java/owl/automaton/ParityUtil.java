@@ -137,23 +137,13 @@ public final class ParityUtil {
     if (fromAcceptance.parity().max()) {
       int colours = fromAcceptance.acceptanceSets();
       mutableAutomaton.acceptance(fromAcceptance.withAcceptanceSets(colours + 2));
-      mutableAutomaton.updateEdges((state, edge) -> {
-        if (!edge.colours().isEmpty()) {
-          return edge.withAcceptance(edge.largestAcceptanceSet() + 2);
-        }
-
-        return edge.withAcceptance(1);
-      });
+      mutableAutomaton.updateEdges((state, edge) ->
+        edge.withAcceptance(edge.colours().last().orElse(-1) + 2));
     } else {
       int colours = fromAcceptance.acceptanceSets();
       mutableAutomaton.acceptance(fromAcceptance.withAcceptanceSets(colours + 2));
-      mutableAutomaton.updateEdges((state, edge) -> {
-        if (edge.colours().isEmpty()) {
-          return edge.withAcceptance(colours);
-        }
-
-        return edge.withAcceptance(edge.smallestAcceptanceSet() + 2);
-      });
+      mutableAutomaton.updateEdges((state, edge) ->
+        edge.withAcceptance(edge.colours().first().orElse(colours - 2) + 2));
     }
 
     fromAcceptance = mutableAutomaton.acceptance();
@@ -184,11 +174,7 @@ public final class ParityUtil {
     var maximalNewAcceptance = new AtomicInteger(0);
 
     mutableAutomaton.updateEdges((state, edge) -> {
-      if (edge.colours().isEmpty()) {
-        throw new IllegalStateException();
-      }
-
-      int newAcceptance = mapping.applyAsInt(edge.smallestAcceptanceSet());
+      int newAcceptance = mapping.applyAsInt(edge.colours().first().orElseThrow());
 
       if (maximalNewAcceptance.get() < newAcceptance) {
         maximalNewAcceptance.set(newAcceptance);

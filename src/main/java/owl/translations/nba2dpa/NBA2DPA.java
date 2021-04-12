@@ -155,9 +155,7 @@ public final class NBA2DPA
         return Set.of();
       }
 
-      var dpaEdge = Edge.of(RankingState.of(initialComponentSuccessors, ranking), edgeColor);
-      assert dpaEdge.largestAcceptanceSet() < acceptance.acceptanceSets();
-      return Set.of(dpaEdge);
+      return Set.of(Edge.of(RankingState.of(initialComponentSuccessors, ranking), edgeColor));
     }
 
     private boolean languageContainedIn(S language2, List<S> language1) {

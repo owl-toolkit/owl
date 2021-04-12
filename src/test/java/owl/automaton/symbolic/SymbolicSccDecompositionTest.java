@@ -5,7 +5,6 @@ import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
 import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
 
 import com.google.common.collect.Iterators;
-import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
@@ -188,9 +187,7 @@ public class SymbolicSccDecompositionTest {
     List<Integer> actualSccs = SymbolicSccDecomposition.of(actual).sccs()
       .stream()
       .map(bddSet ->
-        bddSet.iterator(actual.variableAllocation()
-          .variables(STATE, COLOUR)
-          .copyInto(new BitSet())))
+        bddSet.iterator(actual.variableAllocation().variables(STATE, COLOUR)))
       .map(Iterators::size)
       .sorted()
       .collect(Collectors.toList());

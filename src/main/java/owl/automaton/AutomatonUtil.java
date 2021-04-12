@@ -31,9 +31,9 @@ import java.util.function.BiConsumer;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
+import owl.collections.ImmutableBitSet;
 
 public final class AutomatonUtil {
 
@@ -101,8 +101,8 @@ public final class AutomatonUtil {
    * @param <S> the type of the states
    * @return a set containing all acceptance indices
    */
-  public static <S> Colours getAcceptanceSets(Automaton<S, ?> automaton, Set<S> states) {
-    Colours colours = Colours.of();
+  public static <S> ImmutableBitSet getAcceptanceSets(Automaton<S, ?> automaton, Set<S> states) {
+    ImmutableBitSet colours = ImmutableBitSet.of();
 
     for (S state : states) {
       for (Edge<S> edge : automaton.edges(state)) {
@@ -119,7 +119,7 @@ public final class AutomatonUtil {
    * @param automaton the automaton
    * @return a set containing all acceptance indices
    */
-  public static <S> Colours getAcceptanceSets(Automaton<S, ?> automaton) {
+  public static <S> ImmutableBitSet getAcceptanceSets(Automaton<S, ?> automaton) {
     return getAcceptanceSets(automaton, automaton.states());
   }
 

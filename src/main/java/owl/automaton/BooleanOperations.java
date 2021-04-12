@@ -47,10 +47,10 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.ImmutableBitSet;
 import owl.collections.NullablePair;
 import owl.collections.Pair;
 import owl.logic.propositional.PropositionalFormula;
@@ -199,7 +199,7 @@ public final class BooleanOperations {
     checkArgument(!automata.isEmpty(), "List of automata is empty.");
 
     List<Automaton<S, ?>> automataCopy = new ArrayList<>(automata.size());
-    List<Colours> rejectingSets = new ArrayList<>(automata.size());
+    List<ImmutableBitSet> rejectingSets = new ArrayList<>(automata.size());
 
     automata.forEach(automaton -> {
       Automaton<S, ?> normalisedAutomaton;
@@ -395,15 +395,15 @@ public final class BooleanOperations {
     @Nullable
     private Automaton<S2, ?> automaton2;
 
-    private final Colours rejectingSet1;
-    private final Colours rejectingSet2;
+    private final ImmutableBitSet rejectingSet1;
+    private final ImmutableBitSet rejectingSet2;
 
     private NullablePairDeterministicUnionAutomaton(
       List<String> atomicPropositions,
       Automaton<S1, ?> automaton1,
       Automaton<S2, ?> automaton2,
-      Colours rejectingSet1,
-      Colours rejectingSet2) {
+      ImmutableBitSet rejectingSet1,
+      ImmutableBitSet rejectingSet2) {
 
       super(atomicPropositions,
         Set.of(initialState(automaton1, automaton2)),
@@ -473,12 +473,12 @@ public final class BooleanOperations {
 
     @Nullable
     private List<? extends Automaton<S, ?>> automata;
-    private final List<Colours> rejectingSets;
+    private final List<ImmutableBitSet> rejectingSets;
 
     private MapDeterministicUnionAutomaton(
       List<String> atomicPropositions,
       List<? extends Automaton<S, ?>> automata,
-      List<Colours> rejectingSets) {
+      List<ImmutableBitSet> rejectingSets) {
 
       super(atomicPropositions,
         Set.of(initialState(automata)),

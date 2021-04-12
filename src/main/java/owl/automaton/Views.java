@@ -40,13 +40,13 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
@@ -69,7 +69,7 @@ public final class Views {
         .map(Optional::of)
         .collect(Collectors.toUnmodifiableSet());
 
-    Optional<Colours> rejectingSet = automaton.acceptance().rejectingSet();
+    Optional<ImmutableBitSet> rejectingSet = automaton.acceptance().rejectingSet();
     EmersonLeiAcceptance acceptance;
     boolean dropAcceptanceSets;
     Edge<Optional<S>> sinkEdge;
@@ -78,7 +78,7 @@ public final class Views {
     if (rejectingSet.isEmpty()) {
       acceptance = CoBuchiAcceptance.INSTANCE;
       dropAcceptanceSets = true;
-      sinkEdge = Edge.of(Optional.empty(), Colours.of(0));
+      sinkEdge = Edge.of(Optional.empty(), ImmutableBitSet.of(0));
     } else {
       acceptance = automaton.acceptance();
       dropAcceptanceSets = false;
@@ -415,19 +415,19 @@ public final class Views {
     }
   }
 
-  public static <S, A extends EmersonLeiAcceptance> Automaton<Pair<S, Colours>, A>
+  public static <S, A extends EmersonLeiAcceptance> Automaton<Pair<S, ImmutableBitSet>, A>
     stateAcceptanceAutomaton(Automaton<S, ? extends A> automaton) {
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       automaton.atomicPropositions(),
       automaton.factory(),
       automaton.initialStates().stream()
-        .map(state -> Pair.of(state, Colours.of()))
+        .map(state -> Pair.of(state, ImmutableBitSet.of()))
         .collect(Collectors.toUnmodifiableSet()),
       automaton.acceptance()) {
 
       @Override
-      protected MtBdd<Edge<Pair<S, Colours>>> edgeTreeImpl(Pair<S, Colours> state) {
+      protected MtBdd<Edge<Pair<S, ImmutableBitSet>>> edgeTreeImpl(Pair<S, ImmutableBitSet> state) {
 
         return automaton.edgeTree(state.fst()).map(edges -> edges.stream()
           .map(edge -> edge.mapSuccessor(successor -> Pair.of(successor, edge.colours())))

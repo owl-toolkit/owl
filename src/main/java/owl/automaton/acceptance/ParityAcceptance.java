@@ -28,8 +28,8 @@ import static owl.logic.propositional.PropositionalFormula.constant;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnegative;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 public final class ParityAcceptance extends EmersonLeiAcceptance {
@@ -51,29 +51,29 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
   }
 
   @Override
-  public Optional<Colours> acceptingSet() {
-    Colours colours;
-
+  public Optional<ImmutableBitSet> acceptingSet() {
     if (parity.even()) {
-      colours = Colours.of(0);
+      return acceptanceSets() <= 0
+        ? Optional.empty()
+        : Optional.of(ImmutableBitSet.of(0));
     } else {
-      colours = Colours.of(1);
+      return acceptanceSets() <= 1
+        ? Optional.empty()
+        : Optional.of(ImmutableBitSet.of(1));
     }
-
-    return acceptanceSets() <= colours.last() ? Optional.empty() : Optional.of(colours);
   }
 
   @Override
-  public Optional<Colours> rejectingSet() {
-    Colours colours;
-
+  public Optional<ImmutableBitSet> rejectingSet() {
     if (parity.even()) {
-      colours = Colours.of(1);
+      return acceptanceSets() <= 1
+        ? Optional.empty()
+        : Optional.of(ImmutableBitSet.of(1));
     } else {
-      colours = Colours.of(0);
+      return acceptanceSets() <= 0
+        ? Optional.empty()
+        : Optional.of(ImmutableBitSet.of(0));
     }
-
-    return acceptanceSets() <= colours.last() ? Optional.empty() : Optional.of(colours);
   }
 
   public Parity parity() {
@@ -127,8 +127,18 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
 
   @Override
   public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.colours().isEmpty()
-      || (edge.colours().size() == 1 && edge.colours().last() < acceptanceSets());
+    var colours = edge.colours();
+
+    switch (colours.size()) {
+      case 0:
+        return true;
+
+      case 1:
+        return colours.last().orElseThrow() < acceptanceSets();
+
+      default:
+        return false;
+    }
   }
 
   public ParityAcceptance withAcceptanceSets(@Nonnegative int colours) {

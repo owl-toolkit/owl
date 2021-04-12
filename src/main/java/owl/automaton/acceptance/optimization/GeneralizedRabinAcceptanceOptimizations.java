@@ -49,9 +49,9 @@ import owl.automaton.MutableAutomaton;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 
 public final class GeneralizedRabinAcceptanceOptimizations {
   private static final Logger logger = Logger.getLogger(GeneralizedRabinAcceptance.class.getName());
@@ -204,7 +204,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     List<Set<S>> elements = SccDecomposition.of(automaton).sccsWithoutTransient();
 
     for (int i = 0, s = elements.size(); i < s; i++) {
-      Colours indices = AutomatonUtil.getAcceptanceSets(automaton, elements.get(i));
+      ImmutableBitSet indices = AutomatonUtil.getAcceptanceSets(automaton, elements.get(i));
       for (RabinPair pair : pairs) {
         if (pair.contains(indices)) {
           pairActiveSccs.computeIfAbsent(pair, k -> new BitSet()).set(i);
@@ -328,8 +328,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
         return edge;
       }
 
-      BitSet modifiedAcceptance = new BitSet(edge.largestAcceptanceSet());
-      edge.colours().copyInto(modifiedAcceptance);
+      BitSet modifiedAcceptance = BitSet2.copyOf(edge.colours());
       pairs.get(overlapIndex).forEachInfSet(modifiedAcceptance::clear);
 
       for (int index = overlapIndex + 1; index < pairs.size(); index++) {
@@ -538,7 +537,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
       .collect(Collectors.toUnmodifiableList());
 
     for (Set<S> scc : SccDecomposition.of(automaton).sccsWithoutTransient()) {
-      Colours indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
+      ImmutableBitSet indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
       BitSet indicesToRemove = new BitSet();
 
       for (RabinPair pair : acceptance.pairs()) {
@@ -622,7 +621,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
   public static <S> void mergeBuchiTypePairs(
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
-    Colours colours = AutomatonUtil.getAcceptanceSets(automaton);
+    ImmutableBitSet colours = AutomatonUtil.getAcceptanceSets(automaton);
     List<RabinPair> buchiTypePairs = automaton.acceptance().pairs().stream()
       .filter(x -> x.infSetCount() == 1 && !colours.contains(x.finSet()))
       .collect(Collectors.toList());

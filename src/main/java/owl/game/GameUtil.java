@@ -80,9 +80,7 @@ public final class GameUtil {
 
     // N.B.: PGSolver is max-even for the 0 player. Since the environment is the 0 player, we
     // shift the priorities by one, making it a max-odd game for player 1 (i.e., the system)
-    ToIntFunction<Edge<S>> getAcceptance = edge -> edge.colours().isEmpty()
-      ? 0
-      : edge.smallestAcceptanceSet() + 1;
+    ToIntFunction<Edge<S>> getAcceptance = edge -> edge.colours().first().orElse(-1) + 1;
 
     // Explore the reachable states of the state-acceptance game
     while (!workQueue.isEmpty()) {

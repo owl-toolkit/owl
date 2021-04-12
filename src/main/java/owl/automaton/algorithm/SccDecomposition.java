@@ -32,6 +32,7 @@ import com.google.common.graph.Graphs;
 import com.google.common.graph.ImmutableGraph;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -46,6 +47,7 @@ import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.collections.ImmutableBitSet;
 
 /**
  * This class provides a decomposition into strongly connected components (SCCs) of a directed graph
@@ -255,17 +257,17 @@ public abstract class SccDecomposition<S> {
    * @return indices of bottom strongly connected components.
    */
   @Memoized
-  public Set<Integer> bottomSccs() {
+  public ImmutableBitSet bottomSccs() {
     var graph = condensation();
-    var bottomSccs = new HashSet<Integer>();
+    var bottomSccs = new BitSet();
 
     for (Integer scc : graph.nodes()) {
       if (Set.of(scc).containsAll(graph.successors(scc))) {
-        bottomSccs.add(scc);
+        bottomSccs.set(scc);
       }
     }
 
-    return Set.of(bottomSccs.toArray(Integer[]::new));
+    return ImmutableBitSet.copyOf(bottomSccs);
   }
 
   /**
@@ -287,17 +289,17 @@ public abstract class SccDecomposition<S> {
    * @return indices of transient strongly connected components.
    */
   @Memoized
-  public Set<Integer> transientSccs() {
+  public ImmutableBitSet transientSccs() {
     var graph = condensation();
-    var transientSccs = new HashSet<Integer>();
+    var transientSccs = new BitSet();
 
     for (Integer scc : graph.nodes()) {
       if (!graph.hasEdgeConnecting(scc, scc)) {
-        transientSccs.add(scc);
+        transientSccs.set(scc);
       }
     }
 
-    return Set.of(transientSccs.toArray(Integer[]::new));
+    return ImmutableBitSet.copyOf(transientSccs);
   }
 
   /**
@@ -352,11 +354,11 @@ public abstract class SccDecomposition<S> {
 
   /** deterministic SCCs. */
   @Memoized
-  public Set<Integer> deterministicSccs() {
+  public ImmutableBitSet deterministicSccs() {
     Preconditions.checkState(automaton() != null,
       "This decomposition only has access to a graph and not an automaton.");
 
-    var deterministicSccs = new HashSet<Integer>();
+    var deterministicSccs = new BitSet();
 
     for (int i = 0, s = sccs().size(); i < s; i++) {
       Set<S> scc = sccs().get(i);
@@ -365,20 +367,20 @@ public abstract class SccDecomposition<S> {
       Views.Filter<S> sccFilter = Views.Filter.of(scc, scc::contains);
 
       if (Views.filtered(automaton(), sccFilter).is(Automaton.Property.SEMI_DETERMINISTIC)) {
-        deterministicSccs.add(i);
+        deterministicSccs.set(i);
       }
     }
 
-    return Set.of(deterministicSccs.toArray(Integer[]::new));
+    return ImmutableBitSet.copyOf(deterministicSccs);
   }
 
   /** Weak accepting SCCs (non-trivial and only good cycles). Only BüchiAcceptance supported. */
   @Memoized
-  public Set<Integer> acceptingSccs() {
+  public ImmutableBitSet acceptingSccs() {
     Preconditions.checkState(automaton() != null,
       "This decomposition only has access to a graph and not an automaton.");
 
-    var acceptingSccs = new HashSet<Integer>();
+    var acceptingSccs = new BitSet();
 
     Preconditions.checkState(automaton().acceptance() instanceof BuchiAcceptance);
 
@@ -401,20 +403,20 @@ public abstract class SccDecomposition<S> {
 
       //no bad lasso and not trivial (i.e. has some good + has only good cycles) -> weak accepting
       if (noRejLoops && !transientSccs().contains(i)) {
-        acceptingSccs.add(i);
+        acceptingSccs.set(i);
       }
     }
 
-    return Set.of(acceptingSccs.toArray(Integer[]::new));
+    return ImmutableBitSet.copyOf(acceptingSccs);
   }
 
   /** Weak rejecting SCCs (trivial or only rejecting cycles). */
   @Memoized
-  public Set<Integer> rejectingSccs() {
+  public ImmutableBitSet rejectingSccs() {
     Preconditions.checkState(automaton() != null,
       "This decomposition only has access to a graph and not an automaton.");
 
-    var rejectingSccs = new HashSet<Integer>();
+    var rejectingSccs = new BitSet();
 
     for (int i = 0, s = sccs().size(); i < s; i++) {
       Set<S> scc = sccs().get(i);
@@ -422,10 +424,10 @@ public abstract class SccDecomposition<S> {
       Views.Filter<S> sccFilter = Views.Filter.of(Set.of(scc.iterator().next()), scc::contains);
 
       if (LanguageEmptiness.isEmpty(Views.filtered(automaton(), sccFilter))) {
-        rejectingSccs.add(i);
+        rejectingSccs.set(i);
       }
     }
 
-    return Set.of(rejectingSccs.toArray(Integer[]::new));
+    return ImmutableBitSet.copyOf(rejectingSccs);
   }
 }
