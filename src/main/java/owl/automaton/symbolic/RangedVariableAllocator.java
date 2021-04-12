@@ -28,8 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import owl.automaton.edge.Colours;
 import owl.automaton.symbolic.SymbolicAutomaton.VariableType;
+import owl.collections.ImmutableBitSet;
 
 public final class RangedVariableAllocator implements SymbolicAutomaton.VariableAllocator {
 
@@ -52,7 +52,7 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
     private final List<VariableType> order;
     private final EnumMap<VariableType, Integer> fromIndexInclusive;
     private final EnumMap<VariableType, Integer> toIndexExclusive;
-    private final Map<Set<VariableType>, Colours> variables;
+    private final Map<Set<VariableType>, ImmutableBitSet> variables;
     private final int size;
 
     private RangedAllocation(int stateVariables, int atomicPropositions, int colours,
@@ -92,13 +92,13 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
     }
 
     @Override
-    public Colours variables(VariableType... types) {
+    public ImmutableBitSet variables(VariableType... types) {
       return variables.computeIfAbsent(Set.of(types), variableTypes -> {
         BitSet bitSet = new BitSet();
         for (var type : variableTypes) {
           bitSet.set(fromIndexInclusive.get(type), toIndexExclusive.get(type));
         }
-        return Colours.copyOf(bitSet);
+        return ImmutableBitSet.copyOf(bitSet);
       });
     }
 
@@ -134,7 +134,7 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
     }
 
     @Override
-    public BitSet globalToLocal(BitSet bitSet, VariableType type) {
+    public ImmutableBitSet globalToLocal(BitSet bitSet, VariableType type) {
       BitSet localBitSet = new BitSet();
 
       int offset = fromIndexInclusive.get(type);
@@ -144,7 +144,7 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
         localBitSet.set(i - offset, bitSet.get(i));
       }
 
-      return localBitSet;
+      return ImmutableBitSet.copyOf(localBitSet);
     }
 
     @Override

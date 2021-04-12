@@ -289,7 +289,7 @@ public final class SymmetricNBAConstruction<B extends GeneralizedBuchiAcceptance
       return MtBddOperations.cartesianProduct(safetyAutomaton.edgeTree(safetyState),
         livenessAutomaton.edgeTree(livenessState),
         (safetyEdge, livenessEdge) -> {
-          assert livenessEdge.largestAcceptanceSet() < acceptanceSets;
+          assert livenessEdge.colours().last().orElse(-1) < acceptanceSets;
 
           var successor = new ProductState(safetyEdge.successor(), livenessEdge.successor(),
             state.evaluatedFixpoints, automata);

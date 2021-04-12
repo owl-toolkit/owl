@@ -33,7 +33,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -99,7 +98,7 @@ public final class OinkGameSolver implements ParityGameSolver {
 
     while (!queue.isEmpty()) {
       S state = queue.poll();
-      Collection<Edge<S>> edges = game.edges(state);
+      Set<Edge<S>> edges = game.edges(state);
 
       if (edges.isEmpty()) {
         throw new IllegalArgumentException("Game must not have dead ends.");
@@ -107,7 +106,7 @@ public final class OinkGameSolver implements ParityGameSolver {
 
       for (Edge<S> edge : edges) {
         S successor = edge.successor();
-        int statePriority = edge.largestAcceptanceSet();
+        int statePriority = edge.colours().last().orElse(-1);
         PriorityState<S> oinkSuccessor = PriorityState.of(successor, statePriority);
 
         int id = oinkNumbering.size();
@@ -142,7 +141,7 @@ public final class OinkGameSolver implements ParityGameSolver {
       while (it.hasNext()) {
         Edge<S> edge = it.next();
         S successor = edge.successor();
-        int statePriority = edge.largestAcceptanceSet();
+        int statePriority = edge.colours().last().orElse(-1);
         int successorIndex = oinkNumbering.get(PriorityState.of(successor, statePriority));
         if (printed.get(successorIndex)) {
           if (successorIndex < 0) {

@@ -22,9 +22,9 @@ package owl.ltl;
 import java.util.BitSet;
 import java.util.Set;
 import java.util.function.Function;
-import owl.automaton.edge.Colours;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
+import owl.collections.ImmutableBitSet;
 
 /**
  * A propositional equivalence class of an LTL formula.
@@ -37,7 +37,7 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   /**
    * See {@link Formula#atomicPropositions(boolean)}.
    */
-  default Colours atomicPropositions() {
+  default ImmutableBitSet atomicPropositions() {
     return atomicPropositions(false);
   }
 
@@ -45,7 +45,7 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
    * Collects all literals used in the bdd and stores the corresponding atomic propositions in
    * the BitSet. See also {@link Formula#atomicPropositions(boolean)}.
    */
-  Colours atomicPropositions(boolean includeNested);
+  ImmutableBitSet atomicPropositions(boolean includeNested);
 
   Set<Set<Formula>> conjunctiveNormalForm();
 

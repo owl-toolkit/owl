@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import owl.bdd.MtBdd;
+import owl.collections.ImmutableBitSet;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -36,13 +37,13 @@ final class Util {
 
   private Util() {}
 
-  static MtBdd<BitSet> singleStepTree(List<Formula> singleSteps) {
+  static MtBdd<ImmutableBitSet> singleStepTree(List<Formula> singleSteps) {
     return singleStepTreeRecursive(singleSteps, new HashMap<>());
   }
 
-  private static MtBdd<BitSet> singleStepTreeRecursive(List<Formula> singleSteps,
-    Map<List<Formula>, MtBdd<BitSet>> cache) {
-    MtBdd<BitSet> result = cache.get(singleSteps);
+  private static MtBdd<ImmutableBitSet> singleStepTreeRecursive(List<Formula> singleSteps,
+    Map<List<Formula>, MtBdd<ImmutableBitSet>> cache) {
+    MtBdd<ImmutableBitSet> result = cache.get(singleSteps);
 
     if (result != null) {
       return result;
@@ -66,7 +67,7 @@ final class Util {
         }
       }
 
-      result = MtBdd.of(Set.of(acceptance));
+      result = MtBdd.of(Set.of(ImmutableBitSet.copyOf(acceptance)));
     } else {
       int variable = nextVariable;
 

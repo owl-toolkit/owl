@@ -65,7 +65,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
-import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 
 public final class HoaReader {
 
@@ -277,9 +277,9 @@ public final class HoaReader {
     private void addEdge(HoaState source, BddSet valuationSet,
       @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
       throws HOAConsumerException {
-      Edge<HoaState> edge = storedEdgeAcceptance == null
-        ? Edge.of(successor)
-        : Edge.of(successor, BitSet2.copyOf(storedEdgeAcceptance));
+      Edge<HoaState> edge = Edge.of(successor, storedEdgeAcceptance == null
+        ? ImmutableBitSet.of()
+        : ImmutableBitSet.copyOf(storedEdgeAcceptance));
       check(automaton.acceptance().isWellFormedEdge(edge),
         "%s is not well-formed for %s", edge, automaton.acceptance());
       automaton.addEdge(source, valuationSet, edge);
@@ -392,7 +392,7 @@ public final class HoaReader {
 
     private HoaState getSuccessor(List<Integer> successors) throws HOAConsumerException {
       check(successors.size() == 1, "Universal edges not supported");
-      return states.get(Iterables.getOnlyElement(successors).intValue());
+      return states.get(Iterables.getOnlyElement(successors));
     }
 
     MutableAutomaton<HoaState, ?> transform() throws HOAConsumerException {
@@ -406,7 +406,7 @@ public final class HoaReader {
 
       for (List<Integer> startState : storedHeader.getStartStates()) {
         check(startState.size() == 1, "Universal initial states not supported");
-        automaton.addInitialState(states.get(Iterables.getOnlyElement(startState).intValue()));
+        automaton.addInitialState(states.get(Iterables.getOnlyElement(startState)));
       }
 
       for (StoredState storedState : storedAutomaton.getStoredStates()) {

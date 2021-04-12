@@ -114,7 +114,8 @@ public class SmartSucc<S> {
   public List<Edge<NbaDetState<S>>> getSuitable(NbaDetState<S> cur, BitSet sym, boolean getAll) {
     // Get MullerSchupp successor to span largest trieMap subtree possible
     var refSuc = cur.successor(refConf, sym);
-    var ev = NbaDetState.priorityToRank(refSuc.smallestAcceptanceSet()); //get dominant rank event
+    var ev = NbaDetState.priorityToRank(
+      refSuc.colours().first().orElse(Integer.MAX_VALUE)); //get dominant rank event
     var th = refSuc.successor().toTrieEncoding(); //get encoded slice as word
 
     //calculate k-equivalence level
@@ -127,9 +128,9 @@ public class SmartSucc<S> {
     var msk = kCutMask(th, k - 1);
     var tht = th.subList(0, k); //prefix of length k
 
-    var ini = existing.containsKeyWithPrefix(tht);
     var ret = new ArrayList<Edge<NbaDetState<S>>>();
-    if (ini) { //if the corresponding trieMap subtree exists, search for successors
+    if (existing.containsKeyWithPrefix(tht)) {
+      //if the corresponding trieMap subtree exists, search for successors
       var subtrie = existing.subTrie(tht);
       var cnds = trieDfs(refSuc.successor(), msk, subtrie, tht.get(tht.size() - 1), 0, getAll);
       for (var cnd : cnds) { //lift to edges
@@ -146,7 +147,8 @@ public class SmartSucc<S> {
       return;
     }
     var refSuc = cur.successor(refConf, sym); //the Muller-Schupp unmerged successor
-    int rk = NbaDetState.priorityToRank(refSuc.smallestAcceptanceSet()).fst(); //dom. rank
+    int rk = NbaDetState.priorityToRank(refSuc.colours().first().orElse(Integer.MAX_VALUE)).fst();
+    //dom. rank
     logger.log(Level.FINEST, "dom rank " + rk + " redirect");
     logger.log(Level.FINEST, "from: " + usrSuc.toString() + "\nto: " + altSuc.toString());
 

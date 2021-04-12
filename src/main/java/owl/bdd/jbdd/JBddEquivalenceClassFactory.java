@@ -44,11 +44,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-import owl.automaton.edge.Colours;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -418,9 +418,9 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     private List<List<Integer>> onePathsCache;
 
     @Nullable
-    private Colours atomicPropositionsCache;
+    private ImmutableBitSet atomicPropositionsCache;
     @Nullable
-    private Colours atomicPropositionsCacheIncludeNested;
+    private ImmutableBitSet atomicPropositionsCacheIncludeNested;
     @Nullable
     private Set<TemporalOperator> temporalOperatorsCache;
     @Nullable
@@ -485,7 +485,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     @Override
-    public Colours atomicPropositions(boolean includeNested) {
+    public ImmutableBitSet atomicPropositions(boolean includeNested) {
       if (atomicPropositionsCache == null || atomicPropositionsCacheIncludeNested == null) {
         initialiseSupportBasedCaches();
       }
@@ -533,13 +533,13 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       }
 
       assert atomicPropositionsCache == null;
-      atomicPropositionsCache = Colours.copyOf(atomicPropositions);
+      atomicPropositionsCache = ImmutableBitSet.copyOf(atomicPropositions);
 
       assert atomicPropositionsCacheIncludeNested == null;
       atomicPropositionsCacheIncludeNested =
         atomicPropositions.equals(atomicPropositionsIncludeNested)
           ? atomicPropositionsCache
-          : Colours.copyOf(atomicPropositionsIncludeNested);
+          : ImmutableBitSet.copyOf(atomicPropositionsIncludeNested);
 
       assert temporalOperatorsCache == null;
       temporalOperatorsCache = Set.of(temporalOperators);

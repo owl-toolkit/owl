@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.automaton.edge;
+package owl.collections;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
@@ -29,65 +29,101 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.PrimitiveIterator;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
-import owl.collections.BitSet2;
 
-// TODO: implement SortedSet<Integer>; override all mutators with UOE; Cache small instances.
-public abstract class Colours extends AbstractSet<Integer> implements Comparable<Colours> {
+/**
+ * This class implements an immutable vector of bits. Each component of the bit set has a
+ * {@code boolean} value. The bits of a {@code ImmutableBitSet} are indexed by nonnegative integers.
+ * This class further implements the {@code Set} and provide methods to access integer
+ * values without boxing.
+ *
+ * <p>This is a simple implementation backed by either singleton values or a BitSet. Thus using
+ * large indices increases the allocated memory, since the backing BitSet does not have sparse
+ * representation. The {@code ImmutableBitSet} instances have the following characteristics:
+ *
+ * <ul>
+ * <li>They are <a href="Collection.html#unmodifiable"><i>unmodifiable</i></a>. Elements cannot
+ * be added or removed. Calling any mutator method on the Set
+ * will always cause {@code UnsupportedOperationException} to be thrown.
+ * <li>They disallow {@code null} elements. Attempts to create them with
+ * {@code null} elements result in {@code NullPointerException}.
+ * <li>They reject duplicate elements at creation time. Duplicate elements
+ * passed to a static factory method result in {@code IllegalArgumentException}.
+ * <li>They are value-based.
+ * Callers should make no assumptions about the identity of the returned instances.
+ * Factories are free to create new instances or reuse existing ones. Therefore,
+ * identity-sensitive operations on these instances (reference equality ({@code ==}),
+ * identity hash code, and synchronization) are unreliable and should be avoided.
+ * </ul>
+ */
+// TODO: implement SortedSet, NavigableSet
+// TODO: add ImmutableBitSet.Builder
+public abstract class ImmutableBitSet extends AbstractSet<Integer>
+  implements Comparable<ImmutableBitSet> {
 
-  private static final Interner<Colours> INTERNER = Interners.newWeakInterner();
+  private static final Interner<Small> SMALL_INTERNER = Interners.newWeakInterner();
+  private static final Interner<Large> LARGE_INTERNER = Interners.newWeakInterner();
 
-  // Hide constructor.
-  private Colours() {}
+  private ImmutableBitSet() {}
 
-  public static Colours of() {
+  public static ImmutableBitSet of() {
     return Small.EMPTY;
   }
 
-  public static Colours of(int colour) {
-    Preconditions.checkArgument(colour >= 0);
-    return INTERNER.intern(new Small(colour));
+  public static ImmutableBitSet of(int element) {
+    Preconditions.checkArgument(element >= 0);
+    return SMALL_INTERNER.intern(new Small(element));
   }
 
-  public static Colours of(int firstColour, int... moreColours) {
-    BitSet colours = new BitSet();
-    colours.set(firstColour);
+  public static ImmutableBitSet of(int... elements) {
+    BitSet builder = new BitSet();
 
-    for (int colour : moreColours) {
-      Preconditions.checkArgument(!colours.get(colour), "duplicate element: " + colour);
-      colours.set(colour);
+    for (int element : elements) {
+      Preconditions.checkArgument(!builder.get(element), "duplicate element: " + element);
+      builder.set(element);
     }
 
-    return new Large(colours);
+    return LARGE_INTERNER.intern(new Large(builder));
   }
 
-  public static Colours copyOf(BitSet colours) {
-    switch (colours.cardinality()) {
+  public static ImmutableBitSet copyOf(BitSet bitSet) {
+    switch (bitSet.cardinality()) {
       case 0:
         return of();
 
       case 1:
-        return of(colours.nextSetBit(0));
+        return of(bitSet.nextSetBit(0));
 
       default:
-        BitSet colourCopy = new BitSet();
-        colourCopy.or(colours);
-        return new Large(colourCopy);
+        BitSet copy;
+
+        if (bitSet.getClass() == BitSet.class) {
+          copy = (BitSet) bitSet.clone();
+        } else {
+          // Manual copy, because the passed bitSet was subclassed and might do wonky stuff
+          // in clone().
+          copy = new BitSet();
+          copy.or(bitSet);
+        }
+
+        return LARGE_INTERNER.intern(new Large(copy));
     }
   }
 
-  public static Colours copyOf(Collection<Integer> colourCollection) {
-    if (colourCollection instanceof Colours) {
-      return (Colours) colourCollection;
+  public static ImmutableBitSet copyOf(Collection<Integer> collection) {
+    if (collection instanceof ImmutableBitSet) {
+      return (ImmutableBitSet) collection;
     }
 
-    Iterator<Integer> iterator = colourCollection.iterator();
+    Iterator<Integer> iterator = collection.iterator();
 
     if (!iterator.hasNext()) {
       return of();
@@ -107,12 +143,32 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
       return of(firstColour);
     }
 
-    return new Large(colours);
+    return LARGE_INTERNER.intern(new Large(colours));
   }
 
-  public abstract int first();
+  public abstract OptionalInt first();
 
-  public abstract int last();
+  public abstract OptionalInt last();
+
+  /**
+   * Returns the least element in this set strictly greater than the
+   * given element.
+   *
+   * @param e the value to match
+   * @return the least element greater than {@code e}.
+   * @throws NoSuchElementException if there is no such element.
+   */
+  public abstract OptionalInt higher(int e);
+
+  /**
+   * Returns the greatest element in this set strictly less than the
+   * given element.
+   *
+   * @param e the value to match
+   * @return the greatest element less than {@code e}.
+   * @throws NoSuchElementException if there is no such element.
+   */
+  public abstract OptionalInt lower(int e);
 
   @Override
   public abstract boolean isEmpty();
@@ -133,12 +189,12 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
   @Override
   public final boolean containsAll(Collection<?> c) {
-    if (c instanceof Colours.Small) {
+    if (c instanceof ImmutableBitSet.Small) {
       return c.isEmpty() || contains(((Small) c).element);
     }
 
-    if (c instanceof Colours.Large) {
-      return containsAll(((Large) c).colours);
+    if (c instanceof ImmutableBitSet.Large) {
+      return containsAll(((Large) c).elements);
     }
 
     return super.containsAll(c);
@@ -158,7 +214,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
   public abstract BitSet copyInto(BitSet target);
 
-  public final Colours union(Colours that) {
+  public final ImmutableBitSet union(ImmutableBitSet that) {
     if (this.containsAll(that)) {
       return this;
     }
@@ -172,13 +228,13 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     that.copyInto(union);
 
     if (union.cardinality() > 1) {
-      return new Large(union);
+      return LARGE_INTERNER.intern(new Large(union));
     }
 
     return copyOf(union);
   }
 
-  public final Colours intersection(Colours that) {
+  public final ImmutableBitSet intersection(ImmutableBitSet that) {
     if (this.containsAll(that)) {
       return that;
     }
@@ -192,14 +248,14 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     intersection.and(that.copyInto(new BitSet()));
 
     if (intersection.cardinality() > 1) {
-      return new Large(intersection);
+      return LARGE_INTERNER.intern(new Large(intersection));
     }
 
     return copyOf(intersection);
   }
 
-  private static final class Small extends Colours {
-    private static Colours EMPTY = new Small(Small.EMPTY_ELEMENT_VALUE);
+  private static final class Small extends ImmutableBitSet {
+    private static ImmutableBitSet EMPTY = new Small(Small.EMPTY_ELEMENT_VALUE);
 
     private static final int EMPTY_ELEMENT_VALUE = -1;
 
@@ -226,21 +282,39 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     }
 
     @Override
-    public int first() {
+    public OptionalInt first() {
       if (isEmpty()) {
-        return Integer.MAX_VALUE;
+        return OptionalInt.empty();
       }
 
-      return element;
+      return OptionalInt.of(element);
     }
 
     @Override
-    public int last() {
+    public OptionalInt last() {
       if (isEmpty()) {
-        return -1;
+        return OptionalInt.empty();
       }
 
-      return element;
+      return OptionalInt.of(element);
+    }
+
+    @Override
+    public OptionalInt higher(int e) {
+      if (isEmpty() || e >= element) {
+        return OptionalInt.empty();
+      }
+
+      return OptionalInt.of(element);
+    }
+
+    @Override
+    public OptionalInt lower(int e) {
+      if (isEmpty() || e <= element) {
+        return OptionalInt.empty();
+      }
+
+      return OptionalInt.of(element);
     }
 
     @Override
@@ -253,11 +327,11 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
         return false;
       }
 
-      if (o instanceof Colours.Large) {
+      if (o instanceof ImmutableBitSet.Large) {
         return false;
       }
 
-      if (o instanceof Colours.Small) {
+      if (o instanceof ImmutableBitSet.Small) {
         return element == ((Small) o).element;
       }
 
@@ -319,7 +393,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     }
 
     @Override
-    public int compareTo(Colours o) {
+    public int compareTo(ImmutableBitSet o) {
       if (o instanceof Large) {
         return -1;
       }
@@ -329,27 +403,43 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     }
   }
 
-  private static final class Large extends Colours {
-    private final BitSet colours;
+  private static final class Large extends ImmutableBitSet {
+    private final BitSet elements;
 
-    private Large(BitSet colours) {
-      assert colours.cardinality() > 1;
-      this.colours = Objects.requireNonNull(colours);
+    private Large(BitSet elements) {
+      Preconditions.checkArgument(elements.cardinality() > 1);
+      this.elements = Objects.requireNonNull(elements);
     }
 
     @Override
-    public int first() {
-      return colours.nextSetBit(0);
+    public OptionalInt first() {
+      return OptionalInt.of(elements.nextSetBit(0));
     }
 
     @Override
-    public int last() {
-      return colours.length() - 1;
+    public OptionalInt last() {
+      return OptionalInt.of(elements.length() - 1);
+    }
+
+    @Override
+    public OptionalInt higher(int e) {
+      int nextElement = elements.nextSetBit(Math.max(0, e + 1));
+      return nextElement >= 0
+        ? OptionalInt.of(nextElement)
+        : OptionalInt.empty();
+    }
+
+    @Override
+    public OptionalInt lower(int e) {
+      int previousElement = elements.previousSetBit(Math.min(-1, e - 1));
+      return previousElement >= 0
+        ? OptionalInt.of(previousElement)
+        : OptionalInt.empty();
     }
 
     @Override
     public Iterator<Integer> iterator() {
-      return colours.stream().boxed().iterator();
+      return elements.stream().boxed().iterator();
     }
 
     @Override
@@ -359,7 +449,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
     @Override
     public int size() {
-      return colours.cardinality();
+      return elements.cardinality();
     }
 
     @Override
@@ -372,12 +462,12 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
         return false;
       }
 
-      if (o instanceof Colours.Small) {
+      if (o instanceof ImmutableBitSet.Small) {
         return false;
       }
 
-      if (o instanceof Colours.Large) {
-        return colours.equals(((Large) o).colours);
+      if (o instanceof ImmutableBitSet.Large) {
+        return elements.equals(((Large) o).elements);
       }
 
       return super.equals(o);
@@ -387,7 +477,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     public int hashCode() {
       int h = 0;
 
-      for (int i = colours.nextSetBit(0); i >= 0; i = colours.nextSetBit(i + 1)) {
+      for (int i = elements.nextSetBit(0); i >= 0; i = elements.nextSetBit(i + 1)) {
         h += Integer.hashCode(i);
 
         // operate on index i here
@@ -401,13 +491,13 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
     @Override
     public boolean contains(int element) {
-      return element >= 0 && colours.get(element);
+      return element >= 0 && elements.get(element);
     }
 
     @Override
     public boolean containsAll(BitSet colours) {
       BitSet copy = BitSet2.copyOf(colours);
-      copy.andNot(this.colours);
+      copy.andNot(this.elements);
       return copy.isEmpty();
     }
 
@@ -418,7 +508,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
     @Override
     public IntStream intStream() {
-      return colours.stream();
+      return elements.stream();
     }
 
     @Override
@@ -428,7 +518,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
 
     @Override
     public void forEach(Consumer<? super Integer> action) {
-      colours.stream().boxed().forEach(action);
+      elements.stream().boxed().forEach(action);
     }
 
     @Override
@@ -440,17 +530,17 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
     public BitSet copyInto(BitSet target) {
       // It is safe to use target without worrying about target changing our internal state.
       if (BitSet.class.equals(target.getClass())) {
-        target.or(colours);
+        target.or(elements);
       } else {
         // safe-fallback.
-        colours.stream().forEach(target::set);
+        elements.stream().forEach(target::set);
       }
 
       return target;
     }
 
     @Override
-    public int compareTo(Colours o) {
+    public int compareTo(ImmutableBitSet o) {
       if (o instanceof Small) {
         return 1;
       }
@@ -462,7 +552,7 @@ public abstract class Colours extends AbstractSet<Integer> implements Comparable
         return sizeComparison;
       }
 
-      return Arrays.compare(colours.stream().toArray(), ((Large) o).colours.stream().toArray());
+      return Arrays.compare(elements.stream().toArray(), ((Large) o).elements.stream().toArray());
     }
   }
 }

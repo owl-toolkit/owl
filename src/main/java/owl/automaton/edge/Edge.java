@@ -26,6 +26,7 @@ import java.util.PrimitiveIterator;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nonnegative;
+import owl.collections.ImmutableBitSet;
 
 /**
  * This class represents edges of automata including their acceptance membership.
@@ -46,7 +47,7 @@ public abstract class Edge<S> {
   /**
    * Colours: the acceptance sets this edge is part of.
    */
-  public abstract Colours colours();
+  public abstract ImmutableBitSet colours();
 
   /**
    * Creates an edge which belongs to no acceptance set.
@@ -59,7 +60,7 @@ public abstract class Edge<S> {
    * @return An edge leading to {@code successor} with no acceptance.
    */
   public static <S> Edge<S> of(S successor) {
-    return of(successor, Colours.of());
+    return of(successor, ImmutableBitSet.of());
   }
 
   /**
@@ -75,7 +76,7 @@ public abstract class Edge<S> {
    * @return An edge leading to {@code successor} with given acceptance.
    */
   public static <S> Edge<S> of(S successor, @Nonnegative int acceptance) {
-    return of(successor, Colours.of(acceptance));
+    return of(successor, ImmutableBitSet.of(acceptance));
   }
 
   /**
@@ -99,7 +100,7 @@ public abstract class Edge<S> {
       return of(successor, acceptance.nextSetBit(0));
     }
 
-    return of(successor, Colours.copyOf(acceptance));
+    return of(successor, ImmutableBitSet.copyOf(acceptance));
   }
 
   /**
@@ -115,22 +116,23 @@ public abstract class Edge<S> {
    * @return An edge leading to {@code successor} with given acceptance.
    */
   public static <S> Edge<S> of(S successor, Collection<Integer> acceptance) {
-    return new AutoValue_Edge<>(successor, Colours.copyOf(acceptance));
+    return of(successor, ImmutableBitSet.copyOf(acceptance));
   }
 
   /**
-   * Returns the largest acceptance set this edge is a member of, or {@code -1} if none.
+   * Creates an edge which belongs to the specified acceptance sets.
+   *
+   * @param successor
+   *     Successor of this edge.
+   * @param <S>
+   *     Type of the successor.
+   * @param acceptance
+   *     The delegate sets this edge should belong to.
+   *
+   * @return An edge leading to {@code successor} with given acceptance.
    */
-  public int largestAcceptanceSet() {
-    return colours().last();
-  }
-
-  /**
-   * Returns the largest acceptance set this edge is a member of, or {@code Integer.MAX_VALUE} if
-   * none.
-   */
-  public int smallestAcceptanceSet() {
-    return colours().first();
+  public static <S> Edge<S> of(S successor, ImmutableBitSet acceptance) {
+    return new AutoValue_Edge<>(successor, acceptance);
   }
 
   public Edge<S> withAcceptance(int i) {
@@ -141,7 +143,7 @@ public abstract class Edge<S> {
     return of(successor(), acceptance);
   }
 
-  public Edge<S> withAcceptance(Colours acceptance) {
+  public Edge<S> withAcceptance(ImmutableBitSet acceptance) {
     return of(successor(), acceptance);
   }
 

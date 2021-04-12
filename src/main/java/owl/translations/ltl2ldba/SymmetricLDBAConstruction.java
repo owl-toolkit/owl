@@ -430,9 +430,9 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       var livenessAutomaton = automata.gfCoSafetyAutomaton;
       var livenessEdgeTree = livenessAutomaton.edgeTree(livenessState);
 
-      assert safetyEdgeTree.flatValues().stream().allMatch(x -> x.largestAcceptanceSet() == -1);
+      assert safetyEdgeTree.flatValues().stream().allMatch(x -> x.colours().isEmpty());
       assert livenessEdgeTree.flatValues().stream().allMatch(
-        x -> x.largestAcceptanceSet() < this.acceptance.acceptanceSets());
+        x -> x.colours().last().orElse(-1) < this.acceptance.acceptanceSets());
 
       return cartesianProduct(safetyEdgeTree, livenessEdgeTree, (safetyEdge, livenessEdge) -> {
         var successor = new SymmetricProductState(safetyEdge.successor(),

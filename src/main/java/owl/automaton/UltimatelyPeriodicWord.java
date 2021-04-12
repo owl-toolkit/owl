@@ -25,16 +25,16 @@ import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Objects;
-import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 
 public final class UltimatelyPeriodicWord {
 
-  public final List<BitSet> prefix;
-  public final List<BitSet> period;
+  public final List<ImmutableBitSet> prefix;
+  public final List<ImmutableBitSet> period;
 
   public UltimatelyPeriodicWord(List<BitSet> prefix, List<BitSet> period) {
-    this.prefix = prefix.stream().map(BitSet2::copyOf).collect(toUnmodifiableList());
-    this.period = period.stream().map(BitSet2::copyOf).collect(toUnmodifiableList());
+    this.prefix = prefix.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
+    this.period = period.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
     Preconditions.checkArgument(!this.period.isEmpty());
   }
 

@@ -23,6 +23,7 @@ import java.util.BitSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.function.IntUnaryOperator;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -53,7 +54,11 @@ public interface BddSet {
 
   <E> MtBdd<E> intersection(MtBdd<E> tree);
 
-  BddSet project(BitSet quantifiedAtomicPropositions);
+  default BddSet project(BitSet quantifiedAtomicPropositions) {
+    return project(ImmutableBitSet.copyOf(quantifiedAtomicPropositions));
+  }
+
+  BddSet project(ImmutableBitSet quantifiedAtomicPropositions);
 
   BddSet relabel(IntUnaryOperator mapping);
 
@@ -95,5 +100,23 @@ public interface BddSet {
    *     This method throws an exception if the {@param support} does not contain all elements
    *     of {@link BddSet#support()}.
    */
-  Iterator<BitSet> iterator(BitSet support);
+  default Iterator<BitSet> iterator(BitSet support) {
+    return iterator(ImmutableBitSet.copyOf(support));
+  }
+
+  /**
+   * Returns a {@code Iterator<BitSet>}-view of this BddSet.
+   *
+   * <p>Since the number of variables is dynamic, an explicit support needs to be given. All
+   * returned BitSets are a subset of this support.</p>
+   *
+   * @param support the upper-bound for all elements of the returned view.
+   *
+   * @return {@code Iterator<BitSet>}-view of this BddSet
+   *
+   * @throws IllegalArgumentException
+   *     This method throws an exception if the {@param support} does not contain all elements
+   *     of {@link BddSet#support()}.
+   */
+  Iterator<BitSet> iterator(ImmutableBitSet support);
 }

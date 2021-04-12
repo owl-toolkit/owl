@@ -83,6 +83,10 @@ public final class BitSet2 {
     return copy;
   }
 
+  public static BitSet copyOf(ImmutableBitSet set) {
+    return set.copyInto(new BitSet());
+  }
+
   public static BitSet copyOf(Collection<Integer> set) {
     BitSet bitSet = new BitSet(set.size());
     set.forEach(bitSet::set);
@@ -342,7 +346,7 @@ public final class BitSet2 {
       return powerSet(length);
     }
 
-    return () -> new PowerBitSetIterator(copyOf(basis));
+    return () -> new PowerBitSetIterator(ImmutableBitSet.copyOf(basis));
   }
 
   private static final class PowerBitSetSimpleIterator implements Iterator<BitSet> {
@@ -374,15 +378,15 @@ public final class BitSet2 {
   }
 
   private static final class PowerBitSetIterator implements Iterator<BitSet> {
-    private final BitSet baseSet;
+    private final ImmutableBitSet baseSet;
     private final BitSet iteration;
     private final int baseCardinality;
     private int numSetBits = -1;
 
-    private PowerBitSetIterator(BitSet baseSet) {
+    private PowerBitSetIterator(ImmutableBitSet baseSet) {
       this.baseSet = baseSet;
-      this.baseCardinality = baseSet.cardinality();
-      this.iteration = new BitSet(baseSet.length());
+      this.baseCardinality = baseSet.size();
+      this.iteration = new BitSet(32);
     }
 
     @Override
@@ -401,7 +405,7 @@ public final class BitSet2 {
         throw new NoSuchElementException("No next element");
       }
 
-      var iterator = baseSet.stream().iterator();
+      var iterator = baseSet.intIterator();
       while (iterator.hasNext()) {
         int index = iterator.nextInt();
         if (iteration.get(index)) {

@@ -29,6 +29,7 @@ import owl.automaton.Automaton;
 import owl.automaton.UltimatelyPeriodicWord;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
+import owl.collections.ImmutableBitSet;
 
 public final class LanguageMembership {
 
@@ -71,7 +72,7 @@ public final class LanguageMembership {
 
     @Override
     protected Set<Edge<IndexedState<S>>> edgesImpl(IndexedState<S> state, BitSet valuation) {
-      BitSet allowedValuation;
+      ImmutableBitSet allowedValuation;
 
       if (state.index() < 0) {
         allowedValuation = word.prefix.get(-state.index() - 1);
@@ -79,7 +80,7 @@ public final class LanguageMembership {
         allowedValuation = word.period.get(state.index());
       }
 
-      if (!allowedValuation.equals(valuation)) {
+      if (!allowedValuation.equals(ImmutableBitSet.copyOf(valuation))) {
         return Set.of();
       }
 

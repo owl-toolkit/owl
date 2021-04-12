@@ -17,9 +17,9 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.edge.Colours;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 @AutoValue
@@ -431,7 +431,7 @@ public abstract class SymbolicDRA2DPAConstruction {
 
   private static class ParityVariableAllocation implements SymbolicAutomaton.VariableAllocation {
     private final SymbolicAutomaton.VariableAllocation rabinAllocation;
-    private final Colours parityColourVariables;
+    private final ImmutableBitSet parityColourVariables;
     private final int numberOfRabinColours;
 
     ParityVariableAllocation(SymbolicAutomaton.VariableAllocation rabinAllocation, int paritySets) {
@@ -440,12 +440,12 @@ public abstract class SymbolicDRA2DPAConstruction {
       int numberOfRabinVariables = rabinAllocation.numberOfVariables();
       BitSet parityColourVariableBitset = new BitSet();
       parityColourVariableBitset.set(numberOfRabinVariables, numberOfRabinVariables + paritySets);
-      parityColourVariables = Colours.copyOf(parityColourVariableBitset);
+      parityColourVariables = ImmutableBitSet.copyOf(parityColourVariableBitset);
     }
 
 
     @Override
-    public Colours variables(SymbolicAutomaton.VariableType... types) {
+    public ImmutableBitSet variables(SymbolicAutomaton.VariableType... types) {
       var typeSet = Set.of(types);
       if (typeSet.contains(COLOUR)) {
         return rabinAllocation.variables(types).union(parityColourVariables);

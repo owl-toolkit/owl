@@ -57,10 +57,10 @@ import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.AcceptanceTransformer;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Conjunction;
 import owl.logic.propositional.sat.Solver;
@@ -442,7 +442,7 @@ public final class ToParityTransformer {
       PropositionalFormula<Integer> alpha, PropositionalFormula<Integer> beta, boolean stutter) {
 
       Set<Integer> colours = alpha.variables();
-      ZielonkaTree root = ZielonkaTree.of(Colours.copyOf(colours), alpha, beta);
+      ZielonkaTree root = ZielonkaTree.of(ImmutableBitSet.copyOf(colours), alpha, beta);
       boolean accepting = alpha.evaluate(root.colours());
       return INTERNER.intern(
         new AutoValue_ToParityTransformer_ZielonkaTreeRoot(root, accepting, stutter));
@@ -459,8 +459,8 @@ public final class ToParityTransformer {
     }
 
     @Override
-    public Edge<Path> transformColours(Colours unfilteredColours, Path currentPath) {
-      Colours colours = unfilteredColours.intersection(root().colours());
+    public Edge<Path> transformColours(ImmutableBitSet unfilteredColours, Path currentPath) {
+      ImmutableBitSet colours = unfilteredColours.intersection(root().colours());
 
       int anchorLevel = 0;
       var node = this.root();
@@ -539,12 +539,12 @@ public final class ToParityTransformer {
 
     public abstract int height();
 
-    public abstract Colours colours();
+    public abstract ImmutableBitSet colours();
 
     public abstract List<ZielonkaTree> children();
 
     private static ZielonkaTree of(
-      Colours colours,
+      ImmutableBitSet colours,
       PropositionalFormula<Integer> alpha,
       PropositionalFormula<Integer> beta) {
 
@@ -552,10 +552,10 @@ public final class ToParityTransformer {
     }
 
     private static ZielonkaTree of(
-      Colours colours,
+      ImmutableBitSet colours,
       PropositionalFormula<Integer> alpha,
       PropositionalFormula<Integer> beta,
-      Map<Colours, ZielonkaTree> cache) {
+      Map<ImmutableBitSet, ZielonkaTree> cache) {
 
       var zielonkaTree = cache.get(colours);
 
@@ -569,14 +569,14 @@ public final class ToParityTransformer {
       var maximalModels = Solver.maximalModels(
         Conjunction.of(alpha.evaluate(colours) ? Negation.of(alpha) : alpha, beta), colours)
         .stream()
-        .map(Colours::copyOf)
+        .map(ImmutableBitSet::copyOf)
         .sorted()
-        .toArray(Colours[]::new);
+        .toArray(ImmutableBitSet[]::new);
 
       var children = new ArrayList<ZielonkaTree>();
       int height = 0;
 
-      for (Colours childColours : maximalModels) {
+      for (ImmutableBitSet childColours : maximalModels) {
         var child = of(childColours, alpha, beta, cache);
         height = Math.max(height, child.height() + 1);
         children.add(child);

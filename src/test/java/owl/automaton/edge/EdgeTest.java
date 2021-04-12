@@ -28,6 +28,7 @@ import com.google.common.collect.Lists;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.PrimitiveIterator.OfInt;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -155,9 +156,11 @@ class EdgeTest {
   void testLargestAcceptanceSet(TestCase testCase) {
     for (Edge<?> edge : testCase.edges) {
       if (testCase.acceptance.isEmpty()) {
-        assertEquals(-1, edge.largestAcceptanceSet());
+        assertEquals(OptionalInt.empty(), edge.colours().last());
       } else {
-        assertEquals((long) Lists.reverse(testCase.acceptance).get(0), edge.largestAcceptanceSet());
+        assertEquals(
+          OptionalInt.of(Lists.reverse(testCase.acceptance).get(0)),
+          edge.colours().last());
       }
     }
   }
@@ -167,9 +170,9 @@ class EdgeTest {
   void testSmallestAcceptanceSet(TestCase testCase) {
     for (Edge<?> edge : testCase.edges) {
       if (testCase.acceptance.isEmpty()) {
-        assertEquals(Integer.MAX_VALUE, edge.smallestAcceptanceSet());
+        assertEquals(OptionalInt.empty(), edge.colours().first());
       } else {
-        assertEquals(testCase.acceptance.get(0), edge.smallestAcceptanceSet());
+        assertEquals(OptionalInt.of(testCase.acceptance.get(0)), edge.colours().first());
       }
     }
   }

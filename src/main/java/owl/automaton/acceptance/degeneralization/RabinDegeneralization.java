@@ -46,9 +46,9 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
+import owl.collections.ImmutableBitSet;
 import owl.run.modules.OwlModule;
 import owl.run.modules.OwlModule.AutomatonTransformer;
 
@@ -122,7 +122,7 @@ public final class RabinDegeneralization {
 
       // Determine the pairs which can accept in this SCC (i.e. those which have all their Inf in
       // this SCC)
-      Colours indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
+      ImmutableBitSet indices = AutomatonUtil.getAcceptanceSets(automaton, scc);
       List<Integer> sccTrackedPairs = new ArrayList<>(trackedPairsCount);
       for (int i = 0, s = trackedPairs.size(); i < s; i++) {
         assert trackedPairs.get(i).hasInfSet();

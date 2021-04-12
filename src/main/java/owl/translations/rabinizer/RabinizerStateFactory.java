@@ -25,9 +25,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import owl.automaton.edge.Colours;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
+import owl.collections.ImmutableBitSet;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -48,7 +48,7 @@ class RabinizerStateFactory {
     this.eager = eager;
   }
 
-  Colours getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
+  ImmutableBitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
     return eager
       ? equivalenceClass.atomicPropositions()
       : equivalenceClass.unfold().atomicPropositions();

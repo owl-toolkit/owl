@@ -169,7 +169,7 @@ public final class LanguageEmptiness {
 
   private static <S> boolean inSet(Edge<S> edge, int index, boolean allIndicesBelow) {
     if (allIndicesBelow) {
-      return edge.smallestAcceptanceSet() <= index;
+      return edge.colours().first().orElse(Integer.MAX_VALUE) <= index;
     }
 
     return index >= 0 && edge.colours().contains(index);

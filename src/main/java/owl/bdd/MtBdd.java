@@ -53,8 +53,7 @@ public abstract class MtBdd<E> {
     return set.isEmpty() ? of() : new Leaf<>(set);
   }
 
-  public static <E> MtBdd<E> of(int variable, MtBdd<E> trueChild,
-    MtBdd<E> falseChild) {
+  public static <E> MtBdd<E> of(int variable, MtBdd<E> trueChild, MtBdd<E> falseChild) {
     if (trueChild.equals(falseChild)) {
       return trueChild;
     }
@@ -65,12 +64,8 @@ public abstract class MtBdd<E> {
   public abstract Set<E> get(BitSet valuation);
 
   public final Set<E> flatValues() {
-    return flatValues(Function.identity());
-  }
-
-  public final <T> Set<T> flatValues(Function<E, T> mapper) {
-    Set<T> values = new HashSet<>();
-    memoizedFlatValues(values, Collections.newSetFromMap(new IdentityHashMap<>()), mapper);
+    Set<E> values = new HashSet<>();
+    memoizedFlatValues(values, Collections.newSetFromMap(new IdentityHashMap<>()));
     return values;
   }
 
@@ -102,8 +97,7 @@ public abstract class MtBdd<E> {
     Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
     IntUnaryOperator mapping);
 
-  protected abstract <T> void memoizedFlatValues(
-    Set<T> values, Set<MtBdd<E>> seenNodes, Function<E, T> mapper);
+  protected abstract void memoizedFlatValues(Set<E> values, Set<MtBdd<E>> seenNodes);
 
   protected abstract void memoizedValues(
     Set<Set<E>> values, Set<MtBdd<E>> seenNodes);
@@ -124,11 +118,8 @@ public abstract class MtBdd<E> {
     }
 
     @Override
-    protected <T> void memoizedFlatValues(Set<T> values,
-      Set<MtBdd<E>> seenNodes, Function<E, T> mapper) {
-      for (E x : value) {
-        values.add(mapper.apply(x));
-      }
+    protected void memoizedFlatValues(Set<E> values, Set<MtBdd<E>> seenNodes) {
+      values.addAll(value);
     }
 
     @Override
@@ -200,17 +191,13 @@ public abstract class MtBdd<E> {
     }
 
     @Override
-    protected <T> void memoizedFlatValues(
-      Set<T> values,
-      Set<MtBdd<E>> seenNodes,
-      Function<E, T> mapper) {
-
+    protected void memoizedFlatValues(Set<E> values, Set<MtBdd<E>> seenNodes) {
       if (!seenNodes.add(this)) {
         return;
       }
 
-      trueChild.memoizedFlatValues(values, seenNodes, mapper);
-      falseChild.memoizedFlatValues(values, seenNodes, mapper);
+      trueChild.memoizedFlatValues(values, seenNodes);
+      falseChild.memoizedFlatValues(values, seenNodes);
     }
 
     @Override

@@ -41,8 +41,8 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
 import owl.automaton.algorithm.SccDecomposition;
-import owl.automaton.edge.Colours;
 import owl.automaton.hoa.HoaWriter;
+import owl.collections.ImmutableBitSet;
 import owl.run.modules.OwlModule;
 
 public final class AcceptanceOptimizations {
@@ -187,7 +187,7 @@ public final class AcceptanceOptimizations {
     }
 
     @Nullable
-    Colours rejectingSet = automaton.acceptance().rejectingSet().orElse(null);
+    ImmutableBitSet rejectingSet = automaton.acceptance().rejectingSet().orElse(null);
     automaton.removeStateIf(s -> rejectingIndices.contains(sccDecomposition.index(s)));
     automaton.updateEdges((state, edge) -> {
       int sccIndex = sccDecomposition.index(state);

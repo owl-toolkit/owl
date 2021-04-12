@@ -7,8 +7,8 @@ import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
-import owl.automaton.edge.Colours;
 import owl.automaton.symbolic.SymbolicAutomaton.VariableType;
+import owl.collections.ImmutableBitSet;
 
 public class ManualVariableAllocation implements SymbolicAutomaton.VariableAllocation {
 
@@ -24,7 +24,7 @@ public class ManualVariableAllocation implements SymbolicAutomaton.VariableAlloc
   }
 
   @Override
-  public Colours variables(VariableType... types) {
+  public ImmutableBitSet variables(VariableType... types) {
     BitSet bitset = new BitSet();
     Set<VariableType> typeSet = EnumSet.copyOf(Arrays.asList(types));
     for (int i = 0; i < variables.size(); i++) {
@@ -32,7 +32,7 @@ public class ManualVariableAllocation implements SymbolicAutomaton.VariableAlloc
         bitset.set(i);
       }
     }
-    return Colours.copyOf(bitset);
+    return ImmutableBitSet.copyOf(bitset);
   }
 
   @Override

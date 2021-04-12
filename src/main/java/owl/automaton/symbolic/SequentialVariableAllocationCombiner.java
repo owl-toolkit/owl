@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.IntStream;
-import owl.automaton.edge.Colours;
+import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 
 /**
  * Combines variable allocations in sequence and moves atomic propositions
@@ -28,7 +29,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   private final int[] offsets;
   private final int nrOfAps;
   private final boolean startWithAtomicPropositions;
-  private final Map<Set<VariableType>, Colours> variables;
+  private final Map<Set<VariableType>, ImmutableBitSet> variables;
 
   SequentialVariableAllocationCombiner(
     List<? extends VariableAllocation> allocations,
@@ -69,7 +70,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
     }
     for (int i = 0; i < allocations.size(); i++) {
       var allocation = allocations.get(i);
-      BitSet aps = allocation.variables(ATOMIC_PROPOSITION).copyInto(new BitSet());
+      BitSet aps = BitSet2.copyOf(allocation.variables(ATOMIC_PROPOSITION));
       List<String> localNames = allocation.variableNames();
       for (int j = aps.nextClearBit(0);
            j < allocation.numberOfVariables(); j = aps.nextClearBit(j + 1)) {
@@ -121,7 +122,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   }
 
   @Override
-  public Colours variables(VariableType... types) {
+  public ImmutableBitSet variables(VariableType... types) {
     Set<VariableType> typeSet = EnumSet.copyOf(Arrays.asList(types));
     return variables.computeIfAbsent(typeSet, variableTypes -> {
       BitSet bitSet = new BitSet();
@@ -135,7 +136,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
           }
         }
       }
-      return Colours.copyOf(bitSet);
+      return ImmutableBitSet.copyOf(bitSet);
     });
   }
 
@@ -162,7 +163,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
     throw new UnsupportedOperationException("Not implemented");
   }
 
-  private static int getNrOfSetBitsUntilVariable(Colours bitSet, int var) {
+  private static int getNrOfSetBitsUntilVariable(ImmutableBitSet bitSet, int var) {
     int i = 0;
     for (var it = bitSet.intIterator(); it.hasNext(); ) {
       if (it.nextInt() >= var) {
@@ -185,7 +186,7 @@ public class SequentialVariableAllocationCombiner implements AllocationCombiner 
   }
 
   private static int withoutAtomicPropositions(VariableAllocation allocation, int var) {
-    Colours aps = allocation.variables(ATOMIC_PROPOSITION);
+    ImmutableBitSet aps = allocation.variables(ATOMIC_PROPOSITION);
     assert !aps.contains(var);
     return var - getNrOfSetBitsUntilVariable(aps, var);
   }
