@@ -50,7 +50,23 @@ public interface BddSet {
 
   BddSet union(BddSet other);
 
+  default BddSet union(BddSet... bddSets) {
+    BddSet result = this;
+    for (BddSet bddSet : bddSets) {
+      result = result.union(bddSet);
+    }
+    return result;
+  }
+
   BddSet intersection(BddSet other);
+
+  default BddSet intersection(BddSet... bddSets) {
+    BddSet result = this;
+    for (BddSet bddSet : bddSets) {
+      result = result.intersection(bddSet);
+    }
+    return result;
+  }
 
   <E> MtBdd<E> intersection(MtBdd<E> tree);
 

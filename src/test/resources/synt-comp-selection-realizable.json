@@ -1,0 +1,599 @@
+[
+    {
+        "formula": "(((((G ((! (((u0gamestart0f1dbot1b) && (! ((u0gamestart0f1dtop1b) || (u0gamestart0gamestart)))) <-> ((! (((u0gamestart0f1dtop1b) && (! (u0gamestart0gamestart))) <-> ((u0gamestart0gamestart) && (! (u0gamestart0f1dtop1b))))) && (! (u0gamestart0f1dbot1b))))) && (! (((u0shot0f1dbot1b) && (! ((u0shot0f1dtop1b) || (u0shot0shot)))) <-> ((! (((u0shot0f1dtop1b) && (! (u0shot0shot))) <-> ((u0shot0shot) && (! (u0shot0f1dtop1b))))) && (! (u0shot0f1dbot1b))))))) && (G ((u0gamestart0f1dtop1b) || (u0gamestart0f1dbot1b)))) && (G ((u0shot0f1dtop1b) || (u0shot0f1dbot1b)))) && (G ((((p0p0isscoremode0gamemode) && (p0p0gt0accz0f1dresetthreshhold1b)) && (p0p0norotation0gyrox0gyroy0gyroz)) <-> (u0gamestart0f1dtop1b)))) && (G ((((p0p0iscockpitmode0gamemode) && (p0p0gt0f1dabs0accz1b0f1dshotthreshhold1b)) && (p0p0norotation0gyrox0gyroy0gyroz)) <-> (u0shot0f1dtop1b))))",
+        "controllable": [
+            "u0shot0f1dtop1b",
+            "u0shot0f1dbot1b",
+            "u0shot0shot",
+            "u0gamestart0f1dtop1b",
+            "u0gamestart0f1dbot1b",
+            "u0gamestart0gamestart"
+        ],
+        "uncontrollable": [
+            "p0p0norotation0gyrox0gyroy0gyroz",
+            "p0p0gt0f1dabs0accz1b0f1dshotthreshhold1b",
+            "p0p0gt0accz0f1dresetthreshhold1b",
+            "p0p0isscoremode0gamemode",
+            "p0p0iscockpitmode0gamemode"
+        ]
+    },
+    {
+        "formula": "(((G (F (allready))) && (allready)) -> (((G (((((((((((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && ((hgrant_0) || (hgrant_1))) && ((! (allready)) -> ((X (hgrant_0)) <-> (hgrant_0)))) && ((! (allready)) -> ((X (hgrant_1)) <-> (hgrant_1)))) && ((hbusreq_0) -> (F ((! (hbusreq_0)) || (hgrant_0))))) && ((hbusreq_1) -> (F ((! (hbusreq_1)) || (hgrant_1))))) && ((hgrant_0) -> ((busreq) <-> (hbusreq_0)))) && ((hgrant_1) -> ((busreq) <-> (hbusreq_1)))) && ((! (allready)) -> (! (decide)))) && ((decide) <-> ((! ((X (hgrant_0)) <-> (hgrant_0))) || (! ((X (hgrant_1)) <-> (hgrant_1)))))) && ((((! (hbusreq_0)) && (! (hbusreq_1))) && (decide)) -> (X (hgrant_0))))) && (! (decide))) && (hgrant_0)))",
+        "controllable": [
+            "decide",
+            "busreq",
+            "hgrant_0",
+            "hgrant_1"
+        ],
+        "uncontrollable": [
+            "allready",
+            "hbusreq_0",
+            "hbusreq_1"
+        ]
+    },
+    {
+        "formula": "(G (((((((! (hburst_0)) && (! (hburst_1))) -> (single)) && (((hburst_0) && (! (hburst_1))) -> (burst4))) && (((! (hburst_0)) && (hburst_1)) -> (incr))) && (! ((single) && ((burst4) || (incr))))) && (! ((burst4) && (incr)))))",
+        "controllable": [
+            "incr",
+            "burst4",
+            "single"
+        ],
+        "uncontrollable": [
+            "hburst_0",
+            "hburst_1"
+        ]
+    },
+    {
+        "formula": "(((G (((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (! (hgrant_3))) && (! (hgrant_4))) && (((((! (hgrant_5)) && (! (hgrant_6))) && (! (hgrant_7))) && (((! (hgrant_8)) && (true)) || ((true) && (! (hgrant_9))))) || (((((! (hgrant_5)) && (! (hgrant_6))) && (true)) || ((((! (hgrant_5)) && (true)) || ((true) && (! (hgrant_6)))) && (! (hgrant_7)))) && ((! (hgrant_8)) && (! (hgrant_9)))))) || ((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (((! (hgrant_3)) && (true)) || ((true) && (! (hgrant_4))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (true)) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && (! (hgrant_2)))) && ((! (hgrant_3)) && (! (hgrant_4))))) && (((((! (hgrant_5)) && (! (hgrant_6))) && (! (hgrant_7))) && (! (hgrant_8))) && (! (hgrant_9)))))) && (G ((((((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)) || (hgrant_6)) || (hgrant_7)) || (hgrant_8)) || (hgrant_9)))) -> (G ((((((((((((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_0))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_1)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_2)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_3)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_4)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_5)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_6)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_7)))) && ((hready) -> ((X (((((true) && (hmaster_3)) && (! (hmaster_2))) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_8)))) && ((hready) -> ((X (((((true) && (hmaster_3)) && (! (hmaster_2))) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_9)))) && ((! (hready)) -> (((((X (hmaster_0)) <-> (hmaster_0)) && ((X (hmaster_1)) <-> (hmaster_1))) && ((X (hmaster_2)) <-> (hmaster_2))) && ((X (hmaster_3)) <-> (hmaster_3)))))))",
+        "controllable": [
+            "hmaster_0",
+            "hmaster_1",
+            "hmaster_2",
+            "hmaster_3"
+        ],
+        "uncontrollable": [
+            "hready",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5",
+            "hgrant_6",
+            "hgrant_7",
+            "hgrant_8",
+            "hgrant_9"
+        ]
+    },
+    {
+        "formula": "(((G ((((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (! (hgrant_3))) && (! (hgrant_4))) && (! (hgrant_5))) && (((((! (hgrant_6)) && (! (hgrant_7))) && (! (hgrant_8))) && ((((! (hgrant_9)) && (! (hgrant_10))) && (true)) || ((((! (hgrant_9)) && (true)) || ((true) && (! (hgrant_10)))) && (! (hgrant_11))))) || (((((! (hgrant_6)) && (! (hgrant_7))) && (true)) || ((((! (hgrant_6)) && (true)) || ((true) && (! (hgrant_7)))) && (! (hgrant_8)))) && (((! (hgrant_9)) && (! (hgrant_10))) && (! (hgrant_11)))))) || ((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && ((((! (hgrant_3)) && (! (hgrant_4))) && (true)) || ((((! (hgrant_3)) && (true)) || ((true) && (! (hgrant_4)))) && (! (hgrant_5))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (true)) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && (! (hgrant_2)))) && (((! (hgrant_3)) && (! (hgrant_4))) && (! (hgrant_5))))) && ((((((! (hgrant_6)) && (! (hgrant_7))) && (! (hgrant_8))) && (! (hgrant_9))) && (! (hgrant_10))) && (! (hgrant_11)))))) && (G ((((((((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)) || (hgrant_6)) || (hgrant_7)) || (hgrant_8)) || (hgrant_9)) || (hgrant_10)) || (hgrant_11)))) -> (G ((((((((((((((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_0))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_1)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_2)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (! (hmaster_2))) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_3)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_4)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_5)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_6)))) && ((hready) -> ((X (((((true) && (! (hmaster_3))) && (hmaster_2)) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_7)))) && ((hready) -> ((X (((((true) && (hmaster_3)) && (! (hmaster_2))) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_8)))) && ((hready) -> ((X (((((true) && (hmaster_3)) && (! (hmaster_2))) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_9)))) && ((hready) -> ((X (((((true) && (hmaster_3)) && (! (hmaster_2))) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_10)))) && ((hready) -> ((X (((((true) && (hmaster_3)) && (! (hmaster_2))) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_11)))) && ((! (hready)) -> (((((X (hmaster_0)) <-> (hmaster_0)) && ((X (hmaster_1)) <-> (hmaster_1))) && ((X (hmaster_2)) <-> (hmaster_2))) && ((X (hmaster_3)) <-> (hmaster_3)))))))",
+        "controllable": [
+            "hmaster_0",
+            "hmaster_1",
+            "hmaster_2",
+            "hmaster_3"
+        ],
+        "uncontrollable": [
+            "hready",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5",
+            "hgrant_6",
+            "hgrant_7",
+            "hgrant_8",
+            "hgrant_9",
+            "hgrant_10",
+            "hgrant_11"
+        ]
+    },
+    {
+        "formula": "(((G (((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1))))) && (G ((hgrant_0) || (hgrant_1)))) -> (G ((((hready) -> ((X ((true) && (! (hmaster_0)))) <-> (hgrant_0))) && ((hready) -> ((X ((true) && (hmaster_0))) <-> (hgrant_1)))) && ((! (hready)) -> ((X (hmaster_0)) <-> (hmaster_0))))))",
+        "controllable": [
+            "hmaster_0"
+        ],
+        "uncontrollable": [
+            "hready",
+            "hgrant_0",
+            "hgrant_1"
+        ]
+    },
+    {
+        "formula": "(((G ((((! (hgrant_0)) && (! (hgrant_1))) && (((! (hgrant_2)) && (true)) || ((true) && (! (hgrant_3))))) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && ((! (hgrant_2)) && (! (hgrant_3)))))) && (G ((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)))) -> (G ((((((hready) -> ((X (((true) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_0))) && ((hready) -> ((X (((true) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_1)))) && ((hready) -> ((X (((true) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_2)))) && ((hready) -> ((X (((true) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_3)))) && ((! (hready)) -> (((X (hmaster_0)) <-> (hmaster_0)) && ((X (hmaster_1)) <-> (hmaster_1)))))))",
+        "controllable": [
+            "hmaster_0",
+            "hmaster_1"
+        ],
+        "uncontrollable": [
+            "hready",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3"
+        ]
+    },
+    {
+        "formula": "(((G (((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && ((((! (hgrant_3)) && (! (hgrant_4))) && (true)) || ((((! (hgrant_3)) && (true)) || ((true) && (! (hgrant_4)))) && (! (hgrant_5))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (true)) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && (! (hgrant_2)))) && (((! (hgrant_3)) && (! (hgrant_4))) && (! (hgrant_5)))))) && (G ((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)))) -> (G ((((((((hready) -> ((X ((((true) && (! (hmaster_2))) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_0))) && ((hready) -> ((X ((((true) && (! (hmaster_2))) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_1)))) && ((hready) -> ((X ((((true) && (! (hmaster_2))) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_2)))) && ((hready) -> ((X ((((true) && (! (hmaster_2))) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_3)))) && ((hready) -> ((X ((((true) && (hmaster_2)) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_4)))) && ((hready) -> ((X ((((true) && (hmaster_2)) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_5)))) && ((! (hready)) -> ((((X (hmaster_0)) <-> (hmaster_0)) && ((X (hmaster_1)) <-> (hmaster_1))) && ((X (hmaster_2)) <-> (hmaster_2)))))))",
+        "controllable": [
+            "hmaster_0",
+            "hmaster_1",
+            "hmaster_2"
+        ],
+        "uncontrollable": [
+            "hready",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5"
+        ]
+    },
+    {
+        "formula": "(((G ((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (! (hgrant_3))) && ((((! (hgrant_4)) && (! (hgrant_5))) && (((! (hgrant_6)) && (true)) || ((true) && (! (hgrant_7))))) || ((((! (hgrant_4)) && (true)) || ((true) && (! (hgrant_5)))) && ((! (hgrant_6)) && (! (hgrant_7)))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (((! (hgrant_2)) && (true)) || ((true) && (! (hgrant_3))))) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && ((! (hgrant_2)) && (! (hgrant_3))))) && ((((! (hgrant_4)) && (! (hgrant_5))) && (! (hgrant_6))) && (! (hgrant_7)))))) && (G ((((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)) || (hgrant_6)) || (hgrant_7)))) -> (G ((((((((((hready) -> ((X ((((true) && (! (hmaster_2))) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_0))) && ((hready) -> ((X ((((true) && (! (hmaster_2))) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_1)))) && ((hready) -> ((X ((((true) && (! (hmaster_2))) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_2)))) && ((hready) -> ((X ((((true) && (! (hmaster_2))) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_3)))) && ((hready) -> ((X ((((true) && (hmaster_2)) && (! (hmaster_1))) && (! (hmaster_0)))) <-> (hgrant_4)))) && ((hready) -> ((X ((((true) && (hmaster_2)) && (! (hmaster_1))) && (hmaster_0))) <-> (hgrant_5)))) && ((hready) -> ((X ((((true) && (hmaster_2)) && (hmaster_1)) && (! (hmaster_0)))) <-> (hgrant_6)))) && ((hready) -> ((X ((((true) && (hmaster_2)) && (hmaster_1)) && (hmaster_0))) <-> (hgrant_7)))) && ((! (hready)) -> ((((X (hmaster_0)) <-> (hmaster_0)) && ((X (hmaster_1)) <-> (hmaster_1))) && ((X (hmaster_2)) <-> (hmaster_2)))))))",
+        "controllable": [
+            "hmaster_0",
+            "hmaster_1",
+            "hmaster_2"
+        ],
+        "uncontrollable": [
+            "hready",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5",
+            "hgrant_6",
+            "hgrant_7"
+        ]
+    },
+    {
+        "formula": "(((G (((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (! (hgrant_3))) && (! (hgrant_4))) && (((((! (hgrant_5)) && (! (hgrant_6))) && (! (hgrant_7))) && (((! (hgrant_8)) && (true)) || ((true) && (! (hgrant_9))))) || (((((! (hgrant_5)) && (! (hgrant_6))) && (true)) || ((((! (hgrant_5)) && (true)) || ((true) && (! (hgrant_6)))) && (! (hgrant_7)))) && ((! (hgrant_8)) && (! (hgrant_9)))))) || ((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (((! (hgrant_3)) && (true)) || ((true) && (! (hgrant_4))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (true)) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && (! (hgrant_2)))) && ((! (hgrant_3)) && (! (hgrant_4))))) && (((((! (hgrant_5)) && (! (hgrant_6))) && (! (hgrant_7))) && (! (hgrant_8))) && (! (hgrant_9)))))) && (G ((((((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)) || (hgrant_6)) || (hgrant_7)) || (hgrant_8)) || (hgrant_9)))) -> (G (((((((((((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && (((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && (((decide) && (X (hgrant_2))) -> ((X (locked)) <-> (X (hlock_2))))) && (((decide) && (X (hgrant_3))) -> ((X (locked)) <-> (X (hlock_3))))) && (((decide) && (X (hgrant_4))) -> ((X (locked)) <-> (X (hlock_4))))) && (((decide) && (X (hgrant_5))) -> ((X (locked)) <-> (X (hlock_5))))) && (((decide) && (X (hgrant_6))) -> ((X (locked)) <-> (X (hlock_6))))) && (((decide) && (X (hgrant_7))) -> ((X (locked)) <-> (X (hlock_7))))) && (((decide) && (X (hgrant_8))) -> ((X (locked)) <-> (X (hlock_8))))) && (((decide) && (X (hgrant_9))) -> ((X (locked)) <-> (X (hlock_9))))) && ((! (decide)) -> ((X (locked)) <-> (locked))))))",
+        "controllable": [
+            "locked"
+        ],
+        "uncontrollable": [
+            "decide",
+            "hlock_0",
+            "hlock_1",
+            "hlock_2",
+            "hlock_3",
+            "hlock_4",
+            "hlock_5",
+            "hlock_6",
+            "hlock_7",
+            "hlock_8",
+            "hlock_9",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5",
+            "hgrant_6",
+            "hgrant_7",
+            "hgrant_8",
+            "hgrant_9"
+        ]
+    },
+    {
+        "formula": "(((G ((((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (! (hgrant_3))) && (! (hgrant_4))) && (! (hgrant_5))) && (((((! (hgrant_6)) && (! (hgrant_7))) && (! (hgrant_8))) && ((((! (hgrant_9)) && (! (hgrant_10))) && (true)) || ((((! (hgrant_9)) && (true)) || ((true) && (! (hgrant_10)))) && (! (hgrant_11))))) || (((((! (hgrant_6)) && (! (hgrant_7))) && (true)) || ((((! (hgrant_6)) && (true)) || ((true) && (! (hgrant_7)))) && (! (hgrant_8)))) && (((! (hgrant_9)) && (! (hgrant_10))) && (! (hgrant_11)))))) || ((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && ((((! (hgrant_3)) && (! (hgrant_4))) && (true)) || ((((! (hgrant_3)) && (true)) || ((true) && (! (hgrant_4)))) && (! (hgrant_5))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (true)) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && (! (hgrant_2)))) && (((! (hgrant_3)) && (! (hgrant_4))) && (! (hgrant_5))))) && ((((((! (hgrant_6)) && (! (hgrant_7))) && (! (hgrant_8))) && (! (hgrant_9))) && (! (hgrant_10))) && (! (hgrant_11)))))) && (G ((((((((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)) || (hgrant_6)) || (hgrant_7)) || (hgrant_8)) || (hgrant_9)) || (hgrant_10)) || (hgrant_11)))) -> (G (((((((((((((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && (((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && (((decide) && (X (hgrant_2))) -> ((X (locked)) <-> (X (hlock_2))))) && (((decide) && (X (hgrant_3))) -> ((X (locked)) <-> (X (hlock_3))))) && (((decide) && (X (hgrant_4))) -> ((X (locked)) <-> (X (hlock_4))))) && (((decide) && (X (hgrant_5))) -> ((X (locked)) <-> (X (hlock_5))))) && (((decide) && (X (hgrant_6))) -> ((X (locked)) <-> (X (hlock_6))))) && (((decide) && (X (hgrant_7))) -> ((X (locked)) <-> (X (hlock_7))))) && (((decide) && (X (hgrant_8))) -> ((X (locked)) <-> (X (hlock_8))))) && (((decide) && (X (hgrant_9))) -> ((X (locked)) <-> (X (hlock_9))))) && (((decide) && (X (hgrant_10))) -> ((X (locked)) <-> (X (hlock_10))))) && (((decide) && (X (hgrant_11))) -> ((X (locked)) <-> (X (hlock_11))))) && ((! (decide)) -> ((X (locked)) <-> (locked))))))",
+        "controllable": [
+            "locked"
+        ],
+        "uncontrollable": [
+            "decide",
+            "hlock_0",
+            "hlock_1",
+            "hlock_2",
+            "hlock_3",
+            "hlock_4",
+            "hlock_5",
+            "hlock_6",
+            "hlock_7",
+            "hlock_8",
+            "hlock_9",
+            "hlock_10",
+            "hlock_11",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5",
+            "hgrant_6",
+            "hgrant_7",
+            "hgrant_8",
+            "hgrant_9",
+            "hgrant_10",
+            "hgrant_11"
+        ]
+    },
+    {
+        "formula": "(((G (((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1))))) && (G ((hgrant_0) || (hgrant_1)))) -> (G (((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && (((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && ((! (decide)) -> ((X (locked)) <-> (locked))))))",
+        "controllable": [
+            "locked"
+        ],
+        "uncontrollable": [
+            "decide",
+            "hlock_0",
+            "hlock_1",
+            "hgrant_0",
+            "hgrant_1"
+        ]
+    },
+    {
+        "formula": "(((G ((((! (hgrant_0)) && (! (hgrant_1))) && (((! (hgrant_2)) && (true)) || ((true) && (! (hgrant_3))))) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && ((! (hgrant_2)) && (! (hgrant_3)))))) && (G ((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)))) -> (G (((((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && (((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && (((decide) && (X (hgrant_2))) -> ((X (locked)) <-> (X (hlock_2))))) && (((decide) && (X (hgrant_3))) -> ((X (locked)) <-> (X (hlock_3))))) && ((! (decide)) -> ((X (locked)) <-> (locked))))))",
+        "controllable": [
+            "locked"
+        ],
+        "uncontrollable": [
+            "decide",
+            "hlock_0",
+            "hlock_1",
+            "hlock_2",
+            "hlock_3",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3"
+        ]
+    },
+    {
+        "formula": "(((G (((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && ((((! (hgrant_3)) && (! (hgrant_4))) && (true)) || ((((! (hgrant_3)) && (true)) || ((true) && (! (hgrant_4)))) && (! (hgrant_5))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (true)) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && (! (hgrant_2)))) && (((! (hgrant_3)) && (! (hgrant_4))) && (! (hgrant_5)))))) && (G ((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)))) -> (G (((((((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && (((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && (((decide) && (X (hgrant_2))) -> ((X (locked)) <-> (X (hlock_2))))) && (((decide) && (X (hgrant_3))) -> ((X (locked)) <-> (X (hlock_3))))) && (((decide) && (X (hgrant_4))) -> ((X (locked)) <-> (X (hlock_4))))) && (((decide) && (X (hgrant_5))) -> ((X (locked)) <-> (X (hlock_5))))) && ((! (decide)) -> ((X (locked)) <-> (locked))))))",
+        "controllable": [
+            "locked"
+        ],
+        "uncontrollable": [
+            "decide",
+            "hlock_0",
+            "hlock_1",
+            "hlock_2",
+            "hlock_3",
+            "hlock_4",
+            "hlock_5",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5"
+        ]
+    },
+    {
+        "formula": "(((G ((((((! (hgrant_0)) && (! (hgrant_1))) && (! (hgrant_2))) && (! (hgrant_3))) && ((((! (hgrant_4)) && (! (hgrant_5))) && (((! (hgrant_6)) && (true)) || ((true) && (! (hgrant_7))))) || ((((! (hgrant_4)) && (true)) || ((true) && (! (hgrant_5)))) && ((! (hgrant_6)) && (! (hgrant_7)))))) || (((((! (hgrant_0)) && (! (hgrant_1))) && (((! (hgrant_2)) && (true)) || ((true) && (! (hgrant_3))))) || ((((! (hgrant_0)) && (true)) || ((true) && (! (hgrant_1)))) && ((! (hgrant_2)) && (! (hgrant_3))))) && ((((! (hgrant_4)) && (! (hgrant_5))) && (! (hgrant_6))) && (! (hgrant_7)))))) && (G ((((((((hgrant_0) || (hgrant_1)) || (hgrant_2)) || (hgrant_3)) || (hgrant_4)) || (hgrant_5)) || (hgrant_6)) || (hgrant_7)))) -> (G (((((((((((decide) && (X (hgrant_0))) -> ((X (locked)) <-> (X (hlock_0)))) && (((decide) && (X (hgrant_1))) -> ((X (locked)) <-> (X (hlock_1))))) && (((decide) && (X (hgrant_2))) -> ((X (locked)) <-> (X (hlock_2))))) && (((decide) && (X (hgrant_3))) -> ((X (locked)) <-> (X (hlock_3))))) && (((decide) && (X (hgrant_4))) -> ((X (locked)) <-> (X (hlock_4))))) && (((decide) && (X (hgrant_5))) -> ((X (locked)) <-> (X (hlock_5))))) && (((decide) && (X (hgrant_6))) -> ((X (locked)) <-> (X (hlock_6))))) && (((decide) && (X (hgrant_7))) -> ((X (locked)) <-> (X (hlock_7))))) && ((! (decide)) -> ((X (locked)) <-> (locked))))))",
+        "controllable": [
+            "locked"
+        ],
+        "uncontrollable": [
+            "decide",
+            "hlock_0",
+            "hlock_1",
+            "hlock_2",
+            "hlock_3",
+            "hlock_4",
+            "hlock_5",
+            "hlock_6",
+            "hlock_7",
+            "hgrant_0",
+            "hgrant_1",
+            "hgrant_2",
+            "hgrant_3",
+            "hgrant_4",
+            "hgrant_5",
+            "hgrant_6",
+            "hgrant_7"
+        ]
+    },
+    {
+        "formula": "(G (((hready) -> ((X (hmastlock)) <-> (locked))) && ((! (hready)) -> ((X (hmastlock)) <-> (hmastlock)))))",
+        "controllable": [
+            "hmastlock"
+        ],
+        "uncontrollable": [
+            "locked",
+            "hready"
+        ]
+    },
+    {
+        "formula": "((((! (decide)) && (G (F (hready)))) && (G ((! (ready2)) -> (X (! (decide)))))) -> ((G ((((decide) -> (X (X ((((burst4) && (locked)) -> ((! (ready2)) U (((hready) && (! (ready2))) && (X ((! (ready2)) U (((hready) && (! (ready2))) && (X ((! (ready2)) U (((hready) && (! (ready2))) && (X ((! (ready2)) U (((hready) && (! (ready2))) && (X (ready2)))))))))))))) && ((! ((burst4) && (locked))) -> (ready2)))))) && (((ready2) && (X (! (decide)))) -> (X (ready2)))) && (((ready2) && (X (decide))) -> (X ((! (ready2)) && (X (! (ready2)))))))) && (ready2)))",
+        "controllable": [
+            "ready2"
+        ],
+        "uncontrollable": [
+            "decide",
+            "locked",
+            "hready",
+            "burst4"
+        ]
+    },
+    {
+        "formula": "(((((! (decide)) && (G (F (hready)))) && (! (F (G (busreq))))) && (G ((! (ready1)) -> (X (! (decide)))))) -> ((G ((((decide) -> (X (X ((((incr) && (locked)) -> ((! (ready1)) W ((hready) && (! (busreq))))) && ((! ((incr) && (locked))) -> (ready1)))))) && (((ready1) && (X (! (decide)))) -> (X (ready1)))) && (((ready1) && (X (decide))) -> (X ((! (ready1)) && (X (! (ready1)))))))) && (ready1)))",
+        "controllable": [
+            "ready1"
+        ],
+        "uncontrollable": [
+            "busreq",
+            "decide",
+            "locked",
+            "hready",
+            "incr"
+        ]
+    },
+    {
+        "formula": "((((! (decide)) && (G (F (hready)))) && (G ((! (ready3)) -> (X (! (decide)))))) -> ((G ((((decide) -> (X (X ((((single) && (locked)) -> ((! (ready3)) U (((hready) && (! (ready3))) && (X (ready3))))) && ((! ((single) && (locked))) -> (ready3)))))) && (((ready3) && (X (! (decide)))) -> (X (ready3)))) && (((ready3) && (X (decide))) -> (X ((! (ready3)) && (X (! (ready3)))))))) && (ready3)))",
+        "controllable": [
+            "ready3"
+        ],
+        "uncontrollable": [
+            "decide",
+            "locked",
+            "hready",
+            "single"
+        ]
+    },
+    {
+        "formula": "(((((((((((((((((((((G ((! (((u0finished0p1dbt1b) && (! ((u0finished0p1dbf1b) || (u0finished0finished)))) <-> ((! (((u0finished0p1dbf1b) && (! (u0finished0finished))) <-> ((u0finished0finished) && (! (u0finished0p1dbf1b))))) && (! (u0finished0p1dbt1b))))) && (! (((! (((! (((! (((u0out0f1dconst31b) && (! (u0out0f1dconst24231b))) <-> ((u0out0f1dconst24231b) && (! (u0out0f1dconst31b))))) && (! ((u0out0f1dconst71b) || (u0out0f1dconst2441b)))) <-> ((! (((u0out0f1dconst71b) && (! (u0out0f1dconst2441b))) <-> ((u0out0f1dconst2441b) && (! (u0out0f1dconst71b))))) && (! ((u0out0f1dconst31b) || (u0out0f1dconst24231b)))))) && (! (((((u0out0out) || (u0out0f1dconst24251b)) || (u0out0f1dconst2461b)) || (u0out0f1dconst51b)) || (u0out0f1dconst91b)))) <-> ((! (((! (((u0out0f1dconst51b) && (! (u0out0f1dconst24251b))) <-> ((u0out0f1dconst24251b) && (! (u0out0f1dconst51b))))) && (! (((u0out0f1dconst91b) || (u0out0f1dconst2461b)) || (u0out0out)))) <-> ((! (((u0out0f1dconst2461b) && (! ((u0out0out) || (u0out0f1dconst91b)))) <-> ((! (((u0out0out) && (! (u0out0f1dconst91b))) <-> ((u0out0f1dconst91b) && (! (u0out0out))))) && (! (u0out0f1dconst2461b))))) && (! ((u0out0f1dconst51b) || (u0out0f1dconst24251b)))))) && (! ((((u0out0f1dconst24231b) || (u0out0f1dconst2441b)) || (u0out0f1dconst31b)) || (u0out0f1dconst71b)))))) && (! (((((((((u0out0f1dnone1b) || (u0out0f1dconst81b)) || (u0out0f1dconst61b)) || (u0out0f1dconst41b)) || (u0out0f1dconst251b)) || (u0out0f1dconst2451b)) || (u0out0f1dconst2431b)) || (u0out0f1dconst24241b)) || (u0out0f1dconst241b)))) <-> ((! (((! (((! (((u0out0f1dconst41b) && (! (u0out0f1dconst24241b))) <-> ((u0out0f1dconst24241b) && (! (u0out0f1dconst41b))))) && (! ((u0out0f1dconst81b) || (u0out0f1dconst2451b)))) <-> ((! (((u0out0f1dconst81b) && (! (u0out0f1dconst2451b))) <-> ((u0out0f1dconst2451b) && (! (u0out0f1dconst81b))))) && (! ((u0out0f1dconst41b) || (u0out0f1dconst24241b)))))) && (! (((((u0out0f1dconst241b) || (u0out0f1dconst2431b)) || (u0out0f1dconst251b)) || (u0out0f1dconst61b)) || (u0out0f1dnone1b)))) <-> ((! (((! (((u0out0f1dconst61b) && (! (u0out0f1dconst2431b))) <-> ((u0out0f1dconst2431b) && (! (u0out0f1dconst61b))))) && (! (((u0out0f1dnone1b) || (u0out0f1dconst251b)) || (u0out0f1dconst241b)))) <-> ((! (((u0out0f1dconst251b) && (! ((u0out0f1dconst241b) || (u0out0f1dnone1b)))) <-> ((! (((u0out0f1dconst241b) && (! (u0out0f1dnone1b))) <-> ((u0out0f1dnone1b) && (! (u0out0f1dconst241b))))) && (! (u0out0f1dconst251b))))) && (! ((u0out0f1dconst61b) || (u0out0f1dconst2431b)))))) && (! ((((u0out0f1dconst24241b) || (u0out0f1dconst2451b)) || (u0out0f1dconst41b)) || (u0out0f1dconst81b)))))) && (! (((((((((u0out0f1dconst91b) || (u0out0f1dconst71b)) || (u0out0f1dconst51b)) || (u0out0f1dconst31b)) || (u0out0f1dconst2461b)) || (u0out0f1dconst2441b)) || (u0out0f1dconst24251b)) || (u0out0f1dconst24231b)) || (u0out0out)))))))) && ((p0b0start) R ((p0b0start) -> (u0out0f1dconst241b)))) && ((u0out0f1dnone1b) W (p0b0start))) && ((u0out0f1dconst2461b) R (u0finished0p1dbf1b))) && (G ((u0out0f1dconst241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst251b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst31b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst31b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst41b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst41b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst51b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst51b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst61b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst61b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst71b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst71b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst81b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst81b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst91b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst91b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst24231b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst24231b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst24241b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst24241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst24251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst24251b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2431b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2431b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2441b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2441b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2451b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2451b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2461b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2461b) -> (X ((p0b0wait) R ((((p0b0wait) -> (((p0b0start) R ((p0b0start) -> (u0out0f1dconst241b))) && ((u0out0f1dnone1b) W (p0b0start)))) && ((! (p0b0wait)) -> (u0out0f1dnone1b))) && ((p0b0wait) <-> (u0finished0p1dbt1b)))))))) && (G ((u0finished0p1dbt1b) -> (X ((u0out0f1dconst2461b) R (u0finished0p1dbf1b))))))",
+        "controllable": [
+            "u0out0f1dnone1b",
+            "u0out0f1dconst91b",
+            "u0out0f1dconst81b",
+            "u0out0f1dconst71b",
+            "u0out0f1dconst61b",
+            "u0out0f1dconst51b",
+            "u0out0f1dconst41b",
+            "u0out0f1dconst31b",
+            "u0out0f1dconst251b",
+            "u0out0f1dconst2461b",
+            "u0out0f1dconst2451b",
+            "u0out0f1dconst2441b",
+            "u0out0f1dconst2431b",
+            "u0out0f1dconst24251b",
+            "u0out0f1dconst24241b",
+            "u0out0f1dconst24231b",
+            "u0out0f1dconst241b",
+            "u0out0out",
+            "u0finished0p1dbf1b",
+            "u0finished0p1dbt1b",
+            "u0finished0finished"
+        ],
+        "uncontrollable": [
+            "p0b0wait",
+            "p0b0start"
+        ]
+    },
+    {
+        "formula": "(((((((((((((((((((((((((((((((((((((G ((! (((u0finished0p1dbt1b) && (! ((u0finished0p1dbf1b) || (u0finished0finished)))) <-> ((! (((u0finished0p1dbf1b) && (! (u0finished0finished))) <-> ((u0finished0finished) && (! (u0finished0p1dbf1b))))) && (! (u0finished0p1dbt1b))))) && (! (((! (((! (((! (((! (((u0out0f1dconst2481b) && (! (u0out0f1dconst3251b))) <-> ((u0out0f1dconst3251b) && (! (u0out0f1dconst2481b))))) && (! ((u0out0f1dconst24231b) || (u0out0f1dconst2551b)))) <-> ((! (((u0out0f1dconst24231b) && (! (u0out0f1dconst2551b))) <-> ((u0out0f1dconst2551b) && (! (u0out0f1dconst24231b))))) && (! ((u0out0f1dconst2481b) || (u0out0f1dconst3251b)))))) && (! ((((u0out0f1dconst71b) || (u0out0f1dconst2591b)) || (u0out0f1dconst25241b)) || (u0out0f1dconst2441b)))) <-> ((! (((! (((u0out0f1dconst25241b) && (! (u0out0f1dconst71b))) <-> ((u0out0f1dconst71b) && (! (u0out0f1dconst25241b))))) && (! ((u0out0f1dconst2441b) || (u0out0f1dconst2591b)))) <-> ((! (((u0out0f1dconst2441b) && (! (u0out0f1dconst2591b))) <-> ((u0out0f1dconst2591b) && (! (u0out0f1dconst2441b))))) && (! ((u0out0f1dconst25241b) || (u0out0f1dconst71b)))))) && (! ((((u0out0f1dconst3251b) || (u0out0f1dconst2551b)) || (u0out0f1dconst2481b)) || (u0out0f1dconst24231b)))))) && (! (((((((((u0out0out) || (u0out0f1dconst24251b)) || (u0out0f1dconst2461b)) || (u0out0f1dconst251b)) || (u0out0f1dconst2531b)) || (u0out0f1dconst2571b)) || (u0out0f1dconst3231b)) || (u0out0f1dconst51b)) || (u0out0f1dconst91b)))) <-> ((! (((! (((! (((u0out0f1dconst251b) && (! (u0out0f1dconst51b))) <-> ((u0out0f1dconst51b) && (! (u0out0f1dconst251b))))) && (! ((u0out0f1dconst24251b) || (u0out0f1dconst2571b)))) <-> ((! (((u0out0f1dconst24251b) && (! (u0out0f1dconst2571b))) <-> ((u0out0f1dconst2571b) && (! (u0out0f1dconst24251b))))) && (! ((u0out0f1dconst251b) || (u0out0f1dconst51b)))))) && (! (((((u0out0f1dconst91b) || (u0out0f1dconst3231b)) || (u0out0f1dconst2531b)) || (u0out0f1dconst2461b)) || (u0out0out)))) <-> ((! (((! (((u0out0f1dconst2461b) && (! (u0out0f1dconst3231b))) <-> ((u0out0f1dconst3231b) && (! (u0out0f1dconst2461b))))) && (! (((u0out0out) || (u0out0f1dconst2531b)) || (u0out0f1dconst91b)))) <-> ((! (((u0out0f1dconst2531b) && (! ((u0out0f1dconst91b) || (u0out0out)))) <-> ((! (((u0out0f1dconst91b) && (! (u0out0out))) <-> ((u0out0out) && (! (u0out0f1dconst91b))))) && (! (u0out0f1dconst2531b))))) && (! ((u0out0f1dconst2461b) || (u0out0f1dconst3231b)))))) && (! ((((u0out0f1dconst51b) || (u0out0f1dconst2571b)) || (u0out0f1dconst251b)) || (u0out0f1dconst24251b)))))) && (! ((((((((u0out0f1dconst24231b) || (u0out0f1dconst2441b)) || (u0out0f1dconst2481b)) || (u0out0f1dconst25241b)) || (u0out0f1dconst2551b)) || (u0out0f1dconst2591b)) || (u0out0f1dconst3251b)) || (u0out0f1dconst71b)))))) && (! (((((((((((((((((u0out0f1dnone1b) || (u0out0f1dconst81b)) || (u0out0f1dconst61b)) || (u0out0f1dconst41b)) || (u0out0f1dconst3241b)) || (u0out0f1dconst31b)) || (u0out0f1dconst2581b)) || (u0out0f1dconst2561b)) || (u0out0f1dconst2541b)) || (u0out0f1dconst25251b)) || (u0out0f1dconst25231b)) || (u0out0f1dconst2491b)) || (u0out0f1dconst2471b)) || (u0out0f1dconst2451b)) || (u0out0f1dconst2431b)) || (u0out0f1dconst24241b)) || (u0out0f1dconst241b)))) <-> ((! (((! (((! (((! (((u0out0f1dconst2491b) && (! (u0out0f1dconst41b))) <-> ((u0out0f1dconst41b) && (! (u0out0f1dconst2491b))))) && (! ((u0out0f1dconst24241b) || (u0out0f1dconst2561b)))) <-> ((! (((u0out0f1dconst24241b) && (! (u0out0f1dconst2561b))) <-> ((u0out0f1dconst2561b) && (! (u0out0f1dconst24241b))))) && (! ((u0out0f1dconst2491b) || (u0out0f1dconst41b)))))) && (! ((((u0out0f1dconst81b) || (u0out0f1dconst31b)) || (u0out0f1dconst25251b)) || (u0out0f1dconst2451b)))) <-> ((! (((! (((u0out0f1dconst25251b) && (! (u0out0f1dconst81b))) <-> ((u0out0f1dconst81b) && (! (u0out0f1dconst25251b))))) && (! ((u0out0f1dconst2451b) || (u0out0f1dconst31b)))) <-> ((! (((u0out0f1dconst2451b) && (! (u0out0f1dconst31b))) <-> ((u0out0f1dconst31b) && (! (u0out0f1dconst2451b))))) && (! ((u0out0f1dconst25251b) || (u0out0f1dconst81b)))))) && (! ((((u0out0f1dconst41b) || (u0out0f1dconst2561b)) || (u0out0f1dconst2491b)) || (u0out0f1dconst24241b)))))) && (! (((((((((u0out0f1dconst241b) || (u0out0f1dconst2431b)) || (u0out0f1dconst2471b)) || (u0out0f1dconst25231b)) || (u0out0f1dconst2541b)) || (u0out0f1dconst2581b)) || (u0out0f1dconst3241b)) || (u0out0f1dconst61b)) || (u0out0f1dnone1b)))) <-> ((! (((! (((! (((u0out0f1dconst25231b) && (! (u0out0f1dconst61b))) <-> ((u0out0f1dconst61b) && (! (u0out0f1dconst25231b))))) && (! ((u0out0f1dconst2431b) || (u0out0f1dconst2581b)))) <-> ((! (((u0out0f1dconst2431b) && (! (u0out0f1dconst2581b))) <-> ((u0out0f1dconst2581b) && (! (u0out0f1dconst2431b))))) && (! ((u0out0f1dconst25231b) || (u0out0f1dconst61b)))))) && (! (((((u0out0f1dnone1b) || (u0out0f1dconst3241b)) || (u0out0f1dconst2541b)) || (u0out0f1dconst2471b)) || (u0out0f1dconst241b)))) <-> ((! (((! (((u0out0f1dconst2471b) && (! (u0out0f1dconst3241b))) <-> ((u0out0f1dconst3241b) && (! (u0out0f1dconst2471b))))) && (! (((u0out0f1dconst241b) || (u0out0f1dconst2541b)) || (u0out0f1dnone1b)))) <-> ((! (((u0out0f1dconst2541b) && (! ((u0out0f1dnone1b) || (u0out0f1dconst241b)))) <-> ((! (((u0out0f1dnone1b) && (! (u0out0f1dconst241b))) <-> ((u0out0f1dconst241b) && (! (u0out0f1dnone1b))))) && (! (u0out0f1dconst2541b))))) && (! ((u0out0f1dconst2471b) || (u0out0f1dconst3241b)))))) && (! ((((u0out0f1dconst61b) || (u0out0f1dconst2581b)) || (u0out0f1dconst25231b)) || (u0out0f1dconst2431b)))))) && (! ((((((((u0out0f1dconst24241b) || (u0out0f1dconst2451b)) || (u0out0f1dconst2491b)) || (u0out0f1dconst25251b)) || (u0out0f1dconst2561b)) || (u0out0f1dconst31b)) || (u0out0f1dconst41b)) || (u0out0f1dconst81b)))))) && (! (((((((((((((((((u0out0f1dconst91b) || (u0out0f1dconst71b)) || (u0out0f1dconst51b)) || (u0out0f1dconst3251b)) || (u0out0f1dconst3231b)) || (u0out0f1dconst2591b)) || (u0out0f1dconst2571b)) || (u0out0f1dconst2551b)) || (u0out0f1dconst2531b)) || (u0out0f1dconst25241b)) || (u0out0f1dconst251b)) || (u0out0f1dconst2481b)) || (u0out0f1dconst2461b)) || (u0out0f1dconst2441b)) || (u0out0f1dconst24251b)) || (u0out0f1dconst24231b)) || (u0out0out)))))))) && ((p0b0start) R ((p0b0start) -> (u0out0f1dconst241b)))) && ((u0out0f1dnone1b) W (p0b0start))) && ((u0out0f1dconst3251b) R (u0finished0p1dbf1b))) && (G ((u0out0f1dconst241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst251b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst31b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst31b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst41b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst41b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst51b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst51b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst61b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst61b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst71b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst71b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst81b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst81b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst91b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst91b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst24231b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst24231b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst24241b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst24241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst24251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst24251b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2431b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2431b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2441b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2441b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2451b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2451b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2461b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2461b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2471b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2471b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2481b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2481b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2491b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2491b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst25231b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst25231b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst25241b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst25241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst25251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst25251b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2531b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2531b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2541b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2541b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2551b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2551b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2561b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2561b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2571b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2571b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2581b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2581b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst2591b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst2591b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst3231b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst3231b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst3241b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst3241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst3251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst3251b) -> (X ((p0b0wait) R ((((p0b0wait) -> (((p0b0start) R ((p0b0start) -> (u0out0f1dconst241b))) && ((u0out0f1dnone1b) W (p0b0start)))) && ((! (p0b0wait)) -> (u0out0f1dnone1b))) && ((p0b0wait) <-> (u0finished0p1dbt1b)))))))) && (G ((u0finished0p1dbt1b) -> (X ((u0out0f1dconst3251b) R (u0finished0p1dbf1b))))))",
+        "controllable": [
+            "u0out0f1dnone1b",
+            "u0out0f1dconst91b",
+            "u0out0f1dconst81b",
+            "u0out0f1dconst71b",
+            "u0out0f1dconst61b",
+            "u0out0f1dconst51b",
+            "u0out0f1dconst41b",
+            "u0out0f1dconst3251b",
+            "u0out0f1dconst3241b",
+            "u0out0f1dconst3231b",
+            "u0out0f1dconst31b",
+            "u0out0f1dconst2591b",
+            "u0out0f1dconst2581b",
+            "u0out0f1dconst2571b",
+            "u0out0f1dconst2561b",
+            "u0out0f1dconst2551b",
+            "u0out0f1dconst2541b",
+            "u0out0f1dconst2531b",
+            "u0out0f1dconst25251b",
+            "u0out0f1dconst25241b",
+            "u0out0f1dconst25231b",
+            "u0out0f1dconst251b",
+            "u0out0f1dconst2491b",
+            "u0out0f1dconst2481b",
+            "u0out0f1dconst2471b",
+            "u0out0f1dconst2461b",
+            "u0out0f1dconst2451b",
+            "u0out0f1dconst2441b",
+            "u0out0f1dconst2431b",
+            "u0out0f1dconst24251b",
+            "u0out0f1dconst24241b",
+            "u0out0f1dconst24231b",
+            "u0out0f1dconst241b",
+            "u0out0out",
+            "u0finished0p1dbf1b",
+            "u0finished0p1dbt1b",
+            "u0finished0finished"
+        ],
+        "uncontrollable": [
+            "p0b0wait",
+            "p0b0start"
+        ]
+    },
+    {
+        "formula": "(((((((((((((G ((! (((u0finished0p1dbt1b) && (! ((u0finished0p1dbf1b) || (u0finished0finished)))) <-> ((! (((u0finished0p1dbf1b) && (! (u0finished0finished))) <-> ((u0finished0finished) && (! (u0finished0p1dbf1b))))) && (! (u0finished0p1dbt1b))))) && (! (((! (((! (((u0out0f1dconst251b) && (! (u0out0f1dconst61b))) <-> ((u0out0f1dconst61b) && (! (u0out0f1dconst251b))))) && (! (((u0out0out) || (u0out0f1dconst41b)) || (u0out0f1dconst81b)))) <-> ((! (((u0out0f1dconst41b) && (! ((u0out0f1dconst81b) || (u0out0out)))) <-> ((! (((u0out0f1dconst81b) && (! (u0out0out))) <-> ((u0out0out) && (! (u0out0f1dconst81b))))) && (! (u0out0f1dconst41b))))) && (! ((u0out0f1dconst251b) || (u0out0f1dconst61b)))))) && (! (((((u0out0f1dnone1b) || (u0out0f1dconst71b)) || (u0out0f1dconst51b)) || (u0out0f1dconst31b)) || (u0out0f1dconst241b)))) <-> ((! (((! (((u0out0f1dconst31b) && (! (u0out0f1dconst71b))) <-> ((u0out0f1dconst71b) && (! (u0out0f1dconst31b))))) && (! (((u0out0f1dconst241b) || (u0out0f1dconst51b)) || (u0out0f1dnone1b)))) <-> ((! (((u0out0f1dconst51b) && (! ((u0out0f1dnone1b) || (u0out0f1dconst241b)))) <-> ((! (((u0out0f1dnone1b) && (! (u0out0f1dconst241b))) <-> ((u0out0f1dconst241b) && (! (u0out0f1dnone1b))))) && (! (u0out0f1dconst51b))))) && (! ((u0out0f1dconst31b) || (u0out0f1dconst71b)))))) && (! (((((u0out0f1dconst81b) || (u0out0f1dconst61b)) || (u0out0f1dconst41b)) || (u0out0f1dconst251b)) || (u0out0out)))))))) && ((p0b0start) R ((p0b0start) -> (u0out0f1dconst241b)))) && ((u0out0f1dnone1b) W (p0b0start))) && ((u0out0f1dconst81b) R (u0finished0p1dbf1b))) && (G ((u0out0f1dconst241b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst251b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst251b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst31b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst31b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst41b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst41b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst51b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst51b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst61b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst61b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst71b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst71b) -> (X ((p0b0wait) R (((p0b0wait) -> (u0out0f1dconst81b)) && ((! (p0b0wait)) -> (u0out0f1dnone1b)))))))) && (G ((u0out0f1dconst81b) -> (X ((p0b0wait) R ((((p0b0wait) -> (((p0b0start) R ((p0b0start) -> (u0out0f1dconst241b))) && ((u0out0f1dnone1b) W (p0b0start)))) && ((! (p0b0wait)) -> (u0out0f1dnone1b))) && ((p0b0wait) <-> (u0finished0p1dbt1b)))))))) && (G ((u0finished0p1dbt1b) -> (X ((u0out0f1dconst81b) R (u0finished0p1dbf1b))))))",
+        "controllable": [
+            "u0out0f1dnone1b",
+            "u0out0f1dconst81b",
+            "u0out0f1dconst71b",
+            "u0out0f1dconst61b",
+            "u0out0f1dconst51b",
+            "u0out0f1dconst41b",
+            "u0out0f1dconst31b",
+            "u0out0f1dconst251b",
+            "u0out0f1dconst241b",
+            "u0out0out",
+            "u0finished0p1dbf1b",
+            "u0finished0p1dbt1b",
+            "u0finished0finished"
+        ],
+        "uncontrollable": [
+            "p0b0wait",
+            "p0b0start"
+        ]
+    },
+    {
+        "formula": "(((G ((! (((utermcountcount) && (! (utermcountincrementdcountb))) <-> ((utermcountincrementdcountb) && (! (utermcountcount))))) && (! (((utermpicpic) && (! (utermpicrenderbuttondcountb))) <-> ((utermpicrenderbuttondcountb) && (! (utermpicpic))))))) && (G ((ptermeventdclickb) <-> (utermcountincrementdcountb)))) && (G (utermpicrenderbuttondcountb)))",
+        "controllable": [
+            "utermpicrenderbuttondcountb",
+            "utermpicpic",
+            "utermcountincrementdcountb",
+            "utermcountcount"
+        ],
+        "uncontrollable": [
+            "ptermeventdclickb"
+        ]
+    },
+    {
+        "formula": "(((G ((! (((u0count0count) && (! (u0count0f1dincrement0count1b))) <-> ((u0count0f1dincrement0count1b) && (! (u0count0count))))) && (! (((u0pic0pic) && (! (u0pic0f1drender2button0count1b))) <-> ((u0pic0f1drender2button0count1b) && (! (u0pic0pic))))))) && (G ((p0p0event0click) <-> (u0count0f1dincrement0count1b)))) && (G (u0pic0f1drender2button0count1b)))",
+        "controllable": [
+            "u0pic0f1drender2button0count1b",
+            "u0pic0pic",
+            "u0count0f1dincrement0count1b",
+            "u0count0count"
+        ],
+        "uncontrollable": [
+            "p0p0event0click"
+        ]
+    },
+    {
+        "formula": "(((((((((((((G ((((((((! (((u0bxcoord0bxcoord) && (! (u0bxcoord0xcoord))) <-> ((u0bxcoord0xcoord) && (! (u0bxcoord0bxcoord))))) && (! (((u0bycoord0bycoord) && (! (u0bycoord0ycoord))) <-> ((u0bycoord0ycoord) && (! (u0bycoord0bycoord)))))) && (! (((u0color0tmpcolor) && (! ((u0color0f1dwhitecolor1b) || (u0color0color)))) <-> ((! (((u0color0f1dwhitecolor1b) && (! (u0color0color))) <-> ((u0color0color) && (! (u0color0f1dwhitecolor1b))))) && (! (u0color0tmpcolor)))))) && (! (((u0counter0counter) && (! (u0counter0f1dincmod0counter0f1dinc0f1denemycount1b1b1b))) <-> ((u0counter0f1dincmod0counter0f1dinc0f1denemycount1b1b1b) && (! (u0counter0counter)))))) && (! (((u0tmpcolor0f1dblackcolor1b) && (! ((u0tmpcolor0f1dgetenemycolor0enemies0f1ddec0counter1b1b) || (u0tmpcolor0tmpcolor)))) <-> ((! (((u0tmpcolor0f1dgetenemycolor0enemies0f1ddec0counter1b1b) && (! (u0tmpcolor0tmpcolor))) <-> ((u0tmpcolor0tmpcolor) && (! (u0tmpcolor0f1dgetenemycolor0enemies0f1ddec0counter1b1b))))) && (! (u0tmpcolor0f1dblackcolor1b)))))) && (! (((u0tmpdist0f1dstartradius1b) && (! ((u0tmpdist0f1dgetenemyradius0enemies0f1ddec0counter1b1b) || (u0tmpdist0tmpdist)))) <-> ((! (((u0tmpdist0f1dgetenemyradius0enemies0f1ddec0counter1b1b) && (! (u0tmpdist0tmpdist))) <-> ((u0tmpdist0tmpdist) && (! (u0tmpdist0f1dgetenemyradius0enemies0f1ddec0counter1b1b))))) && (! (u0tmpdist0f1dstartradius1b)))))) && (! (((u0xcoord0xcoord) && (! (u0xcoord0f1dinc2coord0xcoord1b))) <-> ((u0xcoord0f1dinc2coord0xcoord1b) && (! (u0xcoord0xcoord)))))) && (! (((u0ycoord0ycoord) && (! (u0ycoord0f1dinc2coord0ycoord1b))) <-> ((u0ycoord0f1dinc2coord0ycoord1b) && (! (u0ycoord0ycoord))))))) && (G (u0counter0f1dincmod0counter0f1dinc0f1denemycount1b1b1b))) && (G ((p0p0eqz0counter) <-> (u0xcoord0f1dinc2coord0xcoord1b)))) && (G (((p0p0eq0xcoord0f1ddec2size2x1b) && (p0p0eqz0counter)) <-> (u0ycoord0f1dinc2coord0ycoord1b)))) && (G ((((! (p0p0eqz0counter)) && (p0p0lt0f1dgetenemyradius0enemies0f1ddec0counter1b1b0tmpdist)) && (p0p0hitcoord0xcoord0ycoord0f1dgetenemyradius0enemies0f1ddec0counter1b1b0f1dgetenemyangle0enemies0f1ddec0counter1b1b0rotation)) <-> (u0tmpcolor0f1dgetenemycolor0enemies0f1ddec0counter1b1b)))) && (G ((((! (p0p0eqz0counter)) && (p0p0lt0f1dgetenemyradius0enemies0f1ddec0counter1b1b0tmpdist)) && (p0p0hitcoord0xcoord0ycoord0f1dgetenemyradius0enemies0f1ddec0counter1b1b0f1dgetenemyangle0enemies0f1ddec0counter1b1b0rotation)) <-> (u0tmpdist0f1dgetenemyradius0enemies0f1ddec0counter1b1b)))) && (G ((p0p0eqz0counter) <-> ((u0color0tmpcolor) || (u0color0f1dwhitecolor1b))))) && (G ((p0p0eqz0counter) <-> (u0tmpcolor0f1dblackcolor1b)))) && (G ((p0p0eqz0counter) <-> (u0tmpdist0f1dstartradius1b)))) && (G ((p0p0eqz0counter) <-> (u0bxcoord0xcoord)))) && (G ((p0p0eqz0counter) <-> (u0bycoord0ycoord)))) && (G ((u0color0f1dwhitecolor1b) -> ((p0p0eq0xcoord0f1dhairlinex1b) && (p0p0eq0ycoord0f1dhairliney1b))))) && (G ((u0color0tmpcolor) -> (! ((p0p0eq0xcoord0f1dhairlinex1b) && (p0p0eq0ycoord0f1dhairliney1b))))))",
+        "controllable": [
+            "u0ycoord0f1dinc2coord0ycoord1b",
+            "u0ycoord0ycoord",
+            "u0xcoord0f1dinc2coord0xcoord1b",
+            "u0xcoord0xcoord",
+            "u0tmpdist0f1dgetenemyradius0enemies0f1ddec0counter1b1b",
+            "u0tmpdist0f1dstartradius1b",
+            "u0tmpdist0tmpdist",
+            "u0tmpcolor0f1dgetenemycolor0enemies0f1ddec0counter1b1b",
+            "u0tmpcolor0f1dblackcolor1b",
+            "u0tmpcolor0tmpcolor",
+            "u0counter0f1dincmod0counter0f1dinc0f1denemycount1b1b1b",
+            "u0counter0counter",
+            "u0color0f1dwhitecolor1b",
+            "u0color0tmpcolor",
+            "u0color0color",
+            "u0bycoord0ycoord",
+            "u0bycoord0bycoord",
+            "u0bxcoord0xcoord",
+            "u0bxcoord0bxcoord"
+        ],
+        "uncontrollable": [
+            "p0p0hitcoord0xcoord0ycoord0f1dgetenemyradius0enemies0f1ddec0counter1b1b0f1dgetenemyangle0enemies0f1ddec0counter1b1b0rotation",
+            "p0p0lt0f1dgetenemyradius0enemies0f1ddec0counter1b1b0tmpdist",
+            "p0p0eq0ycoord0f1dhairliney1b",
+            "p0p0eq0xcoord0f1dhairlinex1b",
+            "p0p0eq0xcoord0f1ddec2size2x1b",
+            "p0p0eqz0counter"
+        ]
+    },
+    {
+        "formula": "(G ((((G (! (allfinished))) -> ((G (! (finished_0))) || (G (! (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_0))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1"
+        ]
+    },
+    {
+        "formula": "(G (((((G (! (allfinished))) -> (((G (! (finished_0))) || (G (! (finished_1)))) || (G (! (finished_2))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_0))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_2))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1",
+            "finished_2"
+        ]
+    },
+    {
+        "formula": "(G ((((((G (! (allfinished))) -> ((((G (! (finished_0))) || (G (! (finished_1)))) || (G (! (finished_2)))) || (G (! (finished_3))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_0))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_2))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_3))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1",
+            "finished_2",
+            "finished_3"
+        ]
+    },
+    {
+        "formula": "(G (((((((G (! (allfinished))) -> (((((G (! (finished_0))) || (G (! (finished_1)))) || (G (! (finished_2)))) || (G (! (finished_3)))) || (G (! (finished_4))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_0))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_2))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_3))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_4))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1",
+            "finished_2",
+            "finished_3",
+            "finished_4"
+        ]
+    },
+    {
+        "formula": "(G ((((((((G (! (allfinished))) -> ((((((G (! (finished_0))) || (G (! (finished_1)))) || (G (! (finished_2)))) || (G (! (finished_3)))) || (G (! (finished_4)))) || (G (! (finished_5))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_0))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_2))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_3))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_4))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_5))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1",
+            "finished_2",
+            "finished_3",
+            "finished_4",
+            "finished_5"
+        ]
+    },
+    {
+        "formula": "(G (((((((((G (! (allfinished))) -> (((((((G (! (finished_0))) || (G (! (finished_1)))) || (G (! (finished_2)))) || (G (! (finished_3)))) || (G (! (finished_4)))) || (G (! (finished_5)))) || (G (! (finished_6))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_0))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_2))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_3))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_4))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_5))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_6))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1",
+            "finished_2",
+            "finished_3",
+            "finished_4",
+            "finished_5",
+            "finished_6"
+        ]
+    },
+    {
+        "formula": "((G (((allfinished) -> (X ((! (allfinished)) W (finished_0)))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1)))))) && ((G (F (allfinished))) <-> ((G (F (finished_0))) && (G (F (finished_1))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1"
+        ]
+    },
+    {
+        "formula": "((G ((((allfinished) -> (X ((! (allfinished)) W (finished_0)))) && ((allfinished) -> (X ((! (allfinished)) W (finished_1))))) && ((allfinished) -> (X ((! (allfinished)) W (finished_2)))))) && ((G (F (allfinished))) <-> (((G (F (finished_0))) && (G (F (finished_1)))) && (G (F (finished_2))))))",
+        "controllable": [
+            "allfinished"
+        ],
+        "uncontrollable": [
+            "finished_0",
+            "finished_1",
+            "finished_2"
+        ]
+    },
+    {
+        "formula": "((G ((cancel) -> (X (go)))) -> (G ((((req) -> (X ((grant) || (X ((grant) || (X (grant))))))) && ((grant) -> (X (! (grant))))) && ((cancel) -> (X ((! (grant)) U (go)))))))",
+        "controllable": [
+            "grant"
+        ],
+        "uncontrollable": [
+            "go",
+            "cancel",
+            "req"
+        ]
+    }
+]

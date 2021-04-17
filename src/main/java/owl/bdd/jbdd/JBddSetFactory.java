@@ -97,6 +97,24 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
   }
 
   @Override
+  public BddSet union(BddSet... bddSets) {
+    int node = bdd.falseNode();
+    for (BddSet bddSet : bddSets) {
+      node = bdd.updateWith(bdd.or(((JBddSet) bddSet).node, node), node);
+    }
+    return create(bdd.dereference(node));
+  }
+
+  @Override
+  public BddSet intersection(BddSet... bddSets) {
+    int node = bdd.trueNode();
+    for (BddSet bddSet: bddSets) {
+      node = bdd.updateWith(bdd.and(((JBddSet) bddSet).node, node), node);
+    }
+    return create(bdd.dereference(node));
+  }
+
+  @Override
   public BddSet of(PropositionalFormula<Integer> expression) {
     return null;
   }
@@ -301,8 +319,28 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
+    public BddSet union(BddSet... bddSets) {
+      int node = this.node;
+      factory.bdd.reference(node);
+      for (BddSet bddSet : bddSets) {
+        node = factory.bdd.updateWith(factory.bdd.or(((JBddSet) bddSet).node, node), node);
+      }
+      return factory.create(factory.bdd.dereference(node));
+    }
+
+    @Override
     public BddSet intersection(BddSet other) {
       return factory.create(factory.bdd.and(node, factory.getNode(other)));
+    }
+
+    @Override
+    public BddSet intersection(BddSet... bddSets) {
+      int node = this.node;
+      factory.bdd.reference(node);
+      for (BddSet bddSet : bddSets) {
+        node = factory.bdd.updateWith(factory.bdd.and(((JBddSet) bddSet).node, node), node);
+      }
+      return factory.create(factory.bdd.dereference(node));
     }
 
     @Override
