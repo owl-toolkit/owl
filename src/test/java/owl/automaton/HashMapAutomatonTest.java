@@ -106,7 +106,7 @@ class HashMapAutomatonTest {
     automaton.trim();
 
     assertAll(
-      () -> assertEquals("1", automaton.onlyInitialState()),
+      () -> assertEquals("1", automaton.initialState()),
       () -> assertEquals(Set.of("1"), automaton.initialStates()),
       () -> assertEquals(Set.of("1"), automaton.states()),
       () -> assertEquals(Set.of("1"), getReachableStates(automaton))
@@ -190,7 +190,7 @@ class HashMapAutomatonTest {
     automaton.addInitialState("2");
 
     assertAll(
-      () -> assertThrows(IllegalStateException.class, automaton::onlyInitialState),
+      () -> assertThrows(IllegalStateException.class, automaton::initialState),
       () -> assertEquals(Set.of("1", "2"), automaton.initialStates()),
       () -> assertEquals(Set.of("1", "2"), automaton.states()),
       () -> assertEquals(Set.of("1", "2"), getReachableStates(automaton)),

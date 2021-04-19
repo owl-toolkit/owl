@@ -72,7 +72,7 @@ public final class GameUtil {
     Map<PriorityState<S>, Integer> stateNumbering = new HashMap<>();
     int highestPriority = acceptance.acceptanceSets() - 1;
 
-    S initialState = game.onlyInitialState();
+    S initialState = game.initialState();
     stateNumbering.put(PriorityState.of(initialState, highestPriority), 0);
 
     Set<S> reachedStates = new HashSet<>(List.of(initialState));

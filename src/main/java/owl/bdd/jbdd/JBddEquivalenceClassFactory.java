@@ -31,6 +31,7 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -71,6 +72,9 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   private final int trueNode;
   private final int falseNode;
 
+  private final EquivalenceClass trueClass;
+  private final EquivalenceClass falseClass;
+
   @Nullable
   private Function<EquivalenceClass, Set<?>> temporalStepTreeCachedMapper;
   @Nullable
@@ -93,11 +97,19 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     trueNode = this.bdd.trueNode();
     falseNode = this.bdd.falseNode();
+
+    trueClass = of(BooleanConstant.TRUE, trueNode);
+    falseClass = of(BooleanConstant.FALSE, falseNode);
   }
 
   @Override
   public List<String> atomicPropositions() {
     return atomicPropositions;
+  }
+
+  @Override
+  public EquivalenceClass of(boolean value) {
+    return value ? trueClass : falseClass;
   }
 
   @Override
@@ -136,6 +148,60 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     return clazz;
+  }
+
+  @Override
+  public EquivalenceClass and(Collection<? extends EquivalenceClass> classes) {
+    @Nullable
+    Set<Formula> representatives = new HashSet<>();
+    int andNode = trueNode;
+
+    for (EquivalenceClass clazz : classes) {
+      var castedClass = cast(clazz);
+
+      if (castedClass.representative == null) {
+        representatives = null;
+      } else if (representatives != null) {
+        representatives.add(castedClass.representative);
+      }
+
+      andNode = bdd.updateWith(bdd.and(andNode, castedClass.node), andNode);
+
+      if (andNode == falseNode) {
+        return falseClass;
+      }
+    }
+
+    return of(
+      representatives == null ? null : Conjunction.of(representatives),
+      bdd.dereference(andNode));
+  }
+
+  @Override
+  public EquivalenceClass or(Collection<? extends EquivalenceClass> classes) {
+    @Nullable
+    Set<Formula> representatives = new HashSet<>();
+    int orNode = falseNode;
+
+    for (EquivalenceClass clazz : classes) {
+      var castedClass = cast(clazz);
+
+      if (castedClass.representative == null) {
+        representatives = null;
+      } else if (representatives != null) {
+        representatives.add(castedClass.representative);
+      }
+
+      orNode = bdd.updateWith(bdd.or(orNode, castedClass.node), orNode);
+
+      if (orNode == trueNode) {
+        return trueClass;
+      }
+    }
+
+    return of(
+      representatives == null ? null : Disjunction.of(representatives),
+      bdd.dereference(orNode));
   }
 
   // Translates a formula into a BDD under the assumption every subformula is already registered.
@@ -413,6 +479,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     @Nullable
     private JBddEquivalenceClass unfoldCache;
     @Nullable
+    private JBddEquivalenceClass notCache;
+    @Nullable
     private List<List<Integer>> zeroPathsCache;
     @Nullable
     private List<List<Integer>> onePathsCache;
@@ -594,6 +662,18 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
       return temporalStepTree(representative(), new BitSet(), mapper,
         (IdentityHashMap) factory.temporalStepTreeCache);
+    }
+
+    @Override
+    public EquivalenceClass not() {
+      if (notCache == null) {
+        notCache = factory.cast(factory.of(representative().not()));
+        assert factory.cast(notCache).notCache == null;
+        notCache.notCache = this;
+      }
+
+      assert notCache.notCache == this;
+      return notCache;
     }
 
     private <T> MtBdd<T> temporalStepTree(

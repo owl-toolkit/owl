@@ -1124,6 +1124,9 @@
     }
   },
   {
+    "formula": "FG(a | ((b) M (!a)))"
+  },
+  {
     "formula": "FG(a | ((a) R (b)))",
     "properties": {
       "size": 3,
@@ -1229,6 +1232,9 @@
   },
   {
     "formula": "GF(a & ((a) U (b)))"
+  },
+  {
+    "formula": "GF(!a & ((b) W (a)))"
   },
   {
     "formula": "XF(a & Gb)"

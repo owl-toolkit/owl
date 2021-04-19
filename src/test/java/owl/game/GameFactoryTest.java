@@ -73,11 +73,11 @@ public class GameFactoryTest {
 
     // Player 2 can win by matching the action of Player 1 one step delayed.
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_2),
-      x -> x.contains(game.onlyInitialState()));
+      x -> x.contains(game.initialState()));
 
     // Player 1 can never win...
     assertThat(game.getAttractorFixpoint(winningStates, Owner.PLAYER_1),
-      x -> !x.contains(game.onlyInitialState()));
+      x -> !x.contains(game.initialState()));
   }
 
   public static Automaton<Optional<?>, ? extends ParityAcceptance> translate(LabelledFormula x) {

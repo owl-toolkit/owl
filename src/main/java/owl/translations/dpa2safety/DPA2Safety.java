@@ -46,7 +46,7 @@ public class DPA2Safety<S> implements BiFunction<Automaton<S, ParityAcceptance>,
       d = automaton.acceptance().acceptanceSets();
     }
 
-    Counter<S> initialState = new Counter<>(automaton.onlyInitialState(), d / 2 + 1);
+    Counter<S> initialState = new Counter<>(automaton.initialState(), d / 2 + 1);
 
     IntPredicate isAcceptingColour = x -> automaton.acceptance().isAccepting(x);
 

@@ -1708,6 +1708,9 @@
     "formula": "FG(a | Xb)"
   },
   {
+    "formula": "FG(a | ((b) M (!a)))"
+  },
+  {
     "formula": "FG(a | ((a) R (b)))"
   },
   {
@@ -1805,6 +1808,9 @@
   },
   {
     "formula": "GF(a & ((a) U (b)))"
+  },
+  {
+    "formula": "GF(!a & ((b) W (a)))"
   },
   {
     "formula": "XF(a & Gb)"

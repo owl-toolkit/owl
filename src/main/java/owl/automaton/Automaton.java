@@ -25,7 +25,6 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
@@ -87,19 +86,17 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   // States
 
   /**
-   * Returns the initial state. Throws an {@link NoSuchElementException} if there is no and
+   * Returns the initial state. Returns null if there is no and
    * {@link IllegalStateException} if there are multiple initial states.
    *
-   * @return The unique initial state.
+   * @return The unique initial state or null.
    *
-   * @throws NoSuchElementException
-   *     If there is no initial state.
    * @throws IllegalStateException
    *     If there are multiple initial states.
    *
    * @see #initialStates()
    */
-  default S onlyInitialState() {
+  default S initialState() {
     Iterator<S> iterator = initialStates().iterator();
     S first = iterator.next();
 

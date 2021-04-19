@@ -30,7 +30,7 @@ import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
 
-abstract class AcceptanceTransformation {
+public abstract class AcceptanceTransformation {
 
   interface AcceptanceTransformer<A extends EmersonLeiAcceptance, E> {
     A transformedAcceptance();
@@ -77,7 +77,7 @@ abstract class AcceptanceTransformation {
     public abstract E extension();
 
     public static <S, E> ExtendedState<S, E> of(S state, E extension) {
-      return new AutoValue_AcceptanceTransformation_ExtendedState(state, extension);
+      return new AutoValue_AcceptanceTransformation_ExtendedState<>(state, extension);
     }
   }
 }

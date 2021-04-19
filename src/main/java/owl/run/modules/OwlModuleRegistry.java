@@ -30,7 +30,7 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.BuchiDegeneralization;
-import owl.automaton.acceptance.transformer.ToParityTransformer;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.game.GameUtil;
 import owl.game.GameViews;
@@ -41,6 +41,7 @@ import owl.run.parser.PipelineParser;
 import owl.translations.ExternalTranslator;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
+import owl.translations.ltl2dela.NormalformDELAConstruction;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
 import owl.translations.modules.LTL2DAModule;
 import owl.translations.modules.LTL2DGRAModule;
@@ -92,7 +93,7 @@ public class OwlModuleRegistry {
       AcceptanceOptimizations.MODULE,
       BuchiDegeneralization.MODULE,
       RabinDegeneralization.MODULE,
-      ToParityTransformer.MODULE,
+      ZielonkaTreeTransformations.MODULE,
       Views.COMPLETE_MODULE));
 
     // LTL translations
@@ -106,7 +107,7 @@ public class OwlModuleRegistry {
       // -> DPA
       LTL2DPAModule.MODULE, NormalformDPAConstruction.MODULE,
       // -> DELA
-      LTL2DAModule.MODULE, DelagBuilder.MODULE,
+      LTL2DAModule.MODULE, DelagBuilder.MODULE, NormalformDELAConstruction.MODULE,
       // -> NELA
       LTL2NAModule.MODULE,
       // external

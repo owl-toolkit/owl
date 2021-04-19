@@ -36,7 +36,7 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.automaton.acceptance.transformer.ToParityTransformer;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.edge.Edge;
 
 public final class LanguageEmptiness {
@@ -87,9 +87,7 @@ public final class LanguageEmptiness {
     }
 
     // TODO: implement direct algorithm.
-    var transformedAutomaton
-      = ToParityTransformer.transform(automaton, true, false, false);
-    return isEmpty(transformedAutomaton);
+    return isEmpty(ZielonkaTreeTransformations.transform(automaton));
   }
 
   private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,

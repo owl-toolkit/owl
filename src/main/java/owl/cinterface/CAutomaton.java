@@ -32,6 +32,7 @@ import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_
 
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -58,6 +59,7 @@ import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.word.UnsignedWord;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -130,7 +132,7 @@ public final class CAutomaton {
 
     // Parse AP:
 
-    List<String> atomicPropositions = new ArrayList<>();
+    List<String> atomicPropositions;
 
     {
       String fieldName = "AP: ";
@@ -144,9 +146,8 @@ public final class CAutomaton {
 
       int size = Integer.parseInt(splitString[0]);
 
-      for (int i = 1; i < splitString.length; i++) {
-        atomicPropositions.add(splitString[i]);
-      }
+      atomicPropositions = new ArrayList<>(
+        Arrays.asList(splitString).subList(1, splitString.length));
 
       checkArgument(atomicPropositions.size() == size, "Malformed HOA file.");
     }
@@ -184,7 +185,7 @@ public final class CAutomaton {
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation) {
 
-    return of(cLabelledFormula, translation, Set.of());
+    return of(cLabelledFormula, translation, Set.of(), -1);
   }
 
   // Varargs-simulation
@@ -201,9 +202,10 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
-    LtlTranslationRepository.Option translationOption) {
+    int lookahead,
+    LtlTranslationRepository.Option o1) {
 
-    return of(cLabelledFormula, translation, Set.of(translationOption));
+    return of(cLabelledFormula, translation, Set.of(o1), lookahead);
   }
 
   @CEntryPoint(
@@ -218,10 +220,11 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
-    LtlTranslationRepository.Option translationOption1,
-    LtlTranslationRepository.Option translationOption2) {
+    int lookahead,
+    LtlTranslationRepository.Option o1,
+    LtlTranslationRepository.Option o2) {
 
-    return of(cLabelledFormula, translation, Set.of(translationOption1, translationOption2));
+    return of(cLabelledFormula, translation, Set.of(o1, o2), lookahead);
   }
 
   @CEntryPoint(
@@ -236,11 +239,12 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead,
     LtlTranslationRepository.Option o1,
     LtlTranslationRepository.Option o2,
     LtlTranslationRepository.Option o3) {
 
-    return of(cLabelledFormula, translation, Set.of(o1, o2, o3));
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3), lookahead);
   }
 
   @CEntryPoint(
@@ -255,12 +259,13 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead,
     LtlTranslationRepository.Option o1,
     LtlTranslationRepository.Option o2,
     LtlTranslationRepository.Option o3,
     LtlTranslationRepository.Option o4) {
 
-    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4));
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4), lookahead);
   }
 
   @CEntryPoint(
@@ -275,21 +280,27 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead,
     LtlTranslationRepository.Option o1,
     LtlTranslationRepository.Option o2,
     LtlTranslationRepository.Option o3,
     LtlTranslationRepository.Option o4,
     LtlTranslationRepository.Option o5) {
 
-    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4, o5));
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4, o5), lookahead);
   }
 
   private static ObjectHandle of(ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
-    Set<LtlTranslationRepository.Option> translationOption) {
+    Set<LtlTranslationRepository.Option> translationOptions,
+    int lookahead) {
+
+    OptionalInt lookaheadOptional = lookahead >= 0
+      ? OptionalInt.of(lookahead)
+      : OptionalInt.empty();
 
     var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
-    var automaton = translation.translation(translationOption).apply(formula);
+    var automaton = translation.translation(ParityAcceptance.class, translationOptions, lookaheadOptional).apply(formula);
     return ObjectHandles.getGlobal().create(DeterministicAutomatonWrapper.of(automaton, -1));
   }
 
@@ -356,11 +367,27 @@ public final class CAutomaton {
   }
 
   @CEntryPoint(
+    name = NAMESPACE + "edge_tree_precomputed",
+    documentation = {
+      "Determines if the edge tree for the following state is precomputed by the automaton."
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnBoolean.class
+  )
+  public static boolean edgeTreePrecomputed(
+    IsolateThread thread,
+    ObjectHandle cDeterministicAutomaton,
+    int state) {
+
+    return get(cDeterministicAutomaton).edgeTreePrecomputed(state);
+  }
+
+
+  @CEntryPoint(
     name = NAMESPACE + "edge_tree",
     documentation = {
       "Serialise the edges leaving the given state into a tree buffer, edge buffer, and an ",
       "optional score buffer. If the scores are not required, the pointer may be set to NULL.",
-      "The pointer returned via the sized_{int,double}_array_t structures must be freed using",
+      "The pointer returned via the vector_{int,double}_t structures must be freed using",
       "the method `free_unmanaged_memory`."
     },
     exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnVoid.class
@@ -659,9 +686,9 @@ public final class CAutomaton {
       this.canonicalizer = canonicalizer;
       this.uncontrollableApSize = uncontrollableApSize;
 
-      index(automaton.onlyInitialState());
+      index(automaton.initialState());
 
-      this.initialStateEdgeTree = automaton.edgeTree(this.automaton.onlyInitialState());
+      this.initialStateEdgeTree = automaton.edgeTree(this.automaton.initialState());
       var reachableStatesIndices = new HashSet<Integer>();
 
       for (Set<Edge<S>> edges : initialStateEdgeTree.values()) {
@@ -739,7 +766,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isSafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.safety(nnfFormula);
-        var factory = automaton.onlyInitialState().factory();
+        var factory = automaton.initialState().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -756,7 +783,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isCoSafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.coSafety(nnfFormula);
-        var factory = automaton.onlyInitialState().factory();
+        var factory = automaton.initialState().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -807,7 +834,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isSafetyCoSafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.safetyCoSafety(nnfFormula);
-        var factory = automaton.onlyInitialState().all().factory();
+        var factory = automaton.initialState().all().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -826,7 +853,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isCoSafetySafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.coSafetySafety(nnfFormula);
-        var factory = automaton.onlyInitialState().all().factory();
+        var factory = automaton.initialState().all().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -991,7 +1018,7 @@ public final class CAutomaton {
 
       // If the automaton accepts everything, then index2stateMap is empty.
       S state = stateIndex == INITIAL && index2StateMap.isEmpty()
-        ? automaton.onlyInitialState()
+        ? automaton.initialState()
         : index2StateMap.get(stateIndex);
 
       MtBdd<Edge<S>> edgeTree;
@@ -1014,6 +1041,21 @@ public final class CAutomaton {
       var serialisedEdgeTree = new SerialisedEdgeTree(computeScores);
       serialise(edgeTree, serialisedEdgeTree, -1, new HashMap<>());
       return serialisedEdgeTree;
+    }
+
+    boolean edgeTreePrecomputed(int stateIndex) {
+      if (automaton instanceof AbstractMemoizingAutomaton) {
+        // If the automaton accepts everything, then index2stateMap is empty.
+        S state = stateIndex == INITIAL && index2StateMap.isEmpty()
+          ? automaton.initialState()
+          : index2StateMap.get(stateIndex);
+
+        @SuppressWarnings("unchecked")
+        boolean value = ((AbstractMemoizingAutomaton<S, ?>) automaton).edgeTreePrecomputed(state);
+        return value;
+      }
+
+      return false;
     }
   }
 

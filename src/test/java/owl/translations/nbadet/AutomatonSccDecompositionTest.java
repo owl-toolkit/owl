@@ -100,7 +100,7 @@ public class AutomatonSccDecompositionTest {
     //ugly hack to access state IDs, relies on fact that toString stringifies State ID from HOA file
     HashBiMap<Integer, HoaReader.HoaState> states = HashBiMap.create();
     nba.states().forEach(st -> states.put(Integer.valueOf(st.toString()), st));
-    assertEquals(0, states.inverse().get(nba.onlyInitialState()));
+    assertEquals(0, states.inverse().get(nba.initialState()));
 
     var scci = SccDecomposition.of(nba);
     //scci.ids().forEach(i -> System.out.println(i + ": " + scci.sccDecomposition().sccs().get(i)));
@@ -112,7 +112,7 @@ public class AutomatonSccDecompositionTest {
     assertEquals(8, scci.sccs().size());
 
     //SCC of initial state should be first, and topologically ordered SCC ids
-    assertEquals(0, scci.index(nba.onlyInitialState()));
+    assertEquals(0, scci.index(nba.initialState()));
     assertTrue(sccOf.apply(3) < sccOf.apply(7));
     assertTrue(sccOf.apply(4) < sccOf.apply(6));
 

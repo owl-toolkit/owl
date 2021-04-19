@@ -144,8 +144,11 @@
                 "ltl2dpa#asymmetric,disable-complement,disable-portfolio",
                 "ltl2dpa#symmetric,disable-portfolio",
                 "ltl2dpa#symmetric,disable-complement,disable-portfolio",
-                "ltl2dpaZielonka",
-                "ltl2dpaZielonka#simple",
+                "ltl2dpaNormalform#conditional-zielonka",
+                "ltl2dpaNormalform#mixed-1",
+                "ltl2dpaNormalform#mixed-10",
+                "ltl2dpaNormalform#mixed-100",
+                "ltl2dpaNormalform#acd",
                 "ltl2dpa#symbolic"
             ],
             "data": "L"
@@ -219,18 +222,22 @@
                 "delag-normalform",
                 "delag-normalform#dual",
                 "delag-normalform#local",
-                "delag-normalform#dual,local"
+                "delag-normalform#dual,local",
+                "ltl2delaNormalform#syntactic-only",
+                "ltl2delaNormalform#mixed-1",
+                "ltl2delaNormalform#mixed-10",
+                "ltl2delaNormalform#mixed-100",
+                "ltl2delaNormalform#semantic-only"
             ],
             "data": "M"
         },
         "delag-to-parity": {
             "tools": [
-                "to-parity",
-                "to-parity#stutter",
-                "to-parity#scc-analysis",
-                "to-parity#stutter,scc-analysis",
-                "to-parity#scc-analysis,scc-analysis-jump-to-bottom",
-                "to-parity#stutter,scc-analysis,scc-analysis-jump-to-bottom"
+                "to-parity#conditional-zielonka",
+                "to-parity#mixed-1",
+                "to-parity#mixed-10",
+                "to-parity#mixed-100",
+                "to-parity#acd"
             ]
         },
         "rabinizer": {

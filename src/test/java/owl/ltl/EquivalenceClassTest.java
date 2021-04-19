@@ -44,9 +44,9 @@ import owl.ltl.rewriter.SimplifierFactory.Mode;
 import owl.translations.TranslationAutomatonSummaryTest;
 
 abstract class EquivalenceClassTest {
-  private static final List<String> formulaStrings = List
-    .of("G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b");
-  private static final List<LabelledFormula> formulas = formulaStrings.stream()
+  private static final List<LabelledFormula> formulas = List.of(
+    "G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b")
+    .stream()
     .map(LtlParser::parse)
     .collect(Collectors.toUnmodifiableList());
   private EquivalenceClassFactory factory;
@@ -396,5 +396,17 @@ abstract class EquivalenceClassTest {
     assertEquals(0.5d, factory.of(LtlParser.parse("a").formula()).trueness(), precision);
     assertEquals(0.25d, factory.of(LtlParser.parse("a & b").formula()).trueness(), precision);
     assertEquals(0.0d, factory.of(BooleanConstant.FALSE).trueness(), precision);
+  }
+
+  @Test
+  void testNot() {
+    for (LabelledFormula formula : formulas) {
+      EquivalenceClassFactory factory = obtainFactory(formula);
+      EquivalenceClass expected = factory.of(formula.formula().not());
+      EquivalenceClass actual = factory.of(formula.formula()).not();
+      EquivalenceClass actualUnfolded = factory.of(formula.formula()).unfold().not();
+      assertEquals(expected, actual);
+      assertEquals(expected.unfold(), actualUnfolded);
+    }
   }
 }

@@ -28,6 +28,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -114,6 +115,7 @@ class NormalFormsTest {
     assertEquals(Set.of(clause1, clause2, clause3), cnf);
   }
 
+  @Tag("performance")
   @RepeatedTest(5)
   void testPerformance() {
     var shortFormula = LtlParser.parse(SHORT);

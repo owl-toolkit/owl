@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.stream.IntStream;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
@@ -247,6 +248,7 @@ class DecomposedDPATest {
     }
   }
 
+  @Tag("performance")
   @Test
   void testPerformance() {
     assertTimeout(Duration.ofMillis(300), () -> {
@@ -260,6 +262,7 @@ class DecomposedDPATest {
     });
   }
 
+  @Tag("performance")
   @Test
   void testPerformanceComplementConstructionHeuristic() {
     // Computing the automaton without COMPLEMENT_CONSTRUCTION_HEURISTIC takes minutes.
@@ -268,6 +271,7 @@ class DecomposedDPATest {
     });
   }
 
+  @Tag("performance")
   @Test
   void testPerformanceAmbaDecomposedLock12() {
     assertTimeout(Duration.ofSeconds(2), () -> {

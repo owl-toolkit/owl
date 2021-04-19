@@ -1172,6 +1172,9 @@
     "formula": "FG(a | Xb)"
   },
   {
+    "formula": "FG(a | ((b) M (!a)))"
+  },
+  {
     "formula": "FG(a | ((a) R (b)))"
   },
   {
@@ -1293,6 +1296,9 @@
       "complete": true,
       "deterministic": true
     }
+  },
+  {
+    "formula": "GF(!a & ((b) W (a)))"
   },
   {
     "formula": "XF(a & Gb)"

@@ -69,6 +69,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.collections.BitSet2;
@@ -98,6 +99,7 @@ public class CAutomatonTest {
       : Literal.of(0);
   }
 
+  @Tag("performance")
   @Test
   void testStateFeaturesExtractionForUTiming() {
     var formula = LabelledFormula.of(leftNestedU(11), IntStream.rangeClosed(0, 11)
@@ -289,9 +291,7 @@ public class CAutomatonTest {
 
   @Test
   void testAcceptingSink() {
-    var translation
-      = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(
-        EnumSet.of(Option.X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS));
+    var translation = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation();
 
     var automaton1 = translation.apply(LtlParser.parse("a | G F b"));
     var cAutomaton1 = CAutomaton.DeterministicAutomatonWrapper.of(automaton1, -1);

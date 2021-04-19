@@ -19,8 +19,12 @@
 
 package owl.automaton;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -160,5 +164,29 @@ public final class AutomatonUtil {
       return new AutoValue_AutomatonUtil_LimitDeterministicGeneralizedBuchiAutomaton<>(
         automaton, Set.copyOf(initialComponent));
     }
+  }
+
+  public static <S> boolean isLessOrEqual(Automaton<S, ?> automaton, int numberOfStates) {
+    Deque<S> workList = new ArrayDeque<>(automaton.initialStates());
+    Set<S> visitedStates = new HashSet<>(automaton.initialStates());
+
+    checkArgument(numberOfStates >= 0);
+
+    while (!workList.isEmpty()) {
+      // We looked at too many states and exceeded our budget.
+      if (visitedStates.size() > numberOfStates) {
+        return false;
+      }
+
+      S state = workList.remove();
+
+      for (S successor : automaton.successors(state)) {
+        if (visitedStates.add(successor)) {
+          workList.add(successor);
+        }
+      }
+    }
+
+    return true;
   }
 }

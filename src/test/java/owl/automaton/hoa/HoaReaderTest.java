@@ -32,6 +32,7 @@ import java.util.Objects;
 import java.util.function.Supplier;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -203,7 +204,7 @@ class HoaReaderTest {
     var stateMap = getStates(automaton);
     BddSetFactory valuationSetFactory = automaton.factory();
 
-    assertThat(automaton.onlyInitialState(), stateMap.get(1)::equals);
+    assertThat(automaton.initialState(), stateMap.get(1)::equals);
     assertThat(automaton.edgeMap(stateMap.get(1)),
       Map.of(Edge.of(stateMap.get(0)), valuationSetFactory.of(0))::equals);
     assertThat(automaton.edgeMap(stateMap.get(0)),
@@ -233,7 +234,7 @@ class HoaReaderTest {
     assertThat(acceptance.acceptanceSets(), x -> x == 3);
     assertThat(acceptance.parity(), Parity.MIN_ODD::equals);
 
-    HoaState initialState = automaton.onlyInitialState();
+    HoaState initialState = automaton.initialState();
     HoaState successor = automaton.successor(initialState, createBitSet(false, false));
     assertThat(successor, Objects::nonNull);
 
@@ -256,7 +257,7 @@ class HoaReaderTest {
     assertThat(automaton.states().size(), x -> x == 2);
     assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);
 
-    var initialState = automaton.onlyInitialState();
+    var initialState = automaton.initialState();
     assertThat(initialState.id, x -> x == 0);
     assertThat(automaton.successor(initialState, createBitSet(true)), initialState::equals);
 
@@ -314,6 +315,7 @@ class HoaReaderTest {
     return bitSet;
   }
 
+  @Tag("performance")
   @Test
   void testLargeAlphabet() {
     // Assert that parsing happens fast enough. On my machine this takes less than 2s.

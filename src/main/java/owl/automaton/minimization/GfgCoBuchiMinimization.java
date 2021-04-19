@@ -166,8 +166,8 @@ public final class GfgCoBuchiMinimization {
     S initialState = null;
 
     for (Set<S> safeComponent : frontier) {
-      if (safeComponent.contains(ncw.onlyInitialState())) {
-        initialState = ncw.onlyInitialState();
+      if (safeComponent.contains(ncw.initialState())) {
+        initialState = ncw.initialState();
         break;
       }
     }
@@ -176,7 +176,7 @@ public final class GfgCoBuchiMinimization {
       outer:
       for (Set<S> safeComponent : frontier) {
         for (S state : safeComponent) {
-          if (subsafeEquivalent(ncw, ncw.onlyInitialState(), state)) {
+          if (subsafeEquivalent(ncw, ncw.initialState(), state)) {
             initialState = state;
             break outer;
           }

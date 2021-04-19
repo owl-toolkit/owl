@@ -167,7 +167,7 @@ public final class DeterministicConstructions {
 
     // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
     public EquivalenceClass onlyInitialStateWithRemainder(EquivalenceClass remainder) {
-      return onlyInitialState().and(initialStateInternal(remainder));
+      return initialState().and(initialStateInternal(remainder));
     }
   }
 

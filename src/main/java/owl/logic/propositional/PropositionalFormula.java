@@ -94,12 +94,20 @@ public abstract class PropositionalFormula<T> {
   public abstract PropositionalFormula<T> normalise();
 
   public final Set<T> variables() {
-    return polarity().keySet();
+    return countVariables().keySet();
+  }
+
+  public final Map<T, Integer> countVariables() {
+    Map<T, Integer> occurrences = new HashMap<>();
+    countVariables(occurrences);
+    return occurrences;
   }
 
   public abstract Map<T, Polarity> polarity();
 
   public abstract <R> PropositionalFormula<R> map(Function<? super T, R> mapper);
+
+  protected abstract void countVariables(Map<T, Integer> occurrences);
 
   public enum Polarity {
     POSITIVE, NEGATIVE, MIXED
@@ -167,6 +175,11 @@ public abstract class PropositionalFormula<T> {
       }
 
       return polarityMap;
+    }
+
+    @Override
+    protected void countVariables(Map<T, Integer> occurrences) {
+      conjuncts.forEach(x -> x.countVariables(occurrences));
     }
 
     @Override
@@ -293,6 +306,11 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    protected void countVariables(Map<T, Integer> occurrences) {
+      disjuncts.forEach(x -> x.countVariables(occurrences));
+    }
+
+    @Override
     public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
       return Disjunction.of(
         disjuncts.stream().map(x -> x.map(mapper)).collect(Collectors.toUnmodifiableList()));
@@ -402,6 +420,11 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    protected void countVariables(Map<T, Integer> occurrences) {
+      operand.countVariables(occurrences);
+    }
+
+    @Override
     public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
       return Negation.of(operand.map(mapper));
     }
@@ -460,6 +483,11 @@ public abstract class PropositionalFormula<T> {
     @Override
     public Map<T, Polarity> polarity() {
       return Map.of(variable, Polarity.POSITIVE);
+    }
+
+    @Override
+    protected void countVariables(Map<T, Integer> occurrences) {
+      occurrences.compute(variable, (x, y) -> y == null ? 1 : y + 1);
     }
 
     @Override

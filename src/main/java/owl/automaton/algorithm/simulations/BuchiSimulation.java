@@ -272,7 +272,7 @@ public final class BuchiSimulation {
             .map(s -> Pair.of(s.odd(), s.even()))
             .collect(Collectors.toSet());
 
-          if (wrEven.contains(game.onlyInitialState())) {
+          if (wrEven.contains(game.initialState())) {
             assert !similar.isEmpty();
             known.addAll(similar);
             seen.addAll(known);
@@ -329,8 +329,8 @@ public final class BuchiSimulation {
             .map(s -> Pair.of(s.odd().state(), s.even().onlyState()))
             .collect(Collectors.toSet());
 
-          if (wrEven.contains(game.onlyInitialState())) {
-            assert similar.size() > 0;
+          if (wrEven.contains(game.initialState())) {
+            assert !similar.isEmpty();
             known.addAll(similar);
             seen.addAll(similar);
           }

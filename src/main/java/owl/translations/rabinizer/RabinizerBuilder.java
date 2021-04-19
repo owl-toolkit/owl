@@ -600,7 +600,7 @@ public final class RabinizerBuilder {
     int relevantFormulaCount = monitors.length;
     EquivalenceClass masterInitialState = stateSubset.iterator().next();
     MonitorState[] monitorInitialStates = new MonitorState[relevantFormulaCount];
-    Arrays.setAll(monitorInitialStates, i -> monitors[i].onlyInitialState());
+    Arrays.setAll(monitorInitialStates, i -> monitors[i].initialState());
 
     RabinizerState initialState = RabinizerState.of(masterInitialState, monitorInitialStates);
 

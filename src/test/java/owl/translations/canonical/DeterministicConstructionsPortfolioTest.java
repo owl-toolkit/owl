@@ -258,7 +258,7 @@ class DeterministicConstructionsPortfolioTest {
     ints = {8, 16, 32, 64})
   void safetyLargeAlphabet(int k) {
     var automaton = safety(largeAlphabetSafety(k));
-    automaton.edgeTree(automaton.onlyInitialState());
+    automaton.edgeTree(automaton.initialState());
   }
 
   @Disabled

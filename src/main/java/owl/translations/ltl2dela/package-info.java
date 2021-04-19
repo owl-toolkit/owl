@@ -17,15 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.ltl;
+@EverythingIsNonnullByDefault
+package owl.translations.ltl2dela;
 
-import owl.bdd.EquivalenceClassFactory;
-import owl.bdd.FactorySupplier;
-
-public class JBddEquivalenceClassTest extends EquivalenceClassTest {
-  @Override
-  protected EquivalenceClassFactory obtainFactory(LabelledFormula domain) {
-    return FactorySupplier.defaultSupplier()
-      .getEquivalenceClassFactory(domain.atomicPropositions());
-  }
-}
+import owl.util.annotation.EverythingIsNonnullByDefault;

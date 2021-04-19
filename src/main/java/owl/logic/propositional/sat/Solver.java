@@ -89,13 +89,41 @@ public final class Solver {
       return Optional.empty();
     }
 
+    // Pre-process and replace single polarity with fixed value in formula.
+    var polarity = formula.polarity();
+
+    var simplifiedFormula = formula.substitute(variable -> {
+      if (polarity.get(variable) == PropositionalFormula.Polarity.POSITIVE) {
+        return Optional.of(PropositionalFormula.trueConstant());
+      }
+
+      if (polarity.get(variable) == PropositionalFormula.Polarity.NEGATIVE) {
+        return Optional.of(PropositionalFormula.falseConstant());
+      }
+
+      return Optional.empty();
+    }).normalise();
+
     // Translate into equisatisfiable CNF.
-    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(formula);
-    return model(conjunctiveNormalForm.clauses, engine).map(bitSet -> bitSet.stream()
-      .map(x -> x + 1) // shift indices
-      .filter(conjunctiveNormalForm.variableMapping::containsValue) // skip Tsetin variables
-      .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i))
+    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(simplifiedFormula);
+    var modelSimplifiedFormula = model(conjunctiveNormalForm.clauses, engine)
+      .map(bitSet -> bitSet.stream()
+        .map(x -> x + 1) // shift indices
+        .filter(conjunctiveNormalForm.variableMapping::containsValue) // skip Tsetin variables
+        .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i))
       .collect(Collectors.toSet()));
+
+    if (modelSimplifiedFormula.isEmpty()) {
+      return modelSimplifiedFormula;
+    }
+
+    polarity.forEach((variable, value) -> {
+      if (value == PropositionalFormula.Polarity.POSITIVE) {
+        modelSimplifiedFormula.ifPresent(x -> x.add(variable));
+      }
+    });
+
+    return modelSimplifiedFormula;
   }
 
   public static <V> List<Set<V>> maximalModels(

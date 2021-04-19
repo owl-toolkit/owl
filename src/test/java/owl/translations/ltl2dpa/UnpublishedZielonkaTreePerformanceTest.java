@@ -20,21 +20,32 @@
 package owl.translations.ltl2dpa;
 
 import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.UNPUBLISHED_ZIELONKA;
+import static owl.translations.LtlTranslationRepository.Option;
 
 import java.time.Duration;
 import java.util.EnumSet;
+import java.util.OptionalInt;
+import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Tag;
 import owl.automaton.Automaton;
+import owl.automaton.acceptance.ParityAcceptance;
+import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
-import owl.translations.LtlTranslationRepository;
 
+@SuppressWarnings("unchecked")
 public class UnpublishedZielonkaTreePerformanceTest {
 
-  @Test
+  private static Function<LabelledFormula, Automaton<?, ? extends ParityAcceptance>>
+    TRANSLATION = UNPUBLISHED_ZIELONKA.translation(
+      ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0));
+
+  @Tag("performance")
+  @RepeatedTest(3)
   void testPerformanceLtl2DbaR8() {
-    // Takes ~1.5s on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(3), () -> {
+    // Takes ~2s on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(4), () -> {
       var formula = LtlParser.parse(
         "((((((((((G (F (\"p_0\"))) || (F (G (\"p_1\")))) && ((G (F (\"p_1\"))) || "
           + "(F(G(\"p_2\"))))) && ((G (F (\"p_2\"))) || (F (G (\"p_3\"))))) && ((G (F (\"p_3\"))) "
@@ -42,18 +53,16 @@ public class UnpublishedZielonkaTreePerformanceTest {
           + ") || (F(G(\"p_6\"))))) && ((G (F (\"p_6\"))) || (F (G (\"p_7\"))))) && (G (F (\"p_7\")"
           + "))) <-> (G(F(\"acc\"))))");
 
-      var translation
-        = UNPUBLISHED_ZIELONKA.translation(EnumSet.noneOf(LtlTranslationRepository.Option.class));
-
-      Automaton automaton = translation.apply(formula);
-      automaton.edgeTree(automaton.onlyInitialState());
+      var automaton = (Automaton<Object, ?>) TRANSLATION.apply(formula);
+      automaton.edgeTree(automaton.initialState());
     });
   }
 
-  @Test
+  @Tag("performance")
+  @RepeatedTest(3)
   void testPerformanceLtl2DbaQ12() {
-    // Takes ~18s on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(30), () -> {
+    // Takes ~7s on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(15), () -> {
       var formula = LtlParser.parse(
         "((((((((((((((F (\"p_0\")) || (G (\"p_1\"))) && ((F (\"p_1\")) || (G (\"p_2\")))) && ((F"
           + " (\"p_2\")) || (G (\"p_3\")))) && ((F (\"p_3\")) || (G (\"p_4\")))) && ((F (\"p_4\")"
@@ -62,11 +71,8 @@ public class UnpublishedZielonkaTreePerformanceTest {
           + ")) && ((F (\"p_9\")) || (G (\"p_10\")))) && ((F (\"p_10\")) || (G (\"p_11\")))) && "
           + "(F (\"p_11\"))) <-> (G (F (\"acc\"))))\n");
 
-      var translation
-        = UNPUBLISHED_ZIELONKA.translation(EnumSet.noneOf(LtlTranslationRepository.Option.class));
-
-      Automaton automaton = translation.apply(formula);
-      automaton.edgeTree(automaton.onlyInitialState());
+      var automaton = (Automaton<Object, ?>) TRANSLATION.apply(formula);
+      automaton.edgeTree(automaton.initialState());
     });
   }
 }

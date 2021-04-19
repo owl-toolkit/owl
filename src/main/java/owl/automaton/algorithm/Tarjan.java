@@ -67,6 +67,10 @@ final class Tarjan<S> {
     assert !stateMap.containsKey(node) && !processedNodes.contains(node)
       : String.format("Node %s already processed", node);
 
+    if (index == Integer.MAX_VALUE) {
+      throw new IllegalStateException("exhausted node ids");
+    }
+
     int nodeIndex = index;
     index += 1;
 

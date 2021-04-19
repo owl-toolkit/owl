@@ -22,6 +22,8 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
@@ -433,6 +435,38 @@ public final class Views {
           .map(edge -> edge.mapSuccessor(successor -> Pair.of(successor, edge.colours())))
           .collect(Collectors.toUnmodifiableSet()));
 
+      }
+    };
+  }
+
+  private static <S> Integer map(BiMap<S, Integer> map, S state) {
+    return map.computeIfAbsent(state, x -> map.size());
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> Automaton<Integer, A>
+    dropStateLabels(Automaton<S, ? extends A> automaton) {
+
+    BiMap<S, Integer> mapping = HashBiMap.create();
+    Set<Integer> initialStates = new HashSet<>();
+    automaton.initialStates().forEach(x -> initialStates.add(map(mapping, x)));
+
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      initialStates,
+      automaton.acceptance()) {
+
+      @Override
+      protected MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
+        return automaton.edgeTree(mapping.inverse().get(state)).map(
+          x -> x.stream()
+            .map(y -> y.mapSuccessor(z -> map(mapping, z)))
+            .collect(Collectors.toUnmodifiableSet()));
+      }
+
+      @Override
+      protected void freezeMemoizedEdgesNotify() {
+        mapping.clear();
       }
     };
   }

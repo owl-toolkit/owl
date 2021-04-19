@@ -27,6 +27,7 @@ import java.util.List;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import owl.cinterface.CAutomaton.DeterministicAutomatonWrapper;
 import owl.ltl.parser.LtlParser;
@@ -122,6 +123,7 @@ class DeterministicAutomatonWrapperTest {
       new int[]{0, -1, 3, 1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
   }
 
+  @Tag("performance")
   @Test
   void testEdgesPerformance() {
     assertTimeout(Duration.ofMillis(100), () -> {

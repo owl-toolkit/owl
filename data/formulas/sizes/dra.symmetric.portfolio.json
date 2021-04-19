@@ -4004,6 +4004,17 @@
     }
   },
   {
+    "formula": "FG(a | ((b) M (!a)))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "FG(a | ((a) R (b)))",
     "properties": {
       "size": 2,
@@ -4362,6 +4373,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "GF(!a & ((b) W (a)))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 8,
       "complete": true,
       "deterministic": true
     }
