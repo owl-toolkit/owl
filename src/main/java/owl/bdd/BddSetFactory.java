@@ -35,6 +35,10 @@ public interface BddSetFactory {
 
   BddSet of(BitSet valuation, BitSet support);
 
+  BddSet union(BddSet... bddSets);
+
+  BddSet intersection(BddSet... bddSets);
+
   default BddSet of(BitSet valuation, ImmutableBitSet support) {
     return of(valuation, BitSet2.copyOf(support));
   }

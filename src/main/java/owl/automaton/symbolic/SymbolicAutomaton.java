@@ -120,6 +120,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       .project(quantifyOver);
   }
 
+  @Memoized
   public BddSet reachableStates() {
     BddSet previousStates = initialStates().factory().of(false);
     BddSet currentStates = initialStates().intersection(

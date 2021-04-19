@@ -1,0 +1,250 @@
+[
+    {
+        "formula": "((((G (F (r_0))) && (G (F (r_1)))) <-> (G (F (g)))) && (G ((((r_0) && (r_1)) -> (G (! (g)))) && (true))))",
+        "controllable": [
+            "g"
+        ],
+        "uncontrollable": [
+            "r_0",
+            "r_1"
+        ]
+    },
+    {
+        "formula": "(((((G ((((((((g_0) && (G (! (r_0)))) -> (F (! (g_0)))) && (((g_0) && (X ((! (r_0)) && (! (g_0))))) -> (X ((r_0) R (! (g_0)))))) && (((g_1) && (G (! (r_1)))) -> (F (! (g_1))))) && (((g_1) && (X ((! (r_1)) && (! (g_1))))) -> (X ((r_1) R (! (g_1)))))) && (((! (g_0)) && (true)) || ((true) && (! (g_1))))) && (((r_0) && (X (r_1))) -> (X (X (X ((g_0) && (g_1)))))))) && ((r_0) R (! (g_0)))) && (G ((r_0) -> (F (g_0))))) && ((r_1) R (! (g_1)))) && (G ((r_1) -> (F (g_1)))))",
+        "controllable": [
+            "g_0",
+            "g_1"
+        ],
+        "uncontrollable": [
+            "r_0",
+            "r_1"
+        ]
+    },
+    {
+        "formula": "(((((G ((((((((g_0) && (G (! (r_0)))) -> (F (! (g_0)))) && (((g_0) && (X ((! (r_0)) && (! (g_0))))) -> (X ((r_0) R (! (g_0)))))) && (((g_1) && (G (! (r_1)))) -> (F (! (g_1))))) && (((g_1) && (X ((! (r_1)) && (! (g_1))))) -> (X ((r_1) R (! (g_1)))))) && (((! (g_0)) && (true)) || ((true) && (! (g_1))))) && (((r_0) && (X (r_1))) -> (F ((g_0) && (g_1)))))) && ((r_0) R (! (g_0)))) && (G ((r_0) -> (F (g_0))))) && ((r_1) R (! (g_1)))) && (G ((r_1) -> (F (g_1)))))",
+        "controllable": [
+            "g_0",
+            "g_1"
+        ],
+        "uncontrollable": [
+            "r_0",
+            "r_1"
+        ]
+    },
+    {
+        "formula": "(G ((((req) -> (X ((grant) && (X ((grant) && (X (grant))))))) && ((grant) -> (X (! (grant))))) && ((cancel) -> (X ((! (grant)) U (go))))))",
+        "controllable": [
+            "grant"
+        ],
+        "uncontrollable": [
+            "go",
+            "cancel",
+            "req"
+        ]
+    },
+    {
+        "formula": "(G ((((req) -> (X ((grant) && (X ((grant) && (X (grant))))))) && ((grant) -> (X (! (grant))))) && ((cancel) -> (X ((! (grant)) U (go))))))",
+        "controllable": [
+            "grant"
+        ],
+        "uncontrollable": [
+            "go",
+            "cancel",
+            "req"
+        ]
+    },
+    {
+        "formula": "(! ((G ((req) -> (F (ack)))) && (G ((go) -> (F (grant))))))",
+        "controllable": [
+            "ack",
+            "grant"
+        ],
+        "uncontrollable": [
+            "go",
+            "req"
+        ]
+    },
+    {
+        "formula": "(((G ((((r1) -> (F (a1))) && ((r2) -> (F (a2)))) && (! ((a1) && (a2))))) && ((a1) W (r1))) && ((a2) W (r2)))",
+        "controllable": [
+            "a2",
+            "a1"
+        ],
+        "uncontrollable": [
+            "r2",
+            "r1"
+        ]
+    },
+    {
+        "formula": "((((G (((((((r0) -> (F (a0))) && ((r1) -> (F (a1)))) && ((r2) -> (F (a2)))) && (! ((a0) && (a1)))) && (! ((a0) && (a2)))) && (! ((a1) && (a2))))) && ((a0) W (r0))) && ((a1) W (r1))) && ((a2) W (r2)))",
+        "controllable": [
+            "a2",
+            "a1",
+            "a0"
+        ],
+        "uncontrollable": [
+            "r2",
+            "r1",
+            "r0"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((! (grant_0)) && (! (grant_1))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((G ((((((X (((! (grant_0)) && (true)) && ((true) && (! (grant_1))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((request_0) -> (grant_1))) && ((! (idle)) -> (X ((! (grant_0)) && (! (grant_1)))))) && (((request_0) && (X (request_1))) -> (X (X (X (X (X (X (X (X (X (X ((grant_0) && (grant_1))))))))))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((! (grant_0)) && (! (grant_1))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((G ((((((X (((! (grant_0)) && (true)) && ((true) && (! (grant_1))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((request_0) -> (grant_1))) && ((! (idle)) -> (X ((! (grant_0)) && (! (grant_1)))))) && (((request_0) && (X (request_1))) -> (X (X (X (X (X (X (X (X (X (X (X (X ((grant_0) && (grant_1))))))))))))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((! (grant_0)) && (! (grant_1))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((G ((((((X (((! (grant_0)) && (true)) && ((true) && (! (grant_1))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((request_0) -> (grant_1))) && ((! (idle)) -> (X ((! (grant_0)) && (! (grant_1)))))) && (((request_0) && (X (request_1))) -> (X (X ((grant_0) && (grant_1))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((! (grant_0)) && (! (grant_1))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((G ((((((X (((! (grant_0)) && (true)) && ((true) && (! (grant_1))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((request_0) -> (grant_1))) && ((! (idle)) -> (X ((! (grant_0)) && (! (grant_1)))))) && (((request_0) && (X (request_1))) -> (X (X (X (X ((grant_0) && (grant_1))))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((! (grant_0)) && (! (grant_1))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((G ((((((X (((! (grant_0)) && (true)) && ((true) && (! (grant_1))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((request_0) -> (grant_1))) && ((! (idle)) -> (X ((! (grant_0)) && (! (grant_1)))))) && (((request_0) && (X (request_1))) -> (X (X (X (X (X (X ((grant_0) && (grant_1))))))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((! (grant_0)) && (! (grant_1))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((G ((((((X (((! (grant_0)) && (true)) && ((true) && (! (grant_1))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((request_0) -> (grant_1))) && ((! (idle)) -> (X ((! (grant_0)) && (! (grant_1)))))) && (((request_0) && (X (request_1))) -> (X (X (X (X (X (X (X (X ((grant_0) && (grant_1))))))))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((((G (((((((((((((((X ((((! (grant_0)) && (! (grant_1))) && (((! (grant_2)) && (true)) || ((true) && (! (grant_3))))) && ((((! (grant_0)) && (true)) || ((true) && (! (grant_1)))) && ((! (grant_2)) && (! (grant_3)))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((X (grant_2)) -> (request_2))) && ((X (grant_3)) -> (request_3))) && ((request_0) -> (grant_1))) && ((request_0) -> (grant_2))) && ((request_0) -> (grant_3))) && ((! (idle)) -> (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3)))))) && (((request_0) && (X (request_1))) -> (X ((grant_0) && (grant_1))))) && (((request_0) && (X (request_2))) -> (X ((grant_0) && (grant_2))))) && (((request_0) && (X (request_3))) -> (X ((grant_0) && (grant_3))))) && (((request_1) && (X (request_2))) -> (X ((grant_1) && (grant_2))))) && (((request_1) && (X (request_3))) -> (X ((grant_1) && (grant_3))))) && (((request_2) && (X (request_3))) -> (X ((grant_2) && (grant_3)))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))) && (! (F (G ((request_2) && (X (! (grant_2)))))))) && (! (F (G ((request_3) && (X (! (grant_3)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1",
+            "grant_2",
+            "grant_3"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1",
+            "request_2",
+            "request_3"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((((G (((((((((((((((X ((((! (grant_0)) && (! (grant_1))) && (((! (grant_2)) && (true)) || ((true) && (! (grant_3))))) && ((((! (grant_0)) && (true)) || ((true) && (! (grant_1)))) && ((! (grant_2)) && (! (grant_3)))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((X (grant_2)) -> (request_2))) && ((X (grant_3)) -> (request_3))) && ((request_0) -> (grant_1))) && ((request_0) -> (grant_2))) && ((request_0) -> (grant_3))) && ((! (idle)) -> (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3)))))) && (((request_0) && (X (request_1))) -> (X (X ((grant_0) && (grant_1)))))) && (((request_0) && (X (request_2))) -> (X (X ((grant_0) && (grant_2)))))) && (((request_0) && (X (request_3))) -> (X (X ((grant_0) && (grant_3)))))) && (((request_1) && (X (request_2))) -> (X (X ((grant_1) && (grant_2)))))) && (((request_1) && (X (request_3))) -> (X (X ((grant_1) && (grant_3)))))) && (((request_2) && (X (request_3))) -> (X (X ((grant_2) && (grant_3))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))) && (! (F (G ((request_2) && (X (! (grant_2)))))))) && (! (F (G ((request_3) && (X (! (grant_3)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1",
+            "grant_2",
+            "grant_3"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1",
+            "request_2",
+            "request_3"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((((G (((((((((((((((X ((((! (grant_0)) && (! (grant_1))) && (((! (grant_2)) && (true)) || ((true) && (! (grant_3))))) && ((((! (grant_0)) && (true)) || ((true) && (! (grant_1)))) && ((! (grant_2)) && (! (grant_3)))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((X (grant_2)) -> (request_2))) && ((X (grant_3)) -> (request_3))) && ((request_0) -> (grant_1))) && ((request_0) -> (grant_2))) && ((request_0) -> (grant_3))) && ((! (idle)) -> (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3)))))) && (((request_0) && (X (request_1))) -> (X (X (X ((grant_0) && (grant_1))))))) && (((request_0) && (X (request_2))) -> (X (X (X ((grant_0) && (grant_2))))))) && (((request_0) && (X (request_3))) -> (X (X (X ((grant_0) && (grant_3))))))) && (((request_1) && (X (request_2))) -> (X (X (X ((grant_1) && (grant_2))))))) && (((request_1) && (X (request_3))) -> (X (X (X ((grant_1) && (grant_3))))))) && (((request_2) && (X (request_3))) -> (X (X (X ((grant_2) && (grant_3)))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))) && (! (F (G ((request_2) && (X (! (grant_2)))))))) && (! (F (G ((request_3) && (X (! (grant_3)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1",
+            "grant_2",
+            "grant_3"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1",
+            "request_2",
+            "request_3"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> (((((G (((((((((((((((X ((((! (grant_0)) && (! (grant_1))) && (((! (grant_2)) && (true)) || ((true) && (! (grant_3))))) && ((((! (grant_0)) && (true)) || ((true) && (! (grant_1)))) && ((! (grant_2)) && (! (grant_3)))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((X (grant_2)) -> (request_2))) && ((X (grant_3)) -> (request_3))) && ((request_0) -> (grant_1))) && ((request_0) -> (grant_2))) && ((request_0) -> (grant_3))) && ((! (idle)) -> (X ((((! (grant_0)) && (! (grant_1))) && (! (grant_2))) && (! (grant_3)))))) && (((request_0) && (X (request_1))) -> (X (X (X (X ((grant_0) && (grant_1)))))))) && (((request_0) && (X (request_2))) -> (X (X (X (X ((grant_0) && (grant_2)))))))) && (((request_0) && (X (request_3))) -> (X (X (X (X ((grant_0) && (grant_3)))))))) && (((request_1) && (X (request_2))) -> (X (X (X (X ((grant_1) && (grant_2)))))))) && (((request_1) && (X (request_3))) -> (X (X (X (X ((grant_1) && (grant_3)))))))) && (((request_2) && (X (request_3))) -> (X (X (X (X ((grant_2) && (grant_3))))))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))) && (! (F (G ((request_2) && (X (! (grant_2)))))))) && (! (F (G ((request_3) && (X (! (grant_3)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1",
+            "grant_2",
+            "grant_3"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1",
+            "request_2",
+            "request_3"
+        ]
+    },
+    {
+        "formula": "((((G (F (idle))) && (G (((idle) && (X (((! (grant_0)) && (! (grant_1))) && (! (grant_2))))) -> (X (idle))))) && (G ((X (! (grant_0))) || (X (((! (request_0)) && (! (idle))) U ((! (request_0)) && (idle))))))) -> ((((G ((((((((((X ((((! (grant_0)) && (! (grant_1))) && (true)) && ((((! (grant_0)) && (true)) || ((true) && (! (grant_1)))) && (! (grant_2))))) && ((X (grant_0)) -> (request_0))) && ((X (grant_1)) -> (request_1))) && ((X (grant_2)) -> (request_2))) && ((request_0) -> (grant_1))) && ((request_0) -> (grant_2))) && ((! (idle)) -> (X (((! (grant_0)) && (! (grant_1))) && (! (grant_2)))))) && (((request_0) && (X (request_1))) -> (F ((grant_0) && (grant_1))))) && (((request_0) && (X (request_2))) -> (F ((grant_0) && (grant_2))))) && (((request_1) && (X (request_2))) -> (F ((grant_1) && (grant_2)))))) && (! (F (G ((request_0) && (X (! (grant_0)))))))) && (! (F (G ((request_1) && (X (! (grant_1)))))))) && (! (F (G ((request_2) && (X (! (grant_2)))))))))",
+        "controllable": [
+            "grant_0",
+            "grant_1",
+            "grant_2"
+        ],
+        "uncontrollable": [
+            "idle",
+            "request_0",
+            "request_1",
+            "request_2"
+        ]
+    },
+    {
+        "formula": "((F (G (! (p)))) <-> (G (F (acc))))",
+        "controllable": [
+            "acc"
+        ],
+        "uncontrollable": [
+            "p"
+        ]
+    }
+]
