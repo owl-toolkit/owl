@@ -104,7 +104,27 @@ Performance Test:
     - ./gradlew performanceTest
   when: manual
   needs:
-  - Build (JRE)
+    - Build (JRE)
+
+## LTL Synthesis
+Symbolic LTL Synthesis:
+  stage: test
+  when: manual
+  script:
+    - unzip -d build/unzipped build/distributions/*.zip
+    - mv build/unzipped/owl-*/bin/owl-native build
+    - ./scripts/symbolic-synthesis.sh > result.csv
+  artifacts:
+    paths:
+      - result.csv
+    when: always
+    expire_in: 1 week
+  variables:
+    GIT_SUBMODULE_STRATEGY: "recursive"
+  needs:
+    - Build (Native)
+
+## LTL to Automaton
 
 ## LTL to LTL
 

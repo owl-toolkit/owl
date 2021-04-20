@@ -381,7 +381,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   }
 
-  enum VariableType {
+  public enum VariableType {
     STATE, COLOUR, ATOMIC_PROPOSITION, SUCCESSOR_STATE
   }
 

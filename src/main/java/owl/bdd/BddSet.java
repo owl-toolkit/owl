@@ -76,6 +76,8 @@ public interface BddSet {
 
   BddSet project(ImmutableBitSet quantifiedAtomicPropositions);
 
+  BddSet restrict(BitSet restriction, BitSet support);
+
   BddSet relabel(IntUnaryOperator mapping);
 
   /*
@@ -85,6 +87,12 @@ public interface BddSet {
   BitSet support();
 
   PropositionalFormula<Integer> toExpression();
+
+  <S> MtBdd<S> toMtBdd(S terminal);
+
+  default MtBdd<?> toMtBdd() {
+    return toMtBdd(new Object());
+  }
 
   /**
    * Returns a {@code Iterator<BitSet>}-view of this BddSet.
