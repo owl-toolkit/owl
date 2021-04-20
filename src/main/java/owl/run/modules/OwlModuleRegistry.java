@@ -42,6 +42,7 @@ import owl.translations.ExternalTranslator;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
+import owl.translations.modules.LTL2AIGModule;
 import owl.translations.modules.LTL2DAModule;
 import owl.translations.modules.LTL2DGRAModule;
 import owl.translations.modules.LTL2DPAModule;
@@ -112,7 +113,9 @@ public class OwlModuleRegistry {
       // external
       ExternalTranslator.MODULE,
       // -> Delta_2 normal form
-      LTL2NormalFormModule.MODULE));
+      LTL2NormalFormModule.MODULE,
+      LTL2AIGModule.MODULE)
+    );
 
     // Automaton translations
     DEFAULT_REGISTRY.putTransformers(List.of(
