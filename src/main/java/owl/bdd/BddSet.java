@@ -21,6 +21,7 @@ package owl.bdd;
 
 import java.util.BitSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.IntUnaryOperator;
 import owl.collections.ImmutableBitSet;
@@ -76,6 +77,8 @@ public interface BddSet {
 
   BddSet project(ImmutableBitSet quantifiedAtomicPropositions);
 
+  BddSet restrict(BitSet restriction, BitSet support);
+
   BddSet relabel(IntUnaryOperator mapping);
 
   /*
@@ -85,6 +88,14 @@ public interface BddSet {
   BitSet support();
 
   PropositionalFormula<Integer> toExpression();
+
+  default <S> MtBdd<S> toMtBdd(S terminal) {
+    return factory().toMtBdd(Map.of(terminal, this));
+  }
+
+  default MtBdd<?> toMtBdd() {
+    return toMtBdd(new Object());
+  }
 
   /**
    * Returns a {@code Iterator<BitSet>}-view of this BddSet.
@@ -100,7 +111,11 @@ public interface BddSet {
    *     This method throws an exception if the {@param support}
    *     is smaller than the largest element of {@link BddSet#support()}.
    */
-  Iterator<BitSet> iterator(int support);
+  default Iterator<BitSet> iterator(int support) {
+    BitSet set = new BitSet();
+    set.set(0, support);
+    return iterator(set);
+  }
 
   /**
    * Returns a {@code Iterator<BitSet>}-view of this BddSet.
@@ -134,5 +149,22 @@ public interface BddSet {
    *     This method throws an exception if the {@param support} does not contain all elements
    *     of {@link BddSet#support()}.
    */
-  Iterator<BitSet> iterator(ImmutableBitSet support);
+  default Iterator<BitSet> iterator(ImmutableBitSet support) {
+    return new Iterator<>() {
+      private BddSet current = BddSet.this;
+
+      @Override
+      public boolean hasNext() {
+        return !current.isEmpty();
+      }
+
+      @Override
+      public BitSet next() {
+        BitSet next = current.element().orElseThrow();
+        next.and(support.copyInto(new BitSet()));
+        current = current.intersection(factory().of(next, support).complement());
+        return next;
+      }
+    };
+  }
 }

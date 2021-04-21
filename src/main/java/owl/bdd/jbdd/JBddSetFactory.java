@@ -262,6 +262,13 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
+    public BddSet restrict(BitSet restriction, BitSet support) {
+      return factory.create(
+        factory.bdd.restrict(node, support, restriction)
+      );
+    }
+
+    @Override
     public BddSet relabel(IntUnaryOperator mapping) {
       BitSet support = support();
       int[] substitutions = new int[support.length()];

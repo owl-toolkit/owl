@@ -29,6 +29,7 @@ plugins {
 // Languages
 apply plugin: 'antlr'
 apply plugin: 'java'
+apply plugin: 'c'
 
 // Static Analysis
 apply plugin: 'checkstyle'
@@ -45,6 +46,21 @@ project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
 
 def defaultEncoding = 'UTF-8'
+
+model {
+    components {
+        owlsylvan(NativeLibrarySpec) {
+            sources.c {
+                source {
+                    srcDir "src/main/c/source"
+                }
+                exportedHeaders {
+                    srcDir "src/main/c/headers"
+                }
+            }
+        }
+    }
+}
 
 tasks.withType(JavaCompile) {
     // JDK 11 is the latest release supported by GraalVM (native-image).
@@ -217,7 +233,7 @@ jar {
     }
 }
 
-task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
+task buildNativeLibrary(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary']) {
     mkdir "${buildDir}/native-library"
     workingDir "${buildDir}/native-library"
     onlyIf { buildOwlNative }
@@ -233,6 +249,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         '--shared',
         // (can cause deadlock during image-build)
         '--initialize-at-build-time=com.google,org.apache,org.antlr,de.tum,owl,jhoafparser',
+        '--initialize-at-run-time=owl.bdd.sylvan.SylvanBddSetFactory',
         '--no-fallback',
         '--no-server',
         // (uncomment for performance analysis)
@@ -241,7 +258,8 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         // '-H:+DashboardAll',
         '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
-        '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
+        '-Djava.lang.Integer.IntegerCache.high=1024', // Cache more boxed integers.
+        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/shared"
 
     def cCompiler = System.getenv("CC")
     if (cCompiler != null) {
@@ -249,7 +267,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
     }
 }
 
-task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
+task buildNativeExecutable(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary']) {
     mkdir "${buildDir}/native-executable"
     workingDir "${buildDir}/native-executable"
     onlyIf { buildOwlNative }
@@ -268,13 +286,15 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time=com.google,org.apache,org.antlr,de.tum,owl,jhoafparser',
         '--no-fallback',
         '--no-server',
+        '--initialize-at-run-time=owl.bdd.sylvan.SylvanBddSetFactory',
         // (uncomment for performance analysis)
         // '-H:+PrintAnalysisCallTree',
         // '-H:DashboardDump=reports/graalvm-dashboard.dump',
         // '-H:+DashboardAll',
         '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
-        '-Djava.lang.Integer.IntegerCache.high=1024' // Cache more boxed integers.
+        '-Djava.lang.Integer.IntegerCache.high=1024', // Cache more boxed integers.
+        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/shared"
 
     def cCompiler = System.getenv("CC")
     if (cCompiler != null) {
