@@ -19,6 +19,7 @@
 
 package owl.bdd;
 
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Map;
 import owl.collections.BitSet2;
@@ -31,13 +32,27 @@ public interface BddSetFactory {
 
   BddSet of(int variable);
 
-  BddSet of(BitSet valuation, int upTo);
+  default BddSet of(BitSet valuation, int upTo) {
+    BitSet support = new BitSet();
+    support.set(0, upTo);
+    return of(valuation, support);
+  }
 
-  BddSet of(BitSet valuation, BitSet support);
+  default BddSet of(BitSet valuation, BitSet support) {
+    BddSet result = of(true);
+    for (int i = support.nextSetBit(0); i != -1; i = support.nextSetBit(i + 1)) {
+      result = result.intersection(valuation.get(i) ? of(i) : of(i).complement());
+    }
+    return result;
+  }
 
-  BddSet union(BddSet... bddSets);
+  default BddSet union(BddSet... bddSets) {
+    return Arrays.stream(bddSets).reduce(of(false), BddSet::union);
+  }
 
-  BddSet intersection(BddSet... bddSets);
+  default BddSet intersection(BddSet... bddSets) {
+    return Arrays.stream(bddSets).reduce(of(true), BddSet::intersection);
+  }
 
   default BddSet of(BitSet valuation, ImmutableBitSet support) {
     return of(valuation, BitSet2.copyOf(support));
@@ -47,7 +62,23 @@ public interface BddSetFactory {
     return of(BitSet2.copyOf(valuation), BitSet2.copyOf(support));
   }
 
-  BddSet of(PropositionalFormula<Integer> expression);
+  default BddSet of(PropositionalFormula<Integer> expression) {
+    if (expression instanceof PropositionalFormula.Variable) {
+      return of(((PropositionalFormula.Variable<Integer>) expression).variable);
+    } else if (expression instanceof PropositionalFormula.Negation) {
+      return of(((PropositionalFormula.Negation<Integer>) expression).operand).complement();
+    } else if (expression instanceof PropositionalFormula.Conjunction) {
+      return ((PropositionalFormula.Conjunction<Integer>) expression).conjuncts.stream()
+        .map(this::of)
+        .reduce(of(true), BddSet::intersection);
+    } else if (expression instanceof PropositionalFormula.Disjunction) {
+      return ((PropositionalFormula.Disjunction<Integer>) expression).disjuncts.stream()
+        .map(this::of)
+        .reduce(of(false), BddSet::union);
+    } else {
+      throw new AssertionError("Unreachable!");
+    }
+  }
 
   <S> MtBdd<S> toMtBdd(Map<? extends S, ? extends BddSet> sets);
 

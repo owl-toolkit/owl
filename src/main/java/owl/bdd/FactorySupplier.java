@@ -20,13 +20,17 @@
 package owl.bdd;
 
 import java.util.List;
+import org.graalvm.nativeimage.ImageInfo;
 import owl.bdd.jbdd.JBddSupplier;
+import owl.bdd.sylvan.SylvanFactorySupplier;
 
 public interface FactorySupplier {
 
   static FactorySupplier defaultSupplier() {
-    // TODO: add compile-time switch (JDD vs sylvan)
-    return JBddSupplier.JBDD_SUPPLIER_INSTANCE;
+    if (!ImageInfo.inImageCode()) {
+      return JBddSupplier.JBDD_SUPPLIER_INSTANCE;
+    }
+    return SylvanFactorySupplier.SYLVAN_FACTORY_SUPPLIER;
   }
 
   BddSetFactory getBddSetFactory();
