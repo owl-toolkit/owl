@@ -5,5 +5,9 @@ import owl.bdd.BddSet;
 
 @FunctionalInterface
 public interface StrategyDeterminizer {
-  BddSet determinize(SymbolicAutomaton<?> automaton, BitSet controllableAps, BddSet strategy);
+  BddSet determinize(
+    SymbolicAutomaton<?> automaton,
+    BitSet controllableAps,
+    BddSet strategy
+  );
 }

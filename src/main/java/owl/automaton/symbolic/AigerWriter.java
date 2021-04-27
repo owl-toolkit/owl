@@ -1,9 +1,9 @@
 package owl.automaton.symbolic;
 
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.ATOMIC_PROPOSITION;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.SUCCESSOR_STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.ATOMIC_PROPOSITION;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.COLOUR;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.SUCCESSOR_STATE;
 
 import java.util.BitSet;
 import java.util.HashMap;
@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import owl.automaton.symbolic.SymbolicAutomaton.VariableAllocation;
 import owl.bdd.BddSet;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
@@ -117,18 +116,18 @@ public final class AigerWriter {
   ) {
     switch (allocation.typeOf(variable)) {
       case STATE:
-        int localState = allocation.globalToLocal(variable, STATE);
+        int localState = allocation.globalToLocal(variable);
         if (initial.get(localState)) {
           BitSet initialLocal = BitSet2.copyOf(initial);
           initialLocal.set(localState, allocation.variables(STATE).size(), false);
           return 2 * (resetGateOffset + initialLocal.cardinality()) + 1;
         } else {
-          return 2 * (allocation.globalToLocal(variable, STATE) + latchOffset);
+          return 2 * (allocation.globalToLocal(variable) + latchOffset);
         }
       case ATOMIC_PROPOSITION:
         // Assert that this is an input AP.
-        assert !controlledAPs.get(allocation.globalToLocal(variable, ATOMIC_PROPOSITION));
-        int apLocal = allocation.globalToLocal(variable, ATOMIC_PROPOSITION);
+        assert !controlledAPs.get(allocation.globalToLocal(variable));
+        int apLocal = allocation.globalToLocal(variable);
         BitSet local = new BitSet();
         local.set(0, apLocal);
         local.andNot(controlledAPs);
@@ -413,7 +412,7 @@ public final class AigerWriter {
     vars.andNot(allocation.localToGlobal(controlledAPs, ATOMIC_PROPOSITION));
     for (var inputs : BitSet2.powerSet(vars)) {
       var it = strategy.intersection(strategy.factory().of(inputs, vars))
-        .iterator(allocation.variables(SymbolicAutomaton.VariableType.values()));
+        .iterator(allocation.variables(VariableAllocation.VariableType.values()));
       if (it.hasNext()) {
         it.next();
       }

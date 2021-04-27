@@ -1,12 +1,13 @@
 package owl.automaton.symbolic;
 
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.SUCCESSOR_STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.COLOUR;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.SUCCESSOR_STATE;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
@@ -14,12 +15,10 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
-import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 @AutoValue
@@ -117,7 +116,7 @@ public abstract class SymbolicDRA2DPAConstruction {
           assert variableType == STATE || variableType == COLOUR;
           if (variableType == STATE) {
             return automaton().variableAllocation().localToGlobal(
-              automaton().variableAllocation().globalToLocal(variable, STATE),
+              automaton().variableAllocation().globalToLocal(variable),
               SUCCESSOR_STATE
             );
           }
@@ -131,7 +130,7 @@ public abstract class SymbolicDRA2DPAConstruction {
       automaton().initialStates(),
       automaton().transitionRelation().intersection(parityColoursBdd),
       new ParityAcceptance(coloursNeeded, ParityAcceptance.Parity.MIN_EVEN),
-      new ParityVariableAllocation(automaton().variableAllocation(), coloursNeeded),
+      getParityVariableAllocation(automaton().variableAllocation(), coloursNeeded),
       automaton().properties(),
       automaton().variableAllocation().variables(COLOUR).size()
     );
@@ -429,59 +428,17 @@ public abstract class SymbolicDRA2DPAConstruction {
     }
   }
 
-  private static class ParityVariableAllocation implements SymbolicAutomaton.VariableAllocation {
-    private final SymbolicAutomaton.VariableAllocation rabinAllocation;
-    private final ImmutableBitSet parityColourVariables;
-    private final int numberOfRabinColours;
-
-    ParityVariableAllocation(SymbolicAutomaton.VariableAllocation rabinAllocation, int paritySets) {
-      this.rabinAllocation = rabinAllocation;
-      this.numberOfRabinColours = rabinAllocation.variables(COLOUR).size();
-      int numberOfRabinVariables = rabinAllocation.numberOfVariables();
-      BitSet parityColourVariableBitset = new BitSet();
-      parityColourVariableBitset.set(numberOfRabinVariables, numberOfRabinVariables + paritySets);
-      parityColourVariables = ImmutableBitSet.copyOf(parityColourVariableBitset);
+  private static VariableAllocation getParityVariableAllocation(
+    VariableAllocation rabinAllocation,
+    int paritySets
+  ) {
+    int[][] result = rabinAllocation.getLocalToGlobalArray();
+    int colourIndex = COLOUR.ordinal();
+    int numberOfColours = result[colourIndex].length;
+    result[colourIndex] = Arrays.copyOf(result[colourIndex], numberOfColours + paritySets);
+    for (int i = 0; i < paritySets; i++) {
+      result[colourIndex][numberOfColours + i] = rabinAllocation.numberOfVariables() + i;
     }
-
-
-    @Override
-    public ImmutableBitSet variables(SymbolicAutomaton.VariableType... types) {
-      var typeSet = Set.of(types);
-      if (typeSet.contains(COLOUR)) {
-        return rabinAllocation.variables(types).union(parityColourVariables);
-      }
-      return rabinAllocation.variables(types);
-    }
-
-    @Override
-    public int numberOfVariables() {
-      return rabinAllocation.numberOfVariables() + parityColourVariables.size();
-    }
-
-    @Override
-    public List<String> variableNames() {
-      List<String> variables = new ArrayList<>(numberOfVariables());
-      variables.addAll(rabinAllocation.variableNames());
-      int numberOfRabinColours = rabinAllocation.variables(COLOUR).size();
-      variables.addAll(IntStream.range(0, parityColourVariables.size()).mapToObj(i ->
-        "c_" + (i + numberOfRabinColours)).collect(Collectors.toList()));
-      return variables;
-    }
-
-    @Override
-    public int localToGlobal(int variable, SymbolicAutomaton.VariableType type) {
-      if (type == COLOUR && variable >= numberOfRabinColours) {
-        return rabinAllocation.numberOfVariables() + (variable - numberOfRabinColours);
-      }
-      return rabinAllocation.localToGlobal(variable, type);
-    }
-
-    @Override
-    public int globalToLocal(int variable, SymbolicAutomaton.VariableType type) {
-      if (type == COLOUR && variable >= rabinAllocation.numberOfVariables()) {
-        return numberOfRabinColours + variable - rabinAllocation.numberOfVariables();
-      }
-      return rabinAllocation.globalToLocal(variable, type);
-    }
+    return new VariableAllocation(result);
   }
 }

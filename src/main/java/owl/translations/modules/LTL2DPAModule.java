@@ -46,7 +46,7 @@ public final class LTL2DPAModule {
     options(),
     (commandLine, environment) -> {
       if (commandLine.hasOption("symbolic")) {
-        return OwlModule.LabelledFormulaTransformer.of(SymbolicDPAConstruction.of()
+        return OwlModule.LabelledFormulaTransformer.of(new SymbolicDPAConstruction()
           .andThen(SymbolicAutomaton::toAutomaton)
         );
       }

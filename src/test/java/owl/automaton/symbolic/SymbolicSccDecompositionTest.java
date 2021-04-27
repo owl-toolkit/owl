@@ -1,8 +1,8 @@
 package owl.automaton.symbolic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.COLOUR;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.STATE;
 
 import com.google.common.collect.Iterators;
 import java.util.List;

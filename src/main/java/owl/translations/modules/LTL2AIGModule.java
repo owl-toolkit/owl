@@ -11,7 +11,6 @@ import org.apache.commons.cli.Options;
 import owl.automaton.symbolic.AigerWriter;
 import owl.automaton.symbolic.DFISymbolicDPASolver;
 import owl.automaton.symbolic.NaiveStrategyDeterminizer;
-import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.collections.ImmutableBitSet;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
@@ -38,19 +37,20 @@ public final class LTL2AIGModule {
       OwlModule.LabelledFormulaTransformer.of((formula) -> {
         String[] controllableAPs = commandLine.getOptionValues("controllable");
         BitSet controlledAPs = getControlledAPsBitset(formula, controllableAPs);
-        var dpa = SymbolicDPAConstruction.of().apply(formula);
+        var dpa = new SymbolicDPAConstruction().apply(formula);
         var solution = new DFISymbolicDPASolver().solve(
           dpa,
           ImmutableBitSet.copyOf(controlledAPs)
         );
         if (solution.winner() == CONTROLLER) {
           return "REALIZABLE\n" + AigerWriter.toAiger(
-            new NaiveStrategyDeterminizer().determinize(dpa, controlledAPs, solution.strategy()),
+            new NaiveStrategyDeterminizer().determinize(
+              dpa, controlledAPs, solution.strategy()),
             dpa.variableAllocation(),
             controlledAPs,
             formula.atomicPropositions(),
-            dpa.variableAllocation().globalToLocal(dpa.initialStates().element().orElseThrow(),
-              SymbolicAutomaton.VariableType.STATE).copyInto(new BitSet())
+            dpa.variableAllocation().globalToLocal(dpa.initialStates().element().orElseThrow())
+              .copyInto(new BitSet())
           );
         } else {
           return "UNREALIZABLE";

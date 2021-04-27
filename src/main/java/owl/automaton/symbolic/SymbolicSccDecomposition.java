@@ -1,8 +1,8 @@
 package owl.automaton.symbolic;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.COLOUR;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.STATE;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
@@ -38,7 +38,7 @@ public abstract class SymbolicSccDecomposition {
       return Collections.emptyList();
     }
     BddSet transitionRelation = automaton().transitionRelation();
-    SymbolicAutomaton.VariableAllocation variableAllocation = automaton().variableAllocation();
+    VariableAllocation variableAllocation = automaton().variableAllocation();
     BitSet states = variableAllocation.variables(STATE, COLOUR).copyInto(new BitSet());
     checkArgument(restrictedTo.factory() == transitionRelation.factory());
     Deque<BddSet> worklist = new ArrayDeque<>();

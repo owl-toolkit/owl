@@ -1,12 +1,12 @@
 package owl.automaton.symbolic;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.ATOMIC_PROPOSITION;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.COLOUR;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.SUCCESSOR_STATE;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.CONTROLLER;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.ENVIRONMENT;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.ATOMIC_PROPOSITION;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.COLOUR;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.STATE;
+import static owl.automaton.symbolic.VariableAllocation.VariableType.SUCCESSOR_STATE;
 
 import java.util.Arrays;
 import java.util.BitSet;
@@ -52,11 +52,11 @@ public class DFISymbolicDPASolver implements SymbolicDPASolver {
     IntUnaryOperator stateToSuccessor = (variable) -> {
       if (states.contains(variable)) {
         return dpa.variableAllocation()
-          .localToGlobal(dpa.variableAllocation().globalToLocal(variable, STATE),
+          .localToGlobal(dpa.variableAllocation().globalToLocal(variable),
             SUCCESSOR_STATE);
       } else if (successorStates.contains(variable)) {
         return dpa.variableAllocation()
-          .localToGlobal(dpa.variableAllocation().globalToLocal(variable, SUCCESSOR_STATE),
+          .localToGlobal(dpa.variableAllocation().globalToLocal(variable),
             STATE);
       } else {
         return variable;

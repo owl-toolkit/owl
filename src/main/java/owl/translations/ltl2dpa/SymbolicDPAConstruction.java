@@ -13,12 +13,6 @@ import owl.translations.ltl2dra.SymbolicNormalformDRAConstruction;
 public final class SymbolicDPAConstruction
   implements Function<LabelledFormula, SymbolicAutomaton<ParityAcceptance>> {
 
-  private SymbolicDPAConstruction() {}
-
-  public static SymbolicDPAConstruction of() {
-    return new SymbolicDPAConstruction();
-  }
-
   @Override
   public SymbolicAutomaton<ParityAcceptance> apply(LabelledFormula labelledFormula) {
     var factory = FactorySupplier.defaultSupplier().getBddSetFactory();

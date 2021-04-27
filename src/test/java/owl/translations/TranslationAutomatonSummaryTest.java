@@ -198,7 +198,7 @@ public class TranslationAutomatonSummaryTest {
         EnumSet.of(X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS))),
 
     new Translator("dpa.normalform-typeness.symbolic",
-      SymbolicDPAConstruction.of().andThen(SymbolicAutomaton::toAutomaton),
+      new SymbolicDPAConstruction().andThen(SymbolicAutomaton::toAutomaton),
       EnumSet.complementOf(EnumSet.of(BASE, SIZE, DWYER))),
 
     new Translator("dra.symmetric",

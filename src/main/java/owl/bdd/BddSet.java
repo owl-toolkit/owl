@@ -143,4 +143,11 @@ public interface BddSet {
    *     of {@link BddSet#support()}.
    */
   Iterator<BitSet> iterator(ImmutableBitSet support);
+
+  /**
+   * Transforms this BddSet into a function.
+   * [0, from) is the domain and [from, to) is the range.
+   * Assumes the BDD does not contain variables larger than 'to'.
+   */
+  BddSet determinizeRange(int from, int to);
 }

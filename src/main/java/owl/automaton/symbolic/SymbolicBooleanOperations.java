@@ -94,8 +94,11 @@ public final class SymbolicBooleanOperations {
       && automaton.factory().equals(automata.get(0).factory())
     ));
 
-    var allocationCombiner = new SequentialVariableAllocationCombiner(
-      automata.stream().map(SymbolicAutomaton::variableAllocation).collect(Collectors.toList())
+    VariableAllocationCombination allocationCombination =
+      new SequentialVariableAllocationCombiner().combine(
+        automata.stream()
+          .map(SymbolicAutomaton::variableAllocation)
+          .toArray(VariableAllocation[]::new)
     );
 
     BddSetFactory bddSetFactory = automata.get(0).factory();
@@ -106,13 +109,13 @@ public final class SymbolicBooleanOperations {
     for (SymbolicAutomaton<?> automaton : automata) {
       productInitialStates = productInitialStates.intersection(
         automaton.initialStates().relabel(
-          i -> allocationCombiner.localToGlobal(i, automaton.variableAllocation())
+          i -> allocationCombination.allocationLocalToGlobal(i, automaton.variableAllocation())
         )
       );
 
       productTransitionRelation = productTransitionRelation.intersection(
         automaton.transitionRelation().relabel(
-          i -> allocationCombiner.localToGlobal(i, automaton.variableAllocation())
+          i -> allocationCombination.allocationLocalToGlobal(i, automaton.variableAllocation())
         )
       );
     }
@@ -142,7 +145,7 @@ public final class SymbolicBooleanOperations {
       productInitialStates,
       productTransitionRelation,
       productAcceptance,
-      allocationCombiner,
+      allocationCombination,
       properties
     );
   }
