@@ -351,6 +351,47 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
+    public BddSet determinizeRange(int from, int until) {
+      return factory.create(
+        factory.bdd.dereference(determinizeRange(from, until, node, new BitSet()))
+      );
+    }
+
+    private int determinizeRange(int from, int until, int node, BitSet support) {
+      if (node == factory.falseNode) {
+        return node;
+      }
+      if (node == factory.trueNode) {
+        int remainingVariablesNode = factory.trueNode;
+        for (int i = support.nextClearBit(from); i < until; i = support.nextClearBit(i + 1)) {
+          int varNode = factory.bdd.reference(factory.bdd.variableNode(i));
+          varNode = factory.bdd.updateWith(factory.bdd.not(varNode), varNode);
+          remainingVariablesNode = factory.bdd.consume(
+            factory.bdd.and(remainingVariablesNode, varNode), varNode, remainingVariablesNode);
+        }
+        return remainingVariablesNode;
+      }
+      int currentVariable = factory.bdd.variable(node);
+      support.set(currentVariable);
+      int low = determinizeRange(from, until, factory.bdd.low(node), BitSet2.copyOf(support));
+      int variableNode = factory.bdd.reference(factory.bdd.variableNode(currentVariable));
+      if (support.get(from) && low != factory.falseNode) {
+        variableNode = factory.bdd.updateWith(factory.bdd.not(variableNode), variableNode);
+        return factory.bdd.consume(factory.bdd.and(variableNode, low), variableNode, low);
+      }
+      int high = determinizeRange(from, until, factory.bdd.high(node), BitSet2.copyOf(support));
+      if (support.get(from)) {
+        assert high != factory.falseNode;
+        return factory.bdd.consume(factory.bdd.and(variableNode, high), variableNode, high);
+      }
+      int result = factory.bdd.reference(factory.bdd.ifThenElse(variableNode, high, low));
+      factory.bdd.dereference(variableNode, high, low);
+      return result;
+    }
+
+
+
+    @Override
     public PropositionalFormula<Integer> toExpression() {
       return factory.toExpression(node);
     }

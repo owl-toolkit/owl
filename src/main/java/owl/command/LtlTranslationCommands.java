@@ -19,6 +19,7 @@
 
 package owl.command;
 
+import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.CONTROLLER;
 import static owl.command.Mixins.AcceptanceSimplifier;
 import static owl.command.Mixins.FormulaReader;
 import static owl.command.Mixins.FormulaSimplifier;
@@ -32,8 +33,10 @@ import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR
 import static owl.translations.LtlTranslationRepository.Option.X_DPA_USE_COMPLEMENT;
 import static owl.translations.LtlTranslationRepository.Option.X_DRA_NORMAL_FORM_USE_DUAL;
 
+import java.util.BitSet;
 import java.util.EnumSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.OptionalInt;
 import java.util.Set;
 import owl.Bibliography;
@@ -43,11 +46,16 @@ import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
+import owl.automaton.symbolic.AigerWriter;
+import owl.automaton.symbolic.DFISymbolicDPASolver;
+import owl.automaton.symbolic.NaiveStrategyDeterminizer;
+import owl.collections.ImmutableBitSet;
 import owl.command.Mixins.AutomatonWriter;
 import owl.ltl.LabelledFormula;
 import owl.translations.LtlTranslationRepository;
 import owl.translations.LtlTranslationRepository.LtlToLdbaTranslation;
 import owl.translations.LtlTranslationRepository.LtlToNbaTranslation;
+import owl.translations.ltl2dpa.SymbolicDPAConstruction;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -459,6 +467,74 @@ final class LtlTranslationCommands {
     @Override
     protected OptionalInt lookahead() {
       return lookahead < 0 ? OptionalInt.empty() : OptionalInt.of(lookahead);
+    }
+  }
+
+  @Command(
+    name = "ltl2aig",
+    description = {
+      "Translate a linear temporal logic (LTL) formula into a And-Inverter Graph (AIG) that "
+        + "satisfies the formula, if possible.",
+      "Usage Examples:",
+      "  owl ltl2aig -f 'F (a & G b)' -c 'a'",
+      MiscCommands.BibliographyCommand.HOW_TO_USE
+    }
+  )
+  static final class Ltl2AigCommand extends AbstractOwlSubcommand {
+
+    @Option(names = {"-c", "--controllable"},
+            description = "List of atomic propositions controlled by the system (comma-separated)",
+            required = true,
+            paramLabel = "<controllable APs>"
+            )
+    private String controllableApsString;
+
+    @Option(
+      names = { "-f", "--formula" },
+      description = "Use the argument of the option as the input formula.",
+      required = true
+    )
+    LabelledFormula formula = null;
+
+    private static BitSet getControlledAPsBitset(
+      LabelledFormula formula,
+      String[] controllableAPs
+    ) {
+      BitSet bitSet = new BitSet();
+      List<String> aps = formula.atomicPropositions();
+      for (String controllableAP : controllableAPs) {
+        if (aps.contains(controllableAP)) {
+          bitSet.set(aps.indexOf(controllableAP));
+        }
+      }
+      return bitSet;
+    }
+
+    @SuppressWarnings("PMD.SystemPrintln")
+    @Override
+    protected int run() throws Exception {
+      String[] controllableAps = controllableApsString.split(",");
+      BitSet controlledAPs = getControlledAPsBitset(formula, controllableAps);
+      var dpa = new SymbolicDPAConstruction().apply(formula);
+      var solution = new DFISymbolicDPASolver().solve(
+        dpa,
+        ImmutableBitSet.copyOf(controlledAPs)
+      );
+      // Prints straight to sysout for now, could use a dedicated writer later.
+      if (solution.winner() == CONTROLLER) {
+        System.out.println("REALIZABLE\n" + AigerWriter.toAiger(
+          new NaiveStrategyDeterminizer().determinize(
+            dpa, controlledAPs, solution.strategy()),
+          dpa.variableAllocation(),
+          controlledAPs,
+          formula.atomicPropositions(),
+          dpa.variableAllocation().globalToLocal(dpa.initialStates().element().orElseThrow())
+            .copyInto(new BitSet())
+        ));
+      } else {
+        System.out.println("UNREALIZABLE");
+      }
+      return 0;
     }
   }
 }

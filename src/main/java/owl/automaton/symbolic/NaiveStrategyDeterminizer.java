@@ -1,12 +1,11 @@
 package owl.automaton.symbolic;
 
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.ATOMIC_PROPOSITION;
-import static owl.automaton.symbolic.SymbolicAutomaton.VariableType.STATE;
+import static owl.automaton.symbolic.InputOutputRelabeller.getMapping;
+import static owl.automaton.symbolic.InputOutputRelabeller.invert;
 
 import java.util.BitSet;
-import java.util.Optional;
 import owl.bdd.BddSet;
-import owl.collections.BitSet2;
+import owl.collections.Pair;
 
 public class NaiveStrategyDeterminizer implements StrategyDeterminizer {
 
@@ -16,23 +15,11 @@ public class NaiveStrategyDeterminizer implements StrategyDeterminizer {
     BitSet controllableAps,
     BddSet strategy
   ) {
-    BitSet inputs = automaton.variableAllocation()
-      .variables(STATE, ATOMIC_PROPOSITION)
-      .copyInto(new BitSet());
-    inputs.andNot(automaton.variableAllocation()
-      .localToGlobal(controllableAps, ATOMIC_PROPOSITION));
-    BddSet result = strategy.factory().of(false);
-    for (BitSet input : BitSet2.powerSet(inputs)) {
-      Optional<BitSet> valuation = strategy.intersection(strategy.factory().of(input, inputs))
-        .element();
-      if (valuation.isPresent()) {
-        result = result.union(
-          strategy.factory().of(valuation.get(),
-            automaton.variableAllocation().variables(SymbolicAutomaton.VariableType.values())
-          )
-        );
-      }
-    }
-    return result;
+    Pair<int[], Integer> relabelling = getMapping(automaton.variableAllocation(), controllableAps);
+    int[] inverse = invert(relabelling.fst());
+    return strategy
+      .relabel(i -> relabelling.fst()[i])
+      .determinizeRange(relabelling.snd(), automaton.variableAllocation().numberOfVariables())
+      .relabel(i -> inverse[i]);
   }
 }

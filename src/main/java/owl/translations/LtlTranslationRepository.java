@@ -559,7 +559,7 @@ public final class LtlTranslationRepository {
         case SYMBOLIC_SE20_BKS10: {
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(
-              SymbolicDPAConstruction.of().apply(x).toAutomaton(), acceptanceClass),
+              new SymbolicDPAConstruction().apply(x).toAutomaton(), acceptanceClass),
             BranchingMode.DETERMINISTIC,
             translationOptions,
             acceptanceClass);

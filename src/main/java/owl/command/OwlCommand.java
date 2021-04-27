@@ -33,6 +33,8 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import owl.ltl.LabelledFormula;
+import owl.ltl.parser.LtlParser;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 
@@ -51,6 +53,7 @@ import picocli.CommandLine.Model.CommandSpec;
            LtlTranslationCommands.Ltl2DraCommand.class,
            LtlTranslationCommands.Ltl2DgraCommand.class,
            LtlTranslationCommands.Ltl2DelaCommand.class,
+           LtlTranslationCommands.Ltl2AigCommand.class,
 
            // LTL Conversion Commands
            LtlConversionCommands.Delta2Normalisation.class,
@@ -95,6 +98,7 @@ public final class OwlCommand extends AbstractOwlCommand {
   public static void main(String[] args) {
     System.exit(new CommandLine(new OwlCommand(args))
       .setExecutionExceptionHandler(new ExecutionExceptionHandler())
+      .registerConverter(LabelledFormula.class, LtlParser::parse)
       .execute(args));
   }
 

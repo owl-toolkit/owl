@@ -20,18 +20,11 @@
 package owl.automaton.symbolic;
 
 import com.google.common.base.Preconditions;
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.EnumMap;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
-import owl.automaton.symbolic.SymbolicAutomaton.VariableType;
-import owl.collections.ImmutableBitSet;
+import owl.automaton.symbolic.VariableAllocation.VariableType;
 
-public final class RangedVariableAllocator implements SymbolicAutomaton.VariableAllocator {
+public final class RangedVariableAllocator implements VariableAllocator {
 
   private final List<VariableType> order;
 
@@ -41,157 +34,33 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
   }
 
   @Override
-  public SymbolicAutomaton.VariableAllocation allocate(
+  public VariableAllocation allocate(
     int stateVariables, int atomicPropositions, int colours) {
-
-    return new RangedAllocation(stateVariables, atomicPropositions, colours, order);
-  }
-
-  private static class RangedAllocation implements SymbolicAutomaton.VariableAllocation {
-
-    private final List<VariableType> order;
-    private final EnumMap<VariableType, Integer> fromIndexInclusive;
-    private final EnumMap<VariableType, Integer> toIndexExclusive;
-    private final Map<Set<VariableType>, ImmutableBitSet> variables;
-    private final int size;
-
-    private RangedAllocation(int stateVariables, int atomicPropositions, int colours,
-      List<VariableType> order) {
-
-      this.order = List.copyOf(order);
-      this.variables = new HashMap<>();
-      this.size = 2 * stateVariables + atomicPropositions + colours;
-      fromIndexInclusive = new EnumMap<>(VariableType.class);
-      toIndexExclusive = new EnumMap<>(VariableType.class);
-
-      int fromIndex = 0;
-
-      for (VariableType type : order) {
-        fromIndexInclusive.put(type, fromIndex);
-
-        switch (type) {
-          case STATE:
-          case SUCCESSOR_STATE:
-            fromIndex = fromIndex + stateVariables;
-            break;
-
-          case COLOUR:
-            fromIndex = fromIndex + colours;
-            break;
-
-          case ATOMIC_PROPOSITION:
-            fromIndex = fromIndex + atomicPropositions;
-            break;
-
-          default:
-            throw new AssertionError("Unreachable.");
-        }
-
-        toIndexExclusive.put(type, fromIndex);
+    int offset = 0;
+    int[][] localToGlobal = new int[VariableType.values().length][];
+    for (VariableType type : order) {
+      int size = 0;
+      switch (type) {
+        case SUCCESSOR_STATE:
+        case STATE:
+          size = stateVariables;
+          break;
+        case COLOUR:
+          size = colours;
+          break;
+        case ATOMIC_PROPOSITION:
+          size = atomicPropositions;
+          break;
+        default:
+          throw new AssertionError("unreachable");
       }
-    }
-
-    @Override
-    public ImmutableBitSet variables(VariableType... types) {
-      return variables.computeIfAbsent(Set.of(types), variableTypes -> {
-        BitSet bitSet = new BitSet();
-        for (var type : variableTypes) {
-          bitSet.set(fromIndexInclusive.get(type), toIndexExclusive.get(type));
-        }
-        return ImmutableBitSet.copyOf(bitSet);
-      });
-    }
-
-    @Override
-    public int numberOfVariables() {
-      return size;
-    }
-
-    @Override
-    public VariableType typeOf(int variable) {
-      Objects.checkIndex(variable, numberOfVariables());
-      for (VariableType type : VariableType.values()) {
-        if (fromIndexInclusive.get(type) <= variable && toIndexExclusive.get(type) > variable) {
-          return type;
-        }
-      }
-      throw new AssertionError("Unreachable");
-    }
-
-    @Override
-    public BitSet localToGlobal(BitSet bitSet, VariableType type) {
-      BitSet globalBitSet = new BitSet();
-
-      int offset = fromIndexInclusive.get(type);
-      int size = toIndexExclusive.get(type) - offset;
-
-      // TODO: use BitSet.nextSetBit() for better performance.
+      int[] localToGlobalArr = new int[size];
       for (int i = 0; i < size; i++) {
-        globalBitSet.set(i + offset, bitSet.get(i));
+        localToGlobalArr[i] = offset + i;
       }
-
-      return globalBitSet;
+      localToGlobal[type.ordinal()] = localToGlobalArr;
+      offset += size;
     }
-
-    @Override
-    public ImmutableBitSet globalToLocal(BitSet bitSet, VariableType type) {
-      BitSet localBitSet = new BitSet();
-
-      int offset = fromIndexInclusive.get(type);
-
-      // TODO: use BitSet.nextSetBit() for better performance.
-      for (int i = offset, s = toIndexExclusive.get(type); i < s; i++) {
-        localBitSet.set(i - offset, bitSet.get(i));
-      }
-
-      return ImmutableBitSet.copyOf(localBitSet);
-    }
-
-    @Override
-    public List<String> variableNames() {
-      List<String> variablesNames = new ArrayList<>();
-
-      for (VariableType type : order) {
-        String prefix;
-        switch (type) {
-          case ATOMIC_PROPOSITION:
-            prefix = "ap";
-            break;
-
-          case COLOUR:
-            prefix = "c";
-            break;
-
-          case STATE:
-            prefix = "x";
-            break;
-
-          case SUCCESSOR_STATE:
-            prefix = "x'";
-            break;
-
-          default:
-            throw new AssertionError("Unreachable.");
-        }
-
-        int variables = toIndexExclusive.get(type) - fromIndexInclusive.get(type);
-
-        for (int x = 0; x < variables; x++) {
-          variablesNames.add(prefix + '_' + x);
-        }
-      }
-
-      return variablesNames;
-    }
-
-    @Override
-    public int localToGlobal(int variable, VariableType type) {
-      return variable + fromIndexInclusive.get(type);
-    }
-
-    @Override
-    public int globalToLocal(int variable, VariableType type) {
-      return variable - fromIndexInclusive.get(type);
-    }
+    return new VariableAllocation(localToGlobal);
   }
 }
