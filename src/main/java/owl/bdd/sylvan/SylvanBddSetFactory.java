@@ -4,9 +4,12 @@ import com.google.common.base.Preconditions;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.sql.Ref;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -18,6 +21,7 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.ImmutableBitSet;
+import owl.collections.Pair;
 import owl.logic.propositional.PropositionalFormula;
 
 /*
@@ -27,6 +31,7 @@ public final class SylvanBddSetFactory implements BddSetFactory {
   public static final SylvanBddSetFactory INSTANCE = new SylvanBddSetFactory();
   private final ReferenceQueue<SylvanBddSet> referenceQueue = new ReferenceQueue<>();
   private final Map<Long, SylvanNodeReference> referencedNodes = new HashMap<>();
+  private final HashMap<Long, Integer> tempNodes = new HashMap<>();
   private final SylvanBddSet falseNode;
   private final SylvanBddSet trueNode;
 
@@ -38,21 +43,21 @@ public final class SylvanBddSetFactory implements BddSetFactory {
     exchangeThread.setDaemon(true);
     exchangeThread.start();
     Runtime.getRuntime().addShutdownHook(new Thread(SylvanBddNativeInterface::exit));
-    falseNode = create(SylvanBddNativeInterface::falseNode);
-    trueNode = create(SylvanBddNativeInterface::trueNode);
+    falseNode = create(SylvanBddNativeInterface.falseNode());
+    trueNode = create(SylvanBddNativeInterface.trueNode());
   }
 
   @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")
-  Map<Long, SylvanNodeReference> getReferencedNodes() {
+  Set<Long> getReferencedNodes() {
     System.gc();
     purgeNodeMapping();
-    return Collections.unmodifiableMap(referencedNodes);
+    Set<Long> nodes = new HashSet<>(referencedNodes.keySet());
+    nodes.addAll(tempNodes.keySet());
+    return nodes;
   }
 
-  private SylvanBddSet create(LongSupplier nodeSupplier) {
+  private SylvanBddSet create(long node) {
     purgeNodeMapping();
-    // Invoke the nodeSupplier, which calls Sylvan and possibly triggers a GC.
-    long node = nodeSupplier.getAsLong();
     // We check whether the node is actually new.
     SylvanNodeReference canonicalReference = referencedNodes.get(node);
     if (canonicalReference != null) {
@@ -82,7 +87,37 @@ public final class SylvanBddSetFactory implements BddSetFactory {
 
   @Override
   public BddSet of(int variable) {
-    return create(() -> SylvanBddNativeInterface.var(variable));
+    return create(SylvanBddNativeInterface.var(variable));
+  }
+
+  @Override
+  public BddSet of(BitSet valuation, BitSet support) {
+    BddSet result = create(_of(valuation, support));
+    assert tempNodes.isEmpty();
+    return result;
+  }
+
+  private long _of(BitSet valuation, BitSet support) {
+    long current = protect(trueNode.node);
+    for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i+1)) {
+      long var = protect(SylvanBddNativeInterface.var(i));
+      long prev = current;
+      if (valuation.get(i)) {
+        current = protect(SylvanBddNativeInterface.and(var, current));
+        unprotect(var);
+      } else {
+        long not = protect(SylvanBddNativeInterface.not(var));
+        unprotect(var);
+        current = protect(SylvanBddNativeInterface.and(not, current));
+        unprotect(not);
+      }
+      unprotect(prev);
+      if (i == Integer.MAX_VALUE) {
+        break;
+      }
+    }
+    unprotect(current);
+    return current;
   }
 
   private PropositionalFormula<Integer> toExpression(long node) {
@@ -190,33 +225,35 @@ public final class SylvanBddSetFactory implements BddSetFactory {
 
     @Override
     public Optional<BitSet> element() {
-      // We call create here to ensure the nodeMapping is up-to-date in case
-      // sylvan decides to do a garbage collection. It does NOT protect the bdd
-      // as the wrapper could be GCed before completion of the method.
-      // This is not a problem since we do not create new nodes while using
-      // the unprotected node, and therefore we do not trigger the sylvan GC.
-      long cubeNode = create(() -> SylvanBddNativeInterface.satOneBdd(node)).node;
+      long cubeNode = protect(SylvanBddNativeInterface.satOneBdd(node));
       if (cubeNode == falseNode.getNode()) {
+        unprotect(cubeNode);
         return Optional.empty();
       }
-      return Optional.of(cubeToBitset(cubeNode));
+      var result = Optional.of(cubeToBitset(cubeNode));
+      unprotect(cubeNode);
+      return result;
     }
 
     @Override
     public BddSet complement() {
-      return create(() -> SylvanBddNativeInterface.not(node));
+      return create(SylvanBddNativeInterface.not(node));
     }
 
     @Override
     public BddSet union(BddSet other) {
       Preconditions.checkArgument(other instanceof SylvanBddSet);
-      return create(() -> SylvanBddNativeInterface.or(node, ((SylvanBddSet) other).node));
+      BddSet result = create(SylvanBddNativeInterface.or(node, ((SylvanBddSet) other).node));
+      Reference.reachabilityFence(other);
+      return result;
     }
 
     @Override
     public BddSet intersection(BddSet other) {
       Preconditions.checkArgument(other instanceof SylvanBddSet);
-      return create(() -> SylvanBddNativeInterface.and(node, ((SylvanBddSet) other).node));
+      BddSet result = create(SylvanBddNativeInterface.and(node, ((SylvanBddSet) other).node));
+      Reference.reachabilityFence(other);
+      return result;
     }
 
     @Override
@@ -260,61 +297,104 @@ public final class SylvanBddSetFactory implements BddSetFactory {
 
     @Override
     public BddSet project(ImmutableBitSet quantifiedAtomicPropositions) {
-      SylvanBddSet vars = create(() -> SylvanBddNativeInterface.varsetFromBitset(
+      long vars = protect(SylvanBddNativeInterface.varsetFromBitset(
         quantifiedAtomicPropositions.copyInto(new BitSet()))
       );
-      SylvanBddSet result = create(() -> SylvanBddNativeInterface.exists(node, vars.node));
-      Reference.reachabilityFence(vars);
+      SylvanBddSet result = create(SylvanBddNativeInterface.exists(node, vars));
+      unprotect(vars);
+      assert tempNodes.isEmpty();
       return result;
     }
 
     @Override
     public BddSet restrict(BitSet restriction, BitSet support) {
-      SylvanBddSet map = falseNode;
+      long map = protect(falseNode.node);
       for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
-        SylvanBddSet node = restriction.get(i) ? trueNode : falseNode;
-        SylvanBddSet finalMap = map;
-        int finalI = i;
-        map = create(() -> SylvanBddNativeInterface.mapAdd(finalMap.node, finalI, node.node));
-        Reference.reachabilityFence(finalMap);
+        long node = restriction.get(i) ? trueNode.node : falseNode.node;
+        long prevMap = map;
+        map = protect(SylvanBddNativeInterface.mapAdd(map, i, node));
+        unprotect(prevMap);
       }
-      SylvanBddSet finalMap1 = map;
-      SylvanBddSet result = create(() -> SylvanBddNativeInterface.compose(node, finalMap1.node));
-      Reference.reachabilityFence(finalMap1);
+      SylvanBddSet result = create(SylvanBddNativeInterface.compose(node, map));
+      unprotect(map);
+      assert tempNodes.isEmpty();
       return result;
     }
 
     @Override
     public BddSet relabel(IntUnaryOperator mapping) {
       BitSet support = support();
-      SylvanBddSet map = falseNode;
+      long map = protect(falseNode.node);
       for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
         int mappedTo = mapping.applyAsInt(i);
         if (mappedTo != i) {
-          SylvanBddSet var = (SylvanBddSet) of(mappedTo);
-          SylvanBddSet finalMap = map;
-          int finalI = i;
-          map = create(() -> SylvanBddNativeInterface.mapAdd(finalMap.node, finalI, var.node));
-          Reference.reachabilityFence(finalMap);
-          Reference.reachabilityFence(var);
+          long var = protect(SylvanBddNativeInterface.var(mappedTo));
+          long prevMap = map;
+          map = protect(SylvanBddNativeInterface.mapAdd(map, i, var));
+          unprotect(prevMap);
+          unprotect(var);
         }
       }
-      SylvanBddSet finalMap1 = map;
-      SylvanBddSet result = create(() -> SylvanBddNativeInterface.compose(node, finalMap1.node));
-      Reference.reachabilityFence(finalMap1);
-      return result;
+      long result = SylvanBddNativeInterface.compose(node, map);
+      unprotect(map);
+      assert tempNodes.isEmpty();
+      return create(result);
     }
 
     @Override
     public BitSet support() {
-      // See element() for the reasoning behind using create() here.
-      return cubeToBitset(create(() -> SylvanBddNativeInterface.support(node)).node);
+      return cubeToBitset(SylvanBddNativeInterface.support(node));
     }
 
     @Override
     public PropositionalFormula<Integer> toExpression() {
       return SylvanBddSetFactory.this.toExpression(node);
     }
+
+    @Override
+    public BddSet determinizeRange(int from, int until) {
+      long result = determinizeRange(from, until, node, new BitSet());
+      assert tempNodes.isEmpty();
+      BddSet resultBdd = create(result);
+      return resultBdd;
+    }
+
+    private long determinizeRange(int from, int until, long node, BitSet support) {
+      if (node == falseNode.node) {
+        return node;
+      }
+      if (node == trueNode.node) {
+        BitSet relevantVariables = new BitSet();
+        relevantVariables.set(from, until);
+        support.and(relevantVariables);
+        support.flip(from, until);
+        return _of(new BitSet(), support);
+      }
+      int currentVariable = SylvanBddNativeInterface.getvar(node);
+      support.set(currentVariable);
+      long low = protect(determinizeRange(from, until, SylvanBddNativeInterface.low(node),
+        BitSet2.copyOf(support)));
+      long variableNode = protect(SylvanBddNativeInterface.var(currentVariable));
+      if (support.get(from) && low != falseNode.node) {
+        long negatedVariableNode = protect(SylvanBddNativeInterface.not(variableNode));
+        unprotect(variableNode);
+        long result = SylvanBddNativeInterface.and(negatedVariableNode, low);
+        unprotect(low, negatedVariableNode);
+        return result;
+      }
+      long high = protect(determinizeRange(from, until, SylvanBddNativeInterface.high(node),
+        BitSet2.copyOf(support)));
+      if (support.get(from)) {
+        assert high != falseNode.node;
+        long result = SylvanBddNativeInterface.and(variableNode, high);
+        unprotect(variableNode, high, low);
+        return result;
+      }
+      long result = SylvanBddNativeInterface.ite(variableNode, high, low);
+      unprotect(variableNode, high, low);
+      return result;
+    }
+
     private BitSet cubeToBitset(long cube) {
       assert cube != falseNode.getNode();
       BitSet result = new BitSet();
@@ -329,6 +409,23 @@ public final class SylvanBddSetFactory implements BddSetFactory {
         }
       }
       return result;
+    }
+  }
+
+  private long protect(long node) {
+    tempNodes.put(node, tempNodes.getOrDefault(node, 0) + 1);
+    return node;
+  }
+
+  private void unprotect(long... nodes) {
+    for (long node : nodes) {
+      assert tempNodes.get(node) != null && tempNodes.get(node) > 0;
+      int referenceCount = tempNodes.get(node);
+      if (tempNodes.get(node) == 1) {
+        tempNodes.remove(node);
+      } else {
+        tempNodes.put(node, referenceCount - 1);
+      }
     }
   }
 }

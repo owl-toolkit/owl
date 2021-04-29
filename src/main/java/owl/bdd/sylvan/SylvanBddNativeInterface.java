@@ -139,7 +139,7 @@ public final class SylvanBddNativeInterface {
     } else {
       CLongPointer list = UnmanagedMemory.malloc(8 * nodes.size());
       int ctr = 0;
-      for (long node : nodes.keySet()) {
+      for (long node : nodes) {
         list.write(ctr++, node);
       }
       nodeList.setList(list);
