@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.sql.Ref;
 import java.util.BitSet;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,6 +18,7 @@ import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
+import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -315,6 +317,61 @@ public final class SylvanBddSetFactory implements BddSetFactory {
     public PropositionalFormula<Integer> toExpression() {
       return SylvanBddSetFactory.this.toExpression(node);
     }
+
+    @Override
+    public BddSet determinizeRange(int from, int until) {
+      return determinizeRange(from, until, this, new BitSet());
+    }
+
+    private SylvanBddSet determinizeRange(int from, int until, SylvanBddSet node, BitSet support) {
+      if (node.equals(falseNode)) {
+        return node;
+      }
+      if (node.equals(trueNode)) {
+        BitSet relevantVariables = new BitSet();
+        relevantVariables.set(from, until);
+        support.and(relevantVariables);
+        support.flip(from, until);
+        return (SylvanBddSet) of(new BitSet(), support);
+      }
+      int currentVariable = SylvanBddNativeInterface.getvar(node.node);
+      support.set(currentVariable);
+      SylvanBddSet low = determinizeRange(from, until, create(
+        () -> SylvanBddNativeInterface.low(node.node)
+      ), BitSet2.copyOf(support));
+      Reference.reachabilityFence(node);
+      SylvanBddSet variableNode = (SylvanBddSet) of(currentVariable);
+      if (support.get(from) && !low.equals(falseNode)) {
+        SylvanBddSet negatedVariableNode = create(
+          () -> SylvanBddNativeInterface.not(variableNode.node)
+        );
+        Reference.reachabilityFence(variableNode);
+        SylvanBddSet result = create(
+          () -> SylvanBddNativeInterface.and(negatedVariableNode.node, low.node)
+        );
+        Reference.reachabilityFence(negatedVariableNode);
+        Reference.reachabilityFence(low);
+        return result;
+      }
+      SylvanBddSet high = determinizeRange(from, until, create(
+        () -> SylvanBddNativeInterface.high(node.node)
+      ), BitSet2.copyOf(support));
+      if (support.get(from)) {
+        assert !high.equals(falseNode);
+        SylvanBddSet result = create(
+          () -> SylvanBddNativeInterface.and(variableNode.node, high.node)
+        );
+        Reference.reachabilityFence(variableNode);
+        Reference.reachabilityFence(high);
+        return result;
+      }
+      SylvanBddSet result = create(() -> SylvanBddNativeInterface.ite(variableNode.node, high.node, low.node));
+      Reference.reachabilityFence(variableNode);
+      Reference.reachabilityFence(high);
+      Reference.reachabilityFence(low);
+      return result;
+    }
+
     private BitSet cubeToBitset(long cube) {
       assert cube != falseNode.getNode();
       BitSet result = new BitSet();
@@ -332,3 +389,4 @@ public final class SylvanBddSetFactory implements BddSetFactory {
     }
   }
 }
+

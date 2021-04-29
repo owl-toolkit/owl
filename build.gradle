@@ -294,7 +294,9 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary'
         '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
         '-Djava.lang.Integer.IntegerCache.high=1024', // Cache more boxed integers.
-        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/shared"
+        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/shared",
+        '-H:-DeleteLocalSymbols',
+        '-H:+PreserveFramePointer'
 
     def cCompiler = System.getenv("CC")
     if (cCompiler != null) {
