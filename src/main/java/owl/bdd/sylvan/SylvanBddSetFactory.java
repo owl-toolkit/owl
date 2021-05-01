@@ -94,7 +94,7 @@ public final class SylvanBddSetFactory implements BddSetFactory {
 
   private long _of(BitSet valuation, BitSet support) {
     long current = protect(trueNode.node);
-    for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i+1)) {
+    for (int i = support.length() - 1; i >= 0; i = support.previousSetBit(i - 1)) {
       long var = protect(SylvanBddNativeInterface.var(i));
       long prev = current;
       if (valuation.get(i)) {
@@ -107,9 +107,6 @@ public final class SylvanBddSetFactory implements BddSetFactory {
         unprotect(not);
       }
       unprotect(prev);
-      if (i == Integer.MAX_VALUE) {
-        break;
-      }
     }
     unprotect(current);
     return current;
