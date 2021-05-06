@@ -68,13 +68,13 @@ public interface BddSetFactory {
     } else if (expression instanceof PropositionalFormula.Negation) {
       return of(((PropositionalFormula.Negation<Integer>) expression).operand).complement();
     } else if (expression instanceof PropositionalFormula.Conjunction) {
-      return ((PropositionalFormula.Conjunction<Integer>) expression).conjuncts.stream()
+      return intersection(((PropositionalFormula.Conjunction<Integer>) expression).conjuncts.stream()
         .map(this::of)
-        .reduce(of(true), BddSet::intersection);
+        .toArray(BddSet[]::new));
     } else if (expression instanceof PropositionalFormula.Disjunction) {
-      return ((PropositionalFormula.Disjunction<Integer>) expression).disjuncts.stream()
+      return union(((PropositionalFormula.Disjunction<Integer>) expression).disjuncts.stream()
         .map(this::of)
-        .reduce(of(false), BddSet::union);
+        .toArray(BddSet[]::new));
     } else {
       throw new AssertionError("Unreachable!");
     }

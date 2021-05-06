@@ -29,8 +29,7 @@ VOID_TASK_0(owl_sylvan_gc_mark) {
 
 void owl_sylvan_init() {
     lace_start(6, 1000000);
-    // use at most 512 MB, nodes:cache ratio 2:1, initial size 1/32 of maximum
-    sylvan_set_limits(512*1024*1024, 1, 5);
+    sylvan_set_limits(8*1024*1024*1024UL, 0, 10);
     sylvan_init_package();
     sylvan_init_mtbdd();
 
@@ -150,4 +149,12 @@ uint64_t owl_sylvan_map_add(uint64_t map, uint32_t var, uint64_t bdd) {
 
 uint64_t owl_sylvan_compose(uint64_t bdd, uint64_t map) {
     return sylvan_compose(bdd, map);
+}
+
+double owl_sylvan_satcount(uint64_t bdd, size_t nrOfVars) {
+    return mtbdd_satcount(bdd, nrOfVars);
+}
+
+size_t owl_sylvan_nodecount(uint64_t bdd) {
+    return mtbdd_nodecount(bdd);
 }

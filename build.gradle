@@ -111,7 +111,7 @@ dependencies {
     implementation 'org.graalvm.sdk:graal-sdk:21.0.0.2'
 
     // https://github.com/google/gson
-    testImplementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.code.gson:gson:2.8.5'
 
     // https://github.com/junit-team/junit5/
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
@@ -180,7 +180,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary']) 
         '--shared',
         // (can cause deadlock during image-build)
         '--initialize-at-build-time=com.google,org.apache,org.antlr,de.tum,owl,jhoafparser',
-        '--initialize-at-run-time=owl.bdd.sylvan.SylvanBddSetFactory',
+        '--initialize-at-run-time=owl.bdd.sylvan.SylvanBddSetFactory,owl.automaton.symbolic.StatisticsCollector',
         '--no-fallback',
         '--native-image-info',
         // (uncomment for performance analysis)
@@ -217,7 +217,7 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary'
         '--initialize-at-build-time=com.google,org.apache,org.antlr,de.tum,owl,jhoafparser',
         '--no-fallback',
         '--native-image-info',
-        '--initialize-at-run-time=owl.bdd.sylvan.SylvanBddSetFactory',
+        '--initialize-at-run-time=owl.bdd.sylvan.SylvanBddSetFactory,owl.automaton.symbolic.StatisticsCollector',
         // (uncomment for performance analysis)
         // '-H:+PrintAnalysisCallTree',
         // '-H:DashboardDump=reports/graalvm-dashboard.dump',

@@ -19,6 +19,7 @@
 
 package owl.translations.ltl2dra;
 
+import static owl.automaton.symbolic.StatisticsCollector.STATISTICS_COLLECTOR;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Variable;
@@ -28,6 +29,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import owl.automaton.symbolic.StatisticsCollector;
 import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.automaton.symbolic.SymbolicBooleanOperations;
 import owl.bdd.BddSetFactory;
@@ -103,7 +105,7 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
       disjuncts.add(Conjunction.of(
         Variable.of(coSafetySafetyIndex), Variable.of(safetyCoSafetyIndex)));
     }
-
+    STATISTICS_COLLECTOR.advanceToProduct(automata);
     return SymbolicBooleanOperations.deterministicProduct(Disjunction.of(disjuncts), automata);
   }
 }

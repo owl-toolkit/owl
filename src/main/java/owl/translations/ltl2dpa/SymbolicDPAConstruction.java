@@ -19,9 +19,12 @@
 
 package owl.translations.ltl2dpa;
 
+import static owl.automaton.symbolic.StatisticsCollector.STATISTICS_COLLECTOR;
+
 import java.util.Optional;
 import java.util.function.Function;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.symbolic.StatisticsCollector;
 import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.automaton.symbolic.SymbolicBooleanOperations;
 import owl.automaton.symbolic.SymbolicDRA2DPAConstruction;
@@ -37,7 +40,7 @@ public final class SymbolicDPAConstruction
     var factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var draConstructor = new SymbolicNormalformDRAConstruction(factory);
     var symbolicRabinProductAutomaton = draConstructor.apply(labelledFormula);
-
+    STATISTICS_COLLECTOR.advanceToDPW1(symbolicRabinProductAutomaton);
     Optional<SymbolicAutomaton<ParityAcceptance>> parity = SymbolicDRA2DPAConstruction
       .of(symbolicRabinProductAutomaton)
       .tryToParity();
@@ -45,15 +48,15 @@ public final class SymbolicDPAConstruction
     if (parity.isPresent()) {
       return parity.get();
     }
-
+    STATISTICS_COLLECTOR.advanceToDSW();
     var symbolicStreettProductAutomaton = draConstructor.apply(labelledFormula.not());
-
+    STATISTICS_COLLECTOR.advanceToDRWDSWProduct(symbolicStreettProductAutomaton);
     SymbolicAutomaton<?> symbolicDpwStructure = SymbolicBooleanOperations
       .deterministicStructureProduct(
         symbolicRabinProductAutomaton,
         symbolicStreettProductAutomaton
       );
-
+    STATISTICS_COLLECTOR.advanceToDPW2(symbolicDpwStructure);
     return SymbolicDRA2DPAConstruction.of(symbolicDpwStructure).toParity();
   }
 }

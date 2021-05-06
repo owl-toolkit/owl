@@ -31,6 +31,8 @@ uint64_t owl_sylvan_exists(uint64_t bdd, uint64_t vars);
 
 double owl_sylvan_satcount(uint64_t bdd, size_t nrOfVars);
 
+size_t owl_sylvan_nodecount(uint64_t bdd);
+
 uint64_t owl_sylvan_varset_from_array(uint32_t* arr, size_t len);
 
 uint64_t owl_sylvan_sat_one_bdd(uint64_t bdd);

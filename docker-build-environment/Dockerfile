@@ -10,8 +10,7 @@ ENV LANG C.UTF-8
 
 # Tools
 FROM ubuntu:20.04 AS tools
-RUN apt-get -q update && apt-get install -y git wget g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev git gnupg netbase
-
+RUN apt-get -q update && apt-get install -y git wget g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev git gnupg netbase cmake libhwloc-dev
 ## Stack
 RUN wget -q https://github.com/commercialhaskell/stack/releases/download/v2.5.1/stack-2.5.1-linux-x86_64.tar.gz \
   && echo 'c83b6c93d6541c0bce2175085a04062020f4160a86116e20f3b343b562f2d1e8 stack-2.5.1-linux-x86_64.tar.gz' | sha256sum --check \
@@ -36,17 +35,26 @@ RUN git clone https://github.com/arminbiere/aiger.git \
     && ./configure.sh \
     && make
 
-# Base System
+## Sylvan
+RUN git clone https://github.com/trolando/sylvan.git \
+    && cd sylvan \
+    && git checkout 8fa1f4dcd23143ad2483a1957bf8458b39a7954b \
+    && mkdir build \
+    && cd build \
+    && cmake .. \
+    && make
 
-FROM ubuntu:20.04
+# Base system
+FROM ubuntu:20.10
 COPY --from=tools /build/syfco /usr/bin
 COPY --from=tools /combine-aiger/combine-aiger /usr/bin
 COPY --from=tools /aiger/smvtoaig /usr/bin
 COPY --from=tools /aiger/aigtoaig /usr/bin
+COPY --from=tools /sylvan/build/src/libsylvan.so /usr/lib
 
 RUN apt-get -q update \
     && apt-get -q upgrade -y \
-    && apt-get -q install -y --no-install-recommends build-essential libz-dev zlib1g-dev ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make unzip wget parallel \
+    && apt-get -q install -y --no-install-recommends build-essential libz-dev zlib1g-dev ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make unzip wget parallel cmake libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-iostreams-dev zlib1g-dev openjdk-13-jdk \
     && rm -rf /var/lib/apt/lists/*
 
 

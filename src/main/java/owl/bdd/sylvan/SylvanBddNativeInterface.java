@@ -45,7 +45,7 @@ public final class SylvanBddNativeInterface {
   static native void exit();
 
   @CFunction("owl_sylvan_true")
-  public static native long trueNode();
+  static native long trueNode();
 
   @CFunction("owl_sylvan_false")
   static native long falseNode();
@@ -79,6 +79,9 @@ public final class SylvanBddNativeInterface {
 
   @CFunction("owl_sylvan_satcount")
   static native double satcount(long bdd, int nrOfVars);
+
+  @CFunction("owl_sylvan_nodecount")
+  static native long nodecount(long bdd);
 
   @CFunction("owl_sylvan_varset_from_array")
   private static native long varsetFromArray(CIntPointer arr, int len);
@@ -147,7 +150,7 @@ public final class SylvanBddNativeInterface {
   }
 
   @CFunction("owl_sylvan_exchange_loop")
-  public static native void exchangeLoop(IsolateThread isolate);
+  static native void exchangeLoop(IsolateThread isolate);
 
   static class CDirectives implements CContext.Directives {
 

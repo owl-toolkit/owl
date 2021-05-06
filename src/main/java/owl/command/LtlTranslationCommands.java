@@ -19,6 +19,7 @@
 
 package owl.command;
 
+import static owl.automaton.symbolic.StatisticsCollector.STATISTICS_COLLECTOR;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.CONTROLLER;
 import static owl.command.Mixins.AcceptanceSimplifier;
 import static owl.command.Mixins.FormulaReader;
@@ -49,6 +50,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.symbolic.AigerWriter;
 import owl.automaton.symbolic.DFISymbolicDPASolver;
 import owl.automaton.symbolic.NaiveStrategyDeterminizer;
+import owl.bdd.BddSet;
 import owl.collections.ImmutableBitSet;
 import owl.command.Mixins.AutomatonWriter;
 import owl.ltl.LabelledFormula;
@@ -515,16 +517,21 @@ final class LtlTranslationCommands {
     protected int run() throws Exception {
       String[] controllableAps = controllableApsString.split(",");
       BitSet controlledAPs = getControlledAPsBitset(formula, controllableAps);
+      STATISTICS_COLLECTOR.start();
       var dpa = new SymbolicDPAConstruction().apply(formula);
+      STATISTICS_COLLECTOR.advanceToDFI(dpa);
       var solution = new DFISymbolicDPASolver().solve(
         dpa,
         ImmutableBitSet.copyOf(controlledAPs)
       );
       // Prints straight to sysout for now, could use a dedicated writer later.
       if (solution.winner() == CONTROLLER) {
+        STATISTICS_COLLECTOR.advanceToSD();
+        BddSet determinizedStrategy = new NaiveStrategyDeterminizer().determinize(
+          dpa, controlledAPs, solution.strategy());
+        STATISTICS_COLLECTOR.advanceToAIG();
         System.out.println("REALIZABLE\n" + AigerWriter.toAiger(
-          new NaiveStrategyDeterminizer().determinize(
-            dpa, controlledAPs, solution.strategy()),
+          determinizedStrategy,
           dpa.variableAllocation(),
           controlledAPs,
           formula.atomicPropositions(),
@@ -532,6 +539,7 @@ final class LtlTranslationCommands {
             .copyInto(new BitSet())
         ));
       } else {
+        STATISTICS_COLLECTOR.stop();
         System.out.println("UNREALIZABLE");
       }
       return 0;

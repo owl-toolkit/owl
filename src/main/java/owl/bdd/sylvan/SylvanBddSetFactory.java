@@ -3,6 +3,8 @@ package owl.bdd.sylvan;
 import com.google.common.base.Preconditions;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -11,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import org.graalvm.nativeimage.CurrentIsolate;
+import owl.automaton.symbolic.StatisticsCollector;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
@@ -24,6 +27,7 @@ import owl.logic.propositional.PropositionalFormula;
  */
 public final class SylvanBddSetFactory implements BddSetFactory {
   public static final SylvanBddSetFactory INSTANCE = new SylvanBddSetFactory();
+  public static final int MAX_VAR = 0xFFFFFF;
   private final ReferenceQueue<SylvanBddSet> referenceQueue = new ReferenceQueue<>();
   private final Map<Long, SylvanNodeReference> referencedNodes = new HashMap<>();
   private final HashMap<Long, Integer> tempNodes = new HashMap<>();
@@ -31,19 +35,20 @@ public final class SylvanBddSetFactory implements BddSetFactory {
   private final SylvanBddSet trueNode;
 
   private SylvanBddSetFactory() {
+    StatisticsCollector.STATISTICS_COLLECTOR.sylvanInitStart();
     SylvanBddNativeInterface.init();
     Thread exchangeThread = new Thread(() ->
       SylvanBddNativeInterface.exchangeLoop(CurrentIsolate.getCurrentThread())
     );
     exchangeThread.setDaemon(true);
     exchangeThread.start();
-    Runtime.getRuntime().addShutdownHook(new Thread(SylvanBddNativeInterface::exit));
     falseNode = create(SylvanBddNativeInterface.falseNode());
     trueNode = create(SylvanBddNativeInterface.trueNode());
+    StatisticsCollector.STATISTICS_COLLECTOR.sylvanInitStop();
   }
 
   @SuppressWarnings("PMD.DoNotCallGarbageCollectionExplicitly")
-  synchronized Set<Long> getReferencedNodes() {
+  public synchronized Set<Long> getReferencedNodes() {
     System.gc();
     purgeNodeMapping();
     Set<Long> nodes = new HashSet<>(referencedNodes.keySet());
@@ -358,6 +363,24 @@ public final class SylvanBddSetFactory implements BddSetFactory {
       unprotect(node);
       assert tempNodes.isEmpty();
       return resultBdd;
+    }
+
+    @Override
+    public BigInteger size(int nrOfVariables) {
+      protect(node);
+      BigInteger result =  BigDecimal.valueOf(
+        SylvanBddNativeInterface.satcount(node, nrOfVariables)
+      ).toBigInteger();
+      unprotect(node);
+      return result;
+    }
+
+    @Override
+    public long numberOfNodes() {
+      protect(node);
+      long result = SylvanBddNativeInterface.nodecount(node);
+      unprotect(node);
+      return result;
     }
 
     private long determinizeRange(int from, int until, long node, BitSet support) {

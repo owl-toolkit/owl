@@ -29,10 +29,15 @@ import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.base.Preconditions;
 import de.tum.in.jbdd.Bdd;
+import java.math.BigInteger;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -357,6 +362,35 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       );
     }
 
+    @Override
+    public BigInteger size(int nrOfVariables) {
+      Preconditions.checkArgument(nrOfVariables <= factory.variables);
+      return factory.bdd.countSatisfyingAssignments(node)
+        .subtract(BigInteger.TWO.pow(factory.variables - nrOfVariables));
+    }
+
+    @Override
+    public long numberOfNodes() {
+      Set<Integer> nodes = new HashSet<>();
+      nodes.add(factory.falseNode);
+      nodes.add(factory.trueNode);
+      Deque<Integer> queue = new ArrayDeque<>();
+      queue.add(node);
+      while (!queue.isEmpty()) {
+        int node = queue.pop();
+        nodes.add(node);
+        int high = factory.bdd.high(node);
+        int low = factory.bdd.low(node);
+        if (!nodes.contains(high)) {
+          queue.push(high);
+        }
+        if (!nodes.contains(low)) {
+          queue.push(low);
+        }
+      }
+      return nodes.size();
+    }
+
     private int determinizeRange(int from, int until, int node, BitSet support) {
       if (node == factory.falseNode) {
         return node;
@@ -388,7 +422,6 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       factory.bdd.dereference(variableNode, high, low);
       return result;
     }
-
 
 
     @Override

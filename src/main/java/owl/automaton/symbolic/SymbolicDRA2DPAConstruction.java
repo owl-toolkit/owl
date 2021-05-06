@@ -417,7 +417,7 @@ public abstract class SymbolicDRA2DPAConstruction {
      * @return a BDD holding all states that have at least one of the colours
      */
     private BddSet asBdd(Set<Integer> colours) {
-      return colours
+      return automaton().factory().union(colours
         .stream()
         .map(variable -> automaton()
           .factory()
@@ -426,7 +426,8 @@ public abstract class SymbolicDRA2DPAConstruction {
               .variableAllocation()
               .localToGlobal(variable, COLOUR)
           ))
-        .reduce(automaton().factory().of(false), BddSet::union);
+        .toArray(BddSet[]::new)
+      );
     }
 
     @Override

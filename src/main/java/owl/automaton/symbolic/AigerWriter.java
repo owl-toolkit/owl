@@ -1,5 +1,6 @@
 package owl.automaton.symbolic;
 
+import static owl.automaton.symbolic.StatisticsCollector.STATISTICS_COLLECTOR;
 import static owl.automaton.symbolic.VariableAllocation.VariableType.ATOMIC_PROPOSITION;
 import static owl.automaton.symbolic.VariableAllocation.VariableType.COLOUR;
 import static owl.automaton.symbolic.VariableAllocation.VariableType.STATE;
@@ -399,7 +400,7 @@ public final class AigerWriter {
       maxIndex - numberOfInputs - numberOfLatches - 2
       )
     );
-
+    STATISTICS_COLLECTOR.stop(maxIndex - numberOfInputs - numberOfLatches - 2);
     return builder.toString();
   }
 
