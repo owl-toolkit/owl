@@ -6,13 +6,18 @@
 
 pthread_cond_t signal_nodes_retrieved = PTHREAD_COND_INITIALIZER;
 pthread_cond_t signal_nodes_requested = PTHREAD_COND_INITIALIZER;
+pthread_cond_t signal_exchange_loop_ready = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
 
 volatile int nodes_retrieved = 1;
+volatile int exchange_loop_ready = 0;
 owl_sylvan_protected_nodes_list protected_nodes_list;
 
 VOID_TASK_0(owl_sylvan_gc_mark) {
     pthread_mutex_lock(&lock);
+    while (! exchange_loop_ready) {
+        pthread_cond_wait(&signal_exchange_loop_ready, &lock);
+    }
     nodes_retrieved = 0;
     pthread_cond_broadcast(&signal_nodes_requested);
     while (!nodes_retrieved) {
@@ -44,6 +49,8 @@ void owl_sylvan_exit() {
 void owl_sylvan_exchange_loop(void* isolate_thread) {
     while(1) {
         pthread_mutex_lock(&lock);
+        exchange_loop_ready = 1;
+        pthread_cond_broadcast(&signal_exchange_loop_ready);
         while(nodes_retrieved) {
             pthread_cond_wait(&signal_nodes_requested, &lock);
         }
