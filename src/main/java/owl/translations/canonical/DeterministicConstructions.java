@@ -369,49 +369,54 @@ public final class DeterministicConstructions {
       return cartesianProduct(
         state.all().temporalStepTree(),
         state.accepting().temporalStepTree(),
-        this::edge);
+        (all, accepting) -> edge(state.all(), all, accepting));
     }
 
     @Nullable
-    private Edge<BreakpointStateAccepting> edge(EquivalenceClass all, EquivalenceClass accepting) {
+    private Edge<BreakpointStateAccepting> edge(
+      EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass accepting) {
 
       // all over-approximates accepting or is suspended (true).
       assert accepting.implies(all) || accepting.isTrue();
 
-      var allUnfold = all.unfold();
+      var allUnfolded = all.unfold();
 
-      if (allUnfold.isFalse()) {
-        return complete ? Edge.of(BreakpointStateAccepting.of(allUnfold), 0) : null;
+      if (allUnfolded.isFalse()) {
+        return complete
+          ? Edge.of(BreakpointStateAccepting.of(factory.of(false)), 0)
+          : null;
       }
 
-      if (suspensionCheck.isBlockedBySafety(allUnfold)) {
-        return Edge.of(BreakpointStateAccepting.of(allUnfold));
+      if (suspensionCheck.isBlockedBySafety(allUnfolded)) {
+        return Edge.of(BreakpointStateAccepting.of(allUnfolded));
       }
 
       // true satisfies `SyntacticFragments.isSafety(all)` and thus all cannot be true.
-      assert !allUnfold.isTrue();
+      assert !allUnfolded.isTrue();
 
-      if (suspensionCheck.isBlockedByCoSafety(allUnfold)
-        || suspensionCheck.isBlockedByTransient(allUnfold)) {
+      if (suspensionCheck.isBlockedByCoSafety(allUnfolded)
+        || suspensionCheck.isBlockedByTransient(allUnfolded)) {
 
-        return Edge.of(BreakpointStateAccepting.of(allUnfold), 0);
+        return Edge.of(BreakpointStateAccepting.of(allUnfolded), 0);
       }
 
       var acceptingUnfolded = accepting.unfold();
 
       // This state has been suspended, restart.
-      if (acceptingUnfolded.isTrue()) {
-        return Edge.of(BreakpointStateAccepting.of(allUnfold, accepting(all)), 0);
+      if (acceptingUnfolded.isTrue()
+        || BlockingElements.containedInDifferentSccs(previousAll, allUnfolded)) {
+        return Edge.of(BreakpointStateAccepting.of(allUnfolded, accepting(all)), 0);
       }
 
       if (SyntacticFragments.isFinite(acceptingUnfolded)) {
         var nextAcceptingUnfolded = acceptingUnfolded.or(accepting(all));
         assert nextAcceptingUnfolded.unfold().equals(nextAcceptingUnfolded);
-
-        return Edge.of(BreakpointStateAccepting.of(allUnfold, nextAcceptingUnfolded), 0);
+        return Edge.of(BreakpointStateAccepting.of(allUnfolded, nextAcceptingUnfolded), 0);
       }
 
-      return Edge.of(BreakpointStateAccepting.of(allUnfold, acceptingUnfolded));
+      assert !allUnfolded.isFalse() && !acceptingUnfolded.isFalse();
+      assert !allUnfolded.isTrue() && !acceptingUnfolded.isTrue();
+      return Edge.of(BreakpointStateAccepting.of(allUnfolded, acceptingUnfolded));
     }
 
     // Extract from all runs the runs that are in the accepting part of the AWW[2,R].
@@ -533,11 +538,12 @@ public final class DeterministicConstructions {
       return cartesianProduct(
         state.all().temporalStepTree(),
         state.rejecting().temporalStepTree(),
-        this::edge);
+        (all, rejecting) -> edge(state.all(), all, rejecting));
     }
 
     @Nullable
-    private Edge<BreakpointStateRejecting> edge(EquivalenceClass all, EquivalenceClass rejecting) {
+    private Edge<BreakpointStateRejecting> edge(
+      EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass rejecting) {
 
       // all under-approximates rejecting or rejecting is set to false during suspension.
       assert all.implies(rejecting) || rejecting.isFalse();
@@ -545,7 +551,9 @@ public final class DeterministicConstructions {
       var allUnfolded = all.unfold();
 
       if (allUnfolded.isFalse()) {
-        return complete ? Edge.of(BreakpointStateRejecting.of(allUnfolded)) : null;
+        return complete
+          ? Edge.of(BreakpointStateRejecting.of(factory.of(false)))
+          : null;
       }
 
       if (suspensionCheck.isBlockedBySafety(allUnfolded)) {
@@ -563,8 +571,9 @@ public final class DeterministicConstructions {
 
       var rejectingUnfolded = rejecting.unfold();
 
-      // We have been suspended, re-activate.
-      if (rejectingUnfolded.isFalse()) {
+      // We have been suspended or switched the SCC, reset the rejecting-field.
+      if (rejectingUnfolded.isFalse()
+        || BlockingElements.containedInDifferentSccs(previousAll, allUnfolded)) {
         return Edge.of(BreakpointStateRejecting.of(allUnfolded, rejecting(all)));
       }
 
@@ -576,12 +585,16 @@ public final class DeterministicConstructions {
         assert nextRejectingUnfolded.unfold().equals(nextRejectingUnfolded);
 
         if (nextRejectingUnfolded.isFalse()) {
-          return complete ? Edge.of(BreakpointStateRejecting.of(nextRejectingUnfolded)) : null;
+          return complete
+            ? Edge.of(BreakpointStateRejecting.of(factory.of(false)))
+            : null;
         }
 
         return Edge.of(BreakpointStateRejecting.of(allUnfolded, nextRejectingUnfolded), 0);
       }
 
+      assert !allUnfolded.isFalse() && !rejectingUnfolded.isFalse();
+      assert !allUnfolded.isTrue() && !rejectingUnfolded.isTrue();
       return Edge.of(BreakpointStateRejecting.of(allUnfolded, rejectingUnfolded));
     }
 

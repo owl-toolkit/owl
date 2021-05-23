@@ -5127,7 +5127,7 @@
   {
     "formula": "((G(!a | X!b) & G(!c | X!d) & (F(b & G!a) | F(b & ((c) M (!d))) | F(d & G!c) | F(d & ((a) M (!b))) | F(!b & !d & G!a & G!c) | F((!e | Xf) & X(g & h)) | F((!e | X!f) & X(i & j)) | F(e & Xf & X(!i | !j)) | F(e & X!f & X(!g | !h)))) | F((!a | c | k) & (a | ((c | !k | (c & !k)) & (!c | k | (!c & k))))) | F((!g | i | l) & (g | ((i | !l | (i & !l)) & (!i | l | (!i & l))))) | F((!h | j | m) & (h | ((j | !m | (j & !m)) & (!j | m | (!j & m))))))",
     "properties": {
-      "size": 92,
+      "size": 86,
       "initialStatesSize": 1,
       "acceptanceName": "CoBuchiAcceptance",
       "acceptanceSets": 1,

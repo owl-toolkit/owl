@@ -14,6 +14,7 @@ import owl.automaton.symbolic.SymbolicBooleanOperations;
 import owl.bdd.BddSetFactory;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
+import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
 import owl.translations.canonical.DeterministicConstructions;
@@ -49,7 +50,7 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
     Map<LabelledFormula, Integer> safetyCoSafetyIndices = new HashMap<>();
 
     List<SymbolicAutomaton<?>> automata = new ArrayList<>();
-    List<Conjunction<Integer>> disjuncts = new ArrayList<>();
+    List<PropositionalFormula<Integer>> disjuncts = new ArrayList<>();
 
     for (Sigma2Pi2Pair formulaPair : pairs) {
       var sigma2 = formulaPair.sigma2();

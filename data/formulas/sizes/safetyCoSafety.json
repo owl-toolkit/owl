@@ -5059,7 +5059,7 @@
   {
     "formula": "((F(a & Xb) | F(c & Xd) | (G(!b | Fa) & G(!b | ((!c) W (d))) & G(!d | Fc) & G(!d | ((!a) W (b))) & G(b | d | Fa | Fc) & G((e & Xf) | X(!g | !h)) & G((e & X!f) | X(!i | !j)) & G(!e | Xf | X(i & j)) & G(!e | X!f | X(g & h)))) & G((a & !c & !k) | (!a & ((c & !k & (c | !k)) | (!c & k & (!c | k))))) & G((!g & i & !l) | (!i & ((g & !l & (g | !l)) | (!g & l & (!g | l))))) & G((!h & j & !m) | (!j & ((h & !m & (h | !m)) | (!h & m & (!h | m))))))",
     "properties": {
-      "size": 91,
+      "size": 85,
       "initialStatesSize": 1,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
