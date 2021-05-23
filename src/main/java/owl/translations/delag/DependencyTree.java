@@ -230,7 +230,7 @@ abstract class DependencyTree<T> {
     }
 
     private PropositionalFormula<Integer> shift(PropositionalFormula<Integer> expression) {
-      return expression.substitute(i -> Optional.of(Variable.of(i + acceptanceSet)));
+      return expression.map(i -> i + acceptanceSet);
     }
 
     @Override

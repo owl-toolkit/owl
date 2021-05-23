@@ -66,12 +66,12 @@ public class UnpublishedZielonkaTreePerformanceTest {
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertFalse(AutomatonUtil.isLessOrEqual(automaton, 5));
     });
-    
+
     // Takes ~1s (warm: 500ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
     Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ZLK.apply(formula);
-      Assertions.assertEquals(149, automaton.successors(automaton.initialState()).size());
-      Assertions.assertFalse(AutomatonUtil.isLessOrEqual(automaton, 150));
+      Assertions.assertEquals(148, automaton.successors(automaton.initialState()).size());
+      Assertions.assertFalse(AutomatonUtil.isLessOrEqual(automaton, 149));
     });
 
     // Takes ~2s (warm: ~1.7s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.

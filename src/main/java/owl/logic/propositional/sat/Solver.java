@@ -76,7 +76,9 @@ public final class Solver {
     return model(formula, DEFAULT_ENGINE);
   }
 
-  public static <V> Optional<Set<V>> model(PropositionalFormula<V> formula, Engine engine) {
+  public static <V> Optional<Set<V>> model(PropositionalFormula<V> preFormula, Engine engine) {
+    var formula = preFormula.nnf();
+
     if (formula instanceof PropositionalFormula.Disjunction) {
       for (var disjunct : ((PropositionalFormula.Disjunction<V>) formula).disjuncts) {
         Optional<Set<V>> satisfiable = model(disjunct, engine);
@@ -93,15 +95,16 @@ public final class Solver {
     var polarity = formula.polarity();
 
     var simplifiedFormula = formula.substitute(variable -> {
-      if (polarity.get(variable) == PropositionalFormula.Polarity.POSITIVE) {
-        return Optional.of(PropositionalFormula.trueConstant());
-      }
+      switch (polarity.get(variable)) {
+        case POSITIVE:
+          return PropositionalFormula.trueConstant();
 
-      if (polarity.get(variable) == PropositionalFormula.Polarity.NEGATIVE) {
-        return Optional.of(PropositionalFormula.falseConstant());
-      }
+        case NEGATIVE:
+          return PropositionalFormula.falseConstant();
 
-      return Optional.empty();
+        default:
+          return PropositionalFormula.Variable.of(variable);
+      }
     });
 
     // Translate into equisatisfiable CNF.
@@ -138,8 +141,8 @@ public final class Solver {
 
     PropositionalFormula<V> normalisedFormula = formula.substitute(
       variable -> upperBound.contains(variable)
-        ? Optional.empty()
-        : Optional.of(PropositionalFormula.falseConstant()))
+        ? PropositionalFormula.Variable.of(variable)
+        : PropositionalFormula.falseConstant())
       .nnf();
 
     // Preprocessing to reduce enumeration of models using the SAT solver.
@@ -162,8 +165,8 @@ public final class Solver {
       if (!lowerBound.isEmpty()) {
         PropositionalFormula<V> restrictedFormula = normalisedFormula.substitute(
           variable -> lowerBound.contains(variable)
-            ? Optional.of(PropositionalFormula.trueConstant())
-            : Optional.empty());
+            ? PropositionalFormula.trueConstant()
+            : PropositionalFormula.Variable.of(variable));
 
         List<Set<V>> restrictedMaximalModels = maximalModels(
           restrictedFormula, new HashSet<>(Sets.difference(upperBound, lowerBound)));

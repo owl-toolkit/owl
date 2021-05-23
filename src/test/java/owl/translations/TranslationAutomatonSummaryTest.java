@@ -81,9 +81,11 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.hoa.HoaWriter;
 import owl.automaton.symbolic.SymbolicAutomaton;
+import owl.ltl.Biconditional;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
+import owl.ltl.Negation;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.LiteralMapper;
@@ -404,13 +406,27 @@ public class TranslationAutomatonSummaryTest {
             return;
           }
 
-          var formula = LtlParser.parse(formulaString).formula().nnf();
+          var formula = LtlParser.parse(formulaString).formula();
           var simplifiedFormula
             = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
           var simplifiedFormulaNegated
             = SimplifierFactory.apply(formula.not(), Mode.SYNTACTIC_FIXPOINT);
 
           addNormalized(formulaSet, simplifiedFormula, simplifiedFormulaNegated);
+
+          if (simplifiedFormula.anyMatch(
+            x -> x instanceof Biconditional || x instanceof Negation)) {
+
+            addNormalized(formulaSet,
+              SimplifierFactory.apply(formula.nnf(), Mode.SYNTACTIC_FIXPOINT));
+          }
+
+          if (simplifiedFormulaNegated.anyMatch(
+            x -> x instanceof Biconditional || x instanceof Negation)) {
+
+            addNormalized(formulaSet,
+              SimplifierFactory.apply(formula.nnf().not(), Mode.SYNTACTIC_FIXPOINT));
+          }
         });
       } catch (IOException exception) {
         fail(exception);

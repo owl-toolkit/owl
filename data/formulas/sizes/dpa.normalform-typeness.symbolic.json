@@ -55,6 +55,17 @@
     }
   },
   {
+    "formula": "(a <-> b)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "Fa",
     "properties": {
       "size": 2,
