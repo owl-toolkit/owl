@@ -36,7 +36,6 @@ import com.google.auto.value.AutoValue;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Maps;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -65,7 +64,6 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
-import owl.bdd.MtBddOperations;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
@@ -102,6 +100,7 @@ import owl.translations.mastertheorem.Normalisation;
  *   fact that suspension collapse a SCC to a single state.
  * - Store round-robin chains for beta generation.
  * - Use non-trivial beta generation (using LTL Axioms.)
+ * - Support iff directly!
  */
 public final class NormalformDELAConstruction
   implements Function<LabelledFormula, Automaton<NormalformDELAConstruction.State, ?>> {
@@ -188,7 +187,6 @@ public final class NormalformDELAConstruction
 
       // Underlying automaton.
       dbw = SafetyCoSafety.of(factories, BooleanConstant.TRUE, true, true);
-      classifier = new BreakpointStateRejectingClassifier(dbw, lookahead);
 
       var normalFormConstructor = new NormalFormConverter();
       var normalForm = formula.formula().accept(normalFormConstructor);
@@ -197,6 +195,9 @@ public final class NormalformDELAConstruction
         = new InitialStateConstructor(dbw, normalFormConstructor.referenceCounter.keySet());
       var initialStateFormula = initialStateFormulaConstructor.apply(normalForm);
       var initialStates = initialStateFormulaConstructor.initialStates;
+      classifier = new BreakpointStateRejectingClassifier(dbw,
+        // Scale lookahead for each component.
+        lookahead.stream().map(x -> Math.max(0, x / Math.max(1, initialStates.size()))).findAny());
       roundRobinCandidates = ImmutableBitSet
         .copyOf(initialStateFormulaConstructor.roundRobinCandidate);
 
@@ -220,18 +221,152 @@ public final class NormalformDELAConstruction
 
         @Override
         protected MtBdd<Edge<State>> edgeTreeImpl(State state) {
-          var edgeTreeMap = new HashMap<>(Maps.transformValues(state.stateMap(), dbw::edgeTree));
+          Map<Integer, BreakpointStateRejecting> stateMap = state.stateMap();
+          List<Integer> keys = new ArrayList<>(stateMap.size());
+          List<MtBdd<Edge<BreakpointStateRejecting>>> values = new ArrayList<>(stateMap.size());
+
+          stateMap.forEach((key, value) -> {
+            keys.add(key);
+            values.add(dbw.edgeTree(value));
+          });
 
           // Remember, dbw needs to be complete!
-          return MtBddOperations.uncachedNaryCartesianProduct(edgeTreeMap, y -> {
-            var edge = Construction.this.edge(state, y);
+          return edgeTreeImpl(state, keys, values, new HashMap<>(), 0);
+        }
 
-            if (edge.successor().stateFormula().isFalse()) {
-              return null;
+        private MtBdd<Edge<State>> edgeTreeImpl(
+          State state,
+          List<Integer> keys,
+          List<MtBdd<Edge<BreakpointStateRejecting>>> values,
+          Map<List<Edge<BreakpointStateRejecting>>, Edge<State>> mapperCache,
+          int leaves) {
+
+          int variable = nextVariable(values);
+
+          if (variable == Integer.MAX_VALUE) {
+            List<Edge<BreakpointStateRejecting>> edges = new ArrayList<>(values.size());
+
+            for (int i = 0, s = keys.size(); i < s; i++) {
+              var value = values.get(i);
+
+              if (value instanceof MtBdd.Leaf) {
+                edges.add(Iterables.getOnlyElement(
+                  ((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) value).value));
+              } else {
+                assert value == null;
+                edges.add(null);
+              }
             }
 
-            return edge;
+            Edge<State> edge = mapperCache.computeIfAbsent(
+              edges, y -> Construction.this.edge(state, keys, edges));
+
+            return edge.successor().stateFormula().isFalse() ? MtBdd.of() : MtBdd.of(Set.of(edge));
+          }
+
+          var falseTrees = new ArrayList<>(values);
+          falseTrees.replaceAll(x -> descendFalseIf(x, variable));
+          int falseLeaves = countLeaves(falseTrees);
+          if (falseLeaves > leaves) {
+            shortCircuit(state, keys, falseTrees);
+          }
+          var falseCartesianProduct
+            = edgeTreeImpl(state, keys, falseTrees, mapperCache, falseLeaves);
+
+          var trueTrees = new ArrayList<>(values);
+          trueTrees.replaceAll(x -> descendTrueIf(x, variable));
+          int trueLeaves = countLeaves(trueTrees);
+          if (trueLeaves > leaves) {
+            shortCircuit(state, keys, trueTrees);
+          }
+          var trueCartesianProduct
+            = edgeTreeImpl(state, keys, trueTrees, mapperCache, trueLeaves);
+
+          return MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
+        }
+
+        private int nextVariable(Collection<? extends MtBdd<?>> trees) {
+          int variable = Integer.MAX_VALUE;
+
+          for (var tree : trees) {
+            // Remember tree might be null, but instanceof also checks for that.
+            variable = Math.min(variable, tree instanceof MtBdd.Node
+              ? ((MtBdd.Node<?>) tree).variable
+              : Integer.MAX_VALUE);
+          }
+
+          return variable;
+        }
+
+        @Nullable
+        private <E> MtBdd<E> descendFalseIf(@Nullable MtBdd<E> tree, int variable) {
+          if (tree instanceof MtBdd.Node && ((MtBdd.Node<E>) tree).variable == variable) {
+            return ((MtBdd.Node<E>) tree).falseChild;
+          } else {
+            return tree;
+          }
+        }
+
+        @Nullable
+        private <E> MtBdd<E> descendTrueIf(@Nullable MtBdd<E> tree, int variable) {
+          if (tree instanceof MtBdd.Node && ((MtBdd.Node<E>) tree).variable == variable) {
+            return ((MtBdd.Node<E>) tree).trueChild;
+          } else {
+            return tree;
+          }
+        }
+
+        private void shortCircuit(
+          State state, List<Integer> keys, List<MtBdd<Edge<BreakpointStateRejecting>>> trees) {
+
+          List<Edge<BreakpointStateRejecting>> leaves = new ArrayList<>(trees.size());
+
+          for (MtBdd<Edge<BreakpointStateRejecting>> x : trees) {
+            leaves.add(x instanceof MtBdd.Leaf
+              ? Iterables.getOnlyElement(((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) x).value)
+              : null);
+          }
+
+          var successorMap = successorMap(keys, leaves, null);
+          var classification = classifier.classify(successorMap);
+
+          // Keep this in sync with createState
+          PropositionalFormula<Integer> newStateFormula = state.stateFormula().substitute(index -> {
+            if (!classification.containsKey(index)) {
+              return Optional.empty();
+            }
+
+            switch (classification.get(index)) {
+              case TERMINAL_ACCEPTING:
+                return Optional.of(PropositionalFormula.trueConstant());
+
+              case TERMINAL_REJECTING:
+                return Optional.of(PropositionalFormula.falseConstant());
+
+              default:
+                return Optional.empty();
+            }
           });
+
+          BitSet remainingVariables = BitSet2.copyOf(newStateFormula.variables());
+
+          for (int i = 0, s = keys.size(); i < s; i++) {
+            if (trees.get(i) instanceof MtBdd.Node && !remainingVariables.get(keys.get(i))) {
+              trees.set(i, null);
+            }
+          }
+        }
+
+        private <E> int countLeaves(List<? extends MtBdd<E>> trees) {
+          int counter = 0;
+
+          for (MtBdd<E> tree : trees) {
+            if (tree instanceof MtBdd.Leaf) {
+              counter++;
+            }
+          }
+
+          return counter;
         }
       };
     }
@@ -254,8 +389,7 @@ public final class NormalformDELAConstruction
             ? Optional.empty()
             : Optional.of(padding.get(x)
               ? PropositionalFormula.trueConstant()
-              : PropositionalFormula.falseConstant()))
-          .normalise();
+              : PropositionalFormula.falseConstant()));
 
         if (simplifiedAcceptance.equals(alpha)) {
           return ImmutableBitSet.copyOf(padding);
@@ -269,8 +403,7 @@ public final class NormalformDELAConstruction
             ? Optional.empty()
             : Optional.of(padding.get(x)
               ? PropositionalFormula.trueConstant()
-              : PropositionalFormula.falseConstant()))
-          .normalise();
+              : PropositionalFormula.falseConstant()));
 
         PropositionalFormula<Integer> xor = PropositionalFormula.Disjunction.of(
           PropositionalFormula.Conjunction.of(
@@ -289,21 +422,34 @@ public final class NormalformDELAConstruction
       throw new AssertionError("unreachable");
     }
 
-    private Edge<State> edge(State state,
-      Collection<Map.Entry<Integer, Edge<BreakpointStateRejecting>>> edges) {
-
-      BitSet colours = new BitSet();
+    private Map<Integer, BreakpointStateRejecting> successorMap(
+      List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges, @Nullable BitSet colours) {
       Map<Integer, BreakpointStateRejecting> successorMap = new HashMap<>(edges.size());
 
-      edges.forEach(entry -> {
-        var oldValue = successorMap.put(entry.getKey(), entry.getValue().successor());
+      for (int i = 0, s = keys.size(); i < s; i++) {
+        var key = keys.get(i);
+        var value = edges.get(i);
+
+        if (value == null) {
+          continue;
+        }
+
+        var oldValue = successorMap.put(key, value.successor());
         assert oldValue == null;
 
-        if (entry.getValue().colours().contains(0)) {
-          colours.set(entry.getKey());
+        if (colours != null && value.colours().contains(0)) {
+          colours.set(key);
         }
-      });
+      }
 
+      return successorMap;
+    }
+
+    private Edge<State> edge(
+      State state, List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges) {
+
+      BitSet colours = new BitSet();
+      Map<Integer, BreakpointStateRejecting> successorMap = successorMap(keys, edges, colours);
       State successor = createState(
         state.stateFormula(), successorMap, state.roundRobinCounters(), colours);
 
@@ -326,8 +472,14 @@ public final class NormalformDELAConstruction
 
       NavigableMap<Integer, Classification> classification = classifier.classify(stateMap);
 
+      // Keep this in sync with shortCircuit.
       PropositionalFormula<Integer> newStateFormula
         = stateFormula.substitute(index -> {
+          // The state has been short-circuited.
+          if (!classification.containsKey(index)) {
+            return Optional.empty();
+          }
+
           switch (classification.get(index)) {
             case TERMINAL_ACCEPTING:
               return Optional.of(PropositionalFormula.trueConstant());
@@ -338,8 +490,9 @@ public final class NormalformDELAConstruction
             default:
               return Optional.empty();
           }
-        }).normalise();
+        });
 
+      assert stateMap.keySet().containsAll(newStateFormula.variables()) : "Short-circuiting failed";
       newStateFormula = pruneRedundantConjunctsAndDisjuncts(newStateFormula, stateMap);
 
       {
@@ -391,7 +544,7 @@ public final class NormalformDELAConstruction
           default:
             return Optional.empty();
         }
-      }).normalise();
+      });
 
       {
         var remainingVariables = alpha.variables();
@@ -428,7 +581,7 @@ public final class NormalformDELAConstruction
             ? PropositionalFormula.<Integer>trueConstant()
             : PropositionalFormula.<Integer>falseConstant());
 
-        alpha = alpha.substitute(i -> i == weakIndex ? value : Optional.empty()).normalise();
+        alpha = alpha.substitute(i -> i == weakIndex ? value : Optional.empty());
 
         var remainingVariables = alpha.variables();
         classification.entrySet().forEach(entry -> {
@@ -470,7 +623,7 @@ public final class NormalformDELAConstruction
         return roundRobinChain == null
           ? Optional.empty()
           : Optional.of(PropositionalFormula.Variable.of(roundRobinChain.first().orElseThrow()));
-      }).normalise();
+      });
 
       var state = State.of(newStateFormula, stateMap, newRoundRobinCounters);
       var oldAlpha = alphaCache.put(state, alpha);
@@ -617,8 +770,7 @@ public final class NormalformDELAConstruction
             .collect(Collectors.toList()),
           (x, y) -> isVariableOrNegationOfVariable(x)
             && isVariableOrNegationOfVariable(y)
-            && language(y, stateMap).implies(language(x, stateMap))))
-          .normalise();
+            && language(y, stateMap).implies(language(x, stateMap))));
       }
 
       assert stateFormula instanceof PropositionalFormula.Disjunction;
@@ -629,8 +781,7 @@ public final class NormalformDELAConstruction
           .collect(Collectors.toList()),
         (x, y) -> isVariableOrNegationOfVariable(x)
           && isVariableOrNegationOfVariable(y)
-          && language(x, stateMap).implies(language(y, stateMap))))
-        .normalise();
+          && language(x, stateMap).implies(language(y, stateMap))));
     }
 
     private boolean isVariableOrNegationOfVariable(PropositionalFormula<?> formula) {

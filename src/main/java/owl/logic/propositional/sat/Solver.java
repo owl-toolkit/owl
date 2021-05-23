@@ -102,7 +102,7 @@ public final class Solver {
       }
 
       return Optional.empty();
-    }).normalise();
+    });
 
     // Translate into equisatisfiable CNF.
     var conjunctiveNormalForm = new ConjunctiveNormalForm<>(simplifiedFormula);
@@ -140,7 +140,7 @@ public final class Solver {
       variable -> upperBound.contains(variable)
         ? Optional.empty()
         : Optional.of(PropositionalFormula.falseConstant()))
-      .nnf().normalise();
+      .nnf();
 
     // Preprocessing to reduce enumeration of models using the SAT solver.
 

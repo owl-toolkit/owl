@@ -91,8 +91,6 @@ public abstract class PropositionalFormula<T> {
     return this.equals(TRUE);
   }
 
-  public abstract PropositionalFormula<T> normalise();
-
   public final Set<T> variables() {
     return countVariables().keySet();
   }
@@ -116,17 +114,30 @@ public abstract class PropositionalFormula<T> {
   public static final class Conjunction<T> extends PropositionalFormula<T> {
     public final List<PropositionalFormula<T>> conjuncts;
 
-    private Conjunction(List<? extends PropositionalFormula<T>> conjuncts) {
+    public Conjunction(List<? extends PropositionalFormula<T>> conjuncts) {
       this.conjuncts = List.copyOf(conjuncts);
     }
 
     @SafeVarargs
-    public static <V> Conjunction<V> of(PropositionalFormula<V>... operands) {
+    public static <T> PropositionalFormula<T> of(PropositionalFormula<T>... operands) {
       return of(Arrays.asList(operands));
     }
 
-    public static <V> Conjunction<V> of(Collection<? extends PropositionalFormula<V>> operands) {
-      return new Conjunction<>(List.copyOf(operands));
+    public static <T> PropositionalFormula<T>
+      of(Collection<? extends PropositionalFormula<T>> conjuncts) {
+
+      var normalisedConjuncts = conjuncts(conjuncts);
+
+      switch (normalisedConjuncts.size()) {
+        case 0:
+          return trueConstant();
+
+        case 1:
+          return normalisedConjuncts.iterator().next();
+
+        default:
+          return new Conjunction<>(List.copyOf(normalisedConjuncts));
+      }
     }
 
     @Override
@@ -137,25 +148,7 @@ public abstract class PropositionalFormula<T> {
     @Override
     protected PropositionalFormula<T> nnf(boolean negated) {
       var nnfOperands = mapOperands(operand -> operand.nnf(negated));
-      return negated ? new Disjunction<>(nnfOperands) : new Conjunction<>(nnfOperands);
-    }
-
-    @Override
-    public PropositionalFormula<T> normalise() {
-      var normalisedConjuncts = new LinkedHashSet<>(conjuncts(conjuncts.stream()
-        .map(PropositionalFormula::normalise)
-        .collect(Collectors.toUnmodifiableList())));
-
-      switch (normalisedConjuncts.size()) {
-        case 0:
-          return trueConstant();
-
-        case 1:
-          return normalisedConjuncts.iterator().next();
-
-        default:
-          return Conjunction.of(normalisedConjuncts);
-      }
+      return negated ? Disjunction.of(nnfOperands) : Conjunction.of(nnfOperands);
     }
 
     @Override
@@ -211,13 +204,13 @@ public abstract class PropositionalFormula<T> {
     @Override
     public PropositionalFormula<T> substitute(
       Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
-      return new Conjunction<>(mapOperands(x -> x.substitute(substitution)));
+      return Conjunction.of(mapOperands(x -> x.substitute(substitution)));
     }
 
     @Override
     public <S> PropositionalFormula<S> substituteTo(
       Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
-      return new Conjunction<S>(mapOperands(x -> x.<S>substituteTo(substitutions)));
+      return Conjunction.of((mapOperands(x -> x.substituteTo(substitutions))));
     }
 
     @Override
@@ -245,17 +238,30 @@ public abstract class PropositionalFormula<T> {
     }
 
     @SafeVarargs
-    public static <T> Disjunction<T> of(T... operands) {
+    public static <T> PropositionalFormula<T> of(T... operands) {
       return of(Arrays.stream(operands).map(Variable::of).collect(Collectors.toUnmodifiableList()));
     }
 
     @SafeVarargs
-    public static <T> Disjunction<T> of(PropositionalFormula<T>... operands) {
+    public static <T> PropositionalFormula<T> of(PropositionalFormula<T>... operands) {
       return of(List.of(operands));
     }
 
-    public static <T> Disjunction<T> of(Collection<? extends PropositionalFormula<T>> disjuncts) {
-      return new Disjunction<>(List.copyOf(disjuncts));
+    public static <T> PropositionalFormula<T>
+      of(Collection<? extends PropositionalFormula<T>> disjuncts) {
+
+      var normalisedDisjuncts = disjuncts(disjuncts);
+
+      switch (normalisedDisjuncts.size()) {
+        case 0:
+          return falseConstant();
+
+        case 1:
+          return normalisedDisjuncts.iterator().next();
+
+        default:
+          return new Disjunction<>(List.copyOf(normalisedDisjuncts));
+      }
     }
 
     @Override
@@ -266,24 +272,7 @@ public abstract class PropositionalFormula<T> {
     @Override
     protected PropositionalFormula<T> nnf(boolean negated) {
       var nnfOperands = mapOperands(operand -> operand.nnf(negated));
-      return negated ? new Conjunction<>(nnfOperands) : new Disjunction<>(nnfOperands);
-    }
-
-    public PropositionalFormula<T> normalise() {
-      var normalisedDisjuncts = new LinkedHashSet<>(disjuncts(disjuncts.stream()
-        .map(PropositionalFormula::normalise)
-        .collect(Collectors.toList())));
-
-      switch (normalisedDisjuncts.size()) {
-        case 0:
-          return falseConstant();
-
-        case 1:
-          return normalisedDisjuncts.iterator().next();
-
-        default:
-          return Disjunction.of(normalisedDisjuncts);
-      }
+      return negated ? Conjunction.of(nnfOperands) : Disjunction.of(nnfOperands);
     }
 
     @Override
@@ -339,13 +328,13 @@ public abstract class PropositionalFormula<T> {
     @Override
     public PropositionalFormula<T> substitute(
       Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
-      return new Disjunction<>(mapOperands(x -> x.substitute(substitution)));
+      return Disjunction.of(mapOperands(x -> x.substitute(substitution)));
     }
 
     @Override
     public <S> PropositionalFormula<S> substituteTo(
       Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
-      return new Disjunction<S>(mapOperands(x -> x.substituteTo(substitutions)));
+      return Disjunction.of(mapOperands(x -> x.substituteTo(substitutions)));
     }
 
     @Override
@@ -371,31 +360,25 @@ public abstract class PropositionalFormula<T> {
       this.operand = operand;
     }
 
-    public static <T> Negation<T> of(PropositionalFormula<T> operand) {
+    public static <T> PropositionalFormula<T> of(PropositionalFormula<T> operand) {
+      if (operand.isTrue()) {
+        return falseConstant();
+      }
+
+      if (operand.isFalse()) {
+        return trueConstant();
+      }
+
+      if (operand instanceof Negation) {
+        return ((Negation<T>) operand).operand;
+      }
+
       return new Negation<>(operand);
     }
 
     @Override
     protected PropositionalFormula<T> nnf(boolean negated) {
       return operand.nnf(!negated);
-    }
-
-    public PropositionalFormula<T> normalise() {
-      var normalisedOperand = operand.normalise();
-
-      if (normalisedOperand.isTrue()) {
-        return falseConstant();
-      }
-
-      if (normalisedOperand.isFalse()) {
-        return trueConstant();
-      }
-
-      if (normalisedOperand instanceof Negation) {
-        return ((Negation<T>) normalisedOperand).operand;
-      }
-
-      return new Negation<>(normalisedOperand);
     }
 
     @Override
@@ -452,13 +435,13 @@ public abstract class PropositionalFormula<T> {
     @Override
     public PropositionalFormula<T> substitute(
       Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
-      return new Negation<>(operand.substitute(substitution));
+      return Negation.of(operand.substitute(substitution));
     }
 
     @Override
     public <S> PropositionalFormula<S> substituteTo(
       Function<? super T, ? extends PropositionalFormula<S>> substitutions) {
-      return new Negation<>(operand.substituteTo(substitutions));
+      return Negation.of(operand.substituteTo(substitutions));
     }
 
     @Override
@@ -516,11 +499,6 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public PropositionalFormula<T> normalise() {
-      return this;
-    }
-
-    @Override
     public PropositionalFormula<T> substitute(
       Function<? super T, Optional<? extends PropositionalFormula<T>>> substitution) {
       var replacement = substitution.apply(variable);
@@ -549,15 +527,15 @@ public abstract class PropositionalFormula<T> {
     }
   }
 
-  public static <T> List<PropositionalFormula<T>> conjuncts(PropositionalFormula<T> formula) {
+  public static <T> Set<PropositionalFormula<T>> conjuncts(PropositionalFormula<T> formula) {
     return conjuncts(List.of(formula));
   }
 
-  public static <T> List<PropositionalFormula<T>> conjuncts(
+  public static <T> Set<PropositionalFormula<T>> conjuncts(
     Collection<? extends PropositionalFormula<T>> formula) {
 
     Deque<PropositionalFormula<T>> todo = new ArrayDeque<>(formula);
-    List<PropositionalFormula<T>> conjuncts = new ArrayList<>();
+    LinkedHashSet<PropositionalFormula<T>> conjuncts = new LinkedHashSet<>();
 
     while (!todo.isEmpty()) {
       var element = todo.removeFirst();
@@ -568,7 +546,7 @@ public abstract class PropositionalFormula<T> {
         var disjunction = (Disjunction<T>) element;
 
         if (disjunction.disjuncts.isEmpty()) {
-          return List.of(falseConstant());
+          return Set.of(falseConstant());
         } else {
           conjuncts.add(element);
         }
@@ -580,15 +558,15 @@ public abstract class PropositionalFormula<T> {
     return conjuncts;
   }
 
-  public static <T> List<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
+  public static <T> Set<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
     return disjuncts(List.of(formula));
   }
 
-  public static <T> List<PropositionalFormula<T>> disjuncts(
+  public static <T> Set<PropositionalFormula<T>> disjuncts(
     Collection<? extends PropositionalFormula<T>> formulas) {
 
     Deque<PropositionalFormula<T>> todo = new ArrayDeque<>(formulas);
-    List<PropositionalFormula<T>> disjuncts = new ArrayList<>();
+    LinkedHashSet<PropositionalFormula<T>> disjuncts = new LinkedHashSet<>();
 
     while (!todo.isEmpty()) {
       var element = todo.removeFirst();
@@ -599,7 +577,7 @@ public abstract class PropositionalFormula<T> {
         var conjunction = (Conjunction<T>) element;
 
         if (conjunction.conjuncts.isEmpty()) {
-          return List.of(trueConstant());
+          return Set.of(trueConstant());
         } else {
           disjuncts.add(element);
         }

@@ -143,7 +143,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     var atomicProposition = Variable.of(bdd.variable(node));
     return Disjunction.of(
       Conjunction.of(atomicProposition, toExpression(bdd.high(node))),
-      Conjunction.of(Negation.of(atomicProposition), toExpression(bdd.low(node)))).normalise();
+      Conjunction.of(Negation.of(atomicProposition), toExpression(bdd.low(node))));
   }
 
   private int variableNode(int variable) {

@@ -31,6 +31,7 @@ import com.google.common.primitives.ImmutableIntArray;
 import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.HashMap;
@@ -171,7 +172,7 @@ public final class ZielonkaTreeTransformations {
         PropositionalFormula<Integer>, PropositionalFormula<Integer>, ConditionalZielonkaTree>
         cachedConditionalZielonkaTrees = HashBasedTable.create();
 
-      private ZielonkaTree zielonkaTree(S state) {
+      private ZielonkaTree zielonkaTree(S state, Set<S> exploredStates) {
         ZielonkaTree zielonkaTree = zielonkaTrees.get(state);
 
         // We have seen this state before and selected a Zielonka Tree variant.
@@ -179,7 +180,7 @@ public final class ZielonkaTreeTransformations {
           return zielonkaTree;
         }
 
-        Set<S> boundedSccExploration = boundedSccExploration(state);
+        Set<S> boundedSccExploration = boundedSccExploration(state, exploredStates);
         assert Collections.disjoint(zielonkaTrees.keySet(), boundedSccExploration);
 
         // The bounded search failed to identify a complete SCC. The forest falls back to a
@@ -235,17 +236,18 @@ public final class ZielonkaTreeTransformations {
       }
 
       // Returns an empty set if budget was exceeded and the search failed.
-      private Set<S> boundedSccExploration(S initialState) {
+      private Set<S> boundedSccExploration(S initialState, Set<S> exploredStates) {
         Deque<S> workList = new ArrayDeque<>();
         workList.add(initialState);
         Set<S> visitedStates = new HashSet<>();
         visitedStates.add(initialState);
+        exploredStates.add(initialState);
 
         int budget = lookahead.orElse(Integer.MAX_VALUE);
 
         while (!workList.isEmpty()) {
           // We looked at too many states and exceeded our budget.
-          if (visitedStates.size() > budget) {
+          if (exploredStates.size() > budget) {
             return Set.of();
           }
 
@@ -277,6 +279,7 @@ public final class ZielonkaTreeTransformations {
             assert zielonkaTree == null;
 
             if (visitedStates.add(successor)) {
+              exploredStates.add(successor);
               workList.add(successor);
             }
           }
@@ -289,7 +292,7 @@ public final class ZielonkaTreeTransformations {
       }
 
       private ExtendedState<S, Path> initialState(S initialState) {
-        var stateTree = zielonkaTree(initialState);
+        var stateTree = zielonkaTree(initialState, new HashSet<>());
 
         @SuppressWarnings("unchecked")
         var initialPath = stateTree instanceof AlternatingCycleDecomposition
@@ -326,10 +329,11 @@ public final class ZielonkaTreeTransformations {
         return Path.of(initialPathBuilder.build());
       }
 
-      private Edge<ExtendedState<S, Path>> edge(ExtendedState<S, Path> state, Edge<S> edge) {
+      private Edge<ExtendedState<S, Path>> edge(
+        ExtendedState<S, Path> state, Edge<S> edge, Set<S> exploredStates) {
 
-        var stateTree = zielonkaTree(state.state());
-        var successorTree = zielonkaTree(edge.successor());
+        var stateTree = zielonkaTree(state.state(), exploredStates);
+        var successorTree = zielonkaTree(edge.successor(), exploredStates);
 
         var path = stateTree.equals(successorTree)
           ? state.extension()
@@ -515,9 +519,12 @@ public final class ZielonkaTreeTransformations {
       protected MtBdd<Edge<ExtendedState<S, Path>>> edgeTreeImpl(ExtendedState<S, Path> state) {
         exploredStates.add(state.state());
 
+        Set<S> localExploredStates = new HashSet<>();
+
         return automaton
           .edgeTree(state.state())
-          .map(edges -> Collections3.transformSet(edges, edge -> forest.edge(state, edge)));
+          .map(edges -> Collections3.transformSet(edges,
+            edge -> forest.edge(state, edge, localExploredStates)));
       }
 
       @Override
@@ -591,10 +598,13 @@ public final class ZielonkaTreeTransformations {
       ImmutableBitSet colours,
       Map<S, Set<Edge<S>>> edges) {
 
-      var children = childrenOf(alpha, colours, edges)
-        .stream()
-        .map(x -> of(alpha, x.fst(), x.snd()))
-        .collect(Collectors.toUnmodifiableList());
+      List<AlternatingCycleDecomposition<S>> childrenBuilder = new ArrayList<>();
+
+      for (Pair<ImmutableBitSet, Map<S, Set<Edge<S>>>> x : childrenOf(alpha, colours, edges)) {
+        childrenBuilder.add(of(alpha, x.fst(), x.snd()));
+      }
+
+      var children = List.copyOf(childrenBuilder);
 
       return new AutoValue_ZielonkaTreeTransformations_AlternatingCycleDecomposition<>(
         colours, edges, children, height(children));
@@ -641,11 +651,18 @@ public final class ZielonkaTreeTransformations {
           Map<S, Set<Edge<S>>> childEdges = new HashMap<>(edges.size());
 
           for (S childSccState : childScc) {
-            var newFilteredEdges = new HashSet<>(edges.get(childSccState));
-            newFilteredEdges.removeIf(edge -> !childScc.contains(edge.successor())
-              || !childColours.containsAll(edge.colours()));
+            var newFilteredEdges = new ArrayList<>(edges.get(childSccState).size());
+
+            for (Edge<S> edge : edges.get(childSccState)) {
+              if (childScc.contains(edge.successor()) && childColours.containsAll(edge.colours())) {
+                newFilteredEdges.add(edge);
+              }
+            }
+
             assert !newFilteredEdges.isEmpty();
-            childEdges.put(childSccState, Set.copyOf(newFilteredEdges));
+            @SuppressWarnings({"unchecked", "unused"})
+            var unused
+              = childEdges.put(childSccState, Set.of(newFilteredEdges.toArray(Edge[]::new)));
           }
 
           childEdges = Map.copyOf(childEdges);
@@ -668,16 +685,13 @@ public final class ZielonkaTreeTransformations {
         (pair1, pair2) -> isSubsetEq(pair1.snd(), pair2.snd()));
     }
 
-    private static <S> boolean isSubsetEq(Map<S, Set<Edge<S>>> edge1,
-      Map<S, Set<Edge<S>>> edge2) {
+    private static <S> boolean isSubsetEq(
+      Map<S, Set<Edge<S>>> edge1, Map<S, Set<Edge<S>>> edge2) {
+
       for (Map.Entry<S, Set<Edge<S>>> entry : edge1.entrySet()) {
         var value2 = edge2.get(entry.getKey());
 
-        if (value2 == null) {
-          return false;
-        }
-
-        if (!value2.containsAll(entry.getValue())) {
+        if (value2 == null || !value2.containsAll(entry.getValue())) {
           return false;
         }
       }
@@ -693,7 +707,7 @@ public final class ZielonkaTreeTransformations {
         colours(), edges(), List.copyOf(qChildren), height(qChildren));
     }
 
-    private static <S> boolean isClosed(Map<S, Set<Edge<S>>> edges) {
+    private static <S> boolean isClosed(Map<S, ? extends Collection<Edge<S>>> edges) {
       return edges.values().stream()
         .flatMap(x -> x.stream().map(Edge::successor))
         .allMatch(edges::containsKey);

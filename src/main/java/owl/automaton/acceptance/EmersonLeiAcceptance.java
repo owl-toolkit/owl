@@ -61,7 +61,7 @@ public class EmersonLeiAcceptance {
    * @return the acceptance condition.
    */
   public static EmersonLeiAcceptance of(PropositionalFormula<Integer> expression) {
-    var normalisedExpression = expression.nnf().normalise();
+    var normalisedExpression = expression.nnf();
 
     if (Solver.model(normalisedExpression).isEmpty()) {
       return new EmersonLeiAcceptance(0, PropositionalFormula.falseConstant());

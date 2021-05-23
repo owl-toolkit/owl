@@ -23,7 +23,6 @@ import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
-import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -288,72 +287,7 @@ public final class MtBddOperations {
     return cartesianProduct;
   }
 
-  public static <K, T, R> MtBdd<R> uncachedNaryCartesianProduct(
-    Map<? extends K, ? extends MtBdd<T>> trees,
-    Function<Collection<Map.Entry<K, T>>, R> mapper) {
 
-    List<K> lookup = new ArrayList<>(trees.size());
-    List<MtBdd<T>> treesNew = new ArrayList<>(trees.size());
-
-    trees.forEach((k, t) -> {
-      lookup.add(k);
-      treesNew.add(t);
-    });
-
-    return naryCartesianProduct(treesNew, mapper, lookup, new HashMap<>());
-  }
-
-  private static <K, T, R> MtBdd<R> naryCartesianProduct(
-    List<MtBdd<T>> trees,
-    Function<Collection<Map.Entry<K, T>>, R> mapper,
-    List<? extends K> lookup,
-    Map<Collection<Map.Entry<K, T>>, R> mapperCache) {
-
-    int variable = nextVariable(trees);
-
-    if (variable == Integer.MAX_VALUE) {
-      Set<R> elements = new HashSet<>();
-      List<List<Map.Entry<K, T>>> values = new ArrayList<>(trees.size());
-
-      for (int i = 0, s = lookup.size(); i < s; i++) {
-        var x = trees.get(i);
-        var key = lookup.get(i);
-        assert x instanceof MtBdd.Leaf;
-        MtBdd.Leaf<T> casted = (MtBdd.Leaf<T>) x;
-
-        List<Map.Entry<K, T>> z = new ArrayList<>(casted.value.size());
-
-        for (var y : casted.value) {
-          z.add(Map.entry(key, y));
-        }
-
-        values.add(z);
-      }
-
-      for (List<Map.Entry<K, T>> values2 : Lists.cartesianProduct(values)) {
-        var listCopy = List.copyOf(values2);
-        R element = mapperCache.computeIfAbsent(listCopy, mapper::apply);
-
-        if (element != null) {
-          elements.add(element);
-        }
-      }
-
-      return MtBdd.of(elements);
-    }
-
-    var falseTrees = new ArrayList<>(trees);
-    falseTrees.replaceAll(x -> descendFalseIf(x, variable));
-    var falseCartesianProduct
-      = naryCartesianProduct(falseTrees, mapper, lookup, mapperCache);
-
-    var trueTrees = new ArrayList<>(trees);
-    trueTrees.replaceAll(x -> descendTrueIf(x, variable));
-    var trueCartesianProduct
-      = naryCartesianProduct(trueTrees, mapper, lookup, mapperCache);
-
-    return MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
-  }
 
   private static <E> MtBdd<E> union(MtBdd<E> tree1, MtBdd<E> tree2,
     Map<Set<?>, MtBdd<E>> memoizedCalls) {
