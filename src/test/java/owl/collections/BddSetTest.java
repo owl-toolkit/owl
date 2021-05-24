@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
@@ -226,6 +227,7 @@ public abstract class BddSetTest {
     });
   }
 
+  @Tag("performance")
   @Test
   void testIteratorPerformance() {
     BddSetFactory factory = factory();
