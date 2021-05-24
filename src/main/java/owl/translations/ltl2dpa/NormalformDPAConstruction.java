@@ -19,19 +19,32 @@
 
 package owl.translations.ltl2dpa;
 
+import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.Path;
+import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaTree;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.transform;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.State;
 
+import com.google.common.primitives.ImmutableIntArray;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
+import java.util.Map;
 import java.util.OptionalInt;
+import java.util.Set;
 import java.util.function.Function;
+import java.util.function.ToDoubleFunction;
 import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
+import owl.automaton.edge.Edge;
+import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
+import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierTransformer;
 import owl.run.modules.InputReaders;
@@ -39,6 +52,7 @@ import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
 import owl.run.parser.PartialConfigurationParser;
 import owl.run.parser.PartialModuleConfiguration;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 
 public final class NormalformDPAConstruction
@@ -98,5 +112,144 @@ public final class NormalformDPAConstruction
       State::inDifferentSccs,
       delwConstruction::alpha,
       delwConstruction::beta);
+  }
+
+  // [0, 1, 2, 3, ...] -> [0.5, 0.25, 0.125, ...]
+  private static double scaleLevel(int level) {
+    assert 0 <= level;
+    return Math.pow(2.0d, -(level + 1));
+  }
+
+  private static double approximateTrueness(
+    PropositionalFormula<Integer> formula,
+    Map<Integer, BreakpointStateRejecting> stateMap,
+    BitSet processedStates) {
+
+    if (formula instanceof PropositionalFormula.Variable) {
+      int index = ((PropositionalFormula.Variable<Integer>) formula).variable;
+
+      // Do not contribute.
+      if (processedStates.get(index)) {
+        return 0.5d;
+      }
+
+      return stateMap.get(index).all().trueness();
+    }
+
+    if (formula instanceof PropositionalFormula.Negation) {
+      return 1.0d - approximateTrueness(
+        ((PropositionalFormula.Negation<Integer>) formula).operand, stateMap, processedStates);
+    }
+
+    if (formula instanceof PropositionalFormula.Biconditional) {
+      var castedFormula = (PropositionalFormula.Biconditional<Integer>) formula;
+
+      return Math.abs(
+        approximateTrueness(castedFormula.leftOperand, stateMap, processedStates)
+          - approximateTrueness(castedFormula.rightOperand, stateMap, processedStates)
+      );
+    }
+
+    if (formula instanceof PropositionalFormula.Conjunction) {
+      var castedFormula = (PropositionalFormula.Conjunction<Integer>) formula;
+
+      double trueness = 1.0d;
+
+      for (var conjunct : castedFormula.conjuncts) {
+        trueness = Math.min(trueness, approximateTrueness(conjunct, stateMap, processedStates));
+      }
+
+      return trueness;
+    }
+
+    assert formula instanceof PropositionalFormula.Disjunction;
+
+    var castedFormula = (PropositionalFormula.Disjunction<Integer>) formula;
+
+    double trueness = 0.0d;
+
+    for (var disjunct : castedFormula.disjuncts) {
+      trueness = Math.max(trueness, approximateTrueness(disjunct, stateMap, processedStates));
+    }
+
+    return trueness;
+  }
+
+  public static ToDoubleFunction<Edge<ExtendedState<State, Path>>> scoringFunction(
+    AutomatonWithZielonkaTreeLookup<ExtendedState<State, Path>, ParityAcceptance> automaton) {
+
+    return edge -> {
+      ExtendedState<State, Path> successor = edge.successor();
+      ZielonkaTree tree = automaton.lookup(successor);
+
+      // We compute the colours of the path to the current leaf.
+      List<ImmutableBitSet> colours = new ArrayList<>();
+
+      {
+        ImmutableIntArray path = successor.extension().indices();
+        ZielonkaTree node = tree;
+
+        int i = node instanceof ZielonkaTreeTransformations.AlternatingCycleDecomposition ? 1 : 0;
+
+        for (int s = path.length(); i <= s; i++) {
+          colours.add(node.colours());
+
+          if (i < s) {
+            node = node.children().get(path.get(i));
+          }
+        }
+
+        // The tree is trivial...
+        if (colours.size() <= 1) {
+          colours.clear();
+        }
+      }
+
+      // The score is computed as follows:
+      // - for each level we compute a local score that is discounted by the level (2^-(i+1))
+      // - the local score takes the minimal height one can achieve, again discounted.
+      double score = 0.0d;
+      BitSet processedStates = new BitSet();
+
+      // Process components relevant to the Zielonka-tree.
+      {
+        for (int i = 0, s = colours.size(); i < s - 1; i++) {
+          Set<Integer> activeColours = BitSet2.asSet(colours.get(i).copyInto(new BitSet()));
+          activeColours.removeAll(colours.get(i + 1));
+
+          double nextBuechiEvent = 0.0d;
+
+          for (int activeColour : activeColours) {
+            var dbwState = successor.state().stateMap().get(activeColour);
+            processedStates.set(activeColour);
+
+            // TODO: access round-robin information to find other chained state components.
+            if (!dbwState.isSuspended()) {
+              nextBuechiEvent = Math.max(nextBuechiEvent, dbwState.rejecting().trueness());
+            }
+          }
+
+          score = score + scaleLevel(i) * nextBuechiEvent;
+        }
+      }
+
+      // Process components irrelevant to the Zielonka-tree.
+      {
+        double trueness = approximateTrueness(
+          successor.state().stateFormula(),
+          successor.state().stateMap(),
+          processedStates);
+
+        double nextEvent = 2.0d * Math.abs(trueness - 0.5d);
+
+        assert colours.size() != 1;
+        score = colours.isEmpty() ? nextEvent : score + scaleLevel(colours.size() - 1) * nextEvent;
+      }
+
+      assert 0.0d <= score;
+      assert score <= 1.1d; // allow some slack due to rounding.
+
+      return score;
+    };
   }
 }

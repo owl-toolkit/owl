@@ -69,6 +69,7 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
 import owl.bdd.BddSet;
@@ -87,6 +88,7 @@ import owl.translations.canonical.DeterministicConstructions.BreakpointStateAcce
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2dpa.NormalformDPAConstruction;
 
 @CContext(CInterface.CDirectives.class)
 public final class CAutomaton {
@@ -747,13 +749,21 @@ public final class CAutomaton {
         return OptionalInt.of(automaton.acceptance().isAcceptingEdge(edge) ? ACCEPTING : REJECTING);
       };
 
+      ToDoubleFunction<Edge<S>> scoring = x -> 0.5d;
+
+      // Inject scoring if the automaton is known.
+      if (automaton instanceof ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup) {
+        scoring = NormalformDPAConstruction.scoringFunction(
+          (ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup) automaton);
+      }
+
       return new DeterministicAutomatonWrapper<>(
         automaton,
         Acceptance.fromOmegaAcceptance(automaton.acceptance()),
         null,
         sinkDetection,
         Function.identity(),
-        x -> 0.5d,
+        scoring,
         uncontrollableApSize,
         null,
         null

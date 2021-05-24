@@ -62,6 +62,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -330,6 +331,64 @@ public class CAutomatonTest {
       .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.REJECTING));
   }
 
+  @Test
+  public void testScoringZielonkaConstruction() {
+    var translationAcd = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA
+      .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
+
+    var translationZlk = LtlToDpaTranslation.UNPUBLISHED_ZIELONKA
+      .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0));
+
+    var automatonAcd1 = translationAcd.apply(LtlParser.parse("G F (a & X X a) | F G (b | X X b)"));
+    var cAutomatonAcd1 = CAutomaton.DeterministicAutomatonWrapper.of(automatonAcd1, -1);
+
+    assertEquals(
+      Set.of(0.562_5d, 0.609_375d, 0.468_75d, 0.515_625d),
+      Arrays.stream(cAutomatonAcd1.edgeTree(0, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+
+    var automatonZlk1 = translationZlk.apply(LtlParser.parse("G F (a & X X a) | F G (b | X X b)"));
+    var cAutomatonZlk1 = CAutomaton.DeterministicAutomatonWrapper.of(automatonZlk1, -1);
+
+    assertEquals(
+      Set.of(0.562_5d, 0.609_375d, 0.468_75d, 0.515_625d),
+      Arrays.stream(cAutomatonZlk1.edgeTree(0, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+
+    var automatonAcd2 = translationAcd.apply(LtlParser.parse("a | X b"));
+    var cAutomatonAcd2 = CAutomaton.DeterministicAutomatonWrapper.of(automatonAcd2, -1);
+
+    assertEquals(
+      Set.of(0.0d, 1.0d),
+      Arrays.stream(cAutomatonAcd2.edgeTree(0, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+
+    var automatonZlk2 = translationAcd.apply(LtlParser.parse("F (a & X a & X X a)"));
+    var cAutomatonZlk2 = CAutomaton.DeterministicAutomatonWrapper.of(automatonZlk2, -1);
+
+    assertEquals(
+      Set.of(0.125d, 0.25d),
+      Arrays.stream(cAutomatonZlk2.edgeTree(0, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+
+    assertEquals(
+      Set.of(0.125d, 0.5d),
+      Arrays.stream(cAutomatonZlk2.edgeTree(1, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+
+    var automatonZlk3 = translationAcd.apply(LtlParser.parse("F (a & X a & X X a) | G F b"));
+    var cAutomatonZlk3 = CAutomaton.DeterministicAutomatonWrapper.of(automatonZlk3, -1);
+
+    assertEquals(
+      Set.of(0.445_312_5d, 0.453_125d),
+      Arrays.stream(cAutomatonZlk3.edgeTree(0, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+
+    assertEquals(
+      Set.of(0.445_312_5d, 0.468_75d),
+      Arrays.stream(cAutomatonZlk3.edgeTree(1, true).scores.toArray()).boxed()
+        .collect(Collectors.toUnmodifiableSet()));
+  }
 
   private static class FeatureDeserializer implements JsonDeserializer<Feature> {
 

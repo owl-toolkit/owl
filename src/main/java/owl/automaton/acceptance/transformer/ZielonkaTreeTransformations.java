@@ -47,11 +47,13 @@ import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
+import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
@@ -143,12 +145,13 @@ public final class ZielonkaTreeTransformations {
   }
 
   // TODO: it might be the case that depending on the iteration order the sizes are different.
-  public static <S> Automaton<ExtendedState<S, Path>, ParityAcceptance> transform(
-    Automaton<S, ?> uncachedAutomaton,
-    OptionalInt lookahead,
-    BiPredicate<S, S> sccChange,
-    Function<S, ? extends PropositionalFormula<Integer>> localAlpha,
-    Function<S, ? extends PropositionalFormula<Integer>> localBeta) {
+  public static <S> AutomatonWithZielonkaTreeLookup<ExtendedState<S, Path>, ParityAcceptance>
+    transform(
+      Automaton<S, ?> uncachedAutomaton,
+      OptionalInt lookahead,
+      BiPredicate<S, S> sccChange,
+      Function<S, ? extends PropositionalFormula<Integer>> localAlpha,
+      Function<S, ? extends PropositionalFormula<Integer>> localBeta) {
 
     // Pass automaton through caching mechanism to guarantee fast retrieval after first computation.
     var automaton = AbstractMemoizingAutomaton.memoizingAutomaton(uncachedAutomaton);
@@ -507,13 +510,24 @@ public final class ZielonkaTreeTransformations {
       .collect(Collectors.toUnmodifiableSet());
 
     // Each level of a Zielonka tree removes at least one acceptance set. We add +1 to allow for
-    // shifting the coulours depending on acceptance of the Zielonka root.
+    // shifting the colours depending on acceptance of the Zielonka root.
     var acceptance = new ParityAcceptance(automaton.acceptance().acceptanceSets() + 2, MIN_EVEN);
 
-    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.atomicPropositions(), automaton.factory(), initialStates, acceptance) {
+    class AutomatonWithZielonkaTreeLookupImpl
+      extends AbstractMemoizingAutomaton
+        .EdgeTreeImplementation<ExtendedState<S, Path>, ParityAcceptance>
+      implements AutomatonWithZielonkaTreeLookup<ExtendedState<S, Path>, ParityAcceptance> {
 
       private final Set<S> exploredStates = new HashSet<>();
+
+      private AutomatonWithZielonkaTreeLookupImpl(
+        List<String> atomicPropositions,
+        BddSetFactory factory,
+        Set<ExtendedState<S, Path>> initialStates,
+        ParityAcceptance acceptance) {
+
+        super(atomicPropositions, factory, initialStates, acceptance);
+      }
 
       @Override
       protected MtBdd<Edge<ExtendedState<S, Path>>> edgeTreeImpl(ExtendedState<S, Path> state) {
@@ -531,7 +545,26 @@ public final class ZielonkaTreeTransformations {
       public boolean edgeTreePrecomputed(ExtendedState<S, Path> state) {
         return exploredStates.contains(state.state());
       }
-    };
+
+      @Override
+      public ZielonkaTree lookup(ExtendedState<S, Path> state) {
+        return forest.zielonkaTrees.get(state.state());
+      }
+    }
+
+    return new AutomatonWithZielonkaTreeLookupImpl(
+      automaton.atomicPropositions(), automaton.factory(), initialStates, acceptance);
+  }
+
+  public interface ZielonkaTreeLookup<S> {
+
+    ZielonkaTree lookup(S state);
+
+  }
+
+  public interface AutomatonWithZielonkaTreeLookup<S, A extends EmersonLeiAcceptance>
+    extends Automaton<S, A>, ZielonkaTreeLookup<S> {
+
   }
 
   public interface ZielonkaTree {
