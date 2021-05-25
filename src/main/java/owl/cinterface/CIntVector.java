@@ -27,7 +27,7 @@ import org.graalvm.word.PointerBase;
 
 @CContext(CInterface.CDirectives.class)
 @CStruct("vector_int_t")
-interface CIntVector extends PointerBase {
+public interface CIntVector extends PointerBase {
 
   @CField
   CIntPointer elements();

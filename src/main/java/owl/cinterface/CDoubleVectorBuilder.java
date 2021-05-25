@@ -32,13 +32,17 @@ public final class CDoubleVectorBuilder {
   private int size;
 
   public CDoubleVectorBuilder() {
+    this(64);
+  }
+
+  public CDoubleVectorBuilder(int initialCapacity) {
     this.size = 0;
-    this.elements = UnmanagedMemory.mallocCDoublePointer(64);
-    this.capacity = 64;
+    this.elements = UnmanagedMemory.mallocCDoublePointer(initialCapacity);
+    this.capacity = initialCapacity;
   }
 
   public void add(double value) {
-    grow(size + 1);
+    ensureCapacity(size + 1);
     elements.write(size, value);
     size = size + 1;
   }
@@ -62,7 +66,9 @@ public final class CDoubleVectorBuilder {
       throw new IllegalStateException("already moved");
     }
 
-    cDoubleVector.elements(UnmanagedMemory.reallocCDoublePointer(elements, size));
+    cDoubleVector.elements(size == capacity
+      ? elements
+      : UnmanagedMemory.reallocCDoublePointer(elements, size));
     cDoubleVector.size(size);
 
     elements = WordFactory.nullPointer();
@@ -85,7 +91,7 @@ public final class CDoubleVectorBuilder {
     return Arrays.toString(toArray());
   }
 
-  private void grow(int minCapacity) {
+  private void ensureCapacity(int minCapacity) {
     if (capacity >= minCapacity) {
       return;
     }

@@ -75,6 +75,8 @@ public abstract class PropositionalFormula<T> {
     return (PropositionalFormula<V>) FALSE;
   }
 
+  public abstract int height();
+
   public boolean isFalse() {
     return this.equals(FALSE);
   }
@@ -186,6 +188,11 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    public int height() {
+      return Math.max(leftOperand.height(), rightOperand.height()) + 1;
+    }
+
+    @Override
     public boolean equals(Object o) {
       if (this == o) {
         return true;
@@ -274,6 +281,17 @@ public abstract class PropositionalFormula<T> {
     public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
       return Conjunction.of(
         conjuncts.stream().map(x -> x.map(mapper)).collect(Collectors.toUnmodifiableList()));
+    }
+
+    @Override
+    public int height() {
+      int height = 0;
+
+      for (var conjunct : conjuncts) {
+        height = Math.max(height, conjunct.height() + 1);
+      }
+
+      return height;
     }
 
     @Override
@@ -393,6 +411,17 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    public int height() {
+      int height = 0;
+
+      for (var disjunct : disjuncts) {
+        height = Math.max(height, disjunct.height() + 1);
+      }
+
+      return height;
+    }
+
+    @Override
     public boolean equals(Object obj) {
       if (!(obj instanceof PropositionalFormula.Disjunction)) {
         return false;
@@ -489,6 +518,11 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
+    public int height() {
+      return operand.height() + 1;
+    }
+
+    @Override
     public boolean equals(Object obj) {
       if (!(obj instanceof Negation)) {
         return false;
@@ -541,6 +575,11 @@ public abstract class PropositionalFormula<T> {
     @Override
     public <R> PropositionalFormula<R> map(Function<? super T, R> mapper) {
       return Variable.of(mapper.apply(variable));
+    }
+
+    @Override
+    public int height() {
+      return 1;
     }
 
     @Override

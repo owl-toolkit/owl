@@ -253,7 +253,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
       x -> x.values().stream().allMatch(y -> y.size() <= 1));
   }
 
-  public boolean edgeTreePrecomputed(S state) {
+  boolean edgeTreePrecomputed(S state) {
     return memoizedEdgeTrees.containsKey(state);
   }
 

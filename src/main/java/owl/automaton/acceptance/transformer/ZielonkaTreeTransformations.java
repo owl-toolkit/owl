@@ -45,12 +45,12 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
+import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
-import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
@@ -123,14 +123,14 @@ public final class ZielonkaTreeTransformations {
       OutputWriters.HOA_OUTPUT_MODULE));
   }
 
-  public static <S> Automaton<ExtendedState<S, Path>, ParityAcceptance>
+  public static <S> Automaton<ZielonkaState<S>, ParityAcceptance>
     transform(Automaton<S, ?> automaton) {
 
     return transform(automaton, OptionalInt.empty());
   }
 
   // TODO: this is an internal, testing only method.
-  private static <S> Automaton<ExtendedState<S, Path>, ParityAcceptance>
+  private static <S> Automaton<ZielonkaState<S>, ParityAcceptance>
     transform(Automaton<S, ?> automaton, OptionalInt lookahead) {
 
     var cachedAutomaton = AbstractMemoizingAutomaton.memoizingAutomaton(automaton);
@@ -145,7 +145,7 @@ public final class ZielonkaTreeTransformations {
   }
 
   // TODO: it might be the case that depending on the iteration order the sizes are different.
-  public static <S> AutomatonWithZielonkaTreeLookup<ExtendedState<S, Path>, ParityAcceptance>
+  public static <S> AutomatonWithZielonkaTreeLookup<ZielonkaState<S>, ParityAcceptance>
     transform(
       Automaton<S, ?> uncachedAutomaton,
       OptionalInt lookahead,
@@ -294,7 +294,7 @@ public final class ZielonkaTreeTransformations {
         return visitedStates;
       }
 
-      private ExtendedState<S, Path> initialState(S initialState) {
+      private ZielonkaState<S> initialState(S initialState) {
         var stateTree = zielonkaTree(initialState, new HashSet<>());
 
         @SuppressWarnings("unchecked")
@@ -302,7 +302,7 @@ public final class ZielonkaTreeTransformations {
           ? initialState(initialState, (AlternatingCycleDecomposition<S>) stateTree)
           : initialState(initialState, (ConditionalZielonkaTree) stateTree);
 
-        return ExtendedState.of(initialState, initialPath);
+        return ZielonkaState.of(initialState, initialPath);
       }
 
       private Path initialState(
@@ -332,14 +332,14 @@ public final class ZielonkaTreeTransformations {
         return Path.of(initialPathBuilder.build());
       }
 
-      private Edge<ExtendedState<S, Path>> edge(
-        ExtendedState<S, Path> state, Edge<S> edge, Set<S> exploredStates) {
+      private Edge<ZielonkaState<S>> edge(
+        ZielonkaState<S> state, Edge<S> edge, Set<S> exploredStates) {
 
         var stateTree = zielonkaTree(state.state(), exploredStates);
         var successorTree = zielonkaTree(edge.successor(), exploredStates);
 
         var path = stateTree.equals(successorTree)
-          ? state.extension()
+          ? state.path()
           : Path.of();
 
         @SuppressWarnings("unchecked")
@@ -352,7 +352,7 @@ public final class ZielonkaTreeTransformations {
             : "dangling path";
         }
 
-        return pathEdge.mapSuccessor(x -> ExtendedState.of(edge.successor(), x));
+        return pathEdge.mapSuccessor(x -> ZielonkaState.of(edge.successor(), x));
       }
 
       private Edge<Path> edge(
@@ -514,40 +514,30 @@ public final class ZielonkaTreeTransformations {
     var acceptance = new ParityAcceptance(automaton.acceptance().acceptanceSets() + 2, MIN_EVEN);
 
     class AutomatonWithZielonkaTreeLookupImpl
-      extends AbstractMemoizingAutomaton
-        .EdgeTreeImplementation<ExtendedState<S, Path>, ParityAcceptance>
-      implements AutomatonWithZielonkaTreeLookup<ExtendedState<S, Path>, ParityAcceptance> {
-
-      private final Set<S> exploredStates = new HashSet<>();
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<ZielonkaState<S>, ParityAcceptance>
+      implements AutomatonWithZielonkaTreeLookup<ZielonkaState<S>, ParityAcceptance> {
 
       private AutomatonWithZielonkaTreeLookupImpl(
         List<String> atomicPropositions,
         BddSetFactory factory,
-        Set<ExtendedState<S, Path>> initialStates,
+        Set<ZielonkaState<S>> initialStates,
         ParityAcceptance acceptance) {
 
         super(atomicPropositions, factory, initialStates, acceptance);
       }
 
       @Override
-      protected MtBdd<Edge<ExtendedState<S, Path>>> edgeTreeImpl(ExtendedState<S, Path> state) {
-        exploredStates.add(state.state());
-
-        Set<S> localExploredStates = new HashSet<>();
+      protected MtBdd<Edge<ZielonkaState<S>>> edgeTreeImpl(ZielonkaState<S> state) {
+        Set<S> exploredStates = new HashSet<>();
 
         return automaton
           .edgeTree(state.state())
           .map(edges -> Collections3.transformSet(edges,
-            edge -> forest.edge(state, edge, localExploredStates)));
+            edge -> forest.edge(state, edge, exploredStates)));
       }
 
       @Override
-      public boolean edgeTreePrecomputed(ExtendedState<S, Path> state) {
-        return exploredStates.contains(state.state());
-      }
-
-      @Override
-      public ZielonkaTree lookup(ExtendedState<S, Path> state) {
+      public ZielonkaTree lookup(ZielonkaState<S> state) {
         return forest.zielonkaTrees.get(state.state());
       }
     }
@@ -879,6 +869,18 @@ public final class ZielonkaTreeTransformations {
 
     public static Path of(ImmutableIntArray indices) {
       return INTERNER.intern(new AutoValue_ZielonkaTreeTransformations_Path(indices.trimmed()));
+    }
+  }
+
+  @AutoValue
+  public abstract static class ZielonkaState<S> implements AnnotatedState<S> {
+    @Override
+    public abstract S state();
+
+    public abstract Path path();
+
+    public static <S> ZielonkaState<S> of(S state, Path path) {
+      return new AutoValue_ZielonkaTreeTransformations_ZielonkaState<>(state, path);
     }
   }
 }

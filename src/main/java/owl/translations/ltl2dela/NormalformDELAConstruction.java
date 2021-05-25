@@ -1219,13 +1219,14 @@ public final class NormalformDELAConstruction
 
   @AutoValue
   public abstract static class State {
+
     public abstract PropositionalFormula<Integer> stateFormula();
 
     public abstract Map<Integer, BreakpointStateRejecting> stateMap();
 
     public abstract ImmutableBitSet roundRobinCounters();
 
-    private static State of(
+    public static State of(
       PropositionalFormula<Integer> stateFormula,
       Map<Integer, BreakpointStateRejecting> stateMap,
       BitSet counters) {
@@ -1233,7 +1234,7 @@ public final class NormalformDELAConstruction
       return of(stateFormula, stateMap, ImmutableBitSet.copyOf(counters));
     }
 
-    private static State of(
+    public static State of(
       PropositionalFormula<Integer> stateFormula,
       Map<Integer, BreakpointStateRejecting> stateMap,
       Set<Integer> counters) {

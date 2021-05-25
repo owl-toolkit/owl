@@ -20,7 +20,6 @@
 package owl.translations.ltl2dpa;
 
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
-import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.Path;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaTree;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.transform;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.State;
@@ -39,8 +38,8 @@ import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
-import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
@@ -56,7 +55,7 @@ import owl.translations.canonical.DeterministicConstructions.BreakpointStateReje
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 
 public final class NormalformDPAConstruction
-  implements Function<LabelledFormula, Automaton<ExtendedState<State, Path>, ParityAcceptance>> {
+  implements Function<LabelledFormula, Automaton<ZielonkaState<State>, ParityAcceptance>> {
 
   public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
     "ltl2dpaNormalform",
@@ -103,7 +102,7 @@ public final class NormalformDPAConstruction
   }
 
   @Override
-  public Automaton<ExtendedState<State, Path>, ParityAcceptance> apply(LabelledFormula formula) {
+  public Automaton<ZielonkaState<State>, ParityAcceptance> apply(LabelledFormula formula) {
 
     var delwConstruction = normalformDELAConstruction.applyConstruction(formula);
     return transform(
@@ -175,18 +174,18 @@ public final class NormalformDPAConstruction
     return trueness;
   }
 
-  public static ToDoubleFunction<Edge<ExtendedState<State, Path>>> scoringFunction(
-    AutomatonWithZielonkaTreeLookup<ExtendedState<State, Path>, ParityAcceptance> automaton) {
+  public static ToDoubleFunction<Edge<ZielonkaState<State>>> scoringFunction(
+    AutomatonWithZielonkaTreeLookup<ZielonkaState<State>, ParityAcceptance> automaton) {
 
     return edge -> {
-      ExtendedState<State, Path> successor = edge.successor();
+      ZielonkaState<State> successor = edge.successor();
       ZielonkaTree tree = automaton.lookup(successor);
 
       // We compute the colours of the path to the current leaf.
       List<ImmutableBitSet> colours = new ArrayList<>();
 
       {
-        ImmutableIntArray path = successor.extension().indices();
+        ImmutableIntArray path = successor.path().indices();
         ZielonkaTree node = tree;
 
         int i = node instanceof ZielonkaTreeTransformations.AlternatingCycleDecomposition ? 1 : 0;

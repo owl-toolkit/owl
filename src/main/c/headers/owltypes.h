@@ -75,9 +75,6 @@ typedef enum {
 
   // Use the dual normalisation procedure for the construction of DRWs.
   X_DRA_NORMAL_FORM_USE_DUAL,
-
-  // Use advanced language analysis based on the LTL-labels of a state-formula. Very expensive.
-  X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS
 } ltl_translation_option_t;
 
 // Translations are named after corresponding publications.
@@ -88,5 +85,23 @@ typedef enum {
   SMALLEST_AUTOMATON,
   DEFAULT // Work-around for native-image bug. Do not use this value!
 } ltl_to_dpa_translation_t;
+
+// State layout for 'UNPUBLISHED_ZIELONKA'
+typedef struct {
+  int key;
+  vector_int_t *all_profile;
+  vector_int_t *rejecting_profile;
+  int disambiguation;
+} zielonka_normal_form_state_state_map_entry_t;
+
+// State layout for 'UNPUBLISHED_ZIELONKA'
+typedef struct {
+  int state_formula;
+  zielonka_normal_form_state_state_map_entry_t *state_map;
+  int state_map_size;
+  vector_int_t *round_robin_counters;
+  vector_int_t *zielonka_path;
+} zielonka_normal_form_state_t;
+
 
 #endif
