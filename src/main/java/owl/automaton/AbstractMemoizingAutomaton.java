@@ -25,7 +25,6 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -72,7 +71,6 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   protected final List<String> atomicPropositions;
 
   // Memoization.
-  private final Set<S> unexploredStates;
   private Map<S, MtBdd<Edge<S>>> memoizedEdgeTrees = new HashMap<>();
   private final Map<S, Set<Edge<S>>> memoizedEdges = new HashMap<>();
 
@@ -92,7 +90,9 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     this.atomicPropositions = List.copyOf(atomicPropositions);
     this.initialStates = Set.copyOf(initialStates);
     this.factory = factory;
-    this.unexploredStates = new HashSet<>(this.initialStates);
+
+    // Mark initialStates as unexplored.
+    this.initialStates.forEach(x -> memoizedEdgeTrees.put(x, null));
 
     Preconditions.checkArgument(Collections3.isDistinct(this.atomicPropositions));
   }
@@ -147,8 +147,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     memoizedEdgeTrees.put(state, edgeTree);
 
     // Update the set of unexplored states.
-    edgeTree.flatValues().forEach(x -> unexploredStates.add(x.successor()));
-    unexploredStates.removeAll(memoizedEdgeTrees.keySet());
+    edgeTree.flatValues().forEach(x -> memoizedEdgeTrees.putIfAbsent(x.successor(), null));
     return edgeTree;
   }
 
@@ -216,16 +215,29 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final Set<S> states() {
-    // Explore missing part of the state space.
-    while (!unexploredStates.isEmpty()) {
-      for (Object state : unexploredStates.toArray()) {
-        // Work-around for the inability to generate a type-safe array.
-        @SuppressWarnings({"unchecked", "unused"})
-        var unused = edgeTree((S) state);
-      }
+    // We already explored everything.
+    if (!(memoizedEdgeTrees instanceof HashMap)) {
+      return memoizedEdgeTrees.keySet();
     }
 
-    freezeMemoizedEdges();
+    // Explore missing part of the state space.
+    boolean unexploredStatesExist = true;
+
+    while (unexploredStatesExist) {
+      List<S> unexploredStates = new ArrayList<>();
+
+      // Copy to avoid concurrent modification exception.
+      memoizedEdgeTrees.forEach((state, tree) -> {
+        if (tree == null) {
+          unexploredStates.add(state);
+        }
+      });
+
+      unexploredStatesExist = !unexploredStates.isEmpty();
+      unexploredStates.forEach(this::edgeTree);
+    }
+
+    memoizedEdgeTrees = Map.copyOf(memoizedEdgeTrees);
     freezeMemoizedEdgesNotify();
     return memoizedEdgeTrees.keySet();
   }
@@ -237,11 +249,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     }
 
     // force full exploration.
-    if (!unexploredStates.isEmpty()) {
-      states();
-    }
-
-    assert unexploredStates.isEmpty();
+    states();
 
     if (property == Property.COMPLETE) {
       return memoizedEdgeTrees.values().stream().allMatch(
@@ -254,15 +262,10 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   }
 
   boolean edgeTreePrecomputed(S state) {
-    return memoizedEdgeTrees.containsKey(state);
+    return memoizedEdgeTrees.get(state) != null;
   }
 
   protected abstract MtBdd<Edge<S>> edgeTreeImpl(S state);
-
-  private void freezeMemoizedEdges() {
-    Preconditions.checkState(unexploredStates.isEmpty());
-    memoizedEdgeTrees = Map.copyOf(memoizedEdgeTrees);
-  }
 
   @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
   protected void freezeMemoizedEdgesNotify() {

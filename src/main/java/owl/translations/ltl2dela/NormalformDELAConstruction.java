@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -875,9 +876,23 @@ public final class NormalformDELAConstruction
           ((PropositionalFormula.Conjunction<Integer>) stateFormula).conjuncts.stream()
             .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
             .collect(Collectors.toList()),
-          (x, y) -> isVariableOrNegationOfVariable(x)
-            && isVariableOrNegationOfVariable(y)
-            && language(y, stateMap).implies(language(x, stateMap))));
+          (x, y) -> {
+            if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
+              return false;
+            }
+
+            var xLanguage = language(x, stateMap);
+            var yLanguage = language(y, stateMap);
+
+            // If they don't share temporal operators, don't try to compute language implication.
+            if (Collections.disjoint(
+              xLanguage.temporalOperators(), yLanguage.temporalOperators())) {
+
+              return false;
+            }
+
+            return yLanguage.implies(xLanguage);
+          }));
       }
 
       assert stateFormula instanceof PropositionalFormula.Disjunction;
@@ -886,9 +901,23 @@ public final class NormalformDELAConstruction
         ((PropositionalFormula.Disjunction<Integer>) stateFormula).disjuncts.stream()
           .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
           .collect(Collectors.toList()),
-        (x, y) -> isVariableOrNegationOfVariable(x)
-          && isVariableOrNegationOfVariable(y)
-          && language(x, stateMap).implies(language(y, stateMap))));
+        (x, y) -> {
+          if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
+            return false;
+          }
+
+          var xLanguage = language(x, stateMap);
+          var yLanguage = language(y, stateMap);
+
+          // If they don't share temporal operators, don't try to compute language implication.
+          if (Collections.disjoint(
+            xLanguage.temporalOperators(), yLanguage.temporalOperators())) {
+
+            return false;
+          }
+
+          return xLanguage.implies(yLanguage);
+        }));
     }
 
     private static boolean isVariableOrNegationOfVariable(PropositionalFormula<?> formula) {
@@ -943,6 +972,10 @@ public final class NormalformDELAConstruction
 
           var clazz1 = state1.all();
           var clazz2 = state2.all();
+
+          if (Collections.disjoint(clazz1.temporalOperators(), clazz2.temporalOperators())) {
+            continue;
+          }
 
           if (clazz1.implies(clazz2)) {
             var neg1 = PropositionalFormula.Negation.of(PropositionalFormula.Variable.of(var1));

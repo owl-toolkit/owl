@@ -29,6 +29,7 @@ import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Tag;
+import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -141,21 +142,21 @@ public class UnpublishedZielonkaTreePerformanceTest {
         + " (\"LOCKED\"))))))\n");
 
     // Takes ~1s (warm: ~250 ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(1), () -> {
+    Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ACD.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
     });
 
     // Takes ~1s (warm: ~250ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(1), () -> {
+    Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ZLK.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
     });
 
     // Takes ~1s (warm: ~250ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(1), () -> {
+    Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_MIXED_10.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
@@ -218,6 +219,173 @@ public class UnpublishedZielonkaTreePerformanceTest {
       var automaton = (Automaton<Object, ?>) TRANSLATION_MIXED_10.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
+    });
+  }
+
+  @Tag("performance")
+  @Test
+  void testFullArbiterEnc10() {
+    var formula = LtlParser.parse(
+      "((((((((((((G ((((((((((((((((((((((((((((((((((((true) && (! (\"grant_3\"))) && (! "
+        + "(\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\"))) && (G (! (((((true) && (! "
+        + "(\"request_3\"))) && (! (\"request_2\"))) && (! (\"request_1\"))) && (! "
+        + "(\"request_0\")))))) -> (F (! (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) "
+        + "&& (! (\"grant_1\"))) && (! (\"grant_0\")))))) && (((((((true) && (! (\"grant_3\"))) "
+        + "&& (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\"))) && (X ((! (((((true)"
+        + " && (! (\"request_3\"))) && (! (\"request_2\"))) && (! (\"request_1\"))) && (! "
+        + "(\"request_0\")))) && (! (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (! "
+        + "(\"grant_1\"))) && (! (\"grant_0\"))))))) -> (X ((((((true) && (! (\"request_3\"))) &&"
+        + " (! (\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\"))) R (! (((((true) "
+        + "&& (! (\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\"))"
+        + ")))))) && (((((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\")"
+        + ")) && (\"grant_0\")) && (G (! (((((true) && (! (\"request_3\"))) && (! (\"request_2\")"
+        + ")) && (! (\"request_1\"))) && (\"request_0\"))))) -> (F (! (((((true) && (! "
+        + "(\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (\"grant_0\")))))) && ("
+        + "((((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && "
+        + "(\"grant_0\")) && (X ((! (((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) &&"
+        + " (! (\"request_1\"))) && (\"request_0\"))) && (! (((((true) && (! (\"grant_3\"))) && "
+        + "(! (\"grant_2\"))) && (! (\"grant_1\"))) && (\"grant_0\")))))) -> (X ((((((true) && (!"
+        + " (\"request_3\"))) && (! (\"request_2\"))) && (! (\"request_1\"))) && (\"request_0\"))"
+        + " R (! (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && "
+        + "(\"grant_0\"))))))) && (((((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && "
+        + "(\"grant_1\")) && (! (\"grant_0\"))) && (G (! (((((true) && (! (\"request_3\"))) && (!"
+        + " (\"request_2\"))) && (\"request_1\")) && (! (\"request_0\")))))) -> (F (! (((((true) "
+        + "&& (! (\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && (! (\"grant_0\"))))))"
+        + ") && (((((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && (! "
+        + "(\"grant_0\"))) && (X ((! (((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) "
+        + "&& (\"request_1\")) && (! (\"request_0\")))) && (! (((((true) && (! (\"grant_3\"))) &&"
+        + " (! (\"grant_2\"))) && (\"grant_1\")) && (! (\"grant_0\"))))))) -> (X ((((((true) && "
+        + "(! (\"request_3\"))) && (! (\"request_2\"))) && (\"request_1\")) && (! (\"request_0\")"
+        + ")) R (! (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && (!"
+        + " (\"grant_0\")))))))) && (((((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && "
+        + "(\"grant_1\")) && (\"grant_0\")) && (G (! (((((true) && (! (\"request_3\"))) && (! "
+        + "(\"request_2\"))) && (\"request_1\")) && (\"request_0\"))))) -> (F (! (((((true) && (!"
+        + " (\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && (\"grant_0\")))))) && (((("
+        + "(((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && "
+        + "(\"grant_0\")) && (X ((! (((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) &&"
+        + " (\"request_1\")) && (\"request_0\"))) && (! (((((true) && (! (\"grant_3\"))) && (! "
+        + "(\"grant_2\"))) && (\"grant_1\")) && (\"grant_0\")))))) -> (X ((((((true) && (! "
+        + "(\"request_3\"))) && (! (\"request_2\"))) && (\"request_1\")) && (\"request_0\")) R (!"
+        + " (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && "
+        + "(\"grant_0\"))))))) && (((((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (! (\"grant_0\"))) && (G (! (((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (! (\"request_1\"))) && (! (\"request_0\")))))) -> (F (! (((("
+        + "(true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! (\"grant_1\"))) && (! "
+        + "(\"grant_0\"))))))) && (((((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (! (\"grant_0\"))) && (X ((! (((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (! (\"request_1\"))) && (! (\"request_0\")))) && (! (((((true) && "
+        + "(! (\"grant_3\"))) && (\"grant_2\")) && (! (\"grant_1\"))) && (! (\"grant_0\"))))))) "
+        + "-> (X ((((((true) && (! (\"request_3\"))) && (\"request_2\")) && (! (\"request_1\"))) "
+        + "&& (! (\"request_0\"))) R (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (! (\"grant_0\")))))))) && (((((((true) && (! (\"grant_3\"))) && "
+        + "(\"grant_2\")) && (! (\"grant_1\"))) && (\"grant_0\")) && (G (! (((((true) && (! "
+        + "(\"request_3\"))) && (\"request_2\")) && (! (\"request_1\"))) && (\"request_0\"))))) "
+        + "-> (F (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! (\"grant_1\"))) && "
+        + "(\"grant_0\")))))) && (((((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\")) && (X ((! (((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (! (\"request_1\"))) && (\"request_0\"))) && (! (((((true) && (! "
+        + "(\"grant_3\"))) && (\"grant_2\")) && (! (\"grant_1\"))) && (\"grant_0\")))))) -> (X (("
+        + "((((true) && (! (\"request_3\"))) && (\"request_2\")) && (! (\"request_1\"))) && "
+        + "(\"request_0\")) R (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\"))))))) && (((((((true) && (! (\"grant_3\"))) && "
+        + "(\"grant_2\")) && (\"grant_1\")) && (! (\"grant_0\"))) && (G (! (((((true) && (! "
+        + "(\"request_3\"))) && (\"request_2\")) && (\"request_1\")) && (! (\"request_0\")))))) "
+        + "-> (F (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (\"grant_1\")) && (! "
+        + "(\"grant_0\"))))))) && (((((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && "
+        + "(\"grant_1\")) && (! (\"grant_0\"))) && (X ((! (((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (\"request_1\")) && (! (\"request_0\")))) && (! (((((true) && (! "
+        + "(\"grant_3\"))) && (\"grant_2\")) && (\"grant_1\")) && (! (\"grant_0\"))))))) -> (X (("
+        + "((((true) && (! (\"request_3\"))) && (\"request_2\")) && (\"request_1\")) && (! "
+        + "(\"request_0\"))) R (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && "
+        + "(\"grant_1\")) && (! (\"grant_0\")))))))) && (((((((true) && (! (\"grant_3\"))) && "
+        + "(\"grant_2\")) && (\"grant_1\")) && (\"grant_0\")) && (G (! (((((true) && (! "
+        + "(\"request_3\"))) && (\"request_2\")) && (\"request_1\")) && (\"request_0\"))))) -> (F"
+        + " (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (\"grant_1\")) && "
+        + "(\"grant_0\")))))) && (((((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && "
+        + "(\"grant_1\")) && (\"grant_0\")) && (X ((! (((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (\"request_1\")) && (\"request_0\"))) && (! (((((true) && (! "
+        + "(\"grant_3\"))) && (\"grant_2\")) && (\"grant_1\")) && (\"grant_0\")))))) -> (X ((((("
+        + "(true) && (! (\"request_3\"))) && (\"request_2\")) && (\"request_1\")) && "
+        + "(\"request_0\")) R (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && "
+        + "(\"grant_1\")) && (\"grant_0\"))))))) && (((((((true) && (\"grant_3\")) && (! "
+        + "(\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\"))) && (G (! (((((true) && "
+        + "(\"request_3\")) && (! (\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\")"
+        + "))))) -> (F (! (((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && (! (\"grant_1\"))"
+        + ") && (! (\"grant_0\"))))))) && (((((((true) && (\"grant_3\")) && (! (\"grant_2\"))) &&"
+        + " (! (\"grant_1\"))) && (! (\"grant_0\"))) && (X ((! (((((true) && (\"request_3\")) && "
+        + "(! (\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\")))) && (! (((((true)"
+        + " && (\"grant_3\")) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\")))))"
+        + ")) -> (X ((((((true) && (\"request_3\")) && (! (\"request_2\"))) && (! (\"request_1\")"
+        + ")) && (! (\"request_0\"))) R (! (((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && "
+        + "(! (\"grant_1\"))) && (! (\"grant_0\")))))))) && (((((((true) && (\"grant_3\")) && (! "
+        + "(\"grant_2\"))) && (! (\"grant_1\"))) && (\"grant_0\")) && (G (! (((((true) && "
+        + "(\"request_3\")) && (! (\"request_2\"))) && (! (\"request_1\"))) && (\"request_0\"))))"
+        + ") -> (F (! (((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && (! (\"grant_1\"))) &&"
+        + " (\"grant_0\")))))) && (((((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\")) && (X ((! (((((true) && (\"request_3\")) && (! "
+        + "(\"request_2\"))) && (! (\"request_1\"))) && (\"request_0\"))) && (! (((((true) && "
+        + "(\"grant_3\")) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (\"grant_0\")))))) -> (X"
+        + " ((((((true) && (\"request_3\")) && (! (\"request_2\"))) && (! (\"request_1\"))) && "
+        + "(\"request_0\")) R (! (((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\"))))))) && ((((((true) && (! (\"request_3\"))) && (! "
+        + "(\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\"))) -> (F (((((true) && "
+        + "(! (\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\")))))"
+        + ") && ((((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) && (! (\"request_1\")"
+        + ")) && (\"request_0\")) -> (F (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) &&"
+        + " (! (\"grant_1\"))) && (\"grant_0\"))))) && ((((((true) && (! (\"request_3\"))) && (! "
+        + "(\"request_2\"))) && (\"request_1\")) && (! (\"request_0\"))) -> (F (((((true) && (! "
+        + "(\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && (! (\"grant_0\")))))) && (("
+        + "((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) && (\"request_1\")) && "
+        + "(\"request_0\")) -> (F (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && "
+        + "(\"grant_1\")) && (\"grant_0\"))))) && ((((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (! (\"request_1\"))) && (! (\"request_0\"))) -> (F (((((true) && "
+        + "(! (\"grant_3\"))) && (\"grant_2\")) && (! (\"grant_1\"))) && (! (\"grant_0\")))))) &&"
+        + " ((((((true) && (! (\"request_3\"))) && (\"request_2\")) && (! (\"request_1\"))) && "
+        + "(\"request_0\")) -> (F (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\"))))) && ((((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (\"request_1\")) && (! (\"request_0\"))) -> (F (((((true) && (! "
+        + "(\"grant_3\"))) && (\"grant_2\")) && (\"grant_1\")) && (! (\"grant_0\")))))) && ((((("
+        + "(true) && (! (\"request_3\"))) && (\"request_2\")) && (\"request_1\")) && "
+        + "(\"request_0\")) -> (F (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && "
+        + "(\"grant_1\")) && (\"grant_0\"))))) && ((((((true) && (\"request_3\")) && (! "
+        + "(\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\"))) -> (F (((((true) && "
+        + "(\"grant_3\")) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\")))))) &&"
+        + " ((((((true) && (\"request_3\")) && (! (\"request_2\"))) && (! (\"request_1\"))) && "
+        + "(\"request_0\")) -> (F (((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\")))))) && ((((((true) && (! (\"request_3\"))) && (! "
+        + "(\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\"))) R (! (((((true) && "
+        + "(! (\"grant_3\"))) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\")))))"
+        + ") && ((((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) && (! (\"request_1\")"
+        + ")) && (\"request_0\")) R (! (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && "
+        + "(! (\"grant_1\"))) && (\"grant_0\"))))) && ((((((true) && (! (\"request_3\"))) && (! "
+        + "(\"request_2\"))) && (\"request_1\")) && (! (\"request_0\"))) R (! (((((true) && (! "
+        + "(\"grant_3\"))) && (! (\"grant_2\"))) && (\"grant_1\")) && (! (\"grant_0\")))))) && (("
+        + "((((true) && (! (\"request_3\"))) && (! (\"request_2\"))) && (\"request_1\")) && "
+        + "(\"request_0\")) R (! (((((true) && (! (\"grant_3\"))) && (! (\"grant_2\"))) && "
+        + "(\"grant_1\")) && (\"grant_0\"))))) && ((((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (! (\"request_1\"))) && (! (\"request_0\"))) R (! (((((true) && (!"
+        + " (\"grant_3\"))) && (\"grant_2\")) && (! (\"grant_1\"))) && (! (\"grant_0\")))))) && ("
+        + "(((((true) && (! (\"request_3\"))) && (\"request_2\")) && (! (\"request_1\"))) && "
+        + "(\"request_0\")) R (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\"))))) && ((((((true) && (! (\"request_3\"))) && "
+        + "(\"request_2\")) && (\"request_1\")) && (! (\"request_0\"))) R (! (((((true) && (! "
+        + "(\"grant_3\"))) && (\"grant_2\")) && (\"grant_1\")) && (! (\"grant_0\")))))) && ((((("
+        + "(true) && (! (\"request_3\"))) && (\"request_2\")) && (\"request_1\")) && "
+        + "(\"request_0\")) R (! (((((true) && (! (\"grant_3\"))) && (\"grant_2\")) && "
+        + "(\"grant_1\")) && (\"grant_0\"))))) && ((((((true) && (\"request_3\")) && (! "
+        + "(\"request_2\"))) && (! (\"request_1\"))) && (! (\"request_0\"))) R (! (((((true) && "
+        + "(\"grant_3\")) && (! (\"grant_2\"))) && (! (\"grant_1\"))) && (! (\"grant_0\")))))) &&"
+        + " ((((((true) && (\"request_3\")) && (! (\"request_2\"))) && (! (\"request_1\"))) && "
+        + "(\"request_0\")) R (! (((((true) && (\"grant_3\")) && (! (\"grant_2\"))) && (! "
+        + "(\"grant_1\"))) && (\"grant_0\"))))) && (G (F (((((\"grant_0\") <-> (X (\"grant_0\")))"
+        + " && ((\"grant_1\") <-> (X (\"grant_1\")))) && ((\"grant_2\") <-> (X (\"grant_2\")))) "
+        + "&& ((\"grant_3\") <-> (X (\"grant_3\")))))))\n");
+
+    // Takes ~2 minutes on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofMinutes(4), () -> {
+      var automaton = (Automaton<Object, ?>) TRANSLATION_ZLK.apply(formula);
+      Assertions.assertEquals(66, automaton.successors(automaton.initialState()).size());
+      Assertions.assertEquals(70_145, automaton.states().size());
     });
   }
 }

@@ -247,7 +247,8 @@ public final class Collections3 {
   }
 
   /**
-   * Computes a sub-list of elements which are maximal. The order is preserved.
+   * Computes a sub-list of elements which are maximal. The order is preserved. Does not support
+   * null elements.
    *
    * @param elements the elements
    * @param isLessThan returns true is the first argument is less than the second argument. It is
@@ -255,36 +256,47 @@ public final class Collections3 {
    * @param <E> the type
    * @return a sublist only containing maximal elements.
    */
+  @SuppressWarnings("unchecked")
   public static <E> List<E> maximalElements(
     List<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
 
-    // To-Do: This is a performance-sensitive method.
-    // To-Do: Migrate to array, remove lambda expressions for better performance.
-    var maximalElements = new ArrayList<E>(elements.size());
-    var seenElements = new HashSet<E>();
+    Object[] maximalElements = elements.toArray();
+    int removedElements = 0;
 
-    for (E element : elements) {
-      Objects.requireNonNull(element);
+    for (int i = 0; i < maximalElements.length; i++) {
+      Object ei = maximalElements[i];
 
-      if (seenElements.add(element)) {
-        maximalElements.add(element);
+      if (ei == null) {
+        continue;
+      }
+
+      for (int j = 0; j < maximalElements.length; j++) {
+        if (i == j) {
+          continue;
+        }
+
+        Object ej = maximalElements[j];
+
+        if (ej == null) {
+          continue;
+        }
+
+        if (ei.equals(ej) || isLessThan.test((E) ej, (E) ei)) {
+          maximalElements[j] = null;
+          removedElements++;
+        }
       }
     }
 
-    boolean continueIteration = true;
-    while (continueIteration) {
-      continueIteration = false;
+    List<E> prunedMaximalElements = new ArrayList<>(elements.size() - removedElements);
 
-      for (int j = 0; j < maximalElements.size(); j++) {
-        E element = maximalElements.get(j);
-        // To-Do: Drop removeIf predicate, since it calls isLessThan twice for each pair!
-        continueIteration |= maximalElements.removeIf(
-          otherElement -> element != otherElement // We de-duplicated before using a HashSet.
-            && isLessThan.test(otherElement, element));
+    for (Object maximalElement : maximalElements) {
+      if (maximalElement != null) {
+        prunedMaximalElements.add((E) maximalElement);
       }
     }
 
-    return maximalElements;
+    return prunedMaximalElements;
   }
 
   /**
