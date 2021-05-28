@@ -75,7 +75,8 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AlternatingCycleDecomposition;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.Path;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
 import owl.automaton.edge.Edge;
@@ -443,6 +444,9 @@ public final class CAutomaton {
     int size = stateIds.size();
     checkArgument(size >= 0);
 
+    var zielonkaAutomaton = (AutomatonWithZielonkaTreeLookup<
+      ZielonkaState<NormalformDELAConstruction.State>, ParityAcceptance>) automaton.automaton;
+
     ZielonkaNormalFormState decomposedStates = size == 0
       ? nullPointer()
       : org.graalvm.nativeimage.UnmanagedMemory
@@ -496,13 +500,20 @@ public final class CAutomaton {
       var stateFormula = state.state().stateFormula();
       var stateMap = state.state().stateMap();
       var roundRobinCounters = state.state().roundRobinCounters();
-      var zielonkaPath = state.path().indices();
+      var zielonkaPath = state.path();
+      var zielonkaTree = zielonkaAutomaton.lookup(state);
+
+      // If we use ACD, we can project path to subtree.
+      if (zielonkaTree instanceof AlternatingCycleDecomposition) {
+        var acd = (AlternatingCycleDecomposition<NormalformDELAConstruction.State>) zielonkaTree;
+        zielonkaPath = acd.restrictPathToSubtree(state.state(), zielonkaPath);
+      }
 
       // Store into struct.
       var decomposedState = decomposedStates.addressOf(i);
       decomposedState.stateFormula(stateFormulasSorted.indexOf(stateFormula));
       decomposedState.roundRobinCounters(CIntVectors.copyOf(roundRobinCounters));
-      decomposedState.zielonkaPath(CIntVectors.copyOf(zielonkaPath));
+      decomposedState.zielonkaPath(CIntVectors.copyOf(zielonkaPath.indices()));
 
       var iterator = stateMap.entrySet().iterator();
       ZielonkaNormalFormState.StateMapEntry entries = iterator.hasNext()
@@ -972,9 +983,9 @@ public final class CAutomaton {
       ToDoubleFunction<Edge<S>> scoring = x -> 0.5d;
 
       // Inject scoring if the automaton is known.
-      if (automaton instanceof ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup) {
+      if (automaton instanceof AutomatonWithZielonkaTreeLookup) {
         scoring = NormalformDPAConstruction.scoringFunction(
-          (ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup) automaton);
+          (AutomatonWithZielonkaTreeLookup) automaton);
       }
 
       return new DeterministicAutomatonWrapper<>(

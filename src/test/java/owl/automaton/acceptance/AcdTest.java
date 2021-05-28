@@ -69,6 +69,11 @@ public class AcdTest {
     for (Integer state : drw2.states()) {
       for (AlternatingCycleDecomposition<Integer> acd : drw2Acd) {
         Assertions.assertTrue(hasParityShape(acd.restriction(state)));
+
+        if (acd.edges().containsKey(state)) {
+          Assertions.assertTrue(acd.restrictPathToSubtree(state, acd.leftMostLeaf(state))
+            .indices().stream().allMatch(x -> x == 0));
+        }
       }
     }
 

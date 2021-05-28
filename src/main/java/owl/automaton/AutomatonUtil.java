@@ -171,7 +171,7 @@ public final class AutomatonUtil {
 
   public static <S> boolean isLessOrEqual(Automaton<S, ?> automaton, int numberOfStates) {
     if (automaton instanceof AbstractMemoizingAutomaton) {
-      return isLessOrEqual((AbstractMemoizingAutomaton<S, ?>) automaton, numberOfStates);
+      return isLessOrEqual((AbstractMemoizingAutomaton<?, ?>) automaton, numberOfStates);
     }
 
     Deque<S> workList = new ArrayDeque<>(automaton.initialStates());

@@ -339,7 +339,6 @@ public final class ZielonkaTreeTransformations {
         int anchorLevel = 0;
         var successorPathBuilder = ImmutableIntArray.builder(acd.height() + 2);
 
-        // i = 0 is the top-level index.
         for (int i = 0, s = path.indices().length(); i < s; i++) {
           int nextAnchorIndex = path.indices().get(i);
           var nextAnchor = anchor.children().get(nextAnchorIndex);
@@ -685,6 +684,34 @@ public final class ZielonkaTreeTransformations {
         colours(), edges(), List.copyOf(qChildren), height(qChildren));
     }
 
+    public Path restrictPathToSubtree(S state, Path unrestrictedPath) {
+      var builder = ImmutableIntArray.builder(unrestrictedPath.indices().length());
+      restrictPathToSubtree(state, unrestrictedPath.indices(), 0, builder);
+      return Path.of(builder.build());
+    }
+
+    private void restrictPathToSubtree(
+      S state, ImmutableIntArray unrestrictedPath, int index, ImmutableIntArray.Builder builder) {
+
+      if (index == unrestrictedPath.length()) {
+        return;
+      }
+
+      int childIndex = unrestrictedPath.get(index);
+      int newChildIndex = 0;
+      var children = children();
+
+      for (int i = 0; i < childIndex; i++) {
+        if (children.get(i).edges().keySet().contains(state)) {
+          newChildIndex++;
+        }
+      }
+
+      assert children.get(childIndex).edges().containsKey(state);
+      builder.add(newChildIndex);
+      restrictPathToSubtree(state, unrestrictedPath, index + 1, builder);
+    }
+
     private static <S> boolean isClosed(Map<S, ? extends Collection<Edge<S>>> edges) {
       return edges.values().stream()
         .flatMap(x -> x.stream().map(Edge::successor))
@@ -705,7 +732,7 @@ public final class ZielonkaTreeTransformations {
       return index;
     }
 
-    private Path leftMostLeaf(S state) {
+    public Path leftMostLeaf(S state) {
       assert edges().containsKey(state);
       var pathBuilder = ImmutableIntArray.builder(height());
       leftMostLeaf(pathBuilder, state);
