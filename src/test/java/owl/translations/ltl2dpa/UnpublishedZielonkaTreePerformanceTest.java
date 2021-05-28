@@ -60,8 +60,8 @@ public class UnpublishedZielonkaTreePerformanceTest {
         + ") || (F(G(\"p_6\"))))) && ((G (F (\"p_6\"))) || (F (G (\"p_7\"))))) && (G (F (\"p_7\")"
         + "))) <-> (G(F(\"acc\"))))");
 
-    // Takes ~2.5s (warm: ~2s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(5), () -> {
+    // Takes ~2s (warm: ~1.5s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(4), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ACD.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertFalse(AutomatonUtil.isLessOrEqual(automaton, 5));
@@ -93,15 +93,15 @@ public class UnpublishedZielonkaTreePerformanceTest {
         + ")) && ((F (\"p_9\")) || (G (\"p_10\")))) && ((F (\"p_10\")) || (G (\"p_11\")))) && "
         + "(F (\"p_11\"))) <-> (G (F (\"acc\"))))\n");
 
-    // Takes ~6s (warm: ~5s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(10), () -> {
+    // Takes ~4s (warm: ~3s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(8), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ZLK.apply(formula);
       Assertions.assertEquals(4096, automaton.successors(automaton.initialState()).size());
       Assertions.assertFalse(AutomatonUtil.isLessOrEqual(automaton, 4097));
     });
 
-    // Takes ~6s (warm: 5s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(10), () -> {
+    // Takes ~4s (warm: 3s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(8), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_MIXED_10.apply(formula);
       Assertions.assertEquals(4096, automaton.successors(automaton.initialState()).size());
       Assertions.assertFalse(AutomatonUtil.isLessOrEqual(automaton, 4097));
@@ -141,21 +141,80 @@ public class UnpublishedZielonkaTreePerformanceTest {
         + " (\"LOCKED\"))))))\n");
 
     // Takes ~1s (warm: ~250 ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
+    Assertions.assertTimeout(Duration.ofSeconds(1), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ACD.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
     });
 
     // Takes ~1s (warm: ~250ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
+    Assertions.assertTimeout(Duration.ofSeconds(1), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_ZLK.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
     });
 
     // Takes ~1s (warm: ~250ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
-    Assertions.assertTimeout(Duration.ofSeconds(2), () -> {
+    Assertions.assertTimeout(Duration.ofSeconds(1), () -> {
+      var automaton = (Automaton<Object, ?>) TRANSLATION_MIXED_10.apply(formula);
+      Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
+      Assertions.assertEquals(6, automaton.states().size());
+    });
+  }
+
+  @Tag("performance")
+  @RepeatedTest(3)
+  void testPerformanceAmbaDecomposedLock12() {
+    var formula = LtlParser.parse(
+      "(((G ((((((((! (\"HGRANT_0\")) && (! (\"HGRANT_1\"))) && (! (\"HGRANT_2\"))) && (! "
+        + "(\"HGRANT_3\"))) && (! (\"HGRANT_4\"))) && (! (\"HGRANT_5\"))) && (((((! "
+        + "(\"HGRANT_6\")) && (! (\"HGRANT_7\"))) && (! (\"HGRANT_8\"))) && ((((! (\"HGRANT_9\"))"
+        + " && (! (\"HGRANT_10\"))) && (true)) || ((((! (\"HGRANT_9\")) && (true)) || ((true) && "
+        + "(! (\"HGRANT_10\")))) && (! (\"HGRANT_11\"))))) || (((((! (\"HGRANT_6\")) && (! "
+        + "(\"HGRANT_7\"))) && (true)) || ((((! (\"HGRANT_6\")) && (true)) || ((true) && (! "
+        + "(\"HGRANT_7\")))) && (! (\"HGRANT_8\")))) && (((! (\"HGRANT_9\")) && (! "
+        + "(\"HGRANT_10\"))) && (! (\"HGRANT_11\")))))) || ((((((! (\"HGRANT_0\")) && (! "
+        + "(\"HGRANT_1\"))) && (! (\"HGRANT_2\"))) && ((((! (\"HGRANT_3\")) && (! (\"HGRANT_4\"))"
+        + ") && (true)) || ((((! (\"HGRANT_3\")) && (true)) || ((true) && (! (\"HGRANT_4\")))) &&"
+        + " (! (\"HGRANT_5\"))))) || (((((! (\"HGRANT_0\")) && (! (\"HGRANT_1\"))) && (true)) || "
+        + "((((! (\"HGRANT_0\")) && (true)) || ((true) && (! (\"HGRANT_1\")))) && (! "
+        + "(\"HGRANT_2\")))) && (((! (\"HGRANT_3\")) && (! (\"HGRANT_4\"))) && (! (\"HGRANT_5\"))"
+        + "))) && ((((((! (\"HGRANT_6\")) && (! (\"HGRANT_7\"))) && (! (\"HGRANT_8\"))) && (! "
+        + "(\"HGRANT_9\"))) && (! (\"HGRANT_10\"))) && (! (\"HGRANT_11\")))))) && (G ((((((((((("
+        + "(\"HGRANT_0\") || (\"HGRANT_1\")) || (\"HGRANT_2\")) || (\"HGRANT_3\")) || "
+        + "(\"HGRANT_4\")) || (\"HGRANT_5\")) || (\"HGRANT_6\")) || (\"HGRANT_7\")) || "
+        + "(\"HGRANT_8\")) || (\"HGRANT_9\")) || (\"HGRANT_10\")) || (\"HGRANT_11\")))) -> (G ((("
+        + "((((((((((((\"DECIDE\") && (X (\"HGRANT_0\"))) -> ((X (\"LOCKED\")) <-> (X "
+        + "(\"HLOCK_0\")))) && (((\"DECIDE\") && (X (\"HGRANT_1\"))) -> ((X (\"LOCKED\")) <-> (X "
+        + "(\"HLOCK_1\"))))) && (((\"DECIDE\") && (X (\"HGRANT_2\"))) -> ((X (\"LOCKED\")) <-> (X"
+        + " (\"HLOCK_2\"))))) && (((\"DECIDE\") && (X (\"HGRANT_3\"))) -> ((X (\"LOCKED\")) <-> "
+        + "(X (\"HLOCK_3\"))))) && (((\"DECIDE\") && (X (\"HGRANT_4\"))) -> ((X (\"LOCKED\")) <->"
+        + " (X (\"HLOCK_4\"))))) && (((\"DECIDE\") && (X (\"HGRANT_5\"))) -> ((X (\"LOCKED\")) "
+        + "<-> (X (\"HLOCK_5\"))))) && (((\"DECIDE\") && (X (\"HGRANT_6\"))) -> ((X (\"LOCKED\"))"
+        + " <-> (X (\"HLOCK_6\"))))) && (((\"DECIDE\") && (X (\"HGRANT_7\"))) -> ((X (\"LOCKED\")"
+        + ") <-> (X (\"HLOCK_7\"))))) && (((\"DECIDE\") && (X (\"HGRANT_8\"))) -> ((X "
+        + "(\"LOCKED\")) <-> (X (\"HLOCK_8\"))))) && (((\"DECIDE\") && (X (\"HGRANT_9\"))) -> ((X"
+        + " (\"LOCKED\")) <-> (X (\"HLOCK_9\"))))) && (((\"DECIDE\") && (X (\"HGRANT_10\"))) -> ("
+        + "(X (\"LOCKED\")) <-> (X (\"HLOCK_10\"))))) && (((\"DECIDE\") && (X (\"HGRANT_11\"))) "
+        + "-> ((X (\"LOCKED\")) <-> (X (\"HLOCK_11\"))))) && ((! (\"DECIDE\")) -> ((X "
+        + "(\"LOCKED\")) <-> (\"LOCKED\"))))))\n");
+
+    // Takes ~1s (warm: ~250 ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(3), () -> {
+      var automaton = (Automaton<Object, ?>) TRANSLATION_ACD.apply(formula);
+      Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
+      Assertions.assertEquals(6, automaton.states().size());
+    });
+
+    // Takes ~1s (warm: ~250ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(3), () -> {
+      var automaton = (Automaton<Object, ?>) TRANSLATION_ZLK.apply(formula);
+      Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
+      Assertions.assertEquals(6, automaton.states().size());
+    });
+
+    // Takes ~1s (warm: ~250ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+    Assertions.assertTimeout(Duration.ofSeconds(3), () -> {
       var automaton = (Automaton<Object, ?>) TRANSLATION_MIXED_10.apply(formula);
       Assertions.assertEquals(4, automaton.successors(automaton.initialState()).size());
       Assertions.assertEquals(6, automaton.states().size());
