@@ -101,7 +101,8 @@ public final class NormalformDPAConstruction
   }
 
   @Override
-  public Automaton<ZielonkaState<State>, ParityAcceptance> apply(LabelledFormula formula) {
+  public AutomatonWithZielonkaTreeLookup<ZielonkaState<State>, ParityAcceptance>
+    apply(LabelledFormula formula) {
 
     var delwConstruction = normalformDELAConstruction.applyConstruction(formula);
     return transform(

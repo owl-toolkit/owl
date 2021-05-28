@@ -698,18 +698,19 @@ public final class ZielonkaTreeTransformations {
       }
 
       int childIndex = unrestrictedPath.get(index);
-      int newChildIndex = 0;
       var children = children();
+      assert children.get(childIndex).edges().containsKey(state) : children;
+
+      int newChildIndex = 0;
 
       for (int i = 0; i < childIndex; i++) {
-        if (children.get(i).edges().keySet().contains(state)) {
+        if (children.get(i).edges().containsKey(state)) {
           newChildIndex++;
         }
       }
 
-      assert children.get(childIndex).edges().containsKey(state);
       builder.add(newChildIndex);
-      restrictPathToSubtree(state, unrestrictedPath, index + 1, builder);
+      children.get(childIndex).restrictPathToSubtree(state, unrestrictedPath, index + 1, builder);
     }
 
     private static <S> boolean isClosed(Map<S, ? extends Collection<Edge<S>>> edges) {

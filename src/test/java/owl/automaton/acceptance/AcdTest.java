@@ -21,6 +21,7 @@ package owl.automaton.acceptance;
 
 import java.util.EnumSet;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.function.Function;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LtlTranslationRepository;
+import owl.translations.ltl2dpa.NormalformDPAConstruction;
 
 public class AcdTest {
 
@@ -90,6 +92,17 @@ public class AcdTest {
 
     Assertions.assertTrue(LanguageContainment.contains(dela1, dpw1));
     Assertions.assertTrue(LanguageContainment.contains(dpw1, dela1));
+  }
+
+  @Test
+  void testLtlZielonkaTree() {
+    var formula = LtlParser.parse("((GF a) & (GF b)) <-> GF c");
+    var automaton = new NormalformDPAConstruction(OptionalInt.empty()).apply(formula);
+
+    for (var state : automaton.states()) {
+      var acd = (AlternatingCycleDecomposition) automaton.lookup(state);
+      acd.restrictPathToSubtree(state.state(), state.path());
+    }
   }
 
   static boolean hasParityShape(
