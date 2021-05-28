@@ -299,37 +299,10 @@ public final class ZielonkaTreeTransformations {
 
         @SuppressWarnings("unchecked")
         var initialPath = stateTree instanceof AlternatingCycleDecomposition
-          ? initialState(initialState, (AlternatingCycleDecomposition<S>) stateTree)
-          : initialState(initialState, (ConditionalZielonkaTree) stateTree);
+          ? ((AlternatingCycleDecomposition<S>) stateTree).leftMostLeaf(initialState)
+          : ((ConditionalZielonkaTree) stateTree).leftMostLeaf();
 
         return ZielonkaState.of(initialState, initialPath);
-      }
-
-      private Path initialState(
-        S initialState, AlternatingCycleDecomposition<S> acd) {
-
-        assert acd.edges().containsKey(initialState);
-
-        int acdIndex = alternatingCycleDecompositions.indexOf(acd);
-
-        // Initial state is in a transient SCC.
-        if (acdIndex == -1) {
-          return Path.of();
-        }
-
-        var initialPathBuilder = ImmutableIntArray.builder(acd.height() + 2);
-        initialPathBuilder.add(acdIndex);
-        acd.leftMostLeaf(initialPathBuilder, initialState);
-        return Path.of(initialPathBuilder.build());
-      }
-
-      @SuppressWarnings("unused") // Keep signature regular.
-      private Path initialState(
-        S initialState, ConditionalZielonkaTree root) {
-
-        var initialPathBuilder = ImmutableIntArray.builder(root.height() + 1);
-        root.leftMostLeaf(initialPathBuilder);
-        return Path.of(initialPathBuilder.build());
       }
 
       private Edge<ZielonkaState<S>> edge(
@@ -338,19 +311,19 @@ public final class ZielonkaTreeTransformations {
         var stateTree = zielonkaTree(state.state(), exploredStates);
         var successorTree = zielonkaTree(edge.successor(), exploredStates);
 
-        var path = stateTree.equals(successorTree)
-          ? state.path()
-          : Path.of();
+        // We switched SCC, re-initialise path.
+        if (!stateTree.equals(successorTree)) {
+          return Edge.of(initialState(edge.successor()));
+        }
 
         @SuppressWarnings("unchecked")
         var pathEdge = successorTree instanceof AlternatingCycleDecomposition
-          ? edge(edge, path, (AlternatingCycleDecomposition<S>) successorTree)
-          : edge(edge, path, (ConditionalZielonkaTree) successorTree);
+          ? edge(edge, state.path(), (AlternatingCycleDecomposition<S>) successorTree)
+          : edge(edge, state.path(), (ConditionalZielonkaTree) successorTree);
 
-        if (successorTree instanceof ConditionalZielonkaTree) {
-          assert ((ConditionalZielonkaTree) successorTree).subtree(pathEdge.successor()) != null
-            : "dangling path";
-        }
+        assert successorTree instanceof AlternatingCycleDecomposition
+          || ((ConditionalZielonkaTree) successorTree).subtree(pathEdge.successor()) != null
+          : "dangling path";
 
         return pathEdge.mapSuccessor(x -> ZielonkaState.of(edge.successor(), x));
       }
@@ -361,31 +334,13 @@ public final class ZielonkaTreeTransformations {
         S successor = edge.successor();
         assert acd.edges().containsKey(successor);
 
-        int acdIndex = alternatingCycleDecompositions.indexOf(acd);
-
-        // Successor is in a transient SCC.
-        if (acdIndex == -1) {
-          return Edge.of(Path.of());
-        }
-
+        // State and successor are in the same SCC, let's find the anchor.
+        var anchor = acd;
+        int anchorLevel = 0;
         var successorPathBuilder = ImmutableIntArray.builder(acd.height() + 2);
-        successorPathBuilder.add(acdIndex);
-
-        // The run switched to a new SCC.
-        if (path.indices().isEmpty()) {
-          acd.leftMostLeaf(successorPathBuilder, successor);
-          return Edge.of(Path.of(successorPathBuilder.build()));
-        }
-
-        // The run stayed in the same SCC.
-        assert path.indices().get(0) == acdIndex;
-
-        // Find the anchor.
-        AlternatingCycleDecomposition<S> anchor = acd;
-        int anchorLevel = 1;
 
         // i = 0 is the top-level index.
-        for (int i = 1, s = path.indices().length(); i < s; i++) {
+        for (int i = 0, s = path.indices().length(); i < s; i++) {
           int nextAnchorIndex = path.indices().get(i);
           var nextAnchor = anchor.children().get(nextAnchorIndex);
 
@@ -420,7 +375,7 @@ public final class ZielonkaTreeTransformations {
         // min-even parity.
         return Edge.of(
           Path.of(successorPathBuilder.build()),
-          anchorLevel + (acceptingZielonkaTreeRoots.contains(successor) ? -1 : 0));
+          anchorLevel + (acceptingZielonkaTreeRoots.contains(successor) ? 0 : 1));
       }
 
       private Edge<Path> edge(
@@ -750,6 +705,13 @@ public final class ZielonkaTreeTransformations {
       return index;
     }
 
+    private Path leftMostLeaf(S state) {
+      assert edges().containsKey(state);
+      var pathBuilder = ImmutableIntArray.builder(height());
+      leftMostLeaf(pathBuilder, state);
+      return Path.of(pathBuilder.build());
+    }
+
     private void leftMostLeaf(ImmutableIntArray.Builder builder, S state) {
       for (int i = 0, s = children().size(); i < s; i++) {
         var child = children().get(i);
@@ -842,6 +804,12 @@ public final class ZielonkaTreeTransformations {
       }
 
       return subtree;
+    }
+
+    private Path leftMostLeaf() {
+      var pathBuilder = ImmutableIntArray.builder(height());
+      leftMostLeaf(pathBuilder);
+      return Path.of(pathBuilder.build());
     }
 
     private void leftMostLeaf(ImmutableIntArray.Builder builder) {

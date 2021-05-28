@@ -38,7 +38,6 @@ import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
-import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
@@ -188,7 +187,7 @@ public final class NormalformDPAConstruction
         ImmutableIntArray path = successor.path().indices();
         ZielonkaTree node = tree;
 
-        int i = node instanceof ZielonkaTreeTransformations.AlternatingCycleDecomposition ? 1 : 0;
+        int i = 0;
 
         for (int s = path.length(); i <= s; i++) {
           colours.add(node.colours());
