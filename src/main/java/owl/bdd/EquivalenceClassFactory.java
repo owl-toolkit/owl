@@ -19,6 +19,7 @@
 
 package owl.bdd;
 
+import java.util.Collection;
 import java.util.List;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
@@ -51,4 +52,8 @@ public interface EquivalenceClassFactory {
   default EquivalenceClass of(boolean value) {
     return of(BooleanConstant.of(value));
   }
+
+  EquivalenceClass and(Collection<? extends EquivalenceClass> classes);
+
+  EquivalenceClass or(Collection<? extends EquivalenceClass> classes);
 }

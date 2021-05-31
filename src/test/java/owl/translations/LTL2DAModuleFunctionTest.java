@@ -63,7 +63,7 @@ class LTL2DAModuleFunctionTest {
     assertEquals(29, formula.atomicPropositions().size());
 
     var automaton = (Automaton<Object, ?>) TRANSLATOR.apply(formula);
-    var state = automaton.onlyInitialState();
+    var state = automaton.initialState();
 
     // Check null successor.
     BitSet empty = new BitSet();
@@ -77,7 +77,7 @@ class LTL2DAModuleFunctionTest {
     assertEquals(29, formula.atomicPropositions().size());
 
     var automaton = (Automaton<EquivalenceClass, ?>) TRANSLATOR.apply(formula);
-    var state = automaton.onlyInitialState().factory().of(BooleanConstant.TRUE);
+    var state = automaton.initialState().factory().of(BooleanConstant.TRUE);
     var edge = Edge.of(state, 0);
 
     // Check true sink.

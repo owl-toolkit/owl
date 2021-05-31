@@ -558,7 +558,7 @@ public final class DecomposedDPA {
             && automaton.acceptance == Acceptance.CO_SAFETY
             && Leaf.ALLOWED_DISJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors)) {
 
-            var initialState = automaton.automaton.onlyInitialState();
+            var initialState = automaton.automaton.initialState();
             leafFilter = automaton.initialStateEdgeTree.map(
               x -> initialState.equals(Iterables.getOnlyElement(x).successor())
                 ? Set.of(true)

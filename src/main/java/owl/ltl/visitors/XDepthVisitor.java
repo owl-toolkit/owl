@@ -19,8 +19,6 @@
 
 package owl.ltl.visitors;
 
-import java.util.HashMap;
-import java.util.Map;
 import javax.annotation.Nonnegative;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -33,16 +31,11 @@ import owl.ltl.XOperator;
 
 public class XDepthVisitor implements IntVisitor {
 
-  private static final Map<Formula, Integer> CACHE = new HashMap<>();
   private static final XDepthVisitor INSTANCE = new XDepthVisitor();
 
   @Nonnegative
   public static int getDepth(Formula formula) {
-    if (CACHE.size() > 1024) {
-      CACHE.clear();
-    }
-
-    return CACHE.computeIfAbsent(formula, x -> x.accept(INSTANCE));
+    return formula.accept(INSTANCE);
   }
 
   @Nonnegative

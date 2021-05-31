@@ -22,7 +22,6 @@ package owl.bdd.jbdd;
 import static owl.bdd.jbdd.JBddEquivalenceClassFactory.JBddEquivalenceClass;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import de.tum.in.jbdd.Bdd;
 import java.math.BigDecimal;
@@ -31,6 +30,7 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -40,14 +40,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.IntFunction;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
-import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -62,6 +64,8 @@ import owl.ltl.visitors.PropositionalIntVisitor;
 final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquivalenceClass>
   implements EquivalenceClassFactory {
 
+  private static final int[] EMPTY = {};
+
   private final List<String> atomicPropositions;
   private final JBddVisitor visitor;
 
@@ -70,6 +74,9 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
   private final int trueNode;
   private final int falseNode;
+
+  private final EquivalenceClass trueClass;
+  private final EquivalenceClass falseClass;
 
   @Nullable
   private Function<EquivalenceClass, Set<?>> temporalStepTreeCachedMapper;
@@ -93,11 +100,19 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     trueNode = this.bdd.trueNode();
     falseNode = this.bdd.falseNode();
+
+    trueClass = of(BooleanConstant.TRUE, trueNode);
+    falseClass = of(BooleanConstant.FALSE, falseNode);
   }
 
   @Override
   public List<String> atomicPropositions() {
     return atomicPropositions;
+  }
+
+  @Override
+  public EquivalenceClass of(boolean value) {
+    return value ? trueClass : falseClass;
   }
 
   @Override
@@ -136,6 +151,60 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     return clazz;
+  }
+
+  @Override
+  public EquivalenceClass and(Collection<? extends EquivalenceClass> classes) {
+    @Nullable
+    Set<Formula> representatives = new HashSet<>();
+    int andNode = trueNode;
+
+    for (EquivalenceClass clazz : classes) {
+      var castedClass = cast(clazz);
+
+      if (castedClass.representative == null) {
+        representatives = null;
+      } else if (representatives != null) {
+        representatives.add(castedClass.representative);
+      }
+
+      andNode = bdd.updateWith(bdd.and(andNode, castedClass.node), andNode);
+
+      if (andNode == falseNode) {
+        return falseClass;
+      }
+    }
+
+    return of(
+      representatives == null ? null : Conjunction.of(representatives),
+      bdd.dereference(andNode));
+  }
+
+  @Override
+  public EquivalenceClass or(Collection<? extends EquivalenceClass> classes) {
+    @Nullable
+    Set<Formula> representatives = new HashSet<>();
+    int orNode = falseNode;
+
+    for (EquivalenceClass clazz : classes) {
+      var castedClass = cast(clazz);
+
+      if (castedClass.representative == null) {
+        representatives = null;
+      } else if (representatives != null) {
+        representatives.add(castedClass.representative);
+      }
+
+      orNode = bdd.updateWith(bdd.or(orNode, castedClass.node), orNode);
+
+      if (orNode == trueNode) {
+        return trueClass;
+      }
+    }
+
+    return of(
+      representatives == null ? null : Disjunction.of(representatives),
+      bdd.dereference(orNode));
   }
 
   // Translates a formula into a BDD under the assumption every subformula is already registered.
@@ -197,9 +266,9 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   /**
    * Compute all paths to falseNode.
    */
-  private List<List<Integer>> zeroPaths(int node, Map<Integer, List<List<Integer>>> cache) {
+  private List<int[]> zeroPaths(int node, Map<Integer, List<int[]>> cache) {
 
-    List<List<Integer>> zeroPaths = cache.get(node);
+    List<int[]> zeroPaths = cache.get(node);
 
     if (zeroPaths != null) {
       return zeroPaths;
@@ -207,6 +276,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     JBddEquivalenceClass wrapper = canonicalWrapper(node);
 
+    // Access cached values.
     if (wrapper != null && wrapper.zeroPathsCache != null) {
       zeroPaths = wrapper.zeroPathsCache;
       cache.put(node, zeroPaths);
@@ -220,7 +290,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     if (node == falseNode) {
-      zeroPaths = List.of(List.of());
+      zeroPaths = List.of(EMPTY);
       cache.put(falseNode, zeroPaths);
       return zeroPaths;
     }
@@ -237,11 +307,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     if (!highImpliesLow) {
       lowZeroPaths.replaceAll(zeroPath -> {
-        List<Integer> extendedZeroPath = new ArrayList<>(zeroPath.size() + 1);
-        extendedZeroPath.add(-(variable + 1));
-        extendedZeroPath.addAll(zeroPath);
-        extendedZeroPath.sort(Integer::compare);
-        return List.copyOf(extendedZeroPath);
+        int[] extendedZeroPath = Arrays.copyOf(zeroPath, zeroPath.length + 1);
+        extendedZeroPath[zeroPath.length] = -(variable + 1);
+        Arrays.sort(extendedZeroPath);
+        return extendedZeroPath;
       });
     }
 
@@ -254,11 +323,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       } else {
         // Update and copy into lowZeroPaths.
         highZeroPaths.forEach(zeroPath -> {
-          List<Integer> extendedZeroPath = new ArrayList<>(zeroPath.size() + 1);
-          extendedZeroPath.add(variable);
-          extendedZeroPath.addAll(zeroPath);
-          extendedZeroPath.sort(Integer::compare);
-          lowZeroPaths.add(List.copyOf(extendedZeroPath));
+          int[] extendedZeroPath = Arrays.copyOf(zeroPath, zeroPath.length + 1);
+          extendedZeroPath[zeroPath.length] = variable;
+          Arrays.sort(extendedZeroPath);
+          lowZeroPaths.add(extendedZeroPath);
         });
       }
 
@@ -268,9 +336,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       lowZeroPaths.addAll(highZeroPaths);
     }
 
-    lowZeroPaths.sort(Comparator.comparing(List::size));
-    zeroPaths = List.copyOf(Collections3.maximalElements(
-      lowZeroPaths, JBddEquivalenceClassFactory::containsAll));
+    zeroPaths = maximalElements(lowZeroPaths.toArray(int[][]::new));
     cache.put(node, zeroPaths);
 
     // Cache zeroPaths in wrapper.
@@ -281,12 +347,55 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     return zeroPaths;
   }
 
+  // Warning: This is a performance-sensitive method.
+  private static List<int[]> maximalElements(int[][] paths) {
+    int removedElements = 0;
+
+    // Remove subsumed elements (including duplicates).
+    for (int i = 0; i < paths.length; i++) {
+      int[] ei = paths[i];
+
+      if (ei == null) {
+        continue;
+      }
+
+      for (int j = 0; j < paths.length; j++) {
+        if (i == j) {
+          continue;
+        }
+
+        int[] ej = paths[j];
+
+        if (ej == null) {
+          continue;
+        }
+
+        if (containsAll(ej, ei)) {
+          paths[j] = null;
+          removedElements++;
+        }
+      }
+    }
+
+    List<int[]> prunedPaths = new ArrayList<>(paths.length - removedElements);
+
+    for (int[] path : paths) {
+      if (path != null) {
+        prunedPaths.add(path);
+      }
+    }
+
+    // Pre-sort for recursive calls.
+    prunedPaths.sort(Comparator.comparingInt(x -> x.length));
+    return List.copyOf(prunedPaths);
+  }
+
   /**
    * Compute all paths to trueNode.
    */
-  private List<List<Integer>> onePaths(int node, Map<Integer, List<List<Integer>>> cache) {
+  private List<int[]> onePaths(int node, Map<Integer, List<int[]>> cache) {
 
-    List<List<Integer>> onePaths = cache.get(node);
+    List<int[]> onePaths = cache.get(node);
 
     if (onePaths != null) {
       return onePaths;
@@ -294,6 +403,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     JBddEquivalenceClass wrapper = canonicalWrapper(node);
 
+    // Access cached values.
     if (wrapper != null && wrapper.onePathsCache != null) {
       onePaths = wrapper.onePathsCache;
       cache.put(node, onePaths);
@@ -301,7 +411,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     if (node == trueNode) {
-      onePaths = List.of(List.of());
+      onePaths = List.of(EMPTY);
       cache.put(trueNode, onePaths);
       return onePaths;
     }
@@ -324,11 +434,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     if (!highImpliesLow) {
       highOnePaths.replaceAll(onePath -> {
-        List<Integer> extendedOnePath = new ArrayList<>(onePath.size() + 1);
-        extendedOnePath.add(variable);
-        extendedOnePath.addAll(onePath);
-        extendedOnePath.sort(Integer::compare);
-        return List.copyOf(extendedOnePath);
+        int[] extendedOnePath = Arrays.copyOf(onePath, onePath.length + 1);
+        extendedOnePath[onePath.length] = variable;
+        Arrays.sort(extendedOnePath);
+        return extendedOnePath;
       });
     }
 
@@ -341,11 +450,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       } else {
         // Update and copy into highOnePaths.
         lowOnePaths.forEach(onePath -> {
-          List<Integer> extendedOnePath = new ArrayList<>(onePath.size() + 1);
-          extendedOnePath.add(-(variable + 1));
-          extendedOnePath.addAll(onePath);
-          extendedOnePath.sort(Integer::compare);
-          highOnePaths.add(List.copyOf(extendedOnePath));
+          int[] extendedOnePath = Arrays.copyOf(onePath, onePath.length + 1);
+          extendedOnePath[onePath.length] = -(variable + 1);
+          Arrays.sort(extendedOnePath);
+          highOnePaths.add(extendedOnePath);
         });
       }
 
@@ -355,9 +463,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       highOnePaths.addAll(lowOnePaths);
     }
 
-    highOnePaths.sort(Comparator.comparing(List::size));
-    onePaths = List.copyOf(Collections3.maximalElements(
-      highOnePaths, JBddEquivalenceClassFactory::containsAll));
+    onePaths = maximalElements(highOnePaths.toArray(int[][]::new));
     cache.put(node, onePaths);
 
     // Cache onePaths in wrapper.
@@ -368,24 +474,30 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     return onePaths;
   }
 
-  private static boolean containsAll(List<Integer> path, List<Integer> otherPath) {
+  private static boolean containsAll(int[] path, int[] otherPath) {
+    if (path.length < otherPath.length) {
+      return false;
+    }
+
+    if (path.length == otherPath.length) {
+      return Arrays.equals(path, otherPath);
+    }
+
     // Index in the path list.
     int j = 0;
-    int pathSize = path.size();
 
-    for (int i = 0, otherPathSize = otherPath.size(); i < otherPathSize; i++) {
-
+    for (int i = 0; i < otherPath.length; i++) {
       // There are too many elements left in otherPath, path cannot contain all elements of it.
-      if (pathSize - j < otherPathSize - i) {
+      if (path.length - j < otherPath.length - i) {
         return false;
       }
 
       int value = Integer.MIN_VALUE;
-      int otherValue = otherPath.get(i);
+      int otherValue = otherPath[i];
 
       // Search in the sorted list for a matching value
-      for (; value < otherValue && j < pathSize; j++) {
-        value = path.get(j);
+      for (; value < otherValue && j < path.length; j++) {
+        value = path[j];
       }
 
       if (value != otherValue) {
@@ -413,9 +525,15 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     @Nullable
     private JBddEquivalenceClass unfoldCache;
     @Nullable
-    private List<List<Integer>> zeroPathsCache;
+    private JBddEquivalenceClass notCache;
     @Nullable
-    private List<List<Integer>> onePathsCache;
+    private List<int[]> zeroPathsCache;
+    @Nullable
+    private List<int[]> onePathsCache;
+    @Nullable
+    private Set<Set<Formula>> cnfView;
+    @Nullable
+    private Set<Set<Formula>> dnfView;
 
     @Nullable
     private ImmutableBitSet atomicPropositionsCache;
@@ -437,20 +555,80 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     @Override
     public Set<Set<Formula>> conjunctiveNormalForm() {
-      if (zeroPathsCache == null) {
-        zeroPathsCache = List.copyOf(factory.zeroPaths(node, new HashMap<>()));
+      if (cnfView == null) {
+        if (zeroPathsCache == null) {
+          zeroPathsCache = List.copyOf(factory.zeroPaths(node, new HashMap<>()));
+        }
+
+        List<Set<Formula>> clauses = new ArrayList<>(zeroPathsCache.size());
+        int atomicPropositions = factory.atomicPropositions.size();
+        Formula[] reverseMapping = factory.reverseMapping;
+
+        for (int[] zeroPath : zeroPathsCache) {
+          Formula[] clause = new Formula[zeroPath.length];
+
+          for (int j = 0; j < zeroPath.length; j++) {
+            int zeroPathNode = zeroPath[j];
+            assert zeroPathNode < atomicPropositions
+              : "Node encodes non-negated TemporalOperator";
+
+            if (0 <= zeroPathNode) {
+              clause[j] = Literal.of(zeroPathNode, true);
+            } else {
+              int negatedNode = -(zeroPathNode + 1);
+
+              if (negatedNode < atomicPropositions) {
+                clause[j] = Literal.of(negatedNode);
+              } else {
+                clause[j] = reverseMapping[negatedNode - atomicPropositions];
+              }
+            }
+          }
+
+          clauses.add(new DistinctList<>(List.of(clause)));
+        }
+
+        cnfView = new DistinctList<>(clauses);
       }
 
-      return new CnfView(factory.atomicPropositions.size(), factory.reverseMapping, zeroPathsCache);
+      return Objects.requireNonNull(cnfView);
     }
 
     @Override
     public Set<Set<Formula>> disjunctiveNormalForm() {
-      if (onePathsCache == null) {
-        onePathsCache = List.copyOf(factory.onePaths(node, new HashMap<>()));
+      if (dnfView == null) {
+        if (onePathsCache == null) {
+          onePathsCache = List.copyOf(factory.onePaths(node, new HashMap<>()));
+        }
+
+        List<Set<Formula>> clauses = new ArrayList<>(onePathsCache.size());
+        int atomicPropositions = factory.atomicPropositions.size();
+        Formula[] reverseMapping = factory.reverseMapping;
+
+        for (int[] onePath : onePathsCache) {
+          Formula[] clause = new Formula[onePath.length];
+
+          for (int j = 0; j < onePath.length; j++) {
+            int onePathNode = onePath[j];
+            assert -(atomicPropositions + 1) <= onePathNode
+              : "Node encodes negation of TemporalOperator";
+
+            if (onePathNode < 0) {
+              clause[j] = Literal.of(-(onePathNode + 1), true);
+            } else if (onePathNode < atomicPropositions) {
+              clause[j] = Literal.of(onePathNode);
+            } else {
+              clause[j] = reverseMapping[onePathNode - atomicPropositions];
+            }
+          }
+
+          clauses.add(new DistinctList<>(List.of(clause)));
+        }
+
+        dnfView = new DistinctList<>(clauses);
       }
 
-      return new DnfView(factory.atomicPropositions.size(), onePathsCache, factory.reverseMapping);
+      return Objects.requireNonNull(dnfView);
     }
 
     private Formula representative() {
@@ -596,6 +774,18 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
         (IdentityHashMap) factory.temporalStepTreeCache);
     }
 
+    @Override
+    public EquivalenceClass not() {
+      if (notCache == null) {
+        notCache = factory.cast(factory.of(representative().not()));
+        assert factory.cast(notCache).notCache == null;
+        notCache.notCache = this;
+      }
+
+      assert notCache.notCache == this;
+      return notCache;
+    }
+
     private <T> MtBdd<T> temporalStepTree(
       Formula initialRepresentative,
       BitSet pathTrace,
@@ -676,177 +866,58 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
   }
 
-  private static class CnfView extends AbstractSet<Set<Formula>> {
-    private final int atomicPropositions;
-    private final TemporalOperator[] reverseMapping;
-    private final List<List<Integer>> zeroPaths;
+  private static final class DistinctList<E> extends AbstractSet<E> {
+    private final List<E> elements;
 
-    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    private CnfView(
-      int atomicPropositions, TemporalOperator[] reverseMapping, List<List<Integer>> zeroPaths) {
-      this.atomicPropositions = atomicPropositions;
-      this.reverseMapping = reverseMapping;
-      this.zeroPaths = zeroPaths;
+    private DistinctList(List<E> elements) {
+      // assert Collections3.isDistinct(this.elements);
+      this.elements = List.copyOf(elements);
     }
 
     @Override
-    public Iterator<Set<Formula>> iterator() {
-      return Iterators.transform(zeroPaths.iterator(), this::transform);
-    }
-
-    @Override
-    public Stream<Set<Formula>> stream() {
-      return zeroPaths.stream().map(this::transform);
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return zeroPaths.isEmpty();
+    public Iterator<E> iterator() {
+      return elements.iterator();
     }
 
     @Override
     public int size() {
-      return zeroPaths.size();
-    }
-
-    private CnfClauseView transform(List<Integer> zeroPath) {
-      return new CnfClauseView(atomicPropositions, reverseMapping, zeroPath);
-    }
-  }
-
-  private static class DnfView extends AbstractSet<Set<Formula>> {
-    private final int atomicPropositions;
-    private final List<List<Integer>> onePaths;
-    private final TemporalOperator[] reverseMapping;
-
-    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    private DnfView(
-      int atomicPropositions, List<List<Integer>> onePaths, TemporalOperator[] reverseMapping) {
-      this.atomicPropositions = atomicPropositions;
-      this.onePaths = onePaths;
-      this.reverseMapping = reverseMapping;
-    }
-
-    @Override
-    public Iterator<Set<Formula>> iterator() {
-      return Iterators.transform(onePaths.iterator(), this::transform);
-    }
-
-    @Override
-    public Stream<Set<Formula>> stream() {
-      return onePaths.stream().map(this::transform);
+      return elements.size();
     }
 
     @Override
     public boolean isEmpty() {
-      return onePaths.isEmpty();
+      return elements.isEmpty();
     }
 
     @Override
-    public int size() {
-      return onePaths.size();
-    }
-
-    private DnfClauseView transform(List<Integer> onePath) {
-      return new DnfClauseView(atomicPropositions, onePath, reverseMapping);
-    }
-  }
-
-  private static class CnfClauseView extends AbstractSet<Formula> {
-    private final int atomicPropositions;
-    private final TemporalOperator[] reverseMapping;
-    private final List<Integer> zeroPath;
-
-    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    private CnfClauseView(
-      int atomicPropositions, TemporalOperator[] reverseMapping, List<Integer> zeroPath) {
-      this.atomicPropositions = atomicPropositions;
-      this.reverseMapping = reverseMapping;
-      this.zeroPath = zeroPath;
+    public boolean contains(Object o) {
+      return elements.contains(o);
     }
 
     @Override
-    public Iterator<Formula> iterator() {
-      return Iterators.transform(zeroPath.iterator(), this::transform);
+    public Object[] toArray() {
+      return elements.toArray();
     }
 
     @Override
-    public Stream<Formula> stream() {
-      return zeroPath.stream().map(this::transform);
+    public <T> T[] toArray(T[] array) {
+      return elements.toArray(array);
     }
 
     @Override
-    public boolean isEmpty() {
-      return zeroPath.isEmpty();
+    public <T> T[] toArray(IntFunction<T[]> generator) {
+      return elements.toArray(generator);
     }
 
     @Override
-    public int size() {
-      return zeroPath.size();
-    }
-
-    private Formula transform(int zeroPathNode) {
-      assert zeroPathNode < atomicPropositions : "Node encodes non-negated TemporalOperator";
-
-      if (0 <= zeroPathNode) {
-        return Literal.of(zeroPathNode, true);
-      }
-
-      int negatedNode = -(zeroPathNode + 1);
-
-      if (negatedNode < atomicPropositions) {
-        return Literal.of(negatedNode);
-      }
-
-      return reverseMapping[negatedNode - atomicPropositions];
-    }
-  }
-
-  private static class DnfClauseView extends AbstractSet<Formula> {
-    private final int atomicPropositions;
-    private final List<Integer> onePath;
-    private final TemporalOperator[] reverseMapping;
-
-    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
-    private DnfClauseView(
-      int atomicPropositions, List<Integer> onePath, TemporalOperator[] reverseMapping) {
-      this.atomicPropositions = atomicPropositions;
-      this.onePath = onePath;
-      this.reverseMapping = reverseMapping;
+    public void forEach(Consumer<? super E> action) {
+      elements.forEach(action);
     }
 
     @Override
-    public Iterator<Formula> iterator() {
-      return Iterators.transform(onePath.iterator(), this::transform);
-    }
-
-    @Override
-    public Stream<Formula> stream() {
-      return onePath.stream().map(this::transform);
-    }
-
-    @Override
-    public boolean isEmpty() {
-      return onePath.isEmpty();
-    }
-
-    @Override
-    public int size() {
-      return onePath.size();
-    }
-
-    private Formula transform(int onePathNode) {
-      assert -(atomicPropositions + 1) <= onePathNode : "Node encodes negation of TemporalOperator";
-
-      if (onePathNode < 0) {
-        return Literal.of(-(onePathNode + 1), true);
-      }
-
-      if (onePathNode < atomicPropositions) {
-        return Literal.of(onePathNode);
-      }
-
-      return reverseMapping[onePathNode - atomicPropositions];
+    public Spliterator<E> spliterator() {
+      return Spliterators.spliterator(elements,
+        Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL);
     }
   }
 }

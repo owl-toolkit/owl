@@ -159,10 +159,8 @@ public class ConjunctiveNormalForm<V> {
       var variables = new HashMap<V, Integer>();
 
       // Assign [v1, v2, ..., vn] -> [1, 2, ... n]
-      formula.visit(subformula -> {
-        if (subformula instanceof Variable) {
-          variables.putIfAbsent(((Variable<V>) subformula).variable, variables.size() + 1);
-        }
+      formula.variables().forEach(variable -> {
+        variables.put(variable, variables.size() + 1);
       });
 
       this.variables = ImmutableBiMap.copyOf(variables);

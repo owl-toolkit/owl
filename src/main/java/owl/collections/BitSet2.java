@@ -336,28 +336,39 @@ public final class BitSet2 {
    * @return each next()-call constructs a fresh BitSet.
    */
   public static Iterable<BitSet> powerSet(int i) {
-    return () -> new PowerBitSetSimpleIterator(i);
+    if (i < PowerBitSetSimpleIterator.MAX_LENGTH) {
+      return () -> new PowerBitSetSimpleIterator(i);
+    }
+
+    return () -> new PowerBitSetIterator(ImmutableBitSet.range(0, i));
   }
 
   public static Iterable<BitSet> powerSet(BitSet basis) {
     int length = basis.length();
 
-    if (length == basis.cardinality()) {
-      return powerSet(length);
+    // Check if the basis is continuous and does not exceed MAX_LENGTH.
+    if (length == basis.cardinality()
+      && length < PowerBitSetSimpleIterator.MAX_LENGTH) {
+
+      return () -> new PowerBitSetSimpleIterator(length);
     }
 
-    return () -> new PowerBitSetIterator(ImmutableBitSet.copyOf(basis));
+    var basisCopy = ImmutableBitSet.copyOf(basis);
+    return () -> new PowerBitSetIterator(basisCopy);
   }
 
   private static final class PowerBitSetSimpleIterator implements Iterator<BitSet> {
+
+    // MAX_LENGTH < Long.SIZE - 1
+    private static final int MAX_LENGTH = 60;
 
     private final long maxValue;
     private long value;
 
     private PowerBitSetSimpleIterator(int size) {
-      Objects.checkIndex(size, 40);
-      this.maxValue =  1L << ((long) size);
-      this.value = 0;
+      Objects.checkIndex(size, MAX_LENGTH);
+      maxValue = 1L << ((long) size);
+      value = 0;
     }
 
     @Override

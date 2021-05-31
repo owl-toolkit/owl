@@ -19,13 +19,20 @@
 
 package owl.automaton;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.Sets;
+import java.util.ArrayDeque;
+import java.util.Comparator;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.PriorityQueue;
+import java.util.Queue;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -161,4 +168,64 @@ public final class AutomatonUtil {
         automaton, Set.copyOf(initialComponent));
     }
   }
+
+  public static <S> boolean isLessOrEqual(Automaton<S, ?> automaton, int numberOfStates) {
+    if (automaton instanceof AbstractMemoizingAutomaton) {
+      return isLessOrEqual((AbstractMemoizingAutomaton<?, ?>) automaton, numberOfStates);
+    }
+
+    Deque<S> workList = new ArrayDeque<>(automaton.initialStates());
+    Set<S> visitedStates = new HashSet<>(automaton.initialStates());
+
+    checkArgument(numberOfStates >= 0);
+
+    while (!workList.isEmpty()) {
+      // We looked at too many states and exceeded our budget.
+      if (visitedStates.size() > numberOfStates) {
+        return false;
+      }
+
+      S state = workList.remove();
+
+      for (S successor : automaton.successors(state)) {
+        if (visitedStates.add(successor)) {
+          workList.add(successor);
+        }
+      }
+    }
+
+    return true;
+  }
+
+  public static <S> boolean isLessOrEqual(
+    AbstractMemoizingAutomaton<S, ?> automaton, int numberOfStates) {
+
+    checkArgument(numberOfStates >= 0);
+
+    Queue<S> workList = new PriorityQueue<>(
+      numberOfStates + 1, Comparator.comparing(automaton::edgeTreePrecomputed).reversed());
+    Set<S> visitedStates = new HashSet<>(numberOfStates + 1);
+
+    workList.addAll(automaton.initialStates);
+    visitedStates.addAll(automaton.initialStates);
+
+    while (!workList.isEmpty()) {
+      // We looked at too many states and exceeded our budget.
+      if (visitedStates.size() > numberOfStates) {
+        return false;
+      }
+
+      S state = workList.remove();
+
+      for (S successor : automaton.successors(state)) {
+        if (visitedStates.add(successor)) {
+          workList.add(successor);
+        }
+      }
+    }
+
+    return true;
+  }
+
+
 }

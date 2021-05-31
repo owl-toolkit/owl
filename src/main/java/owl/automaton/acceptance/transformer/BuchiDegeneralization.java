@@ -19,16 +19,18 @@
 
 package owl.automaton.acceptance.transformer;
 
+import com.google.auto.value.AutoValue;
 import java.io.IOException;
 import java.util.List;
+import owl.automaton.AbstractMemoizingAutomaton;
+import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
-import owl.automaton.acceptance.transformer.AcceptanceTransformation.AcceptanceTransformer;
-import owl.automaton.acceptance.transformer.AcceptanceTransformation.ExtendedState;
 import owl.automaton.edge.Edge;
-import owl.collections.ImmutableBitSet;
+import owl.bdd.MtBdd;
+import owl.collections.Collections3;
 import owl.run.modules.InputReaders;
 import owl.run.modules.OutputWriters;
 import owl.run.modules.OwlModule;
@@ -85,45 +87,45 @@ public final class BuchiDegeneralization {
    * @param <S> the state type
    * @return an on-the-fly generated Büchi automaton
    */
-  public static <S> Automaton<ExtendedState<S, Integer>, BuchiAcceptance> degeneralize(
+  public static <S> Automaton<RoundRobinState<S>, BuchiAcceptance> degeneralize(
     Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton) {
-    return AcceptanceTransformation.transform(automaton, BuchiDegeneralization::transformer);
-  }
 
-  private static AcceptanceTransformer<BuchiAcceptance, Integer>
-    transformer(GeneralizedBuchiAcceptance acceptance) {
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      Collections3.transformSet(automaton.initialStates(), s -> RoundRobinState.of(s, 0)),
+      BuchiAcceptance.INSTANCE) {
 
-    return new AcceptanceTransformer<>() {
-      private final int sets = acceptance.acceptanceSets();
-
-      @Override
-      public BuchiAcceptance transformedAcceptance() {
-        return BuchiAcceptance.INSTANCE;
-      }
+      private final int sets = automaton.acceptance().acceptanceSets();
 
       @Override
-      public Integer initialExtension() {
-        return 0;
-      }
+      protected MtBdd<Edge<RoundRobinState<S>>> edgeTreeImpl(RoundRobinState<S> state) {
+        return automaton.edgeTree(state.state()).map(x -> Collections3.transformSet(x, edge -> {
+          int nextRoundRobinCounter = state.roundRobinCounter();
 
-      @Override
-      public Edge<Integer> transformColours(ImmutableBitSet colours, Integer currentIndex) {
-        int nextIndex = currentIndex;
+          while (nextRoundRobinCounter < sets && edge.colours().contains(nextRoundRobinCounter)) {
+            nextRoundRobinCounter++;
+          }
 
-        while (nextIndex < sets && colours.contains(nextIndex)) {
-          nextIndex++;
-        }
-
-        while (nextIndex < currentIndex && colours.contains(nextIndex)) {
-          nextIndex++;
-        }
-
-        if (nextIndex == sets) {
-          return Edge.of(0, 0);
-        }
-
-        return Edge.of(nextIndex);
+          if (nextRoundRobinCounter == sets) {
+            return Edge.of(RoundRobinState.of(edge.successor(), 0), 0);
+          } else {
+            return Edge.of(RoundRobinState.of(edge.successor(), nextRoundRobinCounter));
+          }
+        }));
       }
     };
+  }
+
+  @AutoValue
+  public abstract static class RoundRobinState<S> implements AnnotatedState<S> {
+    @Override
+    public abstract S state();
+
+    public abstract int roundRobinCounter();
+
+    public static <S> RoundRobinState<S> of(S state, int roundRobinCounter) {
+      return new AutoValue_BuchiDegeneralization_RoundRobinState<>(state, roundRobinCounter);
+    }
   }
 }

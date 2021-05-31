@@ -25,9 +25,9 @@ import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
@@ -71,8 +71,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   protected final List<String> atomicPropositions;
 
   // Memoization.
-  private final Set<S> unexploredStates;
-  private Map<S, MtBdd<Edge<S>>> memoizedEdges = new HashMap<>();
+  private Map<S, MtBdd<Edge<S>>> memoizedEdgeTrees = new HashMap<>();
+  private final Map<S, Set<Edge<S>>> memoizedEdges = new HashMap<>();
 
   private AbstractMemoizingAutomaton(
     List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
@@ -90,32 +90,65 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     this.atomicPropositions = List.copyOf(atomicPropositions);
     this.initialStates = Set.copyOf(initialStates);
     this.factory = factory;
-    this.unexploredStates = new HashSet<>(this.initialStates);
+
+    // Mark initialStates as unexplored.
+    this.initialStates.forEach(x -> memoizedEdgeTrees.put(x, null));
 
     Preconditions.checkArgument(Collections3.isDistinct(this.atomicPropositions));
   }
 
+  /**
+   * Wrap any automaton into a MemoizingAutomaton to make use of the internal caching mechanism and
+   * to guarantee immutability after full exploration. The reference to the backing automaton is
+   * dropped once the automaton is completely explored.
+   *
+   * @param automaton the automaton
+   * @param <S> foo
+   * @param <A> bar
+   * @return a caching instance.
+   */
+  public static <S, A extends EmersonLeiAcceptance> AbstractMemoizingAutomaton<S, A>
+    memoizingAutomaton(Automaton<S, A> automaton) {
+
+    if (automaton instanceof AbstractMemoizingAutomaton) {
+      return (AbstractMemoizingAutomaton<S, A>) automaton;
+    }
+
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      automaton.atomicPropositions(),
+      automaton.factory(),
+      automaton.initialStates(),
+      automaton.acceptance()) {
+
+      @Nullable
+      private Automaton<S, A> backingAutomaton = automaton;
+
+      @Override
+      protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
+        return Objects.requireNonNull(backingAutomaton).edgeTree(state);
+      }
+
+      @Override
+      protected void freezeMemoizedEdgesNotify() {
+        backingAutomaton = null;
+      }
+    };
+  }
+
   @Override
   public final MtBdd<Edge<S>> edgeTree(S state) {
-    var edgeTree = memoizedEdges.get(state);
+    var edgeTree = memoizedEdgeTrees.get(state);
 
     if (edgeTree != null) {
       return edgeTree;
     }
 
     edgeTree = edgeTreeImpl(state);
-    memoizedEdges.put(state, edgeTree);
+    memoizedEdgeTrees.put(state, edgeTree);
 
     // Update the set of unexplored states.
-    edgeTree.flatValues().forEach(x -> unexploredStates.add(x.successor()));
-    unexploredStates.removeAll(memoizedEdges.keySet());
+    edgeTree.flatValues().forEach(x -> memoizedEdgeTrees.putIfAbsent(x.successor(), null));
     return edgeTree;
-  }
-
-  @Nullable
-  @Override
-  public final Edge<S> edge(S state, BitSet valuation) {
-    return Iterables.getFirst(edgeTree(state).get(valuation), null);
   }
 
   @Override
@@ -123,9 +156,10 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     return edgeTree(state).inverse(factory);
   }
 
+  @Nullable
   @Override
-  public final Set<Edge<S>> edges(S state) {
-    return edgeTree(state).flatValues();
+  public final Edge<S> edge(S state, BitSet valuation) {
+    return Iterables.getFirst(edges(state, valuation), null);
   }
 
   @Override
@@ -134,8 +168,14 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   }
 
   @Override
-  public final Set<S> successors(S state) {
-    return Edges.successors(edgeTree(state).flatValues());
+  public final Set<Edge<S>> edges(S state) {
+    return memoizedEdges.computeIfAbsent(state, x -> Set.copyOf(edgeTree(state).flatValues()));
+  }
+
+  @Nullable
+  @Override
+  public final S successor(S state, BitSet valuation) {
+    return Iterables.getFirst(successors(state, valuation), null);
   }
 
   @Override
@@ -143,10 +183,9 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     return Edges.successors(edgeTree(state).get(valuation));
   }
 
-  @Nullable
   @Override
-  public final S successor(S state, BitSet valuation) {
-    return Iterables.getFirst(Edges.successors(edgeTree(state).get(valuation)), null);
+  public final Set<S> successors(S state) {
+    return Edges.successors(edges(state));
   }
 
   @Override
@@ -165,8 +204,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   }
 
   @Override
-  public final S onlyInitialState() {
-    return Automaton.super.onlyInitialState();
+  public final S initialState() {
+    return Automaton.super.initialState();
   }
 
   @Override
@@ -176,25 +215,57 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final Set<S> states() {
-    while (!unexploredStates.isEmpty()) {
-      for (Object state : unexploredStates.toArray()) {
-        // Work-around for the inability to generate a type-safe array.
-        @SuppressWarnings({"unchecked", "unused"})
-        var unused = edgeTree((S) state);
-      }
+    // We already explored everything.
+    if (!(memoizedEdgeTrees instanceof HashMap)) {
+      return memoizedEdgeTrees.keySet();
     }
 
-    freezeMemoizedEdges();
+    // Explore missing part of the state space.
+    boolean unexploredStatesExist = true;
+
+    while (unexploredStatesExist) {
+      List<S> unexploredStates = new ArrayList<>();
+
+      // Copy to avoid concurrent modification exception.
+      memoizedEdgeTrees.forEach((state, tree) -> {
+        if (tree == null) {
+          unexploredStates.add(state);
+        }
+      });
+
+      unexploredStatesExist = !unexploredStates.isEmpty();
+      unexploredStates.forEach(this::edgeTree);
+    }
+
+    memoizedEdgeTrees = Map.copyOf(memoizedEdgeTrees);
     freezeMemoizedEdgesNotify();
-    return memoizedEdges.keySet();
+    return memoizedEdgeTrees.keySet();
+  }
+
+  @Override
+  public boolean is(Property property) {
+    if (property != Property.COMPLETE && property != Property.SEMI_DETERMINISTIC) {
+      return Automaton.super.is(property);
+    }
+
+    // force full exploration.
+    states();
+
+    if (property == Property.COMPLETE) {
+      return memoizedEdgeTrees.values().stream().allMatch(
+        x -> x.values().stream().allMatch(y -> y.size() >= 1));
+    }
+
+    assert property == Property.SEMI_DETERMINISTIC;
+    return memoizedEdgeTrees.values().stream().allMatch(
+      x -> x.values().stream().allMatch(y -> y.size() <= 1));
+  }
+
+  boolean edgeTreePrecomputed(S state) {
+    return memoizedEdgeTrees.get(state) != null;
   }
 
   protected abstract MtBdd<Edge<S>> edgeTreeImpl(S state);
-
-  private void freezeMemoizedEdges() {
-    Preconditions.checkState(unexploredStates.isEmpty());
-    memoizedEdges = Map.copyOf(memoizedEdges);
-  }
 
   @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
   protected void freezeMemoizedEdgesNotify() {

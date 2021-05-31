@@ -211,7 +211,7 @@ public final class NbaDet {
     //construct powerset automaton and get its SCCs
     logger.log(Level.FINE, "Computation of powerset structure of NBA");
     var psAut = createPowerSetAutomaton(conf.aut());
-    var psInitial = psAut.onlyInitialState(); //Q_0
+    var psInitial = psAut.initialState(); //Q_0
 
     var psScci = SccDecomposition.of(psAut);
     //compute quick lookup from states to SCC ids
@@ -302,7 +302,7 @@ public final class NbaDet {
   public static <S> Pair<Automaton<NbaDetState<S>, ParityAcceptance>, Map<BitSet,NbaDetState<S>>>
       determinizeNbaAlongScc(Automaton<BitSet,?> refScc, NbaDetConf<S> conf) {
 
-    BitSet psInit = refScc.onlyInitialState(); //initial set to start exploration
+    BitSet psInit = refScc.initialState(); //initial set to start exploration
     NbaDetState<S> initDpa = NbaDetState.of(conf, psInit);
     var toPS = new HashMap<NbaDetState<S>, BitSet>(); //det state -> some PS state map
     toPS.put(initDpa, psInit);

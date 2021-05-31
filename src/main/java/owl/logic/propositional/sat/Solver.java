@@ -76,7 +76,9 @@ public final class Solver {
     return model(formula, DEFAULT_ENGINE);
   }
 
-  public static <V> Optional<Set<V>> model(PropositionalFormula<V> formula, Engine engine) {
+  public static <V> Optional<Set<V>> model(PropositionalFormula<V> preFormula, Engine engine) {
+    var formula = preFormula.nnf();
+
     if (formula instanceof PropositionalFormula.Disjunction) {
       for (var disjunct : ((PropositionalFormula.Disjunction<V>) formula).disjuncts) {
         Optional<Set<V>> satisfiable = model(disjunct, engine);
@@ -89,13 +91,42 @@ public final class Solver {
       return Optional.empty();
     }
 
+    // Pre-process and replace single polarity with fixed value in formula.
+    var polarity = formula.polarity();
+
+    var simplifiedFormula = formula.substitute(variable -> {
+      switch (polarity.get(variable)) {
+        case POSITIVE:
+          return PropositionalFormula.trueConstant();
+
+        case NEGATIVE:
+          return PropositionalFormula.falseConstant();
+
+        default:
+          return PropositionalFormula.Variable.of(variable);
+      }
+    });
+
     // Translate into equisatisfiable CNF.
-    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(formula);
-    return model(conjunctiveNormalForm.clauses, engine).map(bitSet -> bitSet.stream()
-      .map(x -> x + 1) // shift indices
-      .filter(conjunctiveNormalForm.variableMapping::containsValue) // skip Tsetin variables
-      .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i))
+    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(simplifiedFormula);
+    var modelSimplifiedFormula = model(conjunctiveNormalForm.clauses, engine)
+      .map(bitSet -> bitSet.stream()
+        .map(x -> x + 1) // shift indices
+        .filter(conjunctiveNormalForm.variableMapping::containsValue) // skip Tsetin variables
+        .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i))
       .collect(Collectors.toSet()));
+
+    if (modelSimplifiedFormula.isEmpty()) {
+      return modelSimplifiedFormula;
+    }
+
+    polarity.forEach((variable, value) -> {
+      if (value == PropositionalFormula.Polarity.POSITIVE) {
+        modelSimplifiedFormula.ifPresent(x -> x.add(variable));
+      }
+    });
+
+    return modelSimplifiedFormula;
   }
 
   public static <V> List<Set<V>> maximalModels(
@@ -110,9 +141,9 @@ public final class Solver {
 
     PropositionalFormula<V> normalisedFormula = formula.substitute(
       variable -> upperBound.contains(variable)
-        ? Optional.empty()
-        : Optional.of(PropositionalFormula.falseConstant()))
-      .nnf().normalise();
+        ? PropositionalFormula.Variable.of(variable)
+        : PropositionalFormula.falseConstant())
+      .nnf();
 
     // Preprocessing to reduce enumeration of models using the SAT solver.
 
@@ -134,8 +165,8 @@ public final class Solver {
       if (!lowerBound.isEmpty()) {
         PropositionalFormula<V> restrictedFormula = normalisedFormula.substitute(
           variable -> lowerBound.contains(variable)
-            ? Optional.of(PropositionalFormula.trueConstant())
-            : Optional.empty());
+            ? PropositionalFormula.trueConstant()
+            : PropositionalFormula.Variable.of(variable));
 
         List<Set<V>> restrictedMaximalModels = maximalModels(
           restrictedFormula, new HashSet<>(Sets.difference(upperBound, lowerBound)));

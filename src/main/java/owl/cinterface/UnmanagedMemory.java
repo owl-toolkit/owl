@@ -153,14 +153,7 @@ public final class UnmanagedMemory {
     }
   }
 
-  private static <T extends PointerBase> T realloc(T ptr, long size) {
-    if (size == 0) {
-      free(ptr);
-      return nullPointer();
-    }
 
-    return org.graalvm.nativeimage.UnmanagedMemory.realloc(ptr, unsigned(size));
-  }
 
   /**
    * Frees unmanaged memory that was previously allocated using methods of this class.
@@ -176,6 +169,15 @@ public final class UnmanagedMemory {
         ((EmulatedPointer) ptr).buffer = null;
       }
     }
+  }
+
+  private static <T extends PointerBase> T realloc(T ptr, long size) {
+    if (size == 0) {
+      free(ptr);
+      return nullPointer();
+    }
+
+    return org.graalvm.nativeimage.UnmanagedMemory.realloc(ptr, unsigned(size));
   }
 
   private static long intToSizeInBytes(long size) {

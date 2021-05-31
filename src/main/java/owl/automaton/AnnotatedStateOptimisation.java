@@ -47,7 +47,7 @@ public final class AnnotatedStateOptimisation {
       return mutableAutomatonCopy;
     }
 
-    var originalInitialState = mutableAutomatonCopy.onlyInitialState().state();
+    var originalInitialState = mutableAutomatonCopy.initialState().state();
 
     S candidateInitialState = null;
     int size = mutableAutomatonCopy.states().size();

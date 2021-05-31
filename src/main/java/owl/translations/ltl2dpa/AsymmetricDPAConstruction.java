@@ -136,7 +136,7 @@ final class AsymmetricDPAConstruction {
       this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       acceptance = new ParityAcceptance(
         2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
-      EquivalenceClass ldbaInitialState = ldba.initialComponent().onlyInitialState();
+      EquivalenceClass ldbaInitialState = ldba.initialComponent().initialState();
       factory = ldbaInitialState.factory();
       blockingSafetyOperators = BlockingElements.blockingSafetyFormulas(factory.of(formula));
       initialState = edge(ldbaInitialState, List.of(), -1).successor();

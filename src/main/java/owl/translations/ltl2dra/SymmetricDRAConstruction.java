@@ -120,7 +120,7 @@ public final class SymmetricDRAConstruction<R extends GeneralizedRabinAcceptance
 
       var ldbaInitialState = ldba.initialComponent().initialStates().isEmpty()
         ? Map.<Integer, EquivalenceClass>of()
-        : ldba.initialComponent().onlyInitialState();
+        : ldba.initialComponent().initialState();
 
       SortedSet<SymmetricEvaluatedFixpoints> fixpoints = new TreeSet<>(ldba.annotation());
 

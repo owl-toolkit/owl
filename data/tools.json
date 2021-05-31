@@ -349,44 +349,44 @@
             "output": "hoa",
             "name": "to-parity",
             "flags": {
-                "stutter": "--stutter",
-                "scc-analysis": "--scc-analysis",
-                "scc-analysis-jump-to-bottom": "--scc-analysis-jump-to-bottom"
+                "conditional-zielonka": "--X-lookahead=0",
+                "mixed-1": "--X-lookahead=1",
+                "mixed-10": "--X-lookahead=10",
+                "mixed-100": "--X-lookahead=100",
+                "acd": "--X-lookahead=-1"
             },
             "pre": [
                 "simplify-ltl",
-                "delag",
-                "optimize-aut"
+                "delag"
             ]
         },
-        "to-parity-normalform": {
+        "ltl2delaNormalform": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
-            "name": "to-parity",
+            "name": "ltl2delaNormalform",
             "flags": {
-                "stutter": "--stutter",
-                "scc-analysis": "--scc-analysis",
-                "scc-analysis-jump-to-bottom": "--scc-analysis-jump-to-bottom"
+                "syntactic-only": "--X-lookahead='0'",
+                "mixed-1": "--X-lookahead='1'",
+                "mixed-10": "--X-lookahead='10'",
+                "mixed-100":  "--X-lookahead='100'",
+                "semantic-only": "--X-lookahead='-1'"
             },
             "pre": [
-                "simplify-ltl",
-                [
-                    "ltl2normalform",
-                    "--local"
-                ],
-                "simplify-ltl",
-                "delag",
-                "optimize-aut"
+                "simplify-ltl"
             ]
         },
-        "ltl2dpaZielonka": {
+        "ltl2dpaNormalform": {
             "type": "owl",
             "input": "ltl",
             "output": "hoa",
-            "name": "ltl2dpaZielonka",
+            "name": "ltl2dpaNormalform",
             "flags": {
-                "simple": "--simple"
+                "conditional-zielonka": "--X-lookahead=0",
+                "mixed-1": "--X-lookahead=1",
+                "mixed-10": "--X-lookahead=10",
+                "mixed-100":  "--X-lookahead=100",
+                "acd": "--X-lookahead=-1"
             },
             "pre": [
                 "simplify-ltl"

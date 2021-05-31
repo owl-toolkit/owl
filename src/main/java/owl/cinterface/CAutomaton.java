@@ -20,19 +20,23 @@
 package owl.cinterface;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.graalvm.word.WordFactory.nullPointer;
 import static owl.cinterface.CAutomaton.Acceptance.BUCHI;
 import static owl.cinterface.CAutomaton.Acceptance.CO_BUCHI;
 import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_EVEN;
 import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_ODD;
 import static owl.cinterface.CAutomaton.Acceptance.SAFETY;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.ACCEPTING;
+import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.INITIAL;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.REJECTING;
 import static owl.cinterface.DecomposedDPA.Tree;
 import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -54,9 +58,13 @@ import org.graalvm.nativeimage.c.constant.CEnum;
 import org.graalvm.nativeimage.c.constant.CEnumLookup;
 import org.graalvm.nativeimage.c.constant.CEnumValue;
 import org.graalvm.nativeimage.c.function.CEntryPoint;
+import org.graalvm.nativeimage.c.struct.CField;
+import org.graalvm.nativeimage.c.struct.CStruct;
+import org.graalvm.nativeimage.c.struct.SizeOf;
 import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
+import org.graalvm.word.PointerBase;
 import org.graalvm.word.UnsignedWord;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
@@ -67,6 +75,10 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AlternatingCycleDecomposition;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.Path;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
 import owl.bdd.BddSet;
@@ -74,6 +86,7 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
+import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -84,8 +97,11 @@ import owl.translations.LtlTranslationRepository;
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateAccepting;
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
+import owl.translations.ltl2dela.NormalformDELAConstruction;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
+import owl.translations.ltl2dpa.NormalformDPAConstruction;
 
+@SuppressWarnings("PMD.CouplingBetweenObjects")
 @CContext(CInterface.CDirectives.class)
 public final class CAutomaton {
 
@@ -130,7 +146,7 @@ public final class CAutomaton {
 
     // Parse AP:
 
-    List<String> atomicPropositions = new ArrayList<>();
+    List<String> atomicPropositions;
 
     {
       String fieldName = "AP: ";
@@ -144,9 +160,8 @@ public final class CAutomaton {
 
       int size = Integer.parseInt(splitString[0]);
 
-      for (int i = 1; i < splitString.length; i++) {
-        atomicPropositions.add(splitString[i]);
-      }
+      atomicPropositions = new ArrayList<>(
+        Arrays.asList(splitString).subList(1, splitString.length));
 
       checkArgument(atomicPropositions.size() == size, "Malformed HOA file.");
     }
@@ -184,10 +199,27 @@ public final class CAutomaton {
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation) {
 
-    return of(cLabelledFormula, translation, Set.of());
+    return of(cLabelledFormula, translation, Set.of(), -1);
   }
 
   // Varargs-simulation
+
+  @CEntryPoint(
+    name = NAMESPACE + "of0",
+    documentation = {
+    "Translate the given formula to deterministic parity automaton.",
+      CInterface.CALL_DESTROY
+    },
+    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+  )
+  public static ObjectHandle of(
+    IsolateThread thread,
+    ObjectHandle cLabelledFormula,
+    LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead) {
+
+    return of(cLabelledFormula, translation, Set.of(), lookahead);
+  }
 
   @CEntryPoint(
     name = NAMESPACE + "of1",
@@ -201,9 +233,10 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
-    LtlTranslationRepository.Option translationOption) {
+    int lookahead,
+    LtlTranslationRepository.Option o1) {
 
-    return of(cLabelledFormula, translation, Set.of(translationOption));
+    return of(cLabelledFormula, translation, Set.of(o1), lookahead);
   }
 
   @CEntryPoint(
@@ -218,10 +251,11 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
-    LtlTranslationRepository.Option translationOption1,
-    LtlTranslationRepository.Option translationOption2) {
+    int lookahead,
+    LtlTranslationRepository.Option o1,
+    LtlTranslationRepository.Option o2) {
 
-    return of(cLabelledFormula, translation, Set.of(translationOption1, translationOption2));
+    return of(cLabelledFormula, translation, Set.of(o1, o2), lookahead);
   }
 
   @CEntryPoint(
@@ -236,11 +270,12 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead,
     LtlTranslationRepository.Option o1,
     LtlTranslationRepository.Option o2,
     LtlTranslationRepository.Option o3) {
 
-    return of(cLabelledFormula, translation, Set.of(o1, o2, o3));
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3), lookahead);
   }
 
   @CEntryPoint(
@@ -255,12 +290,13 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead,
     LtlTranslationRepository.Option o1,
     LtlTranslationRepository.Option o2,
     LtlTranslationRepository.Option o3,
     LtlTranslationRepository.Option o4) {
 
-    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4));
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4), lookahead);
   }
 
   @CEntryPoint(
@@ -275,21 +311,27 @@ public final class CAutomaton {
     IsolateThread thread,
     ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
+    int lookahead,
     LtlTranslationRepository.Option o1,
     LtlTranslationRepository.Option o2,
     LtlTranslationRepository.Option o3,
     LtlTranslationRepository.Option o4,
     LtlTranslationRepository.Option o5) {
 
-    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4, o5));
+    return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4, o5), lookahead);
   }
 
   private static ObjectHandle of(ObjectHandle cLabelledFormula,
     LtlTranslationRepository.LtlToDpaTranslation translation,
-    Set<LtlTranslationRepository.Option> translationOption) {
+    Set<LtlTranslationRepository.Option> translationOptions,
+    int lookahead) {
+
+    OptionalInt lookaheadOptional = lookahead >= 0
+      ? OptionalInt.of(lookahead)
+      : OptionalInt.empty();
 
     var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
-    var automaton = translation.translation(translationOption).apply(formula);
+    var automaton = translation.translation(ParityAcceptance.class, translationOptions, lookaheadOptional).apply(formula);
     return ObjectHandles.getGlobal().create(DeterministicAutomatonWrapper.of(automaton, -1));
   }
 
@@ -360,7 +402,7 @@ public final class CAutomaton {
     documentation = {
       "Serialise the edges leaving the given state into a tree buffer, edge buffer, and an ",
       "optional score buffer. If the scores are not required, the pointer may be set to NULL.",
-      "The pointer returned via the sized_{int,double}_array_t structures must be freed using",
+      "The pointer returned via the vector_{int,double}_t structures must be freed using",
       "the method `free_unmanaged_memory`."
     },
     exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnVoid.class
@@ -381,6 +423,224 @@ public final class CAutomaton {
 
     if (tree.scores != null) {
       tree.scores.moveTo(cScoreBuffer);
+    }
+  }
+
+  @CEntryPoint(
+    name = CAutomaton.NAMESPACE + "extract_features_normal_form_zielonka_construction",
+    documentation = {
+      "Returns a feature vector of the same length as the passed state vector. The memory is ",
+      "managed by Java and at the moment there is no API-call to deallocate it."
+    }
+  )
+  @SuppressWarnings("unchecked")
+  public static ZielonkaNormalFormState extractFeatures(
+    IsolateThread thread, ObjectHandle automatonObjectHandle, CIntVector stateIds) {
+
+    var automaton = get(automatonObjectHandle);
+
+    checkArgument(stateIds.isNonNull());
+
+    int size = stateIds.size();
+    checkArgument(size >= 0);
+
+    var zielonkaAutomaton = (AutomatonWithZielonkaTreeLookup<
+      ZielonkaState<NormalformDELAConstruction.State>, ParityAcceptance>) automaton.automaton;
+
+    ZielonkaNormalFormState decomposedStates = size == 0
+      ? nullPointer()
+      : org.graalvm.nativeimage.UnmanagedMemory
+        .malloc(SizeOf.unsigned(ZielonkaNormalFormState.class).multiply(size));
+
+    // Extract states.
+    List<ZielonkaState<NormalformDELAConstruction.State>> states = new ArrayList<>();
+    Set<PropositionalFormula<Integer>> stateFormulas = new HashSet<>();
+    Map<Integer, EquivalenceClassEncoder> encoders = new HashMap<>();
+
+    for (int i = 0; i < size; i++) {
+      int stateId = stateIds.elements().read(i);
+
+      ZielonkaState<NormalformDELAConstruction.State> state;
+
+      if (stateId == REJECTING) {
+        state = ZielonkaState.of(
+          NormalformDELAConstruction.State.of(
+            PropositionalFormula.falseConstant(), Map.of(), Set.of()), Path.of());
+      } else if (stateId == ACCEPTING) {
+        state = ZielonkaState.of(
+          NormalformDELAConstruction.State.of(
+            PropositionalFormula.trueConstant(), Map.of(), Set.of()), Path.of());
+      } else {
+        var uncastedState = stateId == INITIAL && automaton.index2StateMap.isEmpty()
+          ? automaton.automaton.initialState()
+          : automaton.index2StateMap.get(stateId);
+
+        if (!(uncastedState instanceof ZielonkaState)) {
+          throw new IllegalArgumentException(
+            "feature extraction only works for 'unpublished zielonka'");
+        }
+
+        state = (ZielonkaState<NormalformDELAConstruction.State>) uncastedState;
+      }
+
+      states.add(state);
+      stateFormulas.add(state.state().stateFormula());
+      state.state().stateMap().forEach((key, breakPointState) ->
+        encoders
+          .computeIfAbsent(key, x -> new EquivalenceClassEncoder())
+          .put(breakPointState));
+    }
+
+    List<PropositionalFormula<Integer>> stateFormulasSorted = new ArrayList<>(stateFormulas);
+    stateFormulasSorted.sort(Comparator.comparingInt(PropositionalFormula::height));
+
+    for (int i = 0; i < size; i++) {
+      // Load state fields.
+      var state = states.get(i);
+      var stateFormula = state.state().stateFormula();
+      var stateMap = state.state().stateMap();
+      var roundRobinCounters = state.state().roundRobinCounters();
+      var zielonkaPath = state.path();
+      var zielonkaTree = zielonkaAutomaton.lookup(state);
+
+      // If we use ACD, we can project path to subtree.
+      if (zielonkaTree instanceof AlternatingCycleDecomposition) {
+        var acd = (AlternatingCycleDecomposition<NormalformDELAConstruction.State>) zielonkaTree;
+        zielonkaPath = acd.restrictPathToSubtree(state.state(), zielonkaPath);
+      }
+
+      // Store into struct.
+      var decomposedState = decomposedStates.addressOf(i);
+      decomposedState.stateFormula(stateFormulasSorted.indexOf(stateFormula));
+      decomposedState.roundRobinCounters(CIntVectors.copyOf(roundRobinCounters));
+      decomposedState.zielonkaPath(CIntVectors.copyOf(zielonkaPath.indices()));
+
+      var iterator = stateMap.entrySet().iterator();
+      ZielonkaNormalFormState.StateMapEntry entries = iterator.hasNext()
+        ? org.graalvm.nativeimage.UnmanagedMemory.malloc(
+          SizeOf.unsigned(ZielonkaNormalFormState.StateMapEntry.class).multiply(stateMap.size()))
+        : nullPointer();
+
+      decomposedState.stateMap(entries);
+      decomposedState.stateMapSize(stateMap.size());
+
+      for (int j = 0, s = stateMap.size(); j < s; j++) {
+        var entry = iterator.next();
+        var cEntry = entries.addressOf(j);
+
+        // Copy fields
+        var dbwState = entry.getValue();
+        var encoder = encoders.get(entry.getKey());
+        cEntry.key(entry.getKey());
+        cEntry.allProfile(CIntVectors.copyOf(encoder.getAllProfile(dbwState)));
+        cEntry.rejectingProfile(CIntVectors.copyOf(encoder.getRejectingProfile(dbwState)));
+        cEntry.disambiguation(encoder.disambiguation(dbwState));
+      }
+
+      assert !iterator.hasNext();
+    }
+
+    return decomposedStates;
+  }
+
+  @CContext(CInterface.CDirectives.class)
+  @CStruct("zielonka_normal_form_state_t")
+  interface ZielonkaNormalFormState extends PointerBase {
+
+    // allows access to individual structs in an array
+    ZielonkaNormalFormState addressOf(int index);
+
+    /**
+     * A non-negative id assigned to the state-formula of the underlying DELW.
+     */
+    @CField("state_formula")
+    int stateFormula();
+
+    @CField("state_formula")
+    void stateFormula(int stateFormula);
+
+    /**
+     * An array of size `stateMapSize` storing a mapping of indices to states of the underlying
+     * DBW. The keys used in the mapping are exactly the variables used in the state formula and
+     * are unordered and might be non-continuous.
+     */
+    @CField("state_map")
+    StateMapEntry stateMap();
+
+    @CField("state_map")
+    void stateMap(StateMapEntry map);
+
+    /**
+     * The size of the array stored in `stateMap`.
+     */
+    @CField("state_map_size")
+    int stateMapSize();
+
+    @CField("state_map_size")
+    void stateMapSize(int size);
+
+    /**
+     * An ascending sorted list of active round-robin counters. These are computed dynamically and
+     * might change from SCC to SCC.
+     */
+    @CField("round_robin_counters")
+    CIntVector roundRobinCounters();
+
+    @CField("round_robin_counters")
+    void roundRobinCounters(CIntVector roundRobinCounters);
+
+    /**
+     * The current path in the Zielonka-tree.
+     */
+    @CField("zielonka_path")
+    CIntVector zielonkaPath();
+
+    @CField("zielonka_path")
+    void zielonkaPath(CIntVector path);
+
+    @CContext(CInterface.CDirectives.class)
+    @CStruct("zielonka_normal_form_state_state_map_entry_t")
+    interface StateMapEntry extends PointerBase {
+
+      // allows access to individual structs in an array
+      StateMapEntry addressOf(int index);
+
+      /**
+       * The id used to map the state into the state-formula.
+       */
+      @CField("key")
+      int key();
+
+      @CField("key")
+      void key(int key);
+
+      /**
+       * A vector of features for the `all` field of the DBW-state.
+       */
+      @CField("all_profile")
+      CIntVector allProfile();
+
+      @CField("all_profile")
+      void allProfile(CIntVector profile);
+
+      /**
+       * A vector of features for the `all` field of the DBW-state.
+       */
+      @CField("rejecting_profile")
+      CIntVector rejectingProfile();
+
+      @CField("rejecting_profile")
+      void rejectingProfile(CIntVector profile);
+
+      /**
+       * A non-negative, unique integer used to disambiguate state from other states mapped to
+       * the same all_profile and rejecting_profile.
+       */
+      @CField("disambiguation")
+      int disambiguation();
+
+      @CField("disambiguation")
+      void disambiguation(int disambiguation);
     }
   }
 
@@ -659,9 +919,9 @@ public final class CAutomaton {
       this.canonicalizer = canonicalizer;
       this.uncontrollableApSize = uncontrollableApSize;
 
-      index(automaton.onlyInitialState());
+      index(automaton.initialState());
 
-      this.initialStateEdgeTree = automaton.edgeTree(this.automaton.onlyInitialState());
+      this.initialStateEdgeTree = automaton.edgeTree(this.automaton.initialState());
       var reachableStatesIndices = new HashSet<Integer>();
 
       for (Set<Edge<S>> edges : initialStateEdgeTree.values()) {
@@ -720,13 +980,21 @@ public final class CAutomaton {
         return OptionalInt.of(automaton.acceptance().isAcceptingEdge(edge) ? ACCEPTING : REJECTING);
       };
 
+      ToDoubleFunction<Edge<S>> scoring = x -> 0.5d;
+
+      // Inject scoring if the automaton is known.
+      if (automaton instanceof AutomatonWithZielonkaTreeLookup) {
+        scoring = NormalformDPAConstruction.scoringFunction(
+          (AutomatonWithZielonkaTreeLookup) automaton);
+      }
+
       return new DeterministicAutomatonWrapper<>(
         automaton,
         Acceptance.fromOmegaAcceptance(automaton.acceptance()),
         null,
         sinkDetection,
         Function.identity(),
-        x -> 0.5d,
+        scoring,
         uncontrollableApSize,
         null,
         null
@@ -739,7 +1007,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isSafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.safety(nnfFormula);
-        var factory = automaton.onlyInitialState().factory();
+        var factory = automaton.initialState().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -756,7 +1024,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isCoSafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.coSafety(nnfFormula);
-        var factory = automaton.onlyInitialState().factory();
+        var factory = automaton.initialState().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -807,7 +1075,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isSafetyCoSafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.safetyCoSafety(nnfFormula);
-        var factory = automaton.onlyInitialState().all().factory();
+        var factory = automaton.initialState().all().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -826,7 +1094,7 @@ public final class CAutomaton {
       if (SyntacticFragments.isCoSafetySafety(nnfFormula.formula())) {
         var automaton
           = DeterministicConstructionsPortfolio.coSafetySafety(nnfFormula);
-        var factory = automaton.onlyInitialState().all().factory();
+        var factory = automaton.initialState().all().factory();
 
         return new DeterministicAutomatonWrapper<>(
           automaton,
@@ -991,7 +1259,7 @@ public final class CAutomaton {
 
       // If the automaton accepts everything, then index2stateMap is empty.
       S state = stateIndex == INITIAL && index2StateMap.isEmpty()
-        ? automaton.onlyInitialState()
+        ? automaton.initialState()
         : index2StateMap.get(stateIndex);
 
       MtBdd<Edge<S>> edgeTree;

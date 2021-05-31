@@ -6,7 +6,11 @@ Modules:
   of LTL.
 
 * Add a translation of the Emerson-Lei acceptance condition to the
-  parity acceptance condition based on Zielonka split-trees.
+  parity acceptance condition based on Zielonka split-trees
+  (Alternating Cycle Decomposition)
+
+* Add a translation from LTL-to-DELW based on the LICS'20 normalisation
+  procedure.
 
 * Add a customised LTL-to-DPA translation based Zielonka split-trees.
 

@@ -40,6 +40,6 @@ public class LookaheadSimulationTest {
     Assumptions.assumeTrue(OinkGameSolver.checkOinkExecutable());
     Assertions.assertTrue(new OinkGameSolver().solve(game)
       .playerEven()
-      .contains(game.onlyInitialState()));
+      .contains(game.initialState()));
   }
 }

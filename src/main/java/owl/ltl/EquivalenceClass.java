@@ -118,6 +118,8 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
 
   double trueness();
 
+  EquivalenceClass not();
+
   @Override
   default EquivalenceClass language() {
     return this;

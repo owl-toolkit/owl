@@ -27,7 +27,7 @@ import org.graalvm.word.PointerBase;
 
 @CContext(CInterface.CDirectives.class)
 @CStruct("vector_double_t")
-interface CDoubleVector extends PointerBase {
+public interface CDoubleVector extends PointerBase {
 
   @CField
   CDoublePointer elements();

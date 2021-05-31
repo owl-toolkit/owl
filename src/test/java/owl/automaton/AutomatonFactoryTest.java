@@ -42,8 +42,8 @@ class AutomatonFactoryTest {
     var automaton = HashMapAutomaton.copyOf(
       DeterministicConstructionsPortfolio.safety(LtlParser.parse("G a | b R c")));
 
-    var initialState = automaton.onlyInitialState();
-    var edgeMap = automaton.edgeMap(automaton.onlyInitialState());
+    var initialState = automaton.initialState();
+    var edgeMap = automaton.edgeMap(automaton.initialState());
 
     for (BitSet valuation : BitSet2.powerSet(automaton.atomicPropositions().size())) {
       var edge = automaton.edge(initialState, valuation);

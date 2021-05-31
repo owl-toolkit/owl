@@ -250,7 +250,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       AsymmetricEvaluatedFixpoints.DeterministicAutomata automata) {
       assert SyntacticFragments.isCoSafety(remainder);
 
-      EquivalenceClass safety = automata.safetyAutomaton.onlyInitialState();
+      EquivalenceClass safety = automata.safetyAutomaton.initialState();
       EquivalenceClass current = remainder;
 
       if (SyntacticFragments.isSafety(remainder)) {
@@ -406,8 +406,8 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       if (automata.gfCoSafetyAutomaton != null) {
         assert acceptanceClass.equals(GeneralizedBuchiAcceptance.class);
         var automaton = automata.gfCoSafetyAutomaton;
-        var edge = automaton.edge(automaton.onlyInitialState(), valuation);
-        assert edge.successor().equals(automaton.onlyInitialState());
+        var edge = automaton.edge(automaton.initialState(), valuation);
+        assert edge.successor().equals(automaton.initialState());
         edge.colours().forEach((int x) -> acceptance.set(x + 1));
       }
 

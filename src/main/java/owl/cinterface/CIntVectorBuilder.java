@@ -33,9 +33,13 @@ public final class CIntVectorBuilder {
   private int size;
 
   public CIntVectorBuilder() {
+    this(64);
+  }
+
+  public CIntVectorBuilder(int initialCapacity) {
     this.size = 0;
-    this.elements = UnmanagedMemory.mallocCIntPointer(64);
-    this.capacity = 64;
+    this.elements = UnmanagedMemory.mallocCIntPointer(initialCapacity);
+    this.capacity = initialCapacity;
   }
 
   public void add() {
@@ -43,20 +47,20 @@ public final class CIntVectorBuilder {
   }
 
   public void add(int e0) {
-    grow(size + 1);
+    ensureCapacity(size + 1);
     elements.write(size, e0);
     size = size + 1;
   }
 
   public void add(int e0, int e1) {
-    grow(size + 2);
+    ensureCapacity(size + 2);
     elements.write(size, e0);
     elements.write(size + 1, e1);
     size = size + 2;
   }
 
   public void add(int e0, int e1, int e2) {
-    grow(size + 3);
+    ensureCapacity(size + 3);
     elements.write(size, e0);
     elements.write(size + 1, e1);
     elements.write(size + 2, e2);
@@ -64,7 +68,7 @@ public final class CIntVectorBuilder {
   }
 
   public void add(int... es) {
-    grow(size + es.length);
+    ensureCapacity(size + es.length);
 
     for (int e : es) {
       add(e);
@@ -72,7 +76,7 @@ public final class CIntVectorBuilder {
   }
 
   public void addAll(Collection<Integer> collection) {
-    grow(size + collection.size());
+    ensureCapacity(size + collection.size());
     collection.forEach(this::add);
   }
 
@@ -95,7 +99,9 @@ public final class CIntVectorBuilder {
       throw new IllegalStateException("already moved");
     }
 
-    cIntVector.elements(UnmanagedMemory.reallocCIntPointer(elements, size));
+    cIntVector.elements(size == capacity
+      ? elements
+      : UnmanagedMemory.reallocCIntPointer(elements, size));
     cIntVector.size(size);
 
     elements = WordFactory.nullPointer();
@@ -118,7 +124,7 @@ public final class CIntVectorBuilder {
     return Arrays.toString(toArray());
   }
 
-  private void grow(int minCapacity) {
+  private void ensureCapacity(int minCapacity) {
     if (capacity >= minCapacity) {
       return;
     }

@@ -276,7 +276,7 @@ public final class SymmetricEvaluatedFixpoints
       : DeterministicConstructions.GfCoSafety
         .of(factories, new TreeSet<>(infinitelyOften), generalized);
 
-    assert !safetyAutomaton.onlyInitialState().isFalse();
+    assert !safetyAutomaton.initialState().isFalse();
     return new DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
   }
 

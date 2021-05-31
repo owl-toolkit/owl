@@ -473,7 +473,7 @@ final class MonitorBuilder {
     BitSet valuation = new BitSet(0);
 
     MonitorState optimizedInitialState;
-    MonitorState nextOptimizedInitialState = anyMonitor.onlyInitialState();
+    MonitorState nextOptimizedInitialState = anyMonitor.initialState();
 
     // Search for another initial state.
     do {
@@ -483,11 +483,11 @@ final class MonitorBuilder {
         : null;
     } while (nextOptimizedInitialState != null);
 
-    if (optimizedInitialState.equals(anyMonitor.onlyInitialState())) {
+    if (optimizedInitialState.equals(anyMonitor.initialState())) {
       logger.log(Level.FINER, "No better initial state found");
     } else {
       logger.log(Level.FINER, "Updating initial state from {0} to {1}",
-        new Object[] {anyMonitor.onlyInitialState(), optimizedInitialState});
+        new Object[] {anyMonitor.initialState(), optimizedInitialState});
       for (MutableAutomaton<MonitorState, ParityAcceptance> monitor : monitorAutomata) {
         monitor.initialStates(Set.of(optimizedInitialState));
         monitor.trim();

@@ -6,7 +6,7 @@
       "initialStatesSize": 0,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
-      "complete": false,
+      "complete": true,
       "deterministic": true
     }
   },
@@ -53,6 +53,9 @@
       "complete": false,
       "deterministic": true
     }
+  },
+  {
+    "formula": "(a <-> b)"
   },
   {
     "formula": "Fa",
@@ -142,6 +145,9 @@
       "complete": false,
       "deterministic": true
     }
+  },
+  {
+    "formula": "((a <-> b) & G!b)"
   },
   {
     "formula": "(Fa & F!a)",
@@ -236,6 +242,9 @@
     }
   },
   {
+    "formula": "((a <-> b) | Fb)"
+  },
+  {
     "formula": "(Fa | Fb)",
     "properties": {
       "size": 3,
@@ -274,6 +283,12 @@
   },
   {
     "formula": "(((a) R (b)) | ((c) W (d)))"
+  },
+  {
+    "formula": "(a <-> Ga)"
+  },
+  {
+    "formula": "(!a <-> Ga)"
   },
   {
     "formula": "F(a & b)",
@@ -813,6 +828,12 @@
     "formula": "(FGa | FGb | FGc | FGd | FGe | FGf | FGg | FGh | FGi)"
   },
   {
+    "formula": "(F!a <-> (!a <-> Ga))"
+  },
+  {
+    "formula": "(Ga <-> (!a <-> Ga))"
+  },
+  {
     "formula": "F(a & (a | b))",
     "properties": {
       "size": 2,
@@ -1164,7 +1185,7 @@
       "initialStatesSize": 0,
       "acceptanceName": "BuchiAcceptance",
       "acceptanceSets": 1,
-      "complete": false,
+      "complete": true,
       "deterministic": true
     }
   },
@@ -1527,6 +1548,12 @@
     "formula": "(F(a & Gb) | F(c & Gd) | F(e & Gf) | F(g & Gh))"
   },
   {
+    "formula": "(Fa <-> X(Fa | Gb))"
+  },
+  {
+    "formula": "(G!a <-> X(Fa | Gb))"
+  },
+  {
     "formula": "F(a & (b | ((c) R (d))))"
   },
   {
@@ -1708,6 +1735,9 @@
     "formula": "FG(a | Xb)"
   },
   {
+    "formula": "FG(a | ((b) M (!a)))"
+  },
+  {
     "formula": "FG(a | ((a) R (b)))"
   },
   {
@@ -1805,6 +1835,9 @@
   },
   {
     "formula": "GF(a & ((a) U (b)))"
+  },
+  {
+    "formula": "GF(!a & ((b) W (a)))"
   },
   {
     "formula": "XF(a & Gb)"
@@ -2561,9 +2594,6 @@
     "formula": "(FGa | FG(a | XXa))"
   },
   {
-    "formula": "(GF!a | (F!a & F(Xb & (a | Xa) & (!a | X!a))))"
-  },
-  {
     "formula": "((FGa & FGb) | FG(c | XXa))"
   },
   {
@@ -2611,6 +2641,18 @@
     }
   },
   {
+    "formula": "(a <-> (FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a)))))"
+  },
+  {
+    "formula": "(!a <-> (FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a)))))"
+  },
+  {
+    "formula": "((GF(a & Xa) & GF(b & Xb) & GF(c & Xc)) <-> (GF(d & Xd) & GF(e & Xe) & GF(f & Xf)))"
+  },
+  {
+    "formula": "((FG(a | Xa) | FG(b | Xb) | FG(c | Xc)) <-> (GF(d & Xd) & GF(e & Xe) & GF(f & Xf)))"
+  },
+  {
     "formula": "F(a & F(b & (a | Gc)))"
   },
   {
@@ -2644,9 +2686,6 @@
   },
   {
     "formula": "F(!a & Xa & X(((!a & Xa)) R ((b | X!b))))"
-  },
-  {
-    "formula": "F(((a) W (Gb)) & (!a | F(!a & !b) | FG!b) & (a | (G(a | b) & GFb)))"
   },
   {
     "formula": "F(a & !b & Fb & (((c & ((b) R ((b | d))))) R (!b)))"
@@ -2734,7 +2773,7 @@
     "formula": "((a) M ((a & ((b) M ((b | c | X((b) R (d))))))))"
   },
   {
-    "formula": "((((!a) M (((b | XGa) & (!b | XF!a))))) M (!a))"
+    "formula": "((((!a) M (((b & XF!a) | (!b & XGa))))) M (!a))"
   },
   {
     "formula": "((XXa) R ((b & (((c) R (XXd)) | ((e) R (XXf)) | ((g) R (XXh))))))"
@@ -2769,6 +2808,9 @@
     "formula": "((!a | GF(a & ((!b) M (!a))) | GF(!a & ((b) W (a)))) & (a | (FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a))))))"
   },
   {
+    "formula": "((FG(!a | X!a) | FG(!b | X!b) | FG(!c | X!c) | FG(!d | X!d) | FG(!e | X!e) | FG(!f | X!f)) & ((GF(a & Xa) & GF(b & Xb) & GF(c & Xc)) | (GF(d & Xd) & GF(e & Xe) & GF(f & Xf))))"
+  },
+  {
     "formula": "((FGa | GF(b & XXa)) & FG(c | X(b & Xa)))"
   },
   {
@@ -2799,10 +2841,16 @@
     "formula": "(G!a | (((b | X((a) R (!c)) | X((!a) U ((c & Fd))))) U (a)))"
   },
   {
+    "formula": "(GF!a | (F!a & F(Xb & ((a & X!a) | (!a & Xa)))))"
+  },
+  {
     "formula": "((FGa & FGb & GFc) | F(a & d & F(c & XGb)))"
   },
   {
     "formula": "((a & FG(a | ((!b) M (!a))) & FG(!a | ((b) W (a)))) | (!a & (GF(a & ((!b) M (!a))) | GF(!a & ((b) W (a))))))"
+  },
+  {
+    "formula": "((GF(a & Xa) & GF(b & Xb) & GF(c & Xc) & GF(d & Xd) & GF(e & Xe) & GF(f & Xf)) | ((FG(!a | X!a) | FG(!b | X!b) | FG(!c | X!c)) & (FG(!d | X!d) | FG(!e | X!e) | FG(!f | X!f))))"
   },
   {
     "formula": "((GFa & FG(b | XXa)) | GF(c & X(b | Xa)))"
@@ -2864,6 +2912,9 @@
   },
   {
     "formula": "F(a & ((b) R (((!b) R (((b) R (((!b) R ((!b | c))))))))))"
+  },
+  {
+    "formula": "F(((a) W (Gb)) & ((!a & G(a | b) & GFb) | (a & (F(!a & !b) | FG!b))))"
   },
   {
     "formula": "F(a & Fb & ((c) R ((!b & (c | d | X((c) R (e)))))))"
@@ -2955,7 +3006,7 @@
     "formula": "((!a) W ((a & ((!b) W (((b) W (((!b) W (((b) W (G!b)))))))))))"
   },
   {
-    "formula": "((((a) W (b))) W ((((!c & Fd)) U (((e | Fc) & (!e | ((e | G!c) & (!e | Fc))))))))"
+    "formula": "((((a) W (b))) W ((((!c & Fd)) U (((e & Fc) | (!e & ((e & G!c) | (!e & Fc))))))))"
   },
   {
     "formula": "(Fa & (((b & ((a) R ((a | c | d | X(((a | d)) R (e))))))) R (!a)))"
@@ -2967,7 +3018,7 @@
     "formula": "(FG(a | XXXXa) & FG(!a | XXXX!a))"
   },
   {
-    "formula": "(a & GFa & (!b | c | F(!a & c) | F(!b & !d & !e & !f & !g & !h) | (FG!b & FGi) | (FG!d & FGj) | (FG!e & FGk) | (FG!f & FGl) | (FG!g & FGm) | (FG!h & FGn) | F(b & (i | o) & (!i | !o)) | F(d & (j | o) & (!j | !o)) | F(e & (k | o) & (!k | !o)) | F(f & (l | o) & (!l | !o)) | F(g & (m | o) & (!m | !o)) | F(h & (n | o) & (!n | !o)) | F(c & !i & !j & !k & !l & !m & !n & X!b) | F(!a & (b | Xb) & (!b | X!b)) | F(!a & (d | Xd) & (!d | X!d)) | F(!a & (e | Xe) & (!e | X!e)) | F(!a & (f | Xf) & (!f | X!f)) | F(!a & (g | Xg) & (!g | X!g)) | F(!a & (h | Xh) & (!h | X!h)) | F(c & (b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd) & (e | X!e) & (!e | Xe) & (f | X!f) & (!f | Xf) & (g | X!g) & (!g | Xg) & (h | X!h) & (!h | Xh)) | F(!c & ((b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd) | (e & X!e) | (!e & Xe) | (f & X!f) | (!f & Xf) | (g & X!g) | (!g & Xg) | (h & X!h) | (!h & Xh))) | F((b | d | e | ((f | g) & (h | (f & g)))) & (f | g | h | ((b | d) & (e | (b & d)))))))"
+    "formula": "(a & GFa & (!b | c | F(!a & c) | F(!b & !d & !e & !f & !g & !h) | (FG!b & FGi) | (FG!d & FGj) | (FG!e & FGk) | (FG!f & FGl) | (FG!g & FGm) | (FG!h & FGn) | F(c & !i & !j & !k & !l & !m & !n & X!b) | F(b & ((i & !o) | (!i & o))) | F(d & ((j & !o) | (!j & o))) | F(e & ((k & !o) | (!k & o))) | F(f & ((l & !o) | (!l & o))) | F(g & ((m & !o) | (!m & o))) | F(h & ((n & !o) | (!n & o))) | F(c & (b | X!b) & (!b | Xb) & (d | X!d) & (!d | Xd) & (e | X!e) & (!e | Xe) & (f | X!f) & (!f | Xf) & (g | X!g) & (!g | Xg) & (h | X!h) & (!h | Xh)) | F(!a & ((b & X!b) | (!b & Xb))) | F(!a & ((d & X!d) | (!d & Xd))) | F(!a & ((e & X!e) | (!e & Xe))) | F(!a & ((f & X!f) | (!f & Xf))) | F(!a & ((g & X!g) | (!g & Xg))) | F(!a & ((h & X!h) | (!h & Xh))) | F(!c & ((b & X!b) | (!b & Xb) | (d & X!d) | (!d & Xd) | (e & X!e) | (!e & Xe) | (f & X!f) | (!f & Xf) | (g & X!g) | (!g & Xg) | (h & X!h) | (!h & Xh))) | F((b | d | e | ((f | g) & (h | (f & g)))) & (f | g | h | ((b | d) & (e | (b & d)))))))"
   },
   {
     "formula": "(G((a & !b & !c) | (!a & ((b & !c & (b | !c)) | (!b & c & (!b | c))))) & G((d & !e & !f) | (!d & ((e & !f & (e | !f)) | (!e & f & (!e | f))))) & G((g & !h & !i) | (!g & ((h & !i & (h | !i)) | (!h & i & (!h | i))))) & (((j) M (!d)) | F(k & l) | F(d & X((!j) M (!f))) | F(f & X((j) M (!d))) | (G(a | !j) & G(!a | j) & G(b | j) & G(!b | !j) & G(i | !l) & G(!i | l) & G(h | !j | !k) & G(!h | (j & k)) & G(!k | (j & X!j) | (!j & Xj)) & G(k | ((j | X!j) & (!j | Xj))))))"
@@ -2986,6 +3037,12 @@
   },
   {
     "formula": "(F((!a | b | c) & (a | ((b | !c | (b & !c)) & (!b | c | (!b & c))))) | F((!d | e | f) & (d | ((e | !f | (e & !f)) & (!e | f | (!e & f))))) | F((!g | h | i) & (g | ((h | !i | (h & !i)) & (!h | i | (!h & i))))) | (((!j) W (d)) & G(!k | !l) & G(!d | X((j) W (f))) & G(!f | X((!j) W (d))) & (F(a & !j) | F(!a & j) | F(b & j) | F(!b & !j) | F(i & !l) | F(!i & l) | F(!h & j & k) | F(h & (!j | !k)) | F(k & (j | X!j) & (!j | Xj)) | F(!k & ((j & X!j) | (!j & Xj))))))"
+  },
+  {
+    "formula": "(a <-> (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))))"
+  },
+  {
+    "formula": "(!a <-> (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))))"
   },
   {
     "formula": "F(a & F(b & XFc & XG(!c | Gd)))"
@@ -3146,7 +3203,7 @@
     "formula": "G(!a | Xa | X((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b & ((!a) U ((!a & !b & X(!a & b)))))))))))))"
   },
   {
-    "formula": "(!a & !b & !c & !d & !e & G(!b | c) & G(!d | e) & G(!f | !g) & GFa & G(f | g | !h | XF!i) & (h | j | k | !l | !m | n | !o | F(!a & Xl) | F(!n & ((n) M (!e))) | F(!c & !e & o & X!m) | F(!j & k & (e | i) & (!e | !i)) | F(!j & !k & (c | i) & (!c | !i)) | (FGc & FG(j | k)) | (FGe & FG(j | !k)) | F(a & (p | Xh) & (!p | X!h)) | F(!o & (p | Xp) & (!p | X!p)) | F(o & Xm & (b | Xp) & (!b | X!p)) | F(o & Xn & (d | Xp) & (!d | X!p)) | F(a & (m | X(!j & !k)) & (!m | X(j | k))) | F(a & (n | X(!j & k)) & (!n | X(j | !k))) | F(!f & !g & h & l & X((l) M ((i | l)))) | F(!o & (((m | Xm) & (!m | X!m)) | ((n | Xn) & (!n | X!n)))) | F(X!l & (((h | Xh) & (!h | X!h)) | (((!j & k) | X(!j & k)) & (j | !k | X(j | !k))))) | F(X!l & (((h | Xh) & (!h | X!h)) | (((!j & !k) | X(!j & !k)) & (j | k | X(j | k))))) | F(a & f & !g & h & l & X((l) M ((!a | l | X((l) M ((!a | l | X((l) M ((!a | l)))))))))) | F(!a & f & !g & h & l & X((l) M ((!a | l | X((l) M ((!a | l | X((l) M ((!a | l | X((l) M ((!a | l)))))))))))))))"
+    "formula": "(!a & !b & !c & !d & !e & G(!b | c) & G(!d | e) & G(!f | !g) & GFa & G(f | g | !h | XF!i) & (h | j | k | !l | !m | n | !o | F(!a & Xl) | F(!n & ((n) M (!e))) | F(!c & !e & o & X!m) | (FGc & FG(j | k)) | (FGe & FG(j | !k)) | F(!j & k & ((e & !i) | (!e & i))) | F(!j & !k & ((c & !i) | (!c & i))) | F(a & ((p & X!h) | (!p & Xh))) | F(!o & ((p & X!p) | (!p & Xp))) | F(!o & ((m & X!m) | (!m & Xm) | (n & X!n) | (!n & Xn))) | F(o & Xm & ((b & X!p) | (!b & Xp))) | F(o & Xn & ((d & X!p) | (!d & Xp))) | F(!f & !g & h & l & X((l) M ((i | l)))) | F(a & ((m & X(j | k)) | (!m & X(!j & !k)))) | F(a & ((n & X(j | !k)) | (!n & X(!j & k)))) | F(X!l & ((h & X!h) | (!h & Xh) | ((j | k) & X(!j & !k)) | (!j & !k & X(j | k)))) | F(X!l & ((h & X!h) | (!h & Xh) | ((j | !k) & X(!j & k)) | (!j & k & X(j | !k)))) | F(a & f & !g & h & l & X((l) M ((!a | l | X((l) M ((!a | l | X((l) M ((!a | l)))))))))) | F(!a & f & !g & h & l & X((l) M ((!a | l | X((l) M ((!a | l | X((l) M ((!a | l | X((l) M ((!a | l)))))))))))))))"
   },
   {
     "formula": "(a | b | c | d | e | F(b & !c) | F(d & !e) | F(f & g) | FG!a | F(!f & !g & h & XGi) | (!h & !j & !k & l & m & !n & o & G(a | X!l) & G(n | ((!n) W (e))) & G(c | e | !o | Xm) & G(j | k | (c & i) | (!c & !i)) & G(j | !k | (e & i) | (!e & !i)) & (GF!c | GF(!j & !k)) & (GF!e | GF(!j & k)) & G(!a | (p & Xh) | (!p & X!h)) & G(o | (p & Xp) | (!p & X!p)) & G(!o | X!m | (b & Xp) | (!b & X!p)) & G(!o | X!n | (d & Xp) | (!d & X!p)) & G(!a | (m & X(!j & !k)) | (!m & X(j | k))) & G(!a | (n & X(!j & k)) | (!n & X(j | !k))) & G(f | g | !h | !l | X((!l) W ((!i & !l)))) & G(o | (((m & Xm) | (!m & X!m)) & ((n & Xn) | (!n & X!n)))) & G(Xl | (((h & Xh) | (!h & X!h)) & (((j | k) & X(j | k)) | (!j & !k & X(!j & !k))))) & G(Xl | (((h & Xh) | (!h & X!h)) & (((j | !k) & X(j | !k)) | (!j & k & X(!j & k))))) & G(!a | !f | g | !h | !l | X((!l) W ((a & !l & X((!l) W ((a & !l & X((!l) W ((a & !l)))))))))) & G(a | !f | g | !h | !l | X((!l) W ((a & !l & X((!l) W ((a & !l & X((!l) W ((a & !l & X((!l) W ((a & !l)))))))))))))))"

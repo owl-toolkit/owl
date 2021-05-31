@@ -120,7 +120,7 @@ final class SymmetricDPAConstruction {
       initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       acceptance = new ParityAcceptance(
         2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
-      Map<Integer, EquivalenceClass> ldbaInitialState = ldba.initialComponent().onlyInitialState();
+      Map<Integer, EquivalenceClass> ldbaInitialState = ldba.initialComponent().initialState();
       initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
       rejectingEdge = complete
         ? Edge.of(SymmetricRankingState.of(Map.of()), acceptance.rejectingSet().orElseThrow())

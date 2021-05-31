@@ -83,7 +83,7 @@ public final class OinkGameSolver implements ParityGameSolver {
     if (game.initialStates().size() != 1) {
       throw new IllegalArgumentException("Game must have exactly one initial state.");
     }
-    S initialState = game.onlyInitialState();
+    S initialState = game.initialState();
 
     ParityAcceptance acceptance = game.acceptance();
     if (acceptance.parity() != ParityAcceptance.Parity.MAX_EVEN) {
@@ -173,7 +173,7 @@ public final class OinkGameSolver implements ParityGameSolver {
     }
 
     return solve(GameViews.replaceInitialStates(game, game.states()))
-      .player2.contains(game.onlyInitialState());
+      .player2.contains(game.initialState());
   }
 
   @Override
@@ -185,7 +185,7 @@ public final class OinkGameSolver implements ParityGameSolver {
       throw new OinkExecutionException("Could not find oink executable.");
     }
     if (!game.is(Automaton.Property.COMPLETE)) {
-      logger.severe("Game with initial state " + game.onlyInitialState() + "is incomplete");
+      logger.severe("Game with initial state " + game.initialState() + "is incomplete");
       throw new IllegalArgumentException("input game must be complete");
     }
 

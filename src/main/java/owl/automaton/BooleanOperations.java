@@ -22,7 +22,6 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
-import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
@@ -249,7 +248,7 @@ public final class BooleanOperations {
     for (EmersonLeiAcceptance acceptance : acceptanceConditions) {
       var fIntersectionAcceptanceSets = intersectionAcceptanceSets;
       var shiftedExpression = acceptance.booleanExpression()
-        .substitute(x -> Optional.of(Variable.of(x + fIntersectionAcceptanceSets)));
+        .map(x -> x + fIntersectionAcceptanceSets);
       intersectionConjuncts.add(shiftedExpression);
       intersectionAcceptanceSets += acceptance.acceptanceSets();
     }
@@ -377,8 +376,7 @@ public final class BooleanOperations {
 
     for (EmersonLeiAcceptance acceptance : acceptanceConditions) {
       var fUnionAcceptanceSets = unionAcceptanceSets;
-      var shiftedExpression = acceptance.booleanExpression()
-        .substitute(x -> Optional.of(Variable.of(x + fUnionAcceptanceSets)));
+      var shiftedExpression = acceptance.booleanExpression().map(x -> x + fUnionAcceptanceSets);
       unionDisjuncts.add(shiftedExpression);
       unionAcceptanceSets += acceptance.acceptanceSets();
     }

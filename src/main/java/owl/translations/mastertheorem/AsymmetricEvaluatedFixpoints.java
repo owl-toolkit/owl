@@ -234,7 +234,7 @@ public final class AsymmetricEvaluatedFixpoints
         x -> fCoSafety.add(factories.eqFactory.of(x.operand().unfold())));
     }
 
-    assert !safetyAutomaton.onlyInitialState().isFalse();
+    assert !safetyAutomaton.initialState().isFalse();
     return new AsymmetricEvaluatedFixpoints
       .DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton, coSafety, fCoSafety);
   }

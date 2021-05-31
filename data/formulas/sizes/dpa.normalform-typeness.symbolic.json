@@ -55,6 +55,17 @@
     }
   },
   {
+    "formula": "(a <-> b)",
+    "properties": {
+      "size": 3,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "Fa",
     "properties": {
       "size": 2,
@@ -2620,7 +2631,7 @@
   {
     "formula": "F(a & (((b & ((c) R ((c | d | X((c) R (e))))))) R ((!c & F(b & (d | XGe))))))",
     "properties": {
-      "size": 60,
+      "size": 58,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 6,
@@ -2631,7 +2642,7 @@
   {
     "formula": "F(a & (((b & ((c) R ((c | d | e | X(((c | e)) R (f))))))) R ((!c & F(b & (d | e | X((e) R (f))))))))",
     "properties": {
-      "size": 81,
+      "size": 77,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 6,

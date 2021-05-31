@@ -51,6 +51,7 @@ import owl.ltl.Literal;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.LtlfParser;
+import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
 import owl.ltl.rewriter.SimplifierFactory;
 import owl.ltl.visitors.Converter;
 
@@ -166,7 +167,8 @@ public final class CLabelledFormula {
     Arrays.fill(atomicPropositionStatuses, UNUSED);
 
     // Translate to a restricted negation normal form.
-    var processedFormula = labelledFormula.formula().substitute(Formula::nnf);
+    var processedFormula = PushNextThroughPropositionalVisitor
+      .apply(labelledFormula).formula().substitute(Formula::nnf);
 
     Formula oldFormula;
     Formula newFormula = processedFormula;

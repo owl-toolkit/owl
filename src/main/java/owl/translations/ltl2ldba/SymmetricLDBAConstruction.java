@@ -274,7 +274,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
             jumps.add(new SymmetricProductState(safety,
               deterministicAutomata.gfCoSafetyAutomaton == null
                 ? null
-                : deterministicAutomata.gfCoSafetyAutomaton.onlyInitialState(),
+                : deterministicAutomata.gfCoSafetyAutomaton.initialState(),
               symmetricEvaluatedFixpoints, deterministicAutomata));
           }
         }

@@ -43,7 +43,7 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
         "Expected type %s, got type %s", Game.class, object.getClass());
       Game x = (Game) object;
       WinningRegions<?> winning = recursiveZielonka(x);
-      return winning.player2.contains(x.onlyInitialState())
+      return winning.player2.contains(x.initialState())
         ? "The specification is REALISABLE"
         : "The specification is UNREALISABLE";
     });
@@ -133,7 +133,7 @@ public final class ZielonkaGameSolver implements ParityGameSolver {
 
   public static <S> boolean zielonkaRealizability(Game<S, ? extends ParityAcceptance> game) {
     return recursiveZielonka(GameViews.replaceInitialStates(game, game.states()))
-      .player2.contains(game.onlyInitialState());
+      .player2.contains(game.initialState());
   }
 
   @Override

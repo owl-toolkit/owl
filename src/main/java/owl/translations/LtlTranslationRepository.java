@@ -27,6 +27,7 @@ import com.google.common.base.Preconditions;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -52,6 +53,7 @@ import owl.ltl.rewriter.SimplifierFactory;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
+import owl.translations.ltl2dela.NormalformDELAConstruction;
 import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
 import owl.translations.ltl2dra.NormalformDRAConstruction;
@@ -253,8 +255,14 @@ public final class LtlTranslationRepository {
       return translation(acceptanceClass, EnumSet.allOf(Option.class));
     }
 
+    default <A extends U> Function<LabelledFormula, Automaton<?, ? extends A>>
+      translation(Class<A> acceptanceClass, Set<Option> translationOptions) {
+
+      return translation(acceptanceClass, translationOptions, OptionalInt.empty());
+    }
+
     <A extends U> Function<LabelledFormula, Automaton<?, ? extends A>>
-      translation(Class<A> acceptanceClass, Set<Option> translationOptions);
+      translation(Class<A> acceptanceClass, Set<Option> translationOptions, OptionalInt lookahead);
 
   }
 
@@ -271,8 +279,6 @@ public final class LtlTranslationRepository {
     USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
 
     X_DPA_USE_COMPLEMENT,
-    X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS,
-
     X_DRA_NORMAL_FORM_USE_DUAL;
 
     @CEnumValue
@@ -317,7 +323,7 @@ public final class LtlTranslationRepository {
     @Override
     public <B extends GeneralizedBuchiAcceptance>
       Function<LabelledFormula, Automaton<?, ? extends B>>
-      translation(Class<B> acceptanceClass, Set<Option> translationOptions) {
+      translation(Class<B> acceptanceClass, Set<Option> translationOptions, OptionalInt lookahead) {
 
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
@@ -359,7 +365,7 @@ public final class LtlTranslationRepository {
     @Override
     public <B extends GeneralizedBuchiAcceptance>
       Function<LabelledFormula, Automaton<?, ? extends B>>
-      translation(Class<B> acceptanceClass, Set<Option> translationOptions) {
+      translation(Class<B> acceptanceClass, Set<Option> translationOptions, OptionalInt lookahead) {
 
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
@@ -436,7 +442,7 @@ public final class LtlTranslationRepository {
 
     @Override
     public <A extends ParityAcceptance> Function<LabelledFormula, Automaton<?, ? extends A>>
-      translation(Class<A> acceptanceClass, Set<Option> translationOptions) {
+      translation(Class<A> acceptanceClass, Set<Option> translationOptions, OptionalInt lookahead) {
 
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
@@ -474,10 +480,7 @@ public final class LtlTranslationRepository {
         }
 
         case UNPUBLISHED_ZIELONKA: {
-
-          var translation = NormalformDPAConstruction.of(
-            false,
-            translationOptions.contains(Option.X_DPA_NORMAL_FORM_ADVANCED_LANGUAGE_ANALYSIS));
+          var translation = new NormalformDPAConstruction(lookahead);
 
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(translation.apply(x), acceptanceClass),
@@ -558,7 +561,7 @@ public final class LtlTranslationRepository {
     @Override
     public <R extends GeneralizedRabinAcceptance>
       Function<LabelledFormula, Automaton<?, ? extends R>>
-      translation(Class<R> acceptanceClass, Set<Option> translationOptions) {
+      translation(Class<R> acceptanceClass, Set<Option> translationOptions, OptionalInt lookahead) {
 
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
@@ -648,6 +651,7 @@ public final class LtlTranslationRepository {
     implements LtlTranslation<EmersonLeiAcceptance, EmersonLeiAcceptance> {
 
     MS17(Bibliography.GANDALF_17_CITEKEY),
+    UNPUBLISHED_SE20(null),
     SMALLEST_AUTOMATON(null);
 
     public static final LtlToDelaTranslation DEFAULT = MS17;
@@ -670,14 +674,25 @@ public final class LtlTranslationRepository {
 
     @Override
     public <A extends EmersonLeiAcceptance> Function<LabelledFormula, Automaton<?, ? extends A>>
-      translation(Class<A> acceptanceClass, Set<Option> translationOptions) {
+      translation(Class<A> acceptanceClass, Set<Option> translationOptions, OptionalInt lookahead) {
 
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
       switch (this) {
         case MS17:
+          var ms17construction = new DelagBuilder();
+
           return applyPreAndPostProcessing(
-            x -> OmegaAcceptanceCast.cast(new DelagBuilder().apply(x), acceptanceClass),
+            x -> OmegaAcceptanceCast.cast(ms17construction.apply(x), acceptanceClass),
+            BranchingMode.DETERMINISTIC,
+            translationOptions,
+            acceptanceClass);
+
+        case UNPUBLISHED_SE20:
+          var unpublishedSe20Construction = new NormalformDELAConstruction(lookahead);
+
+          return applyPreAndPostProcessing(
+            x -> OmegaAcceptanceCast.cast(unpublishedSe20Construction.apply(x), acceptanceClass),
             BranchingMode.DETERMINISTIC,
             translationOptions,
             acceptanceClass);
@@ -694,6 +709,10 @@ public final class LtlTranslationRepository {
             Supplier<Optional<Automaton<?, ? extends A>>> ms17translation = () -> Optional.of(
               MS17.translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
 
+            Supplier<Optional<Automaton<?, ? extends A>>> unpublishedSe20translation =
+            () -> Optional.of(UNPUBLISHED_SE20
+              .translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
+
             Supplier<Optional<Automaton<?, ? extends A>>> dgraTranslation = () -> Optional.of(
               OmegaAcceptanceCast.cast(
                 LtlToDraTranslation.SMALLEST_AUTOMATON.translation(
@@ -706,6 +725,7 @@ public final class LtlTranslationRepository {
               List.of(
                 () -> portfolioTranslation.apply(labelledFormula),
                 ms17translation,
+                unpublishedSe20translation,
                 dgraTranslation
               )));
           };

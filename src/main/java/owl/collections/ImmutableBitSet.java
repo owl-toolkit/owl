@@ -80,7 +80,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
 
   public static ImmutableBitSet of(int element) {
     Preconditions.checkArgument(element >= 0);
-    return SMALL_INTERNER.intern(new Small(element));
+    return element < 1024 ? SMALL_INTERNER.intern(new Small(element)) : new Small(element);
   }
 
   public static ImmutableBitSet of(int... elements) {
@@ -91,7 +91,19 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
       builder.set(element);
     }
 
-    return LARGE_INTERNER.intern(new Large(builder));
+    return Large.of(builder);
+  }
+
+  public static ImmutableBitSet range(int startInclusive, int endExclusive) {
+    if (startInclusive >= endExclusive) {
+      return of();
+    } else if (startInclusive == endExclusive - 1) {
+      return of(startInclusive);
+    } else {
+      BitSet bitSet = new BitSet(endExclusive);
+      bitSet.set(startInclusive, endExclusive);
+      return Large.of(bitSet);
+    }
   }
 
   public static ImmutableBitSet copyOf(BitSet bitSet) {
@@ -114,7 +126,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
           copy.or(bitSet);
         }
 
-        return LARGE_INTERNER.intern(new Large(copy));
+        return Large.of(copy);
     }
   }
 
@@ -143,7 +155,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
       return of(firstColour);
     }
 
-    return LARGE_INTERNER.intern(new Large(colours));
+    return Large.of(colours);
   }
 
   public abstract OptionalInt first();
@@ -214,6 +226,16 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
 
   public abstract BitSet copyInto(BitSet target);
 
+  public final ImmutableBitSet union(Collection<Integer> that) {
+    // TODO: optimise
+    return union(ImmutableBitSet.copyOf(that));
+  }
+
+  public final ImmutableBitSet union(BitSet that) {
+    // TODO: optimise
+    return union(ImmutableBitSet.copyOf(that));
+  }
+
   public final ImmutableBitSet union(ImmutableBitSet that) {
     if (this.containsAll(that)) {
       return this;
@@ -228,10 +250,20 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     that.copyInto(union);
 
     if (union.cardinality() > 1) {
-      return LARGE_INTERNER.intern(new Large(union));
+      return Large.of(union);
     }
 
     return copyOf(union);
+  }
+
+  public final ImmutableBitSet intersection(Collection<Integer> that) {
+    // TODO: optimise
+    return intersection(ImmutableBitSet.copyOf(that));
+  }
+
+  public final ImmutableBitSet intersection(BitSet that) {
+    // TODO: optimise
+    return intersection(ImmutableBitSet.copyOf(that));
   }
 
   public final ImmutableBitSet intersection(ImmutableBitSet that) {
@@ -248,10 +280,26 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     intersection.and(that.copyInto(new BitSet()));
 
     if (intersection.cardinality() > 1) {
-      return LARGE_INTERNER.intern(new Large(intersection));
+      return Large.of(intersection);
     }
 
     return copyOf(intersection);
+  }
+
+  public boolean intersects(Collection<Integer> otherSet) {
+    if (this.isEmpty()) {
+      return false;
+    }
+
+    if (this == otherSet) {
+      return true;
+    }
+
+    if (this instanceof Large && otherSet instanceof Large) {
+      return ((Large) this).elements.intersects(((Large) otherSet).elements);
+    }
+
+    return !Collections.disjoint(this, otherSet);
   }
 
   private static final class Small extends ImmutableBitSet {
@@ -409,6 +457,17 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     private Large(BitSet elements) {
       Preconditions.checkArgument(elements.cardinality() > 1);
       this.elements = Objects.requireNonNull(elements);
+    }
+
+    private static Large of(BitSet elements) {
+      Large instance = new Large(elements);
+
+      // We cache small instances.
+      if (elements.length() < 2 * Long.SIZE && instance.size() < 4) {
+        return LARGE_INTERNER.intern(instance);
+      }
+
+      return instance;
     }
 
     @Override

@@ -92,6 +92,17 @@ Size Regression Train:
     - data/formulas/sizes
     expire_in: 1 week
 
+Performance Test:
+  stage: test
+  cache:
+    paths:
+    - $GRADLE
+  script:
+    - ./gradlew performanceTest
+  when: manual
+  dependencies:
+  - Build
+
 ## LTL to Automaton
 
 LTL2NBA:

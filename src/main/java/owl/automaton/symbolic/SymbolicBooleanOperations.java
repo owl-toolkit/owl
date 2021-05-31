@@ -22,7 +22,6 @@ package owl.automaton.symbolic;
 import com.google.common.base.Preconditions;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -124,10 +123,9 @@ public final class SymbolicBooleanOperations {
       currentOffset += automata.get(i).acceptance().acceptanceSets();
     }
     var productAcceptance = EmersonLeiAcceptance.of(
-      automatonFormula.substituteTo(
-        automatonIndex -> automata.get(automatonIndex).acceptance().booleanExpression().substitute(
-          i -> Optional.of(PropositionalFormula.Variable.of(colourOffsets[automatonIndex] + i))
-        )
+      automatonFormula.substitute(
+        automatonIndex -> automata.get(automatonIndex).acceptance().booleanExpression()
+          .map(i -> colourOffsets[automatonIndex] + i)
       )
     );
 

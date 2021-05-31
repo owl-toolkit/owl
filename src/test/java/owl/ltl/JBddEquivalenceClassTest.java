@@ -25,7 +25,6 @@ import owl.bdd.FactorySupplier;
 public class JBddEquivalenceClassTest extends EquivalenceClassTest {
   @Override
   protected EquivalenceClassFactory obtainFactory(LabelledFormula domain) {
-
     return FactorySupplier.defaultSupplier()
       .getEquivalenceClassFactory(domain.atomicPropositions());
   }
