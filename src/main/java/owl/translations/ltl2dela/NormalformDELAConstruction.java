@@ -42,6 +42,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
@@ -435,13 +436,16 @@ public final class NormalformDELAConstruction
 
     private ImmutableBitSet notAlphaColours(PropositionalFormula<Integer> alpha) {
       var acceptanceCondition = automaton.acceptance().booleanExpression();
+      var alphaColours = BitSet2.copyOf(alpha.variables());
+      var partialAssignment
+        = PropositionalFormulaHelper.findPartialAssignment(acceptanceCondition, alpha);
 
-      BitSet alphaColours = BitSet2.copyOf(alpha.variables());
-      BitSet notAlphaColours = BitSet2.copyOf(acceptanceCondition.variables());
-      notAlphaColours.andNot(alphaColours);
+      if (partialAssignment != null) {
+        BitSet padding = new BitSet();
+        partialAssignment.forEach(padding::set);
 
-      // Quick, syntactic check.
-      for (BitSet padding : BitSet2.powerSet(notAlphaColours)) {
+        // TODO: Move verification code to findPartialAssignment.
+        // Verify correctness.
         var simplifiedAcceptance = acceptanceCondition.substitute(
           x -> alphaColours.get(x)
             ? PropositionalFormula.Variable.of(x)
@@ -449,12 +453,27 @@ public final class NormalformDELAConstruction
               ? PropositionalFormula.trueConstant()
               : PropositionalFormula.falseConstant());
 
+        // Quick, syntactic check
         if (simplifiedAcceptance.equals(alpha)) {
+          return ImmutableBitSet.copyOf(padding);
+        }
+
+        // Complete, semantic check.
+        var xor = PropositionalFormula.Negation.of(
+          PropositionalFormula.Biconditional.of(alpha, simplifiedAcceptance));
+
+        if (Solver.model(xor).isEmpty()) {
           return ImmutableBitSet.copyOf(padding);
         }
       }
 
-      // Complete, semantic check.
+      // TODO: Remove code below. It should be unreachable.
+
+      BitSet notAlphaColours = BitSet2.copyOf(acceptanceCondition.variables());
+      notAlphaColours.andNot(alphaColours);
+
+      Set<PropositionalFormula<Integer>> attempts = new HashSet<>();
+
       for (BitSet padding : BitSet2.powerSet(notAlphaColours)) {
         var simplifiedAcceptance = acceptanceCondition.substitute(
           x -> alphaColours.get(x)
@@ -463,14 +482,19 @@ public final class NormalformDELAConstruction
               ? PropositionalFormula.trueConstant()
               : PropositionalFormula.falseConstant());
 
-        PropositionalFormula<Integer> xor = PropositionalFormula.Disjunction.of(
-          PropositionalFormula.Conjunction.of(
-            alpha,
-            PropositionalFormula.Negation.of(simplifiedAcceptance)),
-          PropositionalFormula.Conjunction.of(
-            PropositionalFormula.Negation.of(alpha),
-            simplifiedAcceptance)
-        );
+        // We have seen such a formula before, continue.
+        if (!attempts.add(simplifiedAcceptance)) {
+          continue;
+        }
+
+        // Quick, syntactic check
+        if (simplifiedAcceptance.equals(alpha)) {
+          return ImmutableBitSet.copyOf(padding);
+        }
+
+        // Complete, semantic check.
+        var xor = PropositionalFormula.Negation.of(
+          PropositionalFormula.Biconditional.of(alpha, simplifiedAcceptance));
 
         if (Solver.model(xor).isEmpty()) {
           return ImmutableBitSet.copyOf(padding);

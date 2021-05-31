@@ -59,6 +59,8 @@ import owl.translations.BlockingElements;
 
 public final class DeterministicConstructions {
 
+  private static final boolean DISABLE_EXPENSIVE_ASSERT = true;
+
   private DeterministicConstructions() {}
 
   abstract static class Base<S, A extends EmersonLeiAcceptance>
@@ -377,7 +379,7 @@ public final class DeterministicConstructions {
       EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass accepting) {
 
       // all over-approximates accepting or is suspended (true).
-      assert accepting.implies(all) || accepting.isTrue();
+      assert DISABLE_EXPENSIVE_ASSERT || accepting.implies(all) || accepting.isTrue();
 
       var allUnfolded = all.unfold();
 
@@ -470,7 +472,7 @@ public final class DeterministicConstructions {
         return of(all);
       }
 
-      assert accepting.implies(all);
+      assert DISABLE_EXPENSIVE_ASSERT || accepting.implies(all);
       return new AutoValue_DeterministicConstructions_BreakpointStateAccepting(all, accepting);
     }
 
@@ -546,7 +548,7 @@ public final class DeterministicConstructions {
       EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass rejecting) {
 
       // all under-approximates rejecting or rejecting is set to false during suspension.
-      assert all.implies(rejecting) || rejecting.isFalse();
+      assert DISABLE_EXPENSIVE_ASSERT || all.implies(rejecting) || rejecting.isFalse();
 
       var allUnfolded = all.unfold();
 
@@ -651,7 +653,7 @@ public final class DeterministicConstructions {
         return of(all);
       }
 
-      assert all.implies(rejecting);
+      assert DISABLE_EXPENSIVE_ASSERT || all.implies(rejecting);
       return new AutoValue_DeterministicConstructions_BreakpointStateRejecting(all, rejecting);
     }
 
