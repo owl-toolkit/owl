@@ -154,25 +154,7 @@ public final class CInterface {
 
       static CAutomaton.Acceptance handleException(Throwable throwable) {
         PrintStackTraceAndExit.handleException(throwable);
-        return CAutomaton.Acceptance.BOTTOM;
-      }
-    }
-
-    static final class ReturnRealizabilityStatus {
-      private ReturnRealizabilityStatus() {}
-
-      static CDecomposedDPA.RealizabilityStatus handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return CDecomposedDPA.RealizabilityStatus.UNKNOWN;
-      }
-    }
-
-    static final class ReturnNodeType {
-      private ReturnNodeType() {}
-
-      static CDecomposedDPA.Structure.NodeType handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return CDecomposedDPA.Structure.NodeType.AUTOMATON;
+        return CAutomaton.Acceptance.BUCHI;
       }
     }
 

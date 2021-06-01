@@ -9,19 +9,6 @@
 #define OWL_FEATURE_SEPARATOR -424242
 
 typedef enum {
-  AUTOMATON,
-  BICONDITIONAL,
-  CONJUNCTION,
-  DISJUNCTION
-} node_type_t;
-
-typedef enum {
-  REALIZABLE,
-  UNREALIZABLE,
-  UNKNOWN
-} realizability_status_t;
-
-typedef enum {
   CONSTANT_TRUE,
   CONSTANT_FALSE,
   USED,
@@ -31,15 +18,10 @@ typedef enum {
 typedef enum {
   BUCHI,
   CO_BUCHI,
-  CO_SAFETY,
-  PARITY,
   PARITY_MAX_EVEN,
   PARITY_MAX_ODD,
   PARITY_MIN_EVEN,
-  PARITY_MIN_ODD,
-  SAFETY,
-  WEAK,
-  BOTTOM
+  PARITY_MIN_ODD
 } acceptance_t;
 
 typedef enum {

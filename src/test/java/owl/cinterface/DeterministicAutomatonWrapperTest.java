@@ -19,18 +19,20 @@
 
 package owl.cinterface;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.UNPUBLISHED_ZIELONKA;
 
 import java.time.Duration;
+import java.util.EnumSet;
 import java.util.List;
-import javax.annotation.Nullable;
+import java.util.OptionalInt;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.cinterface.CAutomaton.DeterministicAutomatonWrapper;
 import owl.ltl.parser.LtlParser;
+import owl.translations.LtlTranslationRepository.Option;
 
 class DeterministicAutomatonWrapperTest {
 
@@ -38,7 +40,6 @@ class DeterministicAutomatonWrapperTest {
   private static void assertEquals(
     DeterministicAutomatonWrapper<?, ?> automaton,
     int state,
-    @Nullable int[] filter,
     int[] expectedTreeBuffer,
     int[] expectedEdgeBuffer,
     double[] expectedScoreBuffer) {
@@ -51,6 +52,9 @@ class DeterministicAutomatonWrapperTest {
 
   @Test
   void testEdges() {
+    var translation = UNPUBLISHED_ZIELONKA.translation(
+      ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
+
     var formula0 = LtlParser.parse("true", List.of());
     var formula1 = LtlParser.parse("false", List.of());
     var formula2 = LtlParser.parse("a & b", List.of("a", "b"));
@@ -60,79 +64,59 @@ class DeterministicAutomatonWrapperTest {
     var formula6 = LtlParser.parse("G (r -> F g)", List.of("r", "g"));
     var formula7 = LtlParser.parse("(G F a) | (G F b)", List.of("a", "b"));
 
-    var automaton0 = DeterministicAutomatonWrapper.of(formula0);
-    var automaton1 = DeterministicAutomatonWrapper.of(formula1);
-    var automaton2 = DeterministicAutomatonWrapper.of(formula2);
-    var automaton3 = DeterministicAutomatonWrapper.of(formula3);
-    var automaton4 = DeterministicAutomatonWrapper.of(formula4);
-    var automaton5 = DeterministicAutomatonWrapper.of(formula5);
-    var automaton6 = DeterministicAutomatonWrapper.of(formula6);
-    var automaton7 = DeterministicAutomatonWrapper.of(formula7);
+    var automaton0 = DeterministicAutomatonWrapper.of(translation.apply(formula0), -1);
+    var automaton1 = DeterministicAutomatonWrapper.of(translation.apply(formula1), -1);
+    var automaton2 = DeterministicAutomatonWrapper.of(translation.apply(formula2), -1);
+    var automaton3 = DeterministicAutomatonWrapper.of(translation.apply(formula3), -1);
+    var automaton4 = DeterministicAutomatonWrapper.of(translation.apply(formula4), -1);
+    var automaton5 = DeterministicAutomatonWrapper.of(translation.apply(formula5), -1);
+    var automaton6 = DeterministicAutomatonWrapper.of(translation.apply(formula6), -1);
+    var automaton7 = DeterministicAutomatonWrapper.of(translation.apply(formula7), -1);
 
-    assertEquals(automaton0, 0, null,
-      new int[]{}, new int[]{-2, -1}, new double[]{1.0d});
-    assertEquals(automaton1, 0, null,
+    assertEquals(automaton0, 0,
+      new int[]{}, new int[]{-2, 0}, new double[]{1.0d});
+    assertEquals(automaton1, 0,
       new int[]{}, new int[]{-1, -1}, new double[]{0.0d});
-    assertEquals(automaton2, 0, null,
+    assertEquals(automaton2, 0,
       new int[]{0, -1, 3, 1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-    assertEquals(automaton3, 0, null,
-      new int[]{0, -1, -2}, new int[]{-1, -1, 1, -1}, new double[]{0.0d, 0.5d});
-    assertEquals(automaton4, 0, null,
-      new int[]{1, -1, -2}, new int[]{-1, -1, 1, -1}, new double[]{0.0d, 0.5d});
+    assertEquals(automaton3, 0,
+      new int[]{0, -1, -2}, new int[]{-1, -1, 1, -1}, new double[]{0.0d, 0.0d}); // was 0.0, 0.5
+    assertEquals(automaton4, 0,
+      new int[]{1, -1, -2}, new int[]{-1, -1, 1, -1}, new double[]{0.0d, 0.0d}); // was 0.0, 0.5
 
-    assertEquals(automaton5, 0, null,
+    assertEquals(automaton5, 0,
       new int[]{1, -1, -2},
-      new int[]{0, -1, 1, -1}, new double[]{0.625d, 0.718_75d});
-    assertEquals(automaton5, 1, null,
+      new int[]{0,  1, 1, 1}, new double[]{0.25d, 0.437_5d});
+    // was 0.625d, 0.718_75d
+    assertEquals(automaton5, 1,
       new int[]{0, -1, 3, 1, -2, -3},
-      new int[]{2, -1, 0, -1, 1, -1}, new double[]{0.8125d, 0.625d, 0.718_75d});
+      new int[]{2,  1, 0, 1,  1, 1}, new double[]{0.625d, 0.25d, 0.437_5d});
+    // was 0.8125d, 0.625d, 0.718_75d
 
-    assertEquals(automaton6, 0, null,
-      new int[]{0, -1, 3, 1, -2, -1}, new int[]{0, 0, 1, -1}, new double[]{1.0d, 0.75d});
-    assertEquals(automaton6, 1, null,
-      new int[]{1, -1, -2}, new int[]{1, -1, 0, 0}, new double[]{0.75d, 1.0d});
-    assertEquals(automaton7, 0, null,
-      new int[]{0, 3, -2, 1, -1, -2}, new int[]{0, -1, 0, 0}, new double[]{0.9375d, 1.0d});
-  }
-
-  @Disabled
-  @Test
-  void testMaskedEdges() {
-    var automaton = DeterministicAutomatonWrapper
-      .of(LtlParser.parse("a | b", List.of("a", "b")));
-
-    assertEquals(automaton, 0, new int[]{0, -1, -2},
-      new int[]{0, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-    assertEquals(automaton, 0, new int[]{0, -2, -1},
-      new int[]{0, 3, -1, 1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-    assertEquals(automaton, 0, new int[]{0, -1, -1},
-      new int[]{}, new int[]{-1, -1}, new double[]{0.0d});
-    assertEquals(automaton, 0, new int[]{0, -2, -2},
-      new int[]{0, 3, -2, 1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-
-    assertEquals(automaton, 0, new int[]{1, -1, -2},
-      new int[]{1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-    assertEquals(automaton, 0, new int[]{1, -2, -1},
-      new int[]{0, -1, 3, 1, -2, -1}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-    assertEquals(automaton, 0, new int[]{1, -1, -1},
-      new int[]{}, new int[]{-1, -1}, new double[]{0.0d});
-    assertEquals(automaton, 0, new int[]{1, -2, -2},
-      new int[]{0, 3, -2, 1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
-
-    assertEquals(automaton, 0, new int[]{0, -1, 3, 1, -1, -2},
-      new int[]{0, -1, 3, 1, -1, -2}, new int[]{-1, -1, -2, -1}, new double[]{0.0d, 1.0d});
+    assertEquals(automaton6, 0,
+      new int[]{0, -1, 3, 1, -2, -1}, new int[]{0, 0, 1, 0}, new double[]{0.125d, 0.375d});
+    // was 1.0d, 0.75d
+    assertEquals(automaton6, 1,
+      new int[]{1, -1, -2}, new int[]{1, 1, 0, 0}, new double[]{0.375d, 0.125d});
+    // was 0.75d, 1.0d
+    assertEquals(automaton7, 0,
+      new int[]{0, 3, -2, 1, -1, -2}, new int[]{0, 1, 0, 0}, new double[]{0.468_75d, 0.468_75d});
+    // was 0.9375d, 1.0d
   }
 
   @Tag("performance")
   @Test
   void testEdgesPerformance() {
+    var translation = UNPUBLISHED_ZIELONKA.translation(
+      ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
+
     assertTimeout(Duration.ofMillis(100), () -> {
       var formula = LtlParser.parse("(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v)"
         + "& X G (w | x | y)");
       Assertions.assertEquals(25, formula.atomicPropositions().size());
 
-      var instance1 = DeterministicAutomatonWrapper.of(formula);
-      var instance2 = DeterministicAutomatonWrapper.of(formula.not());
+      var instance1 = DeterministicAutomatonWrapper.of(translation.apply(formula), -1);
+      var instance2 = DeterministicAutomatonWrapper.of(translation.apply(formula), -1);
 
       var edgeTree = instance1.edgeTree(0, true);
       Assertions.assertEquals(66, edgeTree.tree.size());
@@ -140,10 +124,5 @@ class DeterministicAutomatonWrapperTest {
       edgeTree = instance2.edgeTree(0, true);
       Assertions.assertEquals(66, edgeTree.tree.size());
     });
-  }
-
-  @Test
-  void testFormulaNotInNnf() {
-    assertDoesNotThrow(() -> DeterministicAutomatonWrapper.of(LtlParser.parse("a <-> b")));
   }
 }
