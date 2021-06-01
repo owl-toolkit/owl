@@ -21,23 +21,15 @@ package owl.cinterface;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.graalvm.word.WordFactory.nullPointer;
-import static owl.cinterface.CAutomaton.Acceptance.BUCHI;
-import static owl.cinterface.CAutomaton.Acceptance.CO_BUCHI;
-import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_EVEN;
-import static owl.cinterface.CAutomaton.Acceptance.PARITY_MIN_ODD;
-import static owl.cinterface.CAutomaton.Acceptance.SAFETY;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.ACCEPTING;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.INITIAL;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.REJECTING;
-import static owl.cinterface.DecomposedDPA.Tree;
-import static owl.translations.ltl2dpa.LTL2DPAFunction.Configuration.COMPLEMENT_CONSTRUCTION_HEURISTIC;
 
 import com.google.common.collect.Iterables;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -62,18 +54,14 @@ import org.graalvm.nativeimage.c.struct.CField;
 import org.graalvm.nativeimage.c.struct.CStruct;
 import org.graalvm.nativeimage.c.struct.SizeOf;
 import org.graalvm.nativeimage.c.type.CCharPointer;
-import org.graalvm.nativeimage.c.type.CIntPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.word.PointerBase;
 import org.graalvm.word.UnsignedWord;
-import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AlternatingCycleDecomposition;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
@@ -81,24 +69,13 @@ import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.Path;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.logic.propositional.PropositionalFormula;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
-import owl.ltl.SyntacticFragment;
-import owl.ltl.SyntacticFragments;
 import owl.translations.LtlTranslationRepository;
-import owl.translations.canonical.DeterministicConstructions.BreakpointStateAccepting;
-import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
-import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
-import owl.translations.ltl2dpa.LTL2DPAFunction;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
 
 @SuppressWarnings("PMD.CouplingBetweenObjects")
@@ -694,10 +671,6 @@ public final class CAutomaton {
 
       if (state >= 0) {
         changed = stateObjects.add(automaton.index2StateMap.get(state));
-      } else if (state == ACCEPTING && automaton.canonicalAcceptingState != null) {
-        changed = stateObjects.add(automaton.canonicalAcceptingState);
-      } else if (state == REJECTING && automaton.canonicalRejectingState != null) {
-        changed = stateObjects.add(automaton.canonicalRejectingState);
       } else {
         changed = true;
       }
@@ -711,14 +684,7 @@ public final class CAutomaton {
       var featuresMap = StateFeatures.extract(stateObjects);
 
       featuresMap.forEach((state, stateFeatures) -> {
-
-        if (state.equals(automaton.canonicalAcceptingState)) {
-          featuresBuilder.add(ACCEPTING);
-        } else if (state.equals(automaton.canonicalRejectingState)) {
-          featuresBuilder.add(REJECTING);
-        } else {
-          featuresBuilder.add(automaton.state2indexMap.get(state));
-        }
+        featuresBuilder.add(automaton.state2indexMap.get(state));
 
         for (StateFeatures.Feature feature : stateFeatures) {
           featuresBuilder.add(feature.type().getCValue());
@@ -755,31 +721,13 @@ public final class CAutomaton {
     }
   }
 
-
-  @CEntryPoint(
-    name = NAMESPACE + "is_singleton",
-    documentation = "Returns true if the automaton only has one state, the initial state.",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnBoolean.class
-  )
-  public static boolean isSingleton(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton) {
-
-    var initialStateSuccessors = get(cDeterministicAutomaton).initialStateSuccessors;
-    return initialStateSuccessors != null
-      && Tree.Leaf.ALLOWED_CONJUNCTION_STATES_PATTERN.containsAll(initialStateSuccessors);
-  }
-
-
-
   private static DeterministicAutomatonWrapper<?, ?> get(ObjectHandle cDeterministicAutomaton) {
     return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
   }
 
   @CEnum("acceptance_t")
   public enum Acceptance {
-    BUCHI, CO_BUCHI, CO_SAFETY, PARITY, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN,
-    PARITY_MIN_ODD, SAFETY, WEAK, BOTTOM;
+    BUCHI, CO_BUCHI, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD;
 
     @CEnumValue
     public native int getCValue();
@@ -788,15 +736,11 @@ public final class CAutomaton {
     public static native Acceptance fromCValue(int value);
 
     public static Acceptance fromOmegaAcceptance(EmersonLeiAcceptance acceptance) {
-      if (acceptance instanceof AllAcceptance) {
-        return SAFETY;
-      }
-
       if (acceptance instanceof BuchiAcceptance) {
         return BUCHI;
       }
 
-      if (acceptance instanceof CoBuchiAcceptance) {
+      if (acceptance instanceof CoBuchiAcceptance || acceptance instanceof AllAcceptance) {
         return CO_BUCHI;
       }
 
@@ -820,38 +764,6 @@ public final class CAutomaton {
 
       throw new IllegalArgumentException();
     }
-
-    public Acceptance lub(Acceptance other) {
-      if (this == BOTTOM || this == other) {
-        return other;
-      }
-
-      switch (this) {
-        case CO_SAFETY:
-          return other == SAFETY ? WEAK : other;
-
-        case SAFETY:
-          return other == CO_SAFETY ? WEAK : other;
-
-        case WEAK:
-          return (other == SAFETY || other == CO_SAFETY) ? this : other;
-
-        case BUCHI:
-        case CO_BUCHI:
-          return (other == CO_SAFETY || other == SAFETY || other == WEAK) ? this : PARITY;
-
-        default:
-          return PARITY;
-      }
-    }
-
-    public boolean isLessThanParity() {
-      return this == BUCHI || this == CO_BUCHI || isLessOrEqualWeak();
-    }
-
-    public boolean isLessOrEqualWeak() {
-      return this == CO_SAFETY || this == SAFETY || this == WEAK || this == BOTTOM;
-    }
   }
 
   static final class DeterministicAutomatonWrapper<S, T> {
@@ -872,39 +784,15 @@ public final class CAutomaton {
 
     // Additional features for C interface
     private final ToDoubleFunction<? super Edge<S>> qualityScore;
-    private final Function<? super S, ? extends T> canonicalizer;
-    private final Map<T, Integer> canonicalObjectId;
-
-    // Initial state caching.
-    @Nullable
-    final MtBdd<Edge<S>> initialStateEdgeTree;
-    @Nullable
-    final Set<Integer> initialStateSuccessors;
-
-    @Nullable
-    BddSet filter;
-
-    @Nullable
-    final S canonicalAcceptingState;
-
-    @Nullable
-    final S canonicalRejectingState;
 
     private <A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper(
       Automaton<S, ? extends A> automaton,
       Acceptance acceptance,
-      @Nullable Class<? extends A> acceptanceClassBound,
       Function<? super S, OptionalInt> sinkDetection,
-      Function<? super S, ? extends T> canonicalizer,
       ToDoubleFunction<? super Edge<S>> qualityScore,
-      int uncontrollableApSize,
-      @Nullable S canonicalAcceptingState,
-      @Nullable S canonicalRejectingState) {
+      int uncontrollableApSize) {
 
       checkArgument(automaton.initialStates().size() == 1);
-      checkArgument(acceptanceClassBound == null
-        || acceptanceClassBound.isInstance(automaton.acceptance()));
-
       assert automaton.is(Automaton.Property.DETERMINISTIC);
 
       this.automaton = automaton;
@@ -914,31 +802,9 @@ public final class CAutomaton {
 
       this.index2StateMap = new ArrayList<>();
       this.state2indexMap = new HashMap<>();
-      this.canonicalObjectId = new HashMap<>();
-
-      this.canonicalizer = canonicalizer;
       this.uncontrollableApSize = uncontrollableApSize;
 
       index(automaton.initialState());
-
-      this.initialStateEdgeTree = automaton.edgeTree(this.automaton.initialState());
-      var reachableStatesIndices = new HashSet<Integer>();
-
-      for (Set<Edge<S>> edges : initialStateEdgeTree.values()) {
-        if (edges.isEmpty()) {
-          reachableStatesIndices.add(REJECTING);
-        } else {
-          reachableStatesIndices.add(index(Iterables.getOnlyElement(edges).successor()));
-        }
-      }
-
-      this.initialStateSuccessors = Set.of(reachableStatesIndices.toArray(Integer[]::new));
-
-      this.canonicalAcceptingState = canonicalAcceptingState;
-      this.canonicalRejectingState = canonicalRejectingState;
-
-      assert this.canonicalAcceptingState == null
-        || this.sinkDetection.apply(this.canonicalAcceptingState).orElseThrow() == ACCEPTING;
 
       if (ImageInfo.inImageCode()) {
         boolean consistentDeclarations = INITIAL == CInterface.owlInitialState()
@@ -991,166 +857,10 @@ public final class CAutomaton {
       return new DeterministicAutomatonWrapper<>(
         automaton,
         Acceptance.fromOmegaAcceptance(automaton.acceptance()),
-        null,
         sinkDetection,
-        Function.identity(),
         scoring,
-        uncontrollableApSize,
-        null,
-        null
+        uncontrollableApSize
       );
-    }
-
-    static DeterministicAutomatonWrapper<?, ?> of(LabelledFormula formula) {
-      var nnfFormula = SyntacticFragment.NNF.contains(formula) ? formula : formula.nnf();
-
-      if (SyntacticFragments.isSafety(nnfFormula.formula())) {
-        var automaton
-          = DeterministicConstructionsPortfolio.safety(nnfFormula);
-        var factory = automaton.initialState().factory();
-
-        return new DeterministicAutomatonWrapper<>(
-          automaton,
-          SAFETY, AllAcceptance.class,
-          x -> x.isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
-          Function.identity(),
-          edge -> edge.successor().trueness(),
-          -1,
-          factory.of(true),
-          factory.of(false)
-        );
-      }
-
-      if (SyntacticFragments.isCoSafety(nnfFormula.formula())) {
-        var automaton
-          = DeterministicConstructionsPortfolio.coSafety(nnfFormula);
-        var factory = automaton.initialState().factory();
-
-        return new DeterministicAutomatonWrapper<>(
-          automaton,
-          Acceptance.CO_SAFETY, BuchiAcceptance.class,
-          x -> x.isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
-          Function.identity(),
-          edge -> edge.successor().trueness(),
-          -1,
-          factory.of(true),
-          factory.of(false)
-        );
-      }
-
-      var formulasConj = nnfFormula.formula() instanceof Conjunction
-        ? nnfFormula.formula().operands
-        : Set.of(nnfFormula.formula());
-
-      if (formulasConj.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
-        return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.gfCoSafety(nnfFormula, false),
-          BUCHI, GeneralizedBuchiAcceptance.class,
-          x -> OptionalInt.empty(),
-          x -> nnfFormula,
-          x -> x.colours().contains(0) ? 1.0d : 0.5d,
-          -1,
-          null,
-          null
-        );
-      }
-
-      var formulasDisj = nnfFormula.formula() instanceof Disjunction
-        ? nnfFormula.formula().operands
-        : Set.of(nnfFormula.formula());
-
-      if (formulasDisj.stream().allMatch(SyntacticFragments::isFgSafety)) {
-        return new DeterministicAutomatonWrapper<>(
-          DeterministicConstructionsPortfolio.fgSafety(nnfFormula, false),
-          CO_BUCHI, GeneralizedCoBuchiAcceptance.class,
-          x -> OptionalInt.empty(),
-          x -> nnfFormula,
-          x -> x.colours().contains(0) ? 0.0d : 0.5d,
-          -1,
-          null,
-          null
-        );
-      }
-
-      if (SyntacticFragments.isSafetyCoSafety(nnfFormula.formula())) {
-        var automaton
-          = DeterministicConstructionsPortfolio.safetyCoSafety(nnfFormula);
-        var factory = automaton.initialState().all().factory();
-
-        return new DeterministicAutomatonWrapper<>(
-          automaton,
-          BUCHI, BuchiAcceptance.class,
-          x -> x.all().isTrue() && x.rejecting().isTrue()
-            ? OptionalInt.of(ACCEPTING)
-            : OptionalInt.empty(),
-          BreakpointStateRejecting::all,
-          x -> x.colours().contains(0) ? 1.0d : x.successor().rejecting().trueness(),
-          -1,
-          BreakpointStateRejecting.of(factory.of(true), factory.of(true)),
-          BreakpointStateRejecting.of(factory.of(false), factory.of(false))
-        );
-      }
-
-      if (SyntacticFragments.isCoSafetySafety(nnfFormula.formula())) {
-        var automaton
-          = DeterministicConstructionsPortfolio.coSafetySafety(nnfFormula);
-        var factory = automaton.initialState().all().factory();
-
-        return new DeterministicAutomatonWrapper<>(
-          automaton,
-          CO_BUCHI, CoBuchiAcceptance.class,
-          x -> x.all().isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
-          BreakpointStateAccepting::all,
-          x -> x.colours().contains(0) ? 0.0d : x.successor().accepting().trueness(),
-          -1,
-          BreakpointStateAccepting.of(factory.of(true), factory.of(true)),
-          BreakpointStateAccepting.of(factory.of(false), factory.of(false))
-        );
-      }
-
-      var function = new LTL2DPAFunction(
-          EnumSet.of(COMPLEMENT_CONSTRUCTION_HEURISTIC));
-      Automaton<? extends AnnotatedState<EquivalenceClass>, ParityAcceptance> automaton =
-        (Automaton) function.apply(nnfFormula);
-
-      if (automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_ODD) {
-        return new DeterministicAutomatonWrapper<>(
-          automaton,
-          PARITY_MIN_ODD, ParityAcceptance.class,
-          x -> x.state().isTrue() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
-          AnnotatedState::state,
-          x -> x.successor().state().trueness(),
-          -1,
-          null,
-          null
-        );
-      } else {
-        assert automaton.acceptance().parity() == ParityAcceptance.Parity.MIN_EVEN;
-        return new DeterministicAutomatonWrapper<>(
-          automaton,
-          PARITY_MIN_EVEN, ParityAcceptance.class,
-          x -> x.state().isFalse() ? OptionalInt.of(ACCEPTING) : OptionalInt.empty(),
-          AnnotatedState::state,
-          x -> 1 - x.successor().state().trueness(),
-          -1,
-          null,
-          null
-        );
-      }
-    }
-
-    int normalise(int stateIndex) {
-      if (stateIndex == ACCEPTING) {
-        return ACCEPTING;
-      }
-
-      if (stateIndex == REJECTING) {
-        return REJECTING;
-      }
-
-      // TODO: better caching...
-      T canonicalObject = this.canonicalizer.apply(index2StateMap.get(stateIndex));
-      return canonicalObjectId.computeIfAbsent(canonicalObject, x -> canonicalObjectId.size());
     }
 
     private int index(@Nullable S state) {
@@ -1223,62 +933,13 @@ public final class CAutomaton {
       }
     }
 
-    private static BddSet deserialise(CIntPointer tree, int length, BddSetFactory factory) {
-      var cache = new BddSet[length / 3];
-
-      assert 3 * cache.length == length;
-
-      // Scan backwards;
-      for (int i = cache.length - 1; i >= 0; i--) {
-        int atomicProposition = tree.read(3 * i);
-        int falseChild = tree.read(3 * i + 1);
-        int trueChild = tree.read(3 * i + 2);
-
-        BddSet falseChildSet = falseChild >= 0
-          ? cache[falseChild / 3]
-          : (falseChild == REJECTING ? factory.of(false) : factory.of(true));
-
-        BddSet trueChildSet = trueChild >= 0
-          ? cache[trueChild / 3]
-          : (trueChild == REJECTING ? factory.of(false) : factory.of(true));
-
-        BddSet trueBranch = factory.of(atomicProposition);
-        BddSet falseBranch = trueBranch.complement();
-
-        cache[i] = (trueBranch.intersection(trueChildSet))
-          .union(falseBranch.intersection(falseChildSet));
-      }
-
-      return cache[0];
-    }
-
     SerialisedEdgeTree edgeTree(int stateIndex, boolean computeScores) {
-
-      // Load installed global filter.
-      var filter = this.filter;
-
       // If the automaton accepts everything, then index2stateMap is empty.
       S state = stateIndex == INITIAL && index2StateMap.isEmpty()
         ? automaton.initialState()
         : index2StateMap.get(stateIndex);
 
-      MtBdd<Edge<S>> edgeTree;
-
-      if (filter == null) {
-
-        edgeTree = stateIndex == 0 && initialStateEdgeTree != null
-          ? initialStateEdgeTree
-          : automaton.edgeTree(state);
-
-      } else {
-
-        edgeTree = filter.intersection(
-          stateIndex == 0 && initialStateEdgeTree != null
-            ? initialStateEdgeTree
-            : automaton.edgeTree(state));
-
-      }
-
+      var edgeTree = automaton.edgeTree(state);
       var serialisedEdgeTree = new SerialisedEdgeTree(computeScores);
       serialise(edgeTree, serialisedEdgeTree, -1, new HashMap<>());
       return serialisedEdgeTree;
