@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2020  (See AUTHORS)
+ * Copyright (C) 2016 - 2021  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -30,7 +30,7 @@ public interface IncrementalSolver {
   void popClauses();
 
   void pushClauses(int... clauses);
-  
+
   void pushClauses(ImmutableIntArray clauses);
 
 }
