@@ -1,5 +1,7 @@
 /*
- * Copyright (C) 2017 Tobias Meggendorfer
+ * Copyright (C) 2016 - 2021  (See AUTHORS)
+ *
+ * This file is part of Owl.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
