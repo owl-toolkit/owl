@@ -44,19 +44,14 @@ project.version = '21.??-development'
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
 
-def defaultEncoding = 'UTF-8'
+java {
+    toolchain {
+        // JDK 11 is the latest release supported by GraalVM (native-image).
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 
-tasks.withType(JavaCompile) {
-    // JDK 11 is the latest release supported by GraalVM (native-image).
-    options.release = 11
-
-    // Linter
-    options.compilerArgs << '-Xlint:unchecked'
-    options.deprecation = true
-    // options.errorprone.disableWarningsInGeneratedCode = true
-
-    // Encoding
-    options.encoding = defaultEncoding
+    withJavadocJar()
+    withSourcesJar()
 }
 
 def buildMarkdown = !project.hasProperty("disable-pandoc")
@@ -209,11 +204,6 @@ startScripts.outputDir = file(project.buildDir.path + '/scripts/owl')
 
 // ---------------- Jars ----------------
 
-java {
-    withJavadocJar()
-    withSourcesJar()
-}
-
 jar {
     manifest {
         attributes(
@@ -308,7 +298,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
 
 javadoc {
     options.addBooleanOption('html5', true)
-    options.setEncoding(defaultEncoding)
+    options.setEncoding('UTF-8')
     options.links('https://docs.oracle.com/en/java/javase/11/docs/api')
     options.addStringOption('Xdoclint:none', '-quiet') // Silence warnings
 }
