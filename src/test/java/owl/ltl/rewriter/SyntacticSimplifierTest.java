@@ -110,17 +110,17 @@ class SyntacticSimplifierTest {
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testSyntacticSimplifier(List<String> pair) {
-    var actual = LtlParser.parse(pair.get(0), variables);
+    var actual = LtlParser.parse(pair.get(0), variables).nnf();
     var expected = LtlParser.parse(pair.get(1), variables);
-    assertEquals(expected, SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC));
+    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC));
   }
 
   @ParameterizedTest
   @MethodSource("pairProvider")
   void testSyntacticSimplifierNegation(List<String> pair) {
-    var actual = LtlParser.parse("! (" + pair.get(0) + ')', variables);
+    var actual = LtlParser.parse("! (" + pair.get(0) + ')', variables).nnf();
     var expected = LtlParser.parse("! (" + pair.get(1) + ')', variables);
-    assertEquals(expected, SimplifierFactory.apply(actual, Mode.NNF, Mode.SYNTACTIC));
+    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC));
   }
 
   @Test

@@ -48,6 +48,10 @@ typedef enum {
   // This explores the complete automaton.
   SIMPLIFY_AUTOMATON,
 
+  // Ensures that the transition relation of the automaton is complete. This is not observable
+  // through the C-API, since rejecting sinks are normalised to -1.
+  COMPLETE,
+
   // Use a portfolio of simpler constructions for fragments of LTL.
   USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
 
