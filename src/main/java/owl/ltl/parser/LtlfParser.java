@@ -32,15 +32,30 @@ import owl.grammar.LTLParser;
 import owl.ltl.LabelledFormula;
 
 public final class LtlfParser {
+
   private LtlfParser() {}
 
-  public static LabelledFormula parse(String string) {
-    return parse(string, null);
+  /**
+   * Parses the LTL formula of the given string as an LTL formula on finite words.
+   *
+   * @param formula the string containing the formula.
+   * @return the syntax tree of the formula annotated with a list of atomic propositions.
+   */
+  public static LabelledFormula parse(String formula) {
+    return parse(formula, null);
   }
 
-  public static LabelledFormula parse(String string, @Nullable List<String> atomicPropositions) {
+  /**
+   * Parses the LTL formula of the given string as an LTL formula on finite words.
+   *
+   * @param formula the string containing the formula.
+   * @param atomicPropositions the list of atomic propositions. If null is passed, then the list
+   *     of atomic propositions is extracted from the formula string.
+   * @return the syntax tree of the formula annotated with a list of atomic propositions.
+   */
+  public static LabelledFormula parse(String formula, @Nullable List<String> atomicPropositions) {
     // Tokenize the stream
-    var lexer = new LTLLexer(CharStreams.fromString(string));
+    var lexer = new LTLLexer(CharStreams.fromString(formula));
     // Don't print long error messages on the console
     lexer.removeErrorListener(ConsoleErrorListener.INSTANCE);
     // Add a fail-fast behaviour for token errors
@@ -53,7 +68,7 @@ public final class LtlfParser {
     parser.setErrorHandler(new BailErrorStrategy());
 
     // Convert the AST into a proper object
-    var treeVisitor = atomicPropositions == null || atomicPropositions.isEmpty()
+    var treeVisitor = atomicPropositions == null
       ? new LtlfParseTreeVisitor()
       : new LtlfParseTreeVisitor(atomicPropositions);
 
@@ -62,13 +77,14 @@ public final class LtlfParser {
       treeVisitor.atomicPropositions());
   }
 
-  public static LabelledFormula parseAndTranslateToLtl(String string) {
-    return parseAndTranslateToLtl(string, null);
+  public static LabelledFormula parseAndTranslateToLtl(String formula) {
+    return parseAndTranslateToLtl(formula, null);
   }
 
-  public static LabelledFormula parseAndTranslateToLtl(String string,
-    @Nullable List<String> atomicPropositions) {
-    var ltlf = parse(string, atomicPropositions);
+  public static LabelledFormula parseAndTranslateToLtl(
+    String formula, @Nullable List<String> atomicPropositions) {
+
+    var ltlf = parse(formula, atomicPropositions);
     var ltl = LtlfToLtlTranslator.translate(ltlf.formula(), ltlf.atomicPropositions().size());
 
     var randomID = new Random();

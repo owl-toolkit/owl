@@ -86,9 +86,10 @@ public final class SymmetricEvaluatedFixpoints
     Set<GOperator> infinitelyOftenFormulas = new HashSet<>();
 
     for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
-      Formula infinitelyOften = unwrapX(SimplifierFactory.apply(
-        GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint))),
-        Mode.SYNTACTIC_FIXPOINT, Mode.PULL_UP_X));
+      Formula result = GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint)));
+      result = SimplifierFactory.apply(result, Mode.SYNTACTIC_FIXPOINT);
+      result = SimplifierFactory.apply(result, Mode.PULL_UP_X);
+      Formula infinitelyOften = unwrapX(result);
 
       if (infinitelyOften.equals(BooleanConstant.TRUE)) {
         continue;
@@ -141,9 +142,10 @@ public final class SymmetricEvaluatedFixpoints
     List<Set<FOperator>> almostAlwaysFormulasAlternatives = new ArrayList<>();
 
     for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
-      Formula almostAlways = unwrapX(SimplifierFactory.apply(
-        FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint))),
-        Mode.SYNTACTIC_FIXPOINT, Mode.PULL_UP_X));
+      Formula result = FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint)));
+      result = SimplifierFactory.apply(result, Mode.SYNTACTIC_FIXPOINT);
+      result = SimplifierFactory.apply(result, Mode.PULL_UP_X);
+      Formula almostAlways = unwrapX(result);
 
       if (almostAlways.equals(BooleanConstant.TRUE)) {
         continue;

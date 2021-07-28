@@ -42,7 +42,6 @@ public final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
   public static final PullUpXVisitor INSTANCE = new PullUpXVisitor();
   public static final UnaryOperator<Formula> OPERATOR = f -> f.accept(INSTANCE).toFormula();
 
-
   @Override
   public XFormula visit(Biconditional biconditional) {
     XFormula right = biconditional.rightOperand().accept(this);

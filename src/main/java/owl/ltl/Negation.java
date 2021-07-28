@@ -73,7 +73,7 @@ public class Negation extends Formula.PropositionalOperator {
 
   @Override
   public Formula substitute(Function<? super TemporalOperator, ? extends Formula> substitution) {
-    throw new UnsupportedOperationException("this is not supported");
+    return new Negation(operand().substitute(substitution));
   }
 
   public Formula operand() {

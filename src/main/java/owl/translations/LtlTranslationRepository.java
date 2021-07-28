@@ -38,6 +38,7 @@ import org.graalvm.nativeimage.c.constant.CEnumLookup;
 import org.graalvm.nativeimage.c.constant.CEnumValue;
 import owl.Bibliography;
 import owl.automaton.Automaton;
+import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -78,7 +79,7 @@ public final class LtlTranslationRepository {
     Function<LabelledFormula, Automaton<?, ? extends A>>
     defaultTranslation(BranchingMode branchingMode, Class<? extends A> acceptance) {
 
-    return defaultTranslation(EnumSet.allOf(Option.class), branchingMode, acceptance);
+    return defaultTranslation(Option.defaultOptions(), branchingMode, acceptance);
   }
 
   public static <A extends EmersonLeiAcceptance>
@@ -141,7 +142,7 @@ public final class LtlTranslationRepository {
     smallestAutomaton(BranchingMode branchingMode, Class<? extends A> acceptance) {
 
     Function<LabelledFormula, ? extends Automaton<?, ?>> translation = null;
-    Set<Option> translationOptions = EnumSet.allOf(Option.class);
+    Set<Option> translationOptions = Option.defaultOptions();
 
     switch (branchingMode) {
       case NON_DETERMINISTIC:
@@ -252,7 +253,7 @@ public final class LtlTranslationRepository {
     default <A extends U> Function<LabelledFormula, Automaton<?, ? extends A>>
       translation(Class<A> acceptanceClass) {
 
-      return translation(acceptanceClass, EnumSet.allOf(Option.class));
+      return translation(acceptanceClass, Option.defaultOptions());
     }
 
     default <A extends U> Function<LabelledFormula, Automaton<?, ? extends A>>
@@ -274,9 +275,19 @@ public final class LtlTranslationRepository {
 
   @CEnum("ltl_translation_option_t")
   public enum Option {
+
+    /** Simplify the formula before applying the translation. */
     SIMPLIFY_FORMULA,
+
+    /** Simplify the automaton, e.g. remove non-accepting states. Note that this causes a
+     * full exploration of the automaton. */
     SIMPLIFY_AUTOMATON,
+
+    /** Use a portfolio of simpler constructions for fragments of LTL. */
     USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
+
+    /** Ensures that the transition relation of the automaton is complete. */
+    COMPLETE,
 
     X_DPA_USE_COMPLEMENT,
     X_DRA_NORMAL_FORM_USE_DUAL;
@@ -286,6 +297,12 @@ public final class LtlTranslationRepository {
 
     @CEnumLookup
     public static native Option fromCValue(int value);
+
+    public static Set<Option> defaultOptions() {
+      var defaultOptions = EnumSet.allOf(Option.class);
+      defaultOptions.remove(COMPLETE);
+      return defaultOptions;
+    }
   }
 
   private static IllegalArgumentException iae() {
@@ -746,6 +763,7 @@ public final class LtlTranslationRepository {
 
     boolean simplifyFormula = translationOptions.contains(Option.SIMPLIFY_FORMULA);
     boolean simplifyAutomaton = translationOptions.contains(Option.SIMPLIFY_AUTOMATON);
+    boolean completeAutomaton = translationOptions.contains(Option.COMPLETE);
 
     Function<LabelledFormula, ? extends Automaton<?, ? extends A>> wrappedFunction;
 
@@ -765,9 +783,11 @@ public final class LtlTranslationRepository {
       var formula = simplifyFormula
         ? SimplifierFactory.apply(unprocessedFormula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
         : unprocessedFormula;
-      var automaton = wrappedFunction.apply(formula);
-      return simplifyAutomaton
-        ? AcceptanceOptimizations.optimize(automaton)
+      var automaton = simplifyAutomaton
+        ? AcceptanceOptimizations.optimize(wrappedFunction.apply(formula))
+        : wrappedFunction.apply(formula);
+      return completeAutomaton
+        ? OmegaAcceptanceCast.cast(Views.complete(automaton), acceptanceCondition)
         : automaton;
     };
   }
@@ -785,6 +805,7 @@ public final class LtlTranslationRepository {
 
     boolean simplifyFormula = translationOptions.contains(Option.SIMPLIFY_FORMULA);
     boolean simplifyAutomaton = translationOptions.contains(Option.SIMPLIFY_AUTOMATON);
+    boolean completeAutomaton = translationOptions.contains(Option.COMPLETE);
 
     var portfolio = branchingMode == BranchingMode.NON_DETERMINISTIC
       ? new NonDeterministicConstructionsPortfolio<>(acceptanceCondition)
@@ -794,10 +815,19 @@ public final class LtlTranslationRepository {
       var formula = simplifyFormula
         ? SimplifierFactory.apply(unprocessedFormula, SimplifierFactory.Mode.SYNTACTIC_FIXPOINT)
         : unprocessedFormula;
-      var automaton = portfolio.apply(formula);
-      return simplifyAutomaton
-        ? automaton.map(AcceptanceOptimizations::optimize)
-        : automaton;
+      var automatonOptional = portfolio.apply(formula);
+
+      if (automatonOptional.isEmpty()) {
+        return Optional.empty();
+      }
+
+      var automaton = simplifyAutomaton
+        ? AcceptanceOptimizations.optimize(automatonOptional.get())
+        : automatonOptional.get();
+
+      return Optional.of(completeAutomaton
+        ? OmegaAcceptanceCast.cast(Views.complete(automaton), acceptanceCondition)
+        : automaton);
     };
   }
 }

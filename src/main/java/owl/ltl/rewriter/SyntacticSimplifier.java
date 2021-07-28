@@ -203,6 +203,11 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
   }
 
   @Override
+  public Formula visit(Negation negation) {
+    return negation.operand().not().accept(this);
+  }
+
+  @Override
   public Formula visit(GOperator gOperator) {
     Formula operand = gOperator.operand();
 
