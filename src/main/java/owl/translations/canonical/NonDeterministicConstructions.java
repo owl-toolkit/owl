@@ -106,8 +106,11 @@ public final class NonDeterministicConstructions {
       Function<? super Set<Formula>, ? extends Set<T>> mapper,
       EquivalenceClassFactory factory) {
 
-      return factory.of(unfoldWithSuspension(state))
-        .temporalStepTree(x -> mapper.apply(reducedDnf(x)));
+      return factory.of(unfoldWithSuspension(state)).temporalStepTree()
+        .map((Set<EquivalenceClass> x) ->
+          x.stream()
+            .flatMap((EquivalenceClass y) -> mapper.apply(reducedDnf(y)).stream())
+            .collect(Collectors.toUnmodifiableSet()));
     }
 
     static Set<Formula> reducedDnf(EquivalenceClass equivalenceClass) {
@@ -118,7 +121,9 @@ public final class NonDeterministicConstructions {
       }
 
       // Only a, !a, and X \psi are present. Thus we unfold deterministically.
-      if (equivalenceClass.temporalOperators().stream().allMatch(XOperator.class::isInstance)) {
+      if (equivalenceClass.support(false).stream()
+        .allMatch(x -> x instanceof Literal || x instanceof XOperator)) {
+
         return Set.of(equivalenceClass.canonicalRepresentativeDnf());
       }
 

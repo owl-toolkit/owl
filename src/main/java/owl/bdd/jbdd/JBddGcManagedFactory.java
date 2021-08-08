@@ -25,12 +25,9 @@ import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 
 abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
-  private static final Logger logger = Logger.getLogger(JBddGcManagedFactory.class.getName());
 
   final Bdd bdd;
   private final Map<Integer, JBddNodeReference<V>> gcObjects = new HashMap<>();
@@ -107,7 +104,7 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
       return;
     }
 
-    int count = 0;
+    // int count = 0;
     do {
       int node = ((JBddNodeReference<?>) reference).node;
       gcObjects.remove(node);
@@ -116,13 +113,13 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
         assert bdd.getReferenceCount(node) == 1;
         bdd.dereference(node);
         assert bdd.getReferenceCount(node) == 0;
-        count += 1;
+        // count += 1;
       }
 
       reference = queue.poll();
     } while (reference != null);
 
-    logger.log(Level.FINEST, "Cleared {0} references", count);
+    // System.err.printf("Cleared %d references", count);
   }
 
   private static final class JBddNodeReference<V extends JBddNode> extends WeakReference<V> {

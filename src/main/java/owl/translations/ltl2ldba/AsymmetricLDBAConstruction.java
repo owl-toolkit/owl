@@ -53,7 +53,6 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
-import owl.translations.canonical.LegacyFactory;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 import owl.translations.mastertheorem.Fixpoints;
 import owl.translations.mastertheorem.Predicates;
@@ -132,6 +131,12 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     var acceptingComponentBuilder = new AcceptingComponentBuilder(factories, acceptanceSets);
     var initialState = factories.eqFactory.of(formula.formula()).unfold();
 
+    if (initialState.isTrue()) {
+      initialState = factories.eqFactory.of(true);
+    } else if (initialState.isFalse()) {
+      initialState = factories.eqFactory.of(false);
+    }
+
     Map<EquivalenceClass, Set<AsymmetricProductState>> jumps = new HashMap<>();
 
     Consumer<EquivalenceClass> jumpGenerator = x -> {
@@ -203,7 +208,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
       factories.eqFactory.atomicPropositions(),
       factories.vsFactory,
-      initialState.isFalse() ? Set.<EquivalenceClass>of() : Set.of(initialState),
+      initialState.isFalse() ? Set.of() : Set.of(initialState),
       AllAcceptance.INSTANCE) {
 
       @Override
@@ -213,6 +218,10 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
           if (successor.isFalse()) {
             return Set.of();
+          }
+
+          if (successor.isTrue()) {
+            return Set.of(Edge.of(factories.eqFactory.of(true), bitSet));
           }
 
           return Set.of(SyntacticFragments.isSafety(successor)
@@ -230,17 +239,47 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       jumpLookup, EquivalenceClass::language, new TreeSet<>(evaluationMap.values()), jumpLookup);
   }
 
+  private static EquivalenceClass initialState(
+    EquivalenceClass clazz, EquivalenceClass environment) {
+
+    EquivalenceClass state = clazz.unfold();
+
+    if (state.isTrue()) {
+      return clazz.factory().of(true);
+    }
+
+    if (state.isFalse()) {
+      return clazz.factory().of(false);
+    }
+
+    return environment.implies(state) ? clazz.factory().of(true) : state;
+  }
+
+  private static EquivalenceClass successor(
+    EquivalenceClass clazz, BitSet valuation, EquivalenceClass environment) {
+
+    EquivalenceClass successor = clazz.temporalStep(valuation).unfold();
+
+    if (successor.isTrue()) {
+      return clazz.factory().of(true);
+    }
+
+    if (successor.isFalse()) {
+      return clazz.factory().of(false);
+    }
+
+    return environment.implies(successor) ? clazz.factory().of(true) : successor;
+  }
+
   final class AcceptingComponentBuilder
     implements AnnotatedLDBA.AcceptingComponentBuilder<AsymmetricProductState, B> {
 
     final int acceptanceSets;
     final Factories factories;
-    final LegacyFactory factory;
     final List<AsymmetricProductState> anchors = new ArrayList<>();
 
     AcceptingComponentBuilder(Factories factories, int acceptanceSets) {
       this.factories = factories;
-      this.factory = new LegacyFactory(factories);
       this.acceptanceSets = acceptanceSets;
     }
 
@@ -254,9 +293,9 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       if (SyntacticFragments.isSafety(remainder)) {
         safety = current.and(safety);
-        current = factories.eqFactory.of(BooleanConstant.TRUE);
+        current = factories.eqFactory.of(true);
       } else {
-        current = factory.initialStateInternal(current,
+        current = initialState(current,
           safety.and(evaluatedFixpoints.language()).unfold());
       }
 
@@ -268,15 +307,15 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       var nextCoSafety = new EquivalenceClass[automata.coSafety.size()];
 
       for (int i = 0; i < nextCoSafety.length; i++) {
-        nextCoSafety[i] = factory.initialStateInternal(automata.coSafety.get(i), current);
+        nextCoSafety[i] = initialState(automata.coSafety.get(i), current);
       }
 
       if (current.isTrue()) {
         if (automata.coSafety.isEmpty()) {
-          current = factory.initialStateInternal(automata.fCoSafety.get(0), safety);
+          current = initialState(automata.fCoSafety.get(0), safety);
         } else {
-          current = factory.initialStateInternal(nextCoSafety[0], safety);
-          nextCoSafety[0] = factories.eqFactory.of(BooleanConstant.TRUE);
+          current = initialState(nextCoSafety[0], safety);
+          nextCoSafety[0] = factories.eqFactory.of(true);
         }
       }
 
@@ -305,19 +344,19 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
           protected BitSet stateAtomicPropositions(AsymmetricProductState state) {
             BitSet sensitiveAlphabet = new BitSet();
 
-            state.currentCoSafety.atomicPropositions().copyInto(sensitiveAlphabet);
-            state.safety.atomicPropositions().copyInto(sensitiveAlphabet);
+            sensitiveAlphabet.or(state.currentCoSafety.atomicPropositions(false));
+            sensitiveAlphabet.or(state.safety.atomicPropositions(false));
 
             for (EquivalenceClass clazz : state.nextCoSafety) {
-              clazz.atomicPropositions().copyInto(sensitiveAlphabet);
+              sensitiveAlphabet.or(clazz.atomicPropositions(false));
             }
 
             for (EquivalenceClass clazz : state.automata.fCoSafety) {
-              clazz.atomicPropositions().copyInto(sensitiveAlphabet);
+              sensitiveAlphabet.or(clazz.atomicPropositions(false));
             }
 
-            state.evaluatedFixpoints.language()
-              .atomicPropositions(true).copyInto(sensitiveAlphabet);
+            sensitiveAlphabet.or(state.evaluatedFixpoints.language()
+              .atomicPropositions(true));
 
             return sensitiveAlphabet;
           }
@@ -341,12 +380,12 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
       }
 
       var currentCoSafetySuccessor =
-        factory.successorInternal(state.currentCoSafety, valuation, safetySuccessor);
+        successor(state.currentCoSafety, valuation, safetySuccessor);
 
       var assumptions = currentCoSafetySuccessor.and(safetySuccessor);
 
       var nextSuccessors = state.nextCoSafety.stream()
-        .map(x -> factory.successorInternal(x, valuation, assumptions))
+        .map(x -> successor(x, valuation, assumptions))
         .collect(Collectors.toList());
 
       boolean acceptingEdge = false;
@@ -370,11 +409,11 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
         }
 
         if (j < 0) {
-          currentCoSafetySuccessor = factory.initialStateInternal(
+          currentCoSafetySuccessor = initialState(
             automata.fCoSafety.get(automata.fCoSafety.size() + j), assumptions);
         } else if (!nextSuccessors.isEmpty()) {
           currentCoSafetySuccessor = nextSuccessors.get(j)
-            .and(factory.initialStateInternal(automata.coSafety.get(j), assumptions));
+            .and(initialState(automata.coSafety.get(j), assumptions));
         }
       } else {
         j = state.index;
@@ -385,7 +424,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
           nextSuccessors.set(i, factories.eqFactory.of(BooleanConstant.TRUE));
         } else {
           nextSuccessors.set(i, nextSuccessors.get(i)
-            .and(factory.initialStateInternal(automata.coSafety.get(i), assumptions)));
+            .and(initialState(automata.coSafety.get(i), assumptions)));
         }
       }
 
@@ -425,7 +464,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       // Scan gfCoSafety.
       while (i < 0) {
-        var successor = factory.successorInternal(
+        var successor = successor(
           automata.fCoSafety.get(automata.fCoSafety.size() + i), valuation, environment);
 
         if (!successor.isTrue()) {
@@ -451,8 +490,8 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
   private static boolean dependsOnExternalAtoms(EquivalenceClass remainder,
     AsymmetricEvaluatedFixpoints obligation) {
-    BitSet remainderAP = remainder.atomicPropositions(true).copyInto(new BitSet());
-    BitSet atoms = obligation.language().atomicPropositions(true).copyInto(new BitSet());
+    BitSet remainderAP = remainder.atomicPropositions(true);
+    BitSet atoms = obligation.language().atomicPropositions(true);
     assert !remainderAP.isEmpty();
     assert !atoms.isEmpty();
     return !(remainderAP.intersects(atoms));

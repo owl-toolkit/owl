@@ -56,4 +56,22 @@ public interface EquivalenceClassFactory {
   EquivalenceClass and(Collection<? extends EquivalenceClass> classes);
 
   EquivalenceClass or(Collection<? extends EquivalenceClass> classes);
+
+  Encoding defaultEncoding();
+
+  EquivalenceClassFactory withDefaultEncoding(Encoding encoding);
+
+  enum Encoding {
+    /**
+     * Encode only temporal operators separate from their negation.
+     */
+    AP_COMBINED,
+
+    /**
+     * Encode literals and temporal operators separate from their negation.
+     */
+    AP_SEPARATE
+  }
+
+  void clearCaches();
 }

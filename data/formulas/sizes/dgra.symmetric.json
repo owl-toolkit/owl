@@ -4961,6 +4961,17 @@
     }
   },
   {
+    "formula": "(GF!a & G(a | XFb))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 15,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((((a | b)) R (c)) & G(d | (((a | b)) R (c))))",
     "properties": {
       "size": 2,
@@ -5434,6 +5445,17 @@
     }
   },
   {
+    "formula": "(FGa | F(!a & XGb))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(FGa | F(b & G(b | c)))",
     "properties": {
       "size": 2,
@@ -5896,6 +5918,17 @@
     }
   },
   {
+    "formula": "F(a & G(b | Xb))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 4,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "F(a & G(b | Xc))",
     "properties": {
       "size": 4,
@@ -6105,6 +6138,17 @@
     }
   },
   {
+    "formula": "G(a | F(b & Xb))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "G(a | F(b & Xc))",
     "properties": {
       "size": 4,
@@ -6293,6 +6337,28 @@
   },
   {
     "formula": "GF(a & Xb & XXc)",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "X((a & FGa) | (!a & GF!a))",
+    "properties": {
+      "size": 4,
+      "initialStatesSize": 1,
+      "acceptanceName": "GeneralizedRabinAcceptance",
+      "acceptanceSets": 6,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "X((a & GF!a) | (!a & FGa))",
     "properties": {
       "size": 4,
       "initialStatesSize": 1,

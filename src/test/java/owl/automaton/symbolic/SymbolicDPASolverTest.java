@@ -21,10 +21,10 @@ package owl.automaton.symbolic;
 
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.junit.jupiter.api.Assertions.fail;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.CONTROLLER;
 import static owl.automaton.symbolic.SymbolicDPASolver.Solution.Winner.ENVIRONMENT;
 import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.SLM21;
+import static owl.translations.LtlTranslationRepository.Option.COMPLETE;
 import static owl.translations.LtlTranslationRepository.Option.SIMPLIFY_FORMULA;
 import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
 
@@ -43,10 +43,6 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
-import owl.automaton.Automaton;
-import owl.automaton.Views;
-import owl.automaton.acceptance.OmegaAcceptanceCast;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.collections.ImmutableBitSet;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -54,12 +50,12 @@ import owl.ltl.parser.LtlParser;
 public class SymbolicDPASolverTest {
 
   @TestFactory
-  Stream<DynamicTest> syntCompSelectionRealizable() {
+  Stream<DynamicTest> syntCompSelectionRealizable() throws IOException {
     return tests("synt-comp-selection-realizable.json", true);
   }
 
   @TestFactory
-  Stream<DynamicTest> syntCompSelectionUnrealizable() {
+  Stream<DynamicTest> syntCompSelectionUnrealizable() throws IOException {
     return tests("synt-comp-selection-unrealizable.json", false);
   }
 
@@ -74,27 +70,21 @@ public class SymbolicDPASolverTest {
     }
   }
 
-  private static Stream<DynamicTest> tests(String file, boolean realizable) {
-    try {
-      return Arrays.stream(testCases(file)).map(
-        testCase -> DynamicTest.dynamicTest(testCase.formula,
-          () -> assertTimeoutPreemptively(Duration.of(30, ChronoUnit.SECONDS), () -> {
-            LabelledFormula formula = LtlParser.parse(testCase.formula);
-            var dpa = SymbolicAutomaton.of(
-              (Automaton<?, ParityAcceptance>) OmegaAcceptanceCast.cast(
-                Views.complete(SLM21.translation(
-                  EnumSet.of(SIMPLIFY_FORMULA, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS))
-                  .apply(formula)), ParityAcceptance.class));
-            ImmutableBitSet controllable = controllable(formula.atomicPropositions(),
-              testCase.controllable);
-            assertSame(new DFISymbolicDPASolver().solve(dpa, controllable).winner(),
-              realizable ? CONTROLLER : ENVIRONMENT
-            );
-          })));
-    } catch (IOException e) {
-      fail(e);
-    }
-    throw new AssertionError();
+  private static Stream<DynamicTest> tests(String file, boolean realizable) throws IOException {
+    return Arrays.stream(testCases(file)).map(
+      testCase -> DynamicTest.dynamicTest(testCase.formula,
+        () -> assertTimeoutPreemptively(Duration.of(30, ChronoUnit.SECONDS), () -> {
+          LabelledFormula formula = LtlParser.parse(testCase.formula);
+          var dpa = SymbolicAutomaton.of(
+            SLM21.translation(
+              EnumSet.of(SIMPLIFY_FORMULA, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, COMPLETE))
+              .apply(formula));
+          ImmutableBitSet controllable = controllable(formula.atomicPropositions(),
+            testCase.controllable);
+          assertSame(new DFISymbolicDPASolver().solve(dpa, controllable).winner(),
+            realizable ? CONTROLLER : ENVIRONMENT
+          );
+        })));
   }
 
   private static ImmutableBitSet controllable(List<String> aps, String[] controllable) {

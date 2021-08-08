@@ -19,6 +19,14 @@
 
 package owl.translations.canonical;
 
+import static owl.translations.canonical.DeterministicConstructions.BreakpointStateAcceptingRoundRobin;
+import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
+import static owl.translations.canonical.DeterministicConstructions.CoSafety;
+import static owl.translations.canonical.DeterministicConstructions.CoSafetySafetyRoundRobin;
+import static owl.translations.canonical.DeterministicConstructions.GfCoSafety;
+import static owl.translations.canonical.DeterministicConstructions.Safety;
+import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafety;
+
 import java.util.Optional;
 import java.util.Set;
 import owl.automaton.Automaton;
@@ -116,12 +124,12 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
 
   public static Automaton<EquivalenceClass, AllAcceptance> safety(LabelledFormula formula) {
     var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
-    return DeterministicConstructions.Safety.of(factories, formula.formula());
+    return Safety.of(factories, formula.formula());
   }
 
   public static Automaton<EquivalenceClass, BuchiAcceptance> coSafety(LabelledFormula formula) {
     var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
-    return DeterministicConstructions.CoSafety.of(factories, formula.formula());
+    return CoSafety.of(factories, formula.formula());
   }
 
   public static Automaton<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance>
@@ -130,7 +138,7 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
     var formulas = formula.formula() instanceof Conjunction
       ? Set.copyOf(formula.formula().operands)
       : Set.of(formula.formula());
-    return DeterministicConstructions.GfCoSafety.of(factories, formulas, generalized);
+    return GfCoSafety.of(factories, formulas, generalized);
   }
 
   public static Automaton<RoundRobinState<EquivalenceClass>, ? extends GeneralizedCoBuchiAcceptance>
@@ -140,15 +148,14 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
       .deterministicComplementOfCompleteAutomaton(automaton, GeneralizedCoBuchiAcceptance.class);
   }
 
-  public static Automaton<DeterministicConstructions.BreakpointStateAccepting, CoBuchiAcceptance>
+  public static Automaton<BreakpointStateAcceptingRoundRobin, CoBuchiAcceptance>
     coSafetySafety(LabelledFormula formula) {
-    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
-    return DeterministicConstructions.CoSafetySafety.of(factories, formula.formula());
+    return CoSafetySafetyRoundRobin.of(formula);
   }
 
-  public static Automaton<DeterministicConstructions.BreakpointStateRejecting, BuchiAcceptance>
+  public static Automaton<BreakpointStateRejecting, BuchiAcceptance>
     safetyCoSafety(LabelledFormula formula) {
     var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
-    return DeterministicConstructions.SafetyCoSafety.of(factories, formula.formula());
+    return SafetyCoSafety.of(factories, formula.formula());
   }
 }

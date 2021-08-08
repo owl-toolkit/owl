@@ -20,11 +20,12 @@
 package owl.ltl;
 
 import java.util.BitSet;
+import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
-import owl.collections.ImmutableBitSet;
 
 /**
  * A propositional equivalence class of an LTL formula.
@@ -35,21 +36,20 @@ import owl.collections.ImmutableBitSet;
 public interface EquivalenceClass extends LtlLanguageExpressible {
 
   /**
-   * See {@link Formula#atomicPropositions(boolean)}.
-   */
-  default ImmutableBitSet atomicPropositions() {
-    return atomicPropositions(false);
-  }
-
-  /**
    * Collects all literals used in the bdd and stores the corresponding atomic propositions in
    * the BitSet. See also {@link Formula#atomicPropositions(boolean)}.
    */
-  ImmutableBitSet atomicPropositions(boolean includeNested);
+  default BitSet atomicPropositions(boolean includeNested) {
+    BitSet atomicPropositions = new BitSet();
 
-  Set<Set<Formula>> conjunctiveNormalForm();
+    for (Formula formula : support(includeNested)) {
+      if (formula instanceof Literal) {
+        atomicPropositions.set(((Literal) formula).getAtom());
+      }
+    }
 
-  Set<Set<Formula>> disjunctiveNormalForm();
+    return atomicPropositions;
+  }
 
   /**
    * The canonical representative for this equivalence class, which is defined as the formula
@@ -71,17 +71,39 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
     return Disjunction.of(disjunctiveNormalForm().stream().map(Conjunction::of));
   }
 
+  Set<Set<Formula>> conjunctiveNormalForm();
+
+  Set<Set<Formula>> disjunctiveNormalForm();
+
   EquivalenceClassFactory factory();
 
   boolean isFalse();
 
   boolean isTrue();
 
+  /**
+   * A sorted, distinct list of formula objects ({@link Literal} and
+   * {@link owl.ltl.Formula.TemporalOperator}) that are used as propositions in the support of the
+   * backing BDD.
+   *
+   * @param includeNested include also nested subformulas.
+   * @return sorted, distinct, and unmodifiable list.
+   */
+  List<Formula> support(boolean includeNested);
+
   default Set<Formula.TemporalOperator> temporalOperators() {
-    return temporalOperators(false);
+    return support(false).stream()
+      .filter(Formula.TemporalOperator.class::isInstance)
+      .map(Formula.TemporalOperator.class::cast)
+      .collect(Collectors.toUnmodifiableSet());
   }
 
-  Set<Formula.TemporalOperator> temporalOperators(boolean includeNested);
+  default Set<Formula.TemporalOperator> temporalOperators(boolean includeNested) {
+    return support(includeNested).stream()
+      .filter(Formula.TemporalOperator.class::isInstance)
+      .map(Formula.TemporalOperator.class::cast)
+      .collect(Collectors.toUnmodifiableSet());
+  }
 
   boolean implies(EquivalenceClass other);
 
@@ -103,13 +125,11 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
    *
    * @param valuation The assignment for the atomic propositions.
    */
-  EquivalenceClass temporalStep(BitSet valuation);
-
-  default MtBdd<EquivalenceClass> temporalStepTree() {
-    return temporalStepTree(Set::of);
+  default EquivalenceClass temporalStep(BitSet valuation) {
+    return temporalStepTree().get(valuation).iterator().next();
   }
 
-  <T> MtBdd<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper);
+  MtBdd<EquivalenceClass> temporalStepTree();
 
   /**
    * See {@link Formula#unfold()}.
@@ -119,6 +139,10 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   double trueness();
 
   EquivalenceClass not();
+
+  EquivalenceClassFactory.Encoding encoding();
+
+  EquivalenceClass encode(EquivalenceClassFactory.Encoding encoding);
 
   @Override
   default EquivalenceClass language() {

@@ -95,9 +95,9 @@ final class EquivalenceClassEncoder {
 
       // Project temporalOperators and determine relevant atomicPropositions with different signs
       // for different projections.
-      clazz.substitute(x -> BooleanConstant.TRUE).atomicPropositions()
+      clazz.substitute(x2 -> BooleanConstant.TRUE).atomicPropositions(false).stream()
         .forEach((int x) -> profile.add(Literal.of(x, false)));
-      clazz.substitute(x -> BooleanConstant.FALSE).atomicPropositions()
+      clazz.substitute(x1 -> BooleanConstant.FALSE).atomicPropositions(false).stream()
         .forEach((int x) -> profile.add(Literal.of(x, true)));
 
       profiles.put(clazz, profile);

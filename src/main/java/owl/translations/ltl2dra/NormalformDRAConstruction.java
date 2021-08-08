@@ -32,10 +32,12 @@ import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
+import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.collections.Pair;
+import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
 import owl.translations.canonical.DeterministicConstructions;
@@ -51,6 +53,8 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
     pi2Portfolio;
   private final DeterministicConstructionsPortfolio<CoBuchiAcceptance>
     sigma2Portfolio;
+  private final DeterministicConstructionsPortfolio<GeneralizedCoBuchiAcceptance>
+    sigma2GeneralizedPortfolio;
 
   private NormalformDRAConstruction(Class<R> acceptanceClass, boolean useDualConstruction) {
     super(useDualConstruction);
@@ -65,6 +69,8 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
       = new DeterministicConstructionsPortfolio<>(buchiAcceptance);
     this.sigma2Portfolio
       = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class);
+    this.sigma2GeneralizedPortfolio
+      = new DeterministicConstructionsPortfolio<>(GeneralizedCoBuchiAcceptance.class);
   }
 
   public static <R extends GeneralizedRabinAcceptance> NormalformDRAConstruction<R>
@@ -80,23 +86,34 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
     List<Automaton<Object, ? extends R>> automata = new ArrayList<>();
 
     for (Sigma2Pi2Pair disjunct : group(nnfFormula)) {
-      Automaton<?, ? extends CoBuchiAcceptance> sigma2Automaton
-        = sigma2Portfolio.apply(disjunct.sigma2()).orElse(null);
+      if (disjunct.pi2().formula().equals(BooleanConstant.TRUE)) {
+        Automaton<?, ? extends GeneralizedCoBuchiAcceptance> sigma2Automaton
+          = sigma2GeneralizedPortfolio.apply(disjunct.sigma2()).orElse(null);
 
-      if (sigma2Automaton == null) {
-        sigma2Automaton = DeterministicConstructionsPortfolio.coSafetySafety(disjunct.sigma2());
+        if (sigma2Automaton == null) {
+          sigma2Automaton = DeterministicConstructionsPortfolio.coSafetySafety(disjunct.sigma2());
+        }
+
+        automata.add(OmegaAcceptanceCast.cast((Automaton) sigma2Automaton, acceptanceClass));
+      } else {
+        Automaton<?, ? extends CoBuchiAcceptance> sigma2Automaton
+          = sigma2Portfolio.apply(disjunct.sigma2()).orElse(null);
+
+        if (sigma2Automaton == null) {
+          sigma2Automaton = DeterministicConstructionsPortfolio.coSafetySafety(disjunct.sigma2());
+        }
+
+        Automaton<?, ? extends GeneralizedBuchiAcceptance> pi2Automaton
+          = pi2Portfolio.apply(disjunct.pi2()).orElse(null);
+
+        if (pi2Automaton == null) {
+          pi2Automaton = DeterministicConstructionsPortfolio.safetyCoSafety(disjunct.pi2());
+        }
+
+        automata.add(OmegaAcceptanceCast.cast(
+          (Automaton) BooleanOperations.intersection(sigma2Automaton, pi2Automaton),
+          acceptanceClass));
       }
-
-      Automaton<?, ? extends GeneralizedBuchiAcceptance> pi2Automaton
-        = pi2Portfolio.apply(disjunct.pi2()).orElse(null);
-
-      if (pi2Automaton == null) {
-        pi2Automaton = DeterministicConstructionsPortfolio.safetyCoSafety(disjunct.pi2());
-      }
-
-      automata.add(OmegaAcceptanceCast.cast(
-        (Automaton) BooleanOperations.intersection(sigma2Automaton, pi2Automaton),
-        acceptanceClass));
     }
 
     if (automata.isEmpty()) {
@@ -147,6 +164,10 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
 
     if (state instanceof DeterministicConstructions.BreakpointStateRejecting) {
       return ((DeterministicConstructions.BreakpointStateRejecting) state).all().isTrue();
+    }
+
+    if (state instanceof DeterministicConstructions.BreakpointStateAcceptingRoundRobin) {
+      return ((DeterministicConstructions.BreakpointStateAcceptingRoundRobin) state).all().isTrue();
     }
 
     return false;

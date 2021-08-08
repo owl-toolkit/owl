@@ -162,9 +162,8 @@ public final class OmegaAcceptanceCast {
   public static <S, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance>
     Automaton<S, ? extends B>
     cast(Automaton<S, A> automaton, Class<? extends B> acceptanceClass) {
+
     A oldAcceptance = automaton.acceptance();
-
-
 
     if (acceptanceClass.isAssignableFrom(oldAcceptance.getClass())) {
       @SuppressWarnings("unchecked")

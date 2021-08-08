@@ -1245,7 +1245,7 @@ public final class NormalformDELAConstruction
         var all1 = entry.getValue().all();
         var all2 = value2.all();
 
-        if (BlockingElements.containedInDifferentSccs(all1, all2)) {
+        if (BlockingElements.surelyContainedInDifferentSccs(all1, all2)) {
           return true;
         }
       }
@@ -1282,7 +1282,7 @@ public final class NormalformDELAConstruction
       var restrictedDbw = Views.filtered(dbw, Views.Filter.<BreakpointStateRejecting>builder()
         .initialStates(Set.of(state))
         .edgeFilter((dbwState, edge) ->
-          !BlockingElements.containedInDifferentSccs(dbwState.all(), edge.successor().all()))
+          !BlockingElements.surelyContainedInDifferentSccs(dbwState.all(), edge.successor().all()))
         .build());
 
       // The restricted automaton is too large, thus we skip the semantic analysis.
@@ -1343,6 +1343,7 @@ public final class NormalformDELAConstruction
         return memoize(state, TERMINAL_REJECTING);
       }
 
+      // Replace these by other checks...
       if (dbw.suspensionCheck.isBlockedByTransient(state.all())) {
         assert state.isSuspended();
         return memoize(state, TRANSIENT_SUSPENDED);

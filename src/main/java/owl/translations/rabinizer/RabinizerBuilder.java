@@ -107,10 +107,9 @@ public final class RabinizerBuilder {
     this.configuration = configuration;
     this.initialClass = initialClass;
     boolean fairnessFragment = configuration.eager()
-      && initialClass.atomicPropositions().isEmpty()
-      && initialClass.temporalOperators().stream()
-      .allMatch(support -> SyntacticFragments.isInfinitelyOften(support)
-        || SyntacticFragments.isAlmostAll(support));
+      && initialClass.support(false).stream().allMatch(
+        support -> SyntacticFragments.isInfinitelyOften(support)
+          || SyntacticFragments.isAlmostAll(support));
 
     vsFactory = factories.vsFactory;
     eqFactory = factories.eqFactory;
@@ -165,7 +164,7 @@ public final class RabinizerBuilder {
     for (EquivalenceClass state : scc) {
       EvaluateVisitor visitor = new EvaluateVisitor(relevantOperators, state);
       EquivalenceClass substitute = state.substitute(visitor);
-      BitSet externalAtoms = substitute.atomicPropositions().copyInto(new BitSet());
+      BitSet externalAtoms = substitute.atomicPropositions(false);
       substitute.temporalOperators().forEach(x -> externalAtoms.or(x.atomicPropositions(true)));
 
       // Check if external atoms are non-empty and disjoint.

@@ -19,6 +19,8 @@
 
 package owl.translations;
 
+import static owl.bdd.EquivalenceClassFactory.Encoding.AP_COMBINED;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -42,26 +44,31 @@ public final class BlockingElements {
   public static boolean isBlockedByCoSafety(EquivalenceClass state) {
     assert state.equals(state.unfold());
 
-    if (SyntacticFragments.isCoSafety(state)) {
+    if (SyntacticFragments.isCoSafety(state.encode(AP_COMBINED).unfold())) {
       return true;
     }
 
-    int stateAtomicPropositionsSize = state.atomicPropositions(true).size();
-    int stateTemporalOperatorsSize = state.temporalOperators(true).size();
+    var successors = new HashSet<>(state.temporalStepTree().flatValues());
 
-    for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
+    // Pre-filter.
+    for (var iterator = successors.iterator(); iterator.hasNext();) {
+      var successor = iterator.next();
 
       // The successor class belongs to different SCC, hence it is irrelevant.
-      if (detectSccChange(stateAtomicPropositionsSize, stateTemporalOperatorsSize, successor)) {
+      if (detectSccChange(state, successor)) {
+        iterator.remove();
         continue;
       }
 
       // The SCC might have more than one state, hence we cannot say for sure if it is blocked
       // by a coSafety property.
-      if (!state.equals(successor) && !state.equals(successor.unfold())) {
+      if (!state.equals(successor.unfold())) {
         return false;
       }
+    }
 
+    // Expensive check.
+    for (var successor : successors) {
       // We found a potential non-blocking successor.
       if (extractBlockingCoSafetyFormulas(successor).anyMatch(Set::isEmpty)) {
         return false;
@@ -74,26 +81,31 @@ public final class BlockingElements {
   public static boolean isBlockedBySafety(EquivalenceClass state) {
     assert state.equals(state.unfold());
 
-    if (SyntacticFragments.isSafety(state)) {
+    if (SyntacticFragments.isSafety(state.encode(AP_COMBINED).unfold())) {
       return true;
     }
 
-    int stateAtomicPropositionsSize = state.atomicPropositions(true).size();
-    int stateTemporalOperatorsSize = state.temporalOperators(true).size();
+    var successors = new HashSet<>(state.temporalStepTree().flatValues());
 
-    for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
+    // Pre-filter.
+    for (var iterator = successors.iterator(); iterator.hasNext();) {
+      var successor = iterator.next();
 
       // The successor class belongs to different SCC, hence it is irrelevant.
-      if (detectSccChange(stateAtomicPropositionsSize, stateTemporalOperatorsSize, successor)) {
+      if (detectSccChange(state, successor)) {
+        iterator.remove();
         continue;
       }
 
       // The SCC might have more than one state, hence we cannot say for sure if it is blocked
       // by a safety property.
-      if (!state.equals(successor) && !state.equals(successor.unfold())) {
+      if (!state.equals(successor.unfold())) {
         return false;
       }
+    }
 
+    // Expensive check.
+    for (var successor : successors) {
       // We found a potential non-blocking successor.
       if (extractBlockingSafetyFormulas(successor).anyMatch(Set::isEmpty)) {
         return false;
@@ -106,11 +118,8 @@ public final class BlockingElements {
   public static boolean isBlockedByTransient(EquivalenceClass state) {
     assert state.equals(state.unfold());
 
-    int stateAtomicPropositionsSize = state.atomicPropositions(true).size();
-    int stateTemporalOperatorsSize = state.temporalOperators(true).size();
-
     for (EquivalenceClass successor : state.temporalStepTree().flatValues()) {
-      if (!detectSccChange(stateAtomicPropositionsSize, stateTemporalOperatorsSize, successor)) {
+      if (!detectSccChange(state, successor)) {
         return false;
       }
     }
@@ -118,6 +127,7 @@ public final class BlockingElements {
     return true;
   }
 
+  // Remove this optimisation.
   public static Set<Formula.TemporalOperator> blockingCoSafetyFormulas(EquivalenceClass clazz) {
     if (SyntacticFragments.isCoSafety(clazz)) {
       return clazz.temporalOperators();
@@ -140,18 +150,20 @@ public final class BlockingElements {
     }).orElseThrow();
   }
 
-  public static boolean containedInDifferentSccs(
+  public static boolean surelyContainedInDifferentSccs(
     EquivalenceClass state1, EquivalenceClass state2) {
 
-    return !state1.atomicPropositions(true).equals(state2.atomicPropositions(true))
-      || !state1.temporalOperators(true).equals(state2.temporalOperators(true));
+    return !state1.support(true).equals(state2.support(true));
   }
 
   private static boolean detectSccChange(
-    int stateAtomicPropositionsSize, int stateTemporalOperatorsSize, EquivalenceClass successor) {
+    EquivalenceClass state, EquivalenceClass successor) {
 
-    return successor.atomicPropositions(true).size() < stateAtomicPropositionsSize
-      || successor.temporalOperators(true).size() < stateTemporalOperatorsSize;
+    List<Formula> stateSupport = state.support(true);
+    List<Formula> successorSupport = successor.support(true);
+    assert stateSupport.containsAll(successorSupport);
+    assert stateSupport.size() >= successorSupport.size();
+    return stateSupport.size() > successorSupport.size();
   }
 
   private static Stream<Set<Formula.TemporalOperator>>
@@ -193,17 +205,17 @@ public final class BlockingElements {
     return clazz.conjunctiveNormalForm().stream().map(clause -> {
       List<Formula.TemporalOperator> clauseSafetyFormulas = new ArrayList<>();
 
-      for (Formula literal : clause) {
-        if (literal instanceof Literal) {
+      for (Formula formula : clause) {
+        if (formula instanceof Literal) {
           continue;
         }
 
-        assert literal instanceof Formula.TemporalOperator;
+        assert formula instanceof Formula.TemporalOperator;
 
-        if (SyntacticFragments.isSafety(literal)
-          && !isProperSubformula(literal, nonSafetyFormulas)) {
+        if (SyntacticFragments.isSafety(formula)
+          && !isProperSubformula(formula, nonSafetyFormulas)) {
 
-          clauseSafetyFormulas.add((Formula.TemporalOperator) literal);
+          clauseSafetyFormulas.add((Formula.TemporalOperator) formula);
         }
       }
 

@@ -27,7 +27,7 @@ import java.util.Set;
 import java.util.function.Function;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
-import owl.collections.ImmutableBitSet;
+import owl.collections.Collections3;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
@@ -48,10 +48,10 @@ class RabinizerStateFactory {
     this.eager = eager;
   }
 
-  ImmutableBitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
+  BitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
     return eager
-      ? equivalenceClass.atomicPropositions()
-      : equivalenceClass.unfold().atomicPropositions();
+      ? equivalenceClass.atomicPropositions(false)
+      : equivalenceClass.unfold().atomicPropositions(false);
   }
 
   static final class ProductStateFactory extends RabinizerStateFactory {
@@ -60,11 +60,10 @@ class RabinizerStateFactory {
     }
 
     BitSet getSensitiveAlphabet(RabinizerState state) {
-      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(state.masterState())
-        .copyInto(new BitSet());
+      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(state.masterState());
       for (MonitorState monitorState : state.monitorStates()) {
         for (EquivalenceClass rankedFormula : monitorState.formulaRanking()) {
-          getClassSensitiveAlphabet(rankedFormula).copyInto(sensitiveAlphabet);
+          sensitiveAlphabet.or(getClassSensitiveAlphabet(rankedFormula));
         }
       }
       return sensitiveAlphabet;
@@ -91,7 +90,8 @@ class RabinizerStateFactory {
         if (fairnessFragment) {
           successorTree = MtBdd.of(Set.of(state));
         } else {
-          successorTree = state.temporalStepTree(x -> Set.of(x.unfold()));
+          successorTree = state.temporalStepTree()
+            .map(x -> Collections3.transformSet(x, EquivalenceClass::unfold));
         }
       } else {
         successorTree = state.unfold().temporalStepTree();
@@ -125,8 +125,7 @@ class RabinizerStateFactory {
       // temporal step will not change the formula substantially. Note that if the equivalence class
       // is tt or ff, this also returns true, since the support is empty (hence the "for all"
       // trivially holds).
-      return equivalenceClass.atomicPropositions().isEmpty()
-        && equivalenceClass.temporalOperators().stream().allMatch(GOperator.class::isInstance);
+      return equivalenceClass.support(false).stream().allMatch(GOperator.class::isInstance);
     }
 
     EquivalenceClass getInitialState(EquivalenceClass formula) {
@@ -152,9 +151,9 @@ class RabinizerStateFactory {
       }
 
       Iterator<EquivalenceClass> iterator = ranking.iterator();
-      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(iterator.next()).copyInto(new BitSet());
+      BitSet sensitiveAlphabet = getClassSensitiveAlphabet(iterator.next());
       while (iterator.hasNext()) {
-        getClassSensitiveAlphabet(iterator.next()).copyInto(sensitiveAlphabet);
+        sensitiveAlphabet.or(getClassSensitiveAlphabet(iterator.next()));
       }
       return sensitiveAlphabet;
     }
