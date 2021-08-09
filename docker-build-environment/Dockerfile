@@ -1,38 +1,61 @@
-FROM ubuntu:20.10
+FROM ubuntu:20.04
 
 MAINTAINER Salomon Sickert
 
-# Remember: Most commands are chained in order to reduce the number of created
-# layers and hence the size of the final image.
-
-# Default to UTF-8 file encoding
-
 ENV LANG C.UTF-8
 
-# Install base system
+# Remember:
+# - Prefer LTS releases for build images in order to be compatible with more
+#   systems in case of dynamic linking of glibc.
+# - Most commands are chained in order to reduce the number of created
+#   layers and hence the size of the final image (before compression by GitLab).
+
+# Base System
 
 RUN apt-get -q update \
     && apt-get -q upgrade -y \
     && apt-get -q install -y --no-install-recommends build-essential libz-dev zlib1g-dev ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make unzip wget \
     && rm -rf /var/lib/apt/lists/*
 
+
+# Musl
+
+## Download, verify, unpack, compile, install, and test.
+
+RUN wget -q https://musl.libc.org/releases/musl-1.2.2.tar.gz \
+    && echo '9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd musl-1.2.2.tar.gz' | sha256sum --check \
+    && tar -zxvf musl-1.2.2.tar.gz \
+    && rm musl-1.2.2.tar.gz \
+    && cd musl-1.2.2 \
+    && ./configure \
+    && make -j 4 \
+    && make install \
+    && cd .. \
+    && rm -rf musl-1.2.2 \
+    && /usr/local/musl/bin/musl-gcc --version
+
+ENV PATH=/usr/local/musl/bin/:$PATH
+
 # GraalVM
 
-## Download, verify, unpack, and install
+## Download, verify, unpack, install, and test.
 
-RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.0.0.2/graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
-    && echo 'bd3fbe796e803c4fe5cd089371588d3d716fa3cdb653fe8dd6dba31b57bef934 graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz' | sha256sum --check \
-    && tar -zxvf graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
-    && rm graalvm-ce-java11-linux-amd64-21.0.0.2.tar.gz \
-    && mv graalvm-ce-java11-21.0.0.2 /opt/
+RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz \
+    && echo 'bbd3e03025168172a76c2a29e6a14c1c37e3476b30774259c3ef5952fb86f470 graalvm-ce-java11-linux-amd64-21.2.0.tar.gz' | sha256sum --check \
+    && tar -zxvf graalvm-ce-java11-linux-amd64-21.2.0.tar.gz \
+    && rm graalvm-ce-java11-linux-amd64-21.2.0.tar.gz \
+    && mv graalvm-ce-java11-21.2.0 /opt/
 
-ENV PATH=/opt/graalvm-ce-java11-21.0.0.2/bin/:$PATH
-ENV JAVA_HOME=/opt/graalvm-ce-java11-21.0.0.2/
+ENV PATH=/opt/graalvm-ce-java11-21.2.0/bin/:$PATH
+ENV JAVA_HOME=/opt/graalvm-ce-java11-21.2.0/
 
-RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.0.0.2/native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar \
-    && echo '24e5a08e2714aee343b22c266285090721ff882ab0a31b7e8e4a68585c38f421 native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar' | sha256sum --check \
-    && gu -L install native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar
-    && rm native-image-installable-svm-java11-linux-amd64-21.0.0.2.jar
+RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/native-image-installable-svm-java11-linux-amd64-21.2.0.jar \
+    && echo '6fc4c6becbe0331aa0a038660fde7c4769c6d6e97d5a90a716a898188d3a6df9 native-image-installable-svm-java11-linux-amd64-21.2.0.jar' | sha256sum --check \
+    && gu -L install native-image-installable-svm-java11-linux-amd64-21.2.0.jar \
+    && rm native-image-installable-svm-java11-linux-amd64-21.2.0.jar \
+    && java -version \
+    && native-image --version
+
 
 # Spot
 
@@ -53,6 +76,7 @@ ENV LD_LIBRARY_PATH=/usr/local/lib/
 
 # Print Configuration
 
-RUN java -version \
+RUN musl-gcc --version \
+    && java -version \
     && native-image --version \
     && ltlcross --version
