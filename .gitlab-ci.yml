@@ -1,4 +1,4 @@
-image: gitlab.lrz.de:5005/i7/owl:668fc164
+image: gitlab.lrz.de:5005/i7/owl:0c3acd28
 
 before_script:
   - chmod +x gradlew
@@ -11,7 +11,7 @@ variables:
   GRADLE: ./.gradle
   GRADLE_HOME: $GRADLE
   GRADLE_USER_HOME: $GRADLE
-  GRAAL_HOME: "/opt/graalvm-ce-java11-21.0.0.2"
+  GRAAL_HOME: "/opt/graalvm-ce-java11-21.2.0"
 
 # Building
 
@@ -22,7 +22,7 @@ Build:
     paths:
     - $GRADLE
   script:
-    - /opt/graalvm-ce-java11-21.0.0.2/bin/native-image --version
+    - /opt/graalvm-ce-java11-21.2.0/bin/native-image --version
     - ./gradlew distZip check
     - unzip -d build/unzipped build/distributions/*.zip
     - scripts/check_binaries.sh build/unzipped/owl-*/bin
