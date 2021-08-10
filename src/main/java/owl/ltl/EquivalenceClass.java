@@ -58,6 +58,8 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
     return Conjunction.of(conjunctiveNormalForm().stream().map(Disjunction::of));
   }
 
+  Formula representative();
+
   EquivalenceClassFactory factory();
 
   boolean isFalse();

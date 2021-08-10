@@ -442,7 +442,8 @@ final class EquivalenceFactory extends GcManagedFactory<BddEquivalenceClass>
       return new DnfView(factory.atomicPropositions.size(), onePathsCache, factory.reverseMapping);
     }
 
-    private Formula representative() {
+    @Override
+    public Formula representative() {
       return Objects.requireNonNull(representative);
     }
 

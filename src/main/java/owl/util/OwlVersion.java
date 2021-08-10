@@ -25,7 +25,7 @@ public class OwlVersion {
 
   // Fall-back strings if MANIFEST cannot be accessed correctly.
   private static final String MAIN_NAME = "owl";
-  private static final String VERSION = "21.??-development";
+  private static final String VERSION = "21-ml";
 
   private OwlVersion() {}
 

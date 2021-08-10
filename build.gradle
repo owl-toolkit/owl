@@ -39,7 +39,7 @@ apply plugin: 'application'
 apply plugin: 'idea'
 
 project.group = 'de.tum.in'
-project.version = '21.??-development'
+project.version = '21-ml'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.run.DefaultCli'
@@ -66,9 +66,9 @@ def enableNativeAssertions = project.hasProperty("enable-native-assertions")
 
 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
     if (project.hasProperty("disable-default")) {
-        project.logger.quiet("Running on windows, disable native compilations with -Pdisable-native -Pdisable-pandoc")
+        project.logger.info("Running on windows, disable native compilations with -Pdisable-native -Pdisable-pandoc")
     } else {
-        project.logger.quiet("Running on windows, disabling unsupported native compilations, specify -Pdisable-default to override")
+        project.logger.info("Running on windows, disabling unsupported native compilations, specify -Pdisable-default to override")
         buildMarkdown = false;
         buildOwlNative = false;
     }

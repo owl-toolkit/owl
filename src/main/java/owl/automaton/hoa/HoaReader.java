@@ -73,8 +73,15 @@ public final class HoaReader {
   public static void readStream(Reader reader,
     Function<List<String>, ValuationSetFactory> factorySupplier,
     Consumer<Automaton<HoaState, ?>> consumer) throws ParseException {
+    readStream(reader, factorySupplier, Function.identity(), consumer);
+  }
+
+  public static <S> void readStream(Reader reader,
+    Function<List<String>, ValuationSetFactory> factorySupplier,
+    Function<HoaState, S> stateMapping,
+    Consumer<Automaton<S, ?>> consumer) throws ParseException {
     HOAFParser.parseHOA(reader, () -> new ToTransitionAcceptance(
-      new HoaConsumerAutomatonSupplier(consumer, factorySupplier)), null);
+      new HoaConsumerAutomatonSupplier<>(consumer, factorySupplier, stateMapping)), null);
   }
 
   public static Automaton<HoaState, ?> read(String string,
@@ -103,20 +110,44 @@ public final class HoaReader {
     return automaton;
   }
 
-  private static final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
-    private final Consumer<? super Automaton<HoaState, ?>> consumer;
-    private final Function<List<String>, ValuationSetFactory> factorySupplier;
+  public static <S> Automaton<S, ?> read(Reader reader,
+    Function<List<String>, ValuationSetFactory> factorySupplier,
+    Function<HoaState, S> stateMapping) throws ParseException {
+    AtomicReference<Automaton<S, ?>> reference = new AtomicReference<>();
 
-    HoaConsumerAutomatonSupplier(Consumer<? super Automaton<HoaState, ?>> consumer,
-      Function<List<String>, ValuationSetFactory> factorySupplier) {
+    readStream(reader, factorySupplier, stateMapping, automaton -> {
+      var oldValue = reference.getAndSet(automaton);
+      if (oldValue != null) {
+        throw new IllegalArgumentException(
+          String.format("Stream contained at least two automata: %s, %s", automaton, oldValue));
+      }
+    });
+
+    var automaton = reference.get();
+
+    if (automaton == null) {
+      throw new NoSuchElementException("Stream did not contain an automata.");
+    }
+
+    return automaton;
+  }
+
+  private static final class HoaConsumerAutomatonSupplier<S> extends HOAConsumerStore {
+    private final Consumer<? super Automaton<S, ?>> consumer;
+    private final Function<List<String>, ValuationSetFactory> factorySupplier;
+    private final Function<HoaState, S> stateMapping;
+
+    HoaConsumerAutomatonSupplier(Consumer<? super Automaton<S, ?>> consumer,
+      Function<List<String>, ValuationSetFactory> factorySupplier, Function<HoaState, S> stateMapping) {
       this.consumer = consumer;
       this.factorySupplier = factorySupplier;
+      this.stateMapping = stateMapping;
     }
 
     @Override
     public void notifyEnd() throws HOAConsumerException {
       super.notifyEnd();
-      consumer.accept(new StoredConverter(getStoredAutomaton(), factorySupplier).transform());
+      consumer.accept(new StoredConverter<>(getStoredAutomaton(), factorySupplier, stateMapping).transform());
     }
   }
 
@@ -154,20 +185,23 @@ public final class HoaReader {
     }
   }
 
-  private static final class StoredConverter {
-    private final MutableAutomaton<HoaState, ?> automaton;
+  private static final class StoredConverter<S> {
+    private final MutableAutomaton<S, ?> automaton;
     @Nullable
     private final int[] remapping;
     private final Int2ObjectMap<HoaState> states;
     private final StoredAutomaton storedAutomaton;
     private final StoredHeader storedHeader;
     private final ValuationSetFactory vsFactory;
+    private final Function<HoaState, S> stateMap;
 
     StoredConverter(StoredAutomaton storedAutomaton,
-      Function<List<String>, ValuationSetFactory> factorySupplier) throws HOAConsumerException {
+      Function<List<String>, ValuationSetFactory> factorySupplier,
+      Function<HoaState, S> stateMap) throws HOAConsumerException {
       this.vsFactory = factorySupplier.apply(storedAutomaton.getStoredHeader().getAPs());
       check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported");
 
+      this.stateMap = stateMap;
       this.storedAutomaton = storedAutomaton;
       this.storedHeader = storedAutomaton.getStoredHeader();
 
@@ -201,10 +235,10 @@ public final class HoaReader {
       }
     }
 
-    private void addEdge(HoaState source, ValuationSet valuationSet,
-      @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
+    private void addEdge(S source, ValuationSet valuationSet,
+      @Nullable List<Integer> storedEdgeAcceptance, S successor)
       throws HOAConsumerException {
-      Edge<HoaState> edge = storedEdgeAcceptance == null
+      Edge<S> edge = storedEdgeAcceptance == null
         ? Edge.of(successor)
         : Edge.of(successor, BitSet2.copyOf(storedEdgeAcceptance));
       check(automaton.acceptance().isWellFormedEdge(edge),
@@ -323,7 +357,7 @@ public final class HoaReader {
       return states.get(Iterables.getOnlyElement(successors).intValue());
     }
 
-    MutableAutomaton<HoaState, ?> transform() throws HOAConsumerException {
+    MutableAutomaton<S, ?> transform() throws HOAConsumerException {
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
         int stateId = storedState.getStateId();
         HoaState state = new HoaState(stateId, storedState.getInfo());
@@ -334,13 +368,14 @@ public final class HoaReader {
 
       for (List<Integer> startState : storedHeader.getStartStates()) {
         check(startState.size() == 1, "Universal initial states not supported");
-        automaton.addInitialState(states.get(Iterables.getOnlyElement(startState).intValue()));
+        automaton.addInitialState(stateMap.apply(states.get(Iterables.getOnlyElement(startState).intValue())));
       }
 
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
         int stateId = storedState.getStateId();
         HoaState state = states.get(stateId);
-        automaton.addState(state);
+        S automatonState = stateMap.apply(state);
+        automaton.addState(automatonState);
         assert storedState.getAccSignature() == null || storedState.getAccSignature().isEmpty();
 
         if (storedAutomaton.hasEdgesImplicit(stateId)) {
@@ -353,12 +388,11 @@ public final class HoaReader {
           for (StoredEdgeImplicit implicitEdge : edgesImplicit) {
             assert counter < numberExpectedEdges;
 
-            HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
-
             // TODO Pretty sure we have to remap here, too?
             ValuationSet valuationSet = vsFactory.of(BooleanExpression.fromImplicit(counter));
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
-            addEdge(state, valuationSet, edgeAcceptance, successorState);
+            addEdge(automatonState, valuationSet, edgeAcceptance,
+              stateMap.apply(getSuccessor(implicitEdge.getConjSuccessors())));
             counter += 1;
           }
 
@@ -367,9 +401,9 @@ public final class HoaReader {
           IntUnaryOperator apMapping = remapping == null ? null : i -> remapping[i];
 
           for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
-            HoaState successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
             ValuationSet valuationSet = vsFactory.of(edgeWithLabel.getLabelExpr(), apMapping);
-            addEdge(state, valuationSet, edgeWithLabel.getAccSignature(), successorState);
+            addEdge(automatonState, valuationSet, edgeWithLabel.getAccSignature(),
+              stateMap.apply(getSuccessor(edgeWithLabel.getConjSuccessors())));
           }
         }
       }

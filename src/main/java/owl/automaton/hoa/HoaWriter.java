@@ -57,20 +57,21 @@ public final class HoaWriter {
   public static <S> String toString(Automaton<S, ?> automaton, EnumSet<HoaOption> options) {
     ByteArrayOutputStream writer = new ByteArrayOutputStream();
     HoaWriter.write(automaton, new HOAConsumerPrint(writer), options);
-    return new String(writer.toByteArray(), StandardCharsets.UTF_8);
+    return writer.toString(StandardCharsets.UTF_8);
   }
 
-  public static <S> void write(Automaton<S, ?> automaton, HOAConsumer consumer) {
-    write(automaton, consumer, EnumSet.noneOf(HoaOption.class));
+  public static <S> Map<S, Integer> write(Automaton<S, ?> automaton, HOAConsumer consumer) {
+    return write(automaton, consumer, EnumSet.noneOf(HoaOption.class));
   }
 
-  public static <S> void write(Automaton<S, ?> automaton, HOAConsumer consumer,
+  public static <S> Map<S, Integer> write(Automaton<S, ?> automaton, HOAConsumer consumer,
     EnumSet<HoaOption> options) {
     Wrapper<S> hoa = new Wrapper<>(consumer, automaton.factory().atomicPropositions(),
       automaton.acceptance(), automaton.initialStates(), options,
       automaton.is(Automaton.Property.DETERMINISTIC), automaton.name());
     automaton.accept((Automaton.Visitor<S>) hoa.visitor);
     hoa.done();
+    return hoa.getMap();
   }
 
   public enum HoaOption {
@@ -215,6 +216,10 @@ public final class HoaWriter {
           addEdgeBackend(valuationSet.toExpression(), end, acceptanceSets);
         });
       }
+    }
+
+    Map<S, Integer> getMap() {
+      return this.stateNumbers;
     }
   }
 }
