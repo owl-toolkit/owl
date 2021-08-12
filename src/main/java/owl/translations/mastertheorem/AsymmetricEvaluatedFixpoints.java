@@ -55,7 +55,7 @@ public final class AsymmetricEvaluatedFixpoints
 
   public final EquivalenceClass language;
 
-  private AsymmetricEvaluatedFixpoints(Fixpoints fixpoints, Set<GOperator> gSafety,
+  public AsymmetricEvaluatedFixpoints(Fixpoints fixpoints, Set<GOperator> gSafety,
     Set<GOperator> gCoSafety, Set<GOperator> gfCoSafety, EquivalenceClass language) {
 
     this.fixpoints = fixpoints;
