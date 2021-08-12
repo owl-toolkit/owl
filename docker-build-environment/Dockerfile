@@ -27,7 +27,7 @@ RUN wget -q https://musl.libc.org/releases/musl-1.2.2.tar.gz \
     && tar -zxvf musl-1.2.2.tar.gz \
     && rm musl-1.2.2.tar.gz \
     && cd musl-1.2.2 \
-    && ./configure \
+    && ./configure --disable-shared \
     && make -j 4 \
     && make install \
     && cd .. \
@@ -35,6 +35,21 @@ RUN wget -q https://musl.libc.org/releases/musl-1.2.2.tar.gz \
     && /usr/local/musl/bin/musl-gcc --version
 
 ENV PATH=/usr/local/musl/bin/:$PATH
+
+
+# zlib
+
+## Download, verify, unpack, compile, and install.
+
+RUN wget -q https://zlib.net/zlib-1.2.11.tar.gz \
+    && echo 'c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1 zlib-1.2.11.tar.gz' | sha256sum --check \
+    && tar -zxvf zlib-1.2.11.tar.gz \
+    && rm zlib-1.2.11.tar.gz \
+    && cd zlib-1.2.11 \
+    && CC=musl-gcc ./configure --static --prefix=/usr/local/musl \
+    && CC=musl-gcc make \
+    && CC=musl-gcc make install
+
 
 # GraalVM
 
@@ -72,7 +87,8 @@ RUN wget -q https://www.lrde.epita.fr/dload/spot/spot-2.9.3.tar.gz \
     && cd .. \
     && rm -rf spot-2.9.3
 
-ENV LD_LIBRARY_PATH=/usr/local/lib/
+ENV LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH
+
 
 # Print Configuration
 
