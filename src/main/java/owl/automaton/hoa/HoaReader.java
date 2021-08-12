@@ -138,7 +138,8 @@ public final class HoaReader {
     private final Function<HoaState, S> stateMapping;
 
     HoaConsumerAutomatonSupplier(Consumer<? super Automaton<S, ?>> consumer,
-      Function<List<String>, ValuationSetFactory> factorySupplier, Function<HoaState, S> stateMapping) {
+      Function<List<String>, ValuationSetFactory> factorySupplier,
+      Function<HoaState, S> stateMapping) {
       this.consumer = consumer;
       this.factorySupplier = factorySupplier;
       this.stateMapping = stateMapping;
@@ -147,7 +148,8 @@ public final class HoaReader {
     @Override
     public void notifyEnd() throws HOAConsumerException {
       super.notifyEnd();
-      consumer.accept(new StoredConverter<>(getStoredAutomaton(), factorySupplier, stateMapping).transform());
+      consumer.accept(
+        new StoredConverter<>(getStoredAutomaton(), factorySupplier, stateMapping).transform());
     }
   }
 
@@ -368,7 +370,8 @@ public final class HoaReader {
 
       for (List<Integer> startState : storedHeader.getStartStates()) {
         check(startState.size() == 1, "Universal initial states not supported");
-        automaton.addInitialState(stateMap.apply(states.get(Iterables.getOnlyElement(startState).intValue())));
+        automaton.addInitialState(
+          stateMap.apply(states.get(Iterables.getOnlyElement(startState).intValue())));
       }
 
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
