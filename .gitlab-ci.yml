@@ -1,4 +1,4 @@
-image: gitlab.lrz.de:5005/i7/owl:0c3acd28
+image: gitlab.lrz.de:5005/i7/owl:dbeb85ad
 
 before_script:
   - chmod +x gradlew
