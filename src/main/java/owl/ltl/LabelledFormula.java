@@ -60,6 +60,6 @@ public abstract class LabelledFormula {
 
   @Override
   public String toString() {
-    return PrintVisitor.toString(this, false);
+    return PrintVisitor.toString(this, true);
   }
 }

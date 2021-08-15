@@ -9,6 +9,8 @@
     <suppress files="owl[\\/]grammar[\\/]" checks=".*"/>
     <!-- Suppress everything for files from jhoafparser -->
     <suppress files="jhoafparser[\\/]extensions[\\/]" checks=".*"/>
+    <!-- Suppress everything for files from picocli -->
+    <suppress files="picocli[\\/]" checks=".*"/>
 
     <!-- Suppress broken file -->
     <suppress files="owl[\\/]cinterface[\\/]CAutomaton" checks=".*"/>

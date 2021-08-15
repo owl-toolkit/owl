@@ -87,11 +87,16 @@ public final class SymbolicBooleanOperations {
         .containsAll(automatonFormula.variables())
     );
 
-    Preconditions.checkArgument(!automata.isEmpty()
-      && automata.stream().allMatch(automaton -> automaton.is(Automaton.Property.COMPLETE)
-      && automaton.atomicPropositions().equals(automata.get(0).atomicPropositions())
-      && automaton.factory().equals(automata.get(0).factory())
-    ));
+    Preconditions.checkArgument(!automata.isEmpty());
+
+    for (SymbolicAutomaton<?> symbolicAutomaton : automata) {
+      Preconditions.checkArgument(
+        symbolicAutomaton.is(Automaton.Property.COMPLETE));
+      Preconditions.checkArgument(
+        symbolicAutomaton.atomicPropositions().equals(automata.get(0).atomicPropositions()));
+      Preconditions.checkArgument(
+        symbolicAutomaton.factory().equals(automata.get(0).factory()));
+    }
 
     var allocationCombiner = new SequentialVariableAllocationCombiner(
       automata.stream().map(SymbolicAutomaton::variableAllocation).collect(Collectors.toList())

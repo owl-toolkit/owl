@@ -122,6 +122,6 @@ public abstract class Fixpoints implements Comparable<Fixpoints> {
     });
 
     var simplifiedFixpoints = of(fOperators, gOperators);
-    return this.equals(simplifiedFixpoints) ?  this : simplifiedFixpoints;
+    return this.equals(simplifiedFixpoints) ? this : simplifiedFixpoints;
   }
 }

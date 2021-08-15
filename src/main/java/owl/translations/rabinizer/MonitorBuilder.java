@@ -61,12 +61,10 @@ final class MonitorBuilder {
   private final MutableAutomaton<MonitorState, ParityAcceptance>[] monitorAutomata;
   private final GSet[] relevantSets;
   private final MonitorStateFactory stateFactory;
-  private final GOperator gOperator;
   private final BddSetFactory vsFactory;
 
   private MonitorBuilder(GOperator gOperator, EquivalenceClass operand,
     Collection<GSet> relevantSets, BddSetFactory vsFactory, boolean eager) {
-    this.gOperator = gOperator;
     this.vsFactory = vsFactory;
 
     boolean isCoSafety = SyntacticFragments.isCoSafety(operand);
@@ -123,7 +121,6 @@ final class MonitorBuilder {
         initialClass.factory().atomicPropositions(),
         vsFactory,
         new ParityAcceptance(0, Parity.MIN_ODD));
-      monitor.name(String.format("Monitor for %s with %s", initialClass, this.relevantSets[i]));
       monitor.addInitialState(initialState);
       monitorAutomata[i] = monitor;
     }
@@ -219,7 +216,7 @@ final class MonitorBuilder {
         "%s monitor for %s is not deterministic", relevantSets[contextIndex], initialClass);
     }
 
-    return new MonitorAutomaton(gOperator, builder.values().iterator().next(), builder);
+    return new MonitorAutomaton(builder.values().iterator().next(), builder);
   }
 
   private MonitorState getSuccessor(MonitorState currentState, BitSet valuation, int[] priorities,

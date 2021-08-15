@@ -23,11 +23,9 @@ import static owl.translations.nbadet.NbaDet.overrideLogLevel;
 import static owl.translations.nbadet.NbaDet.restoreLogLevel;
 
 import com.google.common.collect.Sets;
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -39,28 +37,16 @@ import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.BuchiAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.collections.Pair;
+import owl.command.AutomatonConversionCommands;
 import owl.game.algorithms.OinkGameSolver;
 import owl.game.algorithms.ParityGameSolver;
 import owl.game.algorithms.ZielonkaGameSolver;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
 
 public final class BuchiSimulation {
-  private static final Logger logger = Logger.getLogger(BuchiSimulation.class.getName());
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "nbasim",
-    "Computes the quotient automaton based on a computed set of similar state pairs.",
-    BuchiSimulationArguments.options,
-    (cmdLine, env) ->
-      OwlModule.AutomatonTransformer.of(
-        aut -> BuchiSimulation.compute(aut, BuchiSimulationArguments.getFromCli(cmdLine)),
-        BuchiAcceptance.class)
-  );
+
+  public static final Logger logger = Logger.getLogger(BuchiSimulation.class.getName());
+
   private final ParityGameSolver solver;
 
   public BuchiSimulation() {
@@ -124,13 +110,14 @@ public final class BuchiSimulation {
     for (var p : out) {
       assert out.contains(p.swap());
     }
+
     return out;
   }
 
   public static <S> Automaton<Set<S>, BuchiAcceptance> compute(
     Automaton<S, BuchiAcceptance> automaton,
-    BuchiSimulationArguments args
-  ) {
+    AutomatonConversionCommands.NbaSimCommand args) {
+
     Map<Handler, Level> oldLogLevels = null;
     if (args.verboseFine()) {
       oldLogLevels = overrideLogLevel(Level.FINE);
@@ -184,39 +171,53 @@ public final class BuchiSimulation {
         + ", #F : " + relFair.size());
     }
 
-    if (args.computeDirectRefinement()) {
-      logger.fine("Computing direct simulation based on color refinement.");
-      rel = ColorRefinement.of(automaton);
-    } else if (args.computeDirect()) {
-      logger.fine("Starting direct simulation with " + pebbles + " pebbles.");
-      rel = simulator.directSimulation(automaton, automaton, pebbles);
-    } else if (args.computeDelayed()) {
-      logger.fine("Starting delayed simulation with " + pebbles + " pebbles.");
-      rel = simulator.delayedSimulation(automaton, automaton, pebbles);
-    } else if (args.computeFair()) {
-      throw new IllegalArgumentException("Cannot use fair simulation as it is not GFQ");
-    } else if (args.computeBackward()) {
-      logger.fine("Starting backward simulation with " + pebbles + " pebbles.");
-      rel = simulator.backwardSimulation(automaton, automaton, pebbles);
-    } else if (args.computeLookaheadDirect()) {
-      logger.fine("Starting direct simulation with lookahead " + args.maxLookahead());
-      rel = simulator.directLookaheadSimulation(automaton, automaton, args.maxLookahead());
-      System.exit(0);
-    } else {
-      logger.fine("No simulation algorithm chosen, using null simulation");
-      rel = automaton.states().stream()
-        .map(s -> Pair.of(s, s))
-        .collect(Collectors.toSet());
+    switch (args.simulationType()) {
+      case DIRECT_SIMULATION:
+        logger.fine("Starting direct simulation with " + pebbles + " pebbles.");
+        rel = simulator.directSimulation(automaton, automaton, pebbles);
+        break;
+
+      case DIRECT_SIMULATION_COLOUR_REFINEMENT:
+        logger.fine("Computing direct simulation based on color refinement.");
+        rel = ColorRefinement.of(automaton);
+        break;
+
+      case DELAYED_SIMULATION:
+        logger.fine("Starting delayed simulation with " + pebbles + " pebbles.");
+        rel = simulator.delayedSimulation(automaton, automaton, pebbles);
+        break;
+
+      case FAIR_SIMULATION:
+        throw new IllegalArgumentException("Cannot use fair simulation as it we cannot "
+          + "construct a quotient automaton.");
+
+      case BACKWARD_SIMULATION:
+        logger.fine("Starting backward simulation with " + pebbles + " pebbles.");
+        rel = simulator.backwardSimulation(automaton, automaton, pebbles);
+        break;
+
+      case LOOKAHEAD_DIRECT_SIMULATION:
+        logger.fine("Starting direct simulation with lookahead " + args.maxLookahead());
+        rel = simulator.directLookaheadSimulation(automaton, automaton, args.maxLookahead());
+        break;
+
+      default:
+        throw new AssertionError("Unreachable.");
     }
 
     var equivRel = computeEquivalence(rel);
     var classMap = new HashMap<S, Set<S>>();
+
     for (S state : automaton.states()) {
       classMap.put(state, new HashSet<>());
-      equivRel.stream()
-        .filter(p -> state.equals(p.fst()))
-        .forEach(q -> classMap.get(state).add(q.snd()));
+
+      for (Pair<S, S> p : equivRel) {
+        if (state.equals(p.fst())) {
+          classMap.get(state).add(p.snd());
+        }
+      }
     }
+
     var quotient = Views.quotientAutomaton(automaton, classMap::get);
     logger.fine("Input had "
       + automaton.states().size()
@@ -231,22 +232,18 @@ public final class BuchiSimulation {
     return quotient;
   }
 
-  /**
-   * Entry point for the execution of 'nbasim' start script.
-   */
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.HOA_INPUT_MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      MODULE,
-      List.of(AcceptanceOptimizations.MODULE),
-      OutputWriters.HOA_OUTPUT_MODULE
-    ));
+  public enum SimulationType {
+    DIRECT_SIMULATION_COLOUR_REFINEMENT,
+    DIRECT_SIMULATION,
+    DELAYED_SIMULATION,
+    FAIR_SIMULATION,
+    BACKWARD_SIMULATION,
+    LOOKAHEAD_DIRECT_SIMULATION
   }
 
   private <S> Set<Pair<S, S>> lookaheadSimulate(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int maxLookahead,
     LookaheadGameConstructor<S> gc
   ) {
@@ -292,8 +289,8 @@ public final class BuchiSimulation {
   }
 
   private <S> Set<Pair<S, S>> multipebbleSimulate(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int pebbleCount,
     MultipebbleGameConstructor<S> gc
   ) {
@@ -350,7 +347,7 @@ public final class BuchiSimulation {
     return known;
   }
 
-  private void logStats(Collection<SimulationStats> stats) {
+  private static void logStats(Collection<SimulationStats> stats) {
     if (!stats.isEmpty()) {
       var avgSize = stats
         .stream()
@@ -376,19 +373,19 @@ public final class BuchiSimulation {
    * @return true if and only if the automaton is trivial
    */
   private static <S> boolean automatonTrivial(
-    Automaton<S, BuchiAcceptance> aut
+    Automaton<S, ? extends BuchiAcceptance> aut
   ) {
     // if no initial state exists, then we can simply ignore the input
     // the last possible case is an inconvenience produced by autcross. If it is given an empty
     // automaton then it will introduce an initial state without outgoing edges, which would
     // bypass this this check to return false, producing an incomplete game and crashing oink
-    return aut.initialStates().size() == 0
+    return aut.initialStates().isEmpty()
       || aut.initialStates().stream().allMatch(state -> aut.edges(state).isEmpty());
   }
 
   public <S> Set<Pair<S, S>> backwardSimulation(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int pebbleCount
   ) {
     return multipebbleSimulate(
@@ -402,8 +399,8 @@ public final class BuchiSimulation {
   }
 
   public <S> Set<Pair<S, S>> fairSimulation(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int pebbleCount
   ) {
     return multipebbleSimulate(
@@ -418,8 +415,8 @@ public final class BuchiSimulation {
 
   // todo: completely rewrite delayed simulation
   public <S> Set<Pair<S, S>> delayedSimulation(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int pebbleCount
   ) {
     return multipebbleSimulate(
@@ -444,8 +441,8 @@ public final class BuchiSimulation {
    * @return A set of forward multipebble similar states.
    */
   public <S> Set<Pair<S, S>> directSimulation(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int pebbleCount
   ) {
     return multipebbleSimulate(
@@ -459,8 +456,8 @@ public final class BuchiSimulation {
   }
 
   public <S> Set<Pair<S,S>> directLookaheadSimulation(
-    Automaton<S, BuchiAcceptance> left,
-    Automaton<S, BuchiAcceptance> right,
+    Automaton<S, ? extends BuchiAcceptance> left,
+    Automaton<S, ? extends BuchiAcceptance> right,
     int maxLookahead
   ) {
     return lookaheadSimulate(
@@ -497,8 +494,8 @@ public final class BuchiSimulation {
 
   private interface MultipebbleGameConstructor<S> {
     SimulationGame<S, SimulationStates.MultipebbleSimulationState<S>> createGame(
-      Automaton<S, BuchiAcceptance> left,
-      Automaton<S, BuchiAcceptance> right,
+      Automaton<S, ? extends BuchiAcceptance> left,
+      Automaton<S, ? extends BuchiAcceptance> right,
       S red,
       S blue,
       int pebbleCount,
@@ -508,8 +505,8 @@ public final class BuchiSimulation {
 
   private interface LookaheadGameConstructor<S> {
     SimulationGame<S, SimulationStates.LookaheadSimulationState<S>> createGame(
-      Automaton<S, BuchiAcceptance> left,
-      Automaton<S, BuchiAcceptance> right,
+      Automaton<S, ? extends BuchiAcceptance> left,
+      Automaton<S, ? extends BuchiAcceptance> right,
       S red,
       S blue,
       int maxLookahead,

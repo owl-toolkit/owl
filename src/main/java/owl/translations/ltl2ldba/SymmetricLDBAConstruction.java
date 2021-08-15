@@ -302,7 +302,6 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
     var initialComponent = HashMapAutomaton.copyOf(automaton);
     assert initialComponent.is(Automaton.Property.DETERMINISTIC);
     initialComponent.states().forEach(x -> x.entrySet().forEach(jumpGenerator));
-    initialComponent.name("LTL to LDBA (symmetric) for formula: " + formula);
 
     return AnnotatedLDBA.build(initialComponent, acceptingComponentBuilder,
       (Map<Integer, EquivalenceClass> state) -> {

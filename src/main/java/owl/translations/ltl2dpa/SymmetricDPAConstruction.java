@@ -211,8 +211,10 @@ final class SymmetricDPAConstruction {
           }
 
           if (rankingSuccessor.evaluatedFixpoints.isSafety()) {
-            assert rankingEdge.colours().contains(0)
-              : "SafetyComponents are assumed to be always accepting.";
+            // Since we remove rejecting sinks and transient markings this property does not hold
+            // for edges in-between SCCs.
+            // assert rankingEdge.colours().contains(0)
+            //  : "SafetyComponents are assumed to be always accepting.";
             activeSafetyComponent = true;
           }
         }

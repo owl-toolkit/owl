@@ -24,15 +24,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
 import jhoafparser.ast.BooleanExpression;
@@ -41,126 +38,139 @@ import jhoafparser.consumer.HOAConsumerException;
 import jhoafparser.consumer.HOAConsumerPrint;
 import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
-import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.util.OwlVersion;
 
 public final class HoaWriter {
 
-  private static final Logger LOGGER = Logger.getLogger(HoaWriter.class.getName());
-
   private HoaWriter() {}
 
   public static <S> String toString(Automaton<S, ?> automaton) {
-    return toString(automaton, EnumSet.of(HoaOption.ANNOTATIONS));
-  }
-
-  public static <S> String toString(Automaton<S, ?> automaton, EnumSet<HoaOption> options) {
-    ByteArrayOutputStream writer = new ByteArrayOutputStream();
-    HoaWriter.write(automaton, new HOAConsumerPrint(writer), options);
-    return writer.toString(StandardCharsets.UTF_8);
-  }
-
-  public static <S> void write(Automaton<S, ?> automaton, HOAConsumer consumer) {
-    write(automaton, consumer, EnumSet.noneOf(HoaOption.class));
-  }
-
-  public static <S> void write(Automaton<S, ?> automaton, HOAConsumer consumer,
-    EnumSet<HoaOption> options) {
+    var buffer = new ByteArrayOutputStream();
 
     try {
-      StateId<S> hoa = new StateId<>();
+      write(automaton, new HOAConsumerPrint(buffer), true);
+    } catch (HOAConsumerException ex) {
+      throw new UncheckedHoaConsumerException(ex);
+    }
 
-      consumer.notifyHeaderStart("v1");
-      var nameAndVersion = OwlVersion.getNameAndVersion();
-      consumer.setTool(nameAndVersion.name(), nameAndVersion.version());
+    return buffer.toString(StandardCharsets.UTF_8);
+  }
 
-      if (options.contains(HoaOption.ANNOTATIONS)) {
-        consumer.setName(automaton.name());
-      }
+  public static <S> void write(
+    Automaton<S, ?> automaton, HOAConsumer consumer, boolean stateLabels)
+    throws HOAConsumerException {
 
-      for (S state : automaton.initialStates()) {
-        consumer.addStartStates(List.of(hoa.get(state)));
-      }
+    write(automaton, consumer, stateLabels, null, null, null);
+  }
 
-      EmersonLeiAcceptance acceptance = automaton.acceptance();
-      String accName = acceptance.name();
+  public static <S> void write(
+    Automaton<S, ?> automaton,
+    HOAConsumer consumer,
+    boolean stateLabels,
+    @Nullable String subcommand,
+    @Nullable List<String> subcommandArgs,
+    @Nullable String automatonName)
+    throws HOAConsumerException {
 
-      if (accName != null) {
-        consumer.provideAcceptanceName(accName, acceptance.nameExtra());
-      }
+    consumer.notifyHeaderStart("v1");
+    var nameAndVersion = OwlVersion.getNameAndVersion();
+    consumer.setTool(
+      subcommand == null ? nameAndVersion.name() : nameAndVersion.name() + ' ' + subcommand,
+      nameAndVersion.version());
 
-      consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
-        BooleanExpressions.fromPropositionalFormula(acceptance.booleanExpression()));
+    if (automatonName != null) {
+      consumer.setName(automatonName.replace('"', '\''));
+    }
 
-      // TODO jhoafparser does not adhere to the spec - if we call an automaton without initial
-      // states deterministic, the serializer will throw an exception.
-      if (!automaton.initialStates().isEmpty()
-        && automaton.is(Automaton.Property.DETERMINISTIC)) {
+    if (subcommandArgs != null) {
+      List<Object> owlArgsQuoted = Arrays.asList(subcommandArgs.toArray());
+      owlArgsQuoted.replaceAll(x -> '"' + x.toString().replace('"', '\'') + '"');
+      consumer.addMiscHeader("owlArgs", owlArgsQuoted);
+    }
 
-        consumer.addProperties(List.of("deterministic"));
-      }
+    var numbering = new Numbering<S>();
 
-      // TODO: Use Properties.java to derive properties and fix this.
-      consumer.addProperties(List.of("trans-acc", "trans-label"));
-      consumer.setAPs(automaton.atomicPropositions());
-      consumer.notifyBodyStart();
+    for (S state : automaton.initialStates()) {
+      consumer.addStartStates(List.of(numbering.get(state)));
+    }
 
-      // Use a work-list algorithm in case source is an on-the-fly generated automaton and
-      // to ensure that initial states appear at the top.
-      Deque<S> workList = new ArrayDeque<>(automaton.initialStates());
-      Set<S> visited = new HashSet<>(workList);
+    var acceptance = automaton.acceptance();
 
-      while (!workList.isEmpty()) {
-        S state = workList.remove();
-        int stateId = hoa.get(state);
+    if (acceptance.name() != null) {
+      consumer.provideAcceptanceName(acceptance.name(), acceptance.nameExtra());
+    }
 
-        @Nullable
-        String label = options.contains(HoaOption.ANNOTATIONS) ? state.toString() : null;
-        consumer.addState(stateId, label, null, null);
+    consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
+      BooleanExpressions.fromPropositionalFormula(acceptance.booleanExpression()));
 
-        for (Map.Entry<Edge<S>, BddSet> entry : automaton.edgeMap(state).entrySet()) {
-          Edge<S> edge = entry.getKey();
-          S successor = edge.successor();
-          BddSet valuationSet = entry.getValue();
+    consumer.addProperties(List.of("trans-acc", "no-univ-branch"));
 
-          if (valuationSet.isEmpty()) {
-            continue;
-          }
+    // jhoafparser does not adhere to the spec. If we call an automaton without initial
+    // states deterministic, the serializer will throw an exception.
+    if (!automaton.initialStates().isEmpty()
+      && automaton.is(Automaton.Property.DETERMINISTIC)) {
+      consumer.addProperties(List.of("deterministic", "unambiguous"));
+    }
 
-          if (visited.add(successor)) {
-            workList.add(successor);
-          }
+    if (automaton.is(Automaton.Property.COMPLETE)) {
+      consumer.addProperties(List.of("complete"));
+    }
 
-          consumer.addEdgeWithLabel(stateId,
-            BooleanExpressions.fromPropositionalFormula(valuationSet.toExpression(),
-              x -> new BooleanExpression<>(AtomLabel.createAPIndex(x))),
-            List.of(hoa.get(edge.successor())),
-            Arrays.asList(edge.colours().toArray(Integer[]::new)));
+    consumer.setAPs(automaton.atomicPropositions());
+    consumer.notifyBodyStart();
+
+    // Use a work-list algorithm in case source is an on-the-fly generated automaton and
+    // to ensure that initial states appear at the top.
+    Deque<S> workList = new ArrayDeque<>(automaton.initialStates());
+    Set<S> visited = new HashSet<>(workList);
+
+    while (!workList.isEmpty()) {
+      S state = workList.remove();
+      int stateId = numbering.get(state);
+
+      @Nullable
+      String label = stateLabels ? state.toString() : null;
+      consumer.addState(stateId, label, null, null);
+
+      for (Map.Entry<Edge<S>, BddSet> entry : automaton.edgeMap(state).entrySet()) {
+        Edge<S> edge = entry.getKey();
+        S successor = edge.successor();
+        BddSet valuationSet = entry.getValue();
+
+        if (valuationSet.isEmpty()) {
+          continue;
         }
 
-        consumer.notifyEndOfState(stateId);
+        if (visited.add(successor)) {
+          workList.add(successor);
+        }
+
+        consumer.addEdgeWithLabel(stateId,
+          BooleanExpressions.fromPropositionalFormula(valuationSet.toExpression(),
+            x -> new BooleanExpression<>(AtomLabel.createAPIndex(x))),
+          List.of(numbering.get(edge.successor())),
+          Arrays.asList(edge.colours().toArray(Integer[]::new)));
       }
 
-      consumer.notifyEnd();
-    } catch (HOAConsumerException ex) {
-      LOGGER.log(Level.SEVERE, "HOAConsumer could not perform API call: ", ex);
+      consumer.notifyEndOfState(stateId);
     }
+
+    consumer.notifyEnd();
   }
 
-  public enum HoaOption {
-    /**
-     * Print annotations, e.g. state labels, if available
-     */
-    ANNOTATIONS
-  }
-
-  static final class StateId<S> {
+  static final class Numbering<S> {
     private final Map<S, Integer> stateNumbers = new HashMap<>();
 
     private int get(S state) {
       return stateNumbers.computeIfAbsent(Objects.requireNonNull(state), k -> stateNumbers.size());
+    }
+  }
+
+  public static class UncheckedHoaConsumerException extends RuntimeException {
+    public UncheckedHoaConsumerException(HOAConsumerException cause) {
+      super(cause);
     }
   }
 }

@@ -54,6 +54,7 @@ import jhoafparser.storage.StoredAutomaton;
 import jhoafparser.storage.StoredAutomatonManipulator;
 import jhoafparser.storage.StoredEdgeImplicit;
 import jhoafparser.storage.StoredEdgeWithLabel;
+import jhoafparser.storage.StoredHeader;
 import jhoafparser.storage.StoredState;
 
 /**
@@ -91,9 +92,21 @@ public class ToStateAcceptanceFixed implements StoredAutomatonManipulator {
     target = new StoredAutomaton();
   }
 
+  private static StoredHeader fixedStoredHeaderClone(StoredHeader header) {
+    StoredHeader clone = header.clone();
+
+    clone.getAcceptanceNames().clear();
+    header.getAcceptanceNames().forEach(x -> clone.provideAcceptanceName(x.name, x.extra));
+
+    clone.getMiscHeaders().clear();
+    header.getMiscHeaders().forEach(x -> clone.addMiscHeader(x.name, x.extra));
+
+    return clone;
+  }
+
   /** Handle the transformation of the header. */
   private void handleHeader() {
-    target.setStoredHeader(source.getStoredHeader().clone());
+    target.setStoredHeader(fixedStoredHeaderClone(source.getStoredHeader()));
 
     for (Iterator<String> it = target.getStoredHeader().getProperties().iterator(); it.hasNext();) {
       String property = it.next();
@@ -134,8 +147,8 @@ public class ToStateAcceptanceFixed implements StoredAutomatonManipulator {
 
     target.getStoredHeader().getProperties().add("state-acc");
 
-    // don't know about misc headers
-    target.getStoredHeader().getMiscHeaders().clear();
+    // don't know about non-Owl misc headers
+    target.getStoredHeader().getMiscHeaders().removeIf(x -> !x.name.startsWith("owl"));
   }
 
   /** Handle the initial states, used as starting point for the later exploration phase. */

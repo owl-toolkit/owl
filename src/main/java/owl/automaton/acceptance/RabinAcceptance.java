@@ -22,10 +22,9 @@ package owl.automaton.acceptance;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.ArrayList;
+import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import javax.annotation.Nullable;
 import jhoafparser.ast.AtomAcceptance;
 import jhoafparser.ast.BooleanExpression;
 import jhoafparser.extensions.BooleanExpressions;
@@ -71,65 +70,50 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
   }
 
   public static Optional<RabinAcceptance> ofPartial(PropositionalFormula<Integer> formula) {
-    return ofPartial(formula, null);
-  }
 
-  public static Optional<RabinAcceptance> ofPartial(
-    PropositionalFormula<Integer> formula, @Nullable Map<Integer, Integer> mapping) {
+    BitSet seenSets = new BitSet();
 
-    Builder builder = new Builder();
-
-    if (mapping != null) {
-      mapping.clear();
-    }
-
-    for (PropositionalFormula<Integer> pair : PropositionalFormula.disjuncts(formula)) {
-      int fin = -1;
-      int inf = -1;
+    for (PropositionalFormula<Integer> pair : PropositionalFormula.disjuncts(formula.nnf())) {
+      int fin = Integer.MIN_VALUE;
+      int inf = Integer.MIN_VALUE;
 
       for (PropositionalFormula<Integer> element : PropositionalFormula.conjuncts(pair)) {
-
         if (element instanceof PropositionalFormula.Variable) { //  TEMPORAL_INF
-          if (inf != -1) {
+
+          if (inf != Integer.MIN_VALUE) {
             return Optional.empty();
           }
 
           inf = ((PropositionalFormula.Variable<Integer>) element).variable;
 
         } else if (element instanceof PropositionalFormula.Negation) { // TEMPORAL_FIN
-          if (fin != -1) {
+
+          if (fin != Integer.MIN_VALUE) {
             return Optional.empty();
           }
 
           fin = ((PropositionalFormula.Variable<Integer>)
             ((PropositionalFormula.Negation<Integer>) element).operand).variable;
+
         } else {
           return Optional.empty();
         }
       }
 
-      if (fin < 0 || inf < 0) {
+      // Check that fin is present, even and next to inf.
+      if (fin < 0 || fin % 2 != 0 || fin + 1 != inf) {
         return Optional.empty();
       }
 
-      if (mapping == null && (builder.sets != fin || builder.sets + 1 != inf)) {
-        return Optional.empty();
-      }
-
-      if (mapping != null && (mapping.containsKey(fin) || mapping.containsKey(inf))) {
-        return Optional.empty();
-      }
-
-      // Record mapping.
-      if (mapping != null) {
-        mapping.put(fin, builder.sets);
-        mapping.put(inf, builder.sets + 1);
-      }
-
-      builder.add();
+      seenSets.set(fin, inf + 1);
     }
 
-    return Optional.of(builder.build());
+    // The set is spare, thus not a proper a Rabin-condition.
+    if (seenSets.length() != seenSets.cardinality()) {
+      return Optional.empty();
+    }
+
+    return Optional.of(RabinAcceptance.of(seenSets.length() / 2));
   }
 
   @Override

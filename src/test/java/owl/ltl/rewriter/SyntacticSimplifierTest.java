@@ -29,7 +29,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class SyntacticSimplifierTest {
@@ -104,7 +103,7 @@ class SyntacticSimplifierTest {
   void testPullupX() {
     var f1 = LtlParser.parse("G F X b");
     var f2 = LtlParser.parse("X G F b");
-    assertEquals(SimplifierFactory.apply(f1, Mode.PULL_UP_X), f2);
+    assertEquals(SimplifierRepository.PULL_UP_X.apply(f1), f2);
   }
 
   @ParameterizedTest
@@ -112,7 +111,7 @@ class SyntacticSimplifierTest {
   void testSyntacticSimplifier(List<String> pair) {
     var actual = LtlParser.parse(pair.get(0), variables).nnf();
     var expected = LtlParser.parse(pair.get(1), variables);
-    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC));
+    assertEquals(expected, SimplifierRepository.SYNTACTIC.apply(actual));
   }
 
   @ParameterizedTest
@@ -120,15 +119,15 @@ class SyntacticSimplifierTest {
   void testSyntacticSimplifierNegation(List<String> pair) {
     var actual = LtlParser.parse("! (" + pair.get(0) + ')', variables).nnf();
     var expected = LtlParser.parse("! (" + pair.get(1) + ')', variables);
-    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC));
+    assertEquals(expected, SimplifierRepository.SYNTACTIC.apply(actual));
   }
 
   @Test
   void testIssue189() {
     assertDoesNotThrow(() -> {
       String formulaString = "GF(G!b & (XG!b U ((a & XG!b))))";
-      SimplifierFactory.apply(LtlParser.parse(formulaString), Mode.SYNTACTIC);
-      SimplifierFactory.apply(LtlParser.parse('!' + formulaString), Mode.SYNTACTIC);
+      SimplifierRepository.SYNTACTIC.apply(LtlParser.parse(formulaString));
+      SimplifierRepository.SYNTACTIC.apply(LtlParser.parse('!' + formulaString));
     });
   }
 
@@ -136,7 +135,7 @@ class SyntacticSimplifierTest {
   void testBiconditional() {
     assertDoesNotThrow(() -> {
       var formula = LtlParser.parse("!((a <-> b) -> (F b))");
-      SimplifierFactory.apply(formula, Mode.SYNTACTIC);
+      SimplifierRepository.SYNTACTIC.apply(formula);
     });
   }
 }

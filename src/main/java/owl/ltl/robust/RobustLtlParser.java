@@ -19,8 +19,6 @@
 
 package owl.ltl.robust;
 
-import java.io.IOException;
-import java.io.InputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -31,15 +29,11 @@ import owl.grammar.LTLParser;
 import owl.ltl.parser.TokenErrorListener;
 
 public final class RobustLtlParser {
+
   private RobustLtlParser() {}
 
   public static LabelledSplit parse(String input) {
     return parse(CharStreams.fromString(input));
-  }
-
-  public static LabelledSplit parse(InputStream input)
-    throws IOException {
-    return parse(CharStreams.fromStream(input));
   }
 
   private static LabelledSplit parse(CharStream input) {

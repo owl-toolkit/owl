@@ -44,8 +44,7 @@ import owl.ltl.MOperator;
 import owl.ltl.UOperator;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.NonDeterministicConstructions;
 
@@ -87,8 +86,8 @@ public final class SymmetricEvaluatedFixpoints
 
     for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
       Formula result = GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint)));
-      result = SimplifierFactory.apply(result, Mode.SYNTACTIC_FIXPOINT);
-      result = SimplifierFactory.apply(result, Mode.PULL_UP_X);
+      result = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(result);
+      result = SimplifierRepository.PULL_UP_X.apply(result);
       Formula infinitelyOften = unwrapX(result);
 
       if (infinitelyOften.equals(BooleanConstant.TRUE)) {
@@ -143,8 +142,8 @@ public final class SymmetricEvaluatedFixpoints
 
     for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
       Formula result = FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint)));
-      result = SimplifierFactory.apply(result, Mode.SYNTACTIC_FIXPOINT);
-      result = SimplifierFactory.apply(result, Mode.PULL_UP_X);
+      result = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(result);
+      result = SimplifierRepository.PULL_UP_X.apply(result);
       Formula almostAlways = unwrapX(result);
 
       if (almostAlways.equals(BooleanConstant.TRUE)) {

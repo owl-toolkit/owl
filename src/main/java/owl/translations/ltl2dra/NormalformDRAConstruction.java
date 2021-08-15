@@ -127,7 +127,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
     }
 
     AcceptanceOptimizations.removeDeadStates(automaton);
-    AcceptanceOptimizations.optimize(automaton);
+    AcceptanceOptimizations.transform(automaton);
     return OmegaAcceptanceCast.cast(automaton, acceptanceClass);
   }
 

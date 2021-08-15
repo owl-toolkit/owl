@@ -1,11 +1,10 @@
 # Input and Output Formats
 
-`Owl` understand several text-based input and output formats, summarized in the following table:
+`Owl` understands several text-based input and output formats, summarized in the following table:
 
 | Format | In  | Out |
 |:-------|:---:|:---:|
 | [LTL](#LTL) (+ [rLTL](#rLTL)) | X |  X |
-| [TLSF](#TLSF) | X | |
 | [HOA](#HOA) | X |  X |
 | [PGSolver](#pgsolver) | | X |
 
@@ -18,7 +17,7 @@ For further details on temporal logic, e.g., semantics, see [here](https://spot.
 
 The following constructs are supported:
 
-### Propositional Logic
+### Propositional Operators
 
   * True: `tt`, `true`, `1`
   * False: `ff`, `false`, `0`
@@ -31,7 +30,7 @@ The following constructs are supported:
   * Disjunction: `||`, `|`, `OR`
   * Parenthesis: `(`, `)`
 
-###  Modal Logic
+###  Temporal Operators
 
   * Finally: `F`
   * Globally: `G`
@@ -64,11 +63,9 @@ Caveats:
   * Alternation is not supported
   * Internally, acceptance is encoded as transition acceptance, hence parsing and serializing an automaton with state acceptance may blow up the state space.
 
-
 ## <a name="TLSF" /> Temporal Logic Synthesis Format (TLSF)
 
 Use [syfco](https://github.com/reactive-systems/syfco) to transform TLSF to LTL. For example: `syfco FILE -f ltlxba -m fully`.
-
 
 ## <a name="pgsolver" /> PGSolver Format
 

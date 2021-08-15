@@ -112,7 +112,11 @@ class NBA2LDBATest {
       .cast(HoaReader.read(new StringReader(hoa), supplier::getBddSetFactory, null),
         EmersonLeiAcceptance.class);
     var ldba = new NBA2LDBA().apply(nba);
-    HoaWriter.write(nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
-    HoaWriter.write(ldba, new HOAIntermediateCheckValidity(new HOAConsumerNull()));
+
+    HoaWriter.write(
+      nba, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
+
+    HoaWriter.write(
+      ldba, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
   }
 }

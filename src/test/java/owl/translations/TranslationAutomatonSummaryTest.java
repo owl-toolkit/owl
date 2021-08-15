@@ -80,7 +80,6 @@ import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.hoa.HoaWriter;
-import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.ltl.Biconditional;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -89,13 +88,12 @@ import owl.ltl.Negation;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.LiteralMapper;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.ltl.util.FormulaIsomorphism;
 import owl.ltl.visitors.Converter;
+import owl.ltl.visitors.PrintVisitor;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
-import owl.translations.ltl2dpa.SymbolicDPAConstruction;
 
 @SuppressWarnings({"PMD.UnusedPrivateMethod", "PMD.UnnecessaryFullyQualifiedName"})
 public class TranslationAutomatonSummaryTest {
@@ -197,16 +195,17 @@ public class TranslationAutomatonSummaryTest {
       Set.of(SYNTCOMP_SELECTION, LIBEROUTER, FGGF, SIZE_FGGF)),
 
     new Translator("dpa.normalform.acd",
-      LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(
+      LtlToDpaTranslation.SLM21.translation(
         ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty()),
       Set.of()),
     new Translator("dpa.normalform.conditionalZielonka",
-      LtlToDpaTranslation.UNPUBLISHED_ZIELONKA.translation(
+      LtlToDpaTranslation.SLM21.translation(
         ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0)),
       Set.of()),
 
     new Translator("dpa.normalform-typeness.symbolic",
-      SymbolicDPAConstruction.of().andThen(SymbolicAutomaton::toAutomaton),
+      LtlToDpaTranslation.SYMBOLIC_SE20_BKS10.translation(
+        ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty()),
       EnumSet.complementOf(EnumSet.of(BASE, SIZE, DWYER))),
 
     new Translator("dra.symmetric",
@@ -295,11 +294,11 @@ public class TranslationAutomatonSummaryTest {
       Set.of(SYNTCOMP_SELECTION)),
 
     new Translator("dela.normalform.syntactic",
-      LtlToDelaTranslation.UNPUBLISHED_SE20.translation(
+      LtlToDelaTranslation.SLM21.translation(
         EmersonLeiAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0)),
       Set.of()),
     new Translator("dela.normalform.semantic",
-      LtlToDelaTranslation.UNPUBLISHED_SE20.translation(
+      LtlToDelaTranslation.SLM21.translation(
         EmersonLeiAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty()),
       Set.of()),
     new Translator("delag",
@@ -408,9 +407,9 @@ public class TranslationAutomatonSummaryTest {
 
           var formula = LtlParser.parse(formulaString).formula();
           var simplifiedFormula
-            = SimplifierFactory.apply(formula, Mode.SYNTACTIC_FIXPOINT);
+            = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(formula);
           var simplifiedFormulaNegated
-            = SimplifierFactory.apply(formula.not(), Mode.SYNTACTIC_FIXPOINT);
+            = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(formula.not());
 
           addNormalized(formulaSet, simplifiedFormula, simplifiedFormulaNegated);
 
@@ -418,14 +417,14 @@ public class TranslationAutomatonSummaryTest {
             x -> x instanceof Biconditional || x instanceof Negation)) {
 
             addNormalized(formulaSet,
-              SimplifierFactory.apply(formula.nnf(), Mode.SYNTACTIC_FIXPOINT));
+              SimplifierRepository.SYNTACTIC_FIXPOINT.apply(formula.nnf()));
           }
 
           if (simplifiedFormulaNegated.anyMatch(
             x -> x instanceof Biconditional || x instanceof Negation)) {
 
             addNormalized(formulaSet,
-              SimplifierFactory.apply(formula.nnf().not(), Mode.SYNTACTIC_FIXPOINT));
+              SimplifierRepository.SYNTACTIC_FIXPOINT.apply(formula.nnf().not()));
           }
         });
       } catch (IOException exception) {
@@ -488,8 +487,8 @@ public class TranslationAutomatonSummaryTest {
             return;
           }
 
-          var formula = SimplifierFactory.apply(
-            LtlParser.parse(formulaString).formula().nnf(), Mode.SYNTACTIC_FIXPOINT);
+          var formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+            LtlParser.parse(formulaString).formula().nnf());
           var negatedFormula = formula.not();
           var invertedFormula = negatedFormula.accept(new Converter(SyntacticFragment.NNF) {
             @Override
@@ -566,7 +565,7 @@ public class TranslationAutomatonSummaryTest {
       Function<LabelledFormula, ? extends Automaton<?, ?>> translation, boolean ignoreSets) {
       var properties
         = AutomatonSummary.of(() -> translation.apply(formula), ignoreSets);
-      return new TestCase(formula.toString(), properties);
+      return new TestCase(PrintVisitor.toString(formula, false), properties);
     }
 
     DynamicTest test(Function<LabelledFormula, ? extends Automaton<?, ?>> translation) {

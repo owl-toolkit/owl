@@ -39,8 +39,8 @@ import owl.collections.Pair;
  */
 public class ForwardDirectSimulation<S>
   implements SimulationType<S, SimulationStates.MultipebbleSimulationState<S>> {
-  final Automaton<S, BuchiAcceptance> leftAutomaton;
-  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final Automaton<S, ? extends BuchiAcceptance> leftAutomaton;
+  final Automaton<S, ? extends BuchiAcceptance> rightAutomaton;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -59,8 +59,8 @@ public class ForwardDirectSimulation<S>
    * @param known The set of state-state pairs already known to be similar.
    */
   public ForwardDirectSimulation(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
+    Automaton<S, ? extends BuchiAcceptance> leftAutomaton,
+    Automaton<S, ? extends BuchiAcceptance> rightAutomaton,
     S left,
     S right,
     int pebbleCount,

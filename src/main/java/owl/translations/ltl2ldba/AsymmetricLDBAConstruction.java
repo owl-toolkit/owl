@@ -225,7 +225,6 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
     var initialComponent = HashMapAutomaton.copyOf(automaton);
     assert initialComponent.is(Automaton.Property.DETERMINISTIC);
     initialComponent.states().forEach(jumpGenerator);
-    initialComponent.name("LTL to LDBA (asymmetric) for formula: " + formula);
 
     return AnnotatedLDBA.build(initialComponent, acceptingComponentBuilder,
       jumpLookup, EquivalenceClass::language, new TreeSet<>(evaluationMap.values()), jumpLookup);

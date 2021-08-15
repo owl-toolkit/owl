@@ -19,7 +19,7 @@
 
 package owl.translations.ltl2dpa;
 
-import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.UNPUBLISHED_ZIELONKA;
+import static owl.translations.LtlTranslationRepository.LtlToDpaTranslation.SLM21;
 import static owl.translations.LtlTranslationRepository.Option;
 
 import java.time.Duration;
@@ -40,15 +40,15 @@ import owl.ltl.parser.LtlParser;
 public class UnpublishedZielonkaTreePerformanceTest {
 
   private static Function<LabelledFormula, Automaton<?, ? extends ParityAcceptance>>
-    TRANSLATION_ACD = UNPUBLISHED_ZIELONKA.translation(
+    TRANSLATION_ACD = SLM21.translation(
       ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
 
   private static Function<LabelledFormula, Automaton<?, ? extends ParityAcceptance>>
-    TRANSLATION_ZLK = UNPUBLISHED_ZIELONKA.translation(
+    TRANSLATION_ZLK = SLM21.translation(
       ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0));
 
   private static Function<LabelledFormula, Automaton<?, ? extends ParityAcceptance>>
-    TRANSLATION_MIXED_10 = UNPUBLISHED_ZIELONKA.translation(
+    TRANSLATION_MIXED_10 = SLM21.translation(
       ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(10));
 
   @Tag("performance")

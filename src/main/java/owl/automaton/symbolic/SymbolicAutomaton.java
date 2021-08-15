@@ -31,6 +31,7 @@ import com.google.common.collect.Streams;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -191,15 +192,20 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   ) {
     return of(
       automaton,
-      FactorySupplier.defaultSupplier().getBddSetFactory()
+      FactorySupplier.defaultSupplier().getBddSetFactory(),
+      automaton.atomicPropositions()
     );
   }
 
   public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
-    Automaton<S, ? extends A> automaton, BddSetFactory factory) {
+    Automaton<S, ? extends A> automaton, BddSetFactory factory, List<String> atomicPropositions) {
+
+    checkArgument(
+      Collections.indexOfSubList(atomicPropositions, automaton.atomicPropositions()) == 0);
 
     return of(
       automaton,
+      atomicPropositions,
       factory,
       NumberingStateEncoderFactory.INSTANCE,
       new RangedVariableAllocator(
@@ -209,17 +215,18 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
         SUCCESSOR_STATE));
   }
 
-  public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
+  private static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
     Automaton<S, ? extends A> automaton,
+    List<String> atomicPropositions,
     BddSetFactory factory,
     StateEncoderFactory encoderFactory,
     VariableAllocator allocator) {
 
-    List<String> atomicPropositions = List.copyOf(automaton.atomicPropositions());
+    List<String> atomicPropositionsCopy = List.copyOf(atomicPropositions);
     StateEncoder<S> stateEncoder = encoderFactory.create(automaton);
     VariableAllocation allocation = allocator.allocate(
       stateEncoder.stateVariables(),
-      atomicPropositions.size(),
+      atomicPropositionsCopy.size(),
       automaton.acceptance().acceptanceSets());
 
     BddSet initialStates = factory.of(false);
@@ -261,9 +268,9 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
     var properties = Arrays.stream(Automaton.Property.values())
       .filter(automaton::is)
-      .collect(Collectors.toSet());
+      .collect(Collectors.toUnmodifiableSet());
 
-    return of(atomicPropositions,
+    return of(atomicPropositionsCopy,
       initialStates,
       transitionRelation,
       automaton.acceptance(),

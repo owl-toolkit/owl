@@ -27,7 +27,6 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.parser.LtlParser;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
 
 @SuppressWarnings("PMD.UnusedPrivateMethod")
 class SyntacticFixpointSimplifierTest {
@@ -47,7 +46,7 @@ class SyntacticFixpointSimplifierTest {
   void testSyntacticFairnessSimplifier(List<String> pair) {
     var actual = LtlParser.parse(pair.get(0), variables);
     var expected = LtlParser.parse(pair.get(1), variables);
-    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC_FIXPOINT));
+    assertEquals(expected, SimplifierRepository.SYNTACTIC_FIXPOINT.apply(actual));
   }
 
   @ParameterizedTest
@@ -55,6 +54,6 @@ class SyntacticFixpointSimplifierTest {
   void testSyntacticFairnessSimplifierNegation(List<String> pair) {
     var actual = LtlParser.parse("! (" + pair.get(0) + ')', variables);
     var expected = LtlParser.parse("! (" + pair.get(1) + ')', variables);
-    assertEquals(expected, SimplifierFactory.apply(actual, Mode.SYNTACTIC_FIXPOINT));
+    assertEquals(expected, SimplifierRepository.SYNTACTIC_FIXPOINT.apply(actual));
   }
 }

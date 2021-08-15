@@ -39,8 +39,7 @@ import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.NormalForms;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.translations.TranslationAutomatonSummaryTest;
 
 abstract class EquivalenceClassTest {
@@ -86,8 +85,8 @@ abstract class EquivalenceClassTest {
     EquivalenceClass equivalenceClass = factory.of(BooleanConstant.FALSE);
 
     assertEquals(equivalenceClass, equivalenceClass);
-    assertEquals(equivalenceClass, factory.of(SimplifierFactory
-      .apply(Conjunction.of(Literal.of(0), Literal.of(0, true)), Mode.SYNTACTIC_FIXPOINT)));
+    assertEquals(equivalenceClass, factory.of(SimplifierRepository.SYNTACTIC_FIXPOINT
+      .apply(Conjunction.of(Literal.of(0), Literal.of(0, true)))));
   }
 
   @Test

@@ -37,11 +37,11 @@ class MonitorAutomaton
   private final Automaton<MonitorState, ParityAcceptance> anyAutomaton;
   private final Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata;
   private final GSet base;
-  private final GOperator formula;
 
-  MonitorAutomaton(GOperator formula,
+  MonitorAutomaton(
     Automaton<MonitorState, ParityAcceptance> anyAutomaton,
     Map<GSet, Automaton<MonitorState, ParityAcceptance>> automata) {
+
     super(
       anyAutomaton.atomicPropositions(),
       anyAutomaton.factory(),
@@ -49,12 +49,13 @@ class MonitorAutomaton
       AllAcceptance.INSTANCE);
 
     this.automata = Map.copyOf(automata);
-    this.formula = formula;
 
     Set<GOperator> baseBuilder = new HashSet<>();
+
     for (GSet relevantSet : this.automata.keySet()) {
       baseBuilder.addAll(relevantSet);
     }
+
     this.base = new GSet(baseBuilder);
     this.anyAutomaton = anyAutomaton;
   }
@@ -63,7 +64,7 @@ class MonitorAutomaton
     return automata;
   }
 
-  public Automaton<MonitorState, ParityAcceptance> getAutomaton(GSet gSet) {
+  Automaton<MonitorState, ParityAcceptance> getAutomaton(GSet gSet) {
     GSet intersection = base.intersection(gSet);
     Automaton<MonitorState, ParityAcceptance> result = automata.get(intersection);
     assert result != null :
@@ -74,10 +75,5 @@ class MonitorAutomaton
   @Override
   public Map<Edge<MonitorState>, BddSet> edgeMapImpl(MonitorState state) {
     return Collections3.transformMap(anyAutomaton.edgeMap(state), Edge::withoutAcceptance);
-  }
-
-  @Override
-  public String name() {
-    return "Monitor for " + formula + " with base " + base;
   }
 }

@@ -19,79 +19,36 @@
 
 package owl.translations.delag;
 
-import static owl.run.modules.OwlModule.Transformer;
-import static owl.translations.LtlTranslationRepository.LtlToDraTranslation;
-
-import java.io.IOException;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
-import org.apache.commons.cli.Options;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.SingletonAutomaton;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.BooleanConstant;
 import owl.ltl.LabelledFormula;
-import owl.ltl.rewriter.SimplifierTransformer;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
-import owl.translations.ExternalTranslator;
 
 public class DelagBuilder
-  implements Function<LabelledFormula, Automaton<State<Object>, EmersonLeiAcceptance>> {
+  implements Function<LabelledFormula, Automaton<State<Integer>, ? extends EmersonLeiAcceptance>> {
 
-  public static final OwlModule<Transformer> MODULE = OwlModule.of(
-    "delag",
-    "Translates LTL to deterministic Emerson-Lei automata",
-    new Options().addOption("f", "fallback", true,
-      "Fallback tool for input outside the fragment. "
-        + "If no tool is specified an internal LTL to DGRA translation is used."),
-    (commandLine, environment) -> {
-      String command = commandLine.getOptionValue("fallback");
+  private final Function<? super LabelledFormula, ? extends Automaton<?, ?>> fallback;
 
-      if (command == null) {
-        return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder());
-      }
-
-      return OwlModule.LabelledFormulaTransformer.of(new DelagBuilder(
-        new ExternalTranslator(command, ExternalTranslator.InputMode.STDIN)));
-    });
-
-  private final Function<LabelledFormula, ? extends Automaton<?, ?>> fallback;
-
-  public DelagBuilder() {
-    fallback = LtlToDraTranslation.DEFAULT.translation(GeneralizedRabinAcceptance.class);
-  }
-
-  private DelagBuilder(ExternalTranslator externalTranslator) {
-    fallback = externalTranslator;
-  }
-
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-      InputReaders.LTL_INPUT_MODULE,
-      List.of(SimplifierTransformer.MODULE),
-      MODULE,
-      List.of(),
-      OutputWriters.HOA_OUTPUT_MODULE));
+  public DelagBuilder(Function<? super LabelledFormula, ? extends Automaton<?, ?>> fallback) {
+    this.fallback = fallback;
   }
 
   @Override
-  public Automaton<State<Object>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
+  public Automaton<State<Integer>, EmersonLeiAcceptance> apply(LabelledFormula inputFormula) {
     LabelledFormula formula = inputFormula.nnf();
     List<String> atomicPropositions = List.copyOf(formula.atomicPropositions());
 
@@ -109,31 +66,28 @@ public class DelagBuilder
         Set.of());
     }
 
-    Factories factories = FactorySupplier.defaultSupplier().getFactories(atomicPropositions);
+    DependencyTreeFactory<Integer> treeConverter = new DependencyTreeFactory<>(
+      FactorySupplier.defaultSupplier().getEquivalenceClassFactory(atomicPropositions),
+    x -> Views.dropStateLabels(fallback.apply(x)));
 
-    DependencyTreeFactory<Object> treeConverter =
-      new DependencyTreeFactory<>(
-        factories.eqFactory, x -> (Automaton<Object, ?>) fallback.apply(x));
-
-    DependencyTree<Object> tree = formula.formula().accept(treeConverter);
+    DependencyTree<Integer> tree = formula.formula().accept(treeConverter);
     var expression = tree.getAcceptanceExpression();
 
-    ProductState<Object> initialProduct = treeConverter.buildInitialState();
-    State<Object> initialState = new State<>(initialProduct,
+    ProductState<Integer> initialProduct = treeConverter.buildInitialState();
+    State<Integer> initialState = new State<>(initialProduct,
       History.stepHistory(null, new BitSet(),
         History.create(tree.getRequiredHistory(initialProduct))));
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       atomicPropositions,
-      factories.vsFactory,
       Set.of(initialState),
       EmersonLeiAcceptance.of(expression)) {
 
       private final Map<ProductState<?>, History> requiredHistory = new HashMap<>();
 
       @Override
-      public Edge<State<Object>> edgeImpl(State<Object> state, BitSet valuation) {
-        ProductState.Builder<Object> builder = ProductState.builder();
+      public Edge<State<Integer>> edgeImpl(State<Integer> state, BitSet valuation) {
+        ProductState.Builder<Integer> builder = ProductState.builder();
         Boolean acc = tree.buildSuccessor(state, valuation, builder);
 
         if (acc != null && !acc) {

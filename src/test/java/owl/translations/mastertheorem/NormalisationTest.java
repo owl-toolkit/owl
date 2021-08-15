@@ -20,44 +20,91 @@
 package owl.translations.mastertheorem;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
 
 import org.junit.jupiter.api.Test;
+import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
+import owl.ltl.rewriter.SimplifierRepository;
 
 class NormalisationTest {
 
   @Test
   void testLics20() {
     var formula = LtlParser.parse("F (a & G (b | Fc))");
-
-    var normalisation = Normalisation.of(false, false, false);
-    var stableNormalisation = Normalisation.of(false, false, true);
-
+    var normalisation = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
     var normalform = LtlParser.parse("F (a & ((b | Fc) U Gb)) | (Fa & GFc)");
-    var stableNormalform = LtlParser.parse("(GFa & FGb) | (GFa & GFc)");
-
     assertEquals(normalform, normalisation.apply(formula));
-    assertEquals(stableNormalform, stableNormalisation.apply(formula));
   }
 
   @Test
   void testLics20Dual() {
     var formula = LtlParser.parse("G (a | F (b & G c))");
-
-    var normalisation = Normalisation.of(true, false, false);
-    var stableNormalisation = Normalisation.of(true, false, true);
-
+    var normalisation = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
     var normalform = LtlParser.parse("G(a | (b & Gc)) | (FGc & G(a | ((F b) W (b & G c))))");
-    var stableNormalform = LtlParser.parse("FGa | (GFb & FGc)");
-
     assertEquals(normalform, normalisation.apply(formula));
-    assertEquals(stableNormalform, stableNormalisation.apply(formula));
   }
 
   @Test
-  void testLocal() {
+  void testNonStrict() {
     var formula = LtlParser.parse("a U b | b R c | G F d | F G e");
-    var localNormalisation = Normalisation.of(false, true, false);
-    assertEquals(formula, localNormalisation.apply(formula));
+
+    var nonStrictNormalisationSigma2 = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
+    assertEquals(formula, nonStrictNormalisationSigma2.apply(formula));
+
+    var nonStrictNormalisationPi2 = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
+    assertEquals(formula, nonStrictNormalisationPi2.apply(formula));
+  }
+
+  @Test
+  void testStrictNormalisationPi2Formula() {
+    var formula = LtlParser.parse("(F a) W (G b)");
+
+    var nonStrictNormalisationSigma2 = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
+    assertEquals(formula, nonStrictNormalisationSigma2.apply(formula));
+
+    var nonStrictNormalisationPi2 = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
+    assertEquals(formula, nonStrictNormalisationPi2.apply(formula));
+
+    var strictNormalisationSigma2 = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, true);
+    assertEquals(
+      LtlParser.parse("(GF a) | ((F a) U (G b))"), strictNormalisationSigma2.apply(formula));
+
+    var strictNormalisationPi2 = Normalisation.of(SE20_PI_2_AND_FG_PI_1, true);
+    assertEquals(formula, strictNormalisationPi2.apply(formula));
+  }
+
+  @Test
+  void testStrictNormalisationSigma2Formula() {
+    var formula = LtlParser.parse("(G a) M (F b)");
+
+    var nonStrictNormalisationSigma2 = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
+    assertEquals(formula, nonStrictNormalisationSigma2.apply(formula));
+
+    var nonStrictNormalisationPi2 = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
+    assertEquals(formula, nonStrictNormalisationPi2.apply(formula));
+
+    var strictNormalisationSigma2 = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, true);
+    assertEquals(formula, strictNormalisationSigma2.apply(formula));
+
+    var strictNormalisationPi2 = Normalisation.of(SE20_PI_2_AND_FG_PI_1, true);
+    assertEquals(
+      LtlParser.parse("(FG a) & ((G a) R (F b))"), strictNormalisationPi2.apply(formula));
+  }
+
+  @Test
+  void testStrictVerification() {
+    var formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(LtlParser.parse(
+      "!((G(a)) & (G((!(b)) | (((!(c)) | ((b) R (!(a)))) U ((b) | (c))))))"));
+
+    var normalisation = Normalisation.of(SE20_PI_2_AND_FG_PI_1, true);
+
+    for (Formula.TemporalOperator temporalOperator
+      : normalisation.apply(formula).formula().subformulas(Formula.TemporalOperator.class)) {
+
+      assertTrue(Normalisation.isPi2OrFgPi1(temporalOperator));
+    }
   }
 }

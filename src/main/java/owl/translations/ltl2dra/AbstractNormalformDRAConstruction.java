@@ -24,6 +24,8 @@ import static owl.ltl.SyntacticFragments.FormulaClass;
 import static owl.ltl.SyntacticFragments.PI_2;
 import static owl.ltl.SyntacticFragments.SIGMA_2;
 import static owl.ltl.SyntacticFragments.Type;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
+import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Preconditions;
@@ -42,17 +44,16 @@ import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.XOperator;
 import owl.ltl.rewriter.NormalForms;
-import owl.ltl.rewriter.SimplifierFactory;
-import owl.ltl.rewriter.SimplifierFactory.Mode;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.translations.mastertheorem.Normalisation;
 
 class AbstractNormalformDRAConstruction {
 
   private static final Normalisation NORMALISATION
-    = Normalisation.of(false, false, false);
+    = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
 
   private static final Normalisation DUAL_NORMALISATION
-    = Normalisation.of(true, false, false);
+    = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
 
   private final boolean useDualConstruction;
 
@@ -73,14 +74,14 @@ class AbstractNormalformDRAConstruction {
         continue;
       }
 
-      Formula normalForm = NORMALISATION.apply(conjunction);
+      Formula normalForm = NormalForms.toDnfFormula(NORMALISATION.apply(conjunction));
 
       if (!useDualConstruction) {
         delta2disjuncts.add(normalForm);
         continue;
       }
 
-      Formula dualNormalForm = DUAL_NORMALISATION.apply(conjunction);
+      Formula dualNormalForm = NormalForms.toDnfFormula(DUAL_NORMALISATION.apply(conjunction));
 
       Predicate<Formula> relevantSubformulas = (Formula formula) ->
         formula instanceof Formula.TemporalOperator
@@ -95,8 +96,7 @@ class AbstractNormalformDRAConstruction {
       }
     }
 
-    Formula delta2Formula = SimplifierFactory.apply(
-      Disjunction.of(delta2disjuncts), Mode.SYNTACTIC_FIXPOINT);
+    Formula delta2Formula = Disjunction.of(delta2disjuncts);
 
     // Step 2: Group by \Sigma_2 and \Pi_2
 
@@ -155,23 +155,23 @@ class AbstractNormalformDRAConstruction {
       }
 
       if (sigma2.isEmpty()) {
-        Formula pi2Formula = SimplifierFactory.apply(
-          Conjunction.of(delta1, Conjunction.of(pi2)), Mode.SYNTACTIC_FIXPOINT);
+        Formula pi2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+          Conjunction.of(delta1, Conjunction.of(pi2)));
 
         pairs.add(Sigma2Pi2Pair.of(atomicPropositions, BooleanConstant.TRUE, pi2Formula));
         continue;
       }
 
-      Formula sigma2Formula = SimplifierFactory.apply(
-        Conjunction.of(Conjunction.of(sigma2), delta1), Mode.SYNTACTIC_FIXPOINT);
-      Formula pi2Formula = SimplifierFactory.apply(
-        Conjunction.of(pi2), Mode.SYNTACTIC_FIXPOINT);
+      Formula sigma2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+        Conjunction.of(Conjunction.of(sigma2), delta1));
+      Formula pi2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+        Conjunction.of(pi2));
 
       pairs.add(Sigma2Pi2Pair.of(atomicPropositions, sigma2Formula, pi2Formula));
     }
 
     if (!globalPi2.equals(BooleanConstant.FALSE)) {
-      Formula globalPi2Formula = SimplifierFactory.apply(globalPi2, Mode.SYNTACTIC_FIXPOINT);
+      Formula globalPi2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(globalPi2);
       pairs.add(Sigma2Pi2Pair.of(atomicPropositions, BooleanConstant.TRUE, globalPi2Formula));
     }
 

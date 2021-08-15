@@ -19,13 +19,11 @@
 
 package owl.translations.nbadet;
 
-import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -43,53 +41,23 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
-import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
-import owl.run.RunUtil;
-import owl.run.modules.InputReaders;
-import owl.run.modules.OutputWriters;
-import owl.run.modules.OwlModule;
-import owl.run.parser.PartialConfigurationParser;
-import owl.run.parser.PartialModuleConfiguration;
+import owl.command.AutomatonConversionCommands;
 
 /**
  * This class provides the entry-point for the translation from non-deterministic Büchi automata to
- * deterministic parity automata described in {@link Bibliography#ICALP_19} with
+ * deterministic parity automata described in {@link Bibliography#ICALP_19_1} with
  * optimisations from {@link Bibliography#ATVA_19}.
  */
 public final class NbaDet {
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());
 
-  public static final OwlModule<OwlModule.Transformer> MODULE = OwlModule.of(
-    "nbadet",
-    "Converts non-deterministic Büchi automata into deterministic parity automata.",
-    NbaDetArgs.options,
-    (cmdLine, env) ->
-      OwlModule.AutomatonTransformer.of(aut ->
-        NbaDet.determinize(aut, NbaDetArgs.getFromCli(cmdLine)), BuchiAcceptance.class)
-    );
-
   /** make PMD silent. */
   private NbaDet() {}
-
-  /**
-   * Entry point for nbadet tool.
-   * @param args arguments from environment
-   * @throws IOException on failure to parse the input file
-   */
-  public static void main(String... args) throws IOException {
-    PartialConfigurationParser.run(args, PartialModuleConfiguration.of(
-        InputReaders.HOA_INPUT_MODULE,
-        List.of(AcceptanceOptimizations.MODULE), //basic trim
-        MODULE,
-        List.of(AcceptanceOptimizations.MODULE), //trim + minimize priorities
-        //TODO: when minimization postprocessing available, plug it in here
-        OutputWriters.HOA_OUTPUT_MODULE));
-  }
 
   public static Map<Handler, Level> overrideLogLevel(Level verbosity) {
     final var rootLogger = LogManager.getLogManager().getLogger("");
@@ -111,12 +79,13 @@ public final class NbaDet {
    * Returns (possibly quotiented) automaton and known language inclusions.
    */
   public static <S> Pair<Automaton<Set<S>, BuchiAcceptance>, Set<Pair<Set<S>,Set<S>>>> preprocess(
-    Automaton<S,BuchiAcceptance> aut, NbaDetArgs args) {
+    Automaton<S, BuchiAcceptance> aut, AutomatonConversionCommands.Nba2DpaCommand args) {
     //compute language inclusions (a <= b) between states, using selected simulations
     var incl = NbaLangInclusions.computeLangInclusions(aut, args.computeSims());
     logger.log(Level.FINE, "calculated language inclusions: " + incl.toString());
 
-    if (incl.isEmpty() || !NbaLangInclusions.getQuotientable().containsAll(args.computeSims())) {
+    if (incl.isEmpty() || !NbaLangInclusions.getQuotientable().containsAll(Arrays.asList(
+        args.computeSims()))) {
       //trivial pass-through "quotient" to makes types consistent
       logger.log(Level.FINE, "no (quotientable) inclusions, pass through automaton.");
       var quotAut = Views.quotientAutomaton(aut, Set::of);
@@ -153,21 +122,25 @@ public final class NbaDet {
    * Main method of module.
    */
   public static <S> Automaton<?, ParityAcceptance> determinize(
-      Automaton<S, BuchiAcceptance> aut, NbaDetArgs args) {
+    Automaton<S, ? extends BuchiAcceptance> aut,
+    AutomatonConversionCommands.Nba2DpaCommand args) {
+
     if (aut.atomicPropositions().size() > 30) {
-      RunUtil.failWithMessage("ERROR: Too many atomic propositions! Only up to 30 are supported.");
+      throw new UnsupportedOperationException(
+        "ERROR: Too many atomic propositions! Only up to 30 are supported.");
     }
-    var oldLogLevels = overrideLogLevel(args.verbosity());
+    var oldLogLevels = overrideLogLevel(Level.parse(args.verbosity()));
     // --------
 
-    logger.log(Level.CONFIG, "selected nbadet configuration:\n" + args.toString());
+    logger.log(Level.CONFIG, "selected nbadet configuration:\n" + args);
 
     //compute simulations and quotient NBA
-    var prepAut = preprocess(aut, args);
+    Pair<Automaton<Set<S>, BuchiAcceptance>, Set<Pair<Set<S>, Set<S>>>> prepAut
+      = preprocess((Automaton<S, BuchiAcceptance>) aut, args);
 
     //take the (possibly quotiented) automaton, known language inclusions from simulations
     //and provided user arguments, and assemble a configuration for the determinization procedure.
-    var conf = NbaDetConf.prepare(prepAut.fst(), prepAut.snd(), args);
+    NbaDetConf<Set<S>> conf = NbaDetConf.prepare(prepAut.fst(), prepAut.snd(), args);
 
     //var emptyDpa = SingletonAutomaton.of(aut.factory(),NbaDetState.empty(conf),
     //                                     NbaDetState.getAcceptance(conf));
@@ -191,7 +164,7 @@ public final class NbaDet {
       @Override
       public Edge<NbaDetState<S>> edgeImpl(NbaDetState<S> state, BitSet val) {
         if (!logOverridden) {
-          overrideLogLevel(conf.args().verbosity());
+          overrideLogLevel(Level.parse(conf.args().verbosity()));
           logOverridden = true;
         }
         return succHelper.successor(state, val);

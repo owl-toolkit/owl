@@ -57,6 +57,7 @@ import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Formula.TemporalOperator;
+import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.PropositionalIntVisitor;
@@ -644,7 +645,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     public String toString() {
       return representative == null
         ? String.format("%d", node)
-        : PrintVisitor.toString(representative, factory.atomicPropositions, false);
+        : PrintVisitor.toString(
+            LabelledFormula.of(representative, factory.atomicPropositions), false);
     }
 
     @Override

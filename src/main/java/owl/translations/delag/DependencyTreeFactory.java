@@ -56,7 +56,7 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
     setNumber = 0;
     builder = ProductState.builder();
     this.constructor = formula -> automatonCache.computeIfAbsent(formula, x ->
-      AcceptanceOptimizations.optimize(
+      AcceptanceOptimizations.transform(
         constructor.apply(LabelledFormula.of(x, this.factory.atomicPropositions())))
       );
   }

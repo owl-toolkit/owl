@@ -31,8 +31,8 @@ import owl.collections.Pair;
 
 public class ForwardDirectLookaheadSimulation<S>
   implements SimulationType<S, LookaheadSimulationState<S>> {
-  final Automaton<S, BuchiAcceptance> leftAutomaton;
-  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final Automaton<S, ? extends BuchiAcceptance> leftAutomaton;
+  final Automaton<S, ? extends BuchiAcceptance> rightAutomaton;
   final S leftState;
   final S rightState;
   final LookaheadSimulationState<S> initialState;
@@ -41,8 +41,8 @@ public class ForwardDirectLookaheadSimulation<S>
   final int maxLookahead;
 
   public ForwardDirectLookaheadSimulation(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
+    Automaton<S, ? extends BuchiAcceptance> leftAutomaton,
+    Automaton<S, ? extends BuchiAcceptance> rightAutomaton,
     S left,
     S right,
     int maxLookahead,

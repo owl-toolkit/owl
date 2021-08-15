@@ -33,8 +33,8 @@ import owl.collections.Pair;
 public class BackwardDirectSimulation<S>
   implements SimulationType<S, MultipebbleSimulationState<S>> {
 
-  final Automaton<S, BuchiAcceptance> leftAutomaton;
-  final Automaton<S, BuchiAcceptance> rightAutomaton;
+  final Automaton<S, ? extends BuchiAcceptance> leftAutomaton;
+  final Automaton<S, ? extends BuchiAcceptance> rightAutomaton;
   final S leftState;
   final S rightState;
   final MultipebbleSimulationState<S> initialState;
@@ -43,8 +43,8 @@ public class BackwardDirectSimulation<S>
   final Set<Pair<S, S>> knownPairs;
 
   public BackwardDirectSimulation(
-    Automaton<S, BuchiAcceptance> leftAutomaton,
-    Automaton<S, BuchiAcceptance> rightAutomaton,
+    Automaton<S, ? extends BuchiAcceptance> leftAutomaton,
+    Automaton<S, ? extends BuchiAcceptance> rightAutomaton,
     S left,
     S right,
     int pebbleCount,

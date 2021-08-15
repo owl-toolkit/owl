@@ -79,7 +79,6 @@ import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
 import owl.ltl.visitors.Converter;
-import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.UnabbreviateVisitor;
 import owl.translations.rabinizer.RabinizerStateFactory.MasterStateFactory;
 import owl.translations.rabinizer.RabinizerStateFactory.ProductStateFactory;
@@ -207,12 +206,10 @@ public final class RabinizerBuilder {
       new UnabbreviateVisitor(WOperator.class, ROperator.class));
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
-    String formulaString =
-      PrintVisitor.toString(phiNormalized, factories.eqFactory.atomicPropositions());
-    logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}", formulaString);
+    logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}",
+      LabelledFormula.of(phiNormalized, formula.atomicPropositions()).toString());
 
     var automaton = new RabinizerBuilder(configuration, factories, phiNormalized).build();
-    automaton.name("Rabinizer automaton for " + formulaString);
     automaton.trim();
     return automaton;
   }

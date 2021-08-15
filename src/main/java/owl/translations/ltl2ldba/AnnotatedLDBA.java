@@ -109,7 +109,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
     // Preprocess:
     // Remove dead states in the accepting component. Note that the .values() collection is backed
     // by the internal map of the epsilonJumps, hence removal is forwarded.
-    AcceptanceOptimizations.removeDeadStates(acceptingComponent, false);
+    AcceptanceOptimizations.removeDeadStates(acceptingComponent);
     epsilonJumps.values().retainAll(acceptingComponent.states());
 
     for (Set<S> scc : Lists.reverse(SccDecomposition.of(initialComponent).sccs())) {
@@ -140,7 +140,7 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
 
   public MutableAutomaton<Either<S, T>, B> copyAsMutable() {
     var mutableAutomaton = HashMapAutomaton.copyOf(new AutomatonView());
-    AcceptanceOptimizations.removeDeadStates(mutableAutomaton, false);
+    AcceptanceOptimizations.removeDeadStates(mutableAutomaton);
     return mutableAutomaton;
   }
 
@@ -166,11 +166,6 @@ public final class AnnotatedLDBA<S, T extends LtlLanguageExpressible,
         initialComponent.initialStates(),
         Set.of(),
         acceptingComponent.acceptance());
-    }
-
-    @Override
-    public String name() {
-      return initialComponent.name();
     }
 
     @Override

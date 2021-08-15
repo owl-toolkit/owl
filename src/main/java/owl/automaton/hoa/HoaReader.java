@@ -191,7 +191,7 @@ public final class HoaReader {
     @Nullable
     final String info;
 
-    HoaState(int id, @Nullable String info) {
+    public HoaState(int id, @Nullable String info) {
       this.id = id;
       this.info = info;
     }
@@ -259,10 +259,6 @@ public final class HoaReader {
         remapping == null ? atomicPropositions : predefinedAtomicPropositions,
         this.vsFactory,
         acceptance(storedHeader));
-
-      if (storedHeader.getName() != null) {
-        automaton.name(storedHeader.getName());
-      }
 
       states = Arrays.asList(new HoaState[storedAutomaton.getNumberOfStates()]);
     }

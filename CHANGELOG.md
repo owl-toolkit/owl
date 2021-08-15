@@ -1,5 +1,8 @@
 # 2021.?? (unreleased)
 
+* Restructure modules into subcommands for the commandline interface and
+  add migrate to PicoCli.
+
 Modules:
 
 * Add the LICS'20 DRA construction that is based on the normalisation

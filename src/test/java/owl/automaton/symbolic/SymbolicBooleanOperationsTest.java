@@ -44,8 +44,8 @@ public class SymbolicBooleanOperationsTest {
     var explicitProduct = BooleanOperations.intersection(automaton1, automaton2);
     BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var symbolicProduct = SymbolicBooleanOperations.intersection(
-      SymbolicAutomaton.of(automaton1, factory),
-      SymbolicAutomaton.of(automaton2, factory)
+      SymbolicAutomaton.of(automaton1, factory, automaton1.atomicPropositions()),
+      SymbolicAutomaton.of(automaton2, factory, automaton2.atomicPropositions())
     );
     var explicitProduct2 = symbolicProduct.toAutomaton();
     assertTrue(LanguageContainment.contains(explicitProduct, explicitProduct2));
@@ -63,8 +63,8 @@ public class SymbolicBooleanOperationsTest {
     var explicitProduct = BooleanOperations.intersection(automaton1, automaton2);
     BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var symbolicProduct = SymbolicBooleanOperations.intersection(
-      SymbolicAutomaton.of(automaton1, factory),
-      SymbolicAutomaton.of(automaton2, factory)
+      SymbolicAutomaton.of(automaton1, factory, automaton1.atomicPropositions()),
+      SymbolicAutomaton.of(automaton2, factory, automaton1.atomicPropositions())
     );
     var explicitProduct2 = symbolicProduct.toAutomaton();
     assertTrue(LanguageContainment.contains(explicitProduct, explicitProduct2));
@@ -82,8 +82,8 @@ public class SymbolicBooleanOperationsTest {
     var explicitProduct = BooleanOperations.deterministicUnion(automaton1, automaton2);
     BddSetFactory factory = FactorySupplier.defaultSupplier().getBddSetFactory();
     var symbolicProduct = SymbolicBooleanOperations.deterministicUnion(
-      SymbolicAutomaton.of(automaton1, factory),
-      SymbolicAutomaton.of(automaton2, factory)
+      SymbolicAutomaton.of(automaton1, factory, automaton1.atomicPropositions()),
+      SymbolicAutomaton.of(automaton2, factory, automaton1.atomicPropositions())
     );
     var explicitProduct2 = symbolicProduct.toAutomaton();
     assertTrue(LanguageContainment.contains(explicitProduct, explicitProduct2));

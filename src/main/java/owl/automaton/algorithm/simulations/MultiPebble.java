@@ -132,7 +132,7 @@ public abstract class MultiPebble<S> {
    * @param val One valuation along which the multipebble should be advanced by.
    * @return Successor multipebble for the given valuation.
    */
-  public Set<MultiPebble<S>> successors(Automaton<S, BuchiAcceptance> aut, BitSet val) {
+  public Set<MultiPebble<S>> successors(Automaton<S, ? extends BuchiAcceptance> aut, BitSet val) {
     // first we collect the set of possible successors for each of the contained pebbles
     Set<Pebble<S>> successors = pebbles()
       .stream()
@@ -147,7 +147,7 @@ public abstract class MultiPebble<S> {
       .collect(Collectors.toSet());
   }
 
-  public Set<MultiPebble<S>> predecessors(Automaton<S, BuchiAcceptance> aut, BitSet val) {
+  public Set<MultiPebble<S>> predecessors(Automaton<S, ? extends BuchiAcceptance> aut, BitSet val) {
     Set<Pebble<S>> predecessors = pebbles()
       .parallelStream()
       .flatMap(p -> p.predecessors(aut, val).stream())

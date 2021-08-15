@@ -36,8 +36,10 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.collections.BitSet2;
 import owl.collections.Pair;
+import owl.command.AutomatonConversionCommands;
 
-/** This is the structure containing all required information that is used in the
+/**
+ * This is the structure containing all required information that is used in the
  * determinization process and is obtained based on an NbaDetArgs instance.
  */
 @AutoValue
@@ -47,7 +49,7 @@ public abstract class NbaDetConf<S> {
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());
 
   // mandatory infos that are used with various heuristics
-  public abstract NbaDetArgs args();           //contains various flags
+  public abstract AutomatonConversionCommands.Nba2DpaCommand args();  //contains various flags
 
   public abstract NbaAdjMat<S> aut();          //computed adj matrix of NBA
 
@@ -63,8 +65,9 @@ public abstract class NbaDetConf<S> {
 
   //modded version with different update mode
   public NbaDetConf<S> withUpdateMode(UpdateMode mode) {
-    var modargs = args().toBuilder().setMergeMode(mode).build();
-    return new AutoValue_NbaDetConf<>(modargs, aut(), accSinks(), extMask(), intMask(), sets());
+    return new AutoValue_NbaDetConf<>(
+      new AutomatonConversionCommands.Nba2DpaCommand(args(), mode),
+        aut(), accSinks(), extMask(), intMask(), sets());
   }
 
 
@@ -130,7 +133,7 @@ public abstract class NbaDetConf<S> {
   public static <S> NbaDetConf<S> prepare(
       Automaton<S, ? extends BuchiAcceptance> aut,
       Set<Pair<S,S>> incl,
-      NbaDetArgs args) {
+      AutomatonConversionCommands.Nba2DpaCommand args) {
 
     //compute SCCs
     var scci = SccDecomposition.of(aut);
@@ -152,7 +155,7 @@ public abstract class NbaDetConf<S> {
     var extIncl = filterExternalIncl(incl, scci, stateMap);
     var intIncl = filterInternalIncl(incl, scci);
 
-    final BitSet aSinksBS = BitSet2.copyOf(aSinks, ((BiMap<S, Integer>) stateMap)::get);
+    final BitSet aSinksBS = BitSet2.copyOf(aSinks, stateMap::get);
     final SubsumedStatesMap extMask = args.simExt()
         ? SubsumedStatesMap.of(stateMap, extIncl) : SubsumedStatesMap.empty();
     final SubsumedStatesMap intMask = args.simInt()

@@ -20,7 +20,6 @@
 package owl.translations;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.run.modules.OwlModule.Transformer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,49 +38,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
 import jhoafparser.parser.generated.ParseException;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import owl.automaton.Automaton;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaReader.HoaState;
 import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
-import owl.run.modules.OwlModule;
 
 public class ExternalTranslator implements Function<LabelledFormula, Automaton<HoaState, ?>> {
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
-
-  public static final OwlModule<Transformer> MODULE = OwlModule.of(
-    "ltl2aut-ext",
-    "Runs an external tool for LTL to automaton translation",
-    () -> {
-      Option toolOption = new Option("t", "tool", true, "The tool invocation");
-      toolOption.setRequired(true);
-
-      Option inputType = new Option("i", "input", true, "How to pass the formula to the tool. "
-        + "Available modes are stdin or replace (add %f to the invocation)");
-
-      return new Options()
-        .addOption(toolOption)
-        .addOption(inputType);
-    },
-    (commandLine, environment) -> {
-      var command = commandLine.getOptionValue("tool");
-      var inputType = commandLine.getOptionValue("inputType");
-
-      InputMode inputMode = InputMode.STDIN;
-
-      if ("replace".equals(inputType)) {
-        inputMode = InputMode.REPLACE;
-      } else if (inputType != null && !"stdin".equals(inputType)) {
-        throw new org.apache.commons.cli.ParseException("Unknown input mode " + inputType);
-      }
-
-      var translator = new ExternalTranslator(command, inputMode);
-      return OwlModule.LabelledFormulaTransformer.of(translator);
-    });
 
   private final List<String> command;
   private final InputMode inputMode;

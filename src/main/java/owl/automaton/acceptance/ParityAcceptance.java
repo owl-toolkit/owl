@@ -239,11 +239,6 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
       return max() ? "max" : "min";
     }
 
-    @Override
-    public String toString() {
-      return maxString() + ' ' + evenString();
-    }
-
     public boolean isAccepting(int priority) {
       return priority % 2 == 0 ^ !even();
     }

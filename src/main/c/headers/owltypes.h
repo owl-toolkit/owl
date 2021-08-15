@@ -67,7 +67,8 @@ typedef enum {
 typedef enum {
   SEJK16_EKRS17,
   EKS20_EKRS17,
-  UNPUBLISHED_ZIELONKA,
+  SYMBOLIC_SE20_BKS10,
+  SLM21,
   SMALLEST_AUTOMATON,
   DEFAULT // Work-around for native-image bug. Do not use this value!
 } ltl_to_dpa_translation_t;

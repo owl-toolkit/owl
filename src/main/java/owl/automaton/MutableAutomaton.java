@@ -68,16 +68,6 @@ import owl.bdd.BddSet;
  */
 public interface MutableAutomaton<S, A extends EmersonLeiAcceptance> extends Automaton<S, A> {
 
-  /**
-   * Sets the name of the automaton.
-   *
-   * @param name
-   *     The new name of the automaton.
-   *
-   */
-  void name(String name);
-
-
   // Acceptance
 
   void acceptance(A acceptance);
