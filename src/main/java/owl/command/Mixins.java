@@ -63,7 +63,7 @@ final class Mixins {
 
     @Option(
       names = { "-i", "--input-file" },
-      description = "Output file (default: read from stdin)."
+      description = "Input file (default: read from stdin)."
     )
     private Path automatonFile = null;
 
