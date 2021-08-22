@@ -31,8 +31,8 @@ pmd {
 //noinspection GroovyAssignabilityCheck
 tasks.withType(Pmd) {
     reports {
-        xml.enabled = false
-        html.enabled = true
+        xml.required = false
+        html.required = true
     }
 }
 
