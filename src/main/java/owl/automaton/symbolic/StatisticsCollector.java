@@ -5,6 +5,7 @@ import com.google.gson.JsonNull;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.EnumMap;
 import java.util.List;
@@ -24,6 +25,7 @@ public enum StatisticsCollector {
   }
 
   public static final boolean ENABLED = true;
+  public static final boolean COMPRESSION_ENABLED = false;
   @Nullable private double[] drwdcwCompressionRates = null;
   @Nullable private double[] dswdcwCompressionRates = null;
   private double compressionRateDRW = 0;
@@ -227,9 +229,14 @@ public enum StatisticsCollector {
   }
 
   private static double getCompressionRateFor(SymbolicAutomaton<?> automaton) {
-    BigDecimal numberOfassignments = new BigDecimal(automaton.transitionRelation().size(automaton.variableAllocation().numberOfVariables()));
-    BigDecimal numberOfNodes = BigDecimal.valueOf(automaton.transitionRelation().numberOfNodes());
-    return numberOfassignments.divide(numberOfNodes, 5, RoundingMode.HALF_UP).doubleValue();
+    if (COMPRESSION_ENABLED) {
+      BigDecimal numberOfassignments = new BigDecimal(automaton.transitionRelation().intersection(automaton.reachableStates()).size(automaton.variableAllocation().numberOfVariables()).multiply(
+        BigInteger.valueOf(automaton.variableAllocation().numberOfVariables())));
+      BigDecimal numberOfNodes = BigDecimal.valueOf(automaton.transitionRelation().numberOfNodes());
+      return numberOfassignments.divide(numberOfNodes, 5, RoundingMode.HALF_UP).doubleValue();
+    } else {
+      return 0;
+    }
   }
 
 
