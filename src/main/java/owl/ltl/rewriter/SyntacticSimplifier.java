@@ -20,8 +20,10 @@
 package owl.ltl.rewriter;
 
 import com.google.common.collect.Sets;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -84,10 +86,47 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
 
     // Reason about modal operators contained in the disjunction.
     for (FOperator fOperator : filter(newDisjunction, FOperator.class)) {
+
+      // F a | a -> F a
       newDisjunction.remove(fOperator.operand());
 
-      if (newDisjunction.contains(fOperator.operand().not())) {
+      Formula operandNot = fOperator.operand().not();
+
+      if (newDisjunction.stream().anyMatch(x -> {
+        // F a | !a -> true
+        if (operandNot.equals(x)) {
+          return true;
+        }
+
+        // F a | F !a -> true
+        if (x instanceof FOperator && operandNot.equals(((FOperator) x).operand())) {
+          return true;
+        }
+
+        // F a | b U !a -> true
+        return x instanceof UOperator && operandNot.equals(((UOperator) x).rightOperand());
+      })) {
         return BooleanConstant.TRUE;
+      }
+
+      // F a | G (a \/ b) -> F a | G b
+      List<GOperator> matchedGOperators = new ArrayList<>();
+
+      newDisjunction.removeIf(x -> {
+        if (x instanceof GOperator
+          && ((GOperator) x).operand() instanceof Disjunction
+          && ((GOperator) x).operand().operands.contains(fOperator.operand())) {
+          matchedGOperators.add((GOperator) x);
+          return true;
+        }
+
+        return false;
+      });
+
+      for (GOperator gOperator : matchedGOperators) {
+        newDisjunction.add(GOperator.of(
+          Disjunction.of(
+            gOperator.operand().operands.stream().filter(x -> !x.equals(fOperator.operand())))));
       }
     }
 
@@ -351,6 +390,12 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
       return Disjunction.of(Conjunction.of(left, right), GOperator.of(right));
     }
 
+    // a R (a \/ b) -> b W a
+    if (right instanceof Disjunction && right.operands.contains(left)) {
+      var rightWithoutLeft = Disjunction.of(right.operands.stream().filter(x -> !x.equals(left)));
+      return WOperator.of(rightWithoutLeft, left);
+    }
+
     return ROperator.of(left, right);
   }
 
@@ -389,6 +434,12 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
 
     if (left.isPureUniversal()) {
       return Conjunction.of(Disjunction.of(left, right), FOperator.of(right));
+    }
+
+    // a U (a & b) -> b M a
+    if (right instanceof Conjunction && right.operands.contains(left)) {
+      var rightWithoutLeft = Conjunction.of(right.operands.stream().filter(x -> !x.equals(left)));
+      return MOperator.of(rightWithoutLeft, left);
     }
 
     return UOperator.of(left, right);
@@ -510,6 +561,26 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
       // Ga & X...XGa -> Ga
       conjunction.removeIf(formula ->
         formula instanceof XOperator && unwrapX((XOperator) formula).equals(gOperator));
+
+      // G a & F (a & b) -> G a & F b
+      List<FOperator> matchedFOperators = new ArrayList<>();
+
+      conjunction.removeIf(x -> {
+        if (x instanceof FOperator
+          && ((FOperator) x).operand() instanceof Conjunction
+          && ((FOperator) x).operand().operands.contains(gOperator.operand())) {
+          matchedFOperators.add((FOperator) x);
+          return true;
+        }
+
+        return false;
+      });
+
+      for (FOperator fOperator : matchedFOperators) {
+        conjunction.add(FOperator.of(
+          Conjunction.of(
+            fOperator.operand().operands.stream().filter(x -> !x.equals(gOperator.operand())))));
+      }
     }
 
     for (FOperator fOperator : filter(conjunction, FOperator.class)) {

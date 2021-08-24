@@ -92,7 +92,14 @@ class SyntacticSimplifierTest {
 
     // Recombination of operators
     List.of("a & F b & b R c", "a & b M c"),
-    List.of("a & F c & b W c", "a & b U c")
+    List.of("a & F c & b W c", "a & b U c"),
+
+    // Other rules
+    List.of("F a | !a", "true"),
+    List.of("F a | F !a", "true"),
+    List.of("F a | b U !a", "true"),
+    List.of("F a | G (a | b)", "F a | G b"),
+    List.of("a R (a | b)", "b W a")
   );
 
   private static Stream<Arguments> pairProvider() {
