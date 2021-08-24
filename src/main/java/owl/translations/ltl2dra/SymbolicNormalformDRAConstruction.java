@@ -31,6 +31,7 @@ import java.util.function.Function;
 import owl.automaton.symbolic.SymbolicAutomaton;
 import owl.automaton.symbolic.SymbolicBooleanOperations;
 import owl.bdd.BddSetFactory;
+import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.Factories;
 import owl.bdd.FactorySupplier;
 import owl.logic.propositional.PropositionalFormula;
@@ -58,13 +59,15 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
 
     if (pairs.isEmpty()) {
       pairs = List.of(
-        Sigma2Pi2Pair.of(labelledFormula.atomicPropositions(),
-        BooleanConstant.FALSE, BooleanConstant.FALSE)
+        Sigma2Pi2Pair.of(
+          labelledFormula.atomicPropositions(),
+          BooleanConstant.FALSE,
+          BooleanConstant.FALSE)
       );
     }
 
-    Factories explicitFactories = FactorySupplier.defaultSupplier()
-      .getFactories(labelledFormula.atomicPropositions());
+    Factories explicitFactories = FactorySupplier.defaultSupplier().getFactories(
+      labelledFormula.atomicPropositions(), EquivalenceClassFactory.Encoding.AP_SEPARATE);
     Map<LabelledFormula, Integer> coSafetySafetyIndices = new HashMap<>();
     Map<LabelledFormula, Integer> safetyCoSafetyIndices = new HashMap<>();
 
@@ -81,7 +84,7 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
         coSafetySafetyIndex = automata.size();
         coSafetySafetyIndices.put(sigma2, coSafetySafetyIndex);
         automata.add(SymbolicAutomaton.of(
-          DeterministicConstructions.CoSafetySafety.of(
+          DeterministicConstructions.CoSafetySafetyRoundRobin.of(
             explicitFactories, sigma2.formula(), true, false
           ), factory, labelledFormula.atomicPropositions()));
       }

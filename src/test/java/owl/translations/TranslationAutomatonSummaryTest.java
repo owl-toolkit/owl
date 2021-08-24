@@ -394,6 +394,10 @@ public class TranslationAutomatonSummaryTest {
   @ParameterizedTest
   @MethodSource("translatorProvider")
   void train(Translator translator) {
+    // Disable assertions in BDD library.
+    Thread.currentThread().getContextClassLoader()
+      .setPackageAssertionStatus("de.tum.in", false);
+
     var formulaSet = new TreeSet<>(Comparator.comparing(LabelledFormula::formula));
 
     for (FormulaSet set : translator.selectedSets) {

@@ -32,20 +32,20 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import owl.bdd.EquivalenceClassFactory;
 import owl.collections.BitSet2;
-import owl.collections.ImmutableBitSet;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.rewriter.NormalForms;
 import owl.ltl.rewriter.SimplifierRepository;
 import owl.translations.TranslationAutomatonSummaryTest;
 
 abstract class EquivalenceClassTest {
-  private static final List<LabelledFormula> formulas = List.of(
+
+  private static final List<LabelledFormula> formulas = Stream.of(
     "G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b")
-    .stream()
     .map(LtlParser::parse)
     .collect(Collectors.toUnmodifiableList());
   private EquivalenceClassFactory factory;
@@ -95,16 +95,16 @@ abstract class EquivalenceClassTest {
     EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
 
     assertEquals(
-      ImmutableBitSet.of(0),
+      BitSet2.of(0),
       clazz.atomicPropositions(false));
     assertEquals(
-      ImmutableBitSet.of(0, 2),
+      BitSet2.of(0, 2),
       clazz.atomicPropositions(true));
     assertEquals(
-      ImmutableBitSet.of(0, 2),
+      BitSet2.of(0, 2),
       clazz.unfold().atomicPropositions(false));
     assertEquals(
-      ImmutableBitSet.of(0, 2),
+      BitSet2.of(0, 2),
       clazz.unfold().atomicPropositions(true));
   }
 
@@ -114,17 +114,17 @@ abstract class EquivalenceClassTest {
     EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
 
     assertEquals(
-      ImmutableBitSet.of(),
+      BitSet2.of(),
       clazz.atomicPropositions(false));
     assertEquals(
-      ImmutableBitSet.of(0, 1),
+      BitSet2.of(0, 1),
       clazz.atomicPropositions(true));
 
     assertEquals(
-      ImmutableBitSet.of(),
+      BitSet2.of(),
       clazz.unfold().atomicPropositions(false));
     assertEquals(
-      ImmutableBitSet.of(),
+      BitSet2.of(),
       clazz.unfold().atomicPropositions(true));
   }
 
@@ -132,15 +132,15 @@ abstract class EquivalenceClassTest {
   void testGetAtoms2() {
     LabelledFormula formula = LtlParser.parse("(a | (b & X a) | (F a)) & (c | (b & X a) | (F a))");
     EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
-    assertEquals(ImmutableBitSet.of(0, 1, 2), clazz.atomicPropositions());
+    assertEquals(BitSet2.of(0, 1, 2), clazz.atomicPropositions(false));
   }
 
   @Test
   void testAtomicPropositionsEmpty() {
     LabelledFormula formula = LtlParser.parse("G a");
     EquivalenceClass clazz = obtainFactory(formula).of(formula.formula());
-    assertEquals(ImmutableBitSet.of(), clazz.atomicPropositions());
-    assertEquals(ImmutableBitSet.of(0), clazz.unfold().atomicPropositions());
+    assertEquals(BitSet2.of(), clazz.atomicPropositions(false));
+    assertEquals(BitSet2.of(0), clazz.unfold().atomicPropositions(false));
   }
 
   @Test

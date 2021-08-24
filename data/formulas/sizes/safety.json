@@ -2009,6 +2009,9 @@
     "formula": "(GFa & G(b | F(b & c)))"
   },
   {
+    "formula": "(GF!a & G(a | XFb))"
+  },
+  {
     "formula": "((((a | b)) R (c)) & G(d | (((a | b)) R (c))))",
     "properties": {
       "size": 2,
@@ -2187,6 +2190,9 @@
     "formula": "(FGa | (Fb & (a | FGa)))"
   },
   {
+    "formula": "(FGa | F(!a & XGb))"
+  },
+  {
     "formula": "(FGa | F(b & G(b | c)))"
   },
   {
@@ -2322,6 +2328,9 @@
     "formula": "F(a & G(b | Ga))"
   },
   {
+    "formula": "F(a & G(b | Xb))"
+  },
+  {
     "formula": "F(a & G(b | Xc))"
   },
   {
@@ -2377,6 +2386,9 @@
   },
   {
     "formula": "G(a | F(b & Fa))"
+  },
+  {
+    "formula": "G(a | F(b & Xb))"
   },
   {
     "formula": "G(a | F(b & Xc))"
@@ -2455,6 +2467,12 @@
   },
   {
     "formula": "GF(a & Xb & XXc)"
+  },
+  {
+    "formula": "X((a & FGa) | (!a & GF!a))"
+  },
+  {
+    "formula": "X((a & GF!a) | (!a & FGa))"
   },
   {
     "formula": "XF(a & Fb & ((Xb) R (c)))"

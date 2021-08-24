@@ -47,9 +47,10 @@ public class DFISymbolicDPASolver implements SymbolicDPASolver {
   @Override
   public Solution solve(
     SymbolicAutomaton<? extends ParityAcceptance> dpa,
-    ImmutableBitSet controlledAps
-  ) {
-    checkArgument(dpa.acceptance().parity() == ParityAcceptance.Parity.MIN_EVEN);
+    ImmutableBitSet controlledAps) {
+
+    checkArgument(dpa.acceptance().parity() == ParityAcceptance.Parity.MIN_EVEN,
+      dpa.acceptance().parity());
     checkArgument(controlledAps.size() <= dpa.atomicPropositions().size());
     checkArgument(dpa.is(Automaton.Property.COMPLETE));
     checkArgument(dpa.is(Automaton.Property.DETERMINISTIC));

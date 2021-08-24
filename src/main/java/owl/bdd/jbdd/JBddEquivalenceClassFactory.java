@@ -34,7 +34,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -42,6 +41,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.Spliterator;
 import java.util.Spliterators;
+import java.util.TreeSet;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
@@ -49,8 +49,6 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
-import owl.collections.BitSet2;
-import owl.collections.ImmutableBitSet;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -65,13 +63,14 @@ import owl.ltl.visitors.PropositionalIntVisitor;
 final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquivalenceClass>
   implements EquivalenceClassFactory {
 
-  private static final int[] EMPTY = {};
+  private static final List<int[]> LIST_OF_EMPTY = List.of(new int[]{});
 
   private final List<String> atomicPropositions;
   private final JBddVisitor visitor;
 
-  private TemporalOperator[] reverseMapping;
-  private final Map<TemporalOperator, Integer> mapping;
+  private final int atomicPropositionsVariables;
+  private TemporalOperator[] temporalOperatorReverseMapping;
+  private final Map<TemporalOperator, Integer> temporalOperatorMapping;
 
   private final int trueNode;
   private final int falseNode;
@@ -79,24 +78,39 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   private final EquivalenceClass trueClass;
   private final EquivalenceClass falseClass;
 
-  @Nullable
-  private Function<EquivalenceClass, Set<?>> temporalStepTreeCachedMapper;
-  @Nullable
-  private IdentityHashMap<EquivalenceClass, MtBdd<?>> temporalStepTreeCache;
+  private final Encoding encoding;
 
-  JBddEquivalenceClassFactory(Bdd bdd, List<String> atomicPropositions) {
+  @Nullable
+  private final JBddEquivalenceClassFactory reencodingFactory;
+
+  private final List<EquivalenceClass> protectFromGc = new ArrayList<>();
+  private final Map<Formula, JBddEquivalenceClass> lookupCache = new HashMap<>();
+
+  JBddEquivalenceClassFactory(Bdd bdd, List<String> atomicPropositions, Encoding encoding) {
     super(bdd);
+
     this.atomicPropositions = List.copyOf(atomicPropositions);
 
-    int apSize = this.atomicPropositions.size();
-    mapping = new HashMap<>();
-    reverseMapping = new TemporalOperator[apSize];
+    temporalOperatorMapping = new HashMap<>();
+    temporalOperatorReverseMapping = new TemporalOperator[32];
     visitor = new JBddVisitor();
 
+    this.encoding = encoding;
+
     // Register literals.
-    for (int i = 0; i < apSize; i++) {
-      int node = this.bdd.createVariable();
-      assert this.bdd.variable(node) == i;
+    //  0 -> 0
+    // !0 -> 1 (If AP_COMBINED is selected, then 1 is not unused and !0 -> !0)
+    //  1 -> 2
+    // !1 -> 3 ...
+    this.atomicPropositionsVariables = 2 * this.atomicPropositions.size();
+    this.bdd.createVariables(atomicPropositionsVariables);
+
+    if (this.encoding == Encoding.AP_SEPARATE) {
+      reencodingFactory = new JBddEquivalenceClassFactory(
+        JBddSupplier.create(32_000), atomicPropositions, Encoding.AP_COMBINED);
+    } else {
+      assert this.encoding == Encoding.AP_COMBINED;
+      reencodingFactory = null;
     }
 
     trueNode = this.bdd.trueNode();
@@ -104,6 +118,33 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     trueClass = of(BooleanConstant.TRUE, trueNode);
     falseClass = of(BooleanConstant.FALSE, falseNode);
+  }
+
+  @Override
+  public Encoding defaultEncoding() {
+    return encoding;
+  }
+
+  @Override
+  public void clearCaches() {
+    protectFromGc.clear();
+    lookupCache.clear();
+  }
+
+  @Override
+  public EquivalenceClassFactory withDefaultEncoding(Encoding encoding) {
+    if (encoding == this.encoding) {
+      return this;
+    }
+
+    if (encoding == Encoding.AP_SEPARATE) {
+      assert this.encoding == Encoding.AP_COMBINED;
+      throw new IllegalArgumentException("Cannot switch into a coarser encoding.");
+    }
+
+    assert encoding == Encoding.AP_COMBINED;
+    assert this.encoding == Encoding.AP_SEPARATE;
+    return Objects.requireNonNull(reencodingFactory);
   }
 
   @Override
@@ -122,21 +163,31 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   }
 
   private JBddEquivalenceClass of(Formula formula, boolean scanForUnknown) {
+    var clazz = lookupCache.get(formula);
+
+    if (clazz != null) {
+      return clazz;
+    }
+
     if (scanForUnknown) {
       // Scan for unknown modal operators.
       var newPropositions = formula.subformulas(TemporalOperator.class)
-        .stream().filter(x -> !mapping.containsKey(x)).sorted().collect(Collectors.toList());
+        .stream()
+        .filter(y -> !temporalOperatorMapping.containsKey(y))
+        .collect(Collectors.toCollection(TreeSet::new));
 
       if (!newPropositions.isEmpty()) {
         // Create variables.
-        int literalOffset = atomicPropositions.size();
-        int newSize = mapping.size() + newPropositions.size();
-        reverseMapping = Arrays.copyOf(reverseMapping, newSize);
+        int newSize = temporalOperatorMapping.size() + newPropositions.size();
+
+        if (temporalOperatorReverseMapping.length < newSize) {
+          temporalOperatorReverseMapping = Arrays.copyOf(temporalOperatorReverseMapping, newSize);
+        }
 
         for (TemporalOperator proposition : newPropositions) {
           int variable = bdd.variable(bdd.createVariable());
-          mapping.put(proposition, variable);
-          reverseMapping[variable - literalOffset] = proposition;
+          temporalOperatorMapping.put(proposition, variable);
+          temporalOperatorReverseMapping[variable - atomicPropositionsVariables] = proposition;
         }
       }
     }
@@ -147,8 +198,16 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   private JBddEquivalenceClass of(@Nullable Formula representative, int node) {
     var clazz = canonicalize(new JBddEquivalenceClass(this, node, representative));
 
-    if (clazz.representative == null) {
-      clazz.representative = representative;
+    // We cache all returned instances with strong references. The caches can be cleared by using
+    // the clear caches method.
+    if (representative != null) {
+      lookupCache.put(representative, clazz);
+
+      if (clazz.representative == null) {
+        clazz.representative = representative;
+      }
+    } else if (clazz.representative == null) {
+      protectFromGc.add(clazz);
     }
 
     return clazz;
@@ -212,14 +271,21 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   private final class JBddVisitor extends PropositionalIntVisitor {
     @Override
     public int visit(Literal literal) {
-      Preconditions.checkArgument(literal.getAtom() < atomicPropositions.size());
-      int node = bdd.variableNode(literal.getAtom());
-      return literal.isNegated() ? bdd.not(node) : node;
+      if (encoding == Encoding.AP_COMBINED) {
+        Preconditions.checkArgument(literal.getAtom() < atomicPropositions.size());
+        int node = bdd.variableNode(2 * literal.getAtom());
+        return literal.isNegated() ? bdd.not(node) : node;
+      } else {
+        assert encoding == Encoding.AP_SEPARATE;
+        int variable = literal.isNegated() ? 2 * literal.getAtom() + 1 : 2 * literal.getAtom();
+        Preconditions.checkArgument(variable < atomicPropositionsVariables);
+        return bdd.variableNode(variable);
+      }
     }
 
     @Override
     protected int visit(TemporalOperator formula) {
-      int variable = mapping.get(formula);
+      int variable = temporalOperatorMapping.get(formula);
       assert variable >= 0;
       return bdd.variableNode(variable);
     }
@@ -267,41 +333,29 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   /**
    * Compute all paths to falseNode.
    */
-  private List<int[]> zeroPaths(int node, Map<Integer, List<int[]>> cache) {
-
-    List<int[]> zeroPaths = cache.get(node);
-
-    if (zeroPaths != null) {
-      return zeroPaths;
-    }
-
-    JBddEquivalenceClass wrapper = canonicalWrapper(node);
-
-    // Access cached values.
-    if (wrapper != null && wrapper.zeroPathsCache != null) {
-      zeroPaths = wrapper.zeroPathsCache;
-      cache.put(node, zeroPaths);
-      return zeroPaths;
-    }
+  private List<int[]> zeroPaths(int node) {
 
     if (node == trueNode) {
-      zeroPaths = List.of();
-      cache.put(trueNode, zeroPaths);
-      return zeroPaths;
+      return List.of();
     }
 
     if (node == falseNode) {
-      zeroPaths = List.of(EMPTY);
-      cache.put(falseNode, zeroPaths);
-      return zeroPaths;
+      return LIST_OF_EMPTY;
+    }
+
+    JBddEquivalenceClass wrapper = of(null, node);
+
+    // Access cached values.
+    if (wrapper.zeroPathsCache != null) {
+      return wrapper.zeroPathsCache;
     }
 
     int variable = bdd.variable(node);
     int highNode = bdd.high(node);
     int lowNode = bdd.low(node);
 
-    var highZeroPaths = zeroPaths(highNode, cache);
-    var lowZeroPaths = new ArrayList<>(zeroPaths(lowNode, cache));
+    var highZeroPaths = zeroPaths(highNode);
+    var lowZeroPaths = new ArrayList<>(zeroPaths(lowNode));
 
     boolean highImpliesLow = bdd.implies(highNode, lowNode);
     boolean lowImpliesHigh = bdd.implies(lowNode, highNode);
@@ -315,7 +369,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       });
     }
 
-    if (variable < atomicPropositions.size()) {
+    if (encoding == Encoding.AP_COMBINED && variable < atomicPropositionsVariables) {
       // high and low cannot be equivalent.
       assert !highImpliesLow || !lowImpliesHigh;
 
@@ -337,11 +391,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       lowZeroPaths.addAll(highZeroPaths);
     }
 
-    zeroPaths = maximalElements(lowZeroPaths.toArray(int[][]::new));
-    cache.put(node, zeroPaths);
+    var zeroPaths = maximalElements(lowZeroPaths.toArray(int[][]::new));
 
     // Cache zeroPaths in wrapper.
-    if (wrapper != null && wrapper.zeroPathsCache == null) {
+    if (wrapper.zeroPathsCache == null) {
       wrapper.zeroPathsCache = zeroPaths;
     }
 
@@ -394,41 +447,29 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   /**
    * Compute all paths to trueNode.
    */
-  private List<int[]> onePaths(int node, Map<Integer, List<int[]>> cache) {
-
-    List<int[]> onePaths = cache.get(node);
-
-    if (onePaths != null) {
-      return onePaths;
-    }
-
-    JBddEquivalenceClass wrapper = canonicalWrapper(node);
-
-    // Access cached values.
-    if (wrapper != null && wrapper.onePathsCache != null) {
-      onePaths = wrapper.onePathsCache;
-      cache.put(node, onePaths);
-      return onePaths;
-    }
+  private List<int[]> onePaths(int node) {
 
     if (node == trueNode) {
-      onePaths = List.of(EMPTY);
-      cache.put(trueNode, onePaths);
-      return onePaths;
+      return LIST_OF_EMPTY;
     }
 
     if (node == falseNode) {
-      onePaths = List.of();
-      cache.put(falseNode, onePaths);
-      return onePaths;
+      return List.of();
+    }
+
+    JBddEquivalenceClass wrapper = of(null, node);
+
+    // Access cached values.
+    if (wrapper.onePathsCache != null) {
+      return wrapper.onePathsCache;
     }
 
     int variable = bdd.variable(node);
     int highNode = bdd.high(node);
     int lowNode = bdd.low(node);
 
-    var highOnePaths = new ArrayList<>(onePaths(highNode, cache));
-    var lowOnePaths = onePaths(lowNode, cache);
+    var highOnePaths = new ArrayList<>(onePaths(highNode));
+    var lowOnePaths = onePaths(lowNode);
 
     boolean highImpliesLow = bdd.implies(highNode, lowNode);
     boolean lowImpliesHigh = bdd.implies(lowNode, highNode);
@@ -442,7 +483,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       });
     }
 
-    if (variable < atomicPropositions.size()) {
+    if (encoding == Encoding.AP_COMBINED && variable < atomicPropositionsVariables) {
       // high and low cannot be equivalent.
       assert !highImpliesLow || !lowImpliesHigh;
 
@@ -464,11 +505,10 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       highOnePaths.addAll(lowOnePaths);
     }
 
-    onePaths = maximalElements(highOnePaths.toArray(int[][]::new));
-    cache.put(node, onePaths);
+    var onePaths = maximalElements(highOnePaths.toArray(int[][]::new));
 
     // Cache onePaths in wrapper.
-    if (wrapper != null && wrapper.onePathsCache == null) {
+    if (wrapper.onePathsCache == null) {
       wrapper.onePathsCache = onePaths;
     }
 
@@ -524,6 +564,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     // Caches
     @Nullable
+    private MtBdd<EquivalenceClass> temporalStepTreeCache;
+    @Nullable
     private JBddEquivalenceClass unfoldCache;
     @Nullable
     private JBddEquivalenceClass notCache;
@@ -535,15 +577,12 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     private Set<Set<Formula>> cnfView;
     @Nullable
     private Set<Set<Formula>> dnfView;
-
     @Nullable
-    private ImmutableBitSet atomicPropositionsCache;
+    private List<Formula> supportCache;
     @Nullable
-    private ImmutableBitSet atomicPropositionsCacheIncludeNested;
+    private List<Formula> supportCacheIncludeNested;
     @Nullable
-    private Set<TemporalOperator> temporalOperatorsCache;
-    @Nullable
-    private Set<TemporalOperator> temporalOperatorsCacheIncludeNested;
+    private EquivalenceClass encodeCache;
 
     private double truenessCache = Double.NaN;
 
@@ -555,33 +594,66 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     @Override
+    public Encoding encoding() {
+      return factory.encoding;
+    }
+
+    @Override
+    public EquivalenceClass encode(Encoding encoding) {
+      if (factory.encoding == encoding) {
+        return this;
+      }
+
+      if (factory.encoding == Encoding.AP_COMBINED) {
+        assert encoding == Encoding.AP_SEPARATE;
+        throw new IllegalArgumentException("Cannot encode into a coarser encoding.");
+      }
+
+      assert factory.encoding == Encoding.AP_SEPARATE;
+      assert encoding == Encoding.AP_COMBINED;
+
+      if (encodeCache == null) {
+        encodeCache = factory.reencodingFactory.of(representative());
+      }
+
+      return Objects.requireNonNull(encodeCache);
+    }
+
+    @Override
     public Set<Set<Formula>> conjunctiveNormalForm() {
       if (cnfView == null) {
         if (zeroPathsCache == null) {
-          zeroPathsCache = List.copyOf(factory.zeroPaths(node, new HashMap<>()));
+          zeroPathsCache = List.copyOf(factory.zeroPaths(node));
         }
 
         List<Set<Formula>> clauses = new ArrayList<>(zeroPathsCache.size());
-        int atomicPropositions = factory.atomicPropositions.size();
-        Formula[] reverseMapping = factory.reverseMapping;
+        int atomicPropositionsVariables = factory.atomicPropositionsVariables;
+        TemporalOperator[] reverseMapping = factory.temporalOperatorReverseMapping;
 
         for (int[] zeroPath : zeroPathsCache) {
           Formula[] clause = new Formula[zeroPath.length];
 
           for (int j = 0; j < zeroPath.length; j++) {
-            int zeroPathNode = zeroPath[j];
-            assert zeroPathNode < atomicPropositions
+            int zeroPathVariable = zeroPath[j];
+            assert zeroPathVariable < atomicPropositionsVariables
               : "Node encodes non-negated TemporalOperator";
 
-            if (0 <= zeroPathNode) {
-              clause[j] = Literal.of(zeroPathNode, true);
+            if (0 <= zeroPathVariable) {
+              assert factory.encoding == Encoding.AP_COMBINED;
+              assert zeroPathVariable % 2 == 0;
+              clause[j] = Literal.of(zeroPathVariable / 2, true);
             } else {
-              int negatedNode = -(zeroPathNode + 1);
+              int negatedVariable = -(zeroPathVariable + 1);
 
-              if (negatedNode < atomicPropositions) {
-                clause[j] = Literal.of(negatedNode);
+              if (negatedVariable < atomicPropositionsVariables) {
+                if (negatedVariable % 2 == 0) {
+                  clause[j] = Literal.of(negatedVariable / 2, false);
+                } else {
+                  assert factory.encoding == Encoding.AP_SEPARATE;
+                  clause[j] = Literal.of((negatedVariable - 1) / 2, true);
+                }
               } else {
-                clause[j] = reverseMapping[negatedNode - atomicPropositions];
+                clause[j] = reverseMapping[negatedVariable - atomicPropositionsVariables];
               }
             }
           }
@@ -599,27 +671,36 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     public Set<Set<Formula>> disjunctiveNormalForm() {
       if (dnfView == null) {
         if (onePathsCache == null) {
-          onePathsCache = List.copyOf(factory.onePaths(node, new HashMap<>()));
+          onePathsCache = List.copyOf(factory.onePaths(node));
         }
 
         List<Set<Formula>> clauses = new ArrayList<>(onePathsCache.size());
-        int atomicPropositions = factory.atomicPropositions.size();
-        Formula[] reverseMapping = factory.reverseMapping;
+        int atomicPropositionsVariables = factory.atomicPropositionsVariables;
+        TemporalOperator[] reverseMapping = factory.temporalOperatorReverseMapping;
 
         for (int[] onePath : onePathsCache) {
           Formula[] clause = new Formula[onePath.length];
 
           for (int j = 0; j < onePath.length; j++) {
-            int onePathNode = onePath[j];
-            assert -(atomicPropositions + 1) <= onePathNode
+            int onePathVariable = onePath[j];
+            assert -(atomicPropositionsVariables + 1) <= onePathVariable
               : "Node encodes negation of TemporalOperator";
 
-            if (onePathNode < 0) {
-              clause[j] = Literal.of(-(onePathNode + 1), true);
-            } else if (onePathNode < atomicPropositions) {
-              clause[j] = Literal.of(onePathNode);
+            if (onePathVariable < 0) {
+              assert factory.encoding == Encoding.AP_COMBINED;
+              assert (-(onePathVariable + 1)) % 2 == 0;
+              clause[j] = Literal.of((-(onePathVariable + 1)) / 2, true);
+            } else if (onePathVariable < atomicPropositionsVariables) {
+
+              if (onePathVariable % 2 == 0) {
+                clause[j] = Literal.of(onePathVariable / 2, false);
+              } else {
+                assert factory.encoding == Encoding.AP_SEPARATE;
+                clause[j] = Literal.of((onePathVariable - 1) / 2, true);
+              }
+
             } else {
-              clause[j] = reverseMapping[onePathNode - atomicPropositions];
+              clause[j] = reverseMapping[onePathVariable - atomicPropositionsVariables];
             }
           }
 
@@ -665,70 +746,74 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     @Override
-    public ImmutableBitSet atomicPropositions(boolean includeNested) {
-      if (atomicPropositionsCache == null || atomicPropositionsCacheIncludeNested == null) {
-        initialiseSupportBasedCaches();
+    public List<Formula> support(boolean includeNested) {
+      if (supportCache == null || supportCacheIncludeNested == null) {
+        initialiseSupportCaches();
       }
 
-      assert atomicPropositionsCache != null;
-      assert atomicPropositionsCacheIncludeNested != null;
-      return includeNested ? atomicPropositionsCacheIncludeNested : atomicPropositionsCache;
+      return Objects.requireNonNull(includeNested ? supportCacheIncludeNested : supportCache);
     }
 
-    @Override
-    public Set<TemporalOperator> temporalOperators(boolean includeNested) {
-      if (temporalOperatorsCache == null || temporalOperatorsCacheIncludeNested == null) {
-        initialiseSupportBasedCaches();
+    private void initialiseSupportCaches() {
+      int atomicPropositionsRegion = factory.atomicPropositionsVariables;
+      BitSet supportBitSet = factory.bdd.support(node);
+
+      // Compute support(false)
+      Formula[] support = new Formula[supportBitSet.cardinality()];
+      int j = 0;
+
+      for (int i = supportBitSet.nextSetBit(0); i >= 0; i = supportBitSet.nextSetBit(i + 1)) {
+
+        if (i < atomicPropositionsRegion) {
+          assert factory.encoding == Encoding.AP_SEPARATE || i % 2 == 0;
+          support[j] = i % 2 == 0
+            ? Literal.of(i / 2, false)
+            : Literal.of((i - 1) / 2, true);
+        } else {
+          support[j] = factory.temporalOperatorReverseMapping[i - atomicPropositionsRegion];
+        }
+
+        j++;
+
+        if (i == Integer.MAX_VALUE) {
+          throw new IllegalStateException("Support is too large.");
+        }
       }
 
-      assert temporalOperatorsCache != null;
-      assert temporalOperatorsCacheIncludeNested != null;
-      return includeNested ? temporalOperatorsCacheIncludeNested : temporalOperatorsCache;
-    }
+      Arrays.sort(support);
 
-    private void initialiseSupportBasedCaches() {
-      int atomicPropositionsSize = factory.atomicPropositions.size();
-      BitSet support = factory.bdd.support(node);
+      assert supportCache == null;
+      supportCache = List.of(support);
 
-      // Compute atomicPropositions(false)
-      BitSet atomicPropositions = BitSet2.copyOf(support);
-      if (atomicPropositionsSize < atomicPropositions.length()) {
-        atomicPropositions.clear(atomicPropositionsSize, atomicPropositions.length());
+      // Compute support(true)
+      Set<Formula> supportIncludeNested = new TreeSet<>(Formula::compareTo);
+
+      for (Formula formula : support) {
+        supportIncludeNested.addAll(
+          formula.subformulas(x -> x instanceof Literal || x instanceof TemporalOperator));
       }
 
-      // Compute temporalOperators(false)
-      support.clear(0, atomicPropositionsSize);
-      TemporalOperator[] temporalOperators = support.stream()
-        .mapToObj(i -> factory.reverseMapping[i - atomicPropositionsSize])
-        .toArray(TemporalOperator[]::new);
+      if (factory.encoding == Encoding.AP_COMBINED) {
+        Set<Literal> negatedLiterals = new HashSet<>();
 
-      // Compute atomicPropositions(true), temporalOperators(true)
-      BitSet atomicPropositionsIncludeNested = BitSet2.copyOf(atomicPropositions);
-      Set<TemporalOperator> temporalOperatorsIncludeNested
-        = new HashSet<>(5 * temporalOperators.length);
+        supportIncludeNested.removeIf(x -> {
+          if (x instanceof Literal && ((Literal) x).isNegated()) {
+            negatedLiterals.add((Literal) x);
+            return true;
+          }
 
-      for (TemporalOperator temporalOperator : temporalOperators) {
-        atomicPropositionsIncludeNested.or(temporalOperator.atomicPropositions(true));
-        temporalOperatorsIncludeNested.addAll(temporalOperator.subformulas(TemporalOperator.class));
+          return false;
+        });
+
+        for (Literal negatedLiteral : negatedLiterals) {
+          supportIncludeNested.add(Literal.of(negatedLiteral.getAtom()));
+        }
       }
 
-      assert atomicPropositionsCache == null;
-      atomicPropositionsCache = ImmutableBitSet.copyOf(atomicPropositions);
-
-      assert atomicPropositionsCacheIncludeNested == null;
-      atomicPropositionsCacheIncludeNested =
-        atomicPropositions.equals(atomicPropositionsIncludeNested)
-          ? atomicPropositionsCache
-          : ImmutableBitSet.copyOf(atomicPropositionsIncludeNested);
-
-      assert temporalOperatorsCache == null;
-      temporalOperatorsCache = Set.of(temporalOperators);
-
-      assert temporalOperatorsCacheIncludeNested == null;
-      temporalOperatorsCacheIncludeNested =
-        temporalOperators.length == temporalOperatorsIncludeNested.size()
-          ? temporalOperatorsCache
-          : Set.of(temporalOperatorsIncludeNested.toArray(TemporalOperator[]::new));
+      assert supportCacheIncludeNested == null;
+      supportCacheIncludeNested = supportIncludeNested.size() == supportCache.size()
+        ? supportCache
+        : List.copyOf(supportIncludeNested);
     }
 
     @Override
@@ -755,25 +840,23 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     @Override
     public EquivalenceClass substitute(
       Function<? super TemporalOperator, ? extends Formula> substitution) {
-      return factory.of(representative().substitute(substitution), true);
-    }
 
-    @Override
-    public EquivalenceClass temporalStep(BitSet valuation) {
-      return factory.of(representative().temporalStep(valuation), false);
-    }
+      var newRepresentative = representative().substitute(substitution);
 
-    @SuppressWarnings("unchecked")
-    @Override
-    public <T> MtBdd<T> temporalStepTree(Function<EquivalenceClass, Set<T>> mapper) {
-      if (factory.temporalStepTreeCache == null
-        || !mapper.equals(factory.temporalStepTreeCachedMapper)) {
-        factory.temporalStepTreeCachedMapper = (Function) mapper;
-        factory.temporalStepTreeCache = new IdentityHashMap<>();
+      if (newRepresentative.equals(representative)) {
+        return this;
       }
 
-      return temporalStepTree(representative(), new BitSet(), mapper,
-        (IdentityHashMap) factory.temporalStepTreeCache);
+      return factory.of(newRepresentative, true);
+    }
+
+    @Override
+    public MtBdd<EquivalenceClass> temporalStepTree() {
+      if (temporalStepTreeCache == null) {
+        temporalStepTree(representative(), new BitSet());
+      }
+
+      return Objects.requireNonNull(temporalStepTreeCache);
     }
 
     @Override
@@ -788,40 +871,56 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       return notCache;
     }
 
-    private <T> MtBdd<T> temporalStepTree(
-      Formula initialRepresentative,
-      BitSet pathTrace,
-      Function<EquivalenceClass, Set<T>> mapper,
-      IdentityHashMap<EquivalenceClass, MtBdd<T>> cache) {
+    private MtBdd<EquivalenceClass> temporalStepTree(
+      Formula initialRepresentative, BitSet pathTrace) {
 
-      var tree = cache.get(this);
-
-      if (tree != null) {
-        return tree;
+      if (temporalStepTreeCache != null) {
+        return temporalStepTreeCache;
       }
 
-      var alphabet = factory.atomicPropositions;
       var bdd = factory.bdd;
+      int atom = bdd.isNodeRoot(node) ? factory.atomicPropositionsVariables : bdd.variable(node);
 
-      int atom = bdd.isNodeRoot(node) ? alphabet.size() : bdd.variable(node);
-
-      if (atom >= alphabet.size()) {
-        tree = MtBdd.of(mapper.apply(
+      if (atom >= factory.atomicPropositionsVariables) {
+        temporalStepTreeCache = MtBdd.of(Set.of(
           factory.of(initialRepresentative.temporalStep(pathTrace), false)));
       } else {
-        pathTrace.set(atom);
-        var trueSubTree = factory.of(null, bdd.high(node))
-          .temporalStepTree(initialRepresentative, pathTrace, mapper, cache);
+        int atomicProposition;
+        int trueSubTreeNode;
+        int falseSubTreeNode;
 
-        pathTrace.clear(atom, pathTrace.length());
-        var falseSubTree = factory.of(null, bdd.low(node))
-          .temporalStepTree(initialRepresentative, pathTrace, mapper, cache);
+        // Walk the BDD in diamond shape.
+        if (atom % 2 == 0) {
+          atomicProposition = atom / 2;
 
-        tree = MtBdd.of(atom, trueSubTree, falseSubTree);
+          trueSubTreeNode = bdd.high(node);
+          if (!bdd.isNodeRoot(trueSubTreeNode) && bdd.variable(trueSubTreeNode) == atom + 1) {
+            trueSubTreeNode = bdd.low(trueSubTreeNode);
+          }
+
+          falseSubTreeNode = bdd.low(node);
+          if (!bdd.isNodeRoot(falseSubTreeNode) && bdd.variable(falseSubTreeNode) == atom + 1) {
+            falseSubTreeNode = bdd.high(falseSubTreeNode);
+          }
+        } else {
+          assert factory.encoding == Encoding.AP_SEPARATE;
+          atomicProposition = (atom - 1) / 2;
+          trueSubTreeNode = bdd.low(node);
+          falseSubTreeNode = bdd.high(node);
+        }
+
+        pathTrace.set(atomicProposition);
+        var trueSubTree = factory.of(null, trueSubTreeNode)
+          .temporalStepTree(initialRepresentative, pathTrace);
+
+        pathTrace.clear(atomicProposition, pathTrace.length());
+        var falseSubTree = factory.of(null, falseSubTreeNode)
+          .temporalStepTree(initialRepresentative, pathTrace);
+
+        temporalStepTreeCache = MtBdd.of(atomicProposition, trueSubTree, falseSubTree);
       }
 
-      cache.put(this, tree);
-      return tree;
+      return Objects.requireNonNull(temporalStepTreeCache);
     }
 
     @Override
@@ -860,12 +959,14 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       return truenessCache;
     }
 
-    @Override
-    public boolean equals(Object obj) {
-      // Check that we are not comparing classes of different factories
-      assert !(obj instanceof EquivalenceClass) || ((EquivalenceClass) obj).factory() == factory();
-      return this == obj;
-    }
+    // We cannot use this if we use re-encoding of BDDs.
+    // @Override
+    // public boolean equals(Object obj) {
+    //   // Check that we are not comparing classes of different factories
+    //   assert !(obj instanceof EquivalenceClass)
+    //     || ((EquivalenceClass) obj).factory() == factory();
+    //   return this == obj;
+    // }
   }
 
   private static final class DistinctList<E> extends AbstractSet<E> {

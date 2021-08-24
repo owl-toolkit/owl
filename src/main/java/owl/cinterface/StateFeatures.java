@@ -25,6 +25,7 @@ import static owl.cinterface.StateFeatures.Feature.temporalOperatorsProfileFromB
 import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.CNF;
 import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.DNF;
 import static owl.translations.canonical.DeterministicConstructions.BreakpointStateAccepting;
+import static owl.translations.canonical.DeterministicConstructions.BreakpointStateAcceptingRoundRobin;
 
 import com.google.auto.value.AutoOneOf;
 import com.google.common.base.Preconditions;
@@ -98,6 +99,12 @@ public final class StateFeatures {
 
       @SuppressWarnings("unchecked")
       var castedStates = (Set<BreakpointStateAccepting>) states;
+      featuresMap = extract(castedStates, x -> List.of(x.all(), x.accepting()));
+
+    } else if (sentinel instanceof BreakpointStateAcceptingRoundRobin) {
+
+      @SuppressWarnings("unchecked")
+      var castedStates = (Set<BreakpointStateAcceptingRoundRobin>) states;
       featuresMap = extract(castedStates, x -> List.of(x.all(), x.accepting()));
 
     } else if (sentinel instanceof BreakpointStateRejecting) {

@@ -31,11 +31,24 @@ public interface FactorySupplier {
 
   BddSetFactory getBddSetFactory();
 
-  EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions);
+  default EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions) {
+    return getEquivalenceClassFactory(
+      atomicPropositions,
+      EquivalenceClassFactory.Encoding.AP_COMBINED);
+  }
+
+  EquivalenceClassFactory getEquivalenceClassFactory(
+    List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding);
 
   default Factories getFactories(List<String> atomicPropositions) {
+    return getFactories(atomicPropositions, EquivalenceClassFactory.Encoding.AP_COMBINED);
+  }
+
+  default Factories getFactories(
+    List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding) {
+
     return new Factories(
-      getEquivalenceClassFactory(atomicPropositions),
+      getEquivalenceClassFactory(atomicPropositions, defaultEncoding),
       getBddSetFactory());
   }
 }

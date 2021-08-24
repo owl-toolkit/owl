@@ -1070,8 +1070,7 @@
         },
         {
           "temporalOperatorsProfile": [
-            0,
-            1
+            0
           ]
         }
       ],
@@ -1141,8 +1140,7 @@
         },
         {
           "temporalOperatorsProfile": [
-            0,
-            1
+            0
           ]
         }
       ],

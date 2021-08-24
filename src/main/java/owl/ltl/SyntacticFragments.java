@@ -52,8 +52,13 @@ public final class SyntacticFragments {
   }
 
   public static boolean isFinite(EquivalenceClass clazz) {
-    for (var temporalOperator : clazz.temporalOperators()) {
-      if (!isFinite(temporalOperator)) {
+    for (var formula : clazz.support(false)) {
+      if (formula instanceof Literal) {
+        continue;
+      }
+
+      assert formula instanceof Formula.TemporalOperator;
+      if (!isFinite(formula)) {
         return false;
       }
     }
@@ -66,8 +71,13 @@ public final class SyntacticFragments {
   }
 
   public static boolean isCoSafety(EquivalenceClass clazz) {
-    for (var temporalOperator : clazz.temporalOperators()) {
-      if (!isCoSafety(temporalOperator)) {
+    for (var formula : clazz.support(false)) {
+      if (formula instanceof Literal) {
+        continue;
+      }
+
+      assert formula instanceof Formula.TemporalOperator;
+      if (!isCoSafety(formula)) {
         return false;
       }
     }
@@ -80,8 +90,13 @@ public final class SyntacticFragments {
   }
 
   public static boolean isSafety(EquivalenceClass clazz) {
-    for (var temporalOperator : clazz.temporalOperators()) {
-      if (!isSafety(temporalOperator)) {
+    for (var formula : clazz.support(false)) {
+      if (formula instanceof Literal) {
+        continue;
+      }
+
+      assert formula instanceof Formula.TemporalOperator;
+      if (!isSafety(formula)) {
         return false;
       }
     }

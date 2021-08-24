@@ -104,7 +104,24 @@ class AbstractNormalformDRAConstruction {
     Table<Set<Formula.TemporalOperator>, Set<Formula.TemporalOperator>, Formula> table
       = HashBasedTable.create();
 
+    if (delta2Formula.anyMatch(x -> x instanceof XOperator
+      && FormulaClass.classify(x).equals(DELTA_2))) {
+
+      delta2Formula = delta2Formula.substitute(x -> {
+        if (x instanceof XOperator && FormulaClass.classify(x).equals(DELTA_2)) {
+          return SimplifierRepository.PUSH_DOWN_X.apply(x);
+        } else {
+          return x;
+        }
+      });
+    }
+
     for (Set<Formula> clause : NormalForms.toDnf(delta2Formula)) {
+      // Found a contradiction, skipping clause.
+      if (clause.stream().anyMatch(formula -> clause.contains(formula.not()))) {
+        continue;
+      }
+
       Set<Formula> delta1 = new HashSet<>();
       Set<Formula.TemporalOperator> sigma2 = new HashSet<>();
       Set<Formula.TemporalOperator> pi2 = new HashSet<>();
@@ -118,12 +135,13 @@ class AbstractNormalformDRAConstruction {
         }
 
         assert formulaClass.level() == 2;
+        assert formulaClass.type() != Type.DELTA;
         assert formula instanceof Formula.TemporalOperator;
 
         if (formulaClass.type() == Type.SIGMA) {
           sigma2.add((Formula.TemporalOperator) formula);
         } else {
-          assert formulaClass.type() == Type.PI;
+          assert formulaClass.type() == Type.PI : formula;
           pi2.add((Formula.TemporalOperator) formula);
         }
       }
@@ -139,7 +157,9 @@ class AbstractNormalformDRAConstruction {
 
     // Step 3: We collect clauses that are in Pi2, since a disjunction over Büchi conditions does
     // not need a round-robin counter.
+    Formula globalSigma2 = BooleanConstant.FALSE;
     Formula globalPi2 = BooleanConstant.FALSE;
+    Formula globalDelta1 = BooleanConstant.FALSE;
 
     List<String> atomicPropositions = labelledFormula.atomicPropositions();
     List<Sigma2Pi2Pair> pairs = new ArrayList<>();
@@ -149,16 +169,19 @@ class AbstractNormalformDRAConstruction {
       Set<Formula.TemporalOperator> pi2 = Objects.requireNonNull(cell.getColumnKey());
       Formula delta1 = Objects.requireNonNull(cell.getValue());
 
-      if (sigma2.isEmpty() && pi2.size() <= 1) {
-        globalPi2 = Disjunction.of(globalPi2, Conjunction.of(Conjunction.of(pi2), delta1));
+      if (pi2.isEmpty() && sigma2.isEmpty()) {
+        assert globalDelta1.equals(BooleanConstant.FALSE);
+        globalDelta1 = delta1;
+        continue;
+      }
+
+      if (pi2.isEmpty()) {
+        globalSigma2 = Disjunction.of(globalSigma2, Conjunction.of(Conjunction.of(sigma2), delta1));
         continue;
       }
 
       if (sigma2.isEmpty()) {
-        Formula pi2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
-          Conjunction.of(delta1, Conjunction.of(pi2)));
-
-        pairs.add(Sigma2Pi2Pair.of(atomicPropositions, BooleanConstant.TRUE, pi2Formula));
+        globalPi2 = Disjunction.of(globalPi2, Conjunction.of(Conjunction.of(pi2), delta1));
         continue;
       }
 
@@ -170,9 +193,27 @@ class AbstractNormalformDRAConstruction {
       pairs.add(Sigma2Pi2Pair.of(atomicPropositions, sigma2Formula, pi2Formula));
     }
 
+    if (!globalSigma2.equals(BooleanConstant.FALSE)) {
+      pairs.add(Sigma2Pi2Pair.of(
+        atomicPropositions,
+        SimplifierRepository.SYNTACTIC_FIXPOINT.apply(Disjunction.of(globalSigma2, globalDelta1)),
+        BooleanConstant.TRUE));
+      globalDelta1 = BooleanConstant.FALSE;
+    }
+
     if (!globalPi2.equals(BooleanConstant.FALSE)) {
-      Formula globalPi2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(globalPi2);
-      pairs.add(Sigma2Pi2Pair.of(atomicPropositions, BooleanConstant.TRUE, globalPi2Formula));
+      pairs.add(Sigma2Pi2Pair.of(
+        atomicPropositions,
+        BooleanConstant.TRUE,
+        SimplifierRepository.SYNTACTIC_FIXPOINT.apply(Disjunction.of(globalPi2, globalDelta1))));
+      globalDelta1 = BooleanConstant.FALSE;
+    }
+
+    if (!globalDelta1.equals(BooleanConstant.FALSE)) {
+      pairs.add(Sigma2Pi2Pair.of(
+        atomicPropositions,
+        globalDelta1,
+        BooleanConstant.TRUE));
     }
 
     return pairs;

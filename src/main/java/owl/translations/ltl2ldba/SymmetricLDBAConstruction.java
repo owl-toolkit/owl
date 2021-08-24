@@ -41,7 +41,6 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
@@ -245,14 +244,11 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
           do {
             remainder = xRemovedRemainder;
 
-            var protectedXOperators = remainder.temporalOperators().stream()
+            var protectedXOperators = remainder.support(false).stream()
+              .filter(x -> (x instanceof Formula.TemporalOperator && !(x instanceof XOperator)))
               .flatMap(x -> {
-                if (x instanceof XOperator) {
-                  return Stream.empty();
-                } else {
-                  assert Predicates.IS_FIXPOINT.test(x);
-                  return x.subformulas(XOperator.class).stream();
-                }
+                assert Predicates.IS_FIXPOINT.test(x);
+                return x.subformulas(XOperator.class).stream();
               })
               .collect(Collectors.toSet());
 

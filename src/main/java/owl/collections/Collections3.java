@@ -247,8 +247,8 @@ public final class Collections3 {
   }
 
   /**
-   * Computes a sub-list of elements which are maximal. The order is preserved. Does not support
-   * null elements.
+   * Computes a sub-list of elements which are maximal. The iteration order is preserved. Does not
+   * support null elements.
    *
    * @param elements the elements
    * @param isLessThan returns true is the first argument is less than the second argument. It is
@@ -258,7 +258,7 @@ public final class Collections3 {
    */
   @SuppressWarnings("unchecked")
   public static <E> List<E> maximalElements(
-    List<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
+    Collection<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
 
     Object[] maximalElements = elements.toArray();
 
@@ -309,7 +309,9 @@ public final class Collections3 {
    * @param <E> the element type.
    * @return the partition.
    */
-  public static <E> List<Set<E>> partition(Collection<E> elements, BiPredicate<E, E> relation) {
+  public static <E> List<Set<E>> partition(
+    Collection<? extends E> elements, BiPredicate<? super E, ? super E> relation) {
+
     List<Set<E>> partitions = new ArrayList<>(elements.size());
     elements.forEach(x -> partitions.add(new HashSet<>(Set.of(x))));
 
@@ -325,45 +327,6 @@ public final class Collections3 {
         continueMerging |= otherPartitions.removeIf(otherPartition -> {
           boolean related = partition.stream().anyMatch(
             x -> otherPartition.stream().anyMatch(y -> x.equals(y) || relation.test(x, y)));
-
-          if (related) {
-            partition.addAll(otherPartition);
-          }
-
-          return related;
-        });
-      }
-    }
-
-    return partitions;
-  }
-
-  /**
-   * Compute the equivalence relation the elements using the given relation.
-   *
-   * @param elements the collection containing the elements that are group into partitions.
-   * @param equivalenceRelation the equivalance relation.
-   * @param <E> the element type.
-   * @return the partition.
-   */
-  public static <E> List<Set<E>> quotient(
-    Collection<? extends E> elements, BiPredicate<? super E, ? super E> equivalenceRelation) {
-
-    List<Set<E>> partitions = new ArrayList<>(elements.size());
-    elements.forEach(x -> partitions.add(new HashSet<>(Set.of(x))));
-
-    boolean continueMerging = true;
-
-    while (continueMerging) {
-      continueMerging = false;
-
-      for (int i = 0; i < partitions.size() - 1; i++) {
-        var partition = partitions.get(i);
-        var otherPartitions = partitions.subList(i + 1, partitions.size());
-
-        continueMerging |= otherPartitions.removeIf(otherPartition -> {
-          boolean related =
-            equivalenceRelation.test(partition.iterator().next(), otherPartition.iterator().next());
 
           if (related) {
             partition.addAll(otherPartition);

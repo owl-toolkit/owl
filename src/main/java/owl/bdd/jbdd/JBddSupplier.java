@@ -30,7 +30,7 @@ import owl.bdd.FactorySupplier;
 public enum JBddSupplier implements FactorySupplier {
   JBDD_SUPPLIER_INSTANCE;
 
-  private static Bdd create(int size) {
+  static Bdd create(int size) {
     var configuration = ImmutableBddConfiguration.builder()
       .logStatisticsOnShutdown(false)
       .useGlobalComposeCache(false)
@@ -45,9 +45,10 @@ public enum JBddSupplier implements FactorySupplier {
   }
 
   @Override
-  public EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions) {
+  public EquivalenceClassFactory getEquivalenceClassFactory(
+    List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding) {
     Bdd eqFactoryBdd = create(1024 * (atomicPropositions.size() + 1));
-    return new JBddEquivalenceClassFactory(eqFactoryBdd, atomicPropositions);
+    return new JBddEquivalenceClassFactory(eqFactoryBdd, atomicPropositions, defaultEncoding);
   }
 
   @Override

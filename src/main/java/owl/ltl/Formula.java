@@ -220,7 +220,7 @@ public abstract class Formula implements Comparable<Formula> {
       workQueue.addAll(formula.operands);
     }
 
-    return subformulas;
+    return subformulas.isEmpty() ? Set.of() : subformulas;
   }
 
   public abstract Formula substitute(
@@ -271,6 +271,9 @@ public abstract class Formula implements Comparable<Formula> {
 
       return this;
     }
+
+    // @Override
+    // public abstract TemporalOperator not();
 
     @SuppressWarnings("PMD")
     @Override
