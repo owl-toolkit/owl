@@ -127,7 +127,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
 
     // Collapse accepting sinks.
     Predicate<Map<Integer, ?>> isAcceptingSink = state ->
-      state.values().stream().anyMatch((Predicate<Object>) NormalformDRAConstruction::isUniverse);
+      state.values().stream().anyMatch(NormalformDRAConstruction::isUniverse);
 
     var acceptingSink = automaton.states().stream().filter(isAcceptingSink).findAny();
 
@@ -168,6 +168,10 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
 
     if (state instanceof DeterministicConstructions.BreakpointStateAcceptingRoundRobin) {
       return ((DeterministicConstructions.BreakpointStateAcceptingRoundRobin) state).all().isTrue();
+    }
+
+    if (state instanceof DeterministicConstructions.BreakpointStateRejectingRoundRobin) {
+      return ((DeterministicConstructions.BreakpointStateRejectingRoundRobin) state).all().isTrue();
     }
 
     return false;
