@@ -35866,23 +35866,21 @@
             0,
             1,
             2,
-            3
+            3,
+            8
           ]
         },
         {
           "temporalOperatorsProfile": [
-            0,
+            0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
             1
           ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3
-          ]
         },
         {
           "temporalOperatorsProfile": [
@@ -35893,9 +35891,29 @@
       [
         {
           "temporalOperatorsProfile": [
-            0,
             2,
-            3
+            3,
+            4,
+            5,
+            6,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            8
           ]
         },
         {
@@ -35910,9 +35928,9 @@
       [
         {
           "temporalOperatorsProfile": [
-            0,
             2,
-            3
+            3,
+            8
           ]
         },
         {
@@ -35920,20 +35938,6 @@
             0,
             2,
             3
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ]
@@ -35999,79 +36003,7 @@
         {
           "temporalOperatorsProfile": [
             0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
+            1
           ]
         },
         {
@@ -36083,14 +36015,92 @@
       [
         {
           "temporalOperatorsProfile": [
+            1,
             2,
             3,
-            4
+            4,
+            7,
+            8
           ]
         },
         {
           "temporalOperatorsProfile": [
             0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
           ]
         }
       ]
@@ -37133,9 +37143,6 @@
       [
         {
           "temporalOperatorsProfile": []
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -37143,9 +37150,6 @@
           "temporalOperatorsProfile": [
             0
           ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -37154,9 +37158,6 @@
             0,
             2
           ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -37164,13 +37165,8 @@
           "temporalOperatorsProfile": [
             0,
             2,
-            4,
-            5
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            5,
+            6
           ]
         }
       ],
@@ -37178,15 +37174,9 @@
         {
           "temporalOperatorsProfile": [
             0,
-            4,
             5,
-            9
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
+            6,
+            8
           ]
         }
       ],
@@ -37195,12 +37185,7 @@
           "temporalOperatorsProfile": [
             1,
             2,
-            3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
+            4
           ]
         }
       ],
@@ -37209,61 +37194,43 @@
           "temporalOperatorsProfile": [
             2
           ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ],
       [
         {
           "temporalOperatorsProfile": [
             2,
+            3,
+            5,
+            6
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            5,
             6,
             7
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
         {
           "temporalOperatorsProfile": [
+            3,
+            5,
             6,
-            7,
             8
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
         {
           "temporalOperatorsProfile": [
-            6,
-            7,
-            10
+            7
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            8
-          ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ]
     ]
@@ -37276,9 +37243,6 @@
           "temporalOperatorsProfile": [
             0
           ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -37291,11 +37255,6 @@
             4,
             5
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -37309,10 +37268,41 @@
             5,
             6
           ]
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            11
           ]
         }
       ],
@@ -37329,10 +37319,21 @@
             10,
             12
           ]
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            7,
+            8,
+            9,
+            11
           ]
         }
       ],
@@ -37344,11 +37345,6 @@
             3,
             4
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -37360,11 +37356,6 @@
             4,
             6
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -37378,10 +37369,35 @@
             10,
             12
           ]
-        },
+        }
+      ],
+      [
         {
           "temporalOperatorsProfile": [
-            0
+            0,
+            1,
+            3,
+            4,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            4,
+            7,
+            8,
+            9,
+            11
           ]
         }
       ],
@@ -37394,11 +37410,6 @@
             4,
             10,
             12
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ],
@@ -37408,9 +37419,6 @@
             0,
             2
           ]
-        },
-        {
-          "temporalOperatorsProfile": []
         }
       ],
       [
@@ -37419,15 +37427,12 @@
             0,
             2,
             4,
+            7,
             8,
+            9,
             10,
             11,
             12
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ],
@@ -37436,106 +37441,12 @@
           "temporalOperatorsProfile": [
             0,
             4,
+            7,
             8,
+            9,
             10,
             11,
             12
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4,
-            5,
-            6,
-            8,
-            10,
-            11,
-            12
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4,
-            5,
-            6,
-            8,
-            11
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4,
-            5,
-            8,
-            11
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4,
-            8,
-            10,
-            11,
-            12
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            4,
-            8,
-            11
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ],
@@ -37550,11 +37461,6 @@
             11,
             12
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ]
     ]
@@ -37568,7 +37474,12 @@
             0,
             1,
             2,
-            4
+            3
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         }
       ],
@@ -37577,7 +37488,16 @@
           "temporalOperatorsProfile": [
             0,
             3,
-            4
+            6,
+            7,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
           ]
         }
       ],
@@ -37586,14 +37506,35 @@
           "temporalOperatorsProfile": [
             1,
             2,
-            3
+            4,
+            5,
+            8,
+            9
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0
           ]
         }
       ],
       [
         {
           "temporalOperatorsProfile": [
-            3
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1
           ]
         }
       ]
@@ -42447,11 +42388,6 @@
             0,
             1
           ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
-          ]
         }
       ],
       [
@@ -42460,12 +42396,6 @@
             0,
             1,
             2
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
           ]
         }
       ],
@@ -42476,11 +42406,6 @@
             1,
             2,
             3
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0
           ]
         }
       ]
@@ -51899,26 +51824,7 @@
         },
         {
           "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            4,
-            5,
-            6
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            3
+            0
           ]
         }
       ]
@@ -59483,79 +59389,7 @@
         {
           "temporalOperatorsProfile": [
             0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            2,
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            3,
-            4
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            3,
-            4
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            2,
-            3,
-            4
+            1
           ]
         },
         {
@@ -59567,14 +59401,92 @@
       [
         {
           "temporalOperatorsProfile": [
+            1,
             2,
             3,
-            4
+            4,
+            7,
+            8
           ]
         },
         {
           "temporalOperatorsProfile": [
             0
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            7,
+            8
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3
           ]
         }
       ]

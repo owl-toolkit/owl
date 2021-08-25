@@ -389,21 +389,21 @@
         },
         {
           "temporalOperatorsProfile": [
-            0,
-            1
+            0
           ]
         }
       ],
       [
         {
           "temporalOperatorsProfile": [
-            1,
+            0,
             2
           ]
         },
         {
           "temporalOperatorsProfile": [
-            0
+            0,
+            1
           ]
         }
       ]
@@ -416,9 +416,9 @@
         {
           "temporalOperatorsProfile": [
             0,
+            1,
             2,
-            3,
-            8
+            5
           ]
         },
         {
@@ -430,9 +430,10 @@
       [
         {
           "temporalOperatorsProfile": [
-            1,
-            3,
-            8
+            0,
+            2,
+            4,
+            5
           ]
         },
         {
@@ -446,11 +447,9 @@
       [
         {
           "temporalOperatorsProfile": [
-            1,
-            5,
-            6,
-            7,
-            9
+            0,
+            2,
+            5
           ]
         },
         {
@@ -464,10 +463,10 @@
       [
         {
           "temporalOperatorsProfile": [
+            2,
             3,
             4,
-            7,
-            8
+            5
           ]
         },
         {
@@ -486,10 +485,10 @@
         {
           "temporalOperatorsProfile": [
             0,
+            1,
             2,
-            3,
-            12,
-            17
+            7,
+            11
           ]
         },
         {
@@ -501,48 +500,12 @@
       [
         {
           "temporalOperatorsProfile": [
-            1,
-            3,
-            12,
-            17
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
-            3,
-            12,
-            17
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
             0,
             2,
-            3
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            1,
+            5,
             6,
-            9,
-            10,
-            11,
-            15,
-            18
+            7,
+            11
           ]
         },
         {
@@ -557,13 +520,12 @@
       [
         {
           "temporalOperatorsProfile": [
-            1,
-            6,
-            9,
+            0,
+            2,
+            5,
+            7,
             10,
-            15,
-            16,
-            18
+            11
           ]
         },
         {
@@ -578,13 +540,68 @@
       [
         {
           "temporalOperatorsProfile": [
+            0,
+            2,
+            7,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            7,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
             3,
             4,
             5,
+            6,
+            7,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            2,
+            3,
+            5,
+            7,
+            9,
             10,
-            11,
-            12,
-            17
+            11
           ]
         },
         {
@@ -600,54 +617,111 @@
           "temporalOperatorsProfile": [
             3,
             4,
-            10,
-            12,
-            14,
-            16,
-            17
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1,
-            2
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
-            4,
             5,
-            10,
-            11,
-            12,
-            13,
-            17
-          ]
-        },
-        {
-          "temporalOperatorsProfile": [
-            0,
-            1
-          ]
-        }
-      ],
-      [
-        {
-          "temporalOperatorsProfile": [
+            6,
             7,
             8,
-            12,
-            13,
-            17
+            11
           ]
         },
         {
           "temporalOperatorsProfile": [
             0,
             1
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            7,
+            8,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            1,
+            3,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            7,
+            8,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            0,
+            4
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            7,
+            8,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            2,
+            3
+          ]
+        }
+      ],
+      [
+        {
+          "temporalOperatorsProfile": [
+            3,
+            4,
+            7,
+            8,
+            11
+          ]
+        },
+        {
+          "temporalOperatorsProfile": [
+            1,
+            3,
+            5,
+            6
           ]
         }
       ]

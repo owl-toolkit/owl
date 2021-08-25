@@ -60,6 +60,7 @@ import owl.ltl.Formula;
 import owl.ltl.Literal;
 import owl.ltl.XOperator;
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejectingRoundRobin;
 import owl.translations.canonical.RoundRobinState;
 import owl.translations.ltl2dpa.AsymmetricRankingState;
 import owl.translations.ltl2ldba.AsymmetricProductState;
@@ -111,6 +112,12 @@ public final class StateFeatures {
 
       @SuppressWarnings("unchecked")
       var castedStates = (Set<BreakpointStateRejecting>) states;
+      featuresMap = extract(castedStates, x -> List.of(x.all(), x.rejecting()));
+
+    } else if (sentinel instanceof BreakpointStateRejectingRoundRobin) {
+
+      @SuppressWarnings("unchecked")
+      var castedStates = (Set<BreakpointStateRejectingRoundRobin>) states;
       featuresMap = extract(castedStates, x -> List.of(x.all(), x.rejecting()));
 
     } else if (sentinel instanceof AsymmetricRankingState) {
