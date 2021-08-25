@@ -43,6 +43,8 @@ import java.util.Objects;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
+import owl.automaton.Views;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.collections.ImmutableBitSet;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
@@ -76,9 +78,9 @@ public class SymbolicDPASolverTest {
         () -> assertTimeoutPreemptively(Duration.of(30, ChronoUnit.SECONDS), () -> {
           LabelledFormula formula = LtlParser.parse(testCase.formula);
           var dpa = SymbolicAutomaton.of(
-            SLM21.translation(
+            Views.convertParity(SLM21.translation(
               EnumSet.of(SIMPLIFY_FORMULA, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, COMPLETE))
-              .apply(formula));
+              .apply(formula), ParityAcceptance.Parity.MIN_EVEN));
           ImmutableBitSet controllable = controllable(formula.atomicPropositions(),
             testCase.controllable);
           assertSame(new DFISymbolicDPASolver().solve(dpa, controllable).winner(),

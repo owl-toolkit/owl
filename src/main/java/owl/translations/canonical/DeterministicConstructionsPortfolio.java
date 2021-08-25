@@ -20,12 +20,12 @@
 package owl.translations.canonical;
 
 import static owl.translations.canonical.DeterministicConstructions.BreakpointStateAcceptingRoundRobin;
-import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
+import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejectingRoundRobin;
 import static owl.translations.canonical.DeterministicConstructions.CoSafety;
 import static owl.translations.canonical.DeterministicConstructions.CoSafetySafetyRoundRobin;
 import static owl.translations.canonical.DeterministicConstructions.GfCoSafety;
 import static owl.translations.canonical.DeterministicConstructions.Safety;
-import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafety;
+import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafetyRoundRobin;
 
 import java.util.Optional;
 import java.util.Set;
@@ -153,9 +153,8 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
     return CoSafetySafetyRoundRobin.of(formula);
   }
 
-  public static Automaton<BreakpointStateRejecting, BuchiAcceptance>
+  public static Automaton<BreakpointStateRejectingRoundRobin, BuchiAcceptance>
     safetyCoSafety(LabelledFormula formula) {
-    var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
-    return SafetyCoSafety.of(factories, formula.formula());
+    return SafetyCoSafetyRoundRobin.of(formula);
   }
 }

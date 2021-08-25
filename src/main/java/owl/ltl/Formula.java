@@ -207,6 +207,11 @@ public abstract class Formula implements Comparable<Formula> {
 
   public final <E extends Formula> Set<E> subformulas(
     Predicate<? super Formula> predicate, Function<? super Formula, E> cast) {
+
+    if (operands.isEmpty()) {
+      return predicate.test(this) ? Set.of(cast.apply(this)) : Set.of();
+    }
+
     Set<E> subformulas = new HashSet<>();
     Deque<Formula> workQueue = new ArrayDeque<>(List.of(this));
 

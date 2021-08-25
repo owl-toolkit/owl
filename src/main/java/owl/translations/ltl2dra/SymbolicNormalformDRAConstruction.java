@@ -95,7 +95,7 @@ public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRACons
         safetyCoSafetyIndex = automata.size();
         safetyCoSafetyIndices.put(pi2, safetyCoSafetyIndex);
         automata.add(SymbolicAutomaton.of(
-          DeterministicConstructions.SafetyCoSafety.of(
+          DeterministicConstructions.SafetyCoSafetyRoundRobin.of(
             explicitFactories, pi2.formula(), true, false
           ), factory, labelledFormula.atomicPropositions()));
       }

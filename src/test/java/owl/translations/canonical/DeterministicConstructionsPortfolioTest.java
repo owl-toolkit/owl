@@ -145,8 +145,7 @@ class DeterministicConstructionsPortfolioTest {
       var automaton = safetyCoSafety(labelledFormula);
       assertEquals(expectedSize, automaton.states().size(), () -> HoaWriter.toString(automaton));
       assertEdgeConsistency(automaton, false);
-      assertThat(automaton.states(), x -> x.stream().noneMatch(
-        y -> y.all().isFalse() || y.rejecting().isFalse()));
+      assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.all().isFalse()));
       assertThat(automaton.states(), x -> x.stream().noneMatch(y -> y.all().isTrue()));
       assertThat(automaton.acceptance(), BuchiAcceptance.class::isInstance);
     }

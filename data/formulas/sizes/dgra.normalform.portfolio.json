@@ -882,7 +882,7 @@
   {
     "formula": "(Ga & GFb)",
     "properties": {
-      "size": 2,
+      "size": 1,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -959,7 +959,7 @@
   {
     "formula": "(G(a | b) & GFb)",
     "properties": {
-      "size": 2,
+      "size": 1,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -970,7 +970,7 @@
   {
     "formula": "(G(a | b) & GFc)",
     "properties": {
-      "size": 2,
+      "size": 1,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1003,7 +1003,7 @@
   {
     "formula": "(GFa & XGb)",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1014,7 +1014,7 @@
   {
     "formula": "(Ga & Gb & GFc)",
     "properties": {
-      "size": 2,
+      "size": 1,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1025,7 +1025,7 @@
   {
     "formula": "(Ga & G(b | c) & GFc)",
     "properties": {
-      "size": 2,
+      "size": 1,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1036,7 +1036,7 @@
   {
     "formula": "(Ga & GFb & GFc)",
     "properties": {
-      "size": 4,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1091,7 +1091,7 @@
   {
     "formula": "(G(a | b) & GFb & GFc)",
     "properties": {
-      "size": 4,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1124,7 +1124,7 @@
   {
     "formula": "(Fa & Fb & GFc & GFd)",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1135,7 +1135,7 @@
   {
     "formula": "(Ga & GFb & GFc & GFd)",
     "properties": {
-      "size": 8,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -1223,7 +1223,7 @@
   {
     "formula": "(Fa & Fb & Fc & GFd & GFe & GFf)",
     "properties": {
-      "size": 14,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -2708,7 +2708,7 @@
   {
     "formula": "(G(a | b) & GF(b & c))",
     "properties": {
-      "size": 2,
+      "size": 1,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -2785,7 +2785,7 @@
   {
     "formula": "(GFa & G(b | Xa))",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -2796,7 +2796,7 @@
   {
     "formula": "(GFa & XG(a | b))",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -2884,7 +2884,7 @@
   {
     "formula": "((GFa | GFb) & (GFa | GFc))",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -2983,7 +2983,7 @@
   {
     "formula": "((Ga | Gb | Gc) & (FG!d | GFe | GF!f) & (FGf | GFd | GFe))",
     "properties": {
-      "size": 48,
+      "size": 24,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -3126,7 +3126,7 @@
   {
     "formula": "(GFa & (a | GFb) & (c | GFd) & (FGa | GFc))",
     "properties": {
-      "size": 33,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -3148,7 +3148,7 @@
   {
     "formula": "(G(a | Fb) & G(c | Fd) & G(e | Ff) & G(g | Fh))",
     "properties": {
-      "size": 66,
+      "size": 33,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -3390,7 +3390,7 @@
   {
     "formula": "(FG!a | (Ga & GFb))",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4248,7 +4248,7 @@
   {
     "formula": "G((a & b) | (Fa & F!b & Fc))",
     "properties": {
-      "size": 15,
+      "size": 8,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4281,7 +4281,7 @@
   {
     "formula": "G((a & Fb) | (c & Fd))",
     "properties": {
-      "size": 9,
+      "size": 8,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4391,7 +4391,7 @@
   {
     "formula": "G((a & Fb) | (b & Fa) | (c & Fd))",
     "properties": {
-      "size": 18,
+      "size": 19,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4402,7 +4402,7 @@
   {
     "formula": "G((a & Fb) | (c & Fd) | (e & Ff))",
     "properties": {
-      "size": 79,
+      "size": 72,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4908,7 +4908,7 @@
   {
     "formula": "(G(a | b) & GF(b & Xc))",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4919,7 +4919,7 @@
   {
     "formula": "(G(a | b) & GF(c & Xb))",
     "properties": {
-      "size": 3,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4930,7 +4930,7 @@
   {
     "formula": "(GFa & (Gb | (a & GFa)))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4952,7 +4952,7 @@
   {
     "formula": "(GFa & G(b | F(b & c)))",
     "properties": {
-      "size": 5,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -4963,7 +4963,7 @@
   {
     "formula": "(GF!a & G(a | XFb))",
     "properties": {
-      "size": 2,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5051,7 +5051,7 @@
   {
     "formula": "(G(a | Xb) & GF(b & Xc))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5073,7 +5073,7 @@
   {
     "formula": "(G(a | Xb) & GF(c & Xb))",
     "properties": {
-      "size": 7,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5139,7 +5139,7 @@
   {
     "formula": "((FGa | XFb | GF(a & c)) & (FGd | XXe | GF(d & f)))",
     "properties": {
-      "size": 11,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5216,7 +5216,7 @@
   {
     "formula": "(Ga & (GFb | GFc) & G(d | ((!d) U ((b | c)))))",
     "properties": {
-      "size": 4,
+      "size": 2,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5249,7 +5249,7 @@
   {
     "formula": "(GFa & GF!a & G(a | XFb))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5326,7 +5326,7 @@
   {
     "formula": "(a | G(b | (a & Fb)))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5337,7 +5337,7 @@
   {
     "formula": "(Ga | (GFb & (GFa | GFc)))",
     "properties": {
-      "size": 4,
+      "size": 3,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -5667,7 +5667,7 @@
   {
     "formula": "((((a) U (b)) & (FGb | GFa) & (FGc | GFd)) | (((a) U (d)) & (FGb | GFd) & (FGc | GFa)))",
     "properties": {
-      "size": 13,
+      "size": 11,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -6107,7 +6107,7 @@
   {
     "formula": "G(a | (Fa & Fb & (c | Fd)))",
     "properties": {
-      "size": 15,
+      "size": 8,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -6305,7 +6305,7 @@
   {
     "formula": "G((a & XXb) | (b & XXc) | (c & XFd))",
     "properties": {
-      "size": 62,
+      "size": 59,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -6580,7 +6580,7 @@
   {
     "formula": "((GFa | GFb) & GF(c & XXa))",
     "properties": {
-      "size": 8,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -6624,7 +6624,7 @@
   {
     "formula": "(G(F(a & b) | (Ga & XGc)) & G(F(d & e) | (Gd & XGf)))",
     "properties": {
-      "size": 11,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -7713,7 +7713,7 @@
   {
     "formula": "G(a | ((!b) U (((b) U (((!b) U (((b) U ((b & c))))))))))",
     "properties": {
-      "size": 5,
+      "size": 7,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -7746,7 +7746,7 @@
   {
     "formula": "G(!a | ((a) U ((b & ((b) U ((c & ((c) U (d)))))))))",
     "properties": {
-      "size": 9,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -7988,7 +7988,7 @@
   {
     "formula": "(a <-> (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))))",
     "properties": {
-      "size": 15,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -7999,7 +7999,7 @@
   {
     "formula": "(!a <-> (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))))",
     "properties": {
-      "size": 15,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -8087,7 +8087,7 @@
   {
     "formula": "G(!a | ((a) U (((b) U ((a & ((a) U ((c & ((c) U (a)))))))))))",
     "properties": {
-      "size": 7,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -8120,7 +8120,7 @@
   {
     "formula": "G(a | X!a | X(Xb | ((a) U (((!a) U (((a) U ((b | c)))))))))",
     "properties": {
-      "size": 5,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -8131,7 +8131,7 @@
   {
     "formula": "G(a | b | c | X!c | X(Xb | ((c) U (((!c) U (((c) U ((b | d)))))))))",
     "properties": {
-      "size": 5,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -8142,7 +8142,7 @@
   {
     "formula": "((!a | GF(a & !b & ((!c) M (!a))) | GF(!a & (b | ((c) W (a)))) | (F!c & (F(a & !b & ((!c) M (!a))) | F(!a & (b | ((c) W (a))))))) & (a | (FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a)))))))))",
     "properties": {
-      "size": 15,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,
@@ -8153,7 +8153,7 @@
   {
     "formula": "((a & FG(!a | b | ((c) W (a))) & FG(a | (!b & ((!c) M (!a)))) & (Gc | (G(!a | b | ((c) W (a))) & G(a | (!b & ((!c) M (!a))))))) | (!a & (GF(a & !b & ((!c) M (!a))) | GF(!a & (b | ((c) W (a)))) | (F!c & (F(a & !b & ((!c) M (!a))) | F(!a & (b | ((c) W (a)))))))))",
     "properties": {
-      "size": 15,
+      "size": 13,
       "initialStatesSize": 1,
       "acceptanceName": "EmersonLeiAcceptance",
       "acceptanceSets": -1,

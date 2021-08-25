@@ -42,6 +42,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
+import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
@@ -460,6 +461,33 @@ public final class Views {
       @Override
       protected void freezeMemoizedEdgesNotify() {
         mapping.clear();
+      }
+    };
+  }
+
+  public static <S> Automaton<S, ParityAcceptance> convertParity(
+    Automaton<S, ? extends ParityAcceptance> automaton, ParityAcceptance.Parity toParity) {
+
+    if (automaton.acceptance().parity().equals(toParity)) {
+      return (Automaton<S, ParityAcceptance>) automaton;
+    }
+
+    if (automaton.acceptance().parity().max() != toParity.max()) {
+      throw new UnsupportedOperationException();
+    }
+
+    int sets = automaton.acceptance().acceptanceSets();
+    var newParityAcceptance = new ParityAcceptance(sets + 1, toParity);
+
+    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
+      automaton.atomicPropositions(),
+      automaton.initialStates(),
+      newParityAcceptance) {
+
+      @Override
+      protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
+        return automaton.edgeTree(state)
+          .map(x -> Collections3.transformSet(x, y -> y.mapAcceptance(z -> z + 1)));
       }
     };
   }

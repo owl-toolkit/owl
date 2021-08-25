@@ -33,7 +33,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.UOperator;
 import owl.ltl.parser.LtlParser;
-import owl.translations.canonical.DeterministicConstructionsPortfolio;
+import owl.translations.canonical.DeterministicConstructions;
 
 class EquivalenceClassEncoderTest {
 
@@ -51,7 +51,7 @@ class EquivalenceClassEncoderTest {
       .mapToObj(Integer::toString)
       .collect(Collectors.toList()));
     var encoder = new EquivalenceClassEncoder();
-    var automaton = DeterministicConstructionsPortfolio.safetyCoSafety(formula);
+    var automaton = DeterministicConstructions.SafetyCoSafety.of(formula);
 
     encoder.putAll(automaton.states());
 
@@ -68,7 +68,7 @@ class EquivalenceClassEncoderTest {
   @Test
   void testStateFeaturesExtractionForU() {
     var formula = LtlParser.parse("((a U b) U c) U d");
-    var automaton = DeterministicConstructionsPortfolio.safetyCoSafety(formula);
+    var automaton = DeterministicConstructions.SafetyCoSafety.of(formula);
     var encoder = new EquivalenceClassEncoder();
 
     // Initialise.
@@ -111,7 +111,7 @@ class EquivalenceClassEncoderTest {
   @Test
   void testStateFeaturesExtractionForR() {
     var formula = LtlParser.parse("a R (b R (c R d))");
-    var automaton = DeterministicConstructionsPortfolio.safetyCoSafety(formula);
+    var automaton = DeterministicConstructions.SafetyCoSafety.of(formula);
     var encoder = new EquivalenceClassEncoder();
 
     // Initialise.
@@ -143,7 +143,7 @@ class EquivalenceClassEncoderTest {
   @Test
   void testStateFeaturesExtractionForGOr() {
     var formula = LtlParser.parse("G ((a & X b) | (c & X d))");
-    var automaton = DeterministicConstructionsPortfolio.safetyCoSafety(formula);
+    var automaton = DeterministicConstructions.SafetyCoSafety.of(formula);
     var encoder = new EquivalenceClassEncoder();
 
     // Initialise.
@@ -175,7 +175,7 @@ class EquivalenceClassEncoderTest {
   @Test
   void testStateFeaturesExtractionForG() {
     var formula = LtlParser.parse("G (((a U b) U c) U d)");
-    var automaton = DeterministicConstructionsPortfolio.safetyCoSafety(formula);
+    var automaton = DeterministicConstructions.SafetyCoSafety.of(formula);
     var encoder = new EquivalenceClassEncoder();
 
     // Initialise.
