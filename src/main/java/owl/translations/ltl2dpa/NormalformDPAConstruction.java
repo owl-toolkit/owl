@@ -22,6 +22,7 @@ package owl.translations.ltl2dpa;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaTree;
 import static owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.transform;
+import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejectingRoundRobin;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.State;
 
 import com.google.common.primitives.ImmutableIntArray;
@@ -41,7 +42,6 @@ import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.LabelledFormula;
-import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 
 public final class NormalformDPAConstruction
@@ -76,7 +76,7 @@ public final class NormalformDPAConstruction
 
   private static double approximateTrueness(
     PropositionalFormula<Integer> formula,
-    Map<Integer, BreakpointStateRejecting> stateMap,
+    Map<Integer, BreakpointStateRejectingRoundRobin> stateMap,
     BitSet processedStates) {
 
     if (formula instanceof PropositionalFormula.Variable) {

@@ -462,10 +462,10 @@ public final class CAutomaton {
 
       states.add(state);
       stateFormulas.add(state.state().stateFormula());
-      state.state().stateMap().forEach((key, breakPointState) ->
-        encoders
-          .computeIfAbsent(key, x -> new EquivalenceClassEncoder())
-          .put(breakPointState));
+      //state.state().stateMap().forEach((key, breakPointState) ->
+      //  encoders
+      //   .computeIfAbsent(key, x -> new EquivalenceClassEncoder())
+      //    .put(breakPointState));
     }
 
     List<PropositionalFormula<Integer>> stateFormulasSorted = new ArrayList<>(stateFormulas);
@@ -509,9 +509,9 @@ public final class CAutomaton {
         var dbwState = entry.getValue();
         var encoder = encoders.get(entry.getKey());
         cEntry.key(entry.getKey());
-        cEntry.allProfile(CIntVectors.copyOf(encoder.getAllProfile(dbwState)));
-        cEntry.rejectingProfile(CIntVectors.copyOf(encoder.getRejectingProfile(dbwState)));
-        cEntry.disambiguation(encoder.disambiguation(dbwState));
+        // cEntry.allProfile(CIntVectors.copyOf(encoder.getAllProfile(dbwState)));
+        // cEntry.rejectingProfile(CIntVectors.copyOf(encoder.getRejectingProfile(dbwState)));
+        // cEntry.disambiguation(encoder.disambiguation(dbwState));
       }
 
       assert !iterator.hasNext();

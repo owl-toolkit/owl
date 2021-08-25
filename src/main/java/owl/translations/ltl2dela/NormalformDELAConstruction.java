@@ -19,8 +19,7 @@
 
 package owl.translations.ltl2dela;
 
-import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
-import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafety;
+import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejectingRoundRobin;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.NOT_SUSPENDABLE;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.SUSPENDABLE;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.TERMINAL_ACCEPTING;
@@ -61,6 +60,7 @@ import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
+import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
@@ -84,6 +84,7 @@ import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
 import owl.ltl.rewriter.SimplifierRepository;
 import owl.ltl.visitors.PropositionalVisitor;
 import owl.translations.BlockingElements;
+import owl.translations.canonical.DeterministicConstructions.SafetyCoSafetyRoundRobin;
 import owl.translations.mastertheorem.Normalisation;
 
 /**
@@ -182,8 +183,8 @@ public final class NormalformDELAConstruction
   public static class Construction {
 
     // Underlying DBW.
-    private final SafetyCoSafety dbw;
-    private final BreakpointStateRejectingClassifier classifier;
+    private final SafetyCoSafetyRoundRobin dbw;
+    private final BreakpointStateRejectingRoundRobinClassifier classifier;
     private final EmersonLeiAcceptance acceptance;
     private final ImmutableBitSet roundRobinCandidates;
 
@@ -197,11 +198,11 @@ public final class NormalformDELAConstruction
 
     private Construction(LabelledFormula formula, OptionalInt lookahead) {
 
-      var factories
-        = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
+      var factories = FactorySupplier.defaultSupplier().getFactories(
+        formula.atomicPropositions(), EquivalenceClassFactory.Encoding.AP_SEPARATE);
 
       // Underlying automaton.
-      dbw = SafetyCoSafety.of(factories, BooleanConstant.TRUE, true, true);
+      dbw = SafetyCoSafetyRoundRobin.of(factories, BooleanConstant.TRUE, true, true);
 
       var normalFormConstructor = new NormalFormConverter();
       var normalForm = formula.formula().accept(normalFormConstructor);
@@ -210,7 +211,7 @@ public final class NormalformDELAConstruction
         = new InitialStateConstructor(dbw, normalFormConstructor.referenceCounter.keySet());
       var initialStateFormula = initialStateFormulaConstructor.apply(normalForm);
       var initialStates = initialStateFormulaConstructor.initialStates;
-      classifier = new BreakpointStateRejectingClassifier(dbw,
+      classifier = new BreakpointStateRejectingRoundRobinClassifier(dbw,
         // Scale lookahead for each component.
         lookahead.stream().map(x -> Math.max(0, x / Math.max(1, initialStates.size()))).findAny());
       roundRobinCandidates = ImmutableBitSet
@@ -221,7 +222,7 @@ public final class NormalformDELAConstruction
       occurrences.values().removeIf(x -> x > 1);
       assert occurrences.keySet().containsAll(roundRobinCandidates);
 
-      Map<Integer, BreakpointStateRejecting> stateMap = new HashMap<>(initialStates.size());
+      Map<Integer, BreakpointStateRejectingRoundRobin> stateMap = new HashMap<>(initialStates.size());
 
       for (int i = 0, s = initialStates.size(); i < s; i++) {
         stateMap.put(i, initialStates.get(i));
@@ -236,9 +237,9 @@ public final class NormalformDELAConstruction
 
         @Override
         protected MtBdd<Edge<State>> edgeTreeImpl(State state) {
-          Map<Integer, BreakpointStateRejecting> stateMap = state.stateMap();
+          Map<Integer, BreakpointStateRejectingRoundRobin> stateMap = state.stateMap();
           List<Integer> keys = new ArrayList<>(stateMap.size());
-          List<MtBdd<Edge<BreakpointStateRejecting>>> values = new ArrayList<>(stateMap.size());
+          List<MtBdd<Edge<BreakpointStateRejectingRoundRobin>>> values = new ArrayList<>(stateMap.size());
 
           stateMap.forEach((key, value) -> {
             keys.add(key);
@@ -252,21 +253,21 @@ public final class NormalformDELAConstruction
         private MtBdd<Edge<State>> edgeTreeImpl(
           State state,
           List<Integer> keys,
-          List<MtBdd<Edge<BreakpointStateRejecting>>> values,
-          Map<List<Edge<BreakpointStateRejecting>>, Edge<State>> mapperCache,
+          List<MtBdd<Edge<BreakpointStateRejectingRoundRobin>>> values,
+          Map<List<Edge<BreakpointStateRejectingRoundRobin>>, Edge<State>> mapperCache,
           int leaves) {
 
           int variable = nextVariable(values);
 
           if (variable == Integer.MAX_VALUE) {
-            List<Edge<BreakpointStateRejecting>> edges = new ArrayList<>(values.size());
+            List<Edge<BreakpointStateRejectingRoundRobin>> edges = new ArrayList<>(values.size());
 
             for (int i = 0, s = keys.size(); i < s; i++) {
               var value = values.get(i);
 
               if (value instanceof MtBdd.Leaf) {
                 edges.add(Iterables.getOnlyElement(
-                  ((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) value).value));
+                  ((MtBdd.Leaf<Edge<BreakpointStateRejectingRoundRobin>>) value).value));
               } else {
                 assert value == null;
                 edges.add(null);
@@ -332,13 +333,13 @@ public final class NormalformDELAConstruction
         }
 
         private void shortCircuit(
-          State state, List<Integer> keys, List<MtBdd<Edge<BreakpointStateRejecting>>> trees) {
+          State state, List<Integer> keys, List<MtBdd<Edge<BreakpointStateRejectingRoundRobin>>> trees) {
 
-          List<Edge<BreakpointStateRejecting>> leaves = new ArrayList<>(trees.size());
+          List<Edge<BreakpointStateRejectingRoundRobin>> leaves = new ArrayList<>(trees.size());
 
-          for (MtBdd<Edge<BreakpointStateRejecting>> x : trees) {
+          for (MtBdd<Edge<BreakpointStateRejectingRoundRobin>> x : trees) {
             leaves.add(x instanceof MtBdd.Leaf
-              ? Iterables.getOnlyElement(((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) x).value)
+              ? Iterables.getOnlyElement(((MtBdd.Leaf<Edge<BreakpointStateRejectingRoundRobin>>) x).value)
               : null);
           }
 
@@ -427,9 +428,9 @@ public final class NormalformDELAConstruction
         + "computed from acceptanceCondition by substituting variables by constants.");
     }
 
-    private Map<Integer, BreakpointStateRejecting> successorMap(
-      List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges, @Nullable BitSet colours) {
-      Map<Integer, BreakpointStateRejecting> successorMap = new HashMap<>(edges.size());
+    private Map<Integer, BreakpointStateRejectingRoundRobin> successorMap(
+      List<Integer> keys, List<Edge<BreakpointStateRejectingRoundRobin>> edges, @Nullable BitSet colours) {
+      Map<Integer, BreakpointStateRejectingRoundRobin> successorMap = new HashMap<>(edges.size());
 
       for (int i = 0, s = keys.size(); i < s; i++) {
         var key = keys.get(i);
@@ -451,10 +452,10 @@ public final class NormalformDELAConstruction
     }
 
     private Edge<State> edge(
-      State state, List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges) {
+      State state, List<Integer> keys, List<Edge<BreakpointStateRejectingRoundRobin>> edges) {
 
       BitSet colours = new BitSet();
-      Map<Integer, BreakpointStateRejecting> successorMap = successorMap(keys, edges, colours);
+      Map<Integer, BreakpointStateRejectingRoundRobin> successorMap = successorMap(keys, edges, colours);
       State successor = createState(
         state.stateFormula(), successorMap, state.roundRobinCounters(), colours);
 
@@ -469,7 +470,7 @@ public final class NormalformDELAConstruction
 
     private State createState(
       PropositionalFormula<Integer> stateFormula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
+      Map<Integer, BreakpointStateRejectingRoundRobin> stateMap,
       ImmutableBitSet oldRoundRobinCounters,
       BitSet acceptingEdges) {
 
@@ -694,7 +695,7 @@ public final class NormalformDELAConstruction
 
     private List<ImmutableBitSet> roundRobinSuspension(
       PropositionalFormula<Integer> alpha,
-      Map<Integer, BreakpointStateRejecting> stateMap,
+      Map<Integer, BreakpointStateRejectingRoundRobin> stateMap,
       BitSet acceptingEdges,
       ImmutableBitSet oldRoundRobinCounters,
       BitSet newRoundRobinCounters) {
@@ -731,7 +732,7 @@ public final class NormalformDELAConstruction
         }
 
         // Suspend other elements of the chain.
-        for (Map.Entry<Integer, BreakpointStateRejecting> entry : stateMap.entrySet()) {
+        for (Map.Entry<Integer, BreakpointStateRejectingRoundRobin> entry : stateMap.entrySet()) {
           if (roundRobinChain.contains(entry.getKey())
             && entry.getKey() != currentIndex) {
 
@@ -783,7 +784,7 @@ public final class NormalformDELAConstruction
     }
 
     private PropositionalFormula<Integer> pruneRedundantConjunctsAndDisjuncts(
-      PropositionalFormula<Integer> stateFormula, Map<Integer, BreakpointStateRejecting> stateMap) {
+      PropositionalFormula<Integer> stateFormula, Map<Integer, BreakpointStateRejectingRoundRobin> stateMap) {
 
       if (stateFormula instanceof PropositionalFormula.Variable) {
         return stateFormula;
@@ -876,13 +877,14 @@ public final class NormalformDELAConstruction
 
     private static EquivalenceClass language(
       PropositionalFormula<Integer> stateFormula,
-      Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
+      Map<Integer, ? extends BreakpointStateRejectingRoundRobin> stateMap) {
 
       assert isVariableOrNegationOfVariable(stateFormula);
 
       if (stateFormula instanceof PropositionalFormula.Variable) {
         int index = ((PropositionalFormula.Variable<Integer>) stateFormula).variable;
-        return stateMap.get(index).all();
+        return stateMap.get(index).all()
+          .encode(EquivalenceClassFactory.Encoding.AP_COMBINED).unfold();
       }
 
       assert stateFormula instanceof PropositionalFormula.Negation;
@@ -891,7 +893,8 @@ public final class NormalformDELAConstruction
       assert operand instanceof PropositionalFormula.Variable;
       int index = ((PropositionalFormula.Variable<Integer>) operand).variable;
 
-      return stateMap.get(index).all().not();
+      return stateMap.get(index).all().not()
+        .encode(EquivalenceClassFactory.Encoding.AP_COMBINED).unfold();
     }
 
     public PropositionalFormula<Integer> alpha(State state) {
@@ -1049,14 +1052,14 @@ public final class NormalformDELAConstruction
   private static final class InitialStateConstructor
     extends PropositionalVisitor<PropositionalFormula<Integer>> {
 
-    private final SafetyCoSafety dbw;
-    private final List<BreakpointStateRejecting> initialStates = new ArrayList<>();
+    private final SafetyCoSafetyRoundRobin dbw;
+    private final List<BreakpointStateRejectingRoundRobin> initialStates = new ArrayList<>();
     private final BiMap<Formula, Integer> mapping = HashBiMap.create();
     private final Set<Formula.TemporalOperator> nonUnique;
     private final BitSet roundRobinCandidate = new BitSet();
 
     public InitialStateConstructor(
-      SafetyCoSafety dbw,
+      SafetyCoSafetyRoundRobin dbw,
       Set<Formula.TemporalOperator> nonUnique) {
 
       this.dbw = dbw;
@@ -1202,13 +1205,13 @@ public final class NormalformDELAConstruction
 
     public abstract PropositionalFormula<Integer> stateFormula();
 
-    public abstract Map<Integer, BreakpointStateRejecting> stateMap();
+    public abstract Map<Integer, BreakpointStateRejectingRoundRobin> stateMap();
 
     public abstract ImmutableBitSet roundRobinCounters();
 
     public static State of(
       PropositionalFormula<Integer> stateFormula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
+      Map<Integer, BreakpointStateRejectingRoundRobin> stateMap,
       BitSet counters) {
 
       return of(stateFormula, stateMap, ImmutableBitSet.copyOf(counters));
@@ -1216,7 +1219,7 @@ public final class NormalformDELAConstruction
 
     public static State of(
       PropositionalFormula<Integer> stateFormula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
+      Map<Integer, BreakpointStateRejectingRoundRobin> stateMap,
       Set<Integer> counters) {
 
       assert stateFormula.variables().equals(stateMap.keySet());
@@ -1254,19 +1257,20 @@ public final class NormalformDELAConstruction
     }
   }
 
-  static class BreakpointStateRejectingClassifier {
+  static class BreakpointStateRejectingRoundRobinClassifier {
 
-    private final SafetyCoSafety dbw;
+    private final SafetyCoSafetyRoundRobin dbw;
     private final OptionalInt lookahead;
-    private final Map<BreakpointStateRejecting, Classification> memoizedResults = new HashMap<>();
+    private final Map<BreakpointStateRejectingRoundRobin, Classification> memoizedResults
+      = new HashMap<>();
 
-    BreakpointStateRejectingClassifier(SafetyCoSafety dbw, OptionalInt lookahead) {
+    BreakpointStateRejectingRoundRobinClassifier(SafetyCoSafetyRoundRobin dbw, OptionalInt lookahead) {
       this.dbw = dbw;
       this.lookahead = lookahead;
     }
 
     // This should only be called on unsuspended states (or by SafetyCoSafety suspended states).
-    Classification classify(BreakpointStateRejecting state) {
+    Classification classify(BreakpointStateRejectingRoundRobin state) {
       Classification classification = memoizedResults.get(state);
 
       if (classification != null) {
@@ -1279,7 +1283,7 @@ public final class NormalformDELAConstruction
         return classification;
       }
 
-      var restrictedDbw = Views.filtered(dbw, Views.Filter.<BreakpointStateRejecting>builder()
+      var restrictedDbw = Views.filtered(dbw, Views.Filter.<BreakpointStateRejectingRoundRobin>builder()
         .initialStates(Set.of(state))
         .edgeFilter((dbwState, edge) ->
           !BlockingElements.surelyContainedInDifferentSccs(dbwState.all(), edge.successor().all()))
@@ -1294,8 +1298,8 @@ public final class NormalformDELAConstruction
 
       var sccDecomposition = SccDecomposition.of(restrictedDbw);
 
-      for (Set<BreakpointStateRejecting> scc : sccDecomposition.sccs()) {
-        for (BreakpointStateRejecting sccState : scc) {
+      for (Set<BreakpointStateRejectingRoundRobin> scc : sccDecomposition.sccs()) {
+        for (BreakpointStateRejectingRoundRobin sccState : scc) {
           // We already computed a value for the scc state.
           if (memoizedResults.containsKey(sccState)) {
             continue;
@@ -1316,7 +1320,7 @@ public final class NormalformDELAConstruction
 
     // This should only be called on unsuspended states (or by SafetyCoSafety suspended states).
     NavigableMap<Integer, Classification> classify(
-      Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
+      Map<Integer, ? extends BreakpointStateRejectingRoundRobin> stateMap) {
 
       var map = new TreeMap<Integer, Classification>();
 
@@ -1329,7 +1333,7 @@ public final class NormalformDELAConstruction
 
     @Nullable
     private Classification classifySyntactically(
-      BreakpointStateRejecting state) {
+      BreakpointStateRejectingRoundRobin state) {
 
       assert !memoizedResults.containsKey(state);
 
@@ -1349,51 +1353,55 @@ public final class NormalformDELAConstruction
         return memoize(state, TRANSIENT_SUSPENDED);
       }
 
-      if (dbw.suspensionCheck.isBlockedBySafety(state.all())) {
-        assert state.isSuspended();
-        return memoize(state, WEAK_ACCEPTING_SUSPENDED);
-      }
-
       if (dbw.suspensionCheck.isBlockedByCoSafety(state.all())) {
         assert state.isSuspended();
         return memoize(state, WEAK_REJECTING_SUSPENDED);
+      }
+
+      if (dbw.suspensionCheck.isBlockedBySafety(state.all())) {
+        assert state.isSuspended();
+        return memoize(state, WEAK_ACCEPTING_SUSPENDED);
       }
 
       return null;
     }
 
     private Classification classifySemantically(
-      BreakpointStateRejecting state, SccDecomposition<BreakpointStateRejecting> sccDecomposition) {
+      BreakpointStateRejectingRoundRobin state, SccDecomposition<BreakpointStateRejectingRoundRobin> sccDecomposition) {
 
       assert !memoizedResults.containsKey(state);
-      assert !state.isSuspended();
+      // assert !state.isSuspended();
 
       int index = sccDecomposition.index(state);
 
       // Check for transient SCCs.
       if (sccDecomposition.transientSccs().contains(index)) {
-        return memoize(state, TRANSIENT_NOT_SUSPENDED);
+        return memoize(state, state.isSuspended() ? TRANSIENT_SUSPENDED : TRANSIENT_NOT_SUSPENDED);
       }
 
       if (sccDecomposition.acceptingSccs().contains(index)) {
-        return memoize(sccDecomposition.sccs().get(index), WEAK_ACCEPTING_NOT_SUSPENDED);
+        return memoize(sccDecomposition.sccs().get(index), state.isSuspended()
+          ? WEAK_ACCEPTING_SUSPENDED
+          : WEAK_ACCEPTING_NOT_SUSPENDED);
       }
 
       if (sccDecomposition.rejectingSccs().contains(index)) {
-        return memoize(sccDecomposition.sccs().get(index), WEAK_REJECTING_NOT_SUSPENDED);
+        return memoize(sccDecomposition.sccs().get(index), state.isSuspended()
+          ? WEAK_ACCEPTING_SUSPENDED
+          : WEAK_REJECTING_NOT_SUSPENDED);
       }
 
       var scc = sccDecomposition.sccs().get(index);
 
-      if (scc.size() == Collections3.transformSet(scc, BreakpointStateRejecting::all).size()) {
+      if (scc.size() == Collections3.transformSet(scc, BreakpointStateRejectingRoundRobin::all).size()) {
         return memoize(scc, NOT_SUSPENDABLE);
       }
 
-      return memoize(scc, SUSPENDABLE);
+      return memoize(scc, state.isSuspended() ? NOT_SUSPENDABLE : SUSPENDABLE);
     }
 
     private Classification memoize(
-      BreakpointStateRejecting state, Classification classification) {
+      BreakpointStateRejectingRoundRobin state, Classification classification) {
 
       var oldStatus = memoizedResults.put(state, classification);
       assert oldStatus == null || oldStatus == classification;
@@ -1401,7 +1409,7 @@ public final class NormalformDELAConstruction
     }
 
     private Classification memoize(
-      Set<? extends BreakpointStateRejecting> scc, Classification classification) {
+      Set<? extends BreakpointStateRejectingRoundRobin> scc, Classification classification) {
 
       scc.forEach(x -> memoize(x, classification));
       return classification;

@@ -1197,7 +1197,7 @@ public final class DeterministicConstructions {
 
     private static final PruneAcceptingStates PRUNE_ACCEPTING_STATES = new PruneAcceptingStates();
 
-    private final SuspensionCheck suspensionCheck;
+    public final SuspensionCheck suspensionCheck;
     private final boolean complete;
     private Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
       profilesCache;
@@ -1232,21 +1232,31 @@ public final class DeterministicConstructions {
       var suspensionCheck = deactivateSuspensionCheckOnInitialFormula
         ? new SuspensionCheck()
         : new SuspensionCheck(formulaClass);
-      BreakpointStateRejectingRoundRobin initialState;
 
       Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
         profilesCache = new IdentityHashMap<>();
 
+      return new SafetyCoSafetyRoundRobin(
+        factories, initialState(formulaClass, suspensionCheck, profilesCache), suspensionCheck, complete, profilesCache);
+    }
+
+    // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
+    public BreakpointStateRejectingRoundRobin initialState(Formula formula) {
+      return initialState(factory.of(formula), suspensionCheck, profilesCache);
+    }
+
+    private static BreakpointStateRejectingRoundRobin initialState(
+      EquivalenceClass formulaClass,
+      SuspensionCheck suspensionCheck,
+      Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>> profilesCache) {
+
       var allEdge = allOnly(formulaClass, suspensionCheck);
 
       if (allEdge == null) {
-        initialState = nextRejecting(formulaClass, Set.of(), profilesCache);
+        return nextRejecting(formulaClass, Set.of(), profilesCache);
       } else {
-        initialState = BreakpointStateRejectingRoundRobin.of(allEdge.successor());
+        return BreakpointStateRejectingRoundRobin.of(allEdge.successor());
       }
-
-      return new SafetyCoSafetyRoundRobin(
-        factories, initialState, suspensionCheck, complete, profilesCache);
     }
 
     @Override
@@ -1298,7 +1308,7 @@ public final class DeterministicConstructions {
       // This state has been suspended or we switched SCC.
       if (profile.isEmpty()
         || BlockingElements.surelyContainedInDifferentSccs(previousAll, all.unfold())) {
-        
+
         return Edge.of(nextRejecting);
       }
 
@@ -1597,6 +1607,10 @@ public final class DeterministicConstructions {
 
     public final BreakpointStateRejectingRoundRobin suspend() {
       return rejecting().isFalse() ? this : of(all());
+    }
+
+    public final boolean isSuspended() {
+      return rejecting().isFalse();
     }
 
     @Override
