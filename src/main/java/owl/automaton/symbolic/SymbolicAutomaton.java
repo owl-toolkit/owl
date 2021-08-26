@@ -72,6 +72,10 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
 
   public abstract int colourOffset();
 
+  public int bddSize() {
+    return transitionRelation().countNodes();
+  }
+
   public BddSet successors(BddSet statesAndValuation) {
     checkArgument(statesAndValuation.factory() == factory());
     ImmutableBitSet quantifyOver = variableAllocation().variables(STATE, ATOMIC_PROPOSITION);
@@ -188,13 +192,26 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
   }
 
   public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
-    Automaton<S, ? extends A> automaton
-  ) {
+    Automaton<S, ? extends A> automaton) {
+
     return of(
       automaton,
+      new NumberingStateEncoderFactory<>());
+  }
+
+  public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
+    Automaton<S, ? extends A> automaton, StateEncoderFactory<S> stateEncoderFactory) {
+
+    return of(
+      automaton,
+      automaton.atomicPropositions(),
       FactorySupplier.defaultSupplier().getBddSetFactory(),
-      automaton.atomicPropositions()
-    );
+      stateEncoderFactory,
+      new RangedVariableAllocator(
+        STATE,
+        ATOMIC_PROPOSITION,
+        SUCCESSOR_STATE,
+        COLOUR));
   }
 
   public static <S, A extends EmersonLeiAcceptance> SymbolicAutomaton<A> of(
@@ -207,7 +224,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
       automaton,
       atomicPropositions,
       factory,
-      NumberingStateEncoderFactory.INSTANCE,
+      new NumberingStateEncoderFactory<>(),
       new RangedVariableAllocator(
         ATOMIC_PROPOSITION,
         STATE,
@@ -219,7 +236,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     Automaton<S, ? extends A> automaton,
     List<String> atomicPropositions,
     BddSetFactory factory,
-    StateEncoderFactory encoderFactory,
+    StateEncoderFactory<S> encoderFactory,
     VariableAllocator allocator) {
 
     List<String> atomicPropositionsCopy = List.copyOf(atomicPropositions);
@@ -361,9 +378,9 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     };
   }
 
-  public interface StateEncoderFactory {
+  public interface StateEncoderFactory<S> {
 
-    <S> StateEncoder<S> create(Automaton<? extends S, ?> automaton);
+    StateEncoder<S> create(Automaton<? extends S, ?> automaton);
 
   }
 

@@ -247,6 +247,26 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
+    public int countNodes() {
+      return countNodesRecursive(node, new BitSet());
+    }
+
+    private int countNodesRecursive(int node, BitSet visitedNode) {
+      if (visitedNode.get(node)) {
+        return 0;
+      }
+
+      visitedNode.set(node);
+
+      if (factory.bdd.isNodeRoot(node)) {
+        return 1;
+      } else {
+        return 1 + countNodesRecursive(factory.bdd.low(node), visitedNode)
+          + countNodesRecursive(factory.bdd.high(node), visitedNode);
+      }
+    }
+
+    @Override
     public BddSetFactory factory() {
       return factory;
     }

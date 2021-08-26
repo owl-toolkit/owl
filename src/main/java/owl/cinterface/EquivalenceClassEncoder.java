@@ -19,8 +19,6 @@
 
 package owl.cinterface;
 
-import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
-
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import java.util.ArrayList;
@@ -41,17 +39,18 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.Formula;
 import owl.ltl.Literal;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejectingRoundRobin;
 
-final class EquivalenceClassEncoder {
+public final class EquivalenceClassEncoder {
 
-  private final Map<BreakpointStateRejecting, Integer> states = new HashMap<>();
+  private final Map<BreakpointStateRejectingRoundRobin, Integer> states = new HashMap<>();
 
   @Nullable
   private Map<EquivalenceClass, ImmutableBitSet> allProfiles;
   @Nullable
   private Map<EquivalenceClass, ImmutableBitSet> rejectingProfiles;
 
-  void put(BreakpointStateRejecting state) {
+  public void put(BreakpointStateRejectingRoundRobin state) {
     if (allProfiles != null) {
       throw new IllegalStateException("profiles already computed.");
     }
@@ -59,23 +58,23 @@ final class EquivalenceClassEncoder {
     states.put(state, -1);
   }
 
-  void putAll(Collection<? extends BreakpointStateRejecting> newStates) {
+  public void putAll(Collection<? extends BreakpointStateRejectingRoundRobin> newStates) {
     newStates.forEach(this::put);
   }
 
-  ImmutableBitSet getAllProfile(BreakpointStateRejecting state) {
+  public ImmutableBitSet getAllProfile(BreakpointStateRejectingRoundRobin state) {
     initialise();
     assert allProfiles != null;
     return allProfiles.get(state.all());
   }
 
-  ImmutableBitSet getRejectingProfile(BreakpointStateRejecting state) {
+  public ImmutableBitSet getRejectingProfile(BreakpointStateRejectingRoundRobin state) {
     initialise();
     assert rejectingProfiles != null;
     return rejectingProfiles.get(state.rejecting());
   }
 
-  int disambiguation(BreakpointStateRejecting state) {
+  public int disambiguation(BreakpointStateRejectingRoundRobin state) {
     initialise();
     int id = states.get(state);
     assert id >= 0;
@@ -216,7 +215,7 @@ final class EquivalenceClassEncoder {
     Set<EquivalenceClass> allClasses = new HashSet<>(states.size());
     Set<EquivalenceClass> rejectingClasses = new HashSet<>(states.size());
 
-    for (BreakpointStateRejecting state : states.keySet()) {
+    for (BreakpointStateRejectingRoundRobin state : states.keySet()) {
       allClasses.add(state.all());
       rejectingClasses.add(state.rejecting());
     }
@@ -224,10 +223,10 @@ final class EquivalenceClassEncoder {
     allProfiles = computeProfiles(allClasses);
     rejectingProfiles = computeProfiles(rejectingClasses);
 
-    Table<ImmutableBitSet, ImmutableBitSet, List<BreakpointStateRejecting>>
+    Table<ImmutableBitSet, ImmutableBitSet, List<BreakpointStateRejectingRoundRobin>>
       ambiguousProfiles = HashBasedTable.create(allProfiles.size(), rejectingProfiles.size());
 
-    for (BreakpointStateRejecting state : states.keySet()) {
+    for (BreakpointStateRejectingRoundRobin state : states.keySet()) {
       var allProfile = allProfiles.get(state.all());
       var rejectingProfile = rejectingProfiles.get(state.rejecting());
       var ambiguous = ambiguousProfiles.get(allProfile, rejectingProfile);
@@ -240,10 +239,10 @@ final class EquivalenceClassEncoder {
       ambiguous.add(state);
     }
 
-    for (List<BreakpointStateRejecting> ambiguous : ambiguousProfiles.values()) {
+    for (List<BreakpointStateRejectingRoundRobin> ambiguous : ambiguousProfiles.values()) {
       int counter = 0;
 
-      for (BreakpointStateRejecting state : ambiguous) {
+      for (BreakpointStateRejectingRoundRobin state : ambiguous) {
         var oldValue = states.put(state, counter);
         assert oldValue != null && oldValue == -1;
         counter++;

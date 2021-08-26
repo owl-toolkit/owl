@@ -76,6 +76,14 @@ public abstract class BddSetTest {
   }
 
   @Test
+  void testCountNodes() {
+    assertEquals(1, empty.countNodes());
+    assertEquals(1, universe.countNodes());
+    assertEquals(3, containsA.countNodes());
+    assertEquals(6, abcd.countNodes());
+  }
+
+  @Test
   void testForEach() {
     for (BddSet set : List.of(abcd, containsA, empty, universe)) {
       Set<BitSet> forEach = new HashSet<>();

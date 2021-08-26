@@ -19,24 +19,9 @@
 
 package owl.cinterface;
 
-import java.time.Duration;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Tag;
-import org.junit.jupiter.api.Test;
-import owl.collections.ImmutableBitSet;
-import owl.ltl.Formula;
-import owl.ltl.LabelledFormula;
-import owl.ltl.Literal;
-import owl.ltl.UOperator;
-import owl.ltl.parser.LtlParser;
-import owl.translations.canonical.DeterministicConstructions;
-
 class EquivalenceClassEncoderTest {
 
+  /*
   private static Formula leftNestedU(int depth) {
     assert depth >= 0;
     return depth > 0
@@ -208,5 +193,5 @@ class EquivalenceClassEncoderTest {
         ImmutableBitSet.of(1, 3, 5),
         ImmutableBitSet.of(5)),
       rejectingProfiles);
-  }
+  } */
 }

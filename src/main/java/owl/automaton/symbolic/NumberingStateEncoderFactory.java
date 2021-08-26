@@ -25,14 +25,14 @@ import java.util.Map;
 import owl.automaton.Automaton;
 import owl.collections.BitSet2;
 
-public final class NumberingStateEncoderFactory implements SymbolicAutomaton.StateEncoderFactory {
+public final class NumberingStateEncoderFactory<S> implements SymbolicAutomaton.StateEncoderFactory<S> {
 
-  public static final NumberingStateEncoderFactory INSTANCE = new NumberingStateEncoderFactory();
+  public static final NumberingStateEncoderFactory<?> INSTANCE = new NumberingStateEncoderFactory<>();
 
-  private NumberingStateEncoderFactory() {}
+  NumberingStateEncoderFactory() {}
 
   @Override
-  public <S> SymbolicAutomaton.StateEncoder<S> create(Automaton<? extends S, ?> automaton) {
+  public SymbolicAutomaton.StateEncoder<S> create(Automaton<? extends S, ?> automaton) {
     Map<S, Integer> numbering = new HashMap<>();
 
     for (S state : automaton.states()) {

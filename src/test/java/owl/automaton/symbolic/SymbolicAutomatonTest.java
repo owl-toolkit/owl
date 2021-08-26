@@ -39,6 +39,7 @@ import owl.automaton.algorithm.LanguageContainment;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LtlTranslationRepository;
+import owl.translations.canonical.DeterministicConstructions;
 
 public class SymbolicAutomatonTest {
 
@@ -123,6 +124,54 @@ public class SymbolicAutomatonTest {
     var symbolic3 = SymbolicAutomaton.of(automaton3);
 
     assertSameFields(automaton3, symbolic3.toAutomaton());
+  }
+
+  @Test
+  protected void testSymbolicEncoding() {
+    var automaton0 = DeterministicConstructions.SafetyCoSafetyRoundRobin.of(LtlParser.parse("a"));
+    var symbolicNumbered0 = SymbolicAutomaton.of(
+      automaton0, new NumberingStateEncoderFactory<>());
+    var symbolicState0 = SymbolicAutomaton.of(
+      automaton0, new BreakpointStateRejectingRoundRobinEncoderFactory());
+
+    assertSameFields(automaton0, symbolicNumbered0.toAutomaton());
+    assertLanguageEquivalence(automaton0, symbolicNumbered0.toAutomaton());
+
+    assertSameFields(automaton0, symbolicState0.toAutomaton());
+    assertLanguageEquivalence(automaton0, symbolicState0.toAutomaton());
+
+    System.err.println(symbolicNumbered0.bddSize());
+    System.err.println(symbolicState0.bddSize());
+
+    var automaton1 = DeterministicConstructions.SafetyCoSafetyRoundRobin.of(LtlParser.parse("a | X b"));
+    var symbolicNumbered1 = SymbolicAutomaton.of(
+      automaton1, new NumberingStateEncoderFactory<>());
+    var symbolicState1 = SymbolicAutomaton.of(
+      automaton1, new BreakpointStateRejectingRoundRobinEncoderFactory());
+
+    assertSameFields(automaton1, symbolicNumbered1.toAutomaton());
+    assertLanguageEquivalence(automaton1, symbolicNumbered1.toAutomaton());
+
+    assertSameFields(automaton1, symbolicState1.toAutomaton());
+    assertLanguageEquivalence(automaton1, symbolicState1.toAutomaton());
+
+    System.err.println(symbolicNumbered1.bddSize());
+    System.err.println(symbolicState1.bddSize());
+
+    var automaton2 = DeterministicConstructions.SafetyCoSafetyRoundRobin.of(LtlParser.parse("((((a U b) U c) U d) U e) U f"));
+    var symbolicNumbered2 = SymbolicAutomaton.of(
+      automaton2, new NumberingStateEncoderFactory<>());
+    var symbolicState2 = SymbolicAutomaton.of(
+      automaton2, new BreakpointStateRejectingRoundRobinEncoderFactory());
+
+    assertSameFields(automaton2, symbolicNumbered2.toAutomaton());
+    assertLanguageEquivalence(automaton2, symbolicNumbered2.toAutomaton());
+
+    assertSameFields(automaton2, symbolicState2.toAutomaton());
+    assertLanguageEquivalence(automaton2, symbolicState2.toAutomaton());
+
+    System.err.println(symbolicNumbered2.bddSize());
+    System.err.println(symbolicState2.bddSize());
   }
 
   private static void assertSameFields(Automaton<?, ?> expected, Automaton<?, ?> actual) {

@@ -135,4 +135,6 @@ public interface BddSet {
    *     of {@link BddSet#support()}.
    */
   Iterator<BitSet> iterator(ImmutableBitSet support);
+
+  int countNodes();
 }
