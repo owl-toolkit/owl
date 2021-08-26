@@ -315,7 +315,18 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public String toString() {
-      return "Conjunction [" + conjuncts + ']';
+      switch (conjuncts.size()) {
+        case 0:
+          return "tt";
+
+        case 1:
+          return conjuncts.get(0).toString();
+
+        default:
+          return conjuncts.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(" ∧ ", "(", ")"));
+      }
     }
 
     @Override
@@ -438,7 +449,18 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public String toString() {
-      return "Disjunction [" + disjuncts + ']';
+      switch (disjuncts.size()) {
+        case 0:
+          return "ff";
+
+        case 1:
+          return disjuncts.get(0).toString();
+
+        default:
+          return disjuncts.stream()
+            .map(Object::toString)
+            .collect(Collectors.joining(" ∨ ", "(", ")"));
+      }
     }
 
     @Override
@@ -539,7 +561,7 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public String toString() {
-      return "Negation [" + operand + ']';
+      return "¬" + operand;
     }
 
     @Override
@@ -599,7 +621,7 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public String toString() {
-      return "Variable [" + variable + ']';
+      return variable.toString();
     }
 
     @Override

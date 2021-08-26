@@ -80,6 +80,7 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.Literal;
 import owl.ltl.Negation;
 import owl.ltl.SyntacticFragments;
+import owl.ltl.rewriter.PropositionalSimplifier;
 import owl.ltl.rewriter.PushNextThroughPropositionalVisitor;
 import owl.ltl.rewriter.SimplifierRepository;
 import owl.ltl.visitors.PropositionalVisitor;
@@ -204,10 +205,13 @@ public final class NormalformDELAConstruction
       dbw = SafetyCoSafety.of(factories, BooleanConstant.TRUE, true, true);
 
       var normalFormConstructor = new NormalFormConverter();
-      var normalForm = formula.formula().accept(normalFormConstructor);
-      normalFormConstructor.referenceCounter.entrySet().removeIf(e -> e.getValue().equals(1));
+      var normalForm
+        = PropositionalSimplifier.INSTANCE.apply(formula.formula().accept(normalFormConstructor));
+      var referenceCounterVisitor = new CountingVisitor();
+      referenceCounterVisitor.apply(normalForm);
+      referenceCounterVisitor.referenceCounter.entrySet().removeIf(e -> e.getValue().equals(1));
       var initialStateFormulaConstructor
-        = new InitialStateConstructor(dbw, normalFormConstructor.referenceCounter.keySet());
+        = new InitialStateConstructor(dbw, referenceCounterVisitor.referenceCounter.keySet());
       var initialStateFormula = initialStateFormulaConstructor.apply(normalForm);
       var initialStates = initialStateFormulaConstructor.initialStates;
       classifier = new BreakpointStateRejectingClassifier(dbw,
@@ -951,34 +955,84 @@ public final class NormalformDELAConstruction
     }
   }
 
-  private static final class NormalFormConverter
-    extends PropositionalVisitor<Formula> {
+  private static final class CountingVisitor extends PropositionalVisitor<Void> {
 
     private final Map<Formula.TemporalOperator, Integer> referenceCounter = new HashMap<>();
 
     @Override
-    protected Formula visit(Formula.TemporalOperator formula) {
-      // Keep this in sync with initial state constructor.
-
+    protected Void visit(Formula.TemporalOperator formula) {
       if (referenceCounter.containsKey(formula)) {
         referenceCounter.put(formula, 2);
-        return formula;
+        return null;
       }
 
       var formulaNot = (Formula.TemporalOperator) formula.not();
 
       if (referenceCounter.containsKey(formulaNot)) {
         referenceCounter.put(formulaNot, 2);
-        return formula;
+        return null;
       }
 
       if (SyntacticFragments.isSafetyCoSafety(formula)) {
         referenceCounter.put(formula, 1);
-        return formula;
+        return null;
       }
 
       if (SyntacticFragments.isSafetyCoSafety(formulaNot)) {
         referenceCounter.put(formulaNot, 1);
+        return null;
+      }
+
+      throw new AssertionError("should not be reachable.");
+    }
+
+    @Override
+    public Void visit(Literal literal) {
+      return null;
+    }
+
+    @Override
+    public Void visit(Biconditional biconditional) {
+      biconditional.operands.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @Override
+    public Void visit(BooleanConstant booleanConstant) {
+      return null;
+    }
+
+    @Override
+    public Void visit(Conjunction conjunction) {
+      conjunction.operands.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @Override
+    public Void visit(Disjunction disjunction) {
+      disjunction.operands.forEach(x -> x.accept(this));
+      return null;
+    }
+
+    @Override
+    public Void visit(Negation negation) {
+      return negation.operand().accept(this);
+    }
+  }
+
+  private static final class NormalFormConverter
+    extends PropositionalVisitor<Formula> {
+
+    @Override
+    protected Formula visit(Formula.TemporalOperator formula) {
+      // Keep this in sync with initial state constructor.
+      if (SyntacticFragments.isSafetyCoSafety(formula)) {
+        return formula;
+      }
+
+      var formulaNot = (Formula.TemporalOperator) formula.not();
+
+      if (SyntacticFragments.isSafetyCoSafety(formulaNot)) {
         return formula;
       }
 
