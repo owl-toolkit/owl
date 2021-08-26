@@ -235,7 +235,7 @@
     ]
   },
   {
-    "formula": "((GFa | GFb) & (GFa | GFc))",
+    "formula": "(GFa | (GFb & GFc))",
     "properties": [
       [
         {
@@ -271,7 +271,7 @@
     ]
   },
   {
-    "formula": "(Ga | Gb | ((Ga | GFc) & (Gb | GF!c)))",
+    "formula": "(Ga | Gb | (GFc & GF!c))",
     "properties": [
       [
         {
@@ -36714,7 +36714,7 @@
     ]
   },
   {
-    "formula": "G(a | (a & b))",
+    "formula": "Ga",
     "properties": [
       []
     ]
@@ -57043,7 +57043,7 @@
     ]
   },
   {
-    "formula": "((GFa & GFb) | (FG!b & (GF!a | (FG!a & GFc))))",
+    "formula": "((FG!a & GF!b) | (GFa & GFb))",
     "properties": [
       [
         {

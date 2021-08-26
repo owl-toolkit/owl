@@ -36,6 +36,7 @@ public enum SimplifierRepository {
     switch (this) {
       case SYNTACTIC:
         return ((UnaryOperator<Formula>) x -> x.substitute(Formula::nnf))
+          .andThen(PropositionalSimplifier.INSTANCE)
           .andThen(SyntacticSimplifier.INSTANCE)
           .apply(formula);
 
@@ -50,7 +51,7 @@ public enum SimplifierRepository {
         Formula after = formula.substitute(Formula::nnf);
 
         for (int i = 0; i < 100 && !after.equals(before); i++) {
-          before = after;
+          before = after.accept(PropositionalSimplifier.INSTANCE);
           after = SyntacticSimplifier.INSTANCE.apply(before)
             .accept(PullUpXVisitor.INSTANCE).toFormula();
         }

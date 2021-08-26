@@ -29,7 +29,11 @@ public enum SyntacticFragment {
 
   ALL(Set.of(
     // Boolean Operators
-    Biconditional.class, BooleanConstant.class, Conjunction.class, Disjunction.class,
+    Biconditional.class,
+    BooleanConstant.class,
+    Conjunction.class,
+    Disjunction.class,
+    Negation.class,
 
     // Temporal Operators
     Literal.class, XOperator.class,

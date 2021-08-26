@@ -30,6 +30,7 @@ import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
 import owl.ltl.MOperator;
+import owl.ltl.Negation;
 import owl.ltl.ROperator;
 import owl.ltl.SyntacticFragment;
 import owl.ltl.UOperator;
@@ -124,6 +125,12 @@ public abstract class Converter implements Visitor<Formula>, UnaryOperator<Formu
   public Formula visit(XOperator xOperator) {
     checkSupportedCase(XOperator.class);
     return XOperator.of(xOperator.operand().accept(this));
+  }
+
+  @Override
+  public Formula visit(Negation negation) {
+    checkSupportedCase(Negation.class);
+    return new Negation(negation.operand().accept(this));
   }
 
   private void checkSupportedCase(Class<? extends Formula> clazz) {
