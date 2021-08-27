@@ -169,11 +169,6 @@ public final class SylvanBddNativeInterface {
     }
 
     @Override
-    public List<String> getOptions() {
-      return List.of("-L/usr/local/lib");
-    }
-
-    @Override
     public List<String> getLibraries() {
       return List.of("owlsylvan", "sylvan");
     }

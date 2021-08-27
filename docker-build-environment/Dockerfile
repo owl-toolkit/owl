@@ -1,7 +1,3 @@
-MAINTAINER Salomon Sickert
-
-ENV LANG C.UTF-8
-
 # Remember:
 # - Prefer LTS releases for build images in order to be compatible with more
 #   systems in case of dynamic linking of glibc.
@@ -10,6 +6,8 @@ ENV LANG C.UTF-8
 
 # Tools
 FROM ubuntu:20.04 AS tools
+ENV LANG C.UTF-8
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -q update && apt-get install -y git wget g++ gcc libc6-dev libffi-dev libgmp-dev make xz-utils zlib1g-dev git gnupg netbase cmake libhwloc-dev
 ## Stack
 RUN wget -q https://github.com/commercialhaskell/stack/releases/download/v2.5.1/stack-2.5.1-linux-x86_64.tar.gz \
@@ -35,47 +33,28 @@ RUN git clone https://github.com/arminbiere/aiger.git \
     && ./configure.sh \
     && make
 
-## Sylvan
-RUN git clone https://github.com/trolando/sylvan.git \
-    && cd sylvan \
-    && git checkout 8fa1f4dcd23143ad2483a1957bf8458b39a7954b \
-    && mkdir build \
-    && cd build \
-    && cmake .. \
-    && make
-
 # Base system
 FROM ubuntu:20.10
+ENV LANG C.UTF-8
 COPY --from=tools /build/syfco /usr/bin
 COPY --from=tools /combine-aiger/combine-aiger /usr/bin
 COPY --from=tools /aiger/smvtoaig /usr/bin
 COPY --from=tools /aiger/aigtoaig /usr/bin
-COPY --from=tools /sylvan/build/src/libsylvan.so /usr/lib
 
+ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get -q update \
     && apt-get -q upgrade -y \
-    && apt-get -q install -y --no-install-recommends build-essential libz-dev zlib1g-dev ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make unzip wget parallel cmake libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-iostreams-dev zlib1g-dev openjdk-13-jdk \
+    && apt-get -q install -y --no-install-recommends build-essential libz-dev zlib1g-dev ca-certificates pandoc python3 python3-tabulate graphviz time gcc g++ make unzip wget parallel cmake libboost-dev libboost-program-options-dev libboost-filesystem-dev libboost-iostreams-dev zlib1g-dev openjdk-13-jdk git libgmp-dev rsync lzip m4 \
     && rm -rf /var/lib/apt/lists/*
 
 
 # Musl
 
-## Download, verify, unpack, compile, install, and test.
+RUN git clone https://github.com/richfelker/musl-cross-make.git \
+    && cd musl-cross-make \
+    && make TARGET=x86_64-linux-musl OUTPUT=/musl DL_CMD="wget --no-check-certificate -c -O" install
 
-RUN wget -q https://musl.libc.org/releases/musl-1.2.2.tar.gz \
-    && echo '9b969322012d796dc23dda27a35866034fa67d8fb67e0e2c45c913c3d43219dd musl-1.2.2.tar.gz' | sha256sum --check \
-    && tar -zxvf musl-1.2.2.tar.gz \
-    && rm musl-1.2.2.tar.gz \
-    && cd musl-1.2.2 \
-    && ./configure --disable-shared \
-    && make -j 4 \
-    && make install \
-    && cd .. \
-    && rm -rf musl-1.2.2 \
-    && /usr/local/musl/bin/musl-gcc --version
-
-ENV PATH=/usr/local/musl/bin/:$PATH
-
+ENV PATH=/musl/bin/:/musl/x86_64-linux-musl/bin:$PATH
 
 # zlib
 
@@ -86,10 +65,11 @@ RUN wget -q https://zlib.net/zlib-1.2.11.tar.gz \
     && tar -zxvf zlib-1.2.11.tar.gz \
     && rm zlib-1.2.11.tar.gz \
     && cd zlib-1.2.11 \
-    && CC=musl-gcc ./configure --static --prefix=/usr/local/musl \
-    && CC=musl-gcc make \
-    && CC=musl-gcc make install
-
+    && CC=x86_64-linux-musl-gcc ./configure --static --prefix=/musl \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf zlib-1.2.11
 
 # GraalVM
 
@@ -129,6 +109,31 @@ RUN wget -q https://www.lrde.epita.fr/dload/spot/spot-2.9.3.tar.gz \
 
 ENV LD_LIBRARY_PATH=/usr/local/lib/:$LD_LIBRARY_PATH
 
+## GMP
+RUN wget -q https://gmplib.org/download/gmp/gmp-6.2.1.tar.lz \
+    && tar --lzip -xvf gmp-6.2.1.tar.lz \
+    && rm gmp-6.2.1.tar.lz \
+    && cd gmp-6.2.1 \
+    && CC=x86_64-linux-musl-gcc ./configure --host=x86_64 --disable-shared --prefix=/musl \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf gmp-6.2.1
+
+## Sylvan
+RUN git clone https://github.com/trolando/sylvan.git \
+    && cd sylvan \
+    && git checkout 8fa1f4dcd23143ad2483a1957bf8458b39a7954b \
+    && mkdir build \
+    && cd build \
+    && CC=x86_64-linux-musl-gcc CXX=x86_64-linux-musl-g++ cmake -DGMP_INCLUDE_DIR=/musl/include -DGMP_LIBRARIES=/musl/lib -DBUILD_SHARED_LIBS=OFF -DBUILD_TESTING=off -DCMAKE_INSTALL_PREFIX=/musl .. \
+    && make \
+    && make install \
+    && cd .. \
+    && rm -rf sylvan
+
+ENV MUSL_CC=/musl/bin/x86_64-linux-musl-gcc
+
 # NuSMV
 RUN wget -q https://nusmv.fbk.eu/distrib/NuSMV-2.6.0-linux64.tar.gz \
     && echo '11b12e42bc04566c4ec1f7cc205fa8704382ac4d69e052154cbb59c9b7e8e08c NuSMV-2.6.0-linux64.tar.gz' | sha256sum --check \
@@ -148,7 +153,7 @@ RUN wget -q https://es-static.fbk.eu/tools/nuxmv/downloads/nuXmv-2.0.0-linux64.t
 
 # Print Configuration
 
-RUN musl-gcc --version \
+RUN x86_64-linux-musl-gcc --version \
     && java -version \
     && native-image --version \
     && ltlcross --version

@@ -47,14 +47,28 @@ project.mainClassName = 'owl.command.OwlCommand'
 def defaultEncoding = 'UTF-8'
 
 model {
+    toolChains {
+        gcc(Gcc) {
+            eachPlatform {
+                cCompiler.executable = System.getenv("MUSL_CC")
+                    .substring(System.getenv("MUSL_CC").lastIndexOf('/') + 1)
+            }
+        }
+    }
     components {
         owlsylvan(NativeLibrarySpec) {
             sources.c {
                 source {
                     srcDir "src/main/c/source"
                 }
+                lib library: "owlsylvan", linkage: "static"
                 exportedHeaders {
                     srcDir "src/main/c/headers"
+                }
+            }
+            binaries {
+                all {
+                    cCompiler.args '-I/musl/include'
                 }
             }
         }
@@ -190,7 +204,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary']) 
         '-H:+ReportExceptionStackTraces',
         // '-H:-UseServiceLoaderFeature',
         '-Djava.lang.Integer.IntegerCache.high=1024', // Cache more boxed integers.
-        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/shared"
+        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/static,/musl/lib"
 
     def cCompiler = System.getenv("CC")
     if (cCompiler != null) {
@@ -224,7 +238,7 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar, 'owlsylvanSharedLibrary'
         // '-H:+DashboardAll',
         '-H:+ReportExceptionStackTraces',
         '-Djava.lang.Integer.IntegerCache.high=1024', // Cache more boxed integers.
-        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/shared"
+        "-H:CLibraryPath=${buildDir}/libs/owlsylvan/static,/musl/lib"
 
     if (staticNativeExecutable) {
         args '--static'
