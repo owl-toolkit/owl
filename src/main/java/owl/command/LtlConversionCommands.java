@@ -111,7 +111,7 @@ final class LtlConversionCommands {
         "SE20_PI_2_AND_FG_P1_1: This method corresponds to [" + Bibliography.LICS_20_CITEKEY
           + ", Theorem 27].",
       },
-      defaultValue = "SE20_SIGMA_2_AND_FG_PI_1"
+      defaultValue = "SE20_SIGMA_2_AND_GF_SIGMA_1"
     )
     private NormalisationMethod method = NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
 
