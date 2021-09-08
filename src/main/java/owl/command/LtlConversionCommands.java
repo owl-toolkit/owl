@@ -94,7 +94,7 @@ final class LtlConversionCommands {
         + "construction of [" + Bibliography.LICS_20_CITEKEY + "].",
       "Usage Examples:",
       "  owl ltl2delta2 -f 'F (a & G (b | F c)) & G F d'",
-      "  owl ltl2delta2 --dual -f 'F (a & G (b | F c)) & G F d'",
+      "  owl ltl2delta2 --method=SE20_PI_2_AND_FG_P1_1 -f 'F (a & G (b | F c)) & G F d'",
       MiscCommands.BibliographyCommand.HOW_TO_USE
     }
   )
