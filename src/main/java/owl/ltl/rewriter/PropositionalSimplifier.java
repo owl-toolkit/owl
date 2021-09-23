@@ -264,7 +264,7 @@ public class PropositionalSimplifier extends Converter {
 
     @Override
     public Formula visit(Negation negation) {
-      return new Negation(negation.accept(this));
+      return new Negation(negation.operand().accept(this));
     }
   }
 
@@ -340,7 +340,7 @@ public class PropositionalSimplifier extends Converter {
 
     @Override
     public Formula visit(Negation negation) {
-      return new Negation(negation.accept(this));
+      return new Negation(negation.operand().accept(this));
     }
   }
 }

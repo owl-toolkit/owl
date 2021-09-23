@@ -25,7 +25,6 @@ import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.S
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -153,10 +152,10 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
         ? new ToPi2Selector()
         : new ToSigma2Selector();
       selector.apply(temporalOperator);
-      List<Fixpoints> fixpointsList = Sets.powerSet(selector.fixpoints)
+      Set<Fixpoints> fixpointsList = Sets.powerSet(selector.fixpoints)
         .stream()
-        .map(Fixpoints::of)
-        .collect(Collectors.toList());
+        .map(x -> Fixpoints.of(x).simplified())
+        .collect(Collectors.toSet());
 
       for (Fixpoints fixpoints : fixpointsList) {
         var conjuncts = new ArrayList<Formula>();
@@ -258,9 +257,10 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
         return fOperator;
       }
 
-      return WOperator.of(
-        FOperator.of(toCoSafety.apply(fOperator.operand())),
-        fOperator.operand().accept(this));
+      return ROperator.of(
+        fOperator.operand().accept(this),
+        FOperator.of(toCoSafety.apply(fOperator.operand()))
+      );
     }
 
     @Override
