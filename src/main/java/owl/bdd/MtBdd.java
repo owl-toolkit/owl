@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.IdentityHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -56,8 +57,16 @@ public abstract class MtBdd<E> {
   }
 
   public static <E> MtBdd<E> of(Collection<? extends E> value) {
-    Set<E> set = Set.copyOf(value);
-    return set.isEmpty() ? of() : new Leaf<>(set);
+    switch (value.size()) {
+      case 0:
+        return of();
+
+      case 1:
+        return new Leaf<>(Set.of(value.iterator().next()));
+
+      default:
+        return new Leaf<>(Set.copyOf(value));
+    }
   }
 
   public static <E> MtBdd<E> of(int variable, MtBdd<E> trueChild, MtBdd<E> falseChild) {
@@ -103,7 +112,7 @@ public abstract class MtBdd<E> {
     }
 
     if (nextVariable == Integer.MAX_VALUE) {
-      Set<E> trueKeys = new HashSet<>();
+      List<E> trueKeys = new ArrayList<>();
 
       for (int i = 0, s = keys.size(); i < s; i++) {
         var value = values.get(i);
@@ -164,12 +173,12 @@ public abstract class MtBdd<E> {
   }
 
   public final <T> MtBdd<T> map(
-    Function<? super Set<E>, ? extends Collection<? extends T>> mapper) {
+    Function<? super Set<E>, ? extends Set<? extends T>> mapper) {
     return memoizedMap(mapper, new HashMap<>());
   }
 
   protected abstract <T> MtBdd<T> memoizedMap(
-    Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
+    Function<? super Set<E>, ? extends Set<? extends T>> mapper,
     Map<MtBdd<E>, MtBdd<T>> memoizedCalls);
 
   protected abstract Map<E, BddSet> memoizedInverse(
@@ -188,7 +197,6 @@ public abstract class MtBdd<E> {
     public final Set<E> value;
 
     private Leaf(Set<E> value) {
-      assert value == Set.copyOf(value);
       this.value = value;
     }
 
@@ -209,7 +217,7 @@ public abstract class MtBdd<E> {
 
     @Override
     protected <T> MtBdd<T> memoizedMap(
-      Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
+      Function<? super Set<E>, ? extends Set<? extends T>> mapper,
       Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
       return memoizedCalls.computeIfAbsent(this, x -> of(mapper.apply(value)));
@@ -300,7 +308,7 @@ public abstract class MtBdd<E> {
     // Perfect for fork/join-parallesism
     @Override
     protected <T> MtBdd<T> memoizedMap(
-      Function<? super Set<E>, ? extends Collection<? extends T>> mapper,
+      Function<? super Set<E>, ? extends Set<? extends T>> mapper,
       Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
       MtBdd<T> mappedNode = memoizedCalls.get(this);

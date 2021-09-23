@@ -21,7 +21,6 @@ package owl.logic.propositional.sat;
 
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.collect.Sets;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -147,9 +146,13 @@ public final class Solver {
 
     // Preprocessing to reduce enumeration of models using the SAT solver.
 
-    // 1. Check trivial model.
+    // 1. Check trivial cases.
     if (normalisedFormula.evaluate(upperBound)) {
       return List.of(upperBound);
+    }
+
+    if (upperBound.size() == 1) {
+      return normalisedFormula.evaluate(Set.of()) ? List.of(new HashSet<>()) : List.of();
     }
 
     // 2. Compute lower-bound and replace positive variables by true.
@@ -168,15 +171,57 @@ public final class Solver {
             ? PropositionalFormula.trueConstant()
             : PropositionalFormula.Variable.of(variable));
 
-        List<Set<V>> restrictedMaximalModels = maximalModels(
-          restrictedFormula, new HashSet<>(Sets.difference(upperBound, lowerBound)));
+        Set<V> newUpperBound = new HashSet<>(upperBound.size());
+
+        for (var upperBoundElement : upperBound) {
+          if (!lowerBound.contains(upperBoundElement)) {
+            newUpperBound.add(upperBoundElement);
+          }
+        }
+
+        List<Set<V>> restrictedMaximalModels = maximalModels(restrictedFormula, newUpperBound);
 
         restrictedMaximalModels.forEach(model -> model.addAll(lowerBound));
         return restrictedMaximalModels;
       }
     }
 
-    // 3. If the formula is in DNF, extract information
+    // 3. If the formula is a disjunction of negations, then the maximal models can be
+    //    directly be computed.
+
+    if (upperBound.equals(formula.variables())
+      && normalisedFormula instanceof PropositionalFormula.Disjunction) {
+
+      boolean allDisjunctsAreNegatedVariables = true;
+      var disjuncts
+        = ((PropositionalFormula.Disjunction<V>) normalisedFormula).disjuncts;
+
+      for (int i = 0, s = disjuncts.size(); i < s; i++) {
+        var disjunct = disjuncts.get(i);
+
+        if (!(disjunct instanceof PropositionalFormula.Negation)
+          || !(((PropositionalFormula.Negation<V>) disjunct).operand
+             instanceof PropositionalFormula.Variable)) {
+          allDisjunctsAreNegatedVariables = false;
+          break;
+        }
+      }
+
+      if (allDisjunctsAreNegatedVariables) {
+        List<Set<V>> maximalModels = new ArrayList<>();
+
+        for (V upperBoundElement : upperBound) {
+          var model = new HashSet<>(upperBound);
+          model.remove(upperBoundElement);
+          assert normalisedFormula.evaluate(model);
+          maximalModels.add(model);
+        }
+
+        return maximalModels;
+      }
+    }
+
+    // 4. If the formula is in DNF, extract additional information to speed up search.
     List<Set<V>> maximalModels = new ArrayList<>();
 
     for (var disjunct : PropositionalFormula.disjuncts(normalisedFormula)) {

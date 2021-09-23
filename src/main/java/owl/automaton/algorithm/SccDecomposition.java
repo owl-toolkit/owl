@@ -127,6 +127,7 @@ public abstract class SccDecomposition<S> {
    */
   @Memoized
   public List<Set<S>> sccs() {
+    // TODO: also compute condensation graph in the same processing step.
     var successorFunction = successorFunction();
 
     var topologicalSortedSccs = new ArrayDeque<Set<S>>();
@@ -174,8 +175,15 @@ public abstract class SccDecomposition<S> {
    */
   @Memoized
   public List<Set<S>> sccsWithoutTransient() {
-    var nonTransientSccs = new ArrayList<>(sccs());
-    nonTransientSccs.removeIf(this::isTransientScc);
+    var sccs = sccs();
+    var nonTransientSccs = new ArrayList<Set<S>>(sccs.size());
+
+    for (var scc : sccs) {
+      if (!isTransientScc(scc)) {
+        nonTransientSccs.add(scc);
+      }
+    }
+
     return List.copyOf(nonTransientSccs);
   }
 

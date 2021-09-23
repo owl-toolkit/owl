@@ -414,15 +414,27 @@ public final class Collections3 {
    * @return a new set containing all transformed objects
    */
   public static <E1, E2> Set<E2> transformSet(Set<E1> set, Function<E1, E2> transformer) {
-    Set<E2> transformedSet = new HashSet<>();
-    set.forEach(x -> transformedSet.add(transformer.apply(x)));
+    // This function is usually called with either the empty set or a singleton. Thus the following
+    // code is optimised for exactly these cases.
 
-    if (transformedSet.isEmpty()) {
+    Iterator<E1> iterator = set.iterator();
+
+    if (!iterator.hasNext()) {
       return Set.of();
     }
 
-    if (transformedSet.size() == 1) {
-      return Set.of(transformedSet.iterator().next());
+    E2 element = transformer.apply(iterator.next());
+
+    if (!iterator.hasNext()) {
+      return Set.of(element);
+    }
+
+    Set<E2> transformedSet = new HashSet<>();
+
+    transformedSet.add(element);
+
+    while (iterator.hasNext()) {
+      transformedSet.add(transformer.apply(iterator.next()));
     }
 
     return transformedSet;

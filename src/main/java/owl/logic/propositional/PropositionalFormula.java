@@ -20,7 +20,6 @@
 package owl.logic.propositional;
 
 import com.google.common.collect.Comparators;
-import com.google.common.collect.Maps;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -187,9 +186,9 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public Map<T, Polarity> polarity() {
-      Map<T, Polarity> polarity = new HashMap<>();
-      rightOperand.polarity().forEach((variable, p) -> polarity.put(variable, Polarity.MIXED));
-      leftOperand.polarity().forEach((variable, p) -> polarity.put(variable, Polarity.MIXED));
+      Map<T, Polarity> polarity = rightOperand.polarity();
+      polarity.putAll(leftOperand.polarity());
+      polarity.replaceAll((x, y) -> Polarity.MIXED);
       return polarity;
     }
 
@@ -631,8 +630,9 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public Map<T, Polarity> polarity() {
-      return Maps.transformValues(operand.polarity(), x -> {
-        switch (x) {
+      var polarity = operand.polarity();
+      polarity.replaceAll((x, y) -> {
+        switch (y) {
           case POSITIVE:
             return Polarity.NEGATIVE;
 
@@ -643,6 +643,8 @@ public abstract class PropositionalFormula<T> {
             return Polarity.MIXED;
         }
       });
+
+      return polarity;
     }
 
     @Override
@@ -712,7 +714,9 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public Map<T, Polarity> polarity() {
-      return Map.of(variable, Polarity.POSITIVE);
+      var polarity = new HashMap<T, Polarity>();
+      polarity.put(variable, Polarity.POSITIVE);
+      return polarity;
     }
 
     @Override

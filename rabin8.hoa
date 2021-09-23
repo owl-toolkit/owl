@@ -1,0 +1,12 @@
+HOA: v1
+States: 1
+Start: 0
+AP: 4 "a" "b" "c" "d"
+acc-name: Rabin 8
+Acceptance: 16 (Fin(0) & Inf(1)) | (Fin(2) & Inf(3)) | (Fin(4) & Inf(5)) | (Fin(6) & Inf(7)) | (Fin(8) & Inf(9)) | (Fin(10) & Inf(11)) | (Fin(12) & Inf(13)) | (Fin(14) & Inf(15))
+properties: trans-labels implicit-labels colored complete deterministic
+--BODY--
+State: 0
+0 {0} 0 {1} 0 {2} 0 {3} 0 {4} 0 {5} 0 {6} 0 {7}
+0 {8} 0 {9} 0 {10} 0 {11} 0 {12} 0 {13} 0 {14} 0 {15}
+--END--
