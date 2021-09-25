@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
 import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
 
+import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.ltl.Formula;
 import owl.ltl.parser.LtlParser;
@@ -31,19 +32,25 @@ import owl.ltl.rewriter.SimplifierRepository;
 
 class NormalisationTest {
 
+  private static final List<String> ATOMIC_PROPOSITIONS = List.of("a", "b", "c");
+
   @Test
   void testLics20() {
-    var formula = LtlParser.parse("F (a & G (b | Fc))");
+    var formula
+      = LtlParser.parse("F (a & G (b | Fc))", ATOMIC_PROPOSITIONS);
     var normalisation = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
-    var normalform = LtlParser.parse("F (a & ((b | Fc) U Gb)) | (Fa & GFc)");
+    var normalform
+      = LtlParser.parse("F (a & ((b | Fc) U Gb)) | (Fa & GFc)", ATOMIC_PROPOSITIONS);
     assertEquals(normalform, normalisation.apply(formula));
   }
 
   @Test
   void testLics20Dual() {
-    var formula = LtlParser.parse("G (a | F (b & G c))");
+    var formula
+      = LtlParser.parse("G (a | F (b & G c))", ATOMIC_PROPOSITIONS);
     var normalisation = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
-    var normalform = LtlParser.parse("G(a | (b & Gc)) | (FGc & G(a | ((F b) W (b & G c))))");
+    var normalform
+      = LtlParser.parse("G(a) | (FGc & G(a | ((b & G c) R (F b))))", ATOMIC_PROPOSITIONS);
     assertEquals(normalform, normalisation.apply(formula));
   }
 
@@ -106,5 +113,31 @@ class NormalisationTest {
 
       assertTrue(Normalisation.isPi2OrFgPi1(temporalOperator));
     }
+  }
+
+  @Test
+  void testSimplifiedFixpoints() {
+    var normalisation = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, true);
+    var dualNormalisation = Normalisation.of(SE20_PI_2_AND_FG_PI_1, true);
+
+    var formula1 = LtlParser.parse("F G (a U b | b M c)", ATOMIC_PROPOSITIONS);
+    var formula2 = LtlParser.parse("F G (a U b | b M c | F b)", ATOMIC_PROPOSITIONS);
+
+    var expectedFormula1 = LtlParser.parse("(GF b) & (FG (b R c | a W b))", ATOMIC_PROPOSITIONS);
+    var expectedFormula2 = LtlParser.parse("G F b", ATOMIC_PROPOSITIONS);
+
+    assertEquals(expectedFormula1, normalisation.apply(formula1));
+    assertEquals(expectedFormula2, normalisation.apply(formula2));
+
+    var dualFormula1 = LtlParser.parse("G F (a W b & c R a)", ATOMIC_PROPOSITIONS);
+    var dualFormula2 = LtlParser.parse("G F (a W b & c R a & G a)", ATOMIC_PROPOSITIONS);
+
+    var expectedDualFormula1
+      = LtlParser.parse("(F G a) | (GF (a U b & c M a))", ATOMIC_PROPOSITIONS);
+    var expectedDualFormula2
+      = LtlParser.parse("F G a", ATOMIC_PROPOSITIONS);
+
+    assertEquals(expectedDualFormula1, dualNormalisation.apply(dualFormula1));
+    assertEquals(expectedDualFormula2, dualNormalisation.apply(dualFormula2));
   }
 }

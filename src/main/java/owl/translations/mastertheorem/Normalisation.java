@@ -25,10 +25,8 @@ import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.S
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -153,12 +151,12 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
         ? new ToPi2Selector()
         : new ToSigma2Selector();
       selector.apply(temporalOperator);
-      List<Fixpoints> fixpointsList = Sets.powerSet(selector.fixpoints)
-        .stream()
-        .map(Fixpoints::of)
-        .collect(Collectors.toList());
 
-      for (Fixpoints fixpoints : fixpointsList) {
+      for (var fixpointsOperators : Sets.powerSet(selector.fixpoints)) {
+
+        var fixpoints = Fixpoints.of(fixpointsOperators);
+        assert fixpoints.equals(fixpoints.simplified());
+
         var conjuncts = new ArrayList<Formula>();
         var toCoSafety = new Rewriter.ToCoSafety(fixpoints);
         var toSafety = new Rewriter.ToSafety(fixpoints);
@@ -258,9 +256,10 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
         return fOperator;
       }
 
-      return WOperator.of(
-        FOperator.of(toCoSafety.apply(fOperator.operand())),
-        fOperator.operand().accept(this));
+      return ROperator.of(
+        fOperator.operand().accept(this),
+        FOperator.of(toCoSafety.apply(fOperator.operand()))
+      );
     }
 
     @Override
@@ -292,7 +291,7 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
 
   private abstract static class AbstractSelector implements Visitor<Void> {
 
-    protected final Set<Formula.TemporalOperator> fixpoints = new HashSet<>();
+    protected final Set<Formula.UnaryTemporalOperator> fixpoints = new HashSet<>();
 
     @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
     @Override
@@ -408,7 +407,22 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
     }
   }
 
-  private static Set<Formula.TemporalOperator> selectAllFixpoints(Formula formula) {
-    return formula.subformulas(Predicates.IS_FIXPOINT, Formula.TemporalOperator.class::cast);
+  private static Set<Formula.UnaryTemporalOperator> selectAllFixpoints(Formula formula) {
+    return formula.subformulas(Predicates.IS_FIXPOINT, fixpoint -> {
+      if (fixpoint instanceof MOperator) {
+        return new FOperator(((MOperator) fixpoint).leftOperand());
+      } else if (fixpoint instanceof UOperator) {
+        return new FOperator(((UOperator) fixpoint).rightOperand());
+      } else if (fixpoint instanceof FOperator) {
+        return (FOperator) fixpoint;
+      } else if (fixpoint instanceof ROperator) {
+        return new GOperator(((ROperator) fixpoint).rightOperand());
+      } else if (fixpoint instanceof WOperator) {
+        return new GOperator(((WOperator) fixpoint).leftOperand());
+      } else {
+        assert fixpoint instanceof GOperator;
+        return (GOperator) fixpoint;
+      }
+    });
   }
 }
