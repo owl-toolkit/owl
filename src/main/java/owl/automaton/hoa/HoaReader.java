@@ -24,7 +24,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.common.collect.Iterables;
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ListIterator;
@@ -75,14 +74,14 @@ public final class HoaReader {
     Reader reader,
     Supplier<BddSetFactory> factorySupplier,
     @Nullable List<String> predefinedAtomicPropositions,
-    Consumer<? super Automaton<HoaState, ?>> consumer) throws ParseException {
+    Consumer<? super Automaton<Integer, ?>> consumer) throws ParseException {
 
     HOAFParserFixed.parseHOA(reader,
       () -> new ToTransitionAcceptance(
         new HoaConsumerAutomatonSupplier(consumer, factorySupplier, predefinedAtomicPropositions)));
   }
 
-  public static Automaton<HoaState, ?> read(
+  public static Automaton<Integer, ?> read(
     String string,
     Supplier<BddSetFactory> factorySupplier,
     @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
@@ -90,12 +89,12 @@ public final class HoaReader {
     return read(new StringReader(string), factorySupplier, predefinedAtomicPropositions);
   }
 
-  public static Automaton<HoaState, ?> read(
+  public static Automaton<Integer, ?> read(
     Reader reader,
     Supplier<BddSetFactory> factorySupplier,
     @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
 
-    AtomicReference<Automaton<HoaState, ?>> reference = new AtomicReference<>();
+    AtomicReference<Automaton<Integer, ?>> reference = new AtomicReference<>();
 
     readStream(reader, factorySupplier, predefinedAtomicPropositions, automaton -> {
       var oldValue = reference.getAndSet(automaton);
@@ -161,13 +160,13 @@ public final class HoaReader {
   }
 
   private static final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
-    private final Consumer<? super Automaton<HoaState, ?>> consumer;
+    private final Consumer<? super Automaton<Integer, ?>> consumer;
     private final Supplier<BddSetFactory> factorySupplier;
     @Nullable
     private final List<String> predefinedAtomicPropositions;
 
     HoaConsumerAutomatonSupplier(
-      Consumer<? super Automaton<HoaState, ?>> consumer,
+      Consumer<? super Automaton<Integer, ?>> consumer,
       Supplier<BddSetFactory> factorySupplier,
       @Nullable List<String> predefinedAtomicPropositions) {
 
@@ -186,45 +185,10 @@ public final class HoaReader {
     }
   }
 
-  public static final class HoaState {
-    public final int id;
-    @Nullable
-    final String info;
-
-    public HoaState(int id, @Nullable String info) {
-      this.id = id;
-      this.info = info;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-      if (!(o instanceof HoaState)) {
-        return false;
-      }
-
-      HoaState that = (HoaState) o;
-      return id == that.id;
-    }
-
-    @Override
-    public int hashCode() {
-      return Integer.hashCode(id);
-    }
-
-    @Override
-    public String toString() {
-      return info == null ? Integer.toString(id) : String.format("%d (%s)", id, info);
-    }
-  }
-
   private static final class StoredConverter {
-    private final MutableAutomaton<HoaState, ?> automaton;
+    private final MutableAutomaton<Integer, ?> automaton;
     @Nullable
     private final int[] remapping;
-    private final List<HoaState> states;
     private final StoredAutomaton storedAutomaton;
     private final StoredHeader storedHeader;
     private final BddSetFactory vsFactory;
@@ -259,8 +223,6 @@ public final class HoaReader {
         remapping == null ? atomicPropositions : predefinedAtomicPropositions,
         this.vsFactory,
         acceptance(storedHeader));
-
-      states = Arrays.asList(new HoaState[storedAutomaton.getNumberOfStates()]);
     }
 
     private static void check(boolean condition, String formatString, Object... args)
@@ -270,10 +232,10 @@ public final class HoaReader {
       }
     }
 
-    private void addEdge(HoaState source, BddSet valuationSet,
-      @Nullable List<Integer> storedEdgeAcceptance, HoaState successor)
+    private void addEdge(Integer source, BddSet valuationSet,
+      @Nullable List<Integer> storedEdgeAcceptance, Integer successor)
       throws HOAConsumerException {
-      Edge<HoaState> edge = Edge.of(successor, storedEdgeAcceptance == null
+      Edge<Integer> edge = Edge.of(successor, storedEdgeAcceptance == null
         ? ImmutableBitSet.of()
         : ImmutableBitSet.copyOf(storedEdgeAcceptance));
       check(automaton.acceptance().isWellFormedEdge(edge),
@@ -386,29 +348,20 @@ public final class HoaReader {
       }
     }
 
-    private HoaState getSuccessor(List<Integer> successors) throws HOAConsumerException {
+    private Integer getSuccessor(List<Integer> successors) throws HOAConsumerException {
       check(successors.size() == 1, "Universal edges not supported");
-      return states.get(Iterables.getOnlyElement(successors));
+      return Iterables.getOnlyElement(successors);
     }
 
-    MutableAutomaton<HoaState, ?> transform() throws HOAConsumerException {
-      for (StoredState storedState : storedAutomaton.getStoredStates()) {
-        int stateId = storedState.getStateId();
-        HoaState state = new HoaState(stateId, storedState.getInfo());
-
-        assert states.get(stateId) == null;
-        states.set(stateId, state);
-      }
-
+    MutableAutomaton<Integer, ?> transform() throws HOAConsumerException {
       for (List<Integer> startState : storedHeader.getStartStates()) {
         check(startState.size() == 1, "Universal initial states not supported");
-        automaton.addInitialState(states.get(Iterables.getOnlyElement(startState)));
+        automaton.addInitialState(Iterables.getOnlyElement(startState));
       }
 
       for (StoredState storedState : storedAutomaton.getStoredStates()) {
         int stateId = storedState.getStateId();
-        HoaState state = states.get(stateId);
-        automaton.addState(state);
+        automaton.addState(stateId);
         assert storedState.getAccSignature() == null || storedState.getAccSignature().isEmpty();
 
         if (storedAutomaton.hasEdgesImplicit(stateId)) {
@@ -421,7 +374,7 @@ public final class HoaReader {
           for (StoredEdgeImplicit implicitEdge : edgesImplicit) {
             assert counter < numberExpectedEdges;
 
-            HoaState successorState = getSuccessor(implicitEdge.getConjSuccessors());
+            Integer successorState = getSuccessor(implicitEdge.getConjSuccessors());
 
             BddSet valuationSet = vsFactory.of(
               BooleanExpression.fromImplicit(counter), automaton.atomicPropositions().size());
@@ -431,7 +384,7 @@ public final class HoaReader {
             }
 
             List<Integer> edgeAcceptance = implicitEdge.getAccSignature();
-            addEdge(state, valuationSet, edgeAcceptance, successorState);
+            addEdge(stateId, valuationSet, edgeAcceptance, successorState);
             counter += 1;
           }
 
@@ -445,7 +398,7 @@ public final class HoaReader {
           for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(stateId)) {
             var successorState = getSuccessor(edgeWithLabel.getConjSuccessors());
             var valuationSet = of(vsFactory, edgeWithLabel.getLabelExpr(), apMapping, aliases);
-            addEdge(state, valuationSet, edgeWithLabel.getAccSignature(), successorState);
+            addEdge(stateId, valuationSet, edgeWithLabel.getAccSignature(), successorState);
           }
         }
       }
