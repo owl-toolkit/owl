@@ -28,9 +28,11 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
+import owl.logic.propositional.PropositionalFormula;
 
 /**
  * A multi-terminal binary decision diagram (MTBDD).
@@ -59,6 +61,46 @@ public abstract class MtBdd<E> {
     }
 
     return new Node<>(variable, trueChild, falseChild);
+  }
+
+  public static <E> MtBdd<E> of(Map<E, PropositionalFormula<Integer>> map) {
+
+    OptionalInt smallestVariableOptional = map.values().stream()
+      .flatMapToInt(x -> x.variables().stream().mapToInt(y -> y)).min();
+
+    if (smallestVariableOptional.isEmpty()) {
+      Set<E> trueElements = new HashSet<>();
+      map.forEach((e, f) -> {
+        if (f.evaluate(Set.of())) {
+          trueElements.add(e);
+        }
+      });
+
+      return MtBdd.of(trueElements);
+    }
+
+    Map<E, PropositionalFormula<Integer>> trueMap = new HashMap<>(map);
+    Map<E, PropositionalFormula<Integer>> falseMap = new HashMap<>(map);
+
+    int smallestVariable = smallestVariableOptional.getAsInt();
+
+    trueMap.entrySet().forEach(e -> e.setValue(e.getValue().substitute(v -> {
+      if (v.equals(smallestVariable)) {
+        return PropositionalFormula.trueConstant();
+      } else {
+        return PropositionalFormula.Variable.of(v);
+      }
+    })));
+
+    falseMap.entrySet().forEach(e -> e.setValue(e.getValue().substitute(v -> {
+      if (v.equals(smallestVariable)) {
+        return PropositionalFormula.falseConstant();
+      } else {
+        return PropositionalFormula.Variable.of(v);
+      }
+    })));
+
+    return of(smallestVariable, of(trueMap), of(falseMap));
   }
 
   public abstract Set<E> get(BitSet valuation);

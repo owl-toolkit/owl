@@ -20,6 +20,12 @@
 package owl.automaton.hoa;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static owl.logic.propositional.PropositionalFormula.Conjunction;
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.falseConstant;
+import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.collect.Iterables;
 import java.io.Reader;
@@ -34,7 +40,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.function.IntUnaryOperator;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import jhoafparser.ast.AtomLabel;
@@ -61,9 +66,10 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
+import owl.bdd.MtBdd;
 import owl.collections.ImmutableBitSet;
+import owl.logic.propositional.PropositionalFormula;
 
 public final class HoaReader {
 
@@ -280,13 +286,16 @@ public final class HoaReader {
   }
 
   private static final class StoredAutomatonConverter
-    extends AbstractMemoizingAutomaton.EdgeMapImplementation<Integer, EmersonLeiAcceptance> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Integer, EmersonLeiAcceptance> {
 
     @Nullable
     private StoredAutomaton storedAutomaton;
     @Nullable
-    private IntUnaryOperator apMapping;
+    private int[] mapping;
+    @Nullable
+    private Map<String, BooleanExpression<AtomLabel>> aliases;
 
+    @SuppressWarnings("PMD.ArrayIsStoredDirectly")
     private StoredAutomatonConverter(
       @Nullable int[] remapping,
       List<String> atomicPropositions,
@@ -298,25 +307,26 @@ public final class HoaReader {
       super(atomicPropositions, vsFactory, initialStates, acceptance);
 
       this.storedAutomaton = storedAutomaton;
-      this.apMapping = remapping == null ? null : i -> remapping[i];
+      this.mapping = remapping;
+      this.aliases = new HashMap<>();
+      storedAutomaton.getStoredHeader().getAliases()
+        .forEach(x -> this.aliases.put(x.name, x.extra));
     }
 
     @Override
-    protected Map<Edge<Integer>, BddSet> edgeMapImpl(Integer state) {
+    protected MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
       var storedState = storedAutomaton.getStoredState(state);
 
       assert state == storedState.getStateId();
       assert storedState.getAccSignature() == null || storedState.getAccSignature().isEmpty();
       assert !storedAutomaton.hasEdgesImplicit(state);
 
-      Map<Edge<Integer>, BddSet> edgeMap = new HashMap<>();
-      Map<String, BooleanExpression<AtomLabel>> aliases = new HashMap<>();
-      storedAutomaton.getStoredHeader().getAliases().forEach(x -> aliases.put(x.name, x.extra));
+      Map<Edge<Integer>, PropositionalFormula<Integer>> edgeMap = new HashMap<>();
 
       Iterable<StoredEdgeWithLabel> edges = storedAutomaton.getEdgesWithLabel(state);
 
       if (edges == null) {
-        return Map.of();
+        return MtBdd.of();
       }
 
       for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(state)) {
@@ -326,33 +336,30 @@ public final class HoaReader {
             : ImmutableBitSet.copyOf(edgeWithLabel.getAccSignature()));
         checkArgument(acceptance().isWellFormedEdge(edge),
           "%s is not well-formed for %s", edge, acceptance());
-
-        BddSet valuationSet = of(factory, edgeWithLabel.getLabelExpr(), apMapping, aliases);
-
-        edgeMap.compute(edge,
-          (key, oldValue) -> oldValue == null ? valuationSet : oldValue.union(valuationSet));
+        edgeMap.compute(edge, (key, value) -> value == null
+          ? resolveAndRemap(edgeWithLabel.getLabelExpr())
+          : Disjunction.of(value, resolveAndRemap(edgeWithLabel.getLabelExpr())));
       }
 
-      return edgeMap;
+      return MtBdd.of(edgeMap);
     }
 
     @Override
     protected void freezeMemoizedEdgesNotify() {
       storedAutomaton = null;
-      apMapping = null;
+      mapping = null;
+      aliases = null;
     }
 
-    private static BddSet of(BddSetFactory valuationSetFactory,
-      BooleanExpression<? extends AtomLabel> expression,
-      @Nullable IntUnaryOperator mapping,
-      @Nullable Map<String, ? extends BooleanExpression<AtomLabel>> aliases) {
+    private PropositionalFormula<Integer> resolveAndRemap(
+      BooleanExpression<? extends AtomLabel> expression) {
 
       if (expression.isFALSE()) {
-        return valuationSetFactory.of(false);
+        return falseConstant();
       }
 
       if (expression.isTRUE()) {
-        return valuationSetFactory.of(true);
+        return trueConstant();
       }
 
       if (expression.isAtom()) {
@@ -362,27 +369,28 @@ public final class HoaReader {
           String alias = atom.getAliasName();
           checkArgument(
             aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
-          return of(valuationSetFactory, aliases.get(alias), mapping, aliases);
+          return resolveAndRemap(aliases.get(alias));
         } else {
           int apIndex = atom.getAPIndex();
-          return valuationSetFactory.of(mapping == null ? apIndex : mapping.applyAsInt(apIndex));
+          return Variable.of(mapping == null ? apIndex : mapping[apIndex]);
         }
       }
 
       if (expression.isNOT()) {
-        return of(valuationSetFactory, expression.getLeft(), mapping, aliases).complement();
+        return Negation.of(
+          resolveAndRemap(expression.getLeft()));
       }
 
       if (expression.isAND()) {
-        BddSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
-        BddSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
-        return left.intersection(right);
+        return Conjunction.of(
+          resolveAndRemap(expression.getLeft()),
+          resolveAndRemap(expression.getRight()));
       }
 
       if (expression.isOR()) {
-        BddSet left = of(valuationSetFactory, expression.getLeft(), mapping, aliases);
-        BddSet right = of(valuationSetFactory, expression.getRight(), mapping, aliases);
-        return left.union(right);
+        return Disjunction.of(
+          resolveAndRemap(expression.getLeft()),
+          resolveAndRemap(expression.getRight()));
       }
 
       throw new IllegalArgumentException("Unsupported Case: " + expression);
