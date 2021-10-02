@@ -104,7 +104,9 @@ final class Mixins {
     @Option(
       names = {"--state-acceptance"},
       description = "Output an automaton with a state-based acceptance condition instead of one "
-        + "with a transition-based acceptance condition."
+        + "with a transition-based acceptance condition. For this the acceptance marks of edges "
+        + "are pushed onto the successor states. However, this simple procedure might yield "
+        + "suboptimal results."
     )
     private boolean stateAcceptance = false;
 

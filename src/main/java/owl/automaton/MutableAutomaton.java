@@ -54,7 +54,6 @@ import owl.bdd.BddSet;
  * <p>Methods that <em>do not</em> require calling {@link MutableAutomaton#trim()} afterwards:</p>
  *
  * <ul>
- * <li>{@link MutableAutomaton#name(String)}
  * <li>{@link MutableAutomaton#acceptance(EmersonLeiAcceptance)}
  * <li>{@link MutableAutomaton#updateAcceptance(Function)}
  * <li>{@link MutableAutomaton#addInitialState(Object)}

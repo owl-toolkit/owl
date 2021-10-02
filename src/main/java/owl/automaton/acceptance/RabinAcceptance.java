@@ -25,9 +25,6 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -63,10 +60,6 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
 
   public static RabinAcceptance of(RabinPair... pairs) {
     return of(List.of(pairs));
-  }
-
-  public static Optional<RabinAcceptance> ofPartial(BooleanExpression<AtomAcceptance> expression) {
-    return ofPartial(BooleanExpressions.toPropositionalFormula(expression));
   }
 
   public static Optional<RabinAcceptance> ofPartial(PropositionalFormula<Integer> formula) {

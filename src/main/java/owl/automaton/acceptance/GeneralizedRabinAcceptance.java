@@ -42,9 +42,6 @@ import java.util.function.IntPredicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.edge.Edge;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
@@ -106,12 +103,6 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
 
   public static GeneralizedRabinAcceptance of(List<RabinPair> pairs) {
     return new GeneralizedRabinAcceptance(List.copyOf(pairs));
-  }
-
-  public static Optional<? extends GeneralizedRabinAcceptance> ofPartial(
-    BooleanExpression<AtomAcceptance> expression) {
-
-    return ofPartial(BooleanExpressions.toPropositionalFormula(expression));
   }
 
   public static Optional<? extends GeneralizedRabinAcceptance> ofPartial(
