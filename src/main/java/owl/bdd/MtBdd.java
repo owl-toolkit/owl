@@ -19,7 +19,13 @@
 
 package owl.bdd;
 
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.falseConstant;
+import static owl.logic.propositional.PropositionalFormula.trueConstant;
+
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
@@ -28,7 +34,6 @@ import java.util.HashSet;
 import java.util.IdentityHashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -64,43 +69,76 @@ public abstract class MtBdd<E> {
   }
 
   public static <E> MtBdd<E> of(Map<E, PropositionalFormula<Integer>> map) {
+    ArrayList<E> keys = new ArrayList<>(map.size());
+    ArrayList<PropositionalFormula<Integer>> values = new ArrayList<>(map.size());
 
-    OptionalInt smallestVariableOptional = map.values().stream()
-      .flatMapToInt(x -> x.variables().stream().mapToInt(y -> y)).min();
+    map.forEach((key, value) -> {
+      keys.add(key);
+      values.add(value);
+    });
 
-    if (smallestVariableOptional.isEmpty()) {
-      Set<E> trueElements = new HashSet<>();
-      map.forEach((e, f) -> {
-        if (f.evaluate(Set.of())) {
-          trueElements.add(e);
-        }
-      });
+    return of(keys, values, new HashMap<>());
+  }
 
-      return MtBdd.of(trueElements);
+  @SuppressWarnings("PMD.LooseCoupling")
+  private static <E> MtBdd<E> of(
+    ArrayList<E> keys,
+    ArrayList<PropositionalFormula<Integer>> values,
+    HashMap<ArrayList<PropositionalFormula<Integer>>, MtBdd<E>> cache) {
+
+    var tree = cache.get(values);
+
+    if (tree != null) {
+      return tree;
     }
 
-    Map<E, PropositionalFormula<Integer>> trueMap = new HashMap<>(map);
-    Map<E, PropositionalFormula<Integer>> falseMap = new HashMap<>(map);
+    int nextVariable = Integer.MAX_VALUE;
 
-    int smallestVariable = smallestVariableOptional.getAsInt();
-
-    trueMap.entrySet().forEach(e -> e.setValue(e.getValue().substitute(v -> {
-      if (v.equals(smallestVariable)) {
-        return PropositionalFormula.trueConstant();
-      } else {
-        return PropositionalFormula.Variable.of(v);
+    for (PropositionalFormula<Integer> formula : values) {
+      var variable = formula.smallestVariable();
+      if (variable.isPresent()) {
+        nextVariable = Math.min(nextVariable, variable.get());
+        Preconditions.checkState(0 <= nextVariable && nextVariable < Integer.MAX_VALUE);
       }
-    })));
+    }
 
-    falseMap.entrySet().forEach(e -> e.setValue(e.getValue().substitute(v -> {
-      if (v.equals(smallestVariable)) {
-        return PropositionalFormula.falseConstant();
-      } else {
-        return PropositionalFormula.Variable.of(v);
+    if (nextVariable == Integer.MAX_VALUE) {
+      Set<E> trueKeys = new HashSet<>();
+
+      for (int i = 0, s = keys.size(); i < s; i++) {
+        var value = values.get(i);
+        assert value.isTrue() || value.isFalse();
+        if (value.isTrue()) {
+          trueKeys.add(keys.get(i));
+        }
       }
-    })));
 
-    return of(smallestVariable, of(trueMap), of(falseMap));
+      return MtBdd.of(trueKeys);
+    }
+
+
+    int smallestVariable = nextVariable;
+
+    ArrayList<PropositionalFormula<Integer>> trueValues = new ArrayList<>(values.size());
+    ArrayList<PropositionalFormula<Integer>> falseValues = new ArrayList<>(values.size());
+
+    for (int i = 0, s = values.size(); i < s; i++) {
+      var value = values.get(i);
+
+      if (value.containsVariable(smallestVariable)) {
+        trueValues.add(
+          value.substitute(v -> v == smallestVariable ? trueConstant() : Variable.of(v)));
+        falseValues.add(
+          value.substitute(v -> v == smallestVariable ? falseConstant() : Variable.of(v)));
+      } else {
+        trueValues.add(value);
+        falseValues.add(value);
+      }
+    }
+
+    tree = of(smallestVariable, of(keys, trueValues, cache), of(keys, falseValues, cache));
+    cache.put(values, tree);
+    return tree;
   }
 
   public abstract Set<E> get(BitSet valuation);
@@ -224,7 +262,11 @@ public abstract class MtBdd<E> {
       this.variable = variable;
       this.trueChild = trueChild;
       this.falseChild = falseChild;
-      this.hashCode = Objects.hash(variable, trueChild, falseChild);
+      int result = 1;
+      result = 31 * result + variable;
+      result = 31 * result + trueChild.hashCode();
+      result = 31 * result + falseChild.hashCode();
+      this.hashCode = result;
     }
 
     @Override

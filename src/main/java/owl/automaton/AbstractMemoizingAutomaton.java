@@ -114,25 +114,33 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
       return (AbstractMemoizingAutomaton<S, A>) automaton;
     }
 
-    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.atomicPropositions(),
-      automaton.factory(),
-      automaton.initialStates(),
-      automaton.acceptance()) {
+    return new AutomaticMemoizingAutomaton<>(automaton);
+  }
 
-      @Nullable
-      private Automaton<S, A> backingAutomaton = automaton;
+  private static class AutomaticMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
-      @Override
-      protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
-        return Objects.requireNonNull(backingAutomaton).edgeTree(state);
-      }
+    @Nullable
+    private Automaton<S, A> backingAutomaton;
 
-      @Override
-      protected void freezeMemoizedEdgesNotify() {
-        backingAutomaton = null;
-      }
-    };
+    public AutomaticMemoizingAutomaton(Automaton<S, A> automaton) {
+      super(
+        automaton.atomicPropositions(),
+        automaton.factory(),
+        automaton.initialStates(),
+        automaton.acceptance());
+      this.backingAutomaton = automaton;
+    }
+
+    @Override
+    protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
+      return Objects.requireNonNull(backingAutomaton).edgeTree(state);
+    }
+
+    @Override
+    protected void freezeMemoizedEdgesNotify() {
+      backingAutomaton = null;
+    }
   }
 
   @Override
