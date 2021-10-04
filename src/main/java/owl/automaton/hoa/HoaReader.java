@@ -52,6 +52,7 @@ import jhoafparser.parser.generated.ParseException;
 import jhoafparser.storage.StoredAutomaton;
 import jhoafparser.storage.StoredEdgeWithLabel;
 import jhoafparser.storage.StoredHeader;
+import jhoafparser.transformations.ToExplicitLabels;
 import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
@@ -248,7 +249,12 @@ public final class HoaReader {
     var storedHeader = storedAutomaton.getStoredHeader();
     var vsFactory = factorySupplier.get();
 
-    check(!storedAutomaton.hasEdgesImplicit(), "Implicit edges are not supported.");
+    // Remove implicit edges and replace them with explicit edges.
+    if (storedAutomaton.hasEdgesImplicit()) {
+      new ToExplicitLabels(false).manipulate(storedAutomaton);
+    }
+
+    assert !storedAutomaton.hasEdgesImplicit();
     check(!storedAutomaton.hasUniversalBranching(), "Universal branching not supported.");
 
     List<String> atomicPropositions = List.copyOf(storedHeader.getAPs());
