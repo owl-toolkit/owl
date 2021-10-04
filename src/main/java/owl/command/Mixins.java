@@ -23,6 +23,7 @@ import static picocli.CommandLine.ArgGroup;
 import static picocli.CommandLine.Option;
 
 import com.google.common.base.Preconditions;
+import com.google.common.base.Stopwatch;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -34,6 +35,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import jhoafparser.consumer.HOAConsumerException;
@@ -102,6 +104,18 @@ final class Mixins {
     private Path automatonFile = null;
 
     @Option(
+      names = {"--complete"},
+      description = "Output an automaton with a complete transition relation."
+    )
+    boolean complete = false;
+
+    @Option(
+      names = {"--dry-run"},
+      description = "Do not output resulting automaton."
+    )
+    private boolean dryRun = false;
+
+    @Option(
       names = {"--state-acceptance"},
       description = "Output an automaton with a state-based acceptance condition instead of one "
         + "with a transition-based acceptance condition. For this the acceptance marks of edges "
@@ -115,12 +129,6 @@ final class Mixins {
       description = "Annotate each state of the automaton with the 'toString()' method."
     )
     private boolean stateLabels = false;
-
-    @Option(
-      names = {"--complete"},
-      description = "Output an automaton with a complete transition relation."
-    )
-    boolean complete = false;
 
     class Sink implements AutoCloseable {
 
@@ -142,6 +150,10 @@ final class Mixins {
       @SuppressWarnings("PMD.AvoidReassigningParameters")
       void accept(Automaton<?, ?> automaton, String automatonName)
         throws HOAConsumerException, IOException {
+
+        if (dryRun) {
+          return;
+        }
 
         if (complete && !automaton.is(Automaton.Property.COMPLETE)) {
           automaton = Views.complete(automaton);
@@ -191,7 +203,7 @@ final class Mixins {
       String formula = null;
 
       @Option(
-        names = {"-i", "--input-file"},
+        names = { "-i", "--input-file" },
         description = "Input file (default: read from stdin). The file is read line-by-line and "
           + "it is assumed that each line contains a formula. Empty lines are skipped."
       )
@@ -288,9 +300,52 @@ final class Mixins {
     @Option(
       names = "--verify",
       description = "Verify the computed result. If the verification fails the tool aborts with an "
-        + "error. This flag is intended only for testing."
+        + "error. This flag is intended only for testing.",
+      hidden = true
     )
     boolean verify = false;
 
+  }
+
+  @SuppressWarnings("PMD.SystemPrintln")
+  static final class Diagnostics {
+
+    private final Stopwatch stopwatch = Stopwatch.createUnstarted();
+
+    @Option(
+      names = "--diagnostics",
+      description = "Print diagnostic information to stderr."
+    )
+    private boolean printDiagnostics = false;
+
+    void start(String subcommand, Automaton<?, ?> automaton) {
+      if (printDiagnostics) {
+        System.err.printf("%s:\n"
+            + "  Input Automaton:\n"
+            + "    States: %d\n"
+            + "    Acceptance Name: %s\n"
+            + "    Acceptance Sets: %d\n",
+          subcommand,
+          automaton.states().size(),
+          automaton.acceptance().name(),
+          automaton.acceptance().acceptanceSets());
+        stopwatch.start();
+      }
+    }
+
+    void finish(Automaton<?, ?> automaton) {
+      if (printDiagnostics) {
+        stopwatch.stop();
+        System.err.printf("  Output Automaton (without postprocessing):\n"
+            + "    States: %d\n"
+            + "    Acceptance Name: %s\n"
+            + "    Acceptance Sets: %d\n"
+            + "  Runtime (without pre- and postprocessing): %d ms\n",
+          automaton.states().size(),
+          automaton.acceptance().name(),
+          automaton.acceptance().acceptanceSets(),
+          stopwatch.elapsed(TimeUnit.MILLISECONDS));
+      }
+    }
   }
 }
