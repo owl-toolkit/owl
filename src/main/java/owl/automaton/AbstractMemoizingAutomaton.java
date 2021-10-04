@@ -154,8 +154,15 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     edgeTree = edgeTreeImpl(state);
     memoizedEdgeTrees.put(state, edgeTree);
 
+    @SuppressWarnings("unchecked")
+    Edge<S>[] edges = edgeTree.flatValues().toArray(Edge[]::new);
+    memoizedEdges.put(state, Set.of(edges));
+
     // Update the set of unexplored states.
-    edgeTree.flatValues().forEach(x -> memoizedEdgeTrees.putIfAbsent(x.successor(), null));
+    for (Edge<S> edge : edges) {
+      memoizedEdgeTrees.putIfAbsent(edge.successor(), null);
+    }
+
     return edgeTree;
   }
 
@@ -177,7 +184,9 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final Set<Edge<S>> edges(S state) {
-    return memoizedEdges.computeIfAbsent(state, x -> Set.copyOf(edgeTree(state).flatValues()));
+    // Call edgeTree to ensure that the result is cached.
+    edgeTree(state);
+    return Objects.requireNonNull(memoizedEdges.get(state));
   }
 
   @Nullable

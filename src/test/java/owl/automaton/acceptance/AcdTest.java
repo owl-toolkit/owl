@@ -19,17 +19,29 @@
 
 package owl.automaton.acceptance;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.function.Function;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.RepeatedTest;
+import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
+import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
+import owl.automaton.AutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AlternatingCycleDecomposition;
 import owl.automaton.algorithm.LanguageContainment;
+import owl.automaton.hoa.HoaReader;
+import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LtlTranslationRepository;
@@ -54,7 +66,7 @@ public class AcdTest {
     var drw1Acd = AlternatingCycleDecomposition.of(drw1);
     var dpw1 = ZielonkaTreeTransformations.transform(drw1);
 
-    Assertions.assertTrue(hasParityShape(drw1Acd));
+    assertTrue(hasParityShape(drw1Acd));
     assertSuccessfulConversion(drw1, dpw1);
 
     // DBW-recognisable.
@@ -70,10 +82,10 @@ public class AcdTest {
 
     for (Integer state : drw2.states()) {
       for (AlternatingCycleDecomposition<Integer> acd : drw2Acd) {
-        Assertions.assertTrue(hasParityShape(acd.restriction(state)));
+        assertTrue(hasParityShape(acd.restriction(state)));
 
         if (acd.edges().containsKey(state)) {
-          Assertions.assertTrue(acd.restrictPathToSubtree(state, acd.leftMostLeaf(state))
+          assertTrue(acd.restrictPathToSubtree(state, acd.leftMostLeaf(state))
             .indices().stream().allMatch(x -> x == 0));
         }
       }
@@ -90,8 +102,8 @@ public class AcdTest {
         "F G c & G F a | G F b | X X c & F G (a U b) & a M (a W b) | G (X X a)")));
     var dpw1 = ZielonkaTreeTransformations.transform(dela1);
 
-    Assertions.assertTrue(LanguageContainment.contains(dela1, dpw1));
-    Assertions.assertTrue(LanguageContainment.contains(dpw1, dela1));
+    assertTrue(LanguageContainment.contains(dela1, dpw1));
+    assertTrue(LanguageContainment.contains(dpw1, dela1));
   }
 
   @Test
@@ -119,19 +131,53 @@ public class AcdTest {
     Automaton<?, ? extends RabinAcceptance> drw,
     Automaton<?, ? extends ParityAcceptance> dpw) {
 
-    Assertions.assertTrue(dpw.acceptance() instanceof ParityAcceptance);
-    Assertions.assertTrue(dpw.acceptance().isWellFormedAutomaton(dpw));
+    assertTrue(dpw.acceptance() instanceof ParityAcceptance);
+    assertTrue(dpw.acceptance().isWellFormedAutomaton(dpw));
 
-    Assertions.assertTrue(drw.is(Automaton.Property.DETERMINISTIC));
-    Assertions.assertTrue(dpw.is(Automaton.Property.DETERMINISTIC));
+    assertTrue(drw.is(Automaton.Property.DETERMINISTIC));
+    assertTrue(dpw.is(Automaton.Property.DETERMINISTIC));
 
-    Assertions.assertEquals(
+    assertEquals(
       drw.is(Automaton.Property.COMPLETE),
       dpw.is(Automaton.Property.COMPLETE));
 
-    Assertions.assertEquals(drw.states().size(), dpw.states().size());
+    assertEquals(drw.states().size(), dpw.states().size());
 
-    Assertions.assertTrue(LanguageContainment.contains(dpw, drw));
-    Assertions.assertTrue(LanguageContainment.contains(drw, dpw));
+    assertTrue(LanguageContainment.contains(dpw, drw));
+    assertTrue(LanguageContainment.contains(drw, dpw));
+  }
+
+  @Tag("performance")
+  @RepeatedTest(3)
+  void testPerformanceRabin8() throws Exception {
+    try (var reader = Files.newBufferedReader(Path.of("rabin8.hoa"))) {
+      var automaton = HoaReader.read(
+        reader, FactorySupplier.defaultSupplier()::getBddSetFactory, null);
+
+      // Takes ~1.5s (warm: ~800ms) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+      assertTimeout(Duration.ofSeconds(3), () -> {
+        var parityAutomaton
+          = ZielonkaTreeTransformations.transform(automaton);
+        assertTrue(AutomatonUtil.isLessOrEqual(automaton, parityAutomaton.states().size()));
+      });
+    }
+  }
+
+  @Tag("performance")
+  @RepeatedTest(3)
+  void testPerformanceSyntComp91() throws Exception {
+    try (var reader = Files.newBufferedReader(Path.of("syntcomp_91.hoa"))) {
+      var automaton = AbstractMemoizingAutomaton.memoizingAutomaton(
+        HoaReader.read(reader, FactorySupplier.defaultSupplier()::getBddSetFactory, null));
+
+      automaton.states();
+
+      // Takes ~3s (warm: ~1s) on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
+      assertTimeout(Duration.ofSeconds(5), () -> {
+        var parityAutomaton
+          = ZielonkaTreeTransformations.transform(automaton);
+        assertTrue(AutomatonUtil.isLessOrEqual(automaton, parityAutomaton.states().size()));
+      });
+    }
   }
 }

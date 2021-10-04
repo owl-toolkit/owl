@@ -23,13 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.HashBiMap;
 import java.io.StringReader;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -98,42 +96,47 @@ public class AutomatonSccDecompositionTest {
     final var nba = OmegaAcceptanceCast.cast(parsed, BuchiAcceptance.class);
 
     //ugly hack to access state IDs, relies on fact that toString stringifies State ID from HOA file
-    HashBiMap<Integer, Integer> states = HashBiMap.create();
-    nba.states().forEach(st -> states.put(Integer.valueOf(st.toString()), st));
-    assertEquals(0, states.inverse().get(nba.initialState()));
+    assertEquals(0, nba.initialState());
 
     var scci = SccDecomposition.of(nba);
     //scci.ids().forEach(i -> System.out.println(i + ": " + scci.sccDecomposition().sccs().get(i)));
 
     //helper to access SCC ids from HOA state IDs
-    Function<Integer, Integer> sccOf = st -> scci.index(states.get(st));
 
     //does not contain states not reachable from initial st.
     assertEquals(8, scci.sccs().size());
 
     //SCC of initial state should be first, and topologically ordered SCC ids
     assertEquals(0, scci.index(nba.initialState()));
-    assertTrue(sccOf.apply(3) < sccOf.apply(7));
-    assertTrue(sccOf.apply(4) < sccOf.apply(6));
+    assertTrue(
+      scci.index(3) < scci.index(7));
+    assertTrue(
+      scci.index(
+        4) < scci.index(6));
 
-    var expTrv = Set.of(sccOf.apply(3), sccOf.apply(6));
+    var expTrv = Set.of(
+      scci.index(
+        3), scci.index(6));
     assertEquals(expTrv, scci.transientSccs());
 
-    var expBot = Set.of(sccOf.apply(6), sccOf.apply(9), sccOf.apply(10));
+    var expBot = Set.of(
+      scci.index(
+        6), scci.index(
+        9), scci.index(10));
     assertEquals(expBot, scci.bottomSccs());
 
-    var expDet = Set.of(0, 3, 4, 6, 9, 10).stream().map(sccOf).collect(Collectors.toSet());
+    var expDet = Stream.of(0, 3, 4, 6, 9, 10).map(scci::index).collect(Collectors.toSet());
     assertEquals(expDet, scci.deterministicSccs());
 
-    var expRej = Set.of(0, 1, 3, 6).stream().map(sccOf).collect(Collectors.toSet());
+    var expRej = Stream.of(0, 1, 3, 6).map(scci::index).collect(Collectors.toSet());
     assertEquals(expRej, scci.rejectingSccs());
 
-    var expAcc = Set.of(sccOf.apply(4), sccOf.apply(9));
+    var expAcc = Set.of(
+      scci.index(
+        4), scci.index(9));
     assertEquals(expAcc, scci.acceptingSccs());
 
     //check state reachability, which is implemented using SCC reachability
-    BiFunction<Integer, Integer, Boolean> reachable = (p, q) ->
-      scci.pathExists(states.get(p), states.get(q));
 
     //reachMat[p][q] = true iff p reaches q.
     //This encodes relation completely for first 10 states of the NBA
@@ -157,16 +160,16 @@ public class AutomatonSccDecompositionTest {
     //check that computed reachability is correct
     for (int i = 0; i < 10; i++) {
       for (int j = 0; j < 10; j++) {
-        assertEquals(reachMat.get(i).get(j), reachable.apply(i, j),
+        assertEquals(reachMat.get(i).get(j), scci.pathExists(i, j),
           "stateReachable incorrect for " + Pair.of(i,j));
       }
     }
-    assertTrue(reachable.apply(0, 10));
-    assertTrue(reachable.apply(0, 11));
-    assertTrue(reachable.apply(10, 11));
-    assertTrue(reachable.apply(11, 10));
-    assertFalse(reachable.apply(10, 0));
-    assertFalse(reachable.apply(11, 0));
+    assertTrue(scci.pathExists(0, 10));
+    assertTrue(scci.pathExists(0, 11));
+    assertTrue(scci.pathExists(10, 11));
+    assertTrue(scci.pathExists(11, 10));
+    assertFalse(scci.pathExists(10, 0));
+    assertFalse(scci.pathExists(11, 0));
   }
 
 }
