@@ -93,7 +93,7 @@ public abstract class PropositionalFormula<T> {
   /**
    * Returns the smallest variable using the naturalOrder.
    *
-   * @return
+   * @return the smallest variable.
    */
   public abstract Optional<T> smallestVariable();
 

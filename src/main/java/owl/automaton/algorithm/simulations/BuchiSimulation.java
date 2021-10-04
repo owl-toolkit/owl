@@ -391,7 +391,7 @@ public final class BuchiSimulation {
     return multipebbleSimulate(
       left, right, pebbleCount,
       (l1, r1, red, blue, pc, known) -> new SimulationGame<>(
-        new BackwardDirectSimulation<S>(
+        new BackwardDirectSimulation<>(
           l1, r1, red, blue, pc, known
         )
       )

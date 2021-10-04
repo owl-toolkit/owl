@@ -21,7 +21,6 @@ package owl.translations.delag;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.BitSet;
 import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Formula;
@@ -58,9 +57,6 @@ class RequiredHistoryTest {
   @Test
   void getRequiredHistorySmall() {
     Formula formula = LtlParser.parse("a | (X b)").formula();
-
-    BitSet set = new BitSet();
-    set.set(0);
 
     History expected = new History(new long[] {1L});
     assertEquals(expected, new History(RequiredHistory.getRequiredHistory(formula)));

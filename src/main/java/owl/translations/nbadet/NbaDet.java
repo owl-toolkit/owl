@@ -84,8 +84,7 @@ public final class NbaDet {
     var incl = NbaLangInclusions.computeLangInclusions(aut, args.computeSims());
     logger.log(Level.FINE, "calculated language inclusions: " + incl.toString());
 
-    if (incl.isEmpty() || !NbaLangInclusions.getQuotientable().containsAll(Arrays.asList(
-        args.computeSims()))) {
+    if (incl.isEmpty() || !NbaLangInclusions.getQuotientable().containsAll(args.computeSims())) {
       //trivial pass-through "quotient" to makes types consistent
       logger.log(Level.FINE, "no (quotientable) inclusions, pass through automaton.");
       var quotAut = Views.quotientAutomaton(aut, Set::of);
@@ -153,7 +152,7 @@ public final class NbaDet {
 
   public static <S> Automaton<NbaDetState<S>, ParityAcceptance> determinizeNba(NbaDetConf<S> conf) {
     logger.log(Level.FINE, "Start naive exploration of DPA.");
-    var succHelper = new SmartSucc<S>(conf);
+    var succHelper = new SmartSucc<>(conf);
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       conf.aut().original().atomicPropositions(),
       conf.aut().original().factory(),
@@ -283,7 +282,7 @@ public final class NbaDet {
     //explore deterministic automaton partially (in the background we also explore the
     //"reference" automaton that acts as a filter, i.e. explore only as long as there is
     //a successor in the reference automaton. This should be a powerset automaton SCC!
-    var succHelper = new SmartSucc<S>(conf);
+    var succHelper = new SmartSucc<>(conf);
     //converting to mutable required to force "realizing" the automaton,
     //preventing a bug or interaction of topo + smart succ. optimizations
     //otherwise some weird bug happens when using succHelper with the "lazy" construction,
