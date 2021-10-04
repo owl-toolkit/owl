@@ -26,7 +26,6 @@ import static owl.util.Assertions.assertThat;
 
 import java.time.Duration;
 import java.util.BitSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -34,7 +33,6 @@ import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
-import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
@@ -45,7 +43,6 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
-import owl.automaton.hoa.HoaReader.HoaState;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
 
@@ -114,14 +111,14 @@ class HoaReaderTest {
     + "Acceptance: 2 (Fin(0) & Inf(1)) \n"
     + "AP: 2 \"a\" \"b\" \n" + "--BODY-- \n"
     + "State: 0 \"a U b\" { 0 } \n"
-    + "  2  /* !a  & !b */ \n"
-    + "  0  /*  a  & !b */ \n"
-    + "  1  /* !a  &  b */ \n"
-    + "  1  /*  a  &  b */ \n"
+    + "[!0 & !1]  2  /* !a  & !b */ \n"
+    + "[ 0 & !1]  0  /*  a  & !b */ \n"
+    + "[!0 &  1]  1  /* !a  &  b */ \n"
+    + "[ 0 &  1]  1  /*  a  &  b */ \n"
     + "State: 1 { 1 } \n"
-    + "  1 1 1 1       /* four transitions on one line */ \n"
+    + "[t] 1       /* four transitions on one line */ \n"
     + "State: 2 \"sink state\" { 0 } \n"
-    + "  2 2 2 2 \n"
+    + "[t] 2 \n"
     + "--END--";
 
   private static final String HOA_INVALID = "HOA: v1\n"
@@ -161,14 +158,14 @@ class HoaReaderTest {
     + "AP: 2 \"a\" \"b\" \n"
     + "--BODY-- \n"
     + "State: 0 \"a U b\" { 0 } \n"
-    + "  2  /* !a  & !b */ \n"
-    + "  0  /*  a  & !b */ \n"
-    + "  1  /* !a  &  b */ \n"
-    + "  1  /*  a  &  b */ \n"
+    + "[!0 & !1]  2  /* !a  & !b */ \n"
+    + "[ 0 & !1]  0  /*  a  & !b */ \n"
+    + "[!0 &  1]  1  /* !a  &  b */ \n"
+    + "[ 0 &  1]  1  /*  a  &  b */ \n"
     + "State: 1 { 1 } \n"
-    + "  1 1 1 1       /* four transitions on one line */ \n"
+    + " [t]       1 \n"
     + "State: 2 \"sink state\" { 0 } \n"
-    + "  2 2 2 2 \n"
+    + " [t] 2 [t] 2 [t] 2 [t] 2 \n"
     + "--END--";
 
   private static final String HOA_SIMPLE = "HOA: v1\n"
@@ -185,30 +182,18 @@ class HoaReaderTest {
     + "[!0] 0\n"
     + "--END--\n";
 
-  private static Map<Integer, HoaState> getStates(Automaton<HoaState, ?> automaton) {
-    Map<Integer, HoaState> states = new LinkedHashMap<>();
-    automaton.states().forEach(state ->  {
-      int stateId = state.id;
-      assertFalse(states.containsKey(stateId));
-      states.put(stateId, state);
-    });
-    assertEquals(states.size(), automaton.states().size());
-    return states;
-  }
-
   @Test
   void readAutomatonBuchi() throws ParseException {
     var automaton = OmegaAcceptanceCast.cast(
       HoaReader.read(HOA_BUCHI, FACTORY_SUPPLIER, null), BuchiAcceptance.class);
     assertThat(automaton.states().size(), x -> x == 2);
-    var stateMap = getStates(automaton);
     BddSetFactory valuationSetFactory = automaton.factory();
 
-    assertThat(automaton.initialState(), stateMap.get(1)::equals);
-    assertThat(automaton.edgeMap(stateMap.get(1)),
-      Map.of(Edge.of(stateMap.get(0)), valuationSetFactory.of(0))::equals);
-    assertThat(automaton.edgeMap(stateMap.get(0)),
-      Map.of(Edge.of(stateMap.get(0), 0), valuationSetFactory.of(true))::equals);
+    assertEquals(1, automaton.initialState());
+    assertThat(automaton.edgeMap(1),
+      Map.of(Edge.of(0), valuationSetFactory.of(0))::equals);
+    assertThat(automaton.edgeMap(0),
+      Map.of(Edge.of(0, 0), valuationSetFactory.of(true))::equals);
   }
 
   @Test
@@ -234,19 +219,19 @@ class HoaReaderTest {
     assertThat(acceptance.acceptanceSets(), x -> x == 3);
     assertThat(acceptance.parity(), Parity.MIN_ODD::equals);
 
-    HoaState initialState = automaton.initialState();
-    HoaState successor = automaton.successor(initialState, createBitSet(false, false));
+    Integer initialState = automaton.initialState();
+    Integer successor = automaton.successor(initialState, createBitSet(false, false));
     assertThat(successor, Objects::nonNull);
 
-    Edge<HoaState> initialToSucc = automaton.edge(initialState, createBitSet(false, false));
+    Edge<Integer> initialToSucc = automaton.edge(initialState, createBitSet(false, false));
     assertThat(initialToSucc, Objects::nonNull);
     assertThat(initialToSucc.colours().intIterator().nextInt(), x -> x == 2);
 
-    Edge<HoaState> succToInitial = automaton.edge(successor, createBitSet(true, false));
+    Edge<Integer> succToInitial = automaton.edge(successor, createBitSet(true, false));
     assertThat(succToInitial, Objects::nonNull);
     assertThat(succToInitial.colours().intIterator().nextInt(), x -> x == 1);
 
-    Edge<HoaState> succToSucc = automaton.edge(successor, createBitSet(false, true));
+    Edge<Integer> succToSucc = automaton.edge(successor, createBitSet(false, true));
     assertThat(succToSucc, Objects::nonNull);
     assertFalse(succToSucc.colours().intIterator().hasNext());
   }
@@ -258,12 +243,12 @@ class HoaReaderTest {
     assertThat(automaton.acceptance(), AllAcceptance.class::isInstance);
 
     var initialState = automaton.initialState();
-    assertThat(initialState.id, x -> x == 0);
+    assertEquals(0, initialState);
     assertThat(automaton.successor(initialState, createBitSet(true)), initialState::equals);
 
     var successor = automaton.successor(initialState, createBitSet(false));
     assertThat(successor, Objects::nonNull);
-    assertThat(successor.id, x -> x == 1);
+    assertEquals(1, successor);
     assertThat(automaton.successor(successor, createBitSet(false)), initialState::equals);
     assertThat(automaton.successor(successor, createBitSet(true)), Objects::isNull);
   }

@@ -42,7 +42,7 @@ public final class AutomatonTestUtil {
       new StringReader(hoa), FactorySupplier.defaultSupplier()::getBddSetFactory, null);
     var aut = OmegaAcceptanceCast.cast(parsed, acc);
 
-    var stateMap = new HashMap<HoaReader.HoaState, Integer>();
+    var stateMap = new HashMap<Integer, Integer>();
     aut.states().forEach(st -> stateMap.put(st, Integer.valueOf(st.toString())));
     return Views.quotientAutomaton(aut, stateMap::get);
   }

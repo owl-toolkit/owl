@@ -40,12 +40,11 @@ import java.util.regex.Pattern;
 import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.hoa.HoaReader;
-import owl.automaton.hoa.HoaReader.HoaState;
 import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
 
-public class ExternalTranslator implements Function<LabelledFormula, Automaton<HoaState, ?>> {
+public class ExternalTranslator implements Function<LabelledFormula, Automaton<Integer, ?>> {
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());
   private static final Pattern splitPattern = Pattern.compile("\\s+");
 
@@ -66,7 +65,7 @@ public class ExternalTranslator implements Function<LabelledFormula, Automaton<H
   }
 
   @Override
-  public Automaton<HoaState, ?> apply(LabelledFormula formula) {
+  public Automaton<Integer, ?> apply(LabelledFormula formula) {
     ProcessBuilder processBuilder;
     String formulaString = PrintVisitor.toString(formula, true);
 

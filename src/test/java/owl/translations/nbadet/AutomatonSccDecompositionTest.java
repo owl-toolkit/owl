@@ -98,7 +98,7 @@ public class AutomatonSccDecompositionTest {
     final var nba = OmegaAcceptanceCast.cast(parsed, BuchiAcceptance.class);
 
     //ugly hack to access state IDs, relies on fact that toString stringifies State ID from HOA file
-    HashBiMap<Integer, HoaReader.HoaState> states = HashBiMap.create();
+    HashBiMap<Integer, Integer> states = HashBiMap.create();
     nba.states().forEach(st -> states.put(Integer.valueOf(st.toString()), st));
     assertEquals(0, states.inverse().get(nba.initialState()));
 

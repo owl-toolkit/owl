@@ -67,14 +67,14 @@ final class Mixins {
     )
     private Path automatonFile = null;
 
-    <A extends EmersonLeiAcceptance> Stream<Automaton<HoaReader.HoaState, ? extends A>>
+    <A extends EmersonLeiAcceptance> Stream<Automaton<Integer, ? extends A>>
       source(Class<A> acceptanceClass) throws ParseException, IOException {
 
       try (var reader = automatonFile == null
         ? new BufferedReader(new InputStreamReader(System.in))
         : Files.newBufferedReader(automatonFile)) {
 
-        List<Automaton<HoaReader.HoaState, ? extends A>> automata = new ArrayList<>();
+        List<Automaton<Integer, ? extends A>> automata = new ArrayList<>();
 
         // Warning: the 'readStream'-method reads until the reader is exhausted and thus this
         // methods blocks in while reading from stdin.
@@ -104,7 +104,9 @@ final class Mixins {
     @Option(
       names = {"--state-acceptance"},
       description = "Output an automaton with a state-based acceptance condition instead of one "
-        + "with a transition-based acceptance condition."
+        + "with a transition-based acceptance condition. For this the acceptance marks of edges "
+        + "are pushed onto the successor states. However, this simple procedure might yield "
+        + "suboptimal results."
     )
     private boolean stateAcceptance = false;
 
