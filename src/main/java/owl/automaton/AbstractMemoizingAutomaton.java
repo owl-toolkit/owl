@@ -100,8 +100,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
       memoizedEdges = Map.of();
     } else {
       explorationCompleted = false;
-      memoizedEdgeTrees = new HashMap<>(Math.max(this.initialStates.size(), 256));
-      memoizedEdges = new HashMap<>(Math.max(this.initialStates.size(), 256));
+      memoizedEdgeTrees = new HashMap<>(Math.max(this.initialStates.size(), 16));
+      memoizedEdges = new HashMap<>(Math.max(this.initialStates.size(), 16));
 
       // Mark initialStates as unexplored.
       for (S initialState : this.initialStates) {
