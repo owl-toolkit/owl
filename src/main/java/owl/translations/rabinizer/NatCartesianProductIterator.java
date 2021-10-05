@@ -23,9 +23,8 @@ import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 /**
- * This iterator yields all elements of the cartesian product. The domains are specified exactly as
- * in {@link NatCartesianProductSet}. It is guaranteed that the iteration always follows the same
- * order.
+ * This iterator yields all elements of the cartesian product. It is guaranteed that the iteration
+ * always follows the same order.
  *
  * <p><strong>Warning</strong>: For performance, the returned array is edited in-place.
  *

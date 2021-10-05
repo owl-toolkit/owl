@@ -351,7 +351,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
   }
 
   static final public void HeaderItemStates() throws ParseException {
-        Integer numberOfStates;
+        int numberOfStates;
     jj_consume_token(STATES);
     numberOfStates = Integer();
                 consumer.setNumberOfStates(numberOfStates);
@@ -533,7 +533,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
         String accName;
         List<Object> extraInfo = new ArrayList<Object>();
         String identifier;
-        Integer integer;
+        int integer;
     jj_consume_token(ACCNAME);
     accName = Identifier();
     label_7:
@@ -677,7 +677,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
 
   static final public void StateName() throws ParseException {
         BooleanExpression<AtomLabel> labelExpr = null;
-        Integer state;
+        int state;
         String stateComment = null;
         List<Integer> accSignature = null;
     jj_consume_token(STATE);
@@ -853,7 +853,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
 
   static final public List<Integer> AcceptanceSignature() throws ParseException {
         List<Integer> accSignature = new ArrayList<Integer>();
-        Integer accSet;
+        int accSet;
     jj_consume_token(LCURLY);
     label_14:
     while (true) {
@@ -875,7 +875,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
 
   static final public List<Integer> StateConjunction() throws ParseException {
         List<Integer> conjStates = new ArrayList<Integer>();
-        Integer state;
+        int state;
     state = Integer();
                            conjStates.add(state);
     label_15:

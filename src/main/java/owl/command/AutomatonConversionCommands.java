@@ -23,6 +23,8 @@ import static owl.automaton.acceptance.OmegaAcceptanceCast.cast;
 import static owl.automaton.acceptance.OmegaAcceptanceCast.isInstanceOf;
 import static owl.command.Mixins.AcceptanceSimplifier;
 import static owl.command.Mixins.AutomatonReader;
+import static owl.command.Mixins.Diagnostics;
+import static owl.command.Mixins.Verifier;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 
@@ -72,6 +74,9 @@ public class AutomatonConversionCommands {
     @Mixin
     private AcceptanceSimplifier acceptanceSimplifier = null;
 
+    @Mixin
+    private Diagnostics diagnostics = null;
+
     @Override
     protected int run() throws IOException, ParseException {
       var conversion = conversion();
@@ -91,7 +96,9 @@ public class AutomatonConversionCommands {
             automaton1 = AcceptanceOptimizations.transform(automaton1);
           }
 
+          diagnostics.start(String.format("%s (%s)", subcommand, rawArgs()), automaton1);
           var automaton2 = conversion.apply(automaton1);
+          diagnostics.finish(automaton2);
 
           if (allowSimplifierOnOutput() && !acceptanceSimplifier.skipAcceptanceSimplifier) {
             automaton2 = AcceptanceOptimizations.transform(automaton2);
@@ -342,7 +349,7 @@ public class AutomatonConversionCommands {
     private int lookahead = 1;
 
     @Mixin
-    private Mixins.Verifier verifier = null;
+    private Verifier verifier = null;
 
     @Option(
       names = {"--verbose"},

@@ -291,7 +291,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
 
     // Delete the now superfluous indices
     BitSet indicesToRemove = new BitSet();
-    remapping.values().forEach(x -> indicesToRemove.andNot(x));
+    remapping.values().forEach(indicesToRemove::andNot);
     AcceptanceOptimizations.removeAndRemapIndices(automaton, indicesToRemove);
     automaton.acceptance(automaton.acceptance().filter(indicesToRemove::get));
     assert automaton.acceptance().isWellFormedAutomaton(automaton);
