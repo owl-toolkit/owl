@@ -152,12 +152,19 @@ public abstract class MtBdd<E> {
 
   public abstract Set<E> get(BitSet valuation);
 
-  public final Set<E> flatValues() {
+  /**
+   * Collect all values in a single set. The return value of this method is not retained and
+   * ownership is transferred to the callee.
+   *
+   * @return the set of all values.
+   */
+  public Set<E> flatValues() {
     Set<E> values = new HashSet<>();
     memoizedFlatValues(values, Collections.newSetFromMap(new IdentityHashMap<>()));
     return values;
   }
 
+  // TODO: add allLeavesMatch().
   public final Set<Set<E>> values() {
     Set<Set<E>> values = new HashSet<>();
     memoizedValues(values, Collections.newSetFromMap(new IdentityHashMap<>()));
@@ -202,6 +209,11 @@ public abstract class MtBdd<E> {
 
     @Override
     public Set<E> get(BitSet valuation) {
+      return value;
+    }
+
+    @Override
+    public Set<E> flatValues() {
       return value;
     }
 

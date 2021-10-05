@@ -351,7 +351,7 @@ public final class HoaReader {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       storedAutomaton = null;
       mapping = null;
       aliases = null;

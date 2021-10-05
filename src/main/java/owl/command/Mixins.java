@@ -321,7 +321,7 @@ final class Mixins {
     void start(String subcommand, Automaton<?, ?> automaton) {
       if (printDiagnostics) {
         System.err.printf("%s:\n"
-            + "  Input Automaton:\n"
+            + "  Input Automaton (after preprocessing):\n"
             + "    States: %d\n"
             + "    Acceptance Name: %s\n"
             + "    Acceptance Sets: %d\n",
@@ -336,7 +336,7 @@ final class Mixins {
     void finish(Automaton<?, ?> automaton) {
       if (printDiagnostics) {
         stopwatch.stop();
-        System.err.printf("  Output Automaton (without postprocessing):\n"
+        System.err.printf("  Output Automaton (before postprocessing):\n"
             + "    States: %d\n"
             + "    Acceptance Name: %s\n"
             + "    Acceptance Sets: %d\n"

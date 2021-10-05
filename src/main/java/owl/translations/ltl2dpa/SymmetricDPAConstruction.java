@@ -95,7 +95,7 @@ final class SymmetricDPAConstruction {
       }
 
       @Override
-      protected void freezeMemoizedEdgesNotify() {
+      protected void explorationCompleted() {
         internalBuilder = null;
       }
     };

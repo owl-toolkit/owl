@@ -24,6 +24,7 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,8 +72,9 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   protected final List<String> atomicPropositions;
 
   // Memoization.
-  private Map<S, MtBdd<Edge<S>>> memoizedEdgeTrees = new HashMap<>();
-  private final Map<S, Set<Edge<S>>> memoizedEdges = new HashMap<>();
+  private boolean explorationCompleted;
+  private final Map<S, MtBdd<Edge<S>>> memoizedEdgeTrees;
+  private final Map<S, Set<Edge<S>>> memoizedEdges;
 
   private AbstractMemoizingAutomaton(
     List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
@@ -91,8 +93,21 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     this.initialStates = Set.copyOf(initialStates);
     this.factory = factory;
 
-    // Mark initialStates as unexplored.
-    this.initialStates.forEach(x -> memoizedEdgeTrees.put(x, null));
+    if (this.initialStates.isEmpty()) {
+      // TODO: add call to explorationCompleted() after constructor is finished.
+      explorationCompleted = true;
+      memoizedEdgeTrees = Map.of();
+      memoizedEdges = Map.of();
+    } else {
+      explorationCompleted = false;
+      memoizedEdgeTrees = new HashMap<>(Math.max(this.initialStates.size(), 256));
+      memoizedEdges = new HashMap<>(Math.max(this.initialStates.size(), 256));
+
+      // Mark initialStates as unexplored.
+      for (S initialState : this.initialStates) {
+        memoizedEdgeTrees.put(initialState, null);
+      }
+    }
 
     Preconditions.checkArgument(Collections3.isDistinct(this.atomicPropositions));
   }
@@ -138,7 +153,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       backingAutomaton = null;
     }
   }
@@ -232,31 +247,33 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final Set<S> states() {
-    // We already explored everything.
-    if (!(memoizedEdgeTrees instanceof HashMap)) {
-      return memoizedEdgeTrees.keySet();
-    }
-
     // Explore missing part of the state space.
-    boolean unexploredStatesExist = true;
+    if (!explorationCompleted) {
+      do {
+        List<S> unexploredStates = new ArrayList<>();
 
-    while (unexploredStatesExist) {
-      List<S> unexploredStates = new ArrayList<>();
+        // Copy to avoid concurrent modification exception.
+        memoizedEdgeTrees.forEach((state, tree) -> {
+          if (tree == null) {
+            unexploredStates.add(state);
+          }
+        });
 
-      // Copy to avoid concurrent modification exception.
-      memoizedEdgeTrees.forEach((state, tree) -> {
-        if (tree == null) {
-          unexploredStates.add(state);
+        int s = unexploredStates.size();
+
+        for (int i = 0; i < s; i++) {
+          edgeTree(unexploredStates.get(i));
         }
-      });
 
-      unexploredStatesExist = !unexploredStates.isEmpty();
-      unexploredStates.forEach(this::edgeTree);
+        explorationCompleted = (s == 0);
+      } while (!explorationCompleted);
+
+      explorationCompleted();
     }
 
-    memoizedEdgeTrees = Map.copyOf(memoizedEdgeTrees);
-    freezeMemoizedEdgesNotify();
-    return memoizedEdgeTrees.keySet();
+    return memoizedEdgeTrees.isEmpty()
+      ? Set.of()
+      : Collections.unmodifiableSet(memoizedEdgeTrees.keySet());
   }
 
   @Override
@@ -285,7 +302,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   protected abstract MtBdd<Edge<S>> edgeTreeImpl(S state);
 
   @SuppressWarnings("PMD.EmptyMethodInAbstractClassShouldBeAbstract")
-  protected void freezeMemoizedEdgesNotify() {
+  protected void explorationCompleted() {
     // do nothing. Subclasses can be notified that the transition relation is frozen.
   }
 
@@ -566,7 +583,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       memoizedEdgesB = null;
     }
   }
