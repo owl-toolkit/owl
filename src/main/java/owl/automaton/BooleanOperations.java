@@ -286,7 +286,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       automaton1 = null;
       automaton2 = null;
     }
@@ -352,7 +352,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       automata = null;
     }
   }
@@ -449,7 +449,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       automaton1 = null;
       automaton2 = null;
     }
@@ -535,7 +535,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       automata = null;
     }
   }
@@ -594,7 +594,7 @@ public final class BooleanOperations {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       backingAutomaton = null;
     }
 

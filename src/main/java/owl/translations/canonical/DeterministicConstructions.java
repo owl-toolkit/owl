@@ -838,7 +838,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       // Release cache for GC.
       this.profilesCache.clear();
       this.profilesCache = null;
@@ -1250,7 +1250,7 @@ public final class DeterministicConstructions {
     }
 
     @Override
-    protected void freezeMemoizedEdgesNotify() {
+    protected void explorationCompleted() {
       // Release cache for GC.
       this.profilesCache.clear();
       this.profilesCache = null;
@@ -1298,7 +1298,7 @@ public final class DeterministicConstructions {
       // This state has been suspended or we switched SCC.
       if (profile.isEmpty()
         || BlockingElements.surelyContainedInDifferentSccs(previousAll, all.unfold())) {
-        
+
         return Edge.of(nextRejecting);
       }
 

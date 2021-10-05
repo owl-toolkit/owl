@@ -106,7 +106,7 @@ final class AsymmetricDPAConstruction {
       }
 
       @Override
-      protected void freezeMemoizedEdgesNotify() {
+      protected void explorationCompleted() {
         internalBuilder = null;
       }
     };

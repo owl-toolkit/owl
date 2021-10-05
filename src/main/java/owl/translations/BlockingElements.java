@@ -48,7 +48,11 @@ public final class BlockingElements {
       return true;
     }
 
-    var successors = new HashSet<>(state.temporalStepTree().flatValues());
+    var successors = state.temporalStepTree().flatValues();
+
+    if (!(successors instanceof HashSet)) {
+      successors = new HashSet<>(successors);
+    }
 
     // Pre-filter.
     for (var iterator = successors.iterator(); iterator.hasNext();) {
@@ -85,7 +89,11 @@ public final class BlockingElements {
       return true;
     }
 
-    var successors = new HashSet<>(state.temporalStepTree().flatValues());
+    var successors = state.temporalStepTree().flatValues();
+
+    if (!(successors instanceof HashSet)) {
+      successors = new HashSet<>(successors);
+    }
 
     // Pre-filter.
     for (var iterator = successors.iterator(); iterator.hasNext();) {

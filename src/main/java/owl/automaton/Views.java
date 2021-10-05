@@ -459,7 +459,7 @@ public final class Views {
       }
 
       @Override
-      protected void freezeMemoizedEdgesNotify() {
+      protected void explorationCompleted() {
         mapping.clear();
       }
     };
