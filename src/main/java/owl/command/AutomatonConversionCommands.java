@@ -167,16 +167,33 @@ public class AutomatonConversionCommands {
       }
 
       if (useIar) {
-        if (!isInstanceOf(automaton.acceptance().getClass(), RabinAcceptance.class)) {
-          throw new IllegalArgumentException(
-            "Only Rabin automata can be transformed using the IAR-construction.");
-        }
+        return convertIar(automaton);
+      }
 
+      return ZielonkaTreeTransformations.transform(automaton);
+    }
+
+    private Automaton<?, ? extends ParityAcceptance> convertIar(Automaton<?, ?> automaton) {
+      if (isInstanceOf(automaton.acceptance().getClass(), RabinAcceptance.class)) {
         var castedAutomaton = cast(automaton, RabinAcceptance.class);
         return new IARBuilder<>(castedAutomaton, ParityAcceptance.Parity.MIN_EVEN).build();
       }
 
-      return ZielonkaTreeTransformations.transform(automaton);
+      if (automaton.is(Automaton.Property.DETERMINISTIC)) {
+        var complementAutomaton
+          = BooleanOperations.deterministicComplement(automaton);
+
+        if (isInstanceOf(complementAutomaton.acceptance().getClass(), RabinAcceptance.class)) {
+          var castedAutomaton = cast(complementAutomaton, RabinAcceptance.class);
+          return cast(
+            BooleanOperations.deterministicComplement(
+              new IARBuilder<>(castedAutomaton, ParityAcceptance.Parity.MIN_EVEN).build()),
+            ParityAcceptance.class);
+        }
+      }
+
+      throw new IllegalArgumentException("Only non-deterministic Rabin and deterministic Streett "
+        + "automata can be transformed using the IAR-construction.");
     }
   }
 
