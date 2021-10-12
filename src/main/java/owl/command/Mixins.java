@@ -318,6 +318,15 @@ final class Mixins {
     )
     private boolean printDiagnostics = false;
 
+    @Option(
+      names = "--diagnostics-time-unit",
+      description = "Select the time unit (${COMPLETION-CANDIDATES}) for reporting runtimes. The "
+        + "default value is ${DEFAULT-VALUE}. Be aware that for NANOSECONDS the reporting might "
+        + "not be accurate.",
+      defaultValue = "MILLISECONDS"
+    )
+    private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
+
     void start(String subcommand, Automaton<?, ?> automaton) {
       if (printDiagnostics) {
         System.err.printf("%s:\n"
@@ -340,11 +349,12 @@ final class Mixins {
             + "    States: %d\n"
             + "    Acceptance Name: %s\n"
             + "    Acceptance Sets: %d\n"
-            + "  Runtime (without pre- and postprocessing): %d ms\n",
+            + "  Runtime (without pre- and postprocessing): %d %s\n",
           automaton.states().size(),
           automaton.acceptance().name(),
           automaton.acceptance().acceptanceSets(),
-          stopwatch.elapsed(TimeUnit.MILLISECONDS));
+          stopwatch.elapsed(timeUnit),
+          timeUnit);
       }
     }
   }
