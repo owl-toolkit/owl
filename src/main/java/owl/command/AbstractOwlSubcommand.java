@@ -63,9 +63,8 @@ abstract class AbstractOwlSubcommand extends AbstractOwlCommand {
 
     if (ImageInfo.inImageCode()) {
       // Workaround for https://github.com/oracle/graal/issues/3398
-      // Give the main thread a 2 MB stack size.
       var executor = Executors.newSingleThreadExecutor(
-        runnable -> new Thread(null, runnable,"main-with-larger-stack", 2_097_152L));
+        runnable -> new Thread(null, runnable, "main-with-larger-stack"));
       var future = executor.submit(this::run);
 
       try {
