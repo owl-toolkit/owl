@@ -189,23 +189,10 @@ public class EmersonLeiAcceptance {
     return isAccepting(edge.colours());
   }
 
-  /**
-   * This method determines if the given edge is a well defined edge for this acceptance condition.
-   * E.g. a parity condition might check that the edge has at most one acceptance index and the
-   * index is less than the colour count.
-   *
-   * @param edge
-   *   The edge to be checked.
-   *
-   * @return Whether the edge acceptance is well defined.
-   */
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    return edge.colours().last().orElse(-1) < acceptanceSets();
-  }
-
   public <S> boolean isWellFormedAutomaton(Automaton<S, ?> automaton) {
     return automaton.states().stream().allMatch(
-      x -> automaton.edges(x).stream().allMatch(this::isWellFormedEdge));
+      state -> automaton.edges(state).stream().allMatch(
+        edge -> edge.colours().last().orElse(-1) < acceptanceSets()));
   }
 
   @Override
