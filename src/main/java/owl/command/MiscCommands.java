@@ -41,7 +41,6 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import jhoafparser.parser.generated.ParseException;
 import owl.Bibliography;
 import owl.automaton.Automaton;
 import owl.automaton.ParityUtil;
@@ -188,7 +187,7 @@ final class MiscCommands {
     private Mixins.AutomatonReader automatonReader = null;
 
     @Override
-    protected int run() throws IOException, ParseException {
+    protected int run() {
 
       try (var source = automatonReader.source(EmersonLeiAcceptance.class)) {
         var automatonIterator = source.iterator();
@@ -280,7 +279,7 @@ final class MiscCommands {
     }
 
     @Override
-    protected int run() throws IOException, ParseException {
+    protected int run() throws IOException {
 
       Predicate<String> environmentAtomicProposition;
 

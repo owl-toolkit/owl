@@ -25,12 +25,15 @@ import static picocli.CommandLine.ParameterException;
 import static picocli.CommandLine.ParseResult;
 import static picocli.CommandLine.Spec;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
+import java.io.UncheckedIOException;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import jhoafparser.parser.generated.ParseException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import picocli.CommandLine;
@@ -109,9 +112,21 @@ public final class OwlCommand extends AbstractOwlCommand {
   }
 
   private static class ExecutionExceptionHandler implements IExecutionExceptionHandler {
+
     @Override
     public int handleExecutionException(
-      Exception ex, CommandLine commandLine, ParseResult parseResult) throws Exception {
+      Exception ex, CommandLine commandLine, ParseResult parseResult) {
+
+      return handleExecutionException((Throwable) ex, commandLine, parseResult);
+    }
+
+    public int handleExecutionException(
+      Throwable ex, CommandLine commandLine, ParseResult parseResult) {
+
+      // Unpack unchecked exceptions.
+      if (ex instanceof UncheckedIOException || ex instanceof UncheckedExecutionException) {
+        return handleExecutionException(ex.getCause(), commandLine, parseResult);
+      }
 
       if (ex instanceof NoSuchFileException) {
         var exception = (NoSuchFileException) ex;
@@ -132,10 +147,16 @@ public final class OwlCommand extends AbstractOwlCommand {
         } else {
           ex.printStackTrace(System.err);
         }
+      } else if (ex instanceof ParseException) {
+        System.err.printf(
+          "Could not parse HOA automaton due to the following problem:%n%s",
+          ex.getMessage());
       } else {
         ex.printStackTrace(System.err);
       }
 
+      // Ensure that error messages are terminated by a new-line.
+      System.err.println();
       return -1;
     }
   }
