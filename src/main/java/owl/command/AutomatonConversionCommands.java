@@ -131,7 +131,8 @@ public class AutomatonConversionCommands {
       "Usage Examples: ",
       "  owl aut2parity -i input-file -o output-file",
       "  owl ltl2dela -f 'F (a & G b) & G F c' | owl aut2parity",
-      "The construction is described in [" + Bibliography.ICALP_21_CITEKEY + "]. "
+      "The construction is described in [" + Bibliography.UNDER_SUBMISSION_22_CITEKEY + "] and is "
+        + "based on [" + Bibliography.ICALP_21_CITEKEY + "]. "
         + MiscCommands.BibliographyCommand.HOW_TO_USE
     }
   )
@@ -143,9 +144,9 @@ public class AutomatonConversionCommands {
       description = {
         "Use the index-appearance-record construction (IAR) of [" + Bibliography.TACAS_17_2_CITEKEY
           + "] if the input automaton is a Rabin automaton. Note that the default construction ["
-          + Bibliography.ICALP_21_CITEKEY + "] is guaranteed to produce automata smaller or of the "
-          + "same size as the IAR-construction. If the input automaton is not a Rabin automaton, "
-          + "then this command will reject the input with an IllegalArgumentException."
+          + Bibliography.UNDER_SUBMISSION_22_CITEKEY + "] is guaranteed to produce automata smaller"
+          + " or of the same size as the IAR-construction. If the input automaton is not a Rabin "
+          + "automaton, then this command will reject the input with an IllegalArgumentException."
       },
       hidden = true
     )
