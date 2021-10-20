@@ -19,20 +19,14 @@
 
 package owl.command;
 
-import static picocli.CommandLine.ArgGroup;
 import static picocli.CommandLine.Command;
 import static picocli.CommandLine.Mixin;
 import static picocli.CommandLine.Option;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
 import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.util.EnumSet;
 import java.util.Iterator;
-import java.util.function.Predicate;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.Bibliography;
@@ -198,8 +192,8 @@ final class LtlConversionCommands {
   )
   static final class RLtlReader extends AbstractOwlSubcommand {
 
-    @ArgGroup
-    private Mixins.FormulaReader.Source source = null;
+    @Mixin
+    private Mixins.FormulaReader formulaReader = null;
 
     @Mixin
     private Mixins.FormulaWriter formulaWriter = null;
@@ -215,11 +209,10 @@ final class LtlConversionCommands {
     @Override
     protected int run() throws IOException {
 
-      try (var source = reader();
+      try (var source = formulaReader.stringSource();
            var sink = formulaWriter.sink()) {
 
-        Iterator<LabelledFormula> formulaIterator = source.lines()
-          .filter(Predicate.not(String::isBlank))
+        Iterator<LabelledFormula> formulaIterator = source
           .map((String line) -> {
             try {
               return RobustLtlParser.parse(line).toLtl(EnumSet.of(robustness));
@@ -234,18 +227,6 @@ final class LtlConversionCommands {
       }
 
       return 0;
-    }
-
-    private BufferedReader reader() throws IOException {
-      if (source == null) {
-        return new BufferedReader(new InputStreamReader(System.in));
-      }
-
-      if (source.formula != null) {
-        return new BufferedReader(new StringReader(source.formula));
-      }
-
-      return Files.newBufferedReader(source.formulaFile);
     }
   }
 }

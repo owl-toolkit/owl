@@ -33,7 +33,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Level;
-import jhoafparser.parser.generated.ParseException;
+import jhoafparser.consumer.HOAConsumerException;
 import owl.Bibliography;
 import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
@@ -78,7 +78,7 @@ public class AutomatonConversionCommands {
     private Diagnostics diagnostics = null;
 
     @Override
-    protected int run() throws IOException, ParseException {
+    protected int run() throws IOException, HOAConsumerException {
       var conversion = conversion();
 
       String subcommand = getClass().getAnnotation(Command.class).name();

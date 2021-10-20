@@ -24,18 +24,19 @@ import static picocli.CommandLine.Option;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.io.StringReader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 import jhoafparser.consumer.HOAConsumerException;
@@ -65,33 +66,41 @@ final class Mixins {
 
     @Option(
       names = { "-i", "--input-file" },
-      description = "Input file (default: read from stdin)."
+      description = "Input file (default: read from stdin). If '-' is specified, then the tool "
+        + "reads from stdin. This option is repeatable."
     )
-    private Path automatonFile = null;
+    private String[] automatonFile = { "-" };
 
     <A extends EmersonLeiAcceptance> Stream<Automaton<Integer, ? extends A>>
-      source(Class<A> acceptanceClass) throws ParseException, IOException {
+      source(Class<A> acceptanceClass) {
 
-      try (var reader = automatonFile == null
-        ? new BufferedReader(new InputStreamReader(System.in))
-        : Files.newBufferedReader(automatonFile)) {
+      return Stream.of(automatonFile).flatMap(file -> {
+        try (var reader = "-".equals(file)
+          ? new BufferedReader(new InputStreamReader(System.in))
+          : Files.newBufferedReader(Path.of(file))) {
 
-        List<Automaton<Integer, ? extends A>> automata = new ArrayList<>();
+          List<Automaton<Integer, ? extends A>> automata = new ArrayList<>();
 
-        // Warning: the 'readStream'-method reads until the reader is exhausted and thus this
-        // methods blocks in while reading from stdin.
-        HoaReader.readStream(reader,
-          FactorySupplier.defaultSupplier()::getBddSetFactory,
-          null,
-          automaton -> {
-            Preconditions.checkArgument(
-              OmegaAcceptanceCast.isInstanceOf(automaton.acceptance().getClass(), acceptanceClass),
-              String.format("Expected %s, but got %s.", acceptanceClass, automaton.acceptance()));
-            automata.add(OmegaAcceptanceCast.cast(automaton, acceptanceClass));
-          });
+          // Warning: the 'readStream'-method reads until the reader is exhausted and thus this
+          // method blocks in while reading from stdin.
+          HoaReader.readStream(reader,
+            FactorySupplier.defaultSupplier()::getBddSetFactory,
+            null,
+            automaton -> {
+              Preconditions.checkArgument(
+                OmegaAcceptanceCast.isInstanceOf(automaton.acceptance().getClass(),
+                  acceptanceClass),
+                String.format("Expected %s, but got %s.", acceptanceClass, automaton.acceptance()));
+              automata.add(OmegaAcceptanceCast.cast(automaton, acceptanceClass));
+            });
 
-        return automata.stream();
-      }
+          return automata.stream();
+        } catch (IOException e) {
+          throw new UncheckedIOException(e);
+        } catch (ParseException e) {
+          throw new UncheckedExecutionException(e);
+        }
+      });
     }
   }
 
@@ -99,9 +108,10 @@ final class Mixins {
 
     @Option(
       names = { "-o", "--output-file" },
-      description = "Output file (default: write to stdout)."
+      description = "Output file (default: write to stdout). If '-' is specified, then the tool "
+        + "writes to stdout."
     )
-    private Path automatonFile = null;
+    private String automatonFile = null;
 
     @Option(
       names = {"--complete"},
@@ -137,10 +147,15 @@ final class Mixins {
       private final List<String> subcommandArgs;
 
       private Sink(String subcommand, List<String> subcommandArgs) throws IOException {
+        // Normalise for '-' representing output to stdout.
+        if ("-".equals(automatonFile)) {
+          automatonFile = null;
+        }
+
         if (automatonFile == null) {
           writer = new BufferedWriter(new OutputStreamWriter(System.out));
         } else {
-          writer = Files.newBufferedWriter(automatonFile);
+          writer = Files.newBufferedWriter(Path.of(automatonFile));
         }
 
         this.subcommand = subcommand;
@@ -194,45 +209,70 @@ final class Mixins {
     @ArgGroup
     private Source source = null;
 
-    static final class Source {
+    private static final class Source {
 
       @Option(
-        names = { "-f", "--formula" },
-        description = "Use the argument of the option as the input formula."
+        names = {"-f", "--formula"},
+        description = "Use the argument of the option as the input formula. This option is "
+          + "repeatable, but cannot be combined with '-i'."
       )
-      String formula = null;
+      String[] formula = null;
 
       @Option(
-        names = { "-i", "--input-file" },
+        names = {"-i", "--input-file"},
         description = "Input file (default: read from stdin). The file is read line-by-line and "
-          + "it is assumed that each line contains a formula. Empty lines are skipped."
+          + "it is assumed that each line contains a formula. Empty lines are skipped. If '-' is "
+          + "specified, then the tool reads from stdin. This option is repeatable, but cannot be "
+          + "combined with '-f'."
       )
-      Path formulaFile = null;
+      String[] formulaFile = null;
 
     }
 
-    Stream<LabelledFormula> source() throws IOException {
-      BufferedReader reader;
-
+    Stream<String> stringSource() throws IOException {
+      // Default to stdin.
       if (source == null) {
-        reader = new BufferedReader(new InputStreamReader(System.in));
-      } else if (source.formula != null) {
-        reader = new BufferedReader(new StringReader(source.formula));
-      } else {
-        reader = Files.newBufferedReader(source.formulaFile);
+        source = new Source();
+        source.formulaFile = new String[]{ "-" };
       }
 
-      return reader.lines().filter(Predicate.not(String::isBlank)).map((String line) -> {
+      Stream<String> stringStream;
+
+      if (source.formulaFile == null) {
+        assert source.formula != null;
+        stringStream = Stream.of(source.formula);
+      } else {
+        List<Stream<String>> readerStreams = new ArrayList<>(source.formulaFile.length);
+
+        for (String file : source.formulaFile) {
+          BufferedReader reader = "-".equals(file)
+            ? new BufferedReader(new InputStreamReader(System.in))
+            : Files.newBufferedReader(Path.of(file));
+
+          readerStreams.add(reader.lines().onClose(() -> {
+            try {
+              reader.close();
+            } catch (IOException ex) {
+              throw new UncheckedIOException(ex);
+            }
+          }));
+        }
+
+        // This workaround helps against getting stuck while reading from stdin.
+        stringStream = readerStreams.size() == 1
+          ? readerStreams.get(0)
+          : readerStreams.stream().flatMap(Function.identity());
+      }
+
+      return stringStream.filter(Predicate.not(String::isBlank));
+    }
+
+    Stream<LabelledFormula> source() throws IOException {
+      return stringSource().map((String line) -> {
         try {
           return LtlParser.parse(line);
         } catch (RecognitionException | ParseCancellationException ex) {
           throw new IllegalArgumentException(line, ex);
-        }
-      }).onClose(() -> {
-        try {
-          reader.close();
-        } catch (IOException ex) {
-          throw new UncheckedIOException(ex);
         }
       });
     }
@@ -242,19 +282,25 @@ final class Mixins {
 
     @Option(
       names = { "-o", "--output-file" },
-      description = "Output file (default: write to stdout)."
+      description = "Output file (default: write to stdout). If '-' is specified, then the tool "
+        + "writes to stdout."
     )
-    private Path formulaFile = null;
+    private String formulaFile = null;
 
     final class Sink implements AutoCloseable {
 
       private final BufferedWriter writer;
 
       private Sink() throws IOException {
+        // Normalise for '-' representing output to stdout.
+        if ("-".equals(formulaFile)) {
+          formulaFile = null;
+        }
+
         if (formulaFile == null) {
           writer = new BufferedWriter(new OutputStreamWriter(System.out));
         } else {
-          writer = Files.newBufferedWriter(formulaFile);
+          writer = Files.newBufferedWriter(Path.of(formulaFile));
         }
       }
 
