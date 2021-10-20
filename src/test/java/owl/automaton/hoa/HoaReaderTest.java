@@ -150,6 +150,20 @@ class HoaReaderTest {
     + "[!0 & 1] 1\n"
     + "--END--\n";
 
+  private static final String HOA_PARITY_WITH_MULTI_COLOUR = "HOA: v1\n"
+    + "States: 2\n"
+    + "Start: 0\n"
+    + "AP: 2 \"p0\" \"p1\"\n"
+    + "acc-name: parity min odd 3\n"
+    + "Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))\n"
+    + "--BODY--\n"
+    + "State: 0\n"
+    + "[!0 & !1] 1 {2}\n"
+    + "State: 1\n"
+    + "[0 & !1] 0 {0 1}\n"
+    + "[!0 & 1] 1\n"
+    + "--END--\n";
+
   private static final String HOA_RABIN = "HOA: v1 \n"
     + "States: 3 \n"
     + "Start: 0 \n"
@@ -257,7 +271,7 @@ class HoaReaderTest {
   void testAcceptanceGeneralizedBuchi() throws ParseException {
     var automaton = HoaReader.read(HOA_GENERALIZED_BUCHI, FACTORY_SUPPLIER, null);
 
-    assertThat(automaton.states().size(), x -> x == 1);
+    assertEquals(1, automaton.states().size());
     assertThat(automaton.acceptance(), GeneralizedBuchiAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }
@@ -266,7 +280,7 @@ class HoaReaderTest {
   void testAcceptanceGeneralizedRabin() throws ParseException {
     var automaton = HoaReader.read(HOA_GENERALIZED_RABIN, FACTORY_SUPPLIER, null);
 
-    assertThat(automaton.states().size(), x -> x == 2);
+    assertEquals(2, automaton.states().size());
     assertThat(automaton.acceptance(), GeneralizedRabinAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 5);
   }
@@ -275,16 +289,25 @@ class HoaReaderTest {
   void testAcceptanceGeneric() throws ParseException {
     var automaton = HoaReader.read(HOA_GENERIC, FACTORY_SUPPLIER, null);
 
-    assertThat(automaton.states().size(), x -> x == 3);
+    assertEquals(3, automaton.states().size());
     assertThat(automaton.acceptance(), EmersonLeiAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
+  }
+
+  @Test
+  void testAcceptanceParityMulti() throws ParseException {
+    var automaton = HoaReader.read(HOA_PARITY_WITH_MULTI_COLOUR, FACTORY_SUPPLIER, null);
+
+    assertEquals(2, automaton.states().size());
+    assertThat(automaton.acceptance(), ParityAcceptance.class::isInstance);
+    assertEquals(3, automaton.acceptance().acceptanceSets());
   }
 
   @Test
   void testAcceptanceRabin() throws ParseException {
     var automaton = HoaReader.read(HOA_RABIN, FACTORY_SUPPLIER, null);
 
-    assertThat(automaton.states().size(), x -> x == 3);
+    assertEquals(3, automaton.states().size());
     assertThat(automaton.acceptance(), RabinAcceptance.class::isInstance);
     assertThat(automaton.acceptance().acceptanceSets(), x -> x == 2);
   }

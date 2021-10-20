@@ -22,7 +22,6 @@ package owl.util;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import javax.annotation.Nullable;
 
 public final class Assertions {
@@ -30,20 +29,9 @@ public final class Assertions {
   }
 
   public static <T> void assertThat(@Nullable T actual, Predicate<T> expected) {
-    assertThat(actual, expected, "Test failed");
-  }
-
-  public static <T> void assertThat(@Nullable T actual, Predicate<T> expected, String message) {
-    assertThat((Supplier<T>) () -> actual, expected, message);
-  }
-
-  public static <T> void assertThat(Supplier<T> actual, Predicate<T> expected) {
-    assertThat(actual, expected, "Test failed");
-  }
-
-  public static <T> void assertThat(Supplier<T> actual, Predicate<T> expected, String message) {
-    if (!expected.test(actual.get())) {
-      fail(message);
+    if (!expected.test(actual)) {
+      fail("Test failed");
     }
   }
+
 }

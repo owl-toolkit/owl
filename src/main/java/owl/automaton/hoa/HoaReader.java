@@ -335,13 +335,15 @@ public final class HoaReader {
         return MtBdd.of();
       }
 
+      int acceptanceSets = acceptance.acceptanceSets();
       for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(state)) {
         Edge<Integer> edge = Edge.of(Iterables.getOnlyElement(edgeWithLabel.getConjSuccessors()),
           edgeWithLabel.getAccSignature() == null
             ? ImmutableBitSet.of()
             : ImmutableBitSet.copyOf(edgeWithLabel.getAccSignature()));
-        checkArgument(acceptance().isWellFormedEdge(edge),
-          "%s is not well-formed for %s", edge, acceptance());
+        checkArgument(edge.colours().last().orElse(-1) < acceptanceSets,
+          "The number of colours on the edge (%s) exceeds the number of colours "
+            + "allowed by the acceptance condition (%s).", edge, acceptance());
         edgeMap.compute(edge, (key, value) -> value == null
           ? resolveAndRemap(edgeWithLabel.getLabelExpr())
           : Disjunction.of(value, resolveAndRemap(edgeWithLabel.getLabelExpr())));

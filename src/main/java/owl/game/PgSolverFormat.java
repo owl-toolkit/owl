@@ -71,7 +71,6 @@ public final class PgSolverFormat {
       Collection<Edge<S>> edges = game.edges(state);
       checkArgument(!edges.isEmpty(), "Provided game is not complete");
       for (Edge<S> edge : edges) {
-        assert acceptance.isWellFormedEdge(edge);
         S successor = edge.successor();
 
         int stateAcceptance = getAcceptance.applyAsInt(edge);
@@ -106,7 +105,6 @@ public final class PgSolverFormat {
         Set<Integer> printedIndices = new HashSet<>();
         while (iterator.hasNext()) {
           Edge<S> edge = iterator.next();
-          assert acceptance.isWellFormedEdge(edge);
 
           S successor = edge.successor();
           int stateAcceptance = getAcceptance.applyAsInt(edge);

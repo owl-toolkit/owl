@@ -28,7 +28,6 @@ import static owl.logic.propositional.PropositionalFormula.constant;
 import java.util.List;
 import java.util.Optional;
 import javax.annotation.Nonnegative;
-import owl.automaton.edge.Edge;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -123,22 +122,6 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
 
   public boolean isAccepting(int priority) {
     return parity.isAccepting(priority);
-  }
-
-  @Override
-  public boolean isWellFormedEdge(Edge<?> edge) {
-    var colours = edge.colours();
-
-    switch (colours.size()) {
-      case 0:
-        return true;
-
-      case 1:
-        return colours.last().orElseThrow() < acceptanceSets();
-
-      default:
-        return false;
-    }
   }
 
   public ParityAcceptance withAcceptanceSets(@Nonnegative int colours) {
