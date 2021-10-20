@@ -41,6 +41,7 @@ public class Bibliography {
   private static final String CASARES = "Antonio Casares";
   private static final String COLCOMBET = "Thomas Colcombet";
   private static final String COURCOUBETIS = "Costas Courcoubetis";
+  private static final String DURET_LUTZ = "Alexandre Duret-Lutz";
   private static final String ESPARZA = "Javier Esparza";
   private static final String FIJALKOW = "Nathanaël Fijalkow";
   private static final String JAAX = "Stefan Jaax";
@@ -49,10 +50,11 @@ public class Bibliography {
   private static final String LODING = "Christof Löding";
   private static final String LUTTENBERGER = "Michael Luttenberger";
   private static final String MEGGENDORFER = "Tobias Meggendorfer";
-  private static final String MEYER = "Philipp J. Meyer";
+  private static final String MEYER = "Klara J. Meyer";
   private static final String MULLER = "David Müller";
   private static final String PIROGOV = "Anton Pirogov";
   private static final String RASKIN = "Jean-François Raskin";
+  private static final String RENKIN = "Florian Renkin";
   private static final String SICKERT = "Salomon Sickert";
   private static final String STEINITZ = "Avital Steinitz";
   private static final String WALDMANN = "Clara Waldmann";
@@ -272,6 +274,17 @@ public class Bibliography {
     "(title not known yet)",
     UNDER_SUBMISSION,
     2021,
+    null,
+    null
+  );
+
+  public static final String UNDER_SUBMISSION_22_CITEKEY = "CDMRS22";
+
+  public static final Publication UNDER_SUBMISSION_22 = Publication.of(
+    List.of(CASARES, DURET_LUTZ, MEYER, RENKIN, SICKERT),
+    "Practical Applications of the Alternating Cycle Decomposition",
+    UNDER_SUBMISSION,
+    2022,
     null,
     null
   );

@@ -27,6 +27,6 @@ class BibliographyTest {
 
   @Test
   public void testIndex() {
-    assertEquals(18, Bibliography.INDEX.size());
+    assertEquals(19, Bibliography.INDEX.size());
   }
 }
