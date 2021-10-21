@@ -19,22 +19,22 @@
 
 import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
 
-plugins {
-    // https://github.com/tbroyer/gradle-errorprone-plugin
-    // https://plugins.gradle.org/plugin/net.ltgt.errorprone
-    // id 'net.ltgt.errorprone' version '0.8.1'
-}
-
 apply plugin: 'java-library'
 apply plugin: 'application'
 apply plugin: 'antlr'
 
-// Static Analysis
-apply plugin: 'checkstyle'
-apply plugin: 'pmd'
+// The following static analysis plugins are currently disabled, since they
+// take too much resources and have only limited benefit.
+//
+// apply plugin: 'checkstyle'
+// apply plugin: 'pmd'
+// apply plugin: 'errorprone'
+// apply from:   'gradle/analysis.gradle'
 
-// IDE Support
-apply plugin: 'idea'
+// The IDEA import is currently not used anymore.
+//
+// apply plugin: 'idea'
+// apply from:   'gradle/idea.gradle'
 
 project.group = 'de.tum.in'
 project.version = '21.1-development'
@@ -52,6 +52,13 @@ java {
     withSourcesJar()
 }
 
+compileJava {
+  options.compilerArgs << "-Xlint:cast"
+  options.compilerArgs << "-Xlint:deprecation"
+  options.compilerArgs << "-Xlint:empty"
+  options.compilerArgs << "-Xlint:overrides"
+}
+
 jar {
     manifest {
         attributes(
@@ -66,7 +73,6 @@ def buildMarkdown = !DefaultNativePlatform.currentOperatingSystem.isWindows() &&
 def staticNativeExecutable = project.hasProperty("static-native-executable")
 def enableNativeAssertions = project.hasProperty("enable-native-assertions")
 
-apply from: 'gradle/analysis.gradle'
 apply from: 'gradle/antlr.gradle'
 
 repositories {
@@ -101,10 +107,6 @@ dependencies {
 
     antlr 'org.antlr:antlr4:4.8-1'
     // We remove unused runtime dependencies below.
-
-    // https://mvnrepository.com/artifact/com.google.errorprone/error_prone_core
-    // TODO: Reenable
-    // errorprone 'com.google.errorprone:error_prone_core:2.3.4'
 
     // https://mvnrepository.com/artifact/com.google.auto.value/auto-value
     implementation 'com.google.auto.value:auto-value-annotations:1.7.4'
@@ -249,7 +251,7 @@ tasks.create(name: "compileMarkdown", type: Exec) {
 javadoc {
     options.addBooleanOption('html5', true)
     options.setEncoding('UTF-8')
-    options.links('https://docs.oracle.com/en/java/javase/11/docs/api')
+    options.links('https://docs.oracle.com/en/java/javase/17/docs/api')
     options.addStringOption('Xdoclint:none', '-quiet') // Silence warnings
 }
 
@@ -323,5 +325,3 @@ tasks.getByPath(":nativeImageDistZip").dependsOn(tasks.getByPath(":buildNativeEx
 tasks.getByPath(":nativeImageDistTar").dependsOn(tasks.getByPath(":buildNativeExecutable"))
 tasks.getByPath(":nativeImageDistZip").dependsOn(tasks.getByPath(":buildNativeLibrary"))
 tasks.getByPath(":nativeImageDistTar").dependsOn(tasks.getByPath(":buildNativeLibrary"))
-
-apply from: 'gradle/idea.gradle'

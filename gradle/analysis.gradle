@@ -39,7 +39,6 @@ tasks.withType(Pmd) {
 // Checkstyle
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
 
-
 checkstyle {
     toolVersion = "9.0" // http://checkstyle.sourceforge.net/releasenotes.html
     configFile = file("$project.rootDir/config/checkstyle.xml")
