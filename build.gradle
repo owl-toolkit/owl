@@ -75,7 +75,7 @@ repositories {
 
 dependencies {
     // https://github.com/google/guava
-    implementation 'com.google.guava:guava:30.1-jre'
+    implementation 'com.google.guava:guava:30.1.1-jre'
 
     // https://github.com/incaseoftrouble/jbdd
     implementation 'de.tum.in:jbdd:0.5.2'

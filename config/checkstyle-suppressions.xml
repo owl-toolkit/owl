@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+    "-//Puppy Crawl//DTD Suppressions 1.0//EN"
+    "http://www.puppycrawl.com/dtds/suppressions_1_0.dtd">
+
+<suppressions>
+    <!-- Suppress everything for generated files -->
+    <suppress files="owl[\\/]grammar[\\/]" checks="[a-zA-Z0-9]*"/>
+    <!-- Suppress everything for files from jhoafparser -->
+    <suppress files="jhoafparser[\\/]extensions[\\/]" checks="[a-zA-Z0-9]*"/>
+    <!-- Suppress everything for files from picocli -->
+    <suppress files="picocli[\\/]" checks="[a-zA-Z0-9]*"/>
+
+    <!-- Suppress broken file -->
+    <suppress files="owl[\\/]cinterface[\\/]CAutomaton" checks="[a-zA-Z0-9]*"/>
+    <suppress files="ToParity*|FG.*|.+2.+|.*DPA.*" checks="AbbreviationAsWordInName"/>
+
+    <!-- Soon we will doc everything ... -->
+    <suppress checks="JavadocMethod" files="[a-zA-Z0-9]*"/>
+    <!-- We avoid final modifier -->
+    <suppress checks="VariableDeclarationUsageDistanceCheck" files="[a-zA-Z0-9]*" />
+    <!-- There are a ton of single-letter variables -->
+    <suppress checks="ParameterName" files=".*"/>
+    <suppress checks="LocalVariableName" files=".*"/>
+    <suppress files="Size.*|LTL2.*|NBA2.*|LD.*|.*DPA.*" checks="AbbreviationAsWordInName"/>
+
+    <!-- Suppress broken file -->
+    <suppress files="owl[\\/]translations[\\/]TranslationReport" checks="[a-zA-Z0-9]*"/>
+
+    <!-- We avoid final modifier -->
+    <suppress checks="VariableDeclarationUsageDistanceCheck" files="[a-zA-Z0-9]*" />
+
+    <!-- Test don't need doc and checkstyle doesn't recognize @Theory methods as tests -->
+    <suppress checks="JavadocMethod" files="[a-zA-Z0-9]*"/>
+    <suppress checks="JavadocPackage" files="[a-zA-Z0-9]*"/>
+</suppressions>
