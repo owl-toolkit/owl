@@ -23,7 +23,6 @@ import com.google.common.collect.Collections2;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.collections.Collections3;
 import owl.ltl.Biconditional;
@@ -65,8 +64,8 @@ public final class FormulaIsomorphism {
       return null;
     }
 
-    List<Integer> atomsList1 = atoms1.stream().boxed().collect(Collectors.toList());
-    List<Integer> atomsList2 = atoms2.stream().boxed().collect(Collectors.toList());
+    List<Integer> atomsList1 = atoms1.stream().boxed().toList();
+    List<Integer> atomsList2 = atoms2.stream().boxed().toList();
 
     int[] mapping = new int[atoms1.length()];
     Arrays.fill(mapping, -1);

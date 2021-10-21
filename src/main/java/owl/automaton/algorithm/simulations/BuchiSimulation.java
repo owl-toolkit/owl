@@ -23,9 +23,9 @@ import static owl.translations.nbadet.NbaDet.overrideLogLevel;
 import static owl.translations.nbadet.NbaDet.restoreLogLevel;
 
 import com.google.common.collect.Sets;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
@@ -278,7 +278,7 @@ public final class BuchiSimulation {
         } else {
           return null;
         }
-      }).filter(Objects::nonNull).collect(Collectors.toSet());
+      }).filter(Objects::nonNull).toList();
 
 
     logStats(stats);
@@ -334,7 +334,7 @@ public final class BuchiSimulation {
         } else {
           return null;
         }
-      }).filter(Objects::nonNull).collect(Collectors.toList());
+      }).filter(Objects::nonNull).toList();
 
     logStats(stats);
     logger.fine("Obtained " + known.size() + " simulation pairs");
@@ -346,7 +346,7 @@ public final class BuchiSimulation {
     return known;
   }
 
-  private static void logStats(Collection<SimulationStats> stats) {
+  private static void logStats(List<SimulationStats> stats) {
     if (!stats.isEmpty()) {
       var avgSize = stats
         .stream()

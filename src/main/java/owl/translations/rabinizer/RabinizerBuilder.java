@@ -845,8 +845,8 @@ public final class RabinizerBuilder {
 
       // Allocate the acceptance caches
       List<List<Integer>> preRankings = Arrays.stream(maximalRanks)
-        .mapToObj(i -> IntStream.rangeClosed(0, i).boxed().collect(Collectors.toList()))
-        .collect(Collectors.toList());
+        .mapToObj(i -> IntStream.rangeClosed(0, i).boxed().toList())
+        .toList();
       List<List<Integer>> rankings = Lists.cartesianProduct(preRankings);
       RabinPair[] rankingPairs = new RabinPair[rankings.size()];
       Arrays.setAll(rankingPairs, i -> builder.add(subset.size()));

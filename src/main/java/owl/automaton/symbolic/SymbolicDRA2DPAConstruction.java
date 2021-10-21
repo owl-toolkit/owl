@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -77,7 +76,7 @@ public abstract class SymbolicDRA2DPAConstruction {
         }
         return new RabinPair(finSet, infSet);
       }
-    ).collect(Collectors.toList());
+    ).toList();
   }
 
   /**
@@ -354,7 +353,7 @@ public abstract class SymbolicDRA2DPAConstruction {
         newFinSets.addAll(pair.infIndices);
         return new RabinPair(newFinSets, pair2.infIndices);
       })
-      .collect(Collectors.toList());
+      .toList();
   }
 
   /**
@@ -483,7 +482,7 @@ public abstract class SymbolicDRA2DPAConstruction {
       variables.addAll(rabinAllocation.variableNames());
       int numberOfRabinColours = rabinAllocation.variables(COLOUR).size();
       variables.addAll(IntStream.range(0, parityColourVariables.size()).mapToObj(i ->
-        "c_" + (i + numberOfRabinColours)).collect(Collectors.toList()));
+        "c_" + (i + numberOfRabinColours)).toList());
       return variables;
     }
 

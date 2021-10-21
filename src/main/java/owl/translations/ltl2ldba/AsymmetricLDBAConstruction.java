@@ -386,7 +386,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       var nextSuccessors = state.nextCoSafety.stream()
         .map(x -> successor(x, valuation, assumptions))
-        .collect(Collectors.toList());
+        .collect(Collectors.toCollection(ArrayList::new));
 
       boolean acceptingEdge = false;
       boolean currentSuccessful = false;

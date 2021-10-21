@@ -65,10 +65,10 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
     GeneralizedRabinAcceptance acceptance = automaton.acceptance();
 
-    List<RabinPair> pairs = acceptance.pairs().stream()
+    var pairs = acceptance.pairs().stream()
       .filter(RabinPair::hasInfSet)
-      .collect(Collectors.toList());
-    List<BitSet> pairComplementaryInfSets = new ArrayList<>(pairs.size());
+      .collect(Collectors.toCollection(ArrayList::new));
+    var pairComplementaryInfSets = new ArrayList<BitSet>(pairs.size());
 
     for (RabinPair pair : pairs) {
       BitSet pairInfSets = new BitSet();
@@ -194,7 +194,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
     List<RabinPair> pairs = automaton.acceptance().pairs().stream()
       .filter(RabinPair::hasInfSet)
-      .collect(Collectors.toList());
+      .toList();
 
     if (pairs.isEmpty()) {
       return;
@@ -267,11 +267,10 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     }
 
     if (logger.isLoggable(Level.FINER)) {
-      List<MergeClass> trueMerges = mergeClasses.stream()
-        .filter(mergeClass -> mergeClass.pairs.size() > 1)
-        .collect(Collectors.toList());
       logger.log(Level.FINER, "Merge classes {0}, indices {1}",
-        new Object[] {trueMerges, remapping});
+        new Object[] {mergeClasses.stream()
+          .filter(mergeClass -> mergeClass.pairs.size() > 1)
+          .toList(), remapping});
     }
 
     automaton.updateEdges((state, edge) -> {
@@ -304,8 +303,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
     GeneralizedRabinAcceptance acceptance = automaton.acceptance();
     List<RabinPair> pairs = acceptance.pairs().stream()
-      .filter(RabinPair::hasInfSet)
-      .collect(Collectors.toUnmodifiableList());
+      .filter(RabinPair::hasInfSet).toList();
 
     if (pairs.isEmpty()) {
       return;
@@ -534,8 +532,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     MutableAutomaton<S, GeneralizedRabinAcceptance> automaton) {
     var acceptance = automaton.acceptance();
     var finOnlyPairs = acceptance.pairs().stream()
-      .filter(x -> !x.hasInfSet())
-      .collect(Collectors.toUnmodifiableList());
+      .filter(x -> !x.hasInfSet()).toList();
 
     for (Set<S> scc : SccDecomposition.of(automaton).sccsWithoutTransient()) {
       ImmutableBitSet indicesInScc = AutomatonUtil.getAcceptanceSets(automaton, scc);
@@ -625,7 +622,7 @@ public final class GeneralizedRabinAcceptanceOptimizations {
     ImmutableBitSet colours = AutomatonUtil.getAcceptanceSets(automaton);
     List<RabinPair> buchiTypePairs = automaton.acceptance().pairs().stream()
       .filter(x -> x.infSetCount() == 1 && !colours.contains(x.finSet()))
-      .collect(Collectors.toList());
+      .toList();
 
     if (buchiTypePairs.size() < 2) {
       return;

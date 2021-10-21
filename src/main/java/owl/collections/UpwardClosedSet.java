@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.util.ArraysSupport;
 
@@ -132,8 +131,8 @@ public final class UpwardClosedSet {
     return Arrays.stream(buckets)
       .flatMapToLong(Arrays::stream)
       .filter(x -> x != Long.MAX_VALUE)
-      .mapToObj(x -> BitSet.valueOf(new long[]{x}))
-      .collect(Collectors.toUnmodifiableList());
+      .mapToObj(x -> BitSet.valueOf(new long[] {x}))
+      .toList();
   }
 
   public UpwardClosedSet union(UpwardClosedSet otherSet) {

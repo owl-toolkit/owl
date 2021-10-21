@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import owl.collections.Collections3;
 import owl.collections.Pair;
@@ -215,12 +214,10 @@ public final class MtBddOperations {
       cartesianProduct = MtBdd.of(Set.of(Collections.unmodifiableList(values)));
     } else {
       var falseTrees = trees.stream()
-        .map(x -> descendFalseIf(x, variable))
-        .collect(Collectors.toUnmodifiableList());
+        .map(x -> descendFalseIf(x, variable)).toList();
 
       var trueTrees = trees.stream()
-        .map(x -> descendTrueIf(x, variable))
-        .collect(Collectors.toUnmodifiableList());
+        .map(x -> descendTrueIf(x, variable)).toList();
 
       var falseCartesianProduct = naryCartesianProductWithNull(
         falseTrees, memoizedCalls);
@@ -267,12 +264,10 @@ public final class MtBddOperations {
       cartesianProduct = MtBdd.of(elements);
     } else {
       var falseTrees = trees.stream()
-        .map(x -> descendFalseIf(x, variable))
-        .collect(Collectors.toUnmodifiableList());
+        .map(x -> descendFalseIf(x, variable)).toList();
 
       var trueTrees = trees.stream()
-        .map(x -> descendTrueIf(x, variable))
-        .collect(Collectors.toUnmodifiableList());
+        .map(x -> descendTrueIf(x, variable)).toList();
 
       var falseCartesianProduct = naryCartesianProduct(
         falseTrees,

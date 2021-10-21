@@ -21,9 +21,8 @@ package owl.ltl.rewriter;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
 import owl.ltl.Formula;
@@ -31,12 +30,12 @@ import owl.ltl.parser.LtlParser;
 
 public class DeduplicationRewriterTest {
   static List<Formula> formulas() {
-    return Arrays.stream(new String[] {
+    return Stream.of(
       "F a & G F a & X X F a & X F a & a U F a & b U F a & F (c & F b | F a)",
       "G a & F b & a M b & a R b & G b | F b & a U b | a => b | a <=> b | b <=> a | X a | X b",
       "a W b & b W a & a M b & a M b & b M a & a U b | a U b & a M b | a U b | a U c",
       "X X X X X X a & X X X X X a & X X X X X a & X X X X X b & a U X X X b | b"
-    }).map(input -> LtlParser.parse(input).formula()).collect(Collectors.toList());
+    ).map(input -> LtlParser.parse(input).formula()).toList();
   }
 
   @ParameterizedTest

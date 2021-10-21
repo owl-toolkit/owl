@@ -304,7 +304,7 @@ public final class BooleanOperations {
       super(atomicPropositions,
         initialStates(automata),
         intersectionAcceptance(
-          automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
+          automata.stream().map(Automaton::acceptance).toList()));
       this.automata = List.copyOf(automata);
     }
 
@@ -312,7 +312,7 @@ public final class BooleanOperations {
       initialStates(List<? extends Automaton<S, ?>> automata) {
 
       return Sets.cartesianProduct(
-        automata.stream().map(Automaton::initialStates).collect(Collectors.toList()));
+        automata.stream().map(Automaton::initialStates).toList());
     }
 
     @Override
@@ -469,7 +469,7 @@ public final class BooleanOperations {
 
       super(atomicPropositions,
         Set.of(initialState(automata)),
-        unionAcceptance(automata.stream().map(Automaton::acceptance).collect(Collectors.toList())));
+        unionAcceptance(automata.stream().map(Automaton::acceptance).toList()));
       this.automata = List.copyOf(automata);
       this.rejectingSets = List.copyOf(rejectingSets);
     }

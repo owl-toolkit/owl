@@ -19,8 +19,6 @@
 
 package owl.automaton;
 
-import static java.util.stream.Collectors.toUnmodifiableList;
-
 import com.google.common.base.Preconditions;
 import java.util.List;
 import owl.collections.ImmutableBitSet;

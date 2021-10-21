@@ -25,7 +25,6 @@ import com.google.common.primitives.ImmutableLongArray;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.ltl.Literal;
 
@@ -102,6 +101,6 @@ final class History {
   @Override
   public String toString() {
     return "H=" + longs.asList().stream().map(x -> BitSet.valueOf(new long[] {x}).toString())
-      .collect(Collectors.toList());
+      .toList();
   }
 }

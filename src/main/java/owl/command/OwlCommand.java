@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import jhoafparser.parser.generated.ParseException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
@@ -91,9 +90,7 @@ public final class OwlCommand extends AbstractOwlCommand {
   }
 
   public OwlCommand(String[] args) {
-    this.args = Arrays.stream(args)
-      .filter(Predicate.not(Objects::isNull))
-      .collect(Collectors.toUnmodifiableList());
+    this.args = Arrays.stream(args).filter(Predicate.not(Objects::isNull)).toList();
   }
 
   public static void main(String[] args) {

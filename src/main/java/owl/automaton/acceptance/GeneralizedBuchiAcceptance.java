@@ -25,7 +25,6 @@ import static owl.logic.propositional.PropositionalFormula.conjuncts;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
@@ -69,7 +68,7 @@ public sealed class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance
   protected final PropositionalFormula<Integer> lazyBooleanExpression() {
     return PropositionalFormula.Conjunction.of(IntStream.range(0, acceptanceSets())
       .mapToObj(Variable::of)
-      .collect(Collectors.toList()));
+      .toList());
   }
 
   @Override

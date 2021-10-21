@@ -27,7 +27,7 @@ import com.google.common.collect.Iterators;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
@@ -46,7 +46,7 @@ public class SymbolicSccDecompositionTest {
   private static final Function<LabelledFormula, Automaton<?, ? extends BuchiAcceptance>> LTL_TO_NBA
     = LtlTranslationRepository.LtlToNbaTranslation.EKS20.translation(BuchiAcceptance.class);
 
-  private final List<LabelledFormula> tests = List.of(
+  private final List<LabelledFormula> tests = Stream.of(
     "0",
     "1",
     "a",
@@ -181,7 +181,7 @@ public class SymbolicSccDecompositionTest {
     "G ( a | Xb) & GF ( b & Xc)",
     "G (Xa |  b) & GF (Xb &  c)",
     "G (Xa | Xb) & GF (Xb &  c)"
-  ).stream().map(LtlParser::parse).collect(Collectors.toList());
+  ).map(LtlParser::parse).toList();
 
   @Test
   void sccDecompositionTest() {
@@ -202,14 +202,16 @@ public class SymbolicSccDecompositionTest {
       .stream()
       .map(Set::size)
       .sorted()
-      .collect(Collectors.toList());
-    List<Integer> actualSccs = SymbolicSccDecomposition.of(actual).sccs()
+      .toList();
+    List<Integer> actualSccs = SymbolicSccDecomposition
+      .of(actual)
+      .sccs()
       .stream()
       .map(bddSet ->
         bddSet.iterator(actual.variableAllocation().variables(STATE, COLOUR)))
       .map(Iterators::size)
       .sorted()
-      .collect(Collectors.toList());
+      .toList();
     assertEquals(expectedSccs, actualSccs);
   }
 }

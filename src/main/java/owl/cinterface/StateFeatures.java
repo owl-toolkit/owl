@@ -44,7 +44,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.constant.CEnum;
 import org.graalvm.nativeimage.c.constant.CEnumLookup;
@@ -128,7 +127,7 @@ public final class StateFeatures {
         .flatMap(x -> x.ranking().stream().map(y -> y.evaluatedFixpoints))
         .distinct()
         .sorted()
-        .collect(Collectors.toList());
+        .toList();
 
       Function<AsymmetricRankingState, List<Object>> deconstructor = state -> {
         List<Object> deconstructedState = new ArrayList<>(4 * state.ranking().size() + 3);

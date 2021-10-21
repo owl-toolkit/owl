@@ -38,7 +38,6 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import owl.automaton.edge.Edge;
@@ -172,7 +171,7 @@ public sealed class GeneralizedRabinAcceptance extends EmersonLeiAcceptance
   @Override
   public PropositionalFormula<Integer> lazyBooleanExpression() {
     return Disjunction.of(
-      pairs.stream().map(RabinPair::booleanExpression).collect(Collectors.toList()));
+      pairs.stream().map(RabinPair::booleanExpression).toList());
   }
 
   @Override

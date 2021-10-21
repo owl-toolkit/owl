@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.bdd.Factories;
@@ -205,7 +204,7 @@ public final class AsymmetricEvaluatedFixpoints
     var coSafety = gCoSafety.stream()
       .sorted()
       .map(x -> factories.eqFactory.of(x.operand().unfold()))
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
 
     var fCoSafety = new ArrayList<EquivalenceClass>();
     var gfCoSafetyAutomaton = (DeterministicConstructions.GfCoSafety) null;

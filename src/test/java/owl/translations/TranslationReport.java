@@ -284,10 +284,10 @@ class TranslationReport {
     var latexReport = LatexReport.create(
       translators.stream()
         .map(x -> Collections3.transformList(x, y -> y.name))
-        .collect(Collectors.toList()),
+        .toList(),
       Map.of(),
       set.name().toLowerCase(),
-      formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
+      formulaSet.stream().map(LabelledFormula::formula).toList(),
       resultTable,
       z -> BooleanExpressions.toDnf(
         BooleanExpressions.fromPropositionalFormula(z.booleanExpression())).size(), 25, true);
@@ -404,10 +404,10 @@ class TranslationReport {
     var latexReport = LatexReport.create(
       translators.stream()
         .map(x -> Collections3.transformList(x, y -> y.name))
-        .collect(Collectors.toList()),
+        .toList(),
       Map.of(),
       set.name().toLowerCase(),
-      formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
+      formulaSet.stream().map(LabelledFormula::formula).toList(),
       resultTable,
       EmersonLeiAcceptance::acceptanceSets, 10, false);
 
@@ -487,10 +487,10 @@ class TranslationReport {
     var latexReport = LatexReport.create(
       translators.stream()
         .map(x -> Collections3.transformList(x, y -> y.name))
-        .collect(Collectors.toList()),
+        .toList(),
       Map.of(),
       set.name().toLowerCase(),
-      formulaSet.stream().map(LabelledFormula::formula).collect(Collectors.toList()),
+      formulaSet.stream().map(LabelledFormula::formula).toList(),
       resultTable,
       EmersonLeiAcceptance::acceptanceSets, 100, false);
 

@@ -238,7 +238,7 @@ public final class GfgCoBuchiMinimization {
 
     List<Set<S>> immutableEquivalenceClass = equivalenceClasses.stream()
       .map(Set::copyOf)
-      .collect(Collectors.toList());
+      .toList();
 
     Set<Set<S>> initialStates = immutableEquivalenceClass.stream()
       .filter(x -> !Collections.disjoint(x, ncw.initialStates()))

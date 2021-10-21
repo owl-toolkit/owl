@@ -52,7 +52,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
@@ -612,7 +611,7 @@ public final class NormalformDELAConstruction
 
       alpha = alpha.substitute(x -> {
         ImmutableBitSet roundRobinChain = Iterables.getOnlyElement(
-          roundRobinChains.stream().filter(chain -> chain.contains(x)).collect(Collectors.toList()),
+          roundRobinChains.stream().filter(chain -> chain.contains(x)).toList(),
           null);
 
         return roundRobinChain == null
@@ -802,7 +801,7 @@ public final class NormalformDELAConstruction
         return PropositionalFormula.Conjunction.of(Collections3.maximalElements(
           conjunction.conjuncts().stream()
             .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
-            .collect(Collectors.toList()),
+            .toList(),
           (x, y) -> {
             if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
               return false;
@@ -827,7 +826,7 @@ public final class NormalformDELAConstruction
       return PropositionalFormula.Disjunction.of(Collections3.maximalElements(
         ((PropositionalFormula.Disjunction<Integer>) stateFormula).disjuncts().stream()
           .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
-          .collect(Collectors.toList()),
+          .toList(),
         (x, y) -> {
           if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
             return false;

@@ -25,7 +25,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -133,7 +132,7 @@ public final class OmegaAcceptanceCast {
       GeneralizedRabinAcceptance.class, x -> GeneralizedRabinAcceptance.of(
         IntStream.range(0, x.acceptanceSets())
           .mapToObj(i -> GeneralizedRabinAcceptance.RabinPair.ofGeneralized(i, 0))
-          .collect(Collectors.toList())
+          .toList()
         )
     );
 

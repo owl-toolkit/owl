@@ -397,7 +397,7 @@ public final class Views {
     @Override
     public MtBdd<Edge<T>> edgeTreeImpl(T state) {
       return MtBddOperations.cartesianProduct(
-        reverseMapping.get(state).stream().map(automaton::edgeTree).collect(Collectors.toList())
+        reverseMapping.get(state).stream().map(automaton::edgeTree).toList()
       ).map(x -> {
         Set<Edge<T>> set = new HashSet<>();
         for (List<Edge<S>> edges : x) {

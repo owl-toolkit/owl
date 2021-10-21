@@ -24,7 +24,6 @@ import static owl.logic.propositional.PropositionalFormula.Variable;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
@@ -67,7 +66,7 @@ public sealed class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance
   protected final PropositionalFormula<Integer> lazyBooleanExpression() {
     return PropositionalFormula.Disjunction.of(IntStream.range(0, acceptanceSets())
       .mapToObj(x -> Negation.of(Variable.of(x)))
-      .collect(Collectors.toList()));
+      .toList());
   }
 
   @Override

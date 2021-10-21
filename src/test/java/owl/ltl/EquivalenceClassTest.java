@@ -31,7 +31,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,9 +44,9 @@ import owl.translations.TranslationAutomatonSummaryTest;
 abstract class EquivalenceClassTest {
 
   private static final List<LabelledFormula> formulas = Stream.of(
-    "G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b")
+      "G a", "F G a", "G a | G b", "(G a) U (G b)", "X G b", "F F ((G a) & b)", "a & G b")
     .map(LtlParser::parse)
-    .collect(Collectors.toUnmodifiableList());
+    .toList();
   private EquivalenceClassFactory factory;
 
   @BeforeEach
