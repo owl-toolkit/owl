@@ -57,16 +57,11 @@ public abstract class MtBdd<E> {
   }
 
   public static <E> MtBdd<E> of(Collection<? extends E> value) {
-    switch (value.size()) {
-      case 0:
-        return of();
-
-      case 1:
-        return new Leaf<>(Set.of(value.iterator().next()));
-
-      default:
-        return new Leaf<>(Set.copyOf(value));
-    }
+    return switch (value.size()) {
+      case 0 -> of();
+      case 1 -> new Leaf<>(Set.of(value.iterator().next()));
+      default -> new Leaf<>(Set.copyOf(value));
+    };
   }
 
   public static <E> MtBdd<E> of(int variable, MtBdd<E> trueChild, MtBdd<E> falseChild) {

@@ -524,7 +524,7 @@ public final class LtlTranslationRepository {
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
       switch (this) {
-        case SEJK16_EKRS17: {
+        case SEJK16_EKRS17 -> {
           var configuration = EnumSet.of(POST_PROCESS);
 
           if (translationOptions.contains(Option.X_DPA_USE_COMPLEMENT)) {
@@ -540,7 +540,7 @@ public final class LtlTranslationRepository {
             acceptanceClass);
         }
 
-        case EKS20_EKRS17: {
+        case EKS20_EKRS17 -> {
           var configuration = EnumSet.of(SYMMETRIC, POST_PROCESS);
 
           if (translationOptions.contains(Option.X_DPA_USE_COMPLEMENT)) {
@@ -556,7 +556,7 @@ public final class LtlTranslationRepository {
             acceptanceClass);
         }
 
-        case SYMBOLIC_SE20_BKS10: {
+        case SYMBOLIC_SE20_BKS10 -> {
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(
               SymbolicDPAConstruction.of().apply(x).toAutomaton(), acceptanceClass),
@@ -565,7 +565,7 @@ public final class LtlTranslationRepository {
             acceptanceClass);
         }
 
-        case SLM21: {
+        case SLM21 -> {
           var translation = new NormalformDPAConstruction(lookahead);
 
           return applyPreAndPostProcessing(
@@ -576,14 +576,12 @@ public final class LtlTranslationRepository {
           );
         }
 
-        case SMALLEST_AUTOMATON:
+        case SMALLEST_AUTOMATON -> {
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
           copiedTranslationOptions.add(Option.X_DPA_USE_COMPLEMENT);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
-
           var portfolioTranslation = portfolioWithPreAndPostProcessing(
             BranchingMode.DETERMINISTIC, translationOptions, acceptanceClass);
-
           return labelledFormula -> {
             Supplier<Optional<Automaton<?, ? extends A>>> sejk16translation = () -> Optional.of(
               SEJK16_EKRS17.translation(acceptanceClass, copiedTranslationOptions)
@@ -594,9 +592,9 @@ public final class LtlTranslationRepository {
                 .apply(labelledFormula));
 
             Supplier<Optional<Automaton<?, ? extends A>>> se20bks10SymbolicTranslation =
-            () -> Optional.of(
-              SYMBOLIC_SE20_BKS10.translation(acceptanceClass, copiedTranslationOptions)
-                .apply(labelledFormula));
+              () -> Optional.of(
+                SYMBOLIC_SE20_BKS10.translation(acceptanceClass, copiedTranslationOptions)
+                  .apply(labelledFormula));
 
             Supplier<Optional<Automaton<?, ? extends A>>> slm21translation = () -> Optional.of(
               SLM21.translation(acceptanceClass, copiedTranslationOptions, OptionalInt.empty())
@@ -611,9 +609,9 @@ public final class LtlTranslationRepository {
                 slm21translation
               )));
           };
+        }
 
-        default:
-          throw new AssertionError("Unreachable.");
+        default -> throw new AssertionError();
       }
     }
 
@@ -809,33 +807,31 @@ public final class LtlTranslationRepository {
       Preconditions.checkArgument(acceptanceClassWithinBounds(acceptanceClass));
 
       switch (this) {
-        case MS17:
+        case MS17 -> {
           var ms17construction = new DelagBuilder(
             LtlToDraTranslation.EKS20.translation(GeneralizedRabinAcceptance.class));
-
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(ms17construction.apply(x), acceptanceClass),
             BranchingMode.DETERMINISTIC,
             translationOptions,
             acceptanceClass);
+        }
 
-        case SLM21:
+        case SLM21 -> {
           var slm21Construction = new NormalformDELAConstruction(lookahead);
-
           return applyPreAndPostProcessing(
             x -> OmegaAcceptanceCast.cast(slm21Construction.apply(x), acceptanceClass),
             BranchingMode.DETERMINISTIC,
             translationOptions,
             acceptanceClass);
+        }
 
-        case SMALLEST_AUTOMATON:
+        case SMALLEST_AUTOMATON -> {
           var copiedTranslationOptions = EnumSet.copyOf(translationOptions);
           copiedTranslationOptions.add(Option.X_DRA_NORMAL_FORM_USE_DUAL);
           copiedTranslationOptions.remove(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
-
           var portfolioTranslation = portfolioWithPreAndPostProcessing(
             BranchingMode.DETERMINISTIC, translationOptions, acceptanceClass);
-
           return labelledFormula -> {
             Supplier<Optional<Automaton<?, ? extends A>>> ms17translation = () -> Optional.of(
               MS17.translation(acceptanceClass, copiedTranslationOptions).apply(labelledFormula));
@@ -859,9 +855,9 @@ public final class LtlTranslationRepository {
                 dgraTranslation
               )));
           };
+        }
 
-        default:
-          throw new AssertionError("Unreachable.");
+        default -> throw new AssertionError();
       }
     }
   }

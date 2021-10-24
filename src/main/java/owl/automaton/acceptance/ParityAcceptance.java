@@ -169,33 +169,21 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
     }
 
     public Parity flipMax() {
-      switch (this) {
-        case MIN_ODD:
-          return MAX_ODD;
-        case MIN_EVEN:
-          return MAX_EVEN;
-        case MAX_EVEN:
-          return MIN_EVEN;
-        case MAX_ODD:
-          return MIN_ODD;
-        default:
-          throw new AssertionError();
-      }
+      return switch (this) {
+        case MIN_ODD -> MAX_ODD;
+        case MIN_EVEN -> MAX_EVEN;
+        case MAX_EVEN -> MIN_EVEN;
+        case MAX_ODD -> MIN_ODD;
+      };
     }
 
     public Parity flipEven() {
-      switch (this) {
-        case MIN_ODD:
-          return MIN_EVEN;
-        case MIN_EVEN:
-          return MIN_ODD;
-        case MAX_EVEN:
-          return MAX_ODD;
-        case MAX_ODD:
-          return MAX_EVEN;
-        default:
-          throw new AssertionError();
-      }
+      return switch (this) {
+        case MIN_ODD -> MIN_EVEN;
+        case MIN_EVEN -> MIN_ODD;
+        case MAX_EVEN -> MAX_ODD;
+        case MAX_ODD -> MAX_EVEN;
+      };
     }
 
     public boolean even() {

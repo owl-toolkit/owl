@@ -355,16 +355,11 @@ public final class NormalformDELAConstruction
               return PropositionalFormula.Variable.of(index);
             }
 
-            switch (classification.get(index)) {
-              case TERMINAL_ACCEPTING:
-                return PropositionalFormula.trueConstant();
-
-              case TERMINAL_REJECTING:
-                return PropositionalFormula.falseConstant();
-
-              default:
-                return PropositionalFormula.Variable.of(index);
-            }
+            return switch (classification.get(index)) {
+              case TERMINAL_ACCEPTING -> PropositionalFormula.trueConstant();
+              case TERMINAL_REJECTING -> PropositionalFormula.falseConstant();
+              default -> PropositionalFormula.Variable.of(index);
+            };
           });
 
           BitSet remainingVariables = BitSet2.copyOf(newStateFormula.variables());
@@ -489,16 +484,11 @@ public final class NormalformDELAConstruction
             return PropositionalFormula.Variable.of(index);
           }
 
-          switch (classification.get(index)) {
-            case TERMINAL_ACCEPTING:
-              return PropositionalFormula.trueConstant();
-
-            case TERMINAL_REJECTING:
-              return PropositionalFormula.falseConstant();
-
-            default:
-              return PropositionalFormula.Variable.of(index);
-          }
+        return switch (classification.get(index)) {
+          case TERMINAL_ACCEPTING -> PropositionalFormula.trueConstant();
+          case TERMINAL_REJECTING -> PropositionalFormula.falseConstant();
+          default -> PropositionalFormula.Variable.of(index);
+        };
         });
 
       assert stateMap.keySet().containsAll(newStateFormula.variables()) : "Short-circuiting failed";
@@ -542,18 +532,12 @@ public final class NormalformDELAConstruction
       assert !classification.containsValue(TRANSIENT_NOT_SUSPENDED);
 
       // Evaluate all suspendable states that belong to a weak accepting and rejecting SCC.
-      var alpha = newStateFormula.substitute(index -> {
-        switch (classification.get(index)) {
-          case WEAK_ACCEPTING_SUSPENDED:
-            return PropositionalFormula.trueConstant();
-
-          case WEAK_REJECTING_SUSPENDED:
-            return PropositionalFormula.falseConstant();
-
-          default:
-            return PropositionalFormula.Variable.of(index);
-        }
-      });
+      var alpha = newStateFormula.substitute(
+        index -> switch (classification.get(index)) {
+          case WEAK_ACCEPTING_SUSPENDED -> PropositionalFormula.trueConstant();
+          case WEAK_REJECTING_SUSPENDED -> PropositionalFormula.falseConstant();
+          default -> PropositionalFormula.Variable.of(index);
+        });
 
       {
         var remainingVariables = alpha.variables();

@@ -148,31 +148,18 @@ public final class HoaReader {
         check(name.extra.size() == 3, "Malformed parity condition.");
 
         String stringPriority = name.extra.get(0).toString();
-        boolean max;
-
-        switch (stringPriority) {
-          case "max":
-            max = true;
-            break;
-          case "min":
-            max = false;
-            break;
-          default:
-            throw new HOAConsumerException("Unknown priority " + stringPriority);
-        }
+        boolean max = switch (stringPriority) {
+          case "max" -> true;
+          case "min" -> false;
+          default -> throw new HOAConsumerException("Unknown priority " + stringPriority);
+        };
 
         String stringParity = name.extra.get(1).toString();
-        boolean even;
-        switch (stringParity) {
-          case "even":
-            even = true;
-            break;
-          case "odd":
-            even = false;
-            break;
-          default:
-            throw new HOAConsumerException("Unknown parity " + stringParity);
-        }
+        boolean even = switch (stringParity) {
+          case "even" -> true;
+          case "odd" -> false;
+          default -> throw new HOAConsumerException("Unknown parity " + stringParity);
+        };
 
         String stringColours = name.extra.get(2).toString();
         int colours;

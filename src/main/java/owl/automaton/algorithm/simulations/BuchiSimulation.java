@@ -172,37 +172,36 @@ public final class BuchiSimulation {
     }
 
     switch (args.simulationType()) {
-      case DIRECT_SIMULATION:
+      case DIRECT_SIMULATION -> {
         logger.fine("Starting direct simulation with " + pebbles + " pebbles.");
         rel = simulator.directSimulation(automaton, automaton, pebbles);
-        break;
+      }
 
-      case DIRECT_SIMULATION_COLOUR_REFINEMENT:
+      case DIRECT_SIMULATION_COLOUR_REFINEMENT -> {
         logger.fine("Computing direct simulation based on color refinement.");
         rel = ColorRefinement.of(automaton);
-        break;
+      }
 
-      case DELAYED_SIMULATION:
+      case DELAYED_SIMULATION -> {
         logger.fine("Starting delayed simulation with " + pebbles + " pebbles.");
         rel = simulator.delayedSimulation(automaton, automaton, pebbles);
-        break;
+      }
 
-      case FAIR_SIMULATION:
-        throw new IllegalArgumentException("Cannot use fair simulation as it we cannot "
+      case FAIR_SIMULATION -> throw new IllegalArgumentException(
+        "Cannot use fair simulation as it we cannot "
           + "construct a quotient automaton.");
 
-      case BACKWARD_SIMULATION:
+      case BACKWARD_SIMULATION -> {
         logger.fine("Starting backward simulation with " + pebbles + " pebbles.");
         rel = simulator.backwardSimulation(automaton, automaton, pebbles);
-        break;
+      }
 
-      case LOOKAHEAD_DIRECT_SIMULATION:
+      case LOOKAHEAD_DIRECT_SIMULATION -> {
         logger.fine("Starting direct simulation with lookahead " + args.maxLookahead());
         rel = simulator.directLookaheadSimulation(automaton, automaton, args.maxLookahead());
-        break;
+      }
 
-      default:
-        throw new AssertionError("Unreachable.");
+      default -> throw new AssertionError();
     }
 
     var equivRel = computeEquivalence(rel);

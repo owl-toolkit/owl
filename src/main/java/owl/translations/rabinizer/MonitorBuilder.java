@@ -161,18 +161,15 @@ final class MonitorBuilder {
         MonitorState successorState;
 
         switch (fragment) {
-          case FINITE:
-            successorState = getSuccessorFiniteFragment(currentState, valuation, priorities);
-            break;
-          case EVENTUAL:
-            successorState = getSuccessorEventualFragment(currentState, valuation, priorities);
-            break;
-
-          default:
+          case FINITE -> successorState = getSuccessorFiniteFragment(currentState, valuation,
+            priorities);
+          case EVENTUAL -> successorState = getSuccessorEventualFragment(currentState, valuation,
+            priorities);
+          default -> {
             // Reset loop data structures
             Arrays.fill(priorities, none());
             successorState = getSuccessor(currentState, valuation, priorities, initialAccepting);
-            break;
+          }
         }
 
         if (exploredStates.add(successorState)) {

@@ -37,16 +37,11 @@ public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
   }
 
   public static GeneralizedBuchiAcceptance of(int size) {
-    switch (size) {
-      case 0:
-        return AllAcceptance.INSTANCE;
-
-      case 1:
-        return BuchiAcceptance.INSTANCE;
-
-      default:
-        return new GeneralizedBuchiAcceptance(size);
-    }
+    return switch (size) {
+      case 0 -> AllAcceptance.INSTANCE;
+      case 1 -> BuchiAcceptance.INSTANCE;
+      default -> new GeneralizedBuchiAcceptance(size);
+    };
   }
 
   public static Optional<? extends GeneralizedBuchiAcceptance> ofPartial(

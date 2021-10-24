@@ -93,18 +93,12 @@ public final class Solver {
     // Pre-process and replace single polarity with fixed value in formula.
     var polarity = formula.polarity();
 
-    var simplifiedFormula = formula.substitute(variable -> {
-      switch (polarity.get(variable)) {
-        case POSITIVE:
-          return PropositionalFormula.trueConstant();
-
-        case NEGATIVE:
-          return PropositionalFormula.falseConstant();
-
-        default:
-          return PropositionalFormula.Variable.of(variable);
-      }
-    });
+    var simplifiedFormula = formula.substitute(
+      variable -> switch (polarity.get(variable)) {
+        case POSITIVE -> PropositionalFormula.trueConstant();
+        case NEGATIVE -> PropositionalFormula.falseConstant();
+        case MIXED -> PropositionalFormula.Variable.of(variable);
+      });
 
     // Translate into equisatisfiable CNF.
     var conjunctiveNormalForm = new ConjunctiveNormalForm<>(simplifiedFormula);

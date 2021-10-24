@@ -266,16 +266,11 @@ public abstract class PropositionalFormula<T> {
 
       var normalisedConjuncts = flattenConjunction(conjuncts);
 
-      switch (normalisedConjuncts.size()) {
-        case 0:
-          return trueConstant();
-
-        case 1:
-          return normalisedConjuncts.iterator().next();
-
-        default:
-          return new Conjunction<>(List.copyOf(normalisedConjuncts));
-      }
+      return switch (normalisedConjuncts.size()) {
+        case 0 -> trueConstant();
+        case 1 -> normalisedConjuncts.iterator().next();
+        default -> new Conjunction<>(List.copyOf(normalisedConjuncts));
+      };
     }
 
     @Override
@@ -357,18 +352,13 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public String toString() {
-      switch (conjuncts.size()) {
-        case 0:
-          return "tt";
-
-        case 1:
-          return conjuncts.get(0).toString();
-
-        default:
-          return conjuncts.stream()
-            .map(Object::toString)
-            .collect(Collectors.joining(" ∧ ", "(", ")"));
-      }
+      return switch (conjuncts.size()) {
+        case 0 -> "tt";
+        case 1 -> conjuncts.get(0).toString();
+        default -> conjuncts.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(" ∧ ", "(", ")"));
+      };
     }
 
     @Override
@@ -451,16 +441,11 @@ public abstract class PropositionalFormula<T> {
 
       var normalisedDisjuncts = flattenDisjunction(disjuncts);
 
-      switch (normalisedDisjuncts.size()) {
-        case 0:
-          return falseConstant();
-
-        case 1:
-          return normalisedDisjuncts.iterator().next();
-
-        default:
-          return new Disjunction<>(List.copyOf(normalisedDisjuncts));
-      }
+      return switch (normalisedDisjuncts.size()) {
+        case 0 -> falseConstant();
+        case 1 -> normalisedDisjuncts.iterator().next();
+        default -> new Disjunction<>(List.copyOf(normalisedDisjuncts));
+      };
     }
 
     @Override
@@ -538,18 +523,13 @@ public abstract class PropositionalFormula<T> {
 
     @Override
     public String toString() {
-      switch (disjuncts.size()) {
-        case 0:
-          return "ff";
-
-        case 1:
-          return disjuncts.get(0).toString();
-
-        default:
-          return disjuncts.stream()
-            .map(Object::toString)
-            .collect(Collectors.joining(" ∨ ", "(", ")"));
-      }
+      return switch (disjuncts.size()) {
+        case 0 -> "ff";
+        case 1 -> disjuncts.get(0).toString();
+        default -> disjuncts.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(" ∨ ", "(", ")"));
+      };
     }
 
     @Override
@@ -631,17 +611,10 @@ public abstract class PropositionalFormula<T> {
     @Override
     public Map<T, Polarity> polarity() {
       var polarity = operand.polarity();
-      polarity.replaceAll((x, y) -> {
-        switch (y) {
-          case POSITIVE:
-            return Polarity.NEGATIVE;
-
-          case NEGATIVE:
-            return Polarity.POSITIVE;
-
-          default:
-            return Polarity.MIXED;
-        }
+      polarity.replaceAll((x, y) -> switch (y) {
+        case POSITIVE -> Polarity.NEGATIVE;
+        case NEGATIVE -> Polarity.POSITIVE;
+        default -> Polarity.MIXED;
       });
 
       return polarity;

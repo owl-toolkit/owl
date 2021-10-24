@@ -73,24 +73,13 @@ public final class BooleanExpressions {
 
   // Copied from jhoafparser and fixed.
   private static boolean isConjunctive(BooleanExpression<AtomAcceptance> acc) {
-    switch (acc.getType()) {
-      case EXP_FALSE:
-        // fall-through
-      case EXP_TRUE:
-        // fall-through
-      case EXP_ATOM:
-        return true;
-
-      case EXP_AND:
-        return isConjunctive(acc.getLeft()) && isConjunctive(acc.getRight());
-
-      case EXP_OR:
-        return false;
-
-      default:
-        throw new UnsupportedOperationException(
-          "Unsupported operator in acceptance condition " + acc);
-    }
+    return switch (acc.getType()) {
+      case EXP_FALSE, EXP_TRUE, EXP_ATOM -> true;
+      case EXP_AND -> isConjunctive(acc.getLeft()) && isConjunctive(acc.getRight());
+      case EXP_OR -> false;
+      default -> throw new UnsupportedOperationException(
+        "Unsupported operator in acceptance condition " + acc);
+    };
   }
 
   private static List<BooleanExpression<AtomAcceptance>> toDnf(
@@ -105,7 +94,7 @@ public final class BooleanExpressions {
       List<BooleanExpression<AtomAcceptance>> right;
 
       switch (acc.getType()) {
-        case EXP_AND:
+        case EXP_AND -> {
           left = toDnf(acc.getLeft(), uniqueTable);
           right = toDnf(acc.getRight(), uniqueTable);
           for (BooleanExpression<AtomAcceptance> l : left) {
@@ -115,15 +104,16 @@ public final class BooleanExpressions {
             }
           }
           return dnf;
+        }
 
-        case EXP_OR:
+        case EXP_OR -> {
           dnf.addAll(toDnf(acc.getLeft(), uniqueTable));
           dnf.addAll(toDnf(acc.getRight(), uniqueTable));
           return dnf;
+        }
 
-        default:
-          throw new UnsupportedOperationException(
-            "Unsupported operator in acceptance condition: " + acc);
+        default -> throw new UnsupportedOperationException(
+          "Unsupported operator in acceptance condition: " + acc);
       }
     }
   }
