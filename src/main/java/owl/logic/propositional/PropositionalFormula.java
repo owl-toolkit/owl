@@ -21,7 +21,6 @@ package owl.logic.propositional;
 
 import com.google.common.collect.Comparators;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -69,7 +68,7 @@ public sealed interface PropositionalFormula<T> {
   }
 
   @SuppressWarnings("unchecked")
-  public static <V> PropositionalFormula<V> falseConstant() {
+  static <V> PropositionalFormula<V> falseConstant() {
     return (PropositionalFormula<V>) Disjunction.FALSE;
   }
 
@@ -220,9 +219,19 @@ public sealed interface PropositionalFormula<T> {
       assert conjuncts.stream().noneMatch(Conjunction.class::isInstance) : conjuncts;
     }
 
-    @SafeVarargs
-    public static <T> PropositionalFormula<T> of(PropositionalFormula<T>... operands) {
-      return of(Arrays.asList(operands));
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2)));
+    }
+
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2,
+      PropositionalFormula<T> operand3) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2, operand3)));
     }
 
     public static <T> PropositionalFormula<T>
@@ -375,9 +384,19 @@ public sealed interface PropositionalFormula<T> {
       return ofTrusted(disjuncts);
     }
 
-    @SafeVarargs
-    public static <T> PropositionalFormula<T> of(PropositionalFormula<T>... operands) {
-      return of(Arrays.asList(operands));
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2)));
+    }
+
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2,
+      PropositionalFormula<T> operand3) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2, operand3)));
     }
 
     public static <T> PropositionalFormula<T>

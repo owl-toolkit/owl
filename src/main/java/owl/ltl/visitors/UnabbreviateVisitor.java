@@ -34,10 +34,9 @@ public class UnabbreviateVisitor extends Converter {
 
   private final Set<Class<? extends Formula>> classes;
 
-  @SafeVarargs
-  public UnabbreviateVisitor(Class<? extends Formula>... classes) {
+  public UnabbreviateVisitor(Set<Class<? extends Formula>> classes) {
     super(SyntacticFragment.NNF);
-    this.classes = Set.of(classes);
+    this.classes = Set.copyOf(classes);
   }
 
   @Override

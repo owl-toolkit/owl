@@ -57,6 +57,8 @@ compileJava {
   options.compilerArgs << "-Xlint:deprecation"
   options.compilerArgs << "-Xlint:empty"
   options.compilerArgs << "-Xlint:overrides"
+  options.compilerArgs << "-Xlint:varargs"
+  options.compilerArgs << "-Werror"
 }
 
 jar {

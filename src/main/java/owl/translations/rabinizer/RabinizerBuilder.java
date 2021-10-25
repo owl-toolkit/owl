@@ -202,7 +202,7 @@ public final class RabinizerBuilder {
     Factories factories = FactorySupplier.defaultSupplier()
       .getFactories(formula.atomicPropositions());
     Formula phiNormalized = formula.formula().nnf().accept(
-      new UnabbreviateVisitor(WOperator.class, ROperator.class));
+      new UnabbreviateVisitor(Set.of(WOperator.class, ROperator.class)));
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}",

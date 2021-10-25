@@ -64,20 +64,18 @@ class SolverTest {
     assertFalse(formula1.evaluate(model1b.get()));
 
     var formula2 = Conjunction.of(
-      Negation.of(Variable.of(1)),
-      Disjunction.of(
-        Variable.of(1),
-        Variable.of(3),
-        Variable.of(4)
-      ),
-      Disjunction.of(
-        Negation.of(Variable.of(2)),
-        Negation.of(Variable.of(3))
-      ),
-      Negation.of(Variable.of(4)),
-      Conjunction.of(
-        Variable.of(2)
-      ));
+      List.of(
+        Negation.of(Variable.of(1)),
+        Disjunction.of(
+          Variable.of(1),
+          Variable.of(3),
+          Variable.of(4)
+        ),
+        Disjunction.of(
+          Negation.of(Variable.of(2)),
+          Negation.of(Variable.of(3))),
+        Negation.of(Variable.of(4)),
+        Variable.of(2)));
 
     var model2a = Solver.model(formula2, engine);
     assertTrue(model2a.isEmpty());
@@ -93,18 +91,17 @@ class SolverTest {
     names = {"JBDD"})
   void testMaximalModel(Solver.Engine engine) {
     var formula = Conjunction.of(
-      Variable.of(1),
-      Disjunction.of(
-        Negation.of(Variable.of(1)),
-        Variable.of(2),
-        Variable.of(3)
-      ),
-      Disjunction.of(
-        Negation.of(Variable.of(2)),
-        Negation.of(Variable.of(3))
-      ),
-      Variable.of(4),
-      Negation.of(Variable.of(5)));
+      List.of(
+        Variable.of(1),
+        Disjunction.of(
+          Negation.of(Variable.of(1)),
+          Variable.of(2),
+          Variable.of(3)),
+        Disjunction.of(
+          Negation.of(Variable.of(2)),
+          Negation.of(Variable.of(3))),
+        Variable.of(4),
+        Negation.of(Variable.of(5))));
 
     for (Set<Integer> upperBound : Sets.powerSet(Set.of(1, 2, 3, 4, 5, 6))) {
       List<Set<Integer>> actualMaximalModels = Solver.maximalModels(formula, upperBound, engine);
