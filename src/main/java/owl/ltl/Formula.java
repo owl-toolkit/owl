@@ -38,7 +38,7 @@ import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public abstract class Formula implements Comparable<Formula> {
+public abstract sealed class Formula implements Comparable<Formula> {
 
   private static final Comparator<Iterable<Formula>>
     LIST_COMPARATOR = Comparators.lexicographical(Formula::compareTo);
@@ -239,7 +239,9 @@ public abstract class Formula implements Comparable<Formula> {
 
   public abstract Formula unfold();
 
-  public abstract static class PropositionalOperator extends Formula {
+  public abstract static sealed class PropositionalOperator extends Formula
+    permits Biconditional, BooleanConstant, NaryPropositionalOperator, Literal, Negation {
+
     PropositionalOperator(Class<? extends PropositionalOperator> clazz, List<Formula> children) {
       super(clazz, children);
     }
@@ -255,7 +257,7 @@ public abstract class Formula implements Comparable<Formula> {
     }
   }
 
-  public abstract static class TemporalOperator extends Formula {
+  public abstract static sealed class TemporalOperator extends Formula {
     TemporalOperator(Class<? extends TemporalOperator> clazz, List<Formula> children) {
       super(clazz, children);
     }
@@ -292,7 +294,9 @@ public abstract class Formula implements Comparable<Formula> {
     }
   }
 
-  public abstract static class UnaryTemporalOperator extends TemporalOperator {
+  public abstract static sealed class UnaryTemporalOperator extends TemporalOperator
+    permits FOperator, GOperator, XOperator {
+
     UnaryTemporalOperator(Class<? extends UnaryTemporalOperator> clazz, Formula operand) {
       super(clazz, List.of(operand));
     }
@@ -308,7 +312,9 @@ public abstract class Formula implements Comparable<Formula> {
     }
   }
 
-  public abstract static class BinaryTemporalOperator extends TemporalOperator {
+  public abstract static sealed class BinaryTemporalOperator extends TemporalOperator
+    permits MOperator, ROperator, UOperator, WOperator {
+    
     BinaryTemporalOperator(Class<? extends BinaryTemporalOperator> clazz,
       Formula leftOperand, Formula rightOperand) {
       super(clazz, List.of(leftOperand, rightOperand));
@@ -340,7 +346,9 @@ public abstract class Formula implements Comparable<Formula> {
     }
   }
 
-  public abstract static class NaryPropositionalOperator extends PropositionalOperator {
+  public abstract static sealed class NaryPropositionalOperator extends PropositionalOperator
+    permits Conjunction, Disjunction {
+
     NaryPropositionalOperator(
       Class<? extends NaryPropositionalOperator> clazz, List<Formula> children) {
       super(clazz, children);
