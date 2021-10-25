@@ -33,7 +33,6 @@ import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
@@ -234,18 +233,13 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
     return GeneralizedRabinAcceptance.of(newPairs);
   }
 
-  public static final class RabinPair implements Comparable<RabinPair> {
-    @Nonnegative
-    final int finIndex;
+  // All indices in the interval ]finIndex, infIndex] are considered inf.
+  public record RabinPair(@Nonnegative int finIndex, @Nonnegative int infIndex)
+    implements Comparable<RabinPair> {
 
-    // All indices in the interval ]finIndex, infIndex] are considered inf.
-    @Nonnegative
-    final int infIndex;
-
-    RabinPair(@Nonnegative int finIndex, int infIndex) {
-      assert infIndex >= finIndex;
-      this.finIndex = finIndex;
-      this.infIndex = infIndex;
+    public RabinPair {
+      checkArgument(finIndex >= 0);
+      checkArgument(infIndex >= finIndex);
     }
 
     public static RabinPair of(@Nonnegative int finIndex) {
@@ -349,25 +343,6 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
       return Comparator.comparingInt((RabinPair x) -> x.finIndex)
         .thenComparingInt((RabinPair x) -> x.infIndex)
         .compare(this, o);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof RabinPair)) {
-        return false;
-      }
-
-      RabinPair rabinPair = (RabinPair) o;
-      return finIndex == rabinPair.finIndex && infIndex == rabinPair.infIndex;
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(finIndex, infIndex);
     }
   }
 

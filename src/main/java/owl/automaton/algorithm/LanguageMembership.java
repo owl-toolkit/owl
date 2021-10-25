@@ -63,7 +63,7 @@ public final class LanguageMembership {
         automaton.atomicPropositions(),
         automaton.factory(),
         automaton.initialStates().stream()
-          .map(x -> IndexedState.of(-word.prefix.size(), x))
+          .map(x -> IndexedState.of(-word.prefix().size(), x))
           .collect(Collectors.toUnmodifiableSet()),
         automaton.acceptance());
       this.automaton = automaton;
@@ -75,9 +75,9 @@ public final class LanguageMembership {
       ImmutableBitSet allowedValuation;
 
       if (state.index() < 0) {
-        allowedValuation = word.prefix.get(-state.index() - 1);
+        allowedValuation = word.prefix().get(-state.index() - 1);
       } else {
-        allowedValuation = word.period.get(state.index());
+        allowedValuation = word.period().get(state.index());
       }
 
       if (!allowedValuation.equals(ImmutableBitSet.copyOf(valuation))) {
@@ -86,8 +86,8 @@ public final class LanguageMembership {
 
       Set<Edge<S>> edges = automaton.edges(state.state(), valuation);
       int nextIndex;
-      if (state.index() + 1 >= word.period.size()) {
-        nextIndex = (state.index() + 1) % word.period.size();
+      if (state.index() + 1 >= word.period().size()) {
+        nextIndex = (state.index() + 1) % word.period().size();
       } else {
         nextIndex = state.index() + 1;
       }

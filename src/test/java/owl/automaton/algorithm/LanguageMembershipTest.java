@@ -22,13 +22,12 @@ package owl.automaton.algorithm;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.BitSet;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import owl.automaton.UltimatelyPeriodicWord;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
-import owl.collections.BitSet2;
+import owl.collections.ImmutableBitSet;
 import owl.ltl.parser.LtlParser;
 import owl.translations.LtlTranslationRepository;
 
@@ -40,10 +39,14 @@ class LanguageMembershipTest {
       LtlTranslationRepository.BranchingMode.DETERMINISTIC,
       RabinAcceptance.class).apply(LtlParser.parse("F G a | G F b | X X c"));
 
-    var wordA = new UltimatelyPeriodicWord(List.of(new BitSet()), List.of(BitSet2.of(0)));
-    var wordAandB = new UltimatelyPeriodicWord(List.of(), List.of(BitSet2.of(0), BitSet2.of(1)));
-    var wordC = new UltimatelyPeriodicWord(List.of(), List.of(BitSet2.of(2)));
-    var wordEmpty = new UltimatelyPeriodicWord(List.of(), List.of(new BitSet()));
+    var wordA = new UltimatelyPeriodicWord(
+      List.of(ImmutableBitSet.of()), List.of(ImmutableBitSet.of(0)));
+    var wordAandB = new UltimatelyPeriodicWord(
+      List.of(), List.of(ImmutableBitSet.of(0), ImmutableBitSet.of(1)));
+    var wordC = new UltimatelyPeriodicWord(
+      List.of(), List.of(ImmutableBitSet.of(2)));
+    var wordEmpty = new UltimatelyPeriodicWord(
+      List.of(), List.of(ImmutableBitSet.of()));
 
     assertTrue(LanguageMembership.contains(automaton, wordA));
     assertTrue(LanguageMembership.contains(automaton, wordAandB));
@@ -57,10 +60,14 @@ class LanguageMembershipTest {
       LtlTranslationRepository.BranchingMode.NON_DETERMINISTIC,
       GeneralizedBuchiAcceptance.class).apply(LtlParser.parse("F G a | G F b | X X c"));
 
-    var wordA = new UltimatelyPeriodicWord(List.of(new BitSet()), List.of(BitSet2.of(0)));
-    var wordAandB = new UltimatelyPeriodicWord(List.of(), List.of(BitSet2.of(0), BitSet2.of(1)));
-    var wordC = new UltimatelyPeriodicWord(List.of(), List.of(BitSet2.of(2)));
-    var wordEmpty = new UltimatelyPeriodicWord(List.of(), List.of(new BitSet()));
+    var wordA = new UltimatelyPeriodicWord(
+      List.of(ImmutableBitSet.of()), List.of(ImmutableBitSet.of(0)));
+    var wordAandB = new UltimatelyPeriodicWord(
+      List.of(), List.of(ImmutableBitSet.of(0), ImmutableBitSet.of(1)));
+    var wordC = new UltimatelyPeriodicWord(
+      List.of(), List.of(ImmutableBitSet.of(2)));
+    var wordEmpty = new UltimatelyPeriodicWord(
+      List.of(), List.of(ImmutableBitSet.of()));
 
     assertTrue(LanguageMembership.contains(automaton, wordA));
     assertTrue(LanguageMembership.contains(automaton, wordAandB));

@@ -22,38 +22,13 @@ package owl.automaton;
 import static java.util.stream.Collectors.toUnmodifiableList;
 
 import com.google.common.base.Preconditions;
-import java.util.BitSet;
 import java.util.List;
-import java.util.Objects;
 import owl.collections.ImmutableBitSet;
 
-public final class UltimatelyPeriodicWord {
-
-  public final List<ImmutableBitSet> prefix;
-  public final List<ImmutableBitSet> period;
-
-  public UltimatelyPeriodicWord(List<BitSet> prefix, List<BitSet> period) {
-    this.prefix = prefix.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
-    this.period = period.stream().map(ImmutableBitSet::copyOf).collect(toUnmodifiableList());
-    Preconditions.checkArgument(!this.period.isEmpty());
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (!(o instanceof UltimatelyPeriodicWord)) {
-      return false;
-    }
-
-    UltimatelyPeriodicWord that = (UltimatelyPeriodicWord) o;
-    return prefix.equals(that.prefix) && period.equals(that.period);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(prefix, period);
+public record UltimatelyPeriodicWord(List<ImmutableBitSet> prefix, List<ImmutableBitSet> period) {
+  public UltimatelyPeriodicWord {
+    prefix = List.copyOf(prefix);
+    period = List.copyOf(period);
+    Preconditions.checkArgument(!period.isEmpty());
   }
 }
