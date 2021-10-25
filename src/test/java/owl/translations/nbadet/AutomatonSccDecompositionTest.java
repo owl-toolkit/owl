@@ -40,52 +40,54 @@ import owl.collections.Pair;
 public class AutomatonSccDecompositionTest {
 
   //hand-made automaton that should cover essentially all SCC classification cases
-  public static final String HOA_NBA_SCCS = "HOA: v1\n"
-    + "name: \"SCC Test NBA\"\n"
-    + "States: 13\n"
-    + "Start: 0\n"
-    + " AP: 1 \"b\"\n"
-    + "acc-name: Buchi\n"
-    + "Acceptance: 1 Inf(0)\n"
-    + "properties: trans-labels explicit-labels state-acc\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[!0] 0\n"
-    + "[!0] 1\n"
-    + "[!0] 3\n"
-    + "[!0] 10\n"
-    + "State: 1\n"
-    + "[!0] 1\n"
-    + "[!0] 2\n"
-    + "State: 2\n"
-    + "[!0] 1\n"
-    + "[!0] 9\n"
-    + "State: 3 {0}\n"
-    + "[!0] 9\n"
-    + "[0] 4\n"
-    + "[0] 7\n"
-    + "State: 4 {0}\n"
-    + "[!0] 5\n"
-    + "State: 5\n"
-    + "[0] 4\n"
-    + "[!0] 6\n"
-    + "[!0] 7\n"
-    + "State: 6\n"
-    + "State: 7\n"
-    + "[!0] 7\n"
-    + "[!0] 8\n"
-    + "State: 8 {0}\n"
-    + "[0] 7\n"
-    + "[!0] 9\n"
-    + "State: 9 {0}\n"
-    + "[t] 9\n"
-    + "State: 10 {0}\n"
-    + "[t] 11\n"
-    + "State: 11\n"
-    + "[!0] 10\n"
-    + "[0] 11\n"
-    + "State: 12\n"
-    + "--END--\n";
+  public static final String HOA_NBA_SCCS = """
+    HOA: v1
+    name: "SCC Test NBA"
+    States: 13
+    Start: 0
+     AP: 1 "b"
+    acc-name: Buchi
+    Acceptance: 1 Inf(0)
+    properties: trans-labels explicit-labels state-acc
+    --BODY--
+    State: 0
+    [!0] 0
+    [!0] 1
+    [!0] 3
+    [!0] 10
+    State: 1
+    [!0] 1
+    [!0] 2
+    State: 2
+    [!0] 1
+    [!0] 9
+    State: 3 {0}
+    [!0] 9
+    [0] 4
+    [0] 7
+    State: 4 {0}
+    [!0] 5
+    State: 5
+    [0] 4
+    [!0] 6
+    [!0] 7
+    State: 6
+    State: 7
+    [!0] 7
+    [!0] 8
+    State: 8 {0}
+    [0] 7
+    [!0] 9
+    State: 9 {0}
+    [t] 9
+    State: 10 {0}
+    [t] 11
+    State: 11
+    [!0] 10
+    [0] 11
+    State: 12
+    --END--
+    """;
 
   @Test
   void testNbaSccs() throws ParseException {

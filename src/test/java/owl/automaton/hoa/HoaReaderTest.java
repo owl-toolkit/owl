@@ -51,150 +51,166 @@ class HoaReaderTest {
   private static final Supplier<BddSetFactory> FACTORY_SUPPLIER
     = FactorySupplier.defaultSupplier()::getBddSetFactory;
 
-  private static final String HOA_BUCHI = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 1\n"
-    + "AP: 1 \"p0\"\n"
-    + "acc-name: Buchi\n"
-    + "Acceptance: 1 Inf(0)\n"
-    + "--BODY--\n"
-    + "State: 0 {0}\n"
-    + "[t] 0\n"
-    + "State: 1\n"
-    + "[0] 0\n"
-    + "--END--\n";
+  private static final String HOA_BUCHI = """
+    HOA: v1
+    States: 2
+    Start: 1
+    AP: 1 "p0"
+    acc-name: Buchi
+    Acceptance: 1 Inf(0)
+    --BODY--
+    State: 0 {0}
+    [t] 0
+    State: 1
+    [0] 0
+    --END--
+    """;
 
-  private static final String HOA_GENERALIZED_BUCHI = "HOA: v1\n"
-    + "name: \"G(p0 M Fp1)\"\n"
-    + "States: 1\n"
-    + "Start: 0\n"
-    + "AP: 2 \"p1\" \"p0\"\n"
-    + "acc-name: generalized-Buchi 2\n"
-    + "Acceptance: 2 Inf(0)&Inf(1)\n"
-    + "properties: trans-labels explicit-labels trans-acc complete\n"
-    + "properties: deterministic stutter-invariant\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[!0&1] 0 {1}\n"
-    + "[!0&!1] 0\n"
-    + "[0&1] 0 {0 1}\n"
-    + "[0&!1] 0 {0}\n"
-    + "--END--";
+  private static final String HOA_GENERALIZED_BUCHI = """
+    HOA: v1
+    name: "G(p0 M Fp1)"
+    States: 1
+    Start: 0
+    AP: 2 "p1" "p0"
+    acc-name: generalized-Buchi 2
+    Acceptance: 2 Inf(0)&Inf(1)
+    properties: trans-labels explicit-labels trans-acc complete
+    properties: deterministic stutter-invariant
+    --BODY--
+    State: 0
+    [!0&1] 0 {1}
+    [!0&!1] 0
+    [0&1] 0 {0 1}
+    [0&!1] 0 {0}
+    --END--""";
 
-  private static final String HOA_GENERALIZED_RABIN = "HOA: v1\n"
-    + "name: \"G(Fa && XFb)\"\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "acc-name:\n"
-    + "generalized-Rabin 2 1 2\n"
-    + "Acceptance:\n"
-    + "5 (Fin(0)&Inf(1))\n"
-    + "| (Fin(2)&Inf(3)&Inf(4))\n"
-    + "AP: 2 \"a\" \"b\"\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[ 0 & !1] 0 {3}\n"
-    + "[ 0 & 1] 0 {1 3 4}\n"
-    + "[!0 & !1] 1 {0}\n"
-    + "[!0 & 1] 1 {0 4}\n"
-    + "State: 1\n"
-    + "[ 0 & !1] 0 {3}\n"
-    + "[ 0 & 1] 0 {1 3 4}\n"
-    + "[!0 & !1] 1 {0}\n"
-    + "[!0 & 1] 1 {0 4}\n"
-    + "--END--";
+  private static final String HOA_GENERALIZED_RABIN = """
+    HOA: v1
+    name: "G(Fa && XFb)"
+    States: 2
+    Start: 0
+    acc-name:
+    generalized-Rabin 2 1 2
+    Acceptance:
+    5 (Fin(0)&Inf(1))
+    | (Fin(2)&Inf(3)&Inf(4))
+    AP: 2 "a" "b"
+    --BODY--
+    State: 0
+    [ 0 & !1] 0 {3}
+    [ 0 & 1] 0 {1 3 4}
+    [!0 & !1] 1 {0}
+    [!0 & 1] 1 {0 4}
+    State: 1
+    [ 0 & !1] 0 {3}
+    [ 0 & 1] 0 {1 3 4}
+    [!0 & !1] 1 {0}
+    [!0 & 1] 1 {0 4}
+    --END--""";
 
-  private static final String HOA_GENERIC = "HOA: v1 \n"
-    + "States: 3 \n"
-    + "Start: 0 \n"
-    + "acc-name: xyz 1 \n"
-    + "Acceptance: 2 (Fin(0) & Inf(1)) \n"
-    + "AP: 2 \"a\" \"b\" \n" + "--BODY-- \n"
-    + "State: 0 \"a U b\" { 0 } \n"
-    + "[!0 & !1]  2  /* !a  & !b */ \n"
-    + "[ 0 & !1]  0  /*  a  & !b */ \n"
-    + "[!0 &  1]  1  /* !a  &  b */ \n"
-    + "[ 0 &  1]  1  /*  a  &  b */ \n"
-    + "State: 1 { 1 } \n"
-    + "[t] 1       /* four transitions on one line */ \n"
-    + "State: 2 \"sink state\" { 0 } \n"
-    + "[t] 2 \n"
-    + "--END--";
+  private static final String HOA_GENERIC = """
+    HOA: v1\s
+    States: 3\s
+    Start: 0\s
+    acc-name: xyz 1\s
+    Acceptance: 2 (Fin(0) & Inf(1))\s
+    AP: 2 "a" "b"\s
+    --BODY--\s
+    State: 0 "a U b" { 0 }\s
+    [!0 & !1]  2  /* !a  & !b */\s
+    [ 0 & !1]  0  /*  a  & !b */\s
+    [!0 &  1]  1  /* !a  &  b */\s
+    [ 0 &  1]  1  /*  a  &  b */\s
+    State: 1 { 1 }\s
+    [t] 1       /* four transitions on one line */\s
+    State: 2 "sink state" { 0 }\s
+    [t] 2\s
+    --END--""";
 
-  private static final String HOA_INVALID = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "acc-name: parity min odd 3\n"
-    + "Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[!0 & !1] 1\n";
+  private static final String HOA_INVALID = """
+    HOA: v1
+    States: 2
+    Start: 0
+    acc-name: parity min odd 3
+    Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))
+    --BODY--
+    State: 0
+    [!0 & !1] 1
+    """;
 
-  private static final String HOA_MISSING_ACC_NAME = "HOA: v1\n"
-    + "States: 0\n"
-    + "Acceptance: f\n"
-    + "--BODY--\n"
-    + "--END--";
+  private static final String HOA_MISSING_ACC_NAME = """
+    HOA: v1
+    States: 0
+    Acceptance: f
+    --BODY--
+    --END--""";
 
-  private static final String HOA_PARITY = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "AP: 2 \"p0\" \"p1\"\n"
-    + "acc-name: parity min odd 3\n"
-    + "Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[!0 & !1] 1 {2}\n"
-    + "State: 1\n"
-    + "[0 & !1] 0 {1}\n"
-    + "[!0 & 1] 1\n"
-    + "--END--\n";
+  private static final String HOA_PARITY = """
+    HOA: v1
+    States: 2
+    Start: 0
+    AP: 2 "p0" "p1"
+    acc-name: parity min odd 3
+    Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))
+    --BODY--
+    State: 0
+    [!0 & !1] 1 {2}
+    State: 1
+    [0 & !1] 0 {1}
+    [!0 & 1] 1
+    --END--
+    """;
 
-  private static final String HOA_PARITY_WITH_MULTI_COLOUR = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "AP: 2 \"p0\" \"p1\"\n"
-    + "acc-name: parity min odd 3\n"
-    + "Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[!0 & !1] 1 {2}\n"
-    + "State: 1\n"
-    + "[0 & !1] 0 {0 1}\n"
-    + "[!0 & 1] 1\n"
-    + "--END--\n";
+  private static final String HOA_PARITY_WITH_MULTI_COLOUR = """
+    HOA: v1
+    States: 2
+    Start: 0
+    AP: 2 "p0" "p1"
+    acc-name: parity min odd 3
+    Acceptance: 3 Fin(0) & (Inf(1) | Fin(2))
+    --BODY--
+    State: 0
+    [!0 & !1] 1 {2}
+    State: 1
+    [0 & !1] 0 {0 1}
+    [!0 & 1] 1
+    --END--
+    """;
 
-  private static final String HOA_RABIN = "HOA: v1 \n"
-    + "States: 3 \n"
-    + "Start: 0 \n"
-    + "acc-name: Rabin 1 \n"
-    + "Acceptance: 2 (Fin(0) & Inf(1)) \n"
-    + "AP: 2 \"a\" \"b\" \n"
-    + "--BODY-- \n"
-    + "State: 0 \"a U b\" { 0 } \n"
-    + "[!0 & !1]  2  /* !a  & !b */ \n"
-    + "[ 0 & !1]  0  /*  a  & !b */ \n"
-    + "[!0 &  1]  1  /* !a  &  b */ \n"
-    + "[ 0 &  1]  1  /*  a  &  b */ \n"
-    + "State: 1 { 1 } \n"
-    + " [t]       1 \n"
-    + "State: 2 \"sink state\" { 0 } \n"
-    + " [t] 2 [t] 2 [t] 2 [t] 2 \n"
-    + "--END--";
+  private static final String HOA_RABIN = """
+    HOA: v1\s
+    States: 3\s
+    Start: 0\s
+    acc-name: Rabin 1\s
+    Acceptance: 2 (Fin(0) & Inf(1))\s
+    AP: 2 "a" "b"\s
+    --BODY--\s
+    State: 0 "a U b" { 0 }\s
+    [!0 & !1]  2  /* !a  & !b */\s
+    [ 0 & !1]  0  /*  a  & !b */\s
+    [!0 &  1]  1  /* !a  &  b */\s
+    [ 0 &  1]  1  /*  a  &  b */\s
+    State: 1 { 1 }\s
+     [t]       1\s
+    State: 2 "sink state" { 0 }\s
+     [t] 2 [t] 2 [t] 2 [t] 2\s
+    --END--""";
 
-  private static final String HOA_SIMPLE = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "AP: 1 \"p0\"\n"
-    + "acc-name: all\n"
-    + "Acceptance: 0 t\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "[!0] 1\n"
-    + "[0] 0\n"
-    + "State: 1\n"
-    + "[!0] 0\n"
-    + "--END--\n";
+  private static final String HOA_SIMPLE = """
+    HOA: v1
+    States: 2
+    Start: 0
+    AP: 1 "p0"
+    acc-name: all
+    Acceptance: 0 t
+    --BODY--
+    State: 0
+    [!0] 1
+    [0] 0
+    State: 1
+    [!0] 0
+    --END--
+    """;
 
   @Test
   void readAutomatonBuchi() throws ParseException {
