@@ -30,7 +30,8 @@ import java.util.stream.IntStream;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
-public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
+public sealed class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance
+  permits AllAcceptance, BuchiAcceptance {
 
   GeneralizedBuchiAcceptance(int size) {
     super(size);

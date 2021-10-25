@@ -30,7 +30,8 @@ import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Negation;
 
-public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
+public sealed class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance
+  permits CoBuchiAcceptance {
 
   GeneralizedCoBuchiAcceptance(int size) {
     super(size);

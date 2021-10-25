@@ -54,7 +54,8 @@ import owl.logic.propositional.PropositionalFormula;
  * <p>According to the HOA specifications, the indices are monotonically increasing and used for
  * exactly one Fin/Inf atom.</p>
  */
-public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
+public sealed class GeneralizedRabinAcceptance extends EmersonLeiAcceptance
+  permits RabinAcceptance {
 
   protected final List<RabinPair> pairs;
 
