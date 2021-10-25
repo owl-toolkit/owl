@@ -250,6 +250,10 @@ distributions {
             from "LICENSE"
             from compileMarkdown
 
+            into("bin") {
+                from("scripts/rabinizer.sh")
+            }
+
             into("jar") {
                 from jar
                 from javadocJar
@@ -277,6 +281,10 @@ distributions {
 
             into("bin") {
                 from "$buildDir/native-executable" include "owl"
+            }
+
+            into("bin") {
+                from("scripts/rabinizer.sh")
             }
 
             into("lib") {
