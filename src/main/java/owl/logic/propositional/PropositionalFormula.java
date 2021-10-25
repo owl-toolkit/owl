@@ -111,6 +111,7 @@ public sealed interface PropositionalFormula<T> {
     POSITIVE, NEGATIVE, MIXED
   }
 
+  @SuppressWarnings("unchecked")
   default <S> PropositionalFormula<S> deduplicate(PropositionalFormula<S> newObject) {
     if (this.equals(newObject)) {
       return (PropositionalFormula<S>) this;
