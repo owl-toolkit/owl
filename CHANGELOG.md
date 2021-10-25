@@ -1,21 +1,28 @@
-# 2021.?? (unreleased)
+# 21.0
 
-* Restructure modules into subcommands for the commandline interface and
-  add migrate to PicoCli.
+Major Changes:
 
-Modules:
+* New and improved command-line interface that is based on self-contained
+  subcommands. Further, each subcommand explicitly lists relevant publications
+  that can be accessed via the 'bibliography' subcommand. Thanks to Alexandre
+  Duret-Lutz, Klara Meyer, Anton Pirogov and Tobias Meggendorfer for testing
+  this new interface.
 
-* Add the LICS'20 DRA construction that is based on the normalisation
-  of LTL.
+* Owl (as a CLI-tool) is now precompiled into native binaries (for Linux and
+  macOS). Hence it is not required to install a matching JVM. Further, the
+  start-up time is now considerably reduced which lead to the removal of the
+  server mode. Owl can be still run on a JVM, but this is discouraged.
 
-* Add a translation of the Emerson-Lei acceptance condition to the
-  parity acceptance condition based on Zielonka split-trees
-  (Alternating Cycle Decomposition)
+* Owl includes an implementation of the Alternating Cycle Decomposition for the
+  translation into parity automata. See 'owl aut2parity --help' for more
+  information. This supersedes the existing IAR-implementation which is
+  scheduled to be removed in the next release.
 
-* Add a translation from LTL-to-DELW based on the LICS'20 normalisation
-  procedure.
-
-* Add a customised LTL-to-DPA translation based Zielonka split-trees.
+* Add the LTL-to-DRW translation of [SE20] and a new LTL-to-DELW translation
+  based also based on the [SE20] normalisation procedure. Further, a customised
+  LTL-to-DPA translation based on Zielonka split-trees. These constructions will
+  be described in forthcoming publication. To lookup [SE20] use
+  'owl bibliography SE20'.
 
 API:
 
@@ -28,7 +35,7 @@ API:
   and remove abstract super class. All types of OmegaAcceptance now
   extend EmersonLeiAcceptance.
 
-* Disentangle `Colours`-related API from `Edge` datatype.
+* Disentangle `BitSet`-API from `Edge` datatype.
 
 Bugfixes:
 
@@ -48,6 +55,10 @@ Bugfixes:
 * Do not throw an exception if an empty automaton is passed to
   BooleanOperations#deterministicComplement. Thanks to Frederik Schmitt
   for reporting the issue.
+
+* Several performance and correctness improvements to the [SE20] normalisation
+  procedure. Thanks to Rubén Rafael Rubio Cuéllar for testing the implementation
+  and reporting issues.
 
 # 2020.06
 
