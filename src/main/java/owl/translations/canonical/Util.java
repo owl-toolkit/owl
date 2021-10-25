@@ -94,9 +94,7 @@ final class Util {
   }
 
   private static Formula temporalStep(Formula formula, int atom, boolean valuation) {
-    if (formula instanceof Literal) {
-      Literal literal = (Literal) formula;
-
+    if (formula instanceof Literal literal) {
       if (literal.getAtom() == atom) {
         return BooleanConstant.of(valuation ^ literal.isNegated());
       }
@@ -104,8 +102,8 @@ final class Util {
       return literal;
     }
 
-    if (formula instanceof Conjunction) {
-      return Conjunction.of(((Conjunction) formula).map(x -> temporalStep(x, atom, valuation)));
+    if (formula instanceof Conjunction conjunction) {
+      return Conjunction.of(conjunction.map(x -> temporalStep(x, atom, valuation)));
     }
 
     if (formula instanceof Disjunction) {

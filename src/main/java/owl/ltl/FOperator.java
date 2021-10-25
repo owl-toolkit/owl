@@ -48,21 +48,19 @@ public final class FOperator extends Formula.UnaryTemporalOperator {
       return operand;
     }
 
-    if (operand instanceof Disjunction) {
-      return Disjunction.of(((Disjunction) operand).map(FOperator::of));
+    if (operand instanceof Disjunction disjunction) {
+      return Disjunction.of(disjunction.map(FOperator::of));
     }
 
-    if (operand instanceof MOperator) {
-      MOperator mOperator = (MOperator) operand;
+    if (operand instanceof MOperator mOperator) {
       return FOperator.of(Conjunction.of(mOperator.leftOperand(), mOperator.rightOperand()));
     }
 
-    if (operand instanceof UOperator) {
-      return of(((UOperator) operand).rightOperand());
+    if (operand instanceof UOperator uOperator) {
+      return of(uOperator.rightOperand());
     }
 
-    if (operand instanceof WOperator) {
-      WOperator wOperator = (WOperator) operand;
+    if (operand instanceof WOperator wOperator) {
       return Disjunction
         .of(of(GOperator.of(wOperator.leftOperand())), of(wOperator.rightOperand()));
     }

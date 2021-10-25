@@ -303,8 +303,7 @@ public class Bibliography {
         if (Modifier.isStatic(field.getModifiers())) {
           Object object = field.get(null);
 
-          if (object instanceof Publication) {
-            var publication = (Publication) object;
+          if (object instanceof Publication publication) {
             var predefinedCiteKey = Bibliography.class.getField(field.getName() + "_CITEKEY");
 
             index.merge(publication.citeKey(), List.of(publication), (x, y) -> {

@@ -129,11 +129,10 @@ public final class OwlCommand extends AbstractOwlCommand {
         return handleExecutionException(ex.getCause(), commandLine, parseResult);
       }
 
-      if (ex instanceof NoSuchFileException) {
-        var exception = (NoSuchFileException) ex;
+      if (ex instanceof NoSuchFileException noSuchFileException) {
 
-        var file = exception.getFile();
-        var reason = exception.getReason();
+        var file = noSuchFileException.getFile();
+        var reason = noSuchFileException.getReason();
 
         if (reason == null) {
           System.err.printf("Could not access file \"%s\".", file);

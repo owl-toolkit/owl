@@ -264,11 +264,10 @@ public final class Views {
         initialStates(automaton, settings),
         automaton.acceptance());
 
-      if (automaton instanceof AutomatonView) {
-        var castedAutomaton = (AutomatonView<S, A>) automaton;
-        this.backingAutomaton = castedAutomaton.backingAutomaton;
-        this.stateFilter = and(castedAutomaton.stateFilter, settings.stateFilter());
-        this.edgeFilter = and(castedAutomaton.edgeFilter, settings.edgeFilter());
+      if (automaton instanceof AutomatonView<S, A> view) {
+        this.backingAutomaton = view.backingAutomaton;
+        this.stateFilter = and(view.stateFilter, settings.stateFilter());
+        this.edgeFilter = and(view.edgeFilter, settings.edgeFilter());
       } else {
         this.backingAutomaton = automaton;
         this.stateFilter = settings.stateFilter();

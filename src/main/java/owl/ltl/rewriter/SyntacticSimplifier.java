@@ -158,16 +158,14 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
       return operand;
     }
 
-    if (operand instanceof ROperator) {
-      ROperator rOperator = (ROperator) operand;
+    if (operand instanceof ROperator rOperator) {
 
       return Disjunction.of(FOperator.of(Conjunction.of(rOperator.leftOperand(),
         rOperator.rightOperand())),
         FOperator.of(GOperator.of(rOperator.rightOperand())));
     }
 
-    if (operand instanceof Conjunction) {
-      Conjunction conjunction = (Conjunction) operand;
+    if (operand instanceof Conjunction conjunction) {
 
       Set<Formula> suspendable = new HashSet<>();
       Set<Formula> others = new HashSet<>();
@@ -224,16 +222,14 @@ public final class SyntacticSimplifier implements Visitor<Formula>, UnaryOperato
       return operand;
     }
 
-    if (operand instanceof UOperator) {
-      UOperator uOperator = (UOperator) operand;
+    if (operand instanceof UOperator uOperator) {
 
       return Conjunction.of(GOperator.of(Disjunction.of(uOperator.leftOperand(),
         uOperator.rightOperand())),
         GOperator.of(FOperator.of(uOperator.rightOperand())));
     }
 
-    if (operand instanceof Disjunction) {
-      Disjunction disjunction = (Disjunction) operand;
+    if (operand instanceof Disjunction disjunction) {
 
       Set<Formula> suspendable = new HashSet<>();
       Set<Formula> others = new HashSet<>();

@@ -152,11 +152,10 @@ public abstract sealed class Formula implements Comparable<Formula> {
       return true;
     }
 
-    if (!(o instanceof Formula)) {
+    if (!(o instanceof Formula that)) {
       return false;
     }
 
-    Formula that = (Formula) o;
     return this.hashCode == that.hashCode
       && this.height == that.height
       && this.getClass().equals(that.getClass())
@@ -314,7 +313,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
 
   public abstract static sealed class BinaryTemporalOperator extends TemporalOperator
     permits MOperator, ROperator, UOperator, WOperator {
-    
+
     BinaryTemporalOperator(Class<? extends BinaryTemporalOperator> clazz,
       Formula leftOperand, Formula rightOperand) {
       super(clazz, List.of(leftOperand, rightOperand));

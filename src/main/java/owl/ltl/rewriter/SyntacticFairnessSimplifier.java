@@ -52,8 +52,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
   @Nullable
   static Formula getAlmostAllOperand(Formula formula) {
-    if (formula instanceof FOperator) {
-      FOperator fOperator = (FOperator) formula;
+    if (formula instanceof FOperator fOperator) {
 
       if (fOperator.operand() instanceof GOperator) {
         return ((GOperator) fOperator.operand()).operand();
@@ -65,8 +64,7 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
 
   @Nullable
   static Formula getInfinitelyOftenOperand(Formula formula) {
-    if (formula instanceof GOperator) {
-      GOperator gOperator = (GOperator) formula;
+    if (formula instanceof GOperator gOperator) {
 
       if (gOperator.operand() instanceof FOperator) {
         return ((FOperator) gOperator.operand()).operand();
@@ -130,16 +128,14 @@ class SyntacticFairnessSimplifier implements UnaryOperator<Formula> {
   }
 
   private static Formula shortCircuit(Formula formula) {
-    if (formula instanceof Conjunction) {
-      Conjunction conjunction = (Conjunction) formula;
+    if (formula instanceof Conjunction conjunction) {
 
       if (conjunction.operands.stream().anyMatch(x -> conjunction.operands.contains(x.not()))) {
         return BooleanConstant.FALSE;
       }
     }
 
-    if (formula instanceof Disjunction) {
-      Disjunction disjunction = (Disjunction) formula;
+    if (formula instanceof Disjunction disjunction) {
 
       if (disjunction.operands.stream().anyMatch(x -> disjunction.operands.contains(x.not()))) {
         return BooleanConstant.TRUE;

@@ -778,10 +778,9 @@ public final class RabinizerBuilder {
 
         EquivalenceClassFactory factory = equivalenceClass.factory();
 
-        if (unwrapped instanceof GOperator) {
-          gOperators.add((GOperator) unwrapped);
-        } else if (unwrapped instanceof Formula.BinaryTemporalOperator) {
-          var binaryOperator = (Formula.BinaryTemporalOperator) unwrapped;
+        if (unwrapped instanceof GOperator gOperator) {
+          gOperators.add(gOperator);
+        } else if (unwrapped instanceof Formula.BinaryTemporalOperator binaryOperator) {
           findSupportingSubFormulas(factory.of(binaryOperator.leftOperand()), gOperators);
           findSupportingSubFormulas(factory.of(binaryOperator.rightOperand()), gOperators);
         } else {

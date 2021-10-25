@@ -92,14 +92,14 @@ public final class BooleanOperations {
     } else if (acceptance instanceof CoBuchiAcceptance) {
       checkArgument(isInstanceOf(BuchiAcceptance.class, expectedAcceptance));
       complementAcceptance = BuchiAcceptance.INSTANCE;
-    } else if (acceptance instanceof GeneralizedBuchiAcceptance) {
+    } else if (acceptance instanceof GeneralizedBuchiAcceptance generalizedBuchiAcceptance) {
       checkArgument(isInstanceOf(GeneralizedCoBuchiAcceptance.class, expectedAcceptance));
-      var castedAcceptance = (GeneralizedBuchiAcceptance) acceptance;
-      complementAcceptance = GeneralizedCoBuchiAcceptance.of(castedAcceptance.acceptanceSets());
-    } else if (acceptance instanceof GeneralizedCoBuchiAcceptance) {
+      complementAcceptance
+        = GeneralizedCoBuchiAcceptance.of(generalizedBuchiAcceptance.acceptanceSets());
+    } else if (acceptance instanceof GeneralizedCoBuchiAcceptance generalizedCoBuchiAcceptance) {
       checkArgument(isInstanceOf(GeneralizedBuchiAcceptance.class, expectedAcceptance));
-      var castedAcceptance = (GeneralizedCoBuchiAcceptance) acceptance;
-      complementAcceptance = GeneralizedBuchiAcceptance.of(castedAcceptance.acceptanceSets());
+      complementAcceptance
+        = GeneralizedBuchiAcceptance.of(generalizedCoBuchiAcceptance.acceptanceSets());
     } else if (acceptance instanceof ParityAcceptance) {
       checkArgument(isInstanceOf(ParityAcceptance.class, expectedAcceptance));
       complementAcceptance = ((ParityAcceptance) completeAutomaton.acceptance()).complement();

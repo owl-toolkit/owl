@@ -362,11 +362,10 @@ public abstract class MtBdd<E> {
         return true;
       }
 
-      if (!(o instanceof Node)) {
+      if (!(o instanceof Node<?> that)) {
         return false;
       }
 
-      Node<?> that = (Node<?>) o;
       return hashCode == that.hashCode
         && variable == that.variable
         && trueChild.equals(that.trueChild)

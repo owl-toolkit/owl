@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ConjunctiveNormalForm<V> {
+public final class ConjunctiveNormalForm<V> {
 
   /**
    * Clause-representation of the formula. Variables are from the range [1,n], where n is bounded by
@@ -116,8 +116,7 @@ public class ConjunctiveNormalForm<V> {
     }
 
     // T_1_def
-    if (formula instanceof Conjunction) {
-      var conjunction = (Conjunction<V>) formula;
+    if (formula instanceof Conjunction<V> conjunction) {
       int conjunctionVariable = variableMapping.lookup(conjunction);
 
       for (var conjunct : conjunction.conjuncts()) {

@@ -44,26 +44,24 @@ public final class GOperator extends Formula.UnaryTemporalOperator {
   public static Formula of(Formula operand) {
     if (operand instanceof BooleanConstant
       || operand instanceof GOperator
-      || (operand instanceof FOperator && ((FOperator) operand).operand() instanceof GOperator)) {
+      || (operand instanceof FOperator fOperator && fOperator.operand() instanceof GOperator)) {
       return operand;
     }
 
-    if (operand instanceof Conjunction) {
-      return Conjunction.of(((Conjunction) operand).map(GOperator::of));
+    if (operand instanceof Conjunction conjunction) {
+      return Conjunction.of(conjunction.map(GOperator::of));
     }
 
-    if (operand instanceof MOperator) {
-      MOperator mOperator = (MOperator) operand;
+    if (operand instanceof MOperator mOperator) {
       return Conjunction
         .of(of(mOperator.rightOperand()), of(FOperator.of(mOperator.leftOperand())));
     }
 
-    if (operand instanceof ROperator) {
-      return of(((ROperator) operand).rightOperand());
+    if (operand instanceof ROperator rOperator) {
+      return of(rOperator.rightOperand());
     }
 
-    if (operand instanceof WOperator) {
-      WOperator wOperator = (WOperator) operand;
+    if (operand instanceof WOperator wOperator) {
       return of(Disjunction.of(wOperator.leftOperand(), wOperator.rightOperand()));
     }
 

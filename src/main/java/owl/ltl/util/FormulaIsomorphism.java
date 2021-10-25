@@ -131,11 +131,9 @@ public final class FormulaIsomorphism {
 
     @Override
     public Boolean visit(Literal literal, Formula formula) {
-      if (!(formula instanceof Literal)) {
+      if (!(formula instanceof Literal otherLiteral)) {
         return Boolean.FALSE;
       }
-
-      Literal otherLiteral = (Literal) formula;
 
       if (literal.isNegated() ^ otherLiteral.isNegated()) {
         return Boolean.FALSE;
