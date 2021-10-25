@@ -30,6 +30,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
@@ -76,8 +77,8 @@ class ExtendedRewriter {
     private final AdviceFunction prerunAdviceFunction;
 
     private AdviceFunction(Mode mode,
-      Iterable<? extends Formula.TemporalOperator> x,
-      Iterable<? extends Formula.TemporalOperator> y,
+      Iterable<? extends Fixpoint.LeastFixpoint> x,
+      Iterable<? extends Fixpoint.GreatestFixpoint> y,
       Consumer<? super Formula.TemporalOperator> consumer,
       boolean insideAlmostAll) {
       this.insideAlmostAll = insideAlmostAll;
@@ -456,7 +457,7 @@ class ExtendedRewriter {
       super(Mode.WEAK, fixpoints.leastFixpoints(), fixpoints.greatestFixpoints(), consumer, true);
     }
 
-    ToSafety(Iterable<? extends Formula.TemporalOperator> x,
+    ToSafety(Iterable<? extends Fixpoint.LeastFixpoint> x,
       Consumer<? super Formula.TemporalOperator> consumer) {
       super(Mode.WEAK, x, Set.of(), consumer, false);
     }

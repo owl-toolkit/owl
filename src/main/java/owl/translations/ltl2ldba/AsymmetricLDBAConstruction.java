@@ -48,6 +48,7 @@ import owl.bdd.MtBdd;
 import owl.collections.Collections3;
 import owl.ltl.BooleanConstant;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
@@ -55,7 +56,6 @@ import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 import owl.translations.mastertheorem.Fixpoints;
-import owl.translations.mastertheorem.Predicates;
 import owl.translations.mastertheorem.Rewriter;
 import owl.translations.mastertheorem.Selector;
 
@@ -152,7 +152,7 @@ public final class AsymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptan
 
       List<AsymmetricProductState> productStates = new ArrayList<>();
       Set<Formula.TemporalOperator> allModalOperators = x.temporalOperators(true).stream()
-        .filter(Predicates.IS_GREATEST_FIXPOINT)
+        .filter(Fixpoint.GreatestFixpoint.class::isInstance)
         .collect(Collectors.toSet());
 
       for (Fixpoints fixpoints : knownFixpoints) {

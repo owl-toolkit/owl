@@ -26,7 +26,8 @@ import owl.ltl.visitors.Visitor;
 /**
  * Weak Until.
  */
-public final class WOperator extends Formula.BinaryTemporalOperator {
+public final class WOperator extends Formula.BinaryTemporalOperator
+  implements Fixpoint.GreatestFixpoint {
 
   public WOperator(Formula leftOperand, Formula rightOperand) {
     super(WOperator.class, leftOperand, rightOperand);

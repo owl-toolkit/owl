@@ -25,6 +25,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
@@ -78,7 +79,7 @@ public class Rewriter {
       this(fixpoints.greatestFixpoints());
     }
 
-    public ToCoSafety(Iterable<? extends Formula.TemporalOperator> y) {
+    public ToCoSafety(Iterable<? extends Fixpoint.GreatestFixpoint> y) {
       Set<GOperator> gOperators = new HashSet<>();
       Set<ROperator> rOperators = new HashSet<>();
       Set<WOperator> wOperators = new HashSet<>();
@@ -200,7 +201,7 @@ public class Rewriter {
       this(fixpoints.leastFixpoints());
     }
 
-    public ToSafety(Iterable<? extends Formula.TemporalOperator> x) {
+    public ToSafety(Iterable<? extends Fixpoint.LeastFixpoint> x) {
       Set<FOperator> fOperators = new HashSet<>();
       Set<MOperator> mOperators = new HashSet<>();
       Set<UOperator> uOperators = new HashSet<>();

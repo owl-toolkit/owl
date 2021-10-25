@@ -31,6 +31,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
@@ -167,8 +168,8 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
           conjuncts.add(temporalOperator.accept(new ToSigma2(fixpoints)));
         }
 
-        for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
-          var rewrittenLeastFixpoint = FOperator.of(toCoSafety.apply(leastFixpoint));
+        for (Fixpoint.LeastFixpoint leastFixpoint : fixpoints.leastFixpoints()) {
+          var rewrittenLeastFixpoint = FOperator.of(toCoSafety.apply(leastFixpoint.widen()));
 
           if (rewrittenLeastFixpoint instanceof Disjunction) {
             rewrittenLeastFixpoint = new FOperator(rewrittenLeastFixpoint);
@@ -177,8 +178,8 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
           conjuncts.add(GOperator.of(rewrittenLeastFixpoint));
         }
 
-        for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
-          var rewrittenGreatestFixpoint = GOperator.of(toSafety.apply(greatestFixpoint));
+        for (Fixpoint.GreatestFixpoint greatestFixpoint : fixpoints.greatestFixpoints()) {
+          var rewrittenGreatestFixpoint = GOperator.of(toSafety.apply(greatestFixpoint.widen()));
 
           if (rewrittenGreatestFixpoint instanceof Conjunction) {
             rewrittenGreatestFixpoint = new GOperator(rewrittenGreatestFixpoint);
@@ -408,7 +409,7 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
   }
 
   private static Set<Formula.UnaryTemporalOperator> selectAllFixpoints(Formula formula) {
-    return formula.subformulas(Predicates.IS_FIXPOINT, fixpoint -> {
+    return formula.subformulas(Fixpoint.class::isInstance, fixpoint -> {
       if (fixpoint instanceof MOperator) {
         return new FOperator(((MOperator) fixpoint).leftOperand());
       } else if (fixpoint instanceof UOperator) {

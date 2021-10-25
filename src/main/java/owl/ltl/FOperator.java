@@ -26,7 +26,8 @@ import owl.ltl.visitors.Visitor;
 /**
  * Finally.
  */
-public final class FOperator extends Formula.UnaryTemporalOperator {
+public final class FOperator extends Formula.UnaryTemporalOperator
+  implements Fixpoint.LeastFixpoint {
 
   public FOperator(Formula operand) {
     super(FOperator.class, operand);

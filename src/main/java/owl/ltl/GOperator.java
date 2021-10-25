@@ -26,7 +26,8 @@ import owl.ltl.visitors.Visitor;
 /**
  * Globally.
  */
-public final class GOperator extends Formula.UnaryTemporalOperator {
+public final class GOperator extends Formula.UnaryTemporalOperator
+  implements Fixpoint.GreatestFixpoint {
 
   public GOperator(Formula operand) {
     super(GOperator.class, operand);

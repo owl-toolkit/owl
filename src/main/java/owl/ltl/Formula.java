@@ -204,7 +204,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
     return subformulas(predicate, x -> x);
   }
 
-  public final <E extends Formula> Set<E> subformulas(
+  public final <E> Set<E> subformulas(
     Predicate<? super Formula> predicate, Function<? super Formula, E> cast) {
 
     if (operands.isEmpty()) {

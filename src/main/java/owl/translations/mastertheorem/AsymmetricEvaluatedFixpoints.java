@@ -35,6 +35,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LtlLanguageExpressible;
@@ -81,7 +82,7 @@ public final class AsymmetricEvaluatedFixpoints
     Rewriter.ToCoSafety toCoSafety = new Rewriter.ToCoSafety(fixpoints.greatestFixpoints());
     Set<GOperator> gOperatorsRewritten = new HashSet<>();
 
-    for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
+    for (Fixpoint.GreatestFixpoint greatestFixpoint : fixpoints.greatestFixpoints()) {
       GOperator gOperator = (GOperator) greatestFixpoint;
       Formula operand = gOperator.operand().substitute(toCoSafety);
 

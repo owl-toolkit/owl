@@ -59,6 +59,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
@@ -67,7 +68,6 @@ import owl.ltl.rewriter.NormalForms;
 import owl.translations.BlockingElements;
 import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.mastertheorem.Fixpoints;
-import owl.translations.mastertheorem.Predicates;
 import owl.translations.mastertheorem.Rewriter;
 import owl.translations.mastertheorem.Selector;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
@@ -245,11 +245,8 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
             remainder = xRemovedRemainder;
 
             var protectedXOperators = remainder.support(false).stream()
-              .filter(x -> (x instanceof Formula.TemporalOperator && !(x instanceof XOperator)))
-              .flatMap(x -> {
-                assert Predicates.IS_FIXPOINT.test(x);
-                return x.subformulas(XOperator.class).stream();
-              })
+              .filter(Fixpoint.class::isInstance)
+              .flatMap(x -> x.subformulas(XOperator.class).stream())
               .collect(Collectors.toSet());
 
             xRemovedRemainder = remainder.substitute(x ->
@@ -464,8 +461,8 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
       return true;
     }
 
-    var xSubformulas = x.subformulas(Predicates.IS_GREATEST_FIXPOINT);
-    var ySubformulas = y.subformulas(Predicates.IS_GREATEST_FIXPOINT);
+    var xSubformulas = x.subformulas(Fixpoint.GreatestFixpoint.class::isInstance);
+    var ySubformulas = y.subformulas(Fixpoint.GreatestFixpoint.class::isInstance);
     return !Collections.disjoint(xSubformulas, ySubformulas);
   }
 
