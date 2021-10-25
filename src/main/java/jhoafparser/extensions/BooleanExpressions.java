@@ -181,21 +181,21 @@ public final class BooleanExpressions {
     Function<? super Integer, ? extends BooleanExpression<A>> negatedMapper) {
 
     if (formula instanceof Variable) {
-      return mapper.apply(((Variable<Integer>) formula).variable);
+      return mapper.apply(((Variable<Integer>) formula).variable());
     }
 
     if (formula instanceof Negation) {
-      var operand = ((Negation<Integer>) formula).operand;
+      var operand = ((Negation<Integer>) formula).operand();
 
       if (operand instanceof Variable) {
-        return negatedMapper.apply(((Variable<Integer>) operand).variable);
+        return negatedMapper.apply(((Variable<Integer>) operand).variable());
       }
 
       return fromPropositionalFormula(operand, mapper, negatedMapper).not();
     }
 
     if (formula instanceof Conjunction) {
-      var conjuncts = ((Conjunction<Integer>) formula).conjuncts.stream()
+      var conjuncts = ((Conjunction<Integer>) formula).conjuncts().stream()
         .map(x -> fromPropositionalFormula(x, mapper, negatedMapper))
         .collect(Collectors.toCollection(ArrayDeque::new));
 
@@ -213,7 +213,7 @@ public final class BooleanExpressions {
     }
 
     if (formula instanceof Disjunction) {
-      var disjuncts = ((Disjunction<Integer>) formula).disjuncts.stream()
+      var disjuncts = ((Disjunction<Integer>) formula).disjuncts().stream()
         .map(x -> fromPropositionalFormula(x, mapper, negatedMapper))
         .collect(Collectors.toCollection(ArrayDeque::new));
 

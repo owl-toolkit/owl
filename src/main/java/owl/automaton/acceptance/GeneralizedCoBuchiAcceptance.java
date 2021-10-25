@@ -46,12 +46,13 @@ public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
     var usedSets = new BitSet();
 
     for (var disjunct : PropositionalFormula.disjuncts(formula)) {
-      if (!(disjunct instanceof Negation
-        && ((Negation<Integer>) disjunct).operand instanceof Variable)) {
+      if (disjunct instanceof Negation<Integer> negation
+        && negation.operand() instanceof Variable<Integer> variable) {
+        usedSets.set(variable.variable());
+      } else {
         return Optional.empty();
       }
 
-      usedSets.set(((Variable<Integer>) ((Negation<Integer>) disjunct).operand).variable);
     }
 
     if (usedSets.cardinality() == usedSets.length()) {

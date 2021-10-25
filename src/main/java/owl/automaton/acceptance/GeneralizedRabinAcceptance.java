@@ -116,14 +116,14 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
 
       for (PropositionalFormula<Integer> element : PropositionalFormula.conjuncts(dis)) {
 
-        if (element instanceof Variable) { // TEMPORAL_INF
-          infSets.set(((Variable<Integer>) element).variable);
-        } else if (element instanceof Negation) { // TEMPORAL_FIN
+        if (element instanceof Variable<Integer> variable) { // TEMPORAL_INF
+          infSets.set(variable.variable());
+        } else if (element instanceof Negation<Integer> negation) { // TEMPORAL_FIN
           if (fin != -1) {
             return Optional.empty();
           }
 
-          fin = ((Variable<Integer>) ((Negation<Integer>) element).operand).variable;
+          fin = ((Variable<Integer>) negation.operand()).variable();
         } else {
           return Optional.empty();
         }

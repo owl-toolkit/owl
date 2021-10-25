@@ -368,10 +368,10 @@ abstract class DependencyTree<T> {
 
     private int getAcceptanceSet() {
       if (acceptance instanceof Variable) {
-        return ((Variable<Integer>) acceptance).variable;
+        return ((Variable<Integer>) acceptance).variable();
       }
 
-      return ((Variable<Integer>) (((Negation<Integer>) acceptance).operand)).variable;
+      return ((Variable<Integer>) (((Negation<Integer>) acceptance).operand())).variable();
     }
 
     @Override

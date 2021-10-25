@@ -71,22 +71,21 @@ public final class RabinAcceptance extends GeneralizedRabinAcceptance {
       int inf = Integer.MIN_VALUE;
 
       for (PropositionalFormula<Integer> element : PropositionalFormula.conjuncts(pair)) {
-        if (element instanceof PropositionalFormula.Variable) { //  TEMPORAL_INF
+        if (element instanceof PropositionalFormula.Variable<Integer> variable) { //  TEMPORAL_INF
 
           if (inf != Integer.MIN_VALUE) {
             return Optional.empty();
           }
 
-          inf = ((PropositionalFormula.Variable<Integer>) element).variable;
+          inf = variable.variable();
 
-        } else if (element instanceof PropositionalFormula.Negation) { // TEMPORAL_FIN
+        } else if (element instanceof PropositionalFormula.Negation<Integer> negation) { // TEMPORAL_FIN
 
           if (fin != Integer.MIN_VALUE) {
             return Optional.empty();
           }
 
-          fin = ((PropositionalFormula.Variable<Integer>)
-            ((PropositionalFormula.Negation<Integer>) element).operand).variable;
+          fin = ((PropositionalFormula.Variable<Integer>) negation.operand()).variable();
 
         } else {
           return Optional.empty();

@@ -50,11 +50,11 @@ public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
     var usedSets = new BitSet();
 
     for (var conjunct : conjuncts(formula)) {
-      if (!(conjunct instanceof Variable)) {
+      if (conjunct instanceof Variable<Integer> variable) {
+        usedSets.set(variable.variable());
+      } else {
         return Optional.empty();
       }
-
-      usedSets.set(((Variable<Integer>) conjunct).variable);
     }
 
     if (usedSets.cardinality() == usedSets.length()) {
