@@ -82,7 +82,7 @@ public final class NbaDet {
     Automaton<S, BuchiAcceptance> aut, AutomatonConversionCommands.Nba2DpaCommand args) {
     //compute language inclusions (a <= b) between states, using selected simulations
     var incl = NbaLangInclusions.computeLangInclusions(aut, args.computeSims());
-    logger.log(Level.FINE, "calculated language inclusions: " + incl.toString());
+    logger.log(Level.FINE, "calculated language inclusions: " + incl);
 
     if (incl.isEmpty() || !NbaLangInclusions.getQuotientable().containsAll(args.computeSims())) {
       //trivial pass-through "quotient" to makes types consistent
@@ -113,7 +113,7 @@ public final class NbaDet {
       .map(p -> Pair.of(classMap.get(p.fst()), classMap.get(p.snd())))
       .collect(Collectors.toSet());
 
-    logger.log(Level.FINE, "remaining language inclusions: " + remainingIncl.toString());
+    logger.log(Level.FINE, "remaining language inclusions: " + remainingIncl);
     return Pair.of(quotAut, remainingIncl);
   }
 

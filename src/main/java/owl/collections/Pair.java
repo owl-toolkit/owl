@@ -62,14 +62,6 @@ public abstract class Pair<A, B> {
     return Pair.of(fst(), mapper.apply(snd()));
   }
 
-  public <C> Pair<C, B> withFst(C fst) {
-    return Pair.of(fst, snd());
-  }
-
-  public <C> Pair<A, C> withSnd(C snd) {
-    return Pair.of(fst(), snd);
-  }
-
   @Override
   public final String toString() {
     return String.format("(%s, %s)", fst(), snd());

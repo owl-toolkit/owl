@@ -1,5 +1,10 @@
 # 21.1 (development)
 
+Major Changes:
+
+* Remove IAR-construction which has been superseded by the ACD-construction.
+* Owl requires now Java 17.
+
 # 21.0
 
 Major Changes:

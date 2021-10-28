@@ -309,7 +309,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
   }
 
   private static final class Small extends ImmutableBitSet {
-    private static ImmutableBitSet EMPTY = new Small(Small.EMPTY_ELEMENT_VALUE);
+    private static final ImmutableBitSet EMPTY = new Small(Small.EMPTY_ELEMENT_VALUE);
 
     private static final int EMPTY_ELEMENT_VALUE = -1;
 

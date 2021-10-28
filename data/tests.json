@@ -314,8 +314,7 @@
         },
         "aut2parity": {
             "tools": [
-                "ltl2dela <input> | ./owl aut2parity",
-                "ltl2dra  <input> | ./owl aut2parity --iar"
+                "ltl2dela <input> | ./owl aut2parity"
             ],
             "data": "XL"
         },

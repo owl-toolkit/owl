@@ -42,7 +42,7 @@ import owl.translations.canonical.DeterministicConstructions;
 public class SymbolicNormalformDRAConstruction extends AbstractNormalformDRAConstruction
   implements Function<LabelledFormula, SymbolicAutomaton<?>> {
 
-  private BddSetFactory factory;
+  private final BddSetFactory factory;
 
   public SymbolicNormalformDRAConstruction(BddSetFactory factory) {
     this(true, factory);

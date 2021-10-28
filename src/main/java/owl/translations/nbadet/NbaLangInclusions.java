@@ -127,7 +127,7 @@ public final class NbaLangInclusions {
   static class NbaSimWithPebbles<S> implements NbaSimAlgorithm<S,Integer> {
     @Override
     public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
-      logger.log(Level.FINE, "running sim with arg: " + parsedArg.toString());
+      logger.log(Level.FINE, "running sim with arg: " + parsedArg);
       return Set.of();
     }
 
@@ -159,7 +159,7 @@ public final class NbaLangInclusions {
   static class NbaSimDirect<S> extends NbaSimWithPebbles<S> {
     @Override
     public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
-      logger.fine("running direct simulation with " + parsedArg.toString() + " pebbles.");
+      logger.fine("running direct simulation with " + parsedArg + " pebbles.");
       return new BuchiSimulation().directSimulation(aut, aut, parsedArg);
     }
   }
@@ -167,7 +167,7 @@ public final class NbaLangInclusions {
   static class NbaSimDelayed<S> extends NbaSimWithPebbles<S> {
     @Override
     public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
-      logger.fine("running delayed simulation with " + parsedArg.toString() + " pebbles.");
+      logger.fine("running delayed simulation with " + parsedArg + " pebbles.");
       return new BuchiSimulation().delayedSimulation(aut, aut, parsedArg);
     }
   }
@@ -175,7 +175,7 @@ public final class NbaLangInclusions {
   static class NbaSimFair<S> extends NbaSimWithPebbles<S> {
     @Override
     public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
-      logger.fine("running fair simulation with " + parsedArg.toString() + " pebbles.");
+      logger.fine("running fair simulation with " + parsedArg + " pebbles.");
       return new BuchiSimulation().fairSimulation(aut, aut, parsedArg);
     }
   }
@@ -183,7 +183,7 @@ public final class NbaLangInclusions {
   static class NbaSimLookaheadDirect<S> extends NbaSimWithPebbles<S> {
     @Override
     public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
-      logger.fine("running direct sim with lookahead " + parsedArg.toString());
+      logger.fine("running direct sim with lookahead " + parsedArg);
       return new BuchiSimulation().directLookaheadSimulation(aut, aut, parsedArg);
     }
   }
@@ -192,7 +192,7 @@ public final class NbaLangInclusions {
   static class NbaSimNull<S> extends NbaSimWithPebbles<S> {
     @Override
     public Set<Pair<S, S>> compute(Automaton<S, ? extends BuchiAcceptance> aut, Integer parsedArg) {
-      logger.fine("running null simulation with int argument " + parsedArg.toString());
+      logger.fine("running null simulation with int argument " + parsedArg);
       return Set.of();
     }
   }

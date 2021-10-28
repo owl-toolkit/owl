@@ -58,7 +58,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
   private static final Pattern PATTERN_2 = Pattern.compile("\"");
 
   /** The output writer */
-	private BufferedWriter out;
+	private final BufferedWriter out;
 
 	/**
 	 * Constructor

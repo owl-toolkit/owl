@@ -51,7 +51,6 @@ import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.minimization.GfgCoBuchiMinimization;
 import owl.command.Mixins.AutomatonWriter;
-import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.nba2ldba.NBA2LDBA;
 import owl.translations.nbadet.NbaDet;
 import owl.translations.nbadet.NbaDetConf;
@@ -139,19 +138,6 @@ public class AutomatonConversionCommands {
   static final class Aut2ParityCommand
     extends AbstractAutomaton2AutomatonCommand<EmersonLeiAcceptance, ParityAcceptance> {
 
-    @Option(
-      names = "--iar",
-      description = {
-        "Use the index-appearance-record construction (IAR) of [" + Bibliography.TACAS_17_2_CITEKEY
-          + "] if the input automaton is a Rabin automaton. Note that the default construction ["
-          + Bibliography.UNDER_SUBMISSION_22_CITEKEY + "] is guaranteed to produce automata smaller"
-          + " or of the same size as the IAR-construction. If the input automaton is not a Rabin "
-          + "automaton, then this command will reject the input with an IllegalArgumentException."
-      },
-      hidden = true
-    )
-    private boolean useIar = false;
-
     @Override
     protected Class<EmersonLeiAcceptance> acceptanceClass() {
       return EmersonLeiAcceptance.class;
@@ -159,42 +145,15 @@ public class AutomatonConversionCommands {
 
     @Override
     protected Function<Automaton<?, ?>, Automaton<?, ? extends ParityAcceptance>> conversion() {
-      return this::convert;
+      return Aut2ParityCommand::convert;
     }
 
-    private Automaton<?, ? extends ParityAcceptance> convert(Automaton<?, ?> automaton) {
+    private static Automaton<?, ? extends ParityAcceptance> convert(Automaton<?, ?> automaton) {
       if (isInstanceOf(automaton.acceptance().getClass(), ParityAcceptance.class)) {
         return cast(automaton, ParityAcceptance.class);
       }
 
-      if (useIar) {
-        return convertIar(automaton);
-      }
-
       return ZielonkaTreeTransformations.transform(automaton);
-    }
-
-    private Automaton<?, ? extends ParityAcceptance> convertIar(Automaton<?, ?> automaton) {
-      if (isInstanceOf(automaton.acceptance().getClass(), RabinAcceptance.class)) {
-        var castedAutomaton = cast(automaton, RabinAcceptance.class);
-        return new IARBuilder<>(castedAutomaton, ParityAcceptance.Parity.MIN_EVEN).build();
-      }
-
-      if (automaton.is(Automaton.Property.DETERMINISTIC)) {
-        var complementAutomaton
-          = BooleanOperations.deterministicComplement(automaton);
-
-        if (isInstanceOf(complementAutomaton.acceptance().getClass(), RabinAcceptance.class)) {
-          var castedAutomaton = cast(complementAutomaton, RabinAcceptance.class);
-          return cast(
-            BooleanOperations.deterministicComplement(
-              new IARBuilder<>(castedAutomaton, ParityAcceptance.Parity.MIN_EVEN).build()),
-            ParityAcceptance.class);
-        }
-      }
-
-      throw new IllegalArgumentException("Only non-deterministic Rabin and deterministic Streett "
-        + "automata can be transformed using the IAR-construction.");
     }
   }
 

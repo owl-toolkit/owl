@@ -54,9 +54,9 @@ public class SimulationStates {
     @Override
     public String toString() {
       return (owner().isOdd() ? "O: " : "E: ")
-        + odd().toString()
+        + odd()
         + '|'
-        + even().toString()
+        + even()
         + (moves().isEmpty() ? "" : moves().toString());
     }
 
@@ -112,9 +112,9 @@ public class SimulationStates {
     @Override
     public String toString() {
       return (owner().isOdd() ? "O: " : "E: ")
-        + odd().toString()
+        + odd()
         + '|'
-        + even().toString()
+        + even()
         + ' '
         + valuation();
     }

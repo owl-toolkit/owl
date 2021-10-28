@@ -86,7 +86,7 @@ public abstract class Pebble<S> {
 
   @Override
   public String toString() {
-    return (flag() ? "T" : "F") + state().toString();
+    return (flag() ? "T" : "F") + state();
   }
 
   /**
