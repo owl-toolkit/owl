@@ -67,6 +67,7 @@ import picocli.CommandLine.Model.CommandSpec;
 
            // Miscellaneous commands
            MiscCommands.BibliographyCommand.class,
+           MiscCommands.LicenseCommand.class,
            MiscCommands.DelagMigrationCommand.class,
 
            MiscCommands.LtlInspectionCommand.class,
