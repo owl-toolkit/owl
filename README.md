@@ -2,8 +2,6 @@
 
 A tool collection and library for <b>O</b>mega-<b>w</b>ords, ω-automata and <b>L</b>inear Temporal Logic (LTL).
 
-
-
 ### Quick Start
 
 Download the latest release for your platform from the official [website](https://owl.model.in.tum.de/) and perform the following steps:
@@ -13,11 +11,11 @@ Download the latest release for your platform from the official [website](https:
 
 Usage Examples:
 
-- Translate a formula to a deterministic automaton:
+- Translate a LTL formula to a deterministic Rabin automaton:
   ```
   $ ./owl ltl2dra -t SE20 -f 'F (a & G b)'
   HOA: v1
-  tool: "owl ltl2dpa" "<version string>"
+  tool: "owl ltl2dra" "<version string>"
   Start: 0
   acc-name: parity min odd 2
   Acceptance: 2 Fin(0) & Inf(1)
@@ -59,43 +57,45 @@ Usage Examples:
                         limit-deterministic Büchi automaton (LDBA).
     ltl2ldgba         Translate a linear temporal logic (LTL) formula into a
                         limit-deterministic generalized Büchi automaton (LDGBA).
-    ltl2dpa           Translate a linear temporal logic (LTL) formula into a deterministic
-                        parity automaton (DPA).
-    ltl2dra           Translate a linear temporal logic (LTL) formula into a deterministic
-                        Rabin automaton (DRA).
-    ltl2dgra          Translate a linear temporal logic (LTL) formula into a deterministic
-                        generalized Rabin automaton (DGRA).
-    ltl2dela          Translate a linear temporal logic (LTL) formula into a deterministic
-                        Emerson-Lei automaton (DELA).
-    ltl2delta2        Rewrite a linear temporal logic (LTL) formula into the Δ₂-normal-form
-                        using the construction of [SE20].
-    ngba2ldba         Convert a non-deterministic (generalised) Büchi automaton to a
-                        limit-deterministic Büchi automaton.
-    nba2dpa, nbadet   Convert a non-deterministic Büchi automaton to a deterministic parity
-                        automaton.
-    nbasim            Computes the quotient automaton based on a computed set of similar
-                        state pairs.
-    aut2parity        Convert any type of automaton into a parity automaton. The branching
-                        mode of the automaton is preserved, e.g., if the input automaton is
-                        deterministic then the output automaton is also deterministic.
-    gfg-minimisation  Compute the minimal, equivalent, transition-based Good-for-Games
-                        Co-Büchi automaton for the given deterministic Co-Büchi automaton.
-                        The polynomial construction is described in [AK19].
+    ltl2dpa           Translate a linear temporal logic (LTL) formula into a
+                        deterministic parity automaton (DPA).
+    ltl2dra           Translate a linear temporal logic (LTL) formula into a
+                        deterministic Rabin automaton (DRA).
+    ltl2dgra          Translate a linear temporal logic (LTL) formula into a
+                        deterministic generalized Rabin automaton (DGRA).
+    ltl2dela          Translate a linear temporal logic (LTL) formula into a
+                        deterministic Emerson-Lei automaton (DELA).
+    ltl2delta2        Rewrite a linear temporal logic (LTL) formula into the
+                        Δ₂-normal-form using the construction of [SE20].
+    ngba2ldba         Convert a non-deterministic (generalised) Büchi automaton
+                        to a limit-deterministic Büchi automaton.
+    nba2dpa, nbadet   Convert a non-deterministic Büchi automaton to a
+                        deterministic parity automaton.
+    nbasim            Computes the quotient automaton based on a computed set of
+                        similar state pairs.
+    aut2parity        Convert any type of automaton into a parity automaton. The
+                        branching mode of the automaton is preserved, e.g., if
+                        the input automaton is deterministic then the output
+                        automaton is also deterministic.
+    gfg-minimisation  Compute the minimal, equivalent, transition-based
+                        Good-for-Games Co-Büchi automaton for the given
+                        deterministic Co-Büchi automaton. The polynomial
+                        construction is described in [AK19].
     bibliography      Print the bibliography of all implemented algorithms and
-                        constructions. Single references can be looked up by listing them,
-                        e.g. 'owl bibliography SE20'. If you want to cite Owl as a whole,
-                        it is recommended to use reference [KMS18].
-    delag             The functionality of the 'delag' subcommand has been moved to the
-                        'ltl2dela' subcommand. You can use 'owl ltl2dela -t=MS17' to access
-                        the original 'delag' construction.
-    ltl-utilities     A collection of various linear temporal logic related rewriters.
-    rltl2ltl          Convert a robust linear temporal logic (rLTL) formula into a linear
-                        temporal logic formula.
+                        constructions. Single references can be looked up by
+                        listing them, e.g. 'owl bibliography SE20'. If you want
+                        to cite Owl as a whole, it is recommended to use
+                        reference [KMS18].
+    license           Print the license of Owl and the licenses of all linked
+                        (non-system) libraries.
+    delag             The functionality of the 'delag' subcommand has been moved
+                        to the 'ltl2dela' subcommand. You can use 'owl ltl2dela
+                        -t=MS17' to access the original 'delag' construction.
+    ltl-utilities     A collection of various linear temporal logic related
+                        rewriters.
+    rltl2ltl          Convert a robust linear temporal logic (rLTL) formula into
+                        a linear temporal logic formula.
     aut-utilities     A collection of various automata related utilities.
-    dpa2pg            Converts a deterministic parity automaton into a parity game by
-                        splitting the transitions. This subcommand outputs the game in the
-                        PG-solver format and this command is only expected to be used for
-                        prototyping, since in practice the resulting files are too large.
   ```
 - Display a specific help message for a subcommand:
   ```
@@ -183,19 +183,17 @@ Usage Examples:
 
 ### Content of the Distribution
 
-Owl is distributed as a native and as a JRE-distribution. It is recommended to use the native
-distribution, since it does not have any external dependencies, i.e., a
-[Java runtime environment capable of running Java 11](http://jdk.java.net/), and
-in practice runs considerably faster. Both distributions contain the following:
+Owl is distributed as a platform-specific distributions. Note that the
+platform-specific distributions contain a platform-independent Java library.
+A distribution contains the following folders:
 
-* `bin`  - the Owl Command-Line Tool.
-* `clib` - (native-only) the Owl C-Library.
-* `doc`  - Additional documentation.
-* `jar` - the Owl Java-library.
-* `lib`  - (JRE-only) Libraries used by Owl.
+* `bin` - Platform-specific command-line tool.
+* `doc` - Additional documentation.
+* `jar` - Platform-independent Java library, source-code, and documentation.
+* `lib` - Platform-specific C library and headers.
 
 See the [format descriptions](docs/FORMATS.md) for a description of accepted inputs.
-Owl contains a variety of command-line tools originating from Rabinizer, Delag and nbadet.
+Owl contains a variety of command-line tools originating from Rabinizer 4.0, Delag, and nbadet.
 
 ### Building a Distribution
 
