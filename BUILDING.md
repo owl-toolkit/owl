@@ -1,13 +1,11 @@
 # Build Instructions
 
-### Native Distribution
-
-Download 'GraalVM 21.2: JDK 11' from the [GraalVM website](https://www.graalvm.org/) and install it with the **native-image** component.
+Download 'GraalVM 21.3: JDK 17' from the [GraalVM website](https://www.graalvm.org/) and install it with the **native-image** component.
 Do not forget to add the installed tools to the search path:
 
 ```
-PATH=/<path>/graalvm-ce-java11-21.0.0.2/bin/:$PATH
-JAVA_HOME=/<path>/graalvm-ce-java11-21.0.0.2/
+PATH=/<path>/graalvm-ce-java11-21.3.0/bin/:$PATH
+JAVA_HOME=/<path>/graalvm-ce-java11-21.3.0/
 ```
 
 Then execute the following command to obtain the native-image distribution:
@@ -16,11 +14,7 @@ Then execute the following command to obtain the native-image distribution:
 ./gradlew nativeImageDistZip -Pdisable-pandoc
 ```
 
-The resulting `.zip` is located in `build/distributions`.
-
-### JRE Distribution
-
-If GraalVM cannot be installed, the JRE-distribution can be built with:
+The resulting `.zip` is located in `build/distributions`. If GraalVM cannot be installed, the JRE-distribution can be built with:
 
 ```
 ./gradlew distZip -Pdisable-pandoc
@@ -28,7 +22,7 @@ If GraalVM cannot be installed, the JRE-distribution can be built with:
 
 The resulting `.zip` is located in `build/distributions`.
 
-### Docker
+## Docker
 
 In case you want to build or test locally using docker (recommended on Windows), first build the docker image with
 ```
@@ -70,16 +64,15 @@ Passing all these tests is mandatory for submitted code.
 
 ### Collections and Streams
 
-Owl currently targets Java 11 and thus `Stream` can be used.
+Owl currently targets Java 17 and thus `Stream` can be used.
 However, for performance-critical code it might be better to replace them by equivalent `for`-loops.
 It is recommended to use immutable collection for fields that do not require mutation.
 Depending on your use-case make use of `List.of`, `List.copyOf`, `Set.of`, `Set.copyOf`, `Map.of`, or `Map.copyOf`.
-If your use case is not covered by one of JDK collections you can make use of Guava's collections or Owl's own `Collections3` and `BitSet2`.
+If your use case is not covered by one of JDK collections you can make use of Guava's collections or Owl's own `Collections3`, `BitSet2`, and `ImmutableBitSet`.
 
 ### Records
 
-For classes that are data classes, i.e., named tuples, [AutoValue](https://github.com/google/auto/tree/master/value) should be used.
-This is only an intermediate solution until Java 16 is supported by GraalVM.
+For classes that are data classes, i.e., named tuples, Java records should be used.
 
 ### Exceptions and Validation
 
