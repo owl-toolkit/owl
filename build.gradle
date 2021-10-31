@@ -37,7 +37,7 @@ apply plugin: 'pmd'
 apply plugin: 'idea'
 
 project.group = 'de.tum.in'
-project.version = '21.??-development'
+project.version = '21.1-development'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.command.OwlCommand'
