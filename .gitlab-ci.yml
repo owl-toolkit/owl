@@ -1,4 +1,4 @@
-image: gitlab.lrz.de:5005/i7/owl:dbeb85ad
+image: gitlab.lrz.de:5005/i7/owl:9e31fba0
 
 before_script:
   - chmod +x gradlew
@@ -11,7 +11,7 @@ variables:
   GRADLE: ./.gradle
   GRADLE_HOME: $GRADLE
   GRADLE_USER_HOME: $GRADLE
-  GRAAL_HOME: "/opt/graalvm-ce-java11-21.2.0"
+  GRAAL_HOME: "/opt/graalvm-ce-java17-21.3.0"
   MUSL_CC: "/usr/local/musl/bin/musl-gcc"
 
 # Building

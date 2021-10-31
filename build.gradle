@@ -44,8 +44,8 @@ project.mainClassName = 'owl.command.OwlCommand'
 
 java {
     toolchain {
-        // JDK 11 is the latest release supported by GraalVM (native-image).
-        languageVersion = JavaLanguageVersion.of(11)
+        // JDK 17 is the latest release supported by GraalVM (native-image).
+        languageVersion = JavaLanguageVersion.of(17)
     }
 
     withJavadocJar()
