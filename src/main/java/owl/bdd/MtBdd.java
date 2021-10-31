@@ -47,7 +47,7 @@ import owl.logic.propositional.PropositionalFormula;
  *
  * @param <E> the elements stored at the leaves of the MTBDD.
  */
-public abstract class MtBdd<E> {
+public abstract sealed class MtBdd<E> {
 
   private MtBdd() {}
 
@@ -266,12 +266,12 @@ public abstract class MtBdd<E> {
         throw new IndexOutOfBoundsException(variable);
       }
 
-      if (trueChild instanceof Node) {
-        Objects.checkIndex(variable, ((Node<E>) trueChild).variable);
+      if (trueChild instanceof Node<E> trueNode) {
+        Objects.checkIndex(variable, trueNode.variable);
       }
 
-      if (falseChild instanceof Node) {
-        Objects.checkIndex(variable, ((Node<E>) falseChild).variable);
+      if (falseChild instanceof Node<E> falseNode) {
+        Objects.checkIndex(variable, falseNode.variable);
       }
 
       this.variable = variable;
