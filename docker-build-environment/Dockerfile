@@ -55,19 +55,19 @@ RUN wget -q https://zlib.net/zlib-1.2.11.tar.gz \
 
 ## Download, verify, unpack, install, and test.
 
-RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz \
-    && echo 'bbd3e03025168172a76c2a29e6a14c1c37e3476b30774259c3ef5952fb86f470 graalvm-ce-java11-linux-amd64-21.2.0.tar.gz' | sha256sum --check \
-    && tar -zxvf graalvm-ce-java11-linux-amd64-21.2.0.tar.gz \
-    && rm graalvm-ce-java11-linux-amd64-21.2.0.tar.gz \
-    && mv graalvm-ce-java11-21.2.0 /opt/
+RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.3.0/graalvm-ce-java17-linux-amd64-21.3.0.tar.gz \
+    && echo '11d8039e0a7a31b799a6f20a0e806e4128730e9a2595a7ffdec1443539d4c3f6 graalvm-ce-java17-linux-amd64-21.3.0.tar.gz' | sha256sum --check \
+    && tar -zxvf graalvm-ce-java17-linux-amd64-21.3.0.tar.gz \
+    && rm graalvm-ce-java17-linux-amd64-21.3.0.tar.gz \
+    && mv graalvm-ce-java17-21.3.0 /opt/
 
-ENV PATH=/opt/graalvm-ce-java11-21.2.0/bin/:$PATH
-ENV JAVA_HOME=/opt/graalvm-ce-java11-21.2.0/
+ENV PATH=/opt/graalvm-ce-java17-21.3.0/bin/:$PATH
+ENV JAVA_HOME=/opt/graalvm-ce-java17-21.3.0/
 
-RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/native-image-installable-svm-java11-linux-amd64-21.2.0.jar \
-    && echo '6fc4c6becbe0331aa0a038660fde7c4769c6d6e97d5a90a716a898188d3a6df9 native-image-installable-svm-java11-linux-amd64-21.2.0.jar' | sha256sum --check \
-    && gu -L install native-image-installable-svm-java11-linux-amd64-21.2.0.jar \
-    && rm native-image-installable-svm-java11-linux-amd64-21.2.0.jar \
+RUN wget -q https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.3.0/native-image-installable-svm-java17-linux-amd64-21.3.0.jar \
+    && echo 'df488a04b5405c6443c90e94710cd3bd2be9adcb3768f91429aa494168d52440 native-image-installable-svm-java17-linux-amd64-21.3.0.jar' | sha256sum --check \
+    && gu -L install native-image-installable-svm-java17-linux-amd64-21.3.0.jar \
+    && rm native-image-installable-svm-java17-linux-amd64-21.3.0.jar \
     && java -version \
     && native-image --version
 
