@@ -344,6 +344,17 @@ public sealed class GeneralizedRabinAcceptance extends EmersonLeiAcceptance
         .thenComparingInt((RabinPair x) -> x.infIndex)
         .compare(this, o);
     }
+    
+    @Override
+    public boolean equals(Object o) {
+      return this == o
+        || o instanceof RabinPair that && finIndex == that.finIndex && infIndex == that.infIndex;
+    }
+
+    @Override
+    public int hashCode() {
+      return 31 * (31 + finIndex) + infIndex;
+    }
   }
 
   public static final class Builder {

@@ -158,5 +158,3 @@ public final class OwlCommand extends AbstractOwlCommand {
     }
   }
 }
-
-

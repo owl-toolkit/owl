@@ -432,42 +432,24 @@ public final class Views {
     };
   }
 
-  private static <S> Integer map(BiMap<S, Integer> map, S state) {
-    return map.computeIfAbsent(state, x -> map.size());
-  }
-
   public static <S, A extends EmersonLeiAcceptance> Automaton<Integer, A>
     dropStateLabels(Automaton<S, ? extends A> automaton) {
 
+    if (automaton.initialStates().isEmpty()) {
+      return EmptyAutomaton.of(automaton.atomicPropositions(), automaton.acceptance());
+    }
+
     BiMap<S, Integer> mapping = HashBiMap.create();
     Set<Integer> initialStates = new HashSet<>();
-    automaton.initialStates().forEach(x -> initialStates.add(map(mapping, x)));
+    automaton.initialStates().forEach(x -> initialStates.add(DropStateLabelsImpl.map(mapping, x)));
 
-    return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.atomicPropositions(),
-      automaton.factory(),
-      initialStates,
-      automaton.acceptance()) {
-
-      @Override
-      protected MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
-        return automaton.edgeTree(mapping.inverse().get(state)).map(
-          x -> x.stream()
-            .map(y -> y.mapSuccessor(z -> map(mapping, z)))
-            .collect(Collectors.toUnmodifiableSet()));
-      }
-
-      @Override
-      protected void explorationCompleted() {
-        mapping.clear();
-      }
-    };
+    return new DropStateLabelsImpl<>(automaton, initialStates, mapping);
   }
 
   public static <S> Automaton<S, ParityAcceptance> convertParity(
     Automaton<S, ? extends ParityAcceptance> automaton, ParityAcceptance.Parity toParity) {
 
-    if (automaton.acceptance().parity().equals(toParity)) {
+    if (automaton.acceptance().parity() == toParity) {
       return (Automaton<S, ParityAcceptance>) automaton;
     }
 
@@ -489,5 +471,42 @@ public final class Views {
           .map(x -> Collections3.transformSet(x, y -> y.mapAcceptance(z -> z + 1)));
       }
     };
+  }
+
+  private static class DropStateLabelsImpl<S, A extends EmersonLeiAcceptance>
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Integer, A> {
+
+    @Nullable
+    private Automaton<S, ? extends A> automaton;
+    @Nullable
+    private BiMap<S, Integer> mapping;
+
+    public DropStateLabelsImpl(
+      Automaton<S, ? extends A> automaton, Set<Integer> initialStates, BiMap<S, Integer> mapping) {
+      super(
+        automaton.atomicPropositions(), automaton.factory(), initialStates, automaton.acceptance());
+      this.automaton = automaton;
+      this.mapping = mapping;
+    }
+
+    @Override
+    protected MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
+      return automaton.edgeTree(mapping.inverse().get(state)).map(
+        x -> x.stream()
+          .map(y -> y.mapSuccessor(z -> map(mapping, z)))
+          .collect(Collectors.toUnmodifiableSet()));
+    }
+
+    @Override
+    protected void explorationCompleted() {
+      automaton = null;
+      mapping = null;
+    }
+
+    private static <S> Integer map(BiMap<S, Integer> map, S state) {
+      synchronized (map) {
+        return map.computeIfAbsent(state, x -> map.size());
+      }
+    }
   }
 }

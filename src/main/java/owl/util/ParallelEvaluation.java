@@ -39,7 +39,6 @@ public final class ParallelEvaluation {
 
   private ParallelEvaluation() {}
 
-  @SuppressWarnings("PMD.AvoidThrowingRawExceptionTypes")
   public static <T> List<T> evaluate(List<? extends Supplier<Optional<T>>> suppliers) {
     ExecutorService executorService = Executors.newCachedThreadPool();
     List<Future<Optional<? extends T>>> futures = new ArrayList<>();

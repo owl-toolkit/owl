@@ -19,7 +19,6 @@
 
 package owl.util;
 
-import com.google.auto.value.AutoValue;
 import picocli.CommandLine;
 
 public final class OwlVersion implements CommandLine.IVersionProvider {
@@ -60,17 +59,8 @@ public final class OwlVersion implements CommandLine.IVersionProvider {
       throw new IllegalStateException("Conflicting versions.");
     }
 
-    return NameAndVersion.of(mainName, version);
+    return new NameAndVersion(mainName, version);
   }
 
-  @AutoValue
-  public abstract static class NameAndVersion {
-    public abstract String name();
-
-    public abstract String version();
-
-    private static NameAndVersion of(String name, String version) {
-      return new AutoValue_OwlVersion_NameAndVersion(name, version);
-    }
-  }
+  public record NameAndVersion(String name, String version) {}
 }

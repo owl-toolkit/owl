@@ -33,7 +33,11 @@ import java.util.stream.Collectors;
 
 /**
  * A propositional formula.
- * JDK16: This class is going to be sealed and migrated to records once JDK16 is adopted.
+ *
+ * TODO: As a workaround for java.lang.IllegalAccessException:
+ *   class com.oracle.svm.methodhandles.Util_java_lang_invoke_MethodHandle cannot access a member of
+ *   class java.lang.invoke.DelegatingMethodHandle (in module java.base) with modifiers "protected
+ *   abstract" we implement equals and hashCode manually.
  *
  * @param <T> the variable type.
  */
@@ -208,6 +212,18 @@ public sealed interface PropositionalFormula<T> {
       return Comparators.min(
         leftOperand.smallestVariable(), rightOperand.smallestVariable(), NATURAL_COMPARATOR);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Biconditional<?> that
+        && leftOperand.equals(that.leftOperand)
+        && rightOperand.equals(that.rightOperand);
+    }
+
+    @Override
+    public int hashCode() {
+      return leftOperand.hashCode() + rightOperand.hashCode();
+    }
   }
 
   record Conjunction<T>(List<PropositionalFormula<T>> conjuncts)
@@ -361,6 +377,17 @@ public sealed interface PropositionalFormula<T> {
       }
 
       return smallestVariableOfConjunct;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Conjunction<?> that
+        && conjuncts.equals(that.conjuncts);
+    }
+
+    @Override
+    public int hashCode() {
+      return conjuncts.hashCode();
     }
   }
 
@@ -527,6 +554,17 @@ public sealed interface PropositionalFormula<T> {
       }
       return operands;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Disjunction<?> that
+        && disjuncts.equals(that.disjuncts);
+    }
+
+    @Override
+    public int hashCode() {
+      return disjuncts.hashCode();
+    }
   }
 
   record Negation<T>(PropositionalFormula<T> operand) implements PropositionalFormula<T> {
@@ -604,6 +642,17 @@ public sealed interface PropositionalFormula<T> {
     public Optional<T> smallestVariable() {
       return operand.smallestVariable();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Negation<?> that
+        && operand.equals(that.operand);
+    }
+
+    @Override
+    public int hashCode() {
+      return operand.hashCode();
+    }
   }
 
   record Variable<T>(T variable) implements PropositionalFormula<T> {
@@ -667,6 +716,17 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public Optional<T> smallestVariable() {
       return Optional.of(variable);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Variable<?> that
+        && variable.equals(that.variable);
+    }
+
+    @Override
+    public int hashCode() {
+      return variable.hashCode();
     }
   }
 
