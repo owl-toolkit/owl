@@ -27,7 +27,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
 import owl.bdd.Factories;
@@ -36,6 +35,7 @@ import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.LtlLanguageExpressible;
@@ -82,7 +82,7 @@ public final class AsymmetricEvaluatedFixpoints
     Rewriter.ToCoSafety toCoSafety = new Rewriter.ToCoSafety(fixpoints.greatestFixpoints());
     Set<GOperator> gOperatorsRewritten = new HashSet<>();
 
-    for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
+    for (Fixpoint.GreatestFixpoint greatestFixpoint : fixpoints.greatestFixpoints()) {
       GOperator gOperator = (GOperator) greatestFixpoint;
       Formula operand = gOperator.operand().substitute(toCoSafety);
 
@@ -205,7 +205,7 @@ public final class AsymmetricEvaluatedFixpoints
     var coSafety = gCoSafety.stream()
       .sorted()
       .map(x -> factories.eqFactory.of(x.operand().unfold()))
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
 
     var fCoSafety = new ArrayList<EquivalenceClass>();
     var gfCoSafetyAutomaton = (DeterministicConstructions.GfCoSafety) null;

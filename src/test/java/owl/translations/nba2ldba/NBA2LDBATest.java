@@ -33,75 +33,80 @@ import owl.bdd.FactorySupplier;
 
 class NBA2LDBATest {
 
-  private static final String ALL_ACCEPTANCE = "HOA: v1\n"
-    + "States: 1\n"
-    + "Start: 0\n"
-    + "acc-name: all\n"
-    + "Acceptance: 0 t\n"
-    + "AP: 1 \"a\"\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + " [0]   0\n"
-    + "--END--";
+  private static final String ALL_ACCEPTANCE = """
+    HOA: v1
+    States: 1
+    Start: 0
+    acc-name: all
+    Acceptance: 0 t
+    AP: 1 "a"
+    --BODY--
+    State: 0
+     [0]   0
+    --END--""";
 
-  private static final String BUCHI_1 = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "acc-name: Buchi\n"
-    + "Acceptance: 1 Inf(0)\n"
-    + "AP: 1 \"a\"\n"
-    + "--BODY--\n"
-    + "State: 0 {0}\n"
-    + " [0]   1 \n"
-    + "State: 1 \n"
-    + " [t]   0 \n"
-    + " [!0]  1 \n"
-    + "--END--";
+  private static final String BUCHI_1 = """
+    HOA: v1
+    States: 2
+    Start: 0
+    acc-name: Buchi
+    Acceptance: 1 Inf(0)
+    AP: 1 "a"
+    --BODY--
+    State: 0 {0}
+     [0]   1\s
+    State: 1\s
+     [t]   0\s
+     [!0]  1\s
+    --END--""";
 
-  private static final String BUCHI_2 = "HOA: v1\n"
-    + "States: 2\n"
-    + "Start: 0\n"
-    + "acc-name: Buchi\n"
-    + "Acceptance: 1 Inf(0)\n"
-    + "AP: 1 \"a\"\n"
-    + "--BODY--\n"
-    + "State: 0 {0}\n"
-    + " [0]   1 \n"
-    + "State: 1 \n"
-    + " [!0]  0 \n"
-    + " [!0]  1 \n"
-    + "--END--";
+  private static final String BUCHI_2 = """
+    HOA: v1
+    States: 2
+    Start: 0
+    acc-name: Buchi
+    Acceptance: 1 Inf(0)
+    AP: 1 "a"
+    --BODY--
+    State: 0 {0}
+     [0]   1\s
+    State: 1\s
+     [!0]  0\s
+     [!0]  1\s
+    --END--""";
 
-  private static final String BUCHI_3 = "HOA: v1\n"
-    + "States: 3\n"
-    + "Start: 0\n"
-    + "acc-name: Buchi\n"
-    + "Acceptance: 1 Inf(0)\n"
-    + "properties: trans-acc trans-label\n"
-    + "AP: 2 \"a\" \"b\"\n"
-    + "--BODY--\n"
-    + "State: 1\n"
-    + "[0] 1 {0}\n"
-    + "[!0] 2 {0}\n"
-    + "State: 0\n"
-    + "[0] 1\n"
-    + "[t] 0\n"
-    + "[!0] 2\n"
-    + "State: 2\n"
-    + "[0 & 1] 1 {0}\n"
-    + "[!0 & 1] 2 {0}\n"
-    + "--END--";
+  private static final String BUCHI_3 = """
+    HOA: v1
+    States: 3
+    Start: 0
+    acc-name: Buchi
+    Acceptance: 1 Inf(0)
+    properties: trans-acc trans-label
+    AP: 2 "a" "b"
+    --BODY--
+    State: 1
+    [0] 1 {0}
+    [!0] 2 {0}
+    State: 0
+    [0] 1
+    [t] 0
+    [!0] 2
+    State: 2
+    [0 & 1] 1 {0}
+    [!0 & 1] 2 {0}
+    --END--""";
 
-  private static final String BUCHI_4 = "HOA: v1\n"
-    + "States: 1\n"
-    + "Start: 0\n"
-    + "acc-name: Buchi\n"
-    + "Acceptance: 1 Inf(0)\n"
-    + "properties: trans-acc trans-label\n"
-    + "AP: 0\n"
-    + "--BODY--\n"
-    + "State: 0\n"
-    + "--END--";
+  private static final String BUCHI_4 = """
+    HOA: v1
+    States: 1
+    Start: 0
+    acc-name: Buchi
+    Acceptance: 1 Inf(0)
+    properties: trans-acc trans-label
+    AP: 0
+    --BODY--
+    State: 0
+    --END--""";
 
   @ParameterizedTest
   @ValueSource(strings = {ALL_ACCEPTANCE, BUCHI_1, BUCHI_2, BUCHI_3, BUCHI_4})

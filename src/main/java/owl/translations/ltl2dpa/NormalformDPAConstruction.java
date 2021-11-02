@@ -79,37 +79,33 @@ public final class NormalformDPAConstruction
     Map<Integer, BreakpointStateRejecting> stateMap,
     BitSet processedStates) {
 
-    if (formula instanceof PropositionalFormula.Variable) {
-      int index = ((PropositionalFormula.Variable<Integer>) formula).variable;
+    if (formula instanceof PropositionalFormula.Variable<Integer> variable) {
 
       // Do not contribute.
-      if (processedStates.get(index)) {
+      if (processedStates.get(variable.variable())) {
         return 0.5d;
       }
 
-      return stateMap.get(index).all().trueness();
+      return stateMap.get(variable.variable()).all().trueness();
     }
 
-    if (formula instanceof PropositionalFormula.Negation) {
+    if (formula instanceof PropositionalFormula.Negation<Integer> negation) {
       return 1.0d - approximateTrueness(
-        ((PropositionalFormula.Negation<Integer>) formula).operand, stateMap, processedStates);
+        negation.operand(), stateMap, processedStates);
     }
 
-    if (formula instanceof PropositionalFormula.Biconditional) {
-      var castedFormula = (PropositionalFormula.Biconditional<Integer>) formula;
+    if (formula instanceof PropositionalFormula.Biconditional<Integer> biconditional) {
 
       return Math.abs(
-        approximateTrueness(castedFormula.leftOperand, stateMap, processedStates)
-          - approximateTrueness(castedFormula.rightOperand, stateMap, processedStates)
+        approximateTrueness(biconditional.leftOperand(), stateMap, processedStates)
+          - approximateTrueness(biconditional.rightOperand(), stateMap, processedStates)
       );
     }
 
-    if (formula instanceof PropositionalFormula.Conjunction) {
-      var castedFormula = (PropositionalFormula.Conjunction<Integer>) formula;
-
+    if (formula instanceof PropositionalFormula.Conjunction<Integer> conjunction) {
       double trueness = 1.0d;
 
-      for (var conjunct : castedFormula.conjuncts) {
+      for (var conjunct : conjunction.conjuncts()) {
         trueness = Math.min(trueness, approximateTrueness(conjunct, stateMap, processedStates));
       }
 
@@ -118,11 +114,11 @@ public final class NormalformDPAConstruction
 
     assert formula instanceof PropositionalFormula.Disjunction;
 
-    var castedFormula = (PropositionalFormula.Disjunction<Integer>) formula;
+    var disjunction = (PropositionalFormula.Disjunction<Integer>) formula;
 
     double trueness = 0.0d;
 
-    for (var disjunct : castedFormula.disjuncts) {
+    for (var disjunct : disjunction.disjuncts()) {
       trueness = Math.max(trueness, approximateTrueness(disjunct, stateMap, processedStates));
     }
 

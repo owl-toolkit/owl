@@ -32,7 +32,6 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
@@ -313,7 +312,7 @@ final class AsymmetricDPAConstruction {
         = MtBddOperations.cartesianProductWithNull(macroState.ranking()
           .stream()
           .map(state -> ldba.acceptingComponent().edgeTree(state))
-          .collect(Collectors.toList()));
+          .toList());
 
       return MtBddOperations.cartesianProduct(successorTree, rankingEdgeTree,
         (successor, rankingEdges) -> {

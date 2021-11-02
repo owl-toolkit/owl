@@ -30,7 +30,6 @@ import static owl.translations.canonical.DeterministicConstructionsPortfolio.saf
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Nested;
@@ -246,7 +245,7 @@ class DeterministicConstructionsPortfolioTest {
   void coSafetyDeepNesting(int k) {
     var formula = LabelledFormula.of(
       leftNestedU(k),
-      IntStream.range(0, k + 1).mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
+      IntStream.range(0, k + 1).mapToObj(Integer::toString).toList());
     var automaton = coSafety(formula);
     automaton.states();
   }
@@ -275,7 +274,7 @@ class DeterministicConstructionsPortfolioTest {
         .mapToObj(x -> Disjunction.of(Literal.of(2 * x), Literal.of(2 * x + 1))));
     return LabelledFormula.of(
       GOperator.of(conjunction),
-      IntStream.range(0, 2 * k).mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
+      IntStream.range(0, 2 * k).mapToObj(i -> "a" + i).toList());
   }
 
   LabelledFormula largeStateSpaceSafety(int k) {
@@ -285,7 +284,7 @@ class DeterministicConstructionsPortfolioTest {
     return LabelledFormula.of(
       new GOperator(disjunction),
       IntStream.range(0, 2 * k)
-        .mapToObj(i -> "a" + i).collect(Collectors.toUnmodifiableList()));
+        .mapToObj(i -> "a" + i).toList());
   }
 
   UOperator leftNestedU(int i) {

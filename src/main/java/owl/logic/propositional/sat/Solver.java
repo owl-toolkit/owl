@@ -78,8 +78,8 @@ public final class Solver {
   public static <V> Optional<Set<V>> model(PropositionalFormula<V> preFormula, Engine engine) {
     var formula = preFormula.nnf();
 
-    if (formula instanceof PropositionalFormula.Disjunction) {
-      for (var disjunct : ((PropositionalFormula.Disjunction<V>) formula).disjuncts) {
+    if (formula instanceof PropositionalFormula.Disjunction<V> disjunction) {
+      for (var disjunct : disjunction.disjuncts()) {
         Optional<Set<V>> satisfiable = model(disjunct, engine);
 
         if (satisfiable.isPresent()) {
@@ -93,18 +93,12 @@ public final class Solver {
     // Pre-process and replace single polarity with fixed value in formula.
     var polarity = formula.polarity();
 
-    var simplifiedFormula = formula.substitute(variable -> {
-      switch (polarity.get(variable)) {
-        case POSITIVE:
-          return PropositionalFormula.trueConstant();
-
-        case NEGATIVE:
-          return PropositionalFormula.falseConstant();
-
-        default:
-          return PropositionalFormula.Variable.of(variable);
-      }
-    });
+    var simplifiedFormula = formula.substitute(
+      variable -> switch (polarity.get(variable)) {
+        case POSITIVE -> PropositionalFormula.trueConstant();
+        case NEGATIVE -> PropositionalFormula.falseConstant();
+        case MIXED -> PropositionalFormula.Variable.of(variable);
+      });
 
     // Translate into equisatisfiable CNF.
     var conjunctiveNormalForm = new ConjunctiveNormalForm<>(simplifiedFormula);
@@ -190,17 +184,16 @@ public final class Solver {
     //    directly be computed.
 
     if (upperBound.equals(formula.variables())
-      && normalisedFormula instanceof PropositionalFormula.Disjunction) {
+      && normalisedFormula instanceof PropositionalFormula.Disjunction<V> disjunction) {
 
       boolean allDisjunctsAreNegatedVariables = true;
-      var disjuncts
-        = ((PropositionalFormula.Disjunction<V>) normalisedFormula).disjuncts;
+      var disjuncts = disjunction.disjuncts();
 
       for (int i = 0, s = disjuncts.size(); i < s; i++) {
         var disjunct = disjuncts.get(i);
 
         if (!(disjunct instanceof PropositionalFormula.Negation)
-          || !(((PropositionalFormula.Negation<V>) disjunct).operand
+          || !(((PropositionalFormula.Negation<V>) disjunct).operand()
              instanceof PropositionalFormula.Variable)) {
           allDisjunctsAreNegatedVariables = false;
           break;
@@ -228,9 +221,8 @@ public final class Solver {
       var potentialModel = new HashSet<>(upperBound);
 
       for (var conjunct : PropositionalFormula.conjuncts(disjunct)) {
-        if ((conjunct instanceof PropositionalFormula.Negation)) {
-          var negation = (PropositionalFormula.Negation<V>) conjunct;
-          potentialModel.remove(((PropositionalFormula.Variable<V>) (negation.operand)).variable);
+        if (conjunct instanceof PropositionalFormula.Negation<V> negation) {
+          potentialModel.remove(((PropositionalFormula.Variable<V>) negation.operand()).variable());
         }
       }
 

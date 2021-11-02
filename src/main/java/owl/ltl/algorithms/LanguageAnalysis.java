@@ -20,7 +20,6 @@
 package owl.ltl.algorithms;
 
 import java.util.EnumSet;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.algorithm.LanguageEmptiness;
@@ -65,7 +64,7 @@ public final class LanguageAnalysis {
   private static LabelledFormula attachDummyAlphabet(Formula formula) {
     return LabelledFormula.of(formula, IntStream
       .range(0, formula.atomicPropositions(true).length())
-      .mapToObj(i -> "p" + i)
-      .collect(Collectors.toUnmodifiableList()));
+      .mapToObj(Integer::toString)
+      .toList());
   }
 }

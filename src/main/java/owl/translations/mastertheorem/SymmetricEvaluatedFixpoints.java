@@ -36,6 +36,7 @@ import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.Formulas;
 import owl.ltl.GOperator;
@@ -84,8 +85,8 @@ public final class SymmetricEvaluatedFixpoints
 
     Set<GOperator> infinitelyOftenFormulas = new HashSet<>();
 
-    for (Formula.TemporalOperator leastFixpoint : fixpoints.leastFixpoints()) {
-      Formula result = GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint)));
+    for (Fixpoint.LeastFixpoint leastFixpoint : fixpoints.leastFixpoints()) {
+      Formula result = GOperator.of(FOperator.of(toCoSafety.apply(leastFixpoint.widen())));
       result = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(result);
       result = SimplifierRepository.PULL_UP_X.apply(result);
       Formula infinitelyOften = unwrapX(result);
@@ -140,8 +141,8 @@ public final class SymmetricEvaluatedFixpoints
 
     List<Set<FOperator>> almostAlwaysFormulasAlternatives = new ArrayList<>();
 
-    for (Formula.TemporalOperator greatestFixpoint : fixpoints.greatestFixpoints()) {
-      Formula result = FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint)));
+    for (Fixpoint.GreatestFixpoint greatestFixpoint : fixpoints.greatestFixpoints()) {
+      Formula result = FOperator.of(GOperator.of(toSafety.apply(greatestFixpoint.widen())));
       result = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(result);
       result = SimplifierRepository.PULL_UP_X.apply(result);
       Formula almostAlways = unwrapX(result);
@@ -175,7 +176,7 @@ public final class SymmetricEvaluatedFixpoints
       = new ExtendedRewriter.ToSafety(fixpoints.leastFixpoints(), unusedFixpoints::remove);
 
     for (Formula.TemporalOperator greatestFixpoint :
-      formula.subformulas(Predicates.IS_GREATEST_FIXPOINT, Formula.TemporalOperator.class::cast)) {
+      formula.subformulas(Fixpoint.GreatestFixpoint.class::isInstance, Formula.TemporalOperator.class::cast)) {
       toSafetyWithoutGreatestFixpoints.apply(greatestFixpoint);
     }
 

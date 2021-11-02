@@ -33,7 +33,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class ConjunctiveNormalForm<V> {
+public final class ConjunctiveNormalForm<V> {
 
   /**
    * Clause-representation of the formula. Variables are from the range [1,n], where n is bounded by
@@ -94,9 +94,8 @@ public class ConjunctiveNormalForm<V> {
 
     if (nnfFormula instanceof Variable) {
       cnfBuilder.add(variableMapping.lookup(nnfFormula));
-    } else if (nnfFormula instanceof Negation) {
-      var negation = (Negation<V>) nnfFormula;
-      var variable = (Variable<V>) negation.operand;
+    } else if (nnfFormula instanceof Negation<V> negation) {
+      var variable = (Variable<V>) negation.operand();
       cnfBuilder.add(-variableMapping.lookup(variable));
     } else if (nnfFormula instanceof Conjunction || nnfFormula instanceof Disjunction) {
       cnfBuilder.add(variableMapping.lookup(nnfFormula));
@@ -117,17 +116,16 @@ public class ConjunctiveNormalForm<V> {
     }
 
     // T_1_def
-    if (formula instanceof Conjunction) {
-      var conjunction = (Conjunction<V>) formula;
+    if (formula instanceof Conjunction<V> conjunction) {
       int conjunctionVariable = variableMapping.lookup(conjunction);
 
-      for (var conjunct : conjunction.conjuncts) {
+      for (var conjunct : conjunction.conjuncts()) {
         cnf.add(0);
         cnf.add(-conjunctionVariable);
         cnf.add(variableMapping.lookup(conjunct));
       }
 
-      for (var conjunct : conjunction.conjuncts) {
+      for (var conjunct : conjunction.conjuncts()) {
         encodeFormula(conjunct, variableMapping, cnf);
       }
     } else {
@@ -137,11 +135,11 @@ public class ConjunctiveNormalForm<V> {
       cnf.add(0);
       cnf.add(-disjunctionVariable);
 
-      for (var disjunct : disjunction.disjuncts) {
+      for (var disjunct : disjunction.disjuncts()) {
         cnf.add(variableMapping.lookup(disjunct));
       }
 
-      for (var disjunct : disjunction.disjuncts) {
+      for (var disjunct : disjunction.disjuncts()) {
         encodeFormula(disjunct, variableMapping, cnf);
       }
     }
@@ -169,8 +167,7 @@ public class ConjunctiveNormalForm<V> {
 
     int lookup(PropositionalFormula<V> formula) {
 
-      if (formula instanceof Conjunction) {
-        var conjunction = (Conjunction<V>) formula;
+      if (formula instanceof Conjunction<V> conjunction) {
         Integer oldVariable = tseitinConjunctionVariables
           .putIfAbsent(conjunction, nextFreeVariable);
 
@@ -183,8 +180,7 @@ public class ConjunctiveNormalForm<V> {
         }
       }
 
-      if (formula instanceof Disjunction) {
-        var disjunction = (Disjunction<V>) formula;
+      if (formula instanceof Disjunction<V> disjunction) {
         Integer oldVariable = tseitinDisjunctionVariables
           .putIfAbsent(disjunction, nextFreeVariable);
 
@@ -204,10 +200,10 @@ public class ConjunctiveNormalForm<V> {
       } else {
         assert formula instanceof Negation;
         var negation = (Negation<V>) formula;
-        variable = (Variable<V>) negation.operand;
+        variable = (Variable<V>) negation.operand();
       }
 
-      int variableId = variables.get(variable.variable);
+      int variableId = variables.get(variable.variable());
       return formula instanceof Negation ? -variableId : variableId;
     }
   }

@@ -10777,6 +10777,7 @@ public class CommandLine {
             final String name;
             int position;
 
+            @SuppressWarnings("deprecation")
             public MethodParam(Method method, int paramIndex) {
                 this.method = method;
                 this.paramIndex = paramIndex;

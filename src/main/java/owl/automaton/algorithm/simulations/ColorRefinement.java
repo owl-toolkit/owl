@@ -424,8 +424,7 @@ public class ColorRefinement<S> {
       if (obj == this) {
         return true;
       }
-      if (obj instanceof Coloring) {
-        Coloring<?> other = (Coloring<?>) obj;
+      if (obj instanceof Coloring<?> other) {
         return col.equals(other.col);
       }
       return false;
@@ -497,8 +496,7 @@ public class ColorRefinement<S> {
       if (obj == this) {
         return true;
       }
-      if (obj instanceof Ordering) {
-        Ordering other = (Ordering) obj;
+      if (obj instanceof Ordering other) {
         return other.ord.equals(this.ord);
       }
       return false;

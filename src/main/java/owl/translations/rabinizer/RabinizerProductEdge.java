@@ -55,11 +55,10 @@ final class RabinizerProductEdge {
       return true;
     }
 
-    if (!(o instanceof RabinizerProductEdge)) {
+    if (!(o instanceof RabinizerProductEdge cache)) {
       return false;
     }
 
-    RabinizerProductEdge cache = (RabinizerProductEdge) o;
     return successorState.equals(cache.successorState);
   }
 

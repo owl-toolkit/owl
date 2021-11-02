@@ -23,7 +23,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -109,7 +108,7 @@ public class PropositionalSimplifier extends Converter {
 
         List<Formula> prunedDisjuncts = newConjunction.operands.stream()
           .map(x -> Disjunction.of(x.operands.stream().filter(y -> !finalCandidates.contains(y))))
-          .collect(Collectors.toList());
+          .toList();
 
         finalCandidates.add(Conjunction.of(prunedDisjuncts));
 
@@ -178,7 +177,7 @@ public class PropositionalSimplifier extends Converter {
 
         List<Formula> prunedConjuncts = newDisjunction.operands.stream()
           .map(x -> Conjunction.of(x.operands.stream().filter(y -> !finalCandidates.contains(y))))
-          .collect(Collectors.toList());
+          .toList();
 
         finalCandidates.add(Disjunction.of(prunedConjuncts));
 

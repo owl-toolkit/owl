@@ -106,7 +106,7 @@ public class CAutomatonTest {
   void testStateFeaturesExtractionForUTiming() {
     var formula = LabelledFormula.of(leftNestedU(11), IntStream.rangeClosed(0, 11)
       .mapToObj(Character::toString)
-      .collect(Collectors.toList()));
+      .toList());
     var automaton = DeterministicConstructionsPortfolio
       .coSafety(formula);
     var states = automaton.states();

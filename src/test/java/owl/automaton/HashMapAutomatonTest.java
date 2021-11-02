@@ -69,17 +69,10 @@ class HashMapAutomatonTest {
     automaton.addEdge("1", new BitSet(), Edge.of("1", 1));
     automaton.addEdge("1", other, Edge.of("2"));
     automaton.addEdge("1", new BitSet(), Edge.of("2", 1));
-    automaton.updateEdges((state, edge) -> {
-      switch (edge.successor()) {
-        case "1":
-          return null;
-
-        case "2":
-          return Edge.of(edge.successor());
-
-        default:
-          return edge;
-      }
+    automaton.updateEdges((state, edge) -> switch (edge.successor()) {
+      case "1" -> null;
+      case "2" -> Edge.of(edge.successor());
+      default -> edge;
     });
     automaton.trim();
 

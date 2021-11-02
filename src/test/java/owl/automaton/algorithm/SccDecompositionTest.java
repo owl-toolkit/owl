@@ -74,29 +74,14 @@ class SccDecompositionTest {
 
   @Test
   void testGraph() {
-    var decomposition = SccDecomposition.of(Set.of(3, 6), x -> {
-      switch (x) {
-        case 6:
-          return Set.of(4, 5);
-
-        case 5:
-          return Set.of(5);
-
-        case 4:
-          return Set.of(3, 4);
-
-        case 3:
-          return Set.of(0, 1, 2);
-
-        case 2:
-          return Set.of(0, 1, 3);
-
-        case 1:
-          return Set.of(1, 2, 3);
-
-        default:
-          return Set.of();
-      }
+    var decomposition = SccDecomposition.of(Set.of(3, 6), x -> switch (x) {
+      case 6 -> Set.of(4, 5);
+      case 5 -> Set.of(5);
+      case 4 -> Set.of(3, 4);
+      case 3 -> Set.of(0, 1, 2);
+      case 2 -> Set.of(0, 1, 3);
+      case 1 -> Set.of(1, 2, 3);
+      default -> Set.of();
     });
 
     checkConsistency(decomposition,

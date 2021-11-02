@@ -83,8 +83,7 @@ public abstract class NbaDetConfSets {
     var asccs = new ArrayList<BitSet>();
     if (args.sepAcc()) {
       //collect the accepting SCCs
-      var accSccs = scci.acceptingSccs().stream().map(i -> scci.sccs().get(i))
-                                         .collect(Collectors.toUnmodifiableList());
+      var accSccs = scci.acceptingSccs().stream().map(i -> scci.sccs().get(i)).toList();
       //and also their union
       var accStates = accSccs.stream().flatMap(Collection::stream)
                                       .collect(Collectors.toUnmodifiableSet());
@@ -106,11 +105,9 @@ public abstract class NbaDetConfSets {
     if (args.sepDet()) {
       //collect deterministic SCCs (that are not already handled as acc./rej.)
       var unhDetSccs = scci.deterministicSccs().stream()
-          .filter(i -> !handled.contains(i))
-          .collect(Collectors.toUnmodifiableList());
+        .filter(i -> !handled.contains(i)).toList();
 
-      var expDetSccs = unhDetSccs.stream().map(i -> scci.sccs().get(i))
-                                       .collect(Collectors.toUnmodifiableList());
+      var expDetSccs = unhDetSccs.stream().map(i -> scci.sccs().get(i)).toList();
 
 
       //those must always be separate to work correctly

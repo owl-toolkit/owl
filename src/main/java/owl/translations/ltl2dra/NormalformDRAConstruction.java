@@ -149,8 +149,7 @@ public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptanc
   }
 
   private static boolean isUniverse(Object state) {
-    if (state instanceof Pair) {
-      Pair<?, ?> pair = (Pair<?, ?>) state;
+    if (state instanceof Pair<?, ?> pair) {
       return isUniverse(pair.fst()) && isUniverse(pair.snd());
     }
 

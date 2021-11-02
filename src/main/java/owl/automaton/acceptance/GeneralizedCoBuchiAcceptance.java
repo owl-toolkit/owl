@@ -24,13 +24,13 @@ import static owl.logic.propositional.PropositionalFormula.Variable;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Negation;
 
-public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
+public sealed class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance
+  permits CoBuchiAcceptance {
 
   GeneralizedCoBuchiAcceptance(int size) {
     super(size);
@@ -46,12 +46,13 @@ public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
     var usedSets = new BitSet();
 
     for (var disjunct : PropositionalFormula.disjuncts(formula)) {
-      if (!(disjunct instanceof Negation
-        && ((Negation<Integer>) disjunct).operand instanceof Variable)) {
+      if (disjunct instanceof Negation<Integer> negation
+        && negation.operand() instanceof Variable<Integer> variable) {
+        usedSets.set(variable.variable());
+      } else {
         return Optional.empty();
       }
 
-      usedSets.set(((Variable<Integer>) ((Negation<Integer>) disjunct).operand).variable);
     }
 
     if (usedSets.cardinality() == usedSets.length()) {
@@ -65,7 +66,7 @@ public class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance {
   protected final PropositionalFormula<Integer> lazyBooleanExpression() {
     return PropositionalFormula.Disjunction.of(IntStream.range(0, acceptanceSets())
       .mapToObj(x -> Negation.of(Variable.of(x)))
-      .collect(Collectors.toList()));
+      .toList());
   }
 
   @Override

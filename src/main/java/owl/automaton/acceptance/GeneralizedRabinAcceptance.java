@@ -33,13 +33,11 @@ import java.util.BitSet;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.function.IntConsumer;
 import java.util.function.IntPredicate;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import owl.automaton.edge.Edge;
@@ -55,7 +53,8 @@ import owl.logic.propositional.PropositionalFormula;
  * <p>According to the HOA specifications, the indices are monotonically increasing and used for
  * exactly one Fin/Inf atom.</p>
  */
-public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
+public sealed class GeneralizedRabinAcceptance extends EmersonLeiAcceptance
+  permits RabinAcceptance {
 
   protected final List<RabinPair> pairs;
 
@@ -116,14 +115,14 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
 
       for (PropositionalFormula<Integer> element : PropositionalFormula.conjuncts(dis)) {
 
-        if (element instanceof Variable) { // TEMPORAL_INF
-          infSets.set(((Variable<Integer>) element).variable);
-        } else if (element instanceof Negation) { // TEMPORAL_FIN
+        if (element instanceof Variable<Integer> variable) { // TEMPORAL_INF
+          infSets.set(variable.variable());
+        } else if (element instanceof Negation<Integer> negation) { // TEMPORAL_FIN
           if (fin != -1) {
             return Optional.empty();
           }
 
-          fin = ((Variable<Integer>) ((Negation<Integer>) element).operand).variable;
+          fin = ((Variable<Integer>) negation.operand()).variable();
         } else {
           return Optional.empty();
         }
@@ -172,7 +171,7 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
   @Override
   public PropositionalFormula<Integer> lazyBooleanExpression() {
     return Disjunction.of(
-      pairs.stream().map(RabinPair::booleanExpression).collect(Collectors.toList()));
+      pairs.stream().map(RabinPair::booleanExpression).toList());
   }
 
   @Override
@@ -234,18 +233,13 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
     return GeneralizedRabinAcceptance.of(newPairs);
   }
 
-  public static final class RabinPair implements Comparable<RabinPair> {
-    @Nonnegative
-    final int finIndex;
+  // All indices in the interval ]finIndex, infIndex] are considered inf.
+  public record RabinPair(@Nonnegative int finIndex, @Nonnegative int infIndex)
+    implements Comparable<RabinPair> {
 
-    // All indices in the interval ]finIndex, infIndex] are considered inf.
-    @Nonnegative
-    final int infIndex;
-
-    RabinPair(@Nonnegative int finIndex, int infIndex) {
-      assert infIndex >= finIndex;
-      this.finIndex = finIndex;
-      this.infIndex = infIndex;
+    public RabinPair {
+      checkArgument(finIndex >= 0);
+      checkArgument(infIndex >= finIndex);
     }
 
     public static RabinPair of(@Nonnegative int finIndex) {
@@ -350,24 +344,16 @@ public class GeneralizedRabinAcceptance extends EmersonLeiAcceptance {
         .thenComparingInt((RabinPair x) -> x.infIndex)
         .compare(this, o);
     }
-
+    
     @Override
     public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof RabinPair)) {
-        return false;
-      }
-
-      RabinPair rabinPair = (RabinPair) o;
-      return finIndex == rabinPair.finIndex && infIndex == rabinPair.infIndex;
+      return this == o
+        || o instanceof RabinPair that && finIndex == that.finIndex && infIndex == that.infIndex;
     }
 
     @Override
     public int hashCode() {
-      return Objects.hash(finIndex, infIndex);
+      return 31 * (31 + finIndex) + infIndex;
     }
   }
 

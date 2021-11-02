@@ -30,7 +30,6 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.OptionalInt;
 import java.util.PrimitiveIterator.OfInt;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -81,7 +80,7 @@ class EdgeTest {
   }
 
   private static Stream<Arguments> edgePairProvider() {
-    var arguments = edgeProvider().collect(Collectors.toList());
+    var arguments = edgeProvider().toList();
     return IntStream.range(0, arguments.size()).mapToObj(i -> {
       TestCase case1 = (TestCase) arguments.get(i).get()[0];
       TestCase case2 = (TestCase) arguments.get(i + 1 < arguments.size() ? i + 1 : 0).get()[0];

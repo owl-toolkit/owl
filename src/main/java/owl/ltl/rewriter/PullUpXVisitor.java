@@ -21,7 +21,6 @@ package owl.ltl.rewriter;
 
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import owl.ltl.Biconditional;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -60,7 +59,7 @@ final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
   @Override
   public XFormula visit(Conjunction conjunction) {
     var children = conjunction.operands.stream()
-      .map(c -> c.accept(this)).collect(Collectors.toList());
+      .map(c -> c.accept(this)).toList();
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
     return new XFormula(depth, Conjunction.of(children.stream().map(c -> c.toFormula(depth))));
   }
@@ -68,7 +67,7 @@ final class PullUpXVisitor implements Visitor<PullUpXVisitor.XFormula> {
   @Override
   public XFormula visit(Disjunction disjunction) {
     var children = disjunction.operands.stream()
-      .map(c -> c.accept(this)).collect(Collectors.toList());
+      .map(c -> c.accept(this)).toList();
     int depth = children.stream().mapToInt(c -> c.depth).min().orElse(0);
     return new XFormula(depth, Disjunction.of(children.stream().map(c -> c.toFormula(depth))));
   }

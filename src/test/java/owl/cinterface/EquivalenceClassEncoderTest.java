@@ -22,7 +22,6 @@ package owl.cinterface;
 import java.time.Duration;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
@@ -49,7 +48,7 @@ class EquivalenceClassEncoderTest {
   void testStateFeaturesExtractionForUTiming() {
     var formula = LabelledFormula.of(leftNestedU(12), IntStream.rangeClosed(0, 12)
       .mapToObj(Integer::toString)
-      .collect(Collectors.toList()));
+      .toList());
     var encoder = new EquivalenceClassEncoder();
     var automaton = DeterministicConstructions.SafetyCoSafety.of(formula);
 

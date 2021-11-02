@@ -21,7 +21,6 @@ package owl.logic.propositional;
 
 import com.google.common.collect.Comparators;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -34,86 +33,90 @@ import java.util.stream.Collectors;
 
 /**
  * A propositional formula.
- * JDK16: This class is going to be sealed and migrated to records once JDK16 is adopted.
+ *
+ * TODO: As a workaround for java.lang.IllegalAccessException:
+ *   class com.oracle.svm.methodhandles.Util_java_lang_invoke_MethodHandle cannot access a member of
+ *   class java.lang.invoke.DelegatingMethodHandle (in module java.base) with modifiers "protected
+ *   abstract" we implement equals and hashCode manually.
  *
  * @param <T> the variable type.
  */
-@SuppressWarnings("PMD.LooseCoupling")
-public abstract class PropositionalFormula<T> {
+public sealed interface PropositionalFormula<T> {
 
-  private static final Comparator NATURAL_COMPARATOR
+  Comparator NATURAL_COMPARATOR
     = Comparators.emptiesLast(Comparator.naturalOrder());
 
-  public abstract boolean evaluate(Set<? extends T> assignment);
+  boolean evaluate(Set<? extends T> assignment);
 
   /**
    * Construct an equivalent expression in negation normal form.
    *
    * @return A new expression
    */
-  public final PropositionalFormula<T> nnf() {
+  default PropositionalFormula<T> nnf() {
     return nnf(false);
   }
 
-  public abstract <S> PropositionalFormula<S> substitute(
+  <S> PropositionalFormula<S> substitute(
     Function<? super T, ? extends PropositionalFormula<S>> substitution);
 
-  protected abstract PropositionalFormula<T> nnf(boolean negated);
+  PropositionalFormula<T> nnf(boolean negated);
 
-  public static <V> PropositionalFormula<V> constant(boolean constant) {
+  static <V> PropositionalFormula<V> constant(boolean constant) {
     return constant ? trueConstant() : falseConstant();
   }
 
   @SuppressWarnings("unchecked")
-  public static <V> PropositionalFormula<V> trueConstant() {
+  static <V> PropositionalFormula<V> trueConstant() {
     return (PropositionalFormula<V>) Conjunction.TRUE;
   }
 
   @SuppressWarnings("unchecked")
-  public static <V> PropositionalFormula<V> falseConstant() {
+  static <V> PropositionalFormula<V> falseConstant() {
     return (PropositionalFormula<V>) Disjunction.FALSE;
   }
 
-  public abstract int height();
+  int height();
 
-  public boolean isFalse() {
+  default boolean isFalse() {
     return this instanceof Disjunction && ((Disjunction<T>) this).disjuncts.isEmpty();
   }
 
-  public boolean isTrue() {
+  default boolean isTrue() {
     return this instanceof Conjunction && ((Conjunction<T>) this).conjuncts.isEmpty();
   }
 
-  public final Set<T> variables() {
+  default Set<T> variables() {
     return countVariables().keySet();
   }
 
-  public abstract boolean containsVariable(T variable);
+  boolean containsVariable(T variable);
 
   /**
    * Returns the smallest variable using the naturalOrder.
    *
    * @return the smallest variable.
    */
-  public abstract Optional<T> smallestVariable();
+  Optional<T> smallestVariable();
 
-  public final Map<T, Integer> countVariables() {
+  default Map<T, Integer> countVariables() {
     Map<T, Integer> occurrences = new HashMap<>();
     countVariables(occurrences);
     return occurrences;
   }
 
-  public abstract Map<T, Polarity> polarity();
+  Map<T, Polarity> polarity();
 
-  public abstract <R> PropositionalFormula<R> map(Function<? super T, R> mapper);
+  <R> PropositionalFormula<R> map(Function<? super T, R> mapper);
 
-  protected abstract void countVariables(Map<T, Integer> occurrences);
+  void countVariables(Map<T, Integer> occurrences);
 
-  public enum Polarity {
+  enum Polarity {
     POSITIVE, NEGATIVE, MIXED
   }
 
-  protected <S> PropositionalFormula<S> deduplicate(PropositionalFormula<S> newObject) {
+  @SuppressWarnings("unchecked")
+  default <S> PropositionalFormula<S> deduplicate(PropositionalFormula<S> newObject) {
     if (this.equals(newObject)) {
       return (PropositionalFormula<S>) this;
     }
@@ -121,17 +124,9 @@ public abstract class PropositionalFormula<T> {
     return newObject;
   }
 
-  public static final class Biconditional<T> extends PropositionalFormula<T> {
-
-    public final PropositionalFormula<T> leftOperand;
-    public final PropositionalFormula<T> rightOperand;
-
-    private Biconditional(
-      PropositionalFormula<T> leftOperand, PropositionalFormula<T> rightOperand) {
-
-      this.leftOperand = leftOperand;
-      this.rightOperand = rightOperand;
-    }
+  record Biconditional<T>(PropositionalFormula<T> leftOperand,
+                          PropositionalFormula<T> rightOperand)
+    implements PropositionalFormula<T> {
 
     public static <T> PropositionalFormula<T> of(
       PropositionalFormula<T> leftOperand, PropositionalFormula<T> rightOperand) {
@@ -177,8 +172,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected PropositionalFormula<T> nnf(boolean negated) {
-
+    public PropositionalFormula<T> nnf(boolean negated) {
       return Disjunction.of(
         Conjunction.of(leftOperand.nnf(false), rightOperand.nnf(false)),
         Conjunction.of(leftOperand.nnf(true), rightOperand.nnf(true))).nnf(negated);
@@ -198,7 +192,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected void countVariables(Map<T, Integer> occurrences) {
+    public void countVariables(Map<T, Integer> occurrences) {
       leftOperand.countVariables(occurrences);
       rightOperand.countVariables(occurrences);
     }
@@ -206,25 +200,6 @@ public abstract class PropositionalFormula<T> {
     @Override
     public int height() {
       return Math.max(leftOperand.height(), rightOperand.height()) + 1;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) {
-        return true;
-      }
-
-      if (!(o instanceof Biconditional)) {
-        return false;
-      }
-
-      Biconditional<?> that = (Biconditional<?>) o;
-      return leftOperand.equals(that.leftOperand) && rightOperand.equals(that.rightOperand);
-    }
-
-    @Override
-    public int hashCode() {
-      return Objects.hash(Biconditional.class, leftOperand, rightOperand);
     }
 
     @Override
@@ -237,22 +212,43 @@ public abstract class PropositionalFormula<T> {
       return Comparators.min(
         leftOperand.smallestVariable(), rightOperand.smallestVariable(), NATURAL_COMPARATOR);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Biconditional<?> that
+        && leftOperand.equals(that.leftOperand)
+        && rightOperand.equals(that.rightOperand);
+    }
+
+    @Override
+    public int hashCode() {
+      return leftOperand.hashCode() + rightOperand.hashCode();
+    }
   }
 
-  public static final class Conjunction<T> extends PropositionalFormula<T> {
+  record Conjunction<T>(List<PropositionalFormula<T>> conjuncts)
+    implements PropositionalFormula<T> {
 
     private static Conjunction<?> TRUE = new Conjunction<>(List.of());
 
-    public final List<PropositionalFormula<T>> conjuncts;
-
-    private Conjunction(List<? extends PropositionalFormula<T>> conjuncts) {
-      this.conjuncts = List.copyOf(conjuncts);
-      assert this.conjuncts.stream().noneMatch(Conjunction.class::isInstance) : this.conjuncts;
+    public Conjunction {
+      conjuncts = List.copyOf(conjuncts);
+      assert conjuncts.stream().noneMatch(Conjunction.class::isInstance) : conjuncts;
     }
 
-    @SafeVarargs
-    public static <T> PropositionalFormula<T> of(PropositionalFormula<T>... operands) {
-      return of(Arrays.asList(operands));
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2)));
+    }
+
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2,
+      PropositionalFormula<T> operand3) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2, operand3)));
     }
 
     public static <T> PropositionalFormula<T>
@@ -266,16 +262,11 @@ public abstract class PropositionalFormula<T> {
 
       var normalisedConjuncts = flattenConjunction(conjuncts);
 
-      switch (normalisedConjuncts.size()) {
-        case 0:
-          return trueConstant();
-
-        case 1:
-          return normalisedConjuncts.iterator().next();
-
-        default:
-          return new Conjunction<>(List.copyOf(normalisedConjuncts));
-      }
+      return switch (normalisedConjuncts.size()) {
+        case 0 -> trueConstant();
+        case 1 -> normalisedConjuncts.iterator().next();
+        default -> new Conjunction<>(List.copyOf(normalisedConjuncts));
+      };
     }
 
     @Override
@@ -290,7 +281,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected PropositionalFormula<T> nnf(boolean negated) {
+    public PropositionalFormula<T> nnf(boolean negated) {
       return negated
         ? Disjunction.ofTrusted(mapOperands(x -> x.nnf(negated)))
         : deduplicate(Conjunction.ofTrusted(mapOperands(x -> x.nnf(negated))));
@@ -316,7 +307,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected void countVariables(Map<T, Integer> occurrences) {
+    public void countVariables(Map<T, Integer> occurrences) {
       conjuncts.forEach(x -> x.countVariables(occurrences));
     }
 
@@ -337,38 +328,14 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-      if (obj == this) {
-        return true;
-      }
-
-      if (!(obj instanceof Conjunction)) {
-        return false;
-      }
-
-      Conjunction<?> that = (Conjunction<?>) obj;
-      return conjuncts.equals(that.conjuncts);
-    }
-
-    @Override
-    public int hashCode() {
-      return 31 * Conjunction.class.hashCode() + conjuncts.hashCode();
-    }
-
-    @Override
     public String toString() {
-      switch (conjuncts.size()) {
-        case 0:
-          return "tt";
-
-        case 1:
-          return conjuncts.get(0).toString();
-
-        default:
-          return conjuncts.stream()
-            .map(Object::toString)
-            .collect(Collectors.joining(" ∧ ", "(", ")"));
-      }
+      return switch (conjuncts.size()) {
+        case 0 -> "tt";
+        case 1 -> conjuncts.get(0).toString();
+        default -> conjuncts.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(" ∧ ", "(", ")"));
+      };
     }
 
     @Override
@@ -411,17 +378,27 @@ public abstract class PropositionalFormula<T> {
 
       return smallestVariableOfConjunct;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Conjunction<?> that
+        && conjuncts.equals(that.conjuncts);
+    }
+
+    @Override
+    public int hashCode() {
+      return conjuncts.hashCode();
+    }
   }
 
-  public static final class Disjunction<T> extends PropositionalFormula<T> {
+  record Disjunction<T>(List<PropositionalFormula<T>> disjuncts)
+    implements PropositionalFormula<T> {
 
     private static Disjunction<?> FALSE = new Disjunction<>(List.of());
 
-    public final List<PropositionalFormula<T>> disjuncts;
-
-    private Disjunction(List<? extends PropositionalFormula<T>> disjuncts) {
-      this.disjuncts = List.copyOf(disjuncts);
-      assert this.disjuncts.stream().noneMatch(Disjunction.class::isInstance) : this.disjuncts;
+    public Disjunction {
+      disjuncts = List.copyOf(disjuncts);
+      assert disjuncts.stream().noneMatch(Disjunction.class::isInstance) : disjuncts;
     }
 
     @SafeVarargs
@@ -435,9 +412,19 @@ public abstract class PropositionalFormula<T> {
       return ofTrusted(disjuncts);
     }
 
-    @SafeVarargs
-    public static <T> PropositionalFormula<T> of(PropositionalFormula<T>... operands) {
-      return of(Arrays.asList(operands));
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2)));
+    }
+
+    public static <T> PropositionalFormula<T> of(
+      PropositionalFormula<T> operand1,
+      PropositionalFormula<T> operand2,
+      PropositionalFormula<T> operand3) {
+
+      return ofTrusted(new ArrayList<>(List.of(operand1, operand2, operand3)));
     }
 
     public static <T> PropositionalFormula<T>
@@ -451,16 +438,11 @@ public abstract class PropositionalFormula<T> {
 
       var normalisedDisjuncts = flattenDisjunction(disjuncts);
 
-      switch (normalisedDisjuncts.size()) {
-        case 0:
-          return falseConstant();
-
-        case 1:
-          return normalisedDisjuncts.iterator().next();
-
-        default:
-          return new Disjunction<>(List.copyOf(normalisedDisjuncts));
-      }
+      return switch (normalisedDisjuncts.size()) {
+        case 0 -> falseConstant();
+        case 1 -> normalisedDisjuncts.iterator().next();
+        default -> new Disjunction<>(List.copyOf(normalisedDisjuncts));
+      };
     }
 
     @Override
@@ -475,7 +457,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected PropositionalFormula<T> nnf(boolean negated) {
+    public PropositionalFormula<T> nnf(boolean negated) {
       return negated
         ? Conjunction.ofTrusted(mapOperands(x -> x.nnf(negated)))
         : deduplicate(Disjunction.ofTrusted(mapOperands(x -> x.nnf(negated))));
@@ -501,7 +483,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected void countVariables(Map<T, Integer> occurrences) {
+    public void countVariables(Map<T, Integer> occurrences) {
       disjuncts.forEach(x -> x.countVariables(occurrences));
     }
 
@@ -522,34 +504,14 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof Disjunction)) {
-        return false;
-      }
-
-      Disjunction<?> that = (Disjunction<?>) obj;
-      return disjuncts.equals(that.disjuncts);
-    }
-
-    @Override
-    public int hashCode() {
-      return 31 * Disjunction.class.hashCode() + disjuncts.hashCode();
-    }
-
-    @Override
     public String toString() {
-      switch (disjuncts.size()) {
-        case 0:
-          return "ff";
-
-        case 1:
-          return disjuncts.get(0).toString();
-
-        default:
-          return disjuncts.stream()
-            .map(Object::toString)
-            .collect(Collectors.joining(" ∨ ", "(", ")"));
-      }
+      return switch (disjuncts.size()) {
+        case 0 -> "ff";
+        case 1 -> disjuncts.get(0).toString();
+        default -> disjuncts.stream()
+          .map(Object::toString)
+          .collect(Collectors.joining(" ∨ ", "(", ")"));
+      };
     }
 
     @Override
@@ -592,15 +554,20 @@ public abstract class PropositionalFormula<T> {
       }
       return operands;
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Disjunction<?> that
+        && disjuncts.equals(that.disjuncts);
+    }
+
+    @Override
+    public int hashCode() {
+      return disjuncts.hashCode();
+    }
   }
 
-  public static final class Negation<T> extends PropositionalFormula<T> {
-
-    public final PropositionalFormula<T> operand;
-
-    public Negation(PropositionalFormula<T> operand) {
-      this.operand = operand;
-    }
+  record Negation<T>(PropositionalFormula<T> operand) implements PropositionalFormula<T> {
 
     public static <T> PropositionalFormula<T> of(PropositionalFormula<T> operand) {
       if (operand.isTrue()) {
@@ -619,7 +586,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected PropositionalFormula<T> nnf(boolean negated) {
+    public PropositionalFormula<T> nnf(boolean negated) {
       return operand.nnf(!negated);
     }
 
@@ -631,24 +598,17 @@ public abstract class PropositionalFormula<T> {
     @Override
     public Map<T, Polarity> polarity() {
       var polarity = operand.polarity();
-      polarity.replaceAll((x, y) -> {
-        switch (y) {
-          case POSITIVE:
-            return Polarity.NEGATIVE;
-
-          case NEGATIVE:
-            return Polarity.POSITIVE;
-
-          default:
-            return Polarity.MIXED;
-        }
+      polarity.replaceAll((x, y) -> switch (y) {
+        case POSITIVE -> Polarity.NEGATIVE;
+        case NEGATIVE -> Polarity.POSITIVE;
+        case MIXED -> Polarity.MIXED;
       });
 
       return polarity;
     }
 
     @Override
-    protected void countVariables(Map<T, Integer> occurrences) {
+    public void countVariables(Map<T, Integer> occurrences) {
       operand.countVariables(occurrences);
     }
 
@@ -660,21 +620,6 @@ public abstract class PropositionalFormula<T> {
     @Override
     public int height() {
       return operand.height() + 1;
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof Negation)) {
-        return false;
-      }
-
-      Negation<?> that = (Negation<?>) obj;
-      return operand.equals(that.operand);
-    }
-
-    @Override
-    public int hashCode() {
-      return 31 * Negation.class.hashCode() + operand.hashCode();
     }
 
     @Override
@@ -697,15 +642,23 @@ public abstract class PropositionalFormula<T> {
     public Optional<T> smallestVariable() {
       return operand.smallestVariable();
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Negation<?> that
+        && operand.equals(that.operand);
+    }
+
+    @Override
+    public int hashCode() {
+      return operand.hashCode();
+    }
   }
 
-  @SuppressWarnings("PMD.AvoidFieldNameMatchingTypeName")
-  public static final class Variable<T> extends PropositionalFormula<T> {
+  record Variable<T>(T variable) implements PropositionalFormula<T> {
 
-    public final T variable;
-
-    public Variable(T variable) {
-      this.variable = Objects.requireNonNull(variable);
+    public Variable {
+      Objects.requireNonNull(variable);
     }
 
     public static <T> Variable<T> of(T variable) {
@@ -720,7 +673,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected void countVariables(Map<T, Integer> occurrences) {
+    public void countVariables(Map<T, Integer> occurrences) {
       occurrences.compute(variable, (x, y) -> y == null ? 1 : y + 1);
     }
 
@@ -735,21 +688,6 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    public boolean equals(Object obj) {
-      if (!(obj instanceof Variable)) {
-        return false;
-      }
-
-      Variable<?> that = (Variable<?>) obj;
-      return variable.equals(that.variable);
-    }
-
-    @Override
-    public int hashCode() {
-      return variable.hashCode();
-    }
-
-    @Override
     public String toString() {
       return variable.toString();
     }
@@ -761,7 +699,7 @@ public abstract class PropositionalFormula<T> {
     }
 
     @Override
-    protected PropositionalFormula<T> nnf(boolean negated) {
+    public PropositionalFormula<T> nnf(boolean negated) {
       return negated ? new Negation<>(this) : this;
     }
 
@@ -779,9 +717,20 @@ public abstract class PropositionalFormula<T> {
     public Optional<T> smallestVariable() {
       return Optional.of(variable);
     }
+
+    @Override
+    public boolean equals(Object o) {
+      return this == o || o instanceof Variable<?> that
+        && variable.equals(that.variable);
+    }
+
+    @Override
+    public int hashCode() {
+      return variable.hashCode();
+    }
   }
 
-  public static <T> List<PropositionalFormula<T>> conjuncts(PropositionalFormula<T> formula) {
+  static <T> List<PropositionalFormula<T>> conjuncts(PropositionalFormula<T> formula) {
 
     if (formula instanceof Variable
       || formula instanceof Negation
@@ -793,7 +742,7 @@ public abstract class PropositionalFormula<T> {
     return flattenConjunction(new ArrayList<>(List.of(formula)));
   }
 
-  public static <T> List<PropositionalFormula<T>> conjuncts(
+  static <T> List<PropositionalFormula<T>> conjuncts(
     List<? extends PropositionalFormula<T>> formulas) {
 
     return flattenConjunction(new ArrayList<>(formulas));
@@ -823,7 +772,7 @@ public abstract class PropositionalFormula<T> {
     return conjuncts;
   }
 
-  public static <T> List<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
+  static <T> List<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
 
     if (formula instanceof Variable
       || formula instanceof Negation
@@ -835,7 +784,7 @@ public abstract class PropositionalFormula<T> {
     return flattenDisjunction(new ArrayList<>(List.of(formula)));
   }
 
-  public static <T> List<PropositionalFormula<T>> disjuncts(
+  static <T> List<PropositionalFormula<T>> disjuncts(
     List<? extends PropositionalFormula<T>> formulas) {
 
     return flattenDisjunction(new ArrayList<>(formulas));

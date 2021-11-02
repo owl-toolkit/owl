@@ -32,7 +32,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
@@ -266,7 +265,7 @@ public final class RabinDegeneralization {
     // Set initial states
     resultAutomaton.initialStates(automaton.initialStates().stream()
       .map(stateMap::get)
-      .collect(Collectors.toList()));
+      .toList());
     resultAutomaton.trim();
 
     return resultAutomaton;

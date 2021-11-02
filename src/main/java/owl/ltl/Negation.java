@@ -26,7 +26,8 @@ import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
-public class Negation extends Formula.PropositionalOperator {
+public final class Negation extends Formula.PropositionalOperator {
+
   public Negation(Formula operand) {
     super(Negation.class, List.of(operand));
   }

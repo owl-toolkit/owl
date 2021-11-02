@@ -25,28 +25,23 @@ import static owl.logic.propositional.PropositionalFormula.conjuncts;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
-public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
+public sealed class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance
+  permits AllAcceptance, BuchiAcceptance {
 
   GeneralizedBuchiAcceptance(int size) {
     super(size);
   }
 
   public static GeneralizedBuchiAcceptance of(int size) {
-    switch (size) {
-      case 0:
-        return AllAcceptance.INSTANCE;
-
-      case 1:
-        return BuchiAcceptance.INSTANCE;
-
-      default:
-        return new GeneralizedBuchiAcceptance(size);
-    }
+    return switch (size) {
+      case 0 -> AllAcceptance.INSTANCE;
+      case 1 -> BuchiAcceptance.INSTANCE;
+      default -> new GeneralizedBuchiAcceptance(size);
+    };
   }
 
   public static Optional<? extends GeneralizedBuchiAcceptance> ofPartial(
@@ -55,11 +50,11 @@ public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
     var usedSets = new BitSet();
 
     for (var conjunct : conjuncts(formula)) {
-      if (!(conjunct instanceof Variable)) {
+      if (conjunct instanceof Variable<Integer> variable) {
+        usedSets.set(variable.variable());
+      } else {
         return Optional.empty();
       }
-
-      usedSets.set(((Variable<Integer>) conjunct).variable);
     }
 
     if (usedSets.cardinality() == usedSets.length()) {
@@ -73,7 +68,7 @@ public class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance {
   protected final PropositionalFormula<Integer> lazyBooleanExpression() {
     return PropositionalFormula.Conjunction.of(IntStream.range(0, acceptanceSets())
       .mapToObj(Variable::of)
-      .collect(Collectors.toList()));
+      .toList());
   }
 
   @Override

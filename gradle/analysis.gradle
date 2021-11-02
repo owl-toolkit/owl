@@ -40,17 +40,17 @@ tasks.withType(Pmd) {
 // https://docs.gradle.org/current/dsl/org.gradle.api.plugins.quality.Checkstyle.html
 
 checkstyle {
-    toolVersion = "8.21" // http://checkstyle.sourceforge.net/releasenotes.html
+    toolVersion = "9.0" // http://checkstyle.sourceforge.net/releasenotes.html
     configFile = file("$project.rootDir/config/checkstyle.xml")
     ignoreFailures = false
-    maxWarnings = 0
+    maxWarnings = 1000000
     showViolations = false // Don't litter console
     checkstyleMain {
-        configProperties = ['suppression-file':
-                                "$project.rootDir/config/checkstyle-main-suppression.xml"]
+        configProperties = ['org.checkstyle.google.suppressionfilter.config':
+                                "$project.rootDir/config/checkstyle-suppressions.xml"]
     }
     checkstyleTest {
-        configProperties = ['suppression-file':
-                                "$project.rootDir/config/checkstyle-test-suppression.xml"]
+        configProperties = ['org.checkstyle.google.suppressionfilter.config':
+                                "$project.rootDir/config/checkstyle-suppressions.xml"]
     }
 }

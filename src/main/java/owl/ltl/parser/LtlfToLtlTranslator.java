@@ -89,34 +89,31 @@ public final class LtlfToLtlTranslator {
 
     @Override
     public Formula visit(FOperator fOperator) {
-      if (fOperator.operand() instanceof GOperator) {
+      if (fOperator.operand() instanceof GOperator gOperand) {
         //"Persistence" property --> "last"- optimization
         // since we transform the formula to Co-Safety we always take the "last"-optimization:
         // FG a --> F (tail & X !tail & a)
-        GOperator GOperand = (GOperator) fOperator.operand();
         return FOperator.of(
           Conjunction.of(
             tail,
             XOperator.of(tail.not()),
-            GOperand.operand().accept(this)));
+            gOperand.operand().accept(this)));
       }
       // filter out cases of FF a
       if (fOperator.operand() instanceof FOperator) {
         return fOperator.operand().accept(this);
       }
-      if (fOperator.operand() instanceof Negation) {
-        Negation NegOperand = (Negation) fOperator.operand();
+      if (fOperator.operand() instanceof Negation negOperand) {
         //  detect "hidden" last-optimizations e.g. F!F a  == FG !a
-        if (NegOperand.operand() instanceof FOperator) {
-          FOperator FOperand = (FOperator) NegOperand.operand();
+        if (negOperand.operand() instanceof FOperator fOperand) {
           return FOperator.of(
             Conjunction.of(
               tail,
               XOperator.of(tail.not()),
-              new Negation(FOperand.operand()).accept(this)));
+              new Negation(fOperand.operand()).accept(this)));
         }
         // F !X something is a Tautology in LTLf
-        if (NegOperand.operand() instanceof XOperator) {
+        if (negOperand.operand() instanceof XOperator) {
           return BooleanConstant.TRUE;
         }
       }
@@ -126,26 +123,23 @@ public final class LtlfToLtlTranslator {
 
     @Override
     public Formula visit(GOperator gOperator) {
-      if (gOperator.operand() instanceof FOperator) {
+      if (gOperator.operand() instanceof FOperator fOperand) {
         //"Response" property --> "last"- optimization
         // since we transform the formula to Co-Safety we always take the "last"-optimization:
         // GF a --> F (tail & X !tail & a)
-        FOperator FOperand = (FOperator) gOperator.operand();
         return FOperator.of(
           Conjunction.of(
             tail,
             XOperator.of(tail.not()),
-            FOperand.operand().accept(this)));
+            fOperand.operand().accept(this)));
       }
       // filter out cases of GG a
       if (gOperator.operand() instanceof GOperator) {
         return (gOperator.operand()).accept(this);
       }
-      if (gOperator.operand() instanceof Negation) {
-        Negation NegOperand = (Negation) gOperator.operand();
+      if (gOperator.operand() instanceof Negation NegOperand) {
         //  detect "hidden" last-optimizations e.g. G!G a  == GF !a
-        if (NegOperand.operand() instanceof GOperator) {
-          GOperator GOperand = (GOperator) NegOperand.operand();
+        if (NegOperand.operand() instanceof GOperator GOperand) {
           return FOperator.of(
             Conjunction.of(
               tail,

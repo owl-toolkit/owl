@@ -29,7 +29,6 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 import javax.annotation.Nonnegative;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
@@ -368,10 +367,10 @@ abstract class DependencyTree<T> {
 
     private int getAcceptanceSet() {
       if (acceptance instanceof Variable) {
-        return ((Variable<Integer>) acceptance).variable;
+        return ((Variable<Integer>) acceptance).variable();
       }
 
-      return ((Variable<Integer>) (((Negation<Integer>) acceptance).operand)).variable;
+      return ((Variable<Integer>) (((Negation<Integer>) acceptance).operand())).variable();
     }
 
     @Override
@@ -471,7 +470,7 @@ abstract class DependencyTree<T> {
       return children.stream()
         .map(DependencyTree::getAcceptanceExpression)
         .distinct()
-        .collect(Collectors.toList());
+        .toList();
     }
 
     @Override

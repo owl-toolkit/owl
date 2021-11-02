@@ -34,7 +34,11 @@ import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.sat.Solver;
 
-public class EmersonLeiAcceptance {
+public sealed class EmersonLeiAcceptance permits
+  GeneralizedBuchiAcceptance,
+  GeneralizedCoBuchiAcceptance,
+  GeneralizedRabinAcceptance,
+  ParityAcceptance {
 
   @Nullable
   private PropositionalFormula<Integer> expression;

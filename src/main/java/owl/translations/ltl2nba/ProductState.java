@@ -56,11 +56,10 @@ public final class ProductState {
       return true;
     }
 
-    if (!(o instanceof ProductState)) {
+    if (!(o instanceof ProductState that)) {
       return false;
     }
 
-    ProductState that = (ProductState) o;
     return that.hashCode == hashCode
       && Objects.equals(safety, that.safety)
       && Objects.equals(liveness, that.liveness)

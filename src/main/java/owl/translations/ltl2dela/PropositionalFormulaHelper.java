@@ -105,29 +105,25 @@ public final class PropositionalFormulaHelper {
   private static <K> int translateBdd(
     PropositionalFormula<K> formula, Bdd bdd, Map<K, Integer> variableMapping) {
 
-    if (formula instanceof PropositionalFormula.Variable) {
-      return bdd.variableNode(
-        variableMapping.get(((PropositionalFormula.Variable<K>) formula).variable));
+    if (formula instanceof PropositionalFormula.Variable<K> variable) {
+      return bdd.variableNode(variableMapping.get(variable.variable()));
     }
 
-    if (formula instanceof PropositionalFormula.Negation) {
-      return bdd.reference(bdd.not(
-        translateBdd(((PropositionalFormula.Negation<K>) formula).operand, bdd, variableMapping)));
+    if (formula instanceof PropositionalFormula.Negation<K> negation) {
+      return bdd.reference(bdd.not(translateBdd(negation.operand(), bdd, variableMapping)));
     }
 
-    if (formula instanceof PropositionalFormula.Biconditional) {
+    if (formula instanceof PropositionalFormula.Biconditional<K> biconditional) {
       return bdd.reference(bdd.equivalence(
-        translateBdd(
-          ((PropositionalFormula.Biconditional<K>) formula).leftOperand, bdd, variableMapping),
-        translateBdd(
-          ((PropositionalFormula.Biconditional<K>) formula).rightOperand, bdd, variableMapping)
+        translateBdd(biconditional.leftOperand(), bdd, variableMapping),
+        translateBdd(biconditional.rightOperand(), bdd, variableMapping)
       ));
     }
 
-    if (formula instanceof PropositionalFormula.Conjunction) {
+    if (formula instanceof PropositionalFormula.Conjunction<K> conjunction) {
       int x = bdd.trueNode();
 
-      for (var conjunct : ((PropositionalFormula.Conjunction<K>) formula).conjuncts) {
+      for (var conjunct : conjunction.conjuncts()) {
         int y = translateBdd(conjunct, bdd, variableMapping);
         x = bdd.consume(bdd.and(x, y), x, y);
       }
@@ -138,7 +134,7 @@ public final class PropositionalFormulaHelper {
     assert formula instanceof PropositionalFormula.Disjunction;
     int x = bdd.falseNode();
 
-    for (var disjunct : ((PropositionalFormula.Disjunction<K>) formula).disjuncts) {
+    for (var disjunct : ((PropositionalFormula.Disjunction<K>) formula).disjuncts()) {
       int y = translateBdd(disjunct, bdd, variableMapping);
       x = bdd.consume(bdd.or(x, y), x, y);
     }

@@ -24,7 +24,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.FactorySupplier;
@@ -124,7 +123,7 @@ class SyntacticFragmentsTest {
     var outside = parse(List.of(FINITE_EXAMPLES, CO_SAFETY_EXAMPLES));
     var inside = outside.stream()
       .map(x -> new GOperator(new FOperator(x)))
-      .collect(Collectors.toList());
+      .toList();
 
     inside.forEach(x -> assertTrue(SyntacticFragments.isGfCoSafety(x), x.toString()));
     outside.forEach(x -> assertFalse(SyntacticFragments.isGfCoSafety(x), x.toString()));
@@ -133,7 +132,7 @@ class SyntacticFragmentsTest {
   @Test
   void isGCoSafety() {
     var outside = parse(List.of(FINITE_EXAMPLES, CO_SAFETY_EXAMPLES));
-    var inside = outside.stream().map(GOperator::new).collect(Collectors.toList());
+    var inside = outside.stream().map(GOperator::new).toList();
 
     inside.forEach(x -> assertTrue(SyntacticFragments.isGCoSafety(x), x.toString()));
     outside.forEach(x -> assertFalse(SyntacticFragments.isGCoSafety(x), x.toString()));
@@ -144,7 +143,7 @@ class SyntacticFragmentsTest {
     var outside = parse(List.of(FINITE_EXAMPLES, SAFETY_EXAMPLES));
     var inside = outside.stream()
       .map(x -> new FOperator(new GOperator(x)))
-      .collect(Collectors.toList());
+      .toList();
 
     inside.forEach(x -> assertTrue(SyntacticFragments.isFgSafety(x), x.toString()));
     outside.forEach(x -> assertFalse(SyntacticFragments.isFgSafety(x), x.toString()));
@@ -153,7 +152,7 @@ class SyntacticFragmentsTest {
   @Test
   void isFSafety() {
     var outside = parse(List.of(FINITE_EXAMPLES, SAFETY_EXAMPLES));
-    var inside = outside.stream().map(FOperator::new).collect(Collectors.toList());
+    var inside = outside.stream().map(FOperator::new).toList();
 
     inside.forEach(x -> assertTrue(SyntacticFragments.isFSafety(x), x.toString()));
     outside.forEach(x -> assertFalse(SyntacticFragments.isFSafety(x), x.toString()));

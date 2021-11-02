@@ -190,14 +190,13 @@ public class IntPreOrder {
     if (this == o) {
       return true;
     }
-    if (!(o instanceof IntPreOrder)) {
+    if (!(o instanceof IntPreOrder preOrder)) {
       return false;
     }
 
-    IntPreOrder record = (IntPreOrder) o;
-    return size == record.size
-      && hashCode == record.hashCode
-      && Arrays.deepEquals(array, record.array);
+    return size == preOrder.size
+      && hashCode == preOrder.hashCode
+      && Arrays.deepEquals(array, preOrder.array);
   }
 
   /**

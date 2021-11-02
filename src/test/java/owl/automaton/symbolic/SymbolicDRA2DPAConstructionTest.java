@@ -22,7 +22,7 @@ package owl.automaton.symbolic;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import owl.automaton.Views;
 import owl.automaton.acceptance.RabinAcceptance;
@@ -35,7 +35,7 @@ import owl.translations.ltl2dra.NormalformDRAConstruction;
 
 public class SymbolicDRA2DPAConstructionTest {
 
-  private final List<LabelledFormula> tests = List.of(
+  private final List<LabelledFormula> tests = Stream.of(
     "0",
     "1",
     "a",
@@ -167,7 +167,7 @@ public class SymbolicDRA2DPAConstructionTest {
     "G ( a | Xb) & GF ( b & Xc)",
     "G (Xa |  b) & GF (Xb &  c)",
     "G (Xa | Xb) & GF (Xb &  c)"
-  ).stream().map(LtlParser::parse).collect(Collectors.toList());
+  ).map(LtlParser::parse).toList();
 
   @Test
   void symbolicDRA2DPAConstructionTest() {

@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static owl.util.Assertions.assertThat;
 
 import java.util.BitSet;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
@@ -51,7 +52,7 @@ class FormulaTest {
   @Test
   void simplify4() {
     Formula f3 = new UOperator(Literal.of(1), Literal.of(0)).not();
-    f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
+    f3 = f3.accept(new UnabbreviateVisitor(Set.of(ROperator.class)));
 
     Formula f4 = Literal.of(1, true);
     Formula f5 = Literal.of(0, true);
@@ -67,7 +68,7 @@ class FormulaTest {
     Formula f1 = Literal.of(0, false);
     Formula f2 = new GOperator(new UOperator(f0, f1));
     Formula f3 = f2.not();
-    f3 = f3.accept(new UnabbreviateVisitor(ROperator.class));
+    f3 = f3.accept(new UnabbreviateVisitor(Set.of(ROperator.class)));
 
     assertEquals(f3, LtlParser.parse("((F G !a) | F (!a & !b))").formula());
   }

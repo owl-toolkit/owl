@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
 import owl.ltl.FOperator;
+import owl.ltl.Fixpoint;
 import owl.ltl.Formula;
 import owl.ltl.GOperator;
 import owl.ltl.Literal;
@@ -77,7 +78,7 @@ public final class Selector {
   }
 
   private static Stream<Fixpoints> selectAsymmetricFromClause(Set<Formula> clause) {
-    List<Set<Set<Formula.TemporalOperator>>> elementSets = new ArrayList<>();
+    List<Set<Set<Fixpoint.GreatestFixpoint>>> elementSets = new ArrayList<>();
 
     for (Formula element : clause) {
       assert isClauseElement(element);
@@ -91,8 +92,8 @@ public final class Selector {
 
     List<Fixpoints> fixpointsList = new ArrayList<>();
 
-    for (List<Set<Formula.TemporalOperator>> combination : Sets.cartesianProduct(elementSets)) {
-      Set<Formula.TemporalOperator> union = new HashSet<>();
+    for (List<Set<Fixpoint.GreatestFixpoint>> combination : Sets.cartesianProduct(elementSets)) {
+      Set<Fixpoint.GreatestFixpoint> union = new HashSet<>();
       combination.forEach(union::addAll);
       fixpointsList.add(Fixpoints.of(Set.of(), union));
     }
@@ -133,14 +134,15 @@ public final class Selector {
 
   private static Set<Formula.TemporalOperator> selectAllFixpoints(
     Formula formula) {
-    return formula.subformulas(Predicates.IS_FIXPOINT,
+    return formula.subformulas(Fixpoint.class::isInstance,
       Formula.TemporalOperator.class::cast);
   }
 
-  private static Set<Formula.TemporalOperator> selectGreatestFixpoints(
+  private static Set<Fixpoint.GreatestFixpoint> selectGreatestFixpoints(
     Formula formula) {
-    return formula.subformulas(Predicates.IS_GREATEST_FIXPOINT,
-      Formula.TemporalOperator.class::cast);
+    return formula.subformulas(
+      Fixpoint.GreatestFixpoint.class::isInstance,
+      Fixpoint.GreatestFixpoint.class::cast);
   }
 
   private abstract static class AbstractSymmetricVisitor implements Visitor<Void> {

@@ -375,11 +375,13 @@ final class Mixins {
 
     void start(String subcommand, Automaton<?, ?> automaton) {
       if (printDiagnostics) {
-        System.err.printf("%s:\n"
-            + "  Input Automaton (after preprocessing):\n"
-            + "    States: %d\n"
-            + "    Acceptance Name: %s\n"
-            + "    Acceptance Sets: %d\n",
+        System.err.printf("""
+            %s:
+              Input Automaton (after preprocessing):
+                States: %d
+                Acceptance Name: %s
+                Acceptance Sets: %d
+            """,
           subcommand,
           automaton.states().size(),
           automaton.acceptance().name(),
@@ -391,11 +393,13 @@ final class Mixins {
     void finish(Automaton<?, ?> automaton) {
       if (printDiagnostics) {
         stopwatch.stop();
-        System.err.printf("  Output Automaton (before postprocessing):\n"
-            + "    States: %d\n"
-            + "    Acceptance Name: %s\n"
-            + "    Acceptance Sets: %d\n"
-            + "  Runtime (without pre- and postprocessing): %d %s\n",
+        System.err.printf("""
+              Output Automaton (before postprocessing):
+                States: %d
+                Acceptance Name: %s
+                Acceptance Sets: %d
+              Runtime (without pre- and postprocessing): %d %s
+            """,
           automaton.states().size(),
           automaton.acceptance().name(),
           automaton.acceptance().acceptanceSets(),

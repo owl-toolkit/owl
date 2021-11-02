@@ -285,9 +285,7 @@ public abstract class SymbolicAutomaton<A extends EmersonLeiAcceptance> {
     StateEncoder<S> encoder,
     VariableAllocation allocation) {
 
-    if (edgeTree instanceof MtBdd.Leaf) {
-      var leaf = (MtBdd.Leaf<Edge<S>>) edgeTree;
-
+    if (edgeTree instanceof MtBdd.Leaf<Edge<S>> leaf) {
       BddSet edges = factory.of(false);
 
       for (Edge<S> edge : leaf.value) {

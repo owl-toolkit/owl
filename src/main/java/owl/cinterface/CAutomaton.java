@@ -744,8 +744,7 @@ public final class CAutomaton {
         return CO_BUCHI;
       }
 
-      if (acceptance instanceof ParityAcceptance) {
-        var parityAcceptance = (ParityAcceptance) acceptance;
+      if (acceptance instanceof ParityAcceptance parityAcceptance) {
 
         if (parityAcceptance.parity().even()) {
           if (parityAcceptance.parity().max()) {
@@ -897,9 +896,7 @@ public final class CAutomaton {
 
       if (position == null) {
 
-        if (edgeTree instanceof MtBdd.Node) {
-          var node = (MtBdd.Node<Edge<S>>) edgeTree;
-
+        if (edgeTree instanceof MtBdd.Node<Edge<S>> node) {
           position = treeBuffer.size();
           treeBuffer.add(node.variable, -1, -1);
 

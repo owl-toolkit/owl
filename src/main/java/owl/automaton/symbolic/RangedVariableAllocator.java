@@ -69,23 +69,11 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
       for (VariableType type : order) {
         fromIndexInclusive.put(type, fromIndex);
 
-        switch (type) {
-          case STATE:
-          case SUCCESSOR_STATE:
-            fromIndex = fromIndex + stateVariables;
-            break;
-
-          case COLOUR:
-            fromIndex = fromIndex + colours;
-            break;
-
-          case ATOMIC_PROPOSITION:
-            fromIndex = fromIndex + atomicPropositions;
-            break;
-
-          default:
-            throw new AssertionError("Unreachable.");
-        }
+        fromIndex = switch (type) {
+          case STATE, SUCCESSOR_STATE -> fromIndex + stateVariables;
+          case COLOUR -> fromIndex + colours;
+          case ATOMIC_PROPOSITION -> fromIndex + atomicPropositions;
+        };
 
         toIndexExclusive.put(type, fromIndex);
       }
@@ -152,27 +140,12 @@ public final class RangedVariableAllocator implements SymbolicAutomaton.Variable
       List<String> variablesNames = new ArrayList<>();
 
       for (VariableType type : order) {
-        String prefix;
-        switch (type) {
-          case ATOMIC_PROPOSITION:
-            prefix = "ap";
-            break;
-
-          case COLOUR:
-            prefix = "c";
-            break;
-
-          case STATE:
-            prefix = "x";
-            break;
-
-          case SUCCESSOR_STATE:
-            prefix = "x'";
-            break;
-
-          default:
-            throw new AssertionError("Unreachable.");
-        }
+        String prefix = switch (type) {
+          case ATOMIC_PROPOSITION -> "ap";
+          case COLOUR -> "c";
+          case STATE -> "x";
+          case SUCCESSOR_STATE -> "x'";
+        };
 
         int variables = toIndexExclusive.get(type) - fromIndexInclusive.get(type);
 

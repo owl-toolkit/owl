@@ -52,7 +52,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
@@ -355,16 +354,11 @@ public final class NormalformDELAConstruction
               return PropositionalFormula.Variable.of(index);
             }
 
-            switch (classification.get(index)) {
-              case TERMINAL_ACCEPTING:
-                return PropositionalFormula.trueConstant();
-
-              case TERMINAL_REJECTING:
-                return PropositionalFormula.falseConstant();
-
-              default:
-                return PropositionalFormula.Variable.of(index);
-            }
+            return switch (classification.get(index)) {
+              case TERMINAL_ACCEPTING -> PropositionalFormula.trueConstant();
+              case TERMINAL_REJECTING -> PropositionalFormula.falseConstant();
+              default -> PropositionalFormula.Variable.of(index);
+            };
           });
 
           BitSet remainingVariables = BitSet2.copyOf(newStateFormula.variables());
@@ -489,16 +483,11 @@ public final class NormalformDELAConstruction
             return PropositionalFormula.Variable.of(index);
           }
 
-          switch (classification.get(index)) {
-            case TERMINAL_ACCEPTING:
-              return PropositionalFormula.trueConstant();
-
-            case TERMINAL_REJECTING:
-              return PropositionalFormula.falseConstant();
-
-            default:
-              return PropositionalFormula.Variable.of(index);
-          }
+        return switch (classification.get(index)) {
+          case TERMINAL_ACCEPTING -> PropositionalFormula.trueConstant();
+          case TERMINAL_REJECTING -> PropositionalFormula.falseConstant();
+          default -> PropositionalFormula.Variable.of(index);
+        };
         });
 
       assert stateMap.keySet().containsAll(newStateFormula.variables()) : "Short-circuiting failed";
@@ -542,18 +531,12 @@ public final class NormalformDELAConstruction
       assert !classification.containsValue(TRANSIENT_NOT_SUSPENDED);
 
       // Evaluate all suspendable states that belong to a weak accepting and rejecting SCC.
-      var alpha = newStateFormula.substitute(index -> {
-        switch (classification.get(index)) {
-          case WEAK_ACCEPTING_SUSPENDED:
-            return PropositionalFormula.trueConstant();
-
-          case WEAK_REJECTING_SUSPENDED:
-            return PropositionalFormula.falseConstant();
-
-          default:
-            return PropositionalFormula.Variable.of(index);
-        }
-      });
+      var alpha = newStateFormula.substitute(
+        index -> switch (classification.get(index)) {
+          case WEAK_ACCEPTING_SUSPENDED -> PropositionalFormula.trueConstant();
+          case WEAK_REJECTING_SUSPENDED -> PropositionalFormula.falseConstant();
+          default -> PropositionalFormula.Variable.of(index);
+        });
 
       {
         var remainingVariables = alpha.variables();
@@ -628,7 +611,7 @@ public final class NormalformDELAConstruction
 
       alpha = alpha.substitute(x -> {
         ImmutableBitSet roundRobinChain = Iterables.getOnlyElement(
-          roundRobinChains.stream().filter(chain -> chain.contains(x)).collect(Collectors.toList()),
+          roundRobinChains.stream().filter(chain -> chain.contains(x)).toList(),
           null);
 
         return roundRobinChain == null
@@ -647,12 +630,10 @@ public final class NormalformDELAConstruction
 
       var roundRobinChain = new TreeSet<Integer>();
 
-      for (PropositionalFormula<Integer> conjunct : conjunction.conjuncts) {
-        if (conjunct instanceof PropositionalFormula.Variable) {
-          int variable = ((PropositionalFormula.Variable<Integer>) conjunct).variable;
-
-          if (roundRobinCandidates.contains(variable)) {
-            roundRobinChain.add(variable);
+      for (PropositionalFormula<Integer> conjunct : conjunction.conjuncts()) {
+        if (conjunct instanceof PropositionalFormula.Variable<Integer> variable) {
+          if (roundRobinCandidates.contains(variable.variable())) {
+            roundRobinChain.add(variable.variable());
           }
         }
       }
@@ -665,15 +646,11 @@ public final class NormalformDELAConstruction
 
       var roundRobinChain = new TreeSet<Integer>();
 
-      for (PropositionalFormula<Integer> disjunct : disjunction.disjuncts) {
-        if (disjunct instanceof PropositionalFormula.Negation) {
-          var negation = (PropositionalFormula.Negation<Integer>) disjunct;
-
-          if (negation.operand instanceof PropositionalFormula.Variable) {
-            int variable = ((PropositionalFormula.Variable<Integer>) negation.operand).variable;
-
-            if (roundRobinCandidates.contains(variable)) {
-              roundRobinChain.add(variable);
+      for (PropositionalFormula<Integer> disjunct : disjunction.disjuncts()) {
+        if (disjunct instanceof PropositionalFormula.Negation<Integer> negation) {
+          if (negation.operand() instanceof PropositionalFormula.Variable<Integer> variable) {
+            if (roundRobinCandidates.contains(variable.variable())) {
+              roundRobinChain.add(variable.variable());
             }
           }
         }
@@ -747,12 +724,11 @@ public final class NormalformDELAConstruction
         roundRobinChains.add(ImmutableBitSet.copyOf(roundRobinChain));
       }
 
-      if (alpha instanceof PropositionalFormula.Biconditional) {
-        var castedAlpha = (PropositionalFormula.Biconditional<Integer>) alpha;
+      if (alpha instanceof PropositionalFormula.Biconditional<Integer> castedAlpha) {
 
         roundRobinChains.addAll(
           roundRobinSuspension(
-            castedAlpha.leftOperand,
+            castedAlpha.leftOperand(),
             stateMap,
             acceptingEdges,
             oldRoundRobinCounters,
@@ -760,20 +736,20 @@ public final class NormalformDELAConstruction
 
         roundRobinChains.addAll(
           roundRobinSuspension(
-            castedAlpha.rightOperand,
+            castedAlpha.rightOperand(),
             stateMap,
             acceptingEdges,
             oldRoundRobinCounters,
             newRoundRobinCounters));
 
-      } else if (alpha instanceof PropositionalFormula.Conjunction) {
-        for (var conjunct : ((PropositionalFormula.Conjunction<Integer>) alpha).conjuncts) {
+      } else if (alpha instanceof PropositionalFormula.Conjunction<Integer> castedAlpha) {
+        for (var conjunct : castedAlpha.conjuncts()) {
           roundRobinChains.addAll(
             roundRobinSuspension(
               conjunct, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters));
         }
-      } else if (alpha instanceof PropositionalFormula.Disjunction) {
-        for (var disjunct : ((PropositionalFormula.Disjunction<Integer>) alpha).disjuncts) {
+      } else if (alpha instanceof PropositionalFormula.Disjunction<Integer> castedAlpha) {
+        for (var disjunct : castedAlpha.disjuncts()) {
           roundRobinChains.addAll(
             roundRobinSuspension(
               disjunct, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters));
@@ -793,19 +769,18 @@ public final class NormalformDELAConstruction
         return stateFormula;
       }
 
-      if (stateFormula instanceof PropositionalFormula.Negation) {
-        return PropositionalFormula.Negation.of(pruneRedundantConjunctsAndDisjuncts(
-          ((PropositionalFormula.Negation<Integer>) stateFormula).operand, stateMap));
+      if (stateFormula instanceof PropositionalFormula.Negation<Integer> negation) {
+        return PropositionalFormula.Negation.of(
+          pruneRedundantConjunctsAndDisjuncts(negation.operand(), stateMap));
       }
 
-      if (stateFormula instanceof PropositionalFormula.Biconditional) {
-        var castedStateFormula = (PropositionalFormula.Biconditional<Integer>) stateFormula;
+      if (stateFormula instanceof PropositionalFormula.Biconditional<Integer> biconditional) {
 
-        if (isVariableOrNegationOfVariable(castedStateFormula.leftOperand)
-          && isVariableOrNegationOfVariable(castedStateFormula.rightOperand)) {
+        if (isVariableOrNegationOfVariable(biconditional.leftOperand())
+          && isVariableOrNegationOfVariable(biconditional.rightOperand())) {
 
-          var leftLanguage = language(castedStateFormula.leftOperand, stateMap);
-          var rightLanguage = language(castedStateFormula.rightOperand, stateMap);
+          var leftLanguage = language(biconditional.leftOperand(), stateMap);
+          var rightLanguage = language(biconditional.rightOperand(), stateMap);
 
           if (leftLanguage.equals(rightLanguage)) {
             return PropositionalFormula.trueConstant();
@@ -817,16 +792,16 @@ public final class NormalformDELAConstruction
         }
 
         return PropositionalFormula.Biconditional.of(
-          pruneRedundantConjunctsAndDisjuncts(castedStateFormula.leftOperand, stateMap),
-          pruneRedundantConjunctsAndDisjuncts(castedStateFormula.rightOperand, stateMap));
+          pruneRedundantConjunctsAndDisjuncts(biconditional.leftOperand(), stateMap),
+          pruneRedundantConjunctsAndDisjuncts(biconditional.rightOperand(), stateMap));
       }
 
-      if (stateFormula instanceof PropositionalFormula.Conjunction) {
+      if (stateFormula instanceof PropositionalFormula.Conjunction<Integer> conjunction) {
 
         return PropositionalFormula.Conjunction.of(Collections3.maximalElements(
-          ((PropositionalFormula.Conjunction<Integer>) stateFormula).conjuncts.stream()
+          conjunction.conjuncts().stream()
             .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
-            .collect(Collectors.toList()),
+            .toList(),
           (x, y) -> {
             if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
               return false;
@@ -849,9 +824,9 @@ public final class NormalformDELAConstruction
       assert stateFormula instanceof PropositionalFormula.Disjunction;
 
       return PropositionalFormula.Disjunction.of(Collections3.maximalElements(
-        ((PropositionalFormula.Disjunction<Integer>) stateFormula).disjuncts.stream()
+        ((PropositionalFormula.Disjunction<Integer>) stateFormula).disjuncts().stream()
           .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
-          .collect(Collectors.toList()),
+          .toList(),
         (x, y) -> {
           if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
             return false;
@@ -874,7 +849,7 @@ public final class NormalformDELAConstruction
     private static boolean isVariableOrNegationOfVariable(PropositionalFormula<?> formula) {
       return formula instanceof PropositionalFormula.Variable
         || (formula instanceof PropositionalFormula.Negation
-        && ((PropositionalFormula.Negation<?>) formula).operand
+        && ((PropositionalFormula.Negation<?>) formula).operand()
         instanceof PropositionalFormula.Variable);
     }
 
@@ -884,16 +859,15 @@ public final class NormalformDELAConstruction
 
       assert isVariableOrNegationOfVariable(stateFormula);
 
-      if (stateFormula instanceof PropositionalFormula.Variable) {
-        int index = ((PropositionalFormula.Variable<Integer>) stateFormula).variable;
-        return stateMap.get(index).all();
+      if (stateFormula instanceof PropositionalFormula.Variable<Integer> variable) {
+        return stateMap.get(variable.variable()).all();
       }
 
       assert stateFormula instanceof PropositionalFormula.Negation;
-      var operand = ((PropositionalFormula.Negation<Integer>) stateFormula).operand;
+      var operand = ((PropositionalFormula.Negation<Integer>) stateFormula).operand();
 
       assert operand instanceof PropositionalFormula.Variable;
-      int index = ((PropositionalFormula.Variable<Integer>) operand).variable;
+      int index = ((PropositionalFormula.Variable<Integer>) operand).variable();
 
       return stateMap.get(index).all().not();
     }

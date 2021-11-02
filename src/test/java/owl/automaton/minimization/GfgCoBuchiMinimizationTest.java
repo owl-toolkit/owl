@@ -89,7 +89,7 @@ class GfgCoBuchiMinimizationTest {
 
   private static Automaton<?, CoBuchiAcceptance> graphPermutationLanguage(int n) {
 
-    var initialState = IntStream.range(1, n + 1).boxed().collect(Collectors.toUnmodifiableList());
+    var initialState = IntStream.range(1, n + 1).boxed().toList();
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       List.of("a", "b"), Set.of(initialState), CoBuchiAcceptance.INSTANCE) {

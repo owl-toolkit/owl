@@ -104,16 +104,11 @@ public final class Conjunction extends Formula.NaryPropositionalOperator {
       }
     }
 
-    switch (list.size()) {
-      case 0:
-        return BooleanConstant.TRUE;
-
-      case 1:
-        return list.get(0);
-
-      default:
-        return new Conjunction(list, null);
-    }
+    return switch (list.size()) {
+      case 0 -> BooleanConstant.TRUE;
+      case 1 -> list.get(0);
+      default -> new Conjunction(list, null);
+    };
   }
 
   @Override

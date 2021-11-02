@@ -84,9 +84,8 @@ class DependencyTreeFactory<T> extends PropositionalVisitor<DependencyTree<T>> {
       builder.addSafety(formula, factory.of(formula.unfold()));
     }
 
-    if (leaf instanceof FallbackLeaf) {
+    if (leaf instanceof FallbackLeaf<T> fallbackLeaf) {
       assert piggyback == null;
-      FallbackLeaf<T> fallbackLeaf = (FallbackLeaf<T>) leaf;
       setNumber += fallbackLeaf.automaton.acceptance().acceptanceSets();
       T initialState = Iterables.getOnlyElement(fallbackLeaf.automaton.initialStates(), null);
 

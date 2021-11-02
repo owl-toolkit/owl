@@ -202,7 +202,7 @@ public final class RabinizerBuilder {
     Factories factories = FactorySupplier.defaultSupplier()
       .getFactories(formula.atomicPropositions());
     Formula phiNormalized = formula.formula().nnf().accept(
-      new UnabbreviateVisitor(WOperator.class, ROperator.class));
+      new UnabbreviateVisitor(Set.of(WOperator.class, ROperator.class)));
     // TODO Check if the formula only has a single G
     // TODO Check for safety languages?
     logger.log(Level.FINE, "Creating rabinizer automaton for formula {0}",
@@ -778,10 +778,9 @@ public final class RabinizerBuilder {
 
         EquivalenceClassFactory factory = equivalenceClass.factory();
 
-        if (unwrapped instanceof GOperator) {
-          gOperators.add((GOperator) unwrapped);
-        } else if (unwrapped instanceof Formula.BinaryTemporalOperator) {
-          var binaryOperator = (Formula.BinaryTemporalOperator) unwrapped;
+        if (unwrapped instanceof GOperator gOperator) {
+          gOperators.add(gOperator);
+        } else if (unwrapped instanceof Formula.BinaryTemporalOperator binaryOperator) {
           findSupportingSubFormulas(factory.of(binaryOperator.leftOperand()), gOperators);
           findSupportingSubFormulas(factory.of(binaryOperator.rightOperand()), gOperators);
         } else {
@@ -846,8 +845,8 @@ public final class RabinizerBuilder {
 
       // Allocate the acceptance caches
       List<List<Integer>> preRankings = Arrays.stream(maximalRanks)
-        .mapToObj(i -> IntStream.rangeClosed(0, i).boxed().collect(Collectors.toList()))
-        .collect(Collectors.toList());
+        .mapToObj(i -> IntStream.rangeClosed(0, i).boxed().toList())
+        .toList();
       List<List<Integer>> rankings = Lists.cartesianProduct(preRankings);
       RabinPair[] rankingPairs = new RabinPair[rankings.size()];
       Arrays.setAll(rankingPairs, i -> builder.add(subset.size()));

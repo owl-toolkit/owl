@@ -104,7 +104,7 @@ public abstract class MultiPebble<S> {
       pebbles()
         .stream()
         .map(p -> p.withFlag(b))
-        .collect(Collectors.toList()),
+        .toList(),
       size()
     );
   }

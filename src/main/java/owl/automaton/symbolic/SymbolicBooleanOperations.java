@@ -51,7 +51,7 @@ public final class SymbolicBooleanOperations {
       PropositionalFormula.Disjunction.of(
         IntStream.range(0, automata.size())
           .mapToObj(PropositionalFormula.Variable::of)
-          .collect(Collectors.toList())
+          .toList()
       ), automata);
   }
 
@@ -64,7 +64,7 @@ public final class SymbolicBooleanOperations {
       PropositionalFormula.Conjunction.of(
         IntStream.range(0, automata.size())
           .mapToObj(PropositionalFormula.Variable::of)
-          .collect(Collectors.toList())
+          .toList()
       ), automata);
   }
 
@@ -99,7 +99,7 @@ public final class SymbolicBooleanOperations {
     }
 
     var allocationCombiner = new SequentialVariableAllocationCombiner(
-      automata.stream().map(SymbolicAutomaton::variableAllocation).collect(Collectors.toList())
+      automata.stream().map(SymbolicAutomaton::variableAllocation).toList()
     );
 
     BddSetFactory bddSetFactory = automata.get(0).factory();

@@ -26,7 +26,6 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
@@ -47,7 +46,7 @@ public final class GenericConstructions {
     List<Either<Integer, S>> delayingStates = IntStream
       .range(0, steps)
       .mapToObj(Either::<Integer, S>left)
-      .collect(Collectors.toUnmodifiableList());
+      .toList();
     Set<Edge<Either<Integer, S>>> initialStateEdges = Set.copyOf(
       Collections3.transformSet(automaton.initialStates(), x -> Edge.of(Either.right(x))));
 

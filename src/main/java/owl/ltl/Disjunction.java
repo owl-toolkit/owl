@@ -104,16 +104,11 @@ public final class Disjunction extends Formula.NaryPropositionalOperator {
       }
     }
 
-    switch (list.size()) {
-      case 0:
-        return BooleanConstant.FALSE;
-
-      case 1:
-        return list.get(0);
-
-      default:
-        return new Disjunction(list, null);
-    }
+    return switch (list.size()) {
+      case 0 -> BooleanConstant.FALSE;
+      case 1 -> list.get(0);
+      default -> new Disjunction(list, null);
+    };
   }
 
   @Override
