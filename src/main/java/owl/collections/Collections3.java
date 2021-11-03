@@ -27,7 +27,6 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -75,35 +74,6 @@ public final class Collections3 {
         return list.size() + 1;
       }
     };
-  }
-
-  /**
-   * This method is null-hostile.
-   */
-  public static <K, V> boolean containsAll(
-    Map<? extends K, ? extends V> map1, Map<? extends K, ? extends V> map2) {
-
-    if (map2.size() > map1.size()) {
-      return false;
-    }
-
-    for (var entry2 : map2.entrySet()) {
-      K key = Objects.requireNonNull(entry2.getKey());
-      V value1 = map1.get(key);
-      V value2 = Objects.requireNonNull(entry2.getValue());
-
-      if (!value2.equals(value1)) {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  public static <E extends Comparable<E>> boolean sorted(List<E> list) {
-    var sortedCopy = new ArrayList<>(list);
-    sortedCopy.sort(Comparator.naturalOrder());
-    return list.equals(sortedCopy);
   }
 
   public static <K, V> Map<K, V> add(Map<K, V> map, K key, V value) {
@@ -440,16 +410,6 @@ public final class Collections3 {
     return transformedSet;
   }
 
-  public static <E> Set<E> union(Set<E> set1, Set<E> set2) {
-    if (set1.size() >= set2.size()) {
-      set1.addAll(set2);
-      return set1;
-    } else {
-      set2.addAll(set1);
-      return set2;
-    }
-  }
-
   public static <E extends Comparable<? super E>> int compare(
     Set<? extends E> s1, Set<? extends E> s2) {
     var a1 = s1.toArray(Comparable[]::new);
@@ -461,24 +421,4 @@ public final class Collections3 {
     return value;
   }
 
-  /**
-   * Returns the index of the first occurrence of the specified element
-   * in this list of sets, or -1 if this list does not contain the element.
-   * More formally, returns the lowest index {@code i} such that
-   * {@code get(i).contains(o)}, or -1 if there is no such index.
-   *
-   * @param sets list of sets
-   * @param element element to search for
-   * @return the index of the first occurrence of the specified element in
-   *         this list, or -1 if this list does not contain the element
-   */
-  public static <E> int indexOf(List<Set<E>> sets, E element) {
-    for (int i = 0, s = sets.size(); i < s; i++) {
-      if (sets.get(i).contains(element)) {
-        return i;
-      }
-    }
-
-    return -1;
-  }
 }

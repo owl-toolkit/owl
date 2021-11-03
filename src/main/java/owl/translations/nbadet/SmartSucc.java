@@ -152,7 +152,7 @@ public class SmartSucc<S> {
     int rk = NbaDetState.priorityToRank(refSuc.colours().first().orElse(Integer.MAX_VALUE)).fst();
     //dom. rank
     logger.log(Level.FINEST, "dom rank " + rk + " redirect");
-    logger.log(Level.FINEST, "from: " + usrSuc.toString() + "\nto: " + altSuc.toString());
+    logger.log(Level.FINEST, "from: " + usrSuc + "\nto: " + altSuc);
 
     if (!usrSuc.colours().equals(altSuc.colours())) {
       logger.log(Level.SEVERE, "ERROR: edge priority changed!");

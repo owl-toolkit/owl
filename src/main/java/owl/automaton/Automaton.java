@@ -100,7 +100,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
       return first;
     }
 
-    throw new IllegalStateException("Multiple initial states: " + initialStates().toString());
+    throw new IllegalStateException("Multiple initial states: " + initialStates());
   }
 
   /**

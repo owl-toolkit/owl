@@ -229,7 +229,7 @@ public sealed interface PropositionalFormula<T> {
   record Conjunction<T>(List<PropositionalFormula<T>> conjuncts)
     implements PropositionalFormula<T> {
 
-    private static Conjunction<?> TRUE = new Conjunction<>(List.of());
+    private static final Conjunction<?> TRUE = new Conjunction<>(List.of());
 
     public Conjunction {
       conjuncts = List.copyOf(conjuncts);
@@ -394,7 +394,7 @@ public sealed interface PropositionalFormula<T> {
   record Disjunction<T>(List<PropositionalFormula<T>> disjuncts)
     implements PropositionalFormula<T> {
 
-    private static Disjunction<?> FALSE = new Disjunction<>(List.of());
+    private static final Disjunction<?> FALSE = new Disjunction<>(List.of());
 
     public Disjunction {
       disjuncts = List.copyOf(disjuncts);

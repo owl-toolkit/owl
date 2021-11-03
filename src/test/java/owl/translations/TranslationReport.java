@@ -56,16 +56,15 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
-import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.degeneralization.RabinDegeneralization;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.collections.Collections3;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.LatexPrintVisitor;
 import owl.translations.ExternalTranslator.InputMode;
-import owl.translations.dra2dpa.IARBuilder;
 import owl.translations.ltl2dra.NormalformDRAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
 import owl.translations.rabinizer.RabinizerBuilder;
@@ -321,19 +320,17 @@ class TranslationReport {
       var dgra = RabinizerBuilder.build(formula, configuration);
       var optimisedDgra = OmegaAcceptanceCast.cast(
         AcceptanceOptimizations.transform(dgra), GeneralizedRabinAcceptance.class);
-
-      var dra = RabinDegeneralization.degeneralize(optimisedDgra);
-      var optimisedDra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.transform(dra), RabinAcceptance.class);
-
-      return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
+      // Upgraded DGRA -> DPA translation. This was not done in original report.
+      return ZielonkaTreeTransformations.transform(optimisedDgra);
     });
 
     var dpa_iar_symmetric = new Translator("\\Dtwo", formula -> {
-      var dra = SymmetricDRAConstruction.of(RabinAcceptance.class, true).apply(formula);
-      var optimisedDra = OmegaAcceptanceCast.cast(
-        AcceptanceOptimizations.transform(dra), RabinAcceptance.class);
-      return new IARBuilder<>(optimisedDra, ParityAcceptance.Parity.MAX_EVEN).build();
+      var dgra = SymmetricDRAConstruction.of(
+        GeneralizedRabinAcceptance.class, true).apply(formula);
+      var optimisedDgra = OmegaAcceptanceCast.cast(
+        AcceptanceOptimizations.transform(dgra), GeneralizedRabinAcceptance.class);
+      // Upgraded DGRA -> DPA translation. This was not done in original report.
+      return ZielonkaTreeTransformations.transform(optimisedDgra);
     });
 
     // With Portfolio

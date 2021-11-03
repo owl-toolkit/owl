@@ -171,7 +171,7 @@ public abstract class NbaDetConf<S> {
         logger.log(Level.FINER, ret.toString());
       } else if (logger.getLevel().equals(Level.FINEST)) {
         logger.log(Level.FINEST, "NBA adj. mat. - state -> (accSucc, rejSucc)\n"
-          + adjMat.toString());
+          + adjMat);
       }
     }
 
@@ -180,12 +180,12 @@ public abstract class NbaDetConf<S> {
 
   public String toString() {
     IntFunction<S> inv = aut().stateMap().inverse()::get;
-    var sb = new StringBuilder();
+    var sb = new StringBuilder(200);
     sb.append("assembled NBA determinization configuration:")
       .append("\nstate to bit mapping: ")
-      .append(aut().stateMap().inverse().toString())
+      .append(aut().stateMap().inverse())
       .append("\ndetected accepting pseudo-sinks: ")
-      .append(BitSet2.asSet(accSinks(), inv).toString())
+      .append(BitSet2.asSet(accSinks(), inv))
       .append("\nused external language inclusions:\n").append(extMask().toString(inv))
       .append("used internal language inclusions:\n").append(intMask().toString(inv))
       .append("determinization components:")

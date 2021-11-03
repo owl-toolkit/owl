@@ -430,10 +430,6 @@ public class ColorRefinement<S> {
       return false;
     }
 
-    public int size() {
-      return col.entrySet().size();
-    }
-
     public void clear() {
       col.clear();
     }

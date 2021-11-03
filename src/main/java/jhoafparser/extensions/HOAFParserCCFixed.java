@@ -251,7 +251,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case 0:
       case HOA:
-        ;
         break;
       default:
         jj_la1[1] = jj_gen;
@@ -293,7 +292,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       case NAME:
       case PROPERTIES:
       case REG_HEADERNAME:
-        ;
         break;
       default:
         jj_la1[2] = jj_gen;
@@ -367,7 +365,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case AND:
-        ;
         break;
       default:
         jj_la1[4] = jj_gen;
@@ -391,7 +388,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case REG_STRING:
-        ;
         break;
       default:
         jj_la1[5] = jj_gen;
@@ -405,7 +401,8 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
               apSet.add(ap);
     }
                 if (aps.size() != apCount) {
-                        {if (true) throw new ParseException("Number of provided APs ("+aps.size()+") "+aps.toString()+" does not match number of APs that was specified ("+apCount+")");}
+                        {if (true) throw new ParseException("Number of provided APs ("+aps.size()+") "+ aps
+                          +" does not match number of APs that was specified ("+apCount+")");}
                 }
                 consumer.setAPs(aps);
   }
@@ -435,7 +432,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case OR:
-        ;
         break;
       default:
         jj_la1[6] = jj_gen;
@@ -456,7 +452,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case AND:
-        ;
         break;
       default:
         jj_la1[7] = jj_gen;
@@ -492,7 +487,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
         break;
       default:
         jj_la1[8] = jj_gen;
-        ;
       }
       accSet = Integer();
       jj_consume_token(RPARENTH);
@@ -541,7 +535,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case REG_INT:
       case REG_IDENT:
-        ;
         break;
       default:
         jj_la1[10] = jj_gen;
@@ -578,7 +571,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       break;
     default:
       jj_la1[12] = jj_gen;
-      ;
     }
                 consumer.setTool(tool, version);
   }
@@ -598,7 +590,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case REG_IDENT:
-        ;
         break;
       default:
         jj_la1[13] = jj_gen;
@@ -623,7 +614,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       case REG_INT:
       case REG_STRING:
       case REG_IDENT:
-        ;
         break;
       default:
         jj_la1[14] = jj_gen;
@@ -664,7 +654,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case STATE:
-        ;
         break;
       default:
         jj_la1[16] = jj_gen;
@@ -687,7 +676,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       break;
     default:
       jj_la1[17] = jj_gen;
-      ;
     }
     state = Integer();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -696,7 +684,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       break;
     default:
       jj_la1[18] = jj_gen;
-      ;
     }
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
     case LCURLY:
@@ -704,7 +691,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       break;
     default:
       jj_la1[19] = jj_gen;
-      ;
     }
                 if (currentState != null) {
                         consumer.notifyEndOfState(currentState);
@@ -721,7 +707,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case LBRACKET:
       case REG_INT:
-        ;
         break;
       default:
         jj_la1[20] = jj_gen;
@@ -741,7 +726,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       break;
     default:
       jj_la1[21] = jj_gen;
-      ;
     }
     conjStates = StateConjunction();
     switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
@@ -750,7 +734,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
       break;
     default:
       jj_la1[22] = jj_gen;
-      ;
     }
                 if (labelExpr != null || currentStateHasStateLabel) {
                         consumer.addEdgeWithLabel(currentState, labelExpr, conjStates, accSignature);
@@ -776,7 +759,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case OR:
-        ;
         break;
       default:
         jj_la1[23] = jj_gen;
@@ -797,7 +779,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case AND:
-        ;
         break;
       default:
         jj_la1[24] = jj_gen;
@@ -859,7 +840,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case REG_INT:
-        ;
         break;
       default:
         jj_la1[26] = jj_gen;
@@ -882,7 +862,6 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     while (true) {
       switch ((jj_ntk==-1)?jj_ntk():jj_ntk) {
       case AND:
-        ;
         break;
       default:
         jj_la1[27] = jj_gen;
@@ -993,7 +972,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
   /** Reinitialise. */
   static public void ReInit(java.io.InputStream stream, String encoding) {
     try { jj_input_stream.ReInit(stream, encoding, 1, 1); } catch(java.io.UnsupportedEncodingException e) { throw new RuntimeException(e); }
-    token_source.ReInit(jj_input_stream);
+    HOAFParserCCTokenManager.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
@@ -1020,7 +999,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
   /** Reinitialise. */
   static public void ReInit(java.io.Reader stream) {
     jj_input_stream.ReInit(stream, 1, 1);
-    token_source.ReInit(jj_input_stream);
+    HOAFParserCCTokenManager.ReInit(jj_input_stream);
     token = new Token();
     jj_ntk = -1;
     jj_gen = 0;
@@ -1055,7 +1034,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
   static private Token jj_consume_token(int kind) throws ParseException {
     Token oldToken;
     if ((oldToken = token).next != null) token = token.next;
-    else token = token.next = token_source.getNextToken();
+    else token = token.next = HOAFParserCCTokenManager.getNextToken();
     jj_ntk = -1;
     if (token.kind == kind) {
       jj_gen++;
@@ -1070,7 +1049,7 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
 /** Get the next Token. */
   static final public Token getNextToken() {
     if (token.next != null) token = token.next;
-    else token = token.next = token_source.getNextToken();
+    else token = token.next = HOAFParserCCTokenManager.getNextToken();
     jj_ntk = -1;
     jj_gen++;
     return token;
@@ -1081,19 +1060,19 @@ public class HOAFParserCCFixed implements HOAFParserCCConstants {
     Token t = token;
     for (int i = 0; i < index; i++) {
       if (t.next != null) t = t.next;
-      else t = t.next = token_source.getNextToken();
+      else t = t.next = HOAFParserCCTokenManager.getNextToken();
     }
     return t;
   }
 
   static private int jj_ntk() {
     if ((jj_nt=token.next) == null)
-      return (jj_ntk = (token.next=token_source.getNextToken()).kind);
+      return (jj_ntk = (token.next= HOAFParserCCTokenManager.getNextToken()).kind);
     else
       return (jj_ntk = jj_nt.kind);
   }
 
-  static private java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
+  static private final java.util.List<int[]> jj_expentries = new java.util.ArrayList<int[]>();
   static private int[] jj_expentry;
   static private int jj_kind = -1;
 
