@@ -19,6 +19,8 @@
 
 package owl.automaton.acceptance;
 
+import com.google.common.base.Preconditions;
+import java.lang.reflect.Modifier;
 import java.util.BitSet;
 import java.util.List;
 import java.util.Map;
@@ -167,6 +169,48 @@ public final class OmegaAcceptanceCast {
     if (acceptanceClass.isAssignableFrom(oldAcceptance.getClass())) {
       @SuppressWarnings("unchecked")
       var castedAutomaton = (Automaton<S, ? extends B>) automaton;
+      return castedAutomaton;
+    }
+
+    assert !acceptanceClass.equals(EmersonLeiAcceptance.class);
+
+    @SuppressWarnings("unchecked")
+    var oldAcceptanceClass = (Class<A>) oldAcceptance.getClass();
+    var edgeCast = edgeCastMap(oldAcceptanceClass).get(acceptanceClass);
+    return new CastedAutomaton<>(automaton,
+      cast(oldAcceptance, oldAcceptanceClass, acceptanceClass),
+      edgeCast == null ? null : edge -> {
+        BitSet set = edge.colours().copyInto(new BitSet());
+        edgeCast.accept(oldAcceptance, set);
+        return edge.withAcceptance(set);
+      });
+  }
+
+  /**
+   * Cast the given automaton to the given acceptance condition if possible. A conversion is
+   * considered possible if (trivial) rewriting of the acceptance condition is done and no
+   * changes to state space are necessary, e.g. a Büchi condition can be translated to a Rabin
+   * condition, but a Rabin condition (even only with a single pair) cannot be cast to parity
+   * acceptance condition.
+   *
+   * @param automaton The automaton. It is assumed that after calling this method the automaton is
+   *     not modified anymore.
+   * @param acceptanceClass The desired acceptance condition.
+   * @param <S> The state type.
+   * @param <A> The current acceptance type.
+   * @param <B> The desired acceptance type.
+   * @return A view on the given automaton with the necessary changes.
+   */
+  public static <S, A extends EmersonLeiAcceptance, B extends EmersonLeiAcceptance> Automaton<S, B>
+    castExact(Automaton<S, A> automaton, Class<B> acceptanceClass) {
+
+    Preconditions.checkArgument(Modifier.isFinal(acceptanceClass.getModifiers()));
+
+    A oldAcceptance = automaton.acceptance();
+
+    if (acceptanceClass.equals(oldAcceptance.getClass())) {
+      @SuppressWarnings("unchecked")
+      var castedAutomaton = (Automaton<S, B>) automaton;
       return castedAutomaton;
     }
 

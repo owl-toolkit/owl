@@ -19,6 +19,7 @@
 
 package owl.automaton.acceptance;
 
+import static owl.logic.propositional.PropositionalFormula.*;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 import static owl.logic.propositional.PropositionalFormula.conjuncts;
 
@@ -32,7 +33,7 @@ import owl.logic.propositional.PropositionalFormula;
 public sealed class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance
   permits AllAcceptance, BuchiAcceptance {
 
-  GeneralizedBuchiAcceptance(int size) {
+  protected GeneralizedBuchiAcceptance(int size) {
     super(size);
   }
 
@@ -66,7 +67,7 @@ public sealed class GeneralizedBuchiAcceptance extends EmersonLeiAcceptance
 
   @Override
   protected final PropositionalFormula<Integer> lazyBooleanExpression() {
-    return PropositionalFormula.Conjunction.of(IntStream.range(0, acceptanceSets())
+    return Conjunction.of(IntStream.range(0, acceptanceSets())
       .mapToObj(Variable::of)
       .toList());
   }

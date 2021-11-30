@@ -440,10 +440,14 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
 
   public static <S, A extends EmersonLeiAcceptance> HashMapAutomaton<S, A> copyOf(
     Automaton<S, A> source) {
+
     HashMapAutomaton<S, A> target = new HashMapAutomaton<>(
       source.atomicPropositions(), source.factory(), source.acceptance());
 
-    source.initialStates().forEach(target::addInitialState);
+    for (S s : source.initialStates()) {
+      target.addInitialState(s);
+    }
+
     // Use a work-list algorithm in case source is an on-the-fly generated automaton.
     Deque<S> workList = new ArrayDeque<>(source.initialStates());
     Set<S> visited = new HashSet<>(workList);

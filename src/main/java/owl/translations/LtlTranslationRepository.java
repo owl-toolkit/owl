@@ -54,6 +54,7 @@ import owl.cinterface.CInterface;
 import owl.ltl.LabelledFormula;
 import owl.ltl.rewriter.SimplifierRepository;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
+import owl.translations.canonical.DeterministicConstructionsPortfolio.MinimalDeterministicConstructionsPortfolio;
 import owl.translations.canonical.NonDeterministicConstructionsPortfolio;
 import owl.translations.delag.DelagBuilder;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
@@ -300,6 +301,12 @@ public final class LtlTranslationRepository {
     USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
 
     /**
+     * Use SAT-based minimisation of tDBW and tDCW.
+     */
+    @CEnumConstant("OWL_USE_SAT_BASED_DBW_DCW_MINIMIZATION")
+    USE_SAT_BASED_DBW_DCW_MINIMIZATION,
+
+    /**
      * Ensures that the transition relation of the automaton is complete.
      */
     @CEnumConstant("OWL_COMPLETE")
@@ -320,6 +327,7 @@ public final class LtlTranslationRepository {
     public static Set<Option> defaultOptions() {
       var defaultOptions = EnumSet.allOf(Option.class);
       defaultOptions.remove(COMPLETE);
+      defaultOptions.remove(USE_SAT_BASED_DBW_DCW_MINIMIZATION);
       return defaultOptions;
     }
   }
@@ -750,9 +758,10 @@ public final class LtlTranslationRepository {
 
         case SE20:
           return applyPreAndPostProcessing(
-              NormalformDRAConstruction.of(
-                  acceptanceClass,
-                  translationOptions.contains(Option.X_DRA_NORMAL_FORM_USE_DUAL)),
+              x -> OmegaAcceptanceCast.cast(NormalformDRAConstruction.of(
+                      translationOptions.contains(Option.X_DRA_NORMAL_FORM_USE_DUAL),
+                      translationOptions.contains(Option.USE_SAT_BASED_DBW_DCW_MINIMIZATION)).apply(x),
+                  acceptanceClass),
               BranchingMode.DETERMINISTIC,
               translationOptions,
               acceptanceClass);
@@ -927,7 +936,10 @@ public final class LtlTranslationRepository {
 
       var portfolio = branchingMode == BranchingMode.NON_DETERMINISTIC
           ? new NonDeterministicConstructionsPortfolio<>(acceptanceCondition)
-          : new DeterministicConstructionsPortfolio<>(acceptanceCondition);
+          : translationOptions.contains(Option.USE_SAT_BASED_DBW_DCW_MINIMIZATION)
+              ? new MinimalDeterministicConstructionsPortfolio<>(acceptanceCondition)
+              // and then other portfolios.
+              : new DeterministicConstructionsPortfolio<>(acceptanceCondition);
 
       wrappedFunction = labelledFormula ->
           portfolio.apply(labelledFormula).orElseGet(() -> function.apply(labelledFormula));
@@ -976,7 +988,9 @@ public final class LtlTranslationRepository {
 
     var portfolio = branchingMode == BranchingMode.NON_DETERMINISTIC
         ? new NonDeterministicConstructionsPortfolio<>(acceptanceCondition)
-        : new DeterministicConstructionsPortfolio<>(acceptanceCondition);
+        : translationOptions.contains(Option.USE_SAT_BASED_DBW_DCW_MINIMIZATION)
+            ? new MinimalDeterministicConstructionsPortfolio<>(acceptanceCondition)
+            : new DeterministicConstructionsPortfolio<>(acceptanceCondition);
 
     return unprocessedFormula -> {
       var formula = simplifyFormula

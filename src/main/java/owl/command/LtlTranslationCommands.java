@@ -29,6 +29,7 @@ import static owl.translations.LtlTranslationRepository.Option.COMPLETE;
 import static owl.translations.LtlTranslationRepository.Option.SIMPLIFY_AUTOMATON;
 import static owl.translations.LtlTranslationRepository.Option.SIMPLIFY_FORMULA;
 import static owl.translations.LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS;
+import static owl.translations.LtlTranslationRepository.Option.USE_SAT_BASED_DBW_DCW_MINIMIZATION;
 import static owl.translations.LtlTranslationRepository.Option.X_DPA_USE_COMPLEMENT;
 import static owl.translations.LtlTranslationRepository.Option.X_DRA_NORMAL_FORM_USE_DUAL;
 
@@ -84,6 +85,14 @@ final class LtlTranslationCommands {
     )
     private boolean skipPortfolio = false;
 
+    @Option(
+        names = "--use-sat-based-tdbw-and-tdcw-minimisation",
+        description = "Bypass the portfolio of constructions from [S19, SE20] that directly "
+            + "translates 'simple' fragments of LTL to automata."
+    )
+    private boolean satBasedMinimisation = false;
+
+
     @Override
     protected int run() throws Exception {
       var translation = translation();
@@ -102,9 +111,13 @@ final class LtlTranslationCommands {
       if (automatonWriter.complete) {
         basicOptions.add(COMPLETE);
       }
-
+      
       if (!skipPortfolio) {
         basicOptions.add(USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS);
+      }
+
+      if (satBasedMinimisation) {
+        basicOptions.add(USE_SAT_BASED_DBW_DCW_MINIMIZATION);
       }
 
       basicOptions.addAll(extraOptions());

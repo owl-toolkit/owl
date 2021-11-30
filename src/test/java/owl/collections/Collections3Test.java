@@ -21,7 +21,7 @@ package owl.collections;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static owl.collections.Collections3.maximalElements;
-import static owl.collections.Collections3.partition;
+import static owl.collections.Collections3.equivalenceClasses;
 
 import java.util.List;
 import java.util.Set;
@@ -48,12 +48,15 @@ class Collections3Test {
   @Test
   void testPartition() {
     assertEquals(List.of(),
-      partition(Set.of(), Object::equals));
+      equivalenceClasses(Set.of(), Object::equals, false));
 
     assertEquals(List.of(Set.of(0)),
-      partition(Set.of(0), Object::equals));
+      equivalenceClasses(Set.of(0), Object::equals, false));
 
     assertEquals(Set.of(Set.of(1, 2, 3), Set.of(11, 12, 13), Set.of(100)),
-      Set.copyOf(partition(Set.of(1, 2, 3, 11, 12, 13, 100), (x, y) -> Math.abs(x - y) == 1)));
+      Set.copyOf(equivalenceClasses(
+        Set.of(1, 2, 3, 11, 12, 13, 100),
+        (x, y) -> Math.abs(x - y) == 1,
+        false)));
   }
 }

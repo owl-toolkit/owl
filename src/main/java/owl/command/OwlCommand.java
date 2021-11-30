@@ -39,44 +39,44 @@ import owl.thirdparty.picocli.CommandLine;
 import owl.thirdparty.picocli.CommandLine.Model.CommandSpec;
 
 @Command(name = "owl",
-         description =
-           "A tool collection and library for ω-words, ω-automata and linear temporal logic.",
-         synopsisSubcommandLabel = "COMMAND",
-         usageHelpAutoWidth = true,
-         subcommands = {
-           // LTL Translation Commands
-           LtlTranslationCommands.Ltl2NbaCommand.class,
-           LtlTranslationCommands.Ltl2NgbaCommand.class,
-           LtlTranslationCommands.Ltl2LdbaCommand.class,
-           LtlTranslationCommands.Ltl2LdgbaCommand.class,
-           LtlTranslationCommands.Ltl2DpaCommand.class,
-           LtlTranslationCommands.Ltl2DraCommand.class,
-           LtlTranslationCommands.Ltl2DgraCommand.class,
-           LtlTranslationCommands.Ltl2DelaCommand.class,
+    description =
+        "A tool collection and library for ω-words, ω-automata and linear temporal logic.",
+    synopsisSubcommandLabel = "COMMAND",
+    usageHelpAutoWidth = true,
+    subcommands = {
+        // LTL Translation Commands
+        LtlTranslationCommands.Ltl2NbaCommand.class,
+        LtlTranslationCommands.Ltl2NgbaCommand.class,
+        LtlTranslationCommands.Ltl2LdbaCommand.class,
+        LtlTranslationCommands.Ltl2LdgbaCommand.class,
+        LtlTranslationCommands.Ltl2DpaCommand.class,
+        LtlTranslationCommands.Ltl2DraCommand.class,
+        LtlTranslationCommands.Ltl2DgraCommand.class,
+        LtlTranslationCommands.Ltl2DelaCommand.class,
 
-           // LTL Conversion Commands
-           LtlConversionCommands.Delta2Normalisation.class,
+        // LTL Conversion Commands
+        LtlConversionCommands.Delta2Normalisation.class,
 
-           // Automaton Conversion Commands
-           AutomatonConversionCommands.Ngba2LdbaCommand.class,
-           AutomatonConversionCommands.Nba2DpaCommand.class,
-           AutomatonConversionCommands.NbaSimCommand.class,
-           AutomatonConversionCommands.Aut2ParityCommand.class,
-           AutomatonConversionCommands.GfgMinimisation.class,
+        // Automaton Conversion Commands
+        AutomatonConversionCommands.Ngba2LdbaCommand.class,
+        AutomatonConversionCommands.Nba2DpaCommand.class,
+        AutomatonConversionCommands.NbaSimCommand.class,
+        AutomatonConversionCommands.Aut2ParityCommand.class,
+        AutomatonConversionCommands.GfgMinimisation.class,
 
-           // Miscellaneous commands
-           MiscCommands.BibliographyCommand.class,
-           MiscCommands.LicenseCommand.class,
-           MiscCommands.DelagMigrationCommand.class,
+        // Miscellaneous commands
+        MiscCommands.BibliographyCommand.class,
+        MiscCommands.LicenseCommand.class,
+        MiscCommands.DelagMigrationCommand.class,
 
-           MiscCommands.LtlInspectionCommand.class,
-           LtlConversionCommands.LtlUtilities.class,
-           LtlConversionCommands.RLtlReader.class,
+        MiscCommands.LtlInspectionCommand.class,
+        LtlConversionCommands.LtlUtilities.class,
+        LtlConversionCommands.RLtlReader.class,
 
-           MiscCommands.AutInspectionCommand.class,
-           AutomatonConversionCommands.AutUtilities.class,
-           MiscCommands.Automaton2GameCommand.class,
-         })
+        MiscCommands.AutInspectionCommand.class,
+        AutomatonConversionCommands.AutUtilities.class,
+        MiscCommands.Automaton2GameCommand.class,
+    })
 @SuppressWarnings("PMD.SystemPrintln")
 public final class OwlCommand extends AbstractOwlCommand {
 
@@ -95,8 +95,8 @@ public final class OwlCommand extends AbstractOwlCommand {
 
   public static void main(String[] args) {
     System.exit(new CommandLine(new OwlCommand(args))
-      .setExecutionExceptionHandler(new ExecutionExceptionHandler())
-      .execute(args));
+        .setExecutionExceptionHandler(new ExecutionExceptionHandler())
+        .execute(args));
   }
 
   @Override
@@ -113,13 +113,13 @@ public final class OwlCommand extends AbstractOwlCommand {
 
     @Override
     public int handleExecutionException(
-      Exception ex, CommandLine commandLine, ParseResult parseResult) {
+        Exception ex, CommandLine commandLine, ParseResult parseResult) {
 
       return handleExecutionException((Throwable) ex, commandLine, parseResult);
     }
 
     public int handleExecutionException(
-      Throwable ex, CommandLine commandLine, ParseResult parseResult) {
+        Throwable ex, CommandLine commandLine, ParseResult parseResult) {
 
       // Unpack unchecked exceptions.
       if (ex instanceof UncheckedIOException || ex instanceof UncheckedExecutionException) {
@@ -135,19 +135,19 @@ public final class OwlCommand extends AbstractOwlCommand {
           System.err.printf("Could not access file \"%s\".", file);
         } else {
           System.err.printf(
-            "Could not access file \"%s\", because of the following reason: %s", file, reason);
+              "Could not access file \"%s\", because of the following reason: %s", file, reason);
         }
       } else if (ex instanceof IllegalArgumentException) {
         if (ex.getCause() instanceof RecognitionException
-          || ex.getCause() instanceof ParseCancellationException) {
+            || ex.getCause() instanceof ParseCancellationException) {
           System.err.printf("Could not parse linear temporal logic formula: %s", ex.getMessage());
         } else {
           ex.printStackTrace(System.err);
         }
       } else if (ex instanceof ParseException) {
         System.err.printf(
-          "Could not parse HOA automaton due to the following problem:%n%s",
-          ex.getMessage());
+            "Could not parse HOA automaton due to the following problem:%n%s",
+            ex.getMessage());
       } else {
         ex.printStackTrace(System.err);
       }

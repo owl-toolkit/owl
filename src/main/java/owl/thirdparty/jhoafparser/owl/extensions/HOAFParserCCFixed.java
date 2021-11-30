@@ -99,62 +99,6 @@ public final class HOAFParserCCFixed implements HOAFParserCCConstants {
                 }
         }
 
-
-        //-----------------------------------------------------------------------------------
-        // Methods for invokation of the parser
-        //-----------------------------------------------------------------------------------
-
-        /**
-	 * Entry point for parsing a single automaton in HOA format (with default settings).
-	 * <br> Note: this parser is non-reentrant, i.e., it is
-	 * not possible to parse two streams at the same time!
-	 *
-	 * @param str The input stream with the automaton description
-	 * @param userConsumer The consumer that receives the notifications about the parsed elements from the parser
-	 */
-        public static void parseHOA(Reader str, HOAConsumer userConsumer) throws ParseException {
-                parseHOA(str, userConsumer, null);
-        }
-
-        /**
-	 * Entry point for parsing a single automaton in HOA format.
-	 * <br> Note: this parser is non-reentrant, i.e., it is
-	 * not possible to parse two streams at the same time!
-	 *
-	 * @param str The input stream with the automaton description
-	 * @param userConsumer The consumer that receives the notifications about the parsed elements from the parser
-	 * @param settings Settings for the parser (may be {@code null})
-	 */
-        public static void parseHOA(Reader str, final HOAConsumer userConsumer, HOAFParserSettings settings) throws ParseException
-        {
-                // (Re)start parser
-                initializeParser(str);
-
-                if (settings == null) {
-                        // default settings
-                        settings = new HOAFParserSettings();
-                }
-                HOAFParserCCFixed.settings = settings;
-
-                consumerFactory = factoryFromSettings(new HOAConsumerFactory() {
-                        @Override
-                        public HOAConsumer getNewHOAConsumer() {
-                                return userConsumer;
-                        }
-                });
-
-                consumer = consumerFactory.getNewHOAConsumer();
-                newAutomaton();
-
-                // Parse
-                try {
-                        SingleAutomaton();
-                }
-                finally {
-                        consumer = null;
-                }
-        }
-
         /**
 	 * Entry point for parsing a stream of automata in HOA format.
 	 * <br> Note: this parser is non-reentrant, i.e., it is
@@ -248,8 +192,8 @@ public final class HOAFParserCCFixed implements HOAFParserCCConstants {
          }
 
       case HOA:
-                consumer=consumerFactory.getNewHOAConsumer();
-                newAutomaton();
+        consumer=consumerFactory.getNewHOAConsumer();
+        newAutomaton();
         Automaton();
         break;
       default:

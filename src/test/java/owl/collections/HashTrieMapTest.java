@@ -136,7 +136,7 @@ public class HashTrieMapTest {
     var nba = AutomatonTestUtil.autFromString(
       AutomatonSccDecompositionTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
-    var args = new AutomatonConversionCommands.Nba2DpaCommand();
+    var args = new AutomatonConversionCommands.Nba2DpaCommand(null);
 
     var conf = NbaDetConf.prepare(nba, Set.of(), args);
     var state = NbaDetState.of(conf, BitSet2.copyOf(conf.aut().stateMap().asMap().values()));

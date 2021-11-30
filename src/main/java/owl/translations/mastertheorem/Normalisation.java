@@ -145,7 +145,6 @@ public final class Normalisation implements UnaryOperator<LabelledFormula> {
         return temporalOperator;
       }
 
-
       var disjuncts = new ArrayList<Formula>();
 
       AbstractSelector selector = method == SE20_PI_2_AND_FG_PI_1

@@ -30,12 +30,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
-import owl.automaton.SuccessorFunction;
+import owl.automaton.EdgeRelation;
 
 /**
  * Finds the SCCs of a given graph / transition system using Tarjan's algorithm.
  */
 final class Tarjan<S> {
+
   // Initial value for the low link - since we update the low-link whenever we find a link to a
   // state we can use this to detect trivial SCCs. MAX_VALUE is important for "<" comparisons
   private static final int NO_LINK = Integer.MAX_VALUE;
@@ -45,11 +46,11 @@ final class Tarjan<S> {
   private final Deque<TarjanState<S>> path = new ArrayDeque<>();
   private final Set<S> processedNodes = new HashSet<>();
   private final Map<S, TarjanState<S>> stateMap = new HashMap<>();
-  private final SuccessorFunction<S> successorFunction;
+  private final EdgeRelation<S> successorFunction;
   private int index = 0;
   private boolean earlyTerminationOccurred = false;
 
-  Tarjan(SuccessorFunction<S> successorFunction, Predicate<? super Set<S>> earlyTermination) {
+  Tarjan(EdgeRelation<S> successorFunction, Predicate<? super Set<S>> earlyTermination) {
     this.successorFunction = successorFunction;
     this.earlyTermination = earlyTermination;
   }
@@ -60,12 +61,12 @@ final class Tarjan<S> {
     }
 
     S state = Iterables.getOnlyElement(scc);
-    return !successorFunction.apply(state).contains(state);
+    return !Iterables.contains(successorFunction.successors(state), state);
   }
 
   private TarjanState<S> create(S node) {
     assert !stateMap.containsKey(node) && !processedNodes.contains(node)
-      : String.format("Node %s already processed", node);
+        : String.format("Node %s already processed", node);
 
     if (index == Integer.MAX_VALUE) {
       throw new IllegalStateException("exhausted node ids");
@@ -74,8 +75,8 @@ final class Tarjan<S> {
     int nodeIndex = index;
     index += 1;
 
-    Iterator<S> successorIterator = successorFunction.apply(node).iterator();
-    TarjanState<S> state = new TarjanState<>(node, nodeIndex, successorIterator);
+    TarjanState<S> state = new TarjanState<>(
+        node, nodeIndex, successorFunction.successors(node).iterator());
 
     explorationStack.push(node);
     stateMap.put(node, state);
@@ -84,7 +85,7 @@ final class Tarjan<S> {
 
   boolean run(S initial) {
     Preconditions.checkState(!earlyTerminationOccurred,
-      "An early termination occurred. Internal data-structures are inconsistent.");
+        "An early termination occurred. Internal data-structures are inconsistent.");
     assert path.isEmpty();
 
     if (stateMap.containsKey(initial) || processedNodes.contains(initial)) {
@@ -99,7 +100,7 @@ final class Tarjan<S> {
       S node = state.node;
       int nodeIndex = state.nodeIndex;
 
-      Iterator<S> successorIterator = state.successorIterator;
+      Iterator<? extends S> successorIterator = state.successorIterator;
       while (successorIterator.hasNext()) {
         S successor = successorIterator.next();
 
@@ -125,7 +126,7 @@ final class Tarjan<S> {
           continue outer;
         }
 
-        // Successor is not fully explored and we found a link to it, hence the low-link of this
+        // Successor is not fully explored, and we found a link to it, hence the low-link of this
         // state is less than or equal to the successors link.
         int successorIndex = successorState.nodeIndex;
         assert successorIndex != nodeIndex;
@@ -218,12 +219,13 @@ final class Tarjan<S> {
   }
 
   private static final class TarjanState<S> {
+
     private final S node;
     private final int nodeIndex;
-    private final Iterator<S> successorIterator;
+    private final Iterator<? extends S> successorIterator;
     private int lowLink;
 
-    private TarjanState(S node, int nodeIndex, Iterator<S> successorIterator) {
+    private TarjanState(S node, int nodeIndex, Iterator<? extends S> successorIterator) {
       this.node = node;
       this.nodeIndex = nodeIndex;
       this.successorIterator = successorIterator;

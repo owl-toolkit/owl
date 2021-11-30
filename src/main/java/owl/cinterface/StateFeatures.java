@@ -410,7 +410,8 @@ public final class StateFeatures {
               return y.anyMatch(x::equals);
             };
 
-            temporalOperators = Collections3.maximalElements(temporalOperators, isLessThan);
+            temporalOperators = new ArrayList<>(
+                Collections3.maximalElements(temporalOperators, isLessThan));
           }
         }
 

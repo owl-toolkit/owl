@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -36,7 +36,7 @@ public class Numbering<E> {
   }
 
   public Numbering(int initialCapacity) {
-    mapping = new HashMap<>(initialCapacity);
+    mapping = new HashMap<>(4 * initialCapacity);
     reverseMapping = new ArrayList<>(initialCapacity);
   }
 
@@ -62,5 +62,9 @@ public class Numbering<E> {
 
   public Map<E, Integer> asMap() {
     return Collections.unmodifiableMap(mapping);
+  }
+
+  public List<E> asList() {
+    return Collections.unmodifiableList(reverseMapping);
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -27,6 +27,7 @@ import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -44,7 +45,9 @@ import owl.bdd.BddSet;
 
 @SuppressWarnings("PMD.ClassNamingConventions")
 public final class Collections3 {
-  private Collections3() {}
+
+  private Collections3() {
+  }
 
   public static <E> List<E> add(List<? extends E> list, E element) {
     if (list.isEmpty()) {
@@ -177,7 +180,7 @@ public final class Collections3 {
   }
 
   public static <E1, E2> void forEachPair(Iterable<E1> iterable1, Iterable<E2> iterable2,
-    BiConsumer<? super E1, ? super E2> action) {
+      BiConsumer<? super E1, ? super E2> action) {
     Iterator<E1> iterator1 = iterable1.iterator();
     Iterator<E2> iterator2 = iterable2.iterator();
 
@@ -220,18 +223,23 @@ public final class Collections3 {
    * Computes a sub-list of elements which are maximal. The iteration order is preserved. Does not
    * support null elements.
    *
-   * @param elements the elements
+   * @param elements   the elements
    * @param isLessThan returns true is the first argument is less than the second argument. It is
-   *     only required that the order is transitive. The reflexive hull is added automatically.
-   * @param <E> the type
+   *                   only required that the order is transitive. The reflexive hull is added
+   *                   automatically.
+   * @param <E>        the type
    * @return a sublist only containing maximal elements.
    */
   @SuppressWarnings("unchecked")
   public static <E> List<E> maximalElements(
-    Collection<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
+      Collection<? extends E> elements, BiPredicate<? super E, ? super E> isLessThan) {
 
     Object[] maximalElements = elements.toArray();
 
+    for (var element : maximalElements) {
+      Objects.requireNonNull(element);
+    }
+    
     int removedElements = 0;
 
     for (int i = 0; i < maximalElements.length; i++) {
@@ -259,7 +267,11 @@ public final class Collections3 {
       }
     }
 
-    List<E> prunedMaximalElements = new ArrayList<>(elements.size() - removedElements);
+    if (removedElements == 0) {
+      return Arrays.asList((E[]) maximalElements);
+    }
+
+    List<E> prunedMaximalElements = new ArrayList<>(maximalElements.length - removedElements);
 
     for (Object maximalElement : maximalElements) {
       if (maximalElement != null) {
@@ -273,59 +285,102 @@ public final class Collections3 {
   /**
    * Partition the elements using the given relation.
    *
-   * @param elements the collection containing the elements that are group into partitions.
-   * @param relation the relation used to construct the partition. It is only required this relation
-   *     is symmetric. The transitive and reflexive hull are computed automatically.
-   * @param <E> the element type.
+   * @param universe          the collection containing the elements that are group into
+   *                          partitions.
+   * @param symmetricRelation the relation used to construct the partition. It is only required this
+   *                          relation is symmetric. The transitive and reflexive hull are computed
+   *                          automatically.
+   * @param <E>               the element type.
    * @return the partition.
+   * <p>
+   * TODO: update documenation
    */
-  public static <E> List<Set<E>> partition(
-    Collection<? extends E> elements, BiPredicate<? super E, ? super E> relation) {
+  public static <E> List<Set<E>> equivalenceClasses(
+      Collection<? extends E> universe,
+      BiPredicate<? super E, ? super E> symmetricRelation,
+      boolean symmetricRelationIsTransitive) {
 
-    List<Set<E>> partitions = new ArrayList<>(elements.size());
-    elements.forEach(x -> partitions.add(new HashSet<>(Set.of(x))));
+    int universeSize = universe.size();
+    List<HashSet<E>> equivalenceClasses = new ArrayList<>(universeSize);
 
+    nextElement:
+    for (E element : universe) {
+      for (HashSet<E> equivalenceClass : equivalenceClasses) {
+        if (equivalenceClass.contains(element)) {
+          continue nextElement;
+        }
+
+        E representative = equivalenceClass.iterator().next();
+
+        if (symmetricRelation.test(element, representative)) {
+          equivalenceClass.add(element);
+          continue nextElement;
+        }
+      }
+
+      var newEquivalenceClass = new HashSet<E>(Math.min(64, universeSize));
+      newEquivalenceClass.add(element);
+      equivalenceClasses.add(newEquivalenceClass);
+    }
+
+    if (symmetricRelationIsTransitive) {
+      return makeUnmodifiable(equivalenceClasses);
+    }
+
+    // We need to compute the transitive hull.
     boolean continueMerging = true;
 
     while (continueMerging) {
       continueMerging = false;
 
-      for (int i = 0; i < partitions.size() - 1; i++) {
-        var partition = partitions.get(i);
-        var otherPartitions = partitions.subList(i + 1, partitions.size());
+      for (int i = 0; i < equivalenceClasses.size() - 1; i++) {
+        var equivalenceClass = equivalenceClasses.get(i);
+        var otherEquivalenceClasses
+            = equivalenceClasses.subList(i + 1, equivalenceClasses.size());
 
-        continueMerging |= otherPartitions.removeIf(otherPartition -> {
-          boolean related = partition.stream().anyMatch(
-            x -> otherPartition.stream().anyMatch(y -> x.equals(y) || relation.test(x, y)));
-
-          if (related) {
-            partition.addAll(otherPartition);
+        continueMerging |= otherEquivalenceClasses.removeIf(otherEquivalenceClass -> {
+          for (E representative : equivalenceClass) {
+            for (E otherRepresentative : otherEquivalenceClass) {
+              if (symmetricRelation.test(representative, otherRepresentative)) {
+                equivalenceClass.addAll(otherEquivalenceClass);
+                return true;
+              }
+            }
           }
 
-          return related;
+          return false;
         });
       }
     }
 
-    return partitions;
+    return makeUnmodifiable(equivalenceClasses);
+  }
+
+  private static <E> Set<E> makeUnmodifiable(Set<E> set) {
+    return switch (set.size()) {
+      case 0 -> Set.of();
+      case 1 -> Set.of(set.iterator().next());
+      default -> Collections.unmodifiableSet(set);
+    };
+  }
+
+  private static <E> List<Set<E>> makeUnmodifiable(List<? extends Set<E>> list) {
+    return list.stream().map(Collections3::makeUnmodifiable).toList();
   }
 
   /**
-   * Creates a new {@link List} by applying the {@code transformer} on each element of {@code list}.
+   * Creates a new {@link List} by applying the {@code transformer} on each element of {@code
+   * list}.
    *
    * <p>The implementation does not access {@link Collection#isEmpty()} or
-   * {@link Collection#size()}), since computing these values on live views might be expensive
-   * and cause a full traversal.</p>
+   * {@link Collection#size()}), since computing these values on live views might be expensive and
+   * cause a full traversal.</p>
    *
-   * @param list
-   *     the input list.
-   * @param transformer
-   *     the translator function. It is not allowed to return {@code null}, since the used
-   *     data-structures might be null-hostile.
-   *
-   * @param <E1> the element type of the input
-   * @param <E2> the element type of the return value
-   *
+   * @param list        the input list.
+   * @param transformer the translator function. It is not allowed to return {@code null}, since the
+   *                    used data-structures might be null-hostile.
+   * @param <E1>        the element type of the input
+   * @param <E2>        the element type of the return value
    * @return a new list containing all transformed objects
    */
   public static <E1, E2> List<E2> transformList(List<E1> list, Function<E1, E2> transformer) {
@@ -344,12 +399,12 @@ public final class Collections3 {
   }
 
   public static <K1, K2> Map<K2, BddSet> transformMap(Map<K1, BddSet> map,
-    Function<K1, K2> transformer) {
+      Function<K1, K2> transformer) {
     return transformMap(map, transformer, BddSet::union);
   }
 
   public static <K1, K2, V> Map<K2, V> transformMap(Map<K1, V> map, Function<K1, K2> transformer,
-    BiFunction<? super V, ? super V, ? extends V> valueMerger) {
+      BiFunction<? super V, ? super V, ? extends V> valueMerger) {
     Map<K2, V> transformedMap = new HashMap<>();
     map.forEach((key, set) -> transformedMap.merge(transformer.apply(key), set, valueMerger));
 
@@ -368,26 +423,20 @@ public final class Collections3 {
   /**
    * Creates a new {@link Set} by applying the {@code transformer} on each element of {@code set}.
    *
-   * <p>The implementation does not access {@link Collection#isEmpty()} or
-   * {@link Collection#size()}), since computing these values on live views might be expensive
-   * and cause a full traversal.</p>
-   *
-   * @param set
-   *     the input set.
-   * @param transformer
-   *     the translator function. It is not allowed to return {@code null}, since the used
-   *     data-structures might be null-hostile.
-   *
-   * @param <E1> the element type of the input
-   * @param <E2> the element type of the return value
-   *
+   * @param set         the input set.
+   * @param transformer the translator function. It is not allowed to return {@code null}, since the
+   *                    used data-structures might be null-hostile.
+   * @param <E1>        the element type of the input
+   * @param <E2>        the element type of the return value
    * @return a new set containing all transformed objects
    */
-  public static <E1, E2> Set<E2> transformSet(Set<E1> set, Function<E1, E2> transformer) {
+  public static <E1, E2> Set<E2> transformSet(
+      Set<? extends E1> set, Function<? super E1, ? extends E2> transformer) {
+
     // This function is usually called with either the empty set or a singleton. Thus the following
     // code is optimised for exactly these cases.
 
-    Iterator<E1> iterator = set.iterator();
+    Iterator<? extends E1> iterator = set.iterator();
 
     if (!iterator.hasNext()) {
       return Set.of();
@@ -399,19 +448,18 @@ public final class Collections3 {
       return Set.of(element);
     }
 
-    Set<E2> transformedSet = new HashSet<>();
-
+    Set<E2> transformedSet = new HashSet<>(set.size());
     transformedSet.add(element);
 
     while (iterator.hasNext()) {
-      transformedSet.add(transformer.apply(iterator.next()));
+      transformedSet.add(Objects.requireNonNull(transformer.apply(iterator.next())));
     }
 
     return transformedSet;
   }
 
   public static <E extends Comparable<? super E>> int compare(
-    Set<? extends E> s1, Set<? extends E> s2) {
+      Set<? extends E> s1, Set<? extends E> s2) {
     var a1 = s1.toArray(Comparable[]::new);
     var a2 = s2.toArray(Comparable[]::new);
     Arrays.sort(a1);

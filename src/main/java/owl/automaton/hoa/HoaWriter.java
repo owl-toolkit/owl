@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -41,7 +41,8 @@ import owl.util.OwlVersion;
 
 public final class HoaWriter {
 
-  private HoaWriter() {}
+  private HoaWriter() {
+  }
 
   public static <S> String toString(Automaton<S, ?> automaton) {
     var buffer = new StringWriter();
@@ -56,26 +57,26 @@ public final class HoaWriter {
   }
 
   public static <S> void write(
-    Automaton<S, ?> automaton, HOAConsumer consumer, boolean stateLabels)
-    throws HOAConsumerException {
+      Automaton<S, ?> automaton, HOAConsumer consumer, boolean stateLabels)
+      throws HOAConsumerException {
 
     write(automaton, consumer, stateLabels, null, null, null);
   }
 
   public static <S> void write(
-    Automaton<S, ?> automaton,
-    HOAConsumer consumer,
-    boolean stateLabels,
-    @Nullable String subcommand,
-    @Nullable List<String> subcommandArgs,
-    @Nullable String automatonName)
-    throws HOAConsumerException {
+      Automaton<S, ?> automaton,
+      HOAConsumer consumer,
+      boolean stateLabels,
+      @Nullable String subcommand,
+      @Nullable List<String> subcommandArgs,
+      @Nullable String automatonName)
+      throws HOAConsumerException {
 
     consumer.notifyHeaderStart("v1");
     var nameAndVersion = OwlVersion.getNameAndVersion();
     consumer.setTool(
-      subcommand == null ? nameAndVersion.name() : nameAndVersion.name() + ' ' + subcommand,
-      nameAndVersion.version());
+        subcommand == null ? nameAndVersion.name() : nameAndVersion.name() + ' ' + subcommand,
+        nameAndVersion.version());
 
     if (automatonName != null) {
       consumer.setName(automatonName.replace('"', '\''));
@@ -99,13 +100,14 @@ public final class HoaWriter {
       consumer.provideAcceptanceName(acceptance.name(), acceptance.nameExtra());
     }
 
-    consumer.setAcceptanceCondition(acceptance.acceptanceSets(), acceptance.booleanExpression().nnf());
+    consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
+        acceptance.booleanExpression().nnf());
     consumer.addProperties(List.of("trans-acc", "no-univ-branch"));
 
     // jhoafparser does not adhere to the spec. If we call an automaton without initial
     // states deterministic, the serializer will throw an exception.
     if (!automaton.initialStates().isEmpty()
-      && automaton.is(Automaton.Property.DETERMINISTIC)) {
+        && automaton.is(Automaton.Property.DETERMINISTIC)) {
       consumer.addProperties(List.of("deterministic", "unambiguous"));
     }
 
@@ -143,9 +145,9 @@ public final class HoaWriter {
         }
 
         consumer.addEdgeWithLabel(stateId,
-          valuationSet.toExpression().map(AtomLabel::createAPIndex),
-          List.of(numbering.get(edge.successor())),
-          edge.colours());
+            valuationSet.toExpression().map(AtomLabel::createAPIndex),
+            List.of(numbering.get(edge.successor())),
+            edge.colours());
       }
 
       consumer.notifyEndOfState(stateId);
@@ -155,6 +157,7 @@ public final class HoaWriter {
   }
 
   static final class Numbering<S> {
+
     private final Map<S, Integer> stateNumbers = new HashMap<>();
 
     private int get(S state) {
@@ -163,6 +166,7 @@ public final class HoaWriter {
   }
 
   public static class UncheckedHoaConsumerException extends RuntimeException {
+
     public UncheckedHoaConsumerException(HOAConsumerException cause) {
       super(cause);
     }

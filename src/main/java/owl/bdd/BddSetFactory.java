@@ -21,7 +21,6 @@ package owl.bdd;
 
 import java.util.BitSet;
 import java.util.Map;
-import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
@@ -35,17 +34,19 @@ public interface BddSetFactory {
 
   BddSet of(BitSet valuation, BitSet support);
 
+  default BddSet of(BitSet valuation, ImmutableBitSet support) {
+    return of(valuation, support.copyInto(new BitSet()));
+  }
+
+  BddSet of(ImmutableBitSet valuation, int upTo);
+
+  default BddSet of(ImmutableBitSet valuation, ImmutableBitSet support) {
+    return of(valuation.copyInto(new BitSet()), support.copyInto(new BitSet()));
+  }
+
   BddSet union(BddSet... bddSets);
 
   BddSet intersection(BddSet... bddSets);
-
-  default BddSet of(BitSet valuation, ImmutableBitSet support) {
-    return of(valuation, BitSet2.copyOf(support));
-  }
-
-  default BddSet of(ImmutableBitSet valuation, ImmutableBitSet support) {
-    return of(BitSet2.copyOf(valuation), BitSet2.copyOf(support));
-  }
 
   BddSet of(PropositionalFormula<Integer> expression);
 

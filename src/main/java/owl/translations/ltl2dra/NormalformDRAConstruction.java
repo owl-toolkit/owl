@@ -21,158 +21,95 @@ package owl.translations.ltl2dra;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import owl.automaton.Automaton;
 import owl.automaton.BooleanOperations;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
+import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
-import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
+import owl.automaton.minimization.DbwMinimization;
+import owl.automaton.minimization.DcwMinimization;
 import owl.collections.Pair;
-import owl.ltl.BooleanConstant;
-import owl.ltl.EquivalenceClass;
 import owl.ltl.LabelledFormula;
-import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.DeterministicConstructionsPortfolio;
 
-public final class NormalformDRAConstruction<R extends GeneralizedRabinAcceptance>
-  extends AbstractNormalformDRAConstruction
-  implements Function<LabelledFormula, Automaton<?, ? extends R>> {
+public final class NormalformDRAConstruction
+    extends AbstractNormalformDRAConstruction
+    implements Function<LabelledFormula, Automaton<?, ? extends RabinAcceptance>> {
 
-  private final Class<R> acceptanceClass;
-
-  private final DeterministicConstructionsPortfolio<? extends GeneralizedBuchiAcceptance>
-    pi2Portfolio;
+  private final DeterministicConstructionsPortfolio<BuchiAcceptance>
+      pi2Portfolio;
   private final DeterministicConstructionsPortfolio<CoBuchiAcceptance>
-    sigma2Portfolio;
-  private final DeterministicConstructionsPortfolio<GeneralizedCoBuchiAcceptance>
-    sigma2GeneralizedPortfolio;
+      sigma2Portfolio;
+  private final boolean minimize;
 
-  private NormalformDRAConstruction(Class<R> acceptanceClass, boolean useDualConstruction) {
+  private NormalformDRAConstruction(boolean useDualConstruction, boolean minimize) {
     super(useDualConstruction);
 
-    this.acceptanceClass = acceptanceClass;
-
-    var buchiAcceptance = acceptanceClass.equals(GeneralizedRabinAcceptance.class)
-      ? GeneralizedBuchiAcceptance.class
-      : BuchiAcceptance.class;
-
     this.pi2Portfolio
-      = new DeterministicConstructionsPortfolio<>(buchiAcceptance);
+        = new DeterministicConstructionsPortfolio<>(BuchiAcceptance.class);
     this.sigma2Portfolio
-      = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class);
-    this.sigma2GeneralizedPortfolio
-      = new DeterministicConstructionsPortfolio<>(GeneralizedCoBuchiAcceptance.class);
+        = new DeterministicConstructionsPortfolio<>(CoBuchiAcceptance.class);
+    this.minimize = minimize;
   }
 
-  public static <R extends GeneralizedRabinAcceptance> NormalformDRAConstruction<R>
-    of(Class<R> acceptanceClass, boolean dualConstruction) {
-    return new NormalformDRAConstruction<>(acceptanceClass, dualConstruction);
+  public static NormalformDRAConstruction of(boolean dualConstruction, boolean minimize) {
+    return new NormalformDRAConstruction(dualConstruction, minimize);
   }
 
   @Override
-  public Automaton<?, ? extends R> apply(LabelledFormula formula) {
+  public Automaton<?, RabinAcceptance> apply(LabelledFormula formula) {
     // Ensure that the input formula is in negation normal form.
     var nnfFormula = formula.nnf();
 
-    List<Automaton<Object, ? extends R>> automata = new ArrayList<>();
+    List<Automaton<Pair<Integer, Integer>, ? extends RabinAcceptance>> automata = new ArrayList<>();
 
     for (Sigma2Pi2Pair disjunct : group(nnfFormula)) {
-      if (disjunct.pi2().formula().equals(BooleanConstant.TRUE)) {
-        Automaton<?, ? extends GeneralizedCoBuchiAcceptance> sigma2Automaton
-          = sigma2GeneralizedPortfolio.apply(disjunct.sigma2()).orElse(null);
+      var sigma2Automaton = OmegaAcceptanceCast.castExact(
+          sigma2Portfolio.apply(disjunct.sigma2()).orElseGet(
+              () -> DeterministicConstructionsPortfolio.coSafetySafety(disjunct.sigma2())),
+          CoBuchiAcceptance.class);
 
-        if (sigma2Automaton == null) {
-          sigma2Automaton = DeterministicConstructionsPortfolio.coSafetySafety(disjunct.sigma2());
-        }
+      var normalisedSigma2Automaton = HashMapAutomaton.copyOf(minimize
+          ? DcwMinimization.minimize(sigma2Automaton)
+          : Views.dropStateLabels(sigma2Automaton).automaton());
 
-        automata.add(OmegaAcceptanceCast.cast((Automaton) sigma2Automaton, acceptanceClass));
-      } else {
-        Automaton<?, ? extends CoBuchiAcceptance> sigma2Automaton
-          = sigma2Portfolio.apply(disjunct.sigma2()).orElse(null);
+      var pi2Automaton = OmegaAcceptanceCast.castExact(
+          pi2Portfolio.apply(disjunct.pi2())
+              .orElseGet(() -> DeterministicConstructionsPortfolio.safetyCoSafety(disjunct.pi2())),
+          BuchiAcceptance.class);
 
-        if (sigma2Automaton == null) {
-          sigma2Automaton = DeterministicConstructionsPortfolio.coSafetySafety(disjunct.sigma2());
-        }
+      var normalisedPi2Automaton = HashMapAutomaton.copyOf(minimize
+          ? DbwMinimization.minimize(pi2Automaton)
+          : Views.dropStateLabels(pi2Automaton).automaton());
 
-        Automaton<?, ? extends GeneralizedBuchiAcceptance> pi2Automaton
-          = pi2Portfolio.apply(disjunct.pi2()).orElse(null);
+      // AcceptanceOptimizations.removeDeadStates(normalisedSigma2Automaton);
+      // AcceptanceOptimizations.removeDeadStates(normalisedPi2Automaton);
 
-        if (pi2Automaton == null) {
-          pi2Automaton = DeterministicConstructionsPortfolio.safetyCoSafety(disjunct.pi2());
-        }
-
-        automata.add(OmegaAcceptanceCast.cast(
-          (Automaton) BooleanOperations.intersection(sigma2Automaton, pi2Automaton),
-          acceptanceClass));
-      }
+      automata.add(OmegaAcceptanceCast.cast(
+          BooleanOperations.intersection(normalisedSigma2Automaton, normalisedPi2Automaton),
+          RabinAcceptance.class));
     }
 
     if (automata.isEmpty()) {
-      return OmegaAcceptanceCast.cast(
-        EmptyAutomaton.of(nnfFormula.atomicPropositions(), AllAcceptance.INSTANCE),
-        acceptanceClass);
+      return OmegaAcceptanceCast.castExact(
+          EmptyAutomaton.of(nnfFormula.atomicPropositions(), AllAcceptance.INSTANCE),
+          RabinAcceptance.class);
     }
 
     var automaton = HashMapAutomaton.copyOf(
-      OmegaAcceptanceCast.cast(BooleanOperations.deterministicUnion(automata), acceptanceClass));
-
-    // Collapse accepting sinks.
-    Predicate<Map<Integer, ?>> isAcceptingSink = state ->
-      state.values().stream().anyMatch(NormalformDRAConstruction::isUniverse);
-
-    var acceptingSink = automaton.states().stream().filter(isAcceptingSink).findAny();
-
-    if (acceptingSink.isPresent()) {
-      automaton.updateEdges((state, oldEdge) -> {
-        if (isAcceptingSink.test(oldEdge.successor())) {
-          return oldEdge.withSuccessor(acceptingSink.get());
-        }
-
-        return oldEdge;
-      });
-
-      automaton.trim();
-    }
+        OmegaAcceptanceCast.castExact(
+            BooleanOperations.deterministicUnion(automata),
+            RabinAcceptance.class));
 
     AcceptanceOptimizations.removeDeadStates(automaton);
     AcceptanceOptimizations.transform(automaton);
-    return OmegaAcceptanceCast.cast(automaton, acceptanceClass);
-  }
-
-  private static boolean isUniverse(Object state) {
-    if (state instanceof Pair<?, ?> pair) {
-      return isUniverse(pair.fst()) && isUniverse(pair.snd());
-    }
-
-    if (state instanceof EquivalenceClass) {
-      return ((EquivalenceClass) state).isTrue();
-    }
-
-    if (state instanceof DeterministicConstructions.BreakpointStateAccepting) {
-      return ((DeterministicConstructions.BreakpointStateAccepting) state).all().isTrue();
-    }
-
-    if (state instanceof DeterministicConstructions.BreakpointStateRejecting) {
-      return ((DeterministicConstructions.BreakpointStateRejecting) state).all().isTrue();
-    }
-
-    if (state instanceof DeterministicConstructions.BreakpointStateAcceptingRoundRobin) {
-      return ((DeterministicConstructions.BreakpointStateAcceptingRoundRobin) state).all().isTrue();
-    }
-
-    if (state instanceof DeterministicConstructions.BreakpointStateRejectingRoundRobin) {
-      return ((DeterministicConstructions.BreakpointStateRejectingRoundRobin) state).all().isTrue();
-    }
-
-    return false;
+    return automaton;
   }
 }

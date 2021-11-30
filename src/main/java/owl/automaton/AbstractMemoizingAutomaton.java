@@ -46,6 +46,7 @@ import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
 import owl.collections.Either;
+import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
 
 /**
@@ -65,6 +66,8 @@ import owl.collections.Pair;
  *
  * @param <S> the state type
  * @param <A> the acceptance condition type
+ *            <p>
+ *                                                        TODO: Rename to ImmutableAutomaton.
  **/
 public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
     implements Automaton<S, A> {
@@ -189,6 +192,11 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final Set<Edge<S>> edges(S state, BitSet valuation) {
+    return edgeTree(state).get(valuation);
+  }
+
+  @Override
+  public final Set<Edge<S>> edges(S state, ImmutableBitSet valuation) {
     return edgeTree(state).get(valuation);
   }
 
@@ -489,8 +497,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
     @Override
     public final boolean is(Property property) {
-      return property == SEMI_DETERMINISTIC
-          || super.is(property);
+      return property == SEMI_DETERMINISTIC || super.is(property);
     }
   }
 
@@ -598,6 +605,38 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     @Override
     protected void explorationCompleted() {
       memoizedEdgesB = null;
+    }
+  }
+
+  // TODO: hide behind of(...) and copyOf().
+  public static class PrecomputedAutomaton<A extends EmersonLeiAcceptance>
+      extends EdgeTreeImplementation<Integer, A> {
+
+    @Nullable
+    private List<MtBdd<Edge<Integer>>> edgeTrees;
+
+    public PrecomputedAutomaton(
+        List<String> atomicPropositions,
+        BddSetFactory factory,
+        Set<Integer> initialStates,
+        A acceptance,
+        List<MtBdd<Edge<Integer>>> edgeTrees) {
+
+      super(atomicPropositions, factory, initialStates, acceptance);
+      this.edgeTrees = List.copyOf(edgeTrees);
+      Preconditions.checkArgument(this.initialStates.isEmpty() == this.edgeTrees.isEmpty());
+    }
+
+    @Override
+    protected MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
+      assert edgeTrees != null;
+      return edgeTrees.get(state);
+    }
+
+    @Override
+    protected void explorationCompleted() {
+      assert edgeTrees != null;
+      edgeTrees = null;
     }
   }
 }

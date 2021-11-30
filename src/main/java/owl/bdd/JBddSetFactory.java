@@ -17,9 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.bdd.jbdd;
+package owl.bdd;
 
-import static owl.bdd.jbdd.JBddSetFactory.JBddSet;
+import static owl.bdd.JBddSetFactory.JBddSet;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Negation;
@@ -38,15 +38,11 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.OptionalInt;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
-import owl.bdd.BddSet;
-import owl.bdd.BddSetFactory;
-import owl.bdd.MtBdd;
-import owl.bdd.MtBddOperations;
 import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
@@ -94,7 +90,18 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     int node = bdd.trueNode();
 
     for (int i = 0; i < upTo; i++) {
-      node = createBddUpdateHelper(valuation, i, node);
+      node = createBddUpdateHelper(valuation.get(i), i, node);
+    }
+
+    return create(node);
+  }
+
+  @Override
+  public BddSet of(ImmutableBitSet valuation, int upTo) {
+    int node = bdd.trueNode();
+
+    for (int i = 0; i < upTo; i++) {
+      node = createBddUpdateHelper(valuation.contains(i), i, node);
     }
 
     return create(node);
@@ -105,7 +112,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     int node = bdd.trueNode();
 
     for (int i = support.nextSetBit(0); i != -1; i = support.nextSetBit(i + 1)) {
-      node = createBddUpdateHelper(valuation, i, node);
+      node = createBddUpdateHelper(valuation.get(i), i, node);
     }
 
     return create(node);
@@ -136,14 +143,16 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
   @Override
   public <S> MtBdd<S> toMtBdd(Map<? extends S, ? extends BddSet> sets) {
-    MtBdd<S> union = MtBdd.of();
+    MtBdd<S> union = null;
 
     for (Map.Entry<? extends S, ? extends BddSet> entry : sets.entrySet()) {
-      union = MtBddOperations.union(union,
-          toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>()));
+      union = union == null
+          ? toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>())
+          : MtBddOperations.union(union,
+              toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>()));
     }
 
-    return union;
+    return union == null ? MtBdd.of() : union;
   }
 
   private PropositionalFormula<Integer> toExpression(int node) {
@@ -175,10 +184,10 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     return canonicalize(new JBddSet(this, node));
   }
 
-  private int createBddUpdateHelper(BitSet set, int var, int node) {
+  private int createBddUpdateHelper(boolean set, int var, int node) {
     int variableNode = variableNode(var);
     assert bdd.isVariable(variableNode);
-    return bdd.and(node, set.get(var) ? variableNode : bdd.not(variableNode));
+    return bdd.and(node, set ? variableNode : bdd.not(variableNode));
   }
 
   private int getNode(BddSet vs) {
@@ -248,7 +257,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
    * uniqueness.
    */
   @SuppressWarnings("PMD.OverrideBothEqualsAndHashcode") // We only have a "bogus" assert equals
-  static final class JBddSet implements JBddNode, BddSet {
+  public static final class JBddSet implements JBddNode, BddSet {
 
     private final JBddSetFactory factory;
     private final int node;
@@ -498,12 +507,12 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     @Override
-    public Optional<BitSet> element() {
+    public BitSet element() {
       if (this.isEmpty()) {
-        return Optional.empty();
+        throw new NoSuchElementException();
       }
 
-      return Optional.of(factory.bdd.getSatisfyingAssignment(node));
+      return Objects.requireNonNull(factory.bdd.getSatisfyingAssignment(node));
     }
 
     @Override

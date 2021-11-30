@@ -147,8 +147,8 @@ class SolverTest {
       for (Set<Integer> model : Sets.powerSet(upperBound)) {
         if (formula.evaluate(model)) {
           expectedMaximalModels.add(model);
-          expectedMaximalModels = Collections3
-              .maximalElements(expectedMaximalModels, (x, y) -> y.containsAll(x));
+          expectedMaximalModels = new ArrayList<>(Collections3
+              .maximalElements(expectedMaximalModels, (x, y) -> y.containsAll(x)));
         }
       }
 

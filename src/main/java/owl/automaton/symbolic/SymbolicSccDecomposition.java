@@ -67,7 +67,7 @@ public abstract class SymbolicSccDecomposition {
       // Get some arbitrary state from consideredStates
       BddSet node = transitionRelation
         .factory()
-        .of(consideredStates.element().orElseThrow(), states);
+        .of(consideredStates.element(), states);
       BddSet forwardSet = node;
       BddSet backwardSet = node;
       BddSet successors = node;

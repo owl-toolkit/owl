@@ -32,7 +32,7 @@ import owl.logic.propositional.PropositionalFormula.Negation;
 public sealed class GeneralizedCoBuchiAcceptance extends EmersonLeiAcceptance
   permits CoBuchiAcceptance {
 
-  GeneralizedCoBuchiAcceptance(int size) {
+  protected GeneralizedCoBuchiAcceptance(int size) {
     super(size);
   }
 

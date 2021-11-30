@@ -31,7 +31,8 @@ import java.util.function.IntPredicate;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
 import org.junit.jupiter.api.Test;
-import owl.automaton.SuccessorFunction;
+import owl.automaton.EdgeRelation;
+import owl.automaton.edge.Edge;
 
 class SccDecompositionTest {
 
@@ -43,7 +44,7 @@ class SccDecompositionTest {
     throw new IllegalArgumentException();
   };
 
-  private static final SuccessorFunction<Object> FUNCTION_ASSERT_NOT_CALLED = x -> {
+  private static final EdgeRelation<Object> FUNCTION_ASSERT_NOT_CALLED = x -> {
     throw new IllegalArgumentException();
   };
 
@@ -53,9 +54,9 @@ class SccDecompositionTest {
 
     assertFalse(decomposition.anyMatch(PREDICATE_ASSERT_NOT_CALLED));
     checkConsistency(decomposition,
-      Set.of(),
-      INT_PREDICATE_ASSERT_NOT_CALLED,
-      INT_PREDICATE_ASSERT_NOT_CALLED);
+        Set.of(),
+        INT_PREDICATE_ASSERT_NOT_CALLED,
+        INT_PREDICATE_ASSERT_NOT_CALLED);
   }
 
   @Test
@@ -68,33 +69,33 @@ class SccDecompositionTest {
 
   @Test
   void testSingletonGraphTwo() {
-    var decomposition = SccDecomposition.of(Set.of(0), x -> Set.of(0));
+    var decomposition = SccDecomposition.of(Set.of(0), x -> Set.of(Edge.of(0)));
     checkConsistency(decomposition, Set.of(0), x -> true, x -> false);
   }
 
   @Test
   void testGraph() {
     var decomposition = SccDecomposition.of(Set.of(3, 6), x -> switch (x) {
-      case 6 -> Set.of(4, 5);
-      case 5 -> Set.of(5);
-      case 4 -> Set.of(3, 4);
-      case 3 -> Set.of(0, 1, 2);
-      case 2 -> Set.of(0, 1, 3);
-      case 1 -> Set.of(1, 2, 3);
+      case 6 -> Set.of(Edge.of(4), Edge.of(5));
+      case 5 -> Set.of(Edge.of(5));
+      case 4 -> Set.of(Edge.of(3), Edge.of(4));
+      case 3 -> Set.of(Edge.of(0), Edge.of(1), Edge.of(2));
+      case 2 -> Set.of(Edge.of(0), Edge.of(1), Edge.of(3));
+      case 1 -> Set.of(Edge.of(1), Edge.of(2), Edge.of(3));
       default -> Set.of();
     });
 
     checkConsistency(decomposition,
-      Set.of(0, 1, 2, 3, 4, 5, 6),
-      x -> decomposition.sccs().get(x).contains(0) || decomposition.sccs().get(x).contains(5),
-      x -> decomposition.sccs().get(x).contains(0) || decomposition.sccs().get(x).contains(6));
+        Set.of(0, 1, 2, 3, 4, 5, 6),
+        x -> decomposition.sccs().get(x).contains(0) || decomposition.sccs().get(x).contains(5),
+        x -> decomposition.sccs().get(x).contains(0) || decomposition.sccs().get(x).contains(6));
   }
 
   private static <S> void checkConsistency(
-    SccDecomposition<S> decomposition,
-    @Nullable Set<S> expectedStates,
-    @Nullable IntPredicate expectedBottomSccs,
-    @Nullable IntPredicate expectedTransientSccs) {
+      SccDecomposition<S> decomposition,
+      @Nullable Set<S> expectedStates,
+      @Nullable IntPredicate expectedBottomSccs,
+      @Nullable IntPredicate expectedTransientSccs) {
 
     testSccs(decomposition, expectedStates);
     testIndex(decomposition);
@@ -104,8 +105,8 @@ class SccDecompositionTest {
   }
 
   private static <S> void testSccs(
-    SccDecomposition<S> decomposition,
-    @Nullable Set<S> expectedStates) {
+      SccDecomposition<S> decomposition,
+      @Nullable Set<S> expectedStates) {
 
     var states = new HashSet<S>();
     var sccs = decomposition.sccs();
@@ -153,9 +154,9 @@ class SccDecompositionTest {
           boolean finished = false;
 
           for (S from : decomposition.sccs().get(i)) {
-            var succesors = decomposition.successorFunction().apply(from);
+            var successors = decomposition.successorFunction().successors(from);
 
-            if (!Collections.disjoint(decomposition.sccs().get(j), succesors)) {
+            if (!Collections.disjoint(decomposition.sccs().get(j), successors)) {
               finished = true;
               break;
             }
@@ -167,10 +168,10 @@ class SccDecompositionTest {
         } else {
           for (S from : decomposition.sccs().get(i)) {
             assertTrue(
-              Collections.disjoint(
-                decomposition.sccs().get(j),
-                decomposition.successorFunction().apply(from)),
-              "Edge found.");
+                Collections.disjoint(
+                    decomposition.sccs().get(j),
+                    decomposition.successorFunction().successors(from)),
+                "Edge found.");
           }
         }
       }
@@ -178,7 +179,7 @@ class SccDecompositionTest {
   }
 
   private static <S> void testBottomSccs(
-    SccDecomposition<S> decomposition, @Nullable IntPredicate expectedBottomSccs) {
+      SccDecomposition<S> decomposition, @Nullable IntPredicate expectedBottomSccs) {
 
     int n = decomposition.sccs().size();
     var bottomSccs = decomposition.bottomSccs();
@@ -198,7 +199,7 @@ class SccDecompositionTest {
   }
 
   private static <S> void testTransientSccs(
-    SccDecomposition<S> decomposition, @Nullable IntPredicate expectedTransientSccs) {
+      SccDecomposition<S> decomposition, @Nullable IntPredicate expectedTransientSccs) {
 
     int n = decomposition.sccs().size();
     var transientSccs = decomposition.transientSccs();

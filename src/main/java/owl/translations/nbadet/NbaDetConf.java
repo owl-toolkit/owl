@@ -31,18 +31,20 @@ import java.util.stream.Collectors;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
+import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.collections.Numbering;
 import owl.collections.Pair;
 import owl.command.AutomatonConversionCommands;
 
 /**
- * This is the structure containing all required information that is used in the
- * determinization process and is obtained based on an NbaDetArgs instance.
+ * This is the structure containing all required information that is used in the determinization
+ * process and is obtained based on an NbaDetArgs instance.
  */
 @AutoValue
 public abstract class NbaDetConf<S> {
-  public enum UpdateMode { MUELLER_SCHUPP, SAFRA, MAX_MERGE }
+
+  public enum UpdateMode {MUELLER_SCHUPP, SAFRA, MAX_MERGE}
 
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());
 
@@ -64,18 +66,18 @@ public abstract class NbaDetConf<S> {
   //modded version with different update mode
   public NbaDetConf<S> withUpdateMode(UpdateMode mode) {
     return new AutoValue_NbaDetConf<>(
-      new AutomatonConversionCommands.Nba2DpaCommand(args(), mode),
+        new AutomatonConversionCommands.Nba2DpaCommand(args(), mode),
         aut(), accSinks(), extMask(), intMask(), sets());
   }
 
 
-  public static <S> Set<Pair<S,S>> filterInternalIncl(
-    Set<? extends Pair<S, S>> incl, SccDecomposition<? super S> scci) {
+  public static <S> Set<Pair<S, S>> filterInternalIncl(
+      Set<? extends Pair<S, S>> incl, SccDecomposition<? super S> scci) {
 
     return incl.stream()
-      .filter(p -> !p.fst().equals(p.snd()) // not equal, but in same SCC
+        .filter(p -> !p.fst().equals(p.snd()) // not equal, but in same SCC
             && scci.index(p.fst()) == scci.index(p.snd()))
-      .collect(Collectors.toUnmodifiableSet());
+        .collect(Collectors.toUnmodifiableSet());
 
     //NOTE: in principle, this can be made slightly more general, by keeping pairs p <= q if
     //both same SCC || (different SCCs in same comp. && every path from q to p stays in that comp.)
@@ -86,27 +88,28 @@ public abstract class NbaDetConf<S> {
   }
 
   public static <S> Set<Pair<S, S>> filterExternalIncl(
-    Set<? extends Pair<S, S>> incl,
-    SccDecomposition<? super S> scci,
-    Numbering<S> stm) {
+      Set<? extends Pair<S, S>> incl,
+      SccDecomposition<? super S> scci,
+      Numbering<S> stm) {
 
     //can only use a < b if b -/> a
     var inclFilt = incl.stream()
-      .filter(p -> !scci.pathExists(p.snd(), p.fst()))
-      .collect(Collectors.toSet());
+        .filter(p -> !scci.pathExists(p.snd(), p.fst()))
+        .collect(Collectors.toSet());
 
     //need to collapse remaining usable incl. to strict partial order and break symmetry inside
     //eq. classes for this, compute SCCs in graph induced by relation, each SCC is an eq. class
-    var leq = new HashMap<S, Set<S>>();
+    var leq = new HashMap<S, Set<Edge<S>>>();
     for (var p : inclFilt) {
       if (!leq.containsKey(p.fst())) {
         leq.put(p.fst(), new HashSet<>());
       }
-      leq.get(p.fst()).add(p.snd());
+      leq.get(p.fst()).add(Edge.of(p.snd()));
     }
     var eqClass = new HashMap<S, Integer>();
     int i = 0;
-    for (var eqcl : SccDecomposition.of(leq.keySet(), x -> leq.getOrDefault(x, Set.of())).sccs()) {
+    for (var eqcl : SccDecomposition.of(leq.keySet(), x -> leq.getOrDefault(x, Set.of()))
+        .sccs()) {
       for (var st : eqcl) {
         eqClass.put(st, i);
       }
@@ -115,22 +118,23 @@ public abstract class NbaDetConf<S> {
 
     //exclude equivalences (keep one-sided relation, and without reflexive pairs)
     return inclFilt.stream()
-      .filter(p -> !eqClass.get(p.fst()).equals(eqClass.get(p.snd()))
-                   || stm.lookup(p.fst()) < stm.lookup(p.snd()))
-      .collect(Collectors.toUnmodifiableSet());
+        .filter(p -> !eqClass.get(p.fst()).equals(eqClass.get(p.snd()))
+            || stm.lookup(p.fst()) < stm.lookup(p.snd()))
+        .collect(Collectors.toUnmodifiableSet());
   }
 
   /**
-   * construct the structure containing all required information and that will be
-   * passed around as information store a lot.
-   * @param <S> automaton state type
-   * @param aut input NBA
+   * construct the structure containing all required information and that will be passed around as
+   * information store a lot.
+   *
+   * @param <S>  automaton state type
+   * @param aut  input NBA
    * @param incl known language inclusions in input NBA
    * @param args the configuration
    */
   public static <S> NbaDetConf<S> prepare(
       Automaton<S, ? extends BuchiAcceptance> aut,
-      Set<Pair<S,S>> incl,
+      Set<Pair<S, S>> incl,
       AutomatonConversionCommands.Nba2DpaCommand args) {
 
     //compute SCCs
@@ -161,14 +165,14 @@ public abstract class NbaDetConf<S> {
     NbaAdjMat<S> adjMat = new NbaAdjMat<>(aut, stateMap, aSinks, extMask);
 
     NbaDetConf<S> ret = new AutoValue_NbaDetConf<>(
-      args, adjMat, aSinksBS, extMask, intMask, sccSets);
+        args, adjMat, aSinksBS, extMask, intMask, sccSets);
 
     if (logger.getLevel() != null) {
       if (logger.getLevel().equals(Level.FINER)) {
         logger.log(Level.FINER, ret.toString());
       } else if (logger.getLevel().equals(Level.FINEST)) {
         logger.log(Level.FINEST, "NBA adj. mat. - state -> (accSucc, rejSucc)\n"
-          + adjMat);
+            + adjMat);
       }
     }
 
@@ -180,14 +184,14 @@ public abstract class NbaDetConf<S> {
     IntFunction<S> inv = aut().stateMap()::lookup;
     var sb = new StringBuilder(200);
     sb.append("assembled NBA determinization configuration:")
-      .append("\nstate to bit mapping: ")
-      .append(aut().stateMap().asMap())
-      .append("\ndetected accepting pseudo-sinks: ")
-      .append(BitSet2.asSet(accSinks(), inv))
-      .append("\nused external language inclusions:\n").append(extMask().toString(inv))
-      .append("used internal language inclusions:\n").append(intMask().toString(inv))
-      .append("determinization components:")
-      .append("\nrScc(s): ").append(BitSet2.asSet(sets().rsccStates(), inv));
+        .append("\nstate to bit mapping: ")
+        .append(aut().stateMap().asMap())
+        .append("\ndetected accepting pseudo-sinks: ")
+        .append(BitSet2.asSet(accSinks(), inv))
+        .append("\nused external language inclusions:\n").append(extMask().toString(inv))
+        .append("used internal language inclusions:\n").append(intMask().toString(inv))
+        .append("determinization components:")
+        .append("\nrScc(s): ").append(BitSet2.asSet(sets().rsccStates(), inv));
     sets().asccsStates().forEach(s -> sb.append("\naScc: ").append(BitSet2.asSet(s, inv)));
     sets().dsccsStates().forEach(s -> sb.append("\ndScc: ").append(BitSet2.asSet(s, inv)));
     sets().msccsStates().forEach(s -> sb.append("\nmScc: ").append(BitSet2.asSet(s, inv)));

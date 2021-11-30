@@ -271,6 +271,7 @@
       "tools": [
         "ltl2delta2 <input> --method=SE20_SIGMA_2_AND_GF_SIGMA_1          --verify | ./owl ltl2dela --translation=SLM21",
         "ltl2delta2 <input> --method=SE20_PI_2_AND_FG_PI_1                --verify | ./owl ltl2dela --translation=SLM21",
+        "ltl2delta2 <input> --method=SE20_PI_2_AND_FG_PI_1                --verify | ./owl ltl2dra  --translation=SE20 --use-sat-based-tdbw-and-tdcw-minimisation",
         "ltl2delta2 <input> --method=SE20_SIGMA_2_AND_GF_SIGMA_1 --strict --verify | ./owl ltl2dela --translation=SLM21",
         "ltl2delta2 <input> --method=SE20_PI_2_AND_FG_PI_1       --strict --verify | ./owl ltl2dela --translation=SLM21"
       ],

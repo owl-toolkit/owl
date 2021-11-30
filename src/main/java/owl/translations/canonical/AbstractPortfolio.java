@@ -27,7 +27,7 @@ import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.ltl.LabelledFormula;
 
 public abstract class AbstractPortfolio<A extends EmersonLeiAcceptance>
-  implements Function<LabelledFormula, Optional<Automaton<?, ? extends A>>> {
+    implements Function<LabelledFormula, Optional<Automaton<?, ? extends A>>> {
 
   final Class<A> acceptanceBound;
 

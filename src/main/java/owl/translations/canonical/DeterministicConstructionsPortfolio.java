@@ -19,13 +19,10 @@
 
 package owl.translations.canonical;
 
-import static owl.translations.canonical.DeterministicConstructions.BreakpointStateAcceptingRoundRobin;
-import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejectingRoundRobin;
 import static owl.translations.canonical.DeterministicConstructions.CoSafety;
-import static owl.translations.canonical.DeterministicConstructions.CoSafetySafetyRoundRobin;
 import static owl.translations.canonical.DeterministicConstructions.GfCoSafety;
 import static owl.translations.canonical.DeterministicConstructions.Safety;
-import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafetyRoundRobin;
+import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafety;
 
 import java.util.Optional;
 import java.util.Set;
@@ -37,6 +34,8 @@ import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedCoBuchiAcceptance;
+import owl.automaton.minimization.DbwMinimization;
+import owl.automaton.minimization.DcwMinimization;
 import owl.bdd.FactorySupplier;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;
@@ -45,51 +44,75 @@ import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.SyntacticFragments;
 import owl.ltl.XOperator;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateAccepting;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
+import owl.translations.canonical.DeterministicConstructions.CoSafetySafety;
 
 public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAcceptance>
-  extends AbstractPortfolio<A> {
+    extends AbstractPortfolio<A> {
 
   public DeterministicConstructionsPortfolio(Class<A> acceptanceBound) {
     super(acceptanceBound);
   }
 
+  public static final class MinimalDeterministicConstructionsPortfolio<A extends EmersonLeiAcceptance>
+      extends AbstractPortfolio<A> {
+
+    public MinimalDeterministicConstructionsPortfolio(Class<A> acceptanceBound) {
+      super(acceptanceBound);
+    }
+
+    @Override
+    public Optional<Automaton<?, ? extends A>> apply(LabelledFormula formula) {
+      if (isAllowed(CoBuchiAcceptance.class) && SyntacticFragments.SIGMA_2.contains(formula)) {
+        return box(DcwMinimization.minimize(CoSafetySafety.of(formula)));
+      }
+
+      if (isAllowed(BuchiAcceptance.class) && SyntacticFragments.PI_2.contains(formula)) {
+        return box(DbwMinimization.minimize(SafetyCoSafety.of(formula)));
+      }
+
+      return Optional.empty();
+    }
+  }
+
   @Override
   public Optional<Automaton<?, ? extends A>> apply(LabelledFormula formula) {
     if (isAllowed(AllAcceptance.class)
-      && SyntacticFragments.isSafety(formula.formula())) {
+        && SyntacticFragments.isSafety(formula.formula())) {
       return box(safety(formula));
     }
 
     if (isAllowed(BuchiAcceptance.class)
-      && SyntacticFragments.isCoSafety(formula.formula())) {
+        && SyntacticFragments.isCoSafety(formula.formula())) {
       return box(coSafety(formula));
     }
 
     var formulas = formula.formula() instanceof Conjunction
-      ? formula.formula().operands
-      : Set.of(formula.formula());
+        ? formula.formula().operands
+        : Set.of(formula.formula());
 
     if (isAllowed(GeneralizedBuchiAcceptance.class)
-      && formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
+        && formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
       return box(gfCoSafety(formula, true));
     }
 
     if (isAllowed(BuchiAcceptance.class)
-      && formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
+        && formulas.stream().allMatch(SyntacticFragments::isGfCoSafety)) {
       return box(gfCoSafety(formula, false));
     }
 
     formulas = formula.formula() instanceof Disjunction
-      ? formula.formula().operands
-      : Set.of(formula.formula());
+        ? formula.formula().operands
+        : Set.of(formula.formula());
 
     if (isAllowed(GeneralizedCoBuchiAcceptance.class)
-      && formulas.stream().allMatch(SyntacticFragments::isFgSafety)) {
+        && formulas.stream().allMatch(SyntacticFragments::isFgSafety)) {
       return box(fgSafety(formula, true));
     }
 
     if (isAllowed(CoBuchiAcceptance.class)
-      && formulas.stream().allMatch(SyntacticFragments::isFgSafety)) {
+        && formulas.stream().allMatch(SyntacticFragments::isFgSafety)) {
       return box(fgSafety(formula, false));
     }
 
@@ -104,18 +127,18 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
 
       var xCountFinal = xCount;
       return apply(formula.wrap(unwrappedFormula))
-        .map(x -> GenericConstructions.delay(x, xCountFinal));
+          .map(x -> GenericConstructions.delay(x, xCountFinal));
     }
 
     if (isAllowed(CoBuchiAcceptance.class)
-      && formula.formula() instanceof Formula.TemporalOperator
-      && SyntacticFragments.isCoSafetySafety(formula.formula())) {
+        && formula.formula() instanceof Formula.TemporalOperator
+        && SyntacticFragments.isCoSafetySafety(formula.formula())) {
       return box(coSafetySafety(formula));
     }
 
     if (isAllowed(BuchiAcceptance.class)
-      && formula.formula() instanceof Formula.TemporalOperator
-      && SyntacticFragments.isSafetyCoSafety(formula.formula())) {
+        && formula.formula() instanceof Formula.TemporalOperator
+        && SyntacticFragments.isSafetyCoSafety(formula.formula())) {
       return box(safetyCoSafety(formula));
     }
 
@@ -133,28 +156,28 @@ public final class DeterministicConstructionsPortfolio<A extends EmersonLeiAccep
   }
 
   public static Automaton<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance>
-    gfCoSafety(LabelledFormula formula, boolean generalized) {
+  gfCoSafety(LabelledFormula formula, boolean generalized) {
     var factories = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
     var formulas = formula.formula() instanceof Conjunction
-      ? Set.copyOf(formula.formula().operands)
-      : Set.of(formula.formula());
+        ? Set.copyOf(formula.formula().operands)
+        : Set.of(formula.formula());
     return GfCoSafety.of(factories, formulas, generalized);
   }
 
   public static Automaton<RoundRobinState<EquivalenceClass>, ? extends GeneralizedCoBuchiAcceptance>
-    fgSafety(LabelledFormula formula, boolean generalized) {
+  fgSafety(LabelledFormula formula, boolean generalized) {
     var automaton = gfCoSafety(formula.not(), generalized);
     return BooleanOperations
-      .deterministicComplementOfCompleteAutomaton(automaton, GeneralizedCoBuchiAcceptance.class);
+        .deterministicComplementOfCompleteAutomaton(automaton, GeneralizedCoBuchiAcceptance.class);
   }
 
-  public static Automaton<BreakpointStateAcceptingRoundRobin, CoBuchiAcceptance>
-    coSafetySafety(LabelledFormula formula) {
-    return CoSafetySafetyRoundRobin.of(formula);
+  public static Automaton<BreakpointStateAccepting, CoBuchiAcceptance>
+  coSafetySafety(LabelledFormula formula) {
+    return CoSafetySafety.of(formula);
   }
 
-  public static Automaton<BreakpointStateRejectingRoundRobin, BuchiAcceptance>
-    safetyCoSafety(LabelledFormula formula) {
-    return SafetyCoSafetyRoundRobin.of(formula);
+  public static Automaton<BreakpointStateRejecting, BuchiAcceptance>
+  safetyCoSafety(LabelledFormula formula) {
+    return SafetyCoSafety.of(formula);
   }
 }

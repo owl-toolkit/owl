@@ -119,7 +119,7 @@ public final class SymmetricLDBAConstruction<B extends GeneralizedBuchiAcceptanc
 
       var dnf = Collections3.transformSet(NormalForms
         .toDnf(formula.formula(), NormalForms.SYNTHETIC_CO_SAFETY_LITERAL), Conjunction::of);
-      var groupedDnf = Collections3.partition(dnf, SymmetricLDBAConstruction::groupInDnf);
+      var groupedDnf = Collections3.equivalenceClasses(dnf, SymmetricLDBAConstruction::groupInDnf, false);
       groupedDnf.forEach(x -> initialFormulas.add(Disjunction.of(x)));
       initialFormulas.sort(null);
 

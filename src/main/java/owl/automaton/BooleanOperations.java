@@ -262,6 +262,7 @@ public final class BooleanOperations {
       Automaton<S2, ?> automaton2) {
 
       super(atomicPropositions,
+        automaton1.factory(),
         Pair.allPairs(automaton1.initialStates(), automaton2.initialStates()),
         intersectionAcceptance(List.of(automaton1.acceptance(), automaton2.acceptance())));
 

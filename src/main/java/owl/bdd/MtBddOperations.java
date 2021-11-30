@@ -22,8 +22,10 @@ package owl.bdd;
 import static java.util.stream.Collectors.toUnmodifiableSet;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
+import com.google.common.collect.Table;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -36,7 +38,6 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import org.checkerframework.checker.nullness.qual.Nullable;
 import owl.collections.Collections3;
-import owl.collections.Pair;
 
 /**
  * This class provides operations for MTBDDs.
@@ -48,7 +49,7 @@ public final class MtBddOperations {
 
   public static <L, R, E> MtBdd<E> cartesianProduct(
       MtBdd<L> factor1, MtBdd<R> factor2, BiFunction<L, R, @Nullable E> combinator) {
-    return cartesianProduct(factor1, factor2, combinator, new HashMap<>());
+    return cartesianProduct(factor1, factor2, combinator, HashBasedTable.create());
   }
 
   /**
@@ -149,10 +150,8 @@ public final class MtBddOperations {
 
   private static <L, R, E> MtBdd<E> cartesianProduct(
       MtBdd<L> leftTree, MtBdd<R> rightTree, BiFunction<L, R, @Nullable E> merger,
-      Map<Pair<MtBdd<L>, MtBdd<R>>, MtBdd<E>> memoizedCalls) {
-    var key = Pair.of(leftTree, rightTree);
-
-    MtBdd<E> cartesianProduct = memoizedCalls.get(key);
+      Table<MtBdd<L>, MtBdd<R>, MtBdd<E>> memoizedCalls) {
+    MtBdd<E> cartesianProduct = memoizedCalls.get(leftTree, rightTree);
 
     if (cartesianProduct != null) {
       return cartesianProduct;
@@ -190,7 +189,7 @@ public final class MtBddOperations {
       cartesianProduct = MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
     }
 
-    memoizedCalls.put(key, cartesianProduct);
+    memoizedCalls.put(leftTree, rightTree, cartesianProduct);
     return cartesianProduct;
   }
 

@@ -68,7 +68,7 @@ public class DelagBuilder
 
     DependencyTreeFactory<Integer> treeConverter = new DependencyTreeFactory<>(
       FactorySupplier.defaultSupplier().getEquivalenceClassFactory(atomicPropositions),
-    x -> Views.dropStateLabels(fallback.apply(x)));
+    x -> Views.dropStateLabels(fallback.apply(x)).automaton());
 
     DependencyTree<Integer> tree = formula.formula().accept(treeConverter);
     var expression = tree.getAcceptanceExpression();
