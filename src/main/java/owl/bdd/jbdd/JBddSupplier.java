@@ -28,7 +28,7 @@ import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.FactorySupplier;
 
 public enum JBddSupplier implements FactorySupplier {
-  JBDD_SUPPLIER_INSTANCE;
+  INSTANCE;
 
   static Bdd create(int size) {
     var configuration = ImmutableBddConfiguration.builder()

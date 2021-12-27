@@ -79,11 +79,11 @@ public sealed interface PropositionalFormula<T> {
   int height();
 
   default boolean isFalse() {
-    return this instanceof Disjunction && ((Disjunction<T>) this).disjuncts.isEmpty();
+    return this instanceof Disjunction<T> disjunction && disjunction.disjuncts.isEmpty();
   }
 
   default boolean isTrue() {
-    return this instanceof Conjunction && ((Conjunction<T>) this).conjuncts.isEmpty();
+    return this instanceof Conjunction<T> conjunction && conjunction.conjuncts.isEmpty();
   }
 
   default Set<T> variables() {
@@ -105,7 +105,7 @@ public sealed interface PropositionalFormula<T> {
     return occurrences;
   }
 
-  Map<T, Polarity> polarity();
+  Map<T, Polarity> polarities();
 
   <R> PropositionalFormula<R> map(Function<? super T, R> mapper);
 
@@ -179,9 +179,9 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Map<T, Polarity> polarity() {
-      Map<T, Polarity> polarity = rightOperand.polarity();
-      polarity.putAll(leftOperand.polarity());
+    public Map<T, Polarity> polarities() {
+      Map<T, Polarity> polarity = rightOperand.polarities();
+      polarity.putAll(leftOperand.polarities());
       polarity.replaceAll((x, y) -> Polarity.MIXED);
       return polarity;
     }
@@ -288,11 +288,11 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Map<T, Polarity> polarity() {
+    public Map<T, Polarity> polarities() {
       Map<T, Polarity> polarityMap = new HashMap<>();
 
       for (PropositionalFormula<T> conjunct : conjuncts) {
-        conjunct.polarity().forEach((variable, polarity) -> {
+        conjunct.polarities().forEach((variable, polarity) -> {
           polarityMap.compute(variable, (oldKey, oldPolarity) -> {
             if (polarity == oldPolarity || oldPolarity == null) {
               return polarity;
@@ -401,17 +401,6 @@ public sealed interface PropositionalFormula<T> {
       assert disjuncts.stream().noneMatch(Disjunction.class::isInstance) : disjuncts;
     }
 
-    @SafeVarargs
-    public static <T> PropositionalFormula<T> of(T... operands) {
-      ArrayList<PropositionalFormula<T>> disjuncts = new ArrayList<>();
-
-      for (T operand : operands) {
-        disjuncts.add(Variable.of(operand));
-      }
-
-      return ofTrusted(disjuncts);
-    }
-
     public static <T> PropositionalFormula<T> of(
       PropositionalFormula<T> operand1,
       PropositionalFormula<T> operand2) {
@@ -464,11 +453,11 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Map<T, Polarity> polarity() {
+    public Map<T, Polarity> polarities() {
       Map<T, Polarity> polarityMap = new HashMap<>();
 
       for (PropositionalFormula<T> disjunct : disjuncts) {
-        disjunct.polarity().forEach((variable, polarity) -> {
+        disjunct.polarities().forEach((variable, polarity) -> {
           polarityMap.compute(variable, (oldKey, oldPolarity) -> {
             if (polarity == oldPolarity || oldPolarity == null) {
               return polarity;
@@ -596,8 +585,8 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Map<T, Polarity> polarity() {
-      var polarity = operand.polarity();
+    public Map<T, Polarity> polarities() {
+      var polarity = operand.polarities();
       polarity.replaceAll((x, y) -> switch (y) {
         case POSITIVE -> Polarity.NEGATIVE;
         case NEGATIVE -> Polarity.POSITIVE;
@@ -666,7 +655,7 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Map<T, Polarity> polarity() {
+    public Map<T, Polarity> polarities() {
       var polarity = new HashMap<T, Polarity>();
       polarity.put(variable, Polarity.POSITIVE);
       return polarity;
@@ -731,24 +720,9 @@ public sealed interface PropositionalFormula<T> {
   }
 
   static <T> List<PropositionalFormula<T>> conjuncts(PropositionalFormula<T> formula) {
-
-    if (formula instanceof Variable
-      || formula instanceof Negation
-      || formula instanceof Disjunction
-      || formula instanceof Biconditional) {
-      return List.of(formula);
-    }
-
-    return flattenConjunction(new ArrayList<>(List.of(formula)));
+    return formula instanceof Conjunction<T> conjunction ? conjunction.conjuncts : List.of(formula);
   }
 
-  static <T> List<PropositionalFormula<T>> conjuncts(
-    List<? extends PropositionalFormula<T>> formulas) {
-
-    return flattenConjunction(new ArrayList<>(formulas));
-  }
-
-  @SuppressWarnings("PMD.AvoidReassigningLoopVariables")
   private static <T> ArrayList<PropositionalFormula<T>> flattenConjunction(
     ArrayList<PropositionalFormula<T>> conjuncts) {
 
@@ -761,10 +735,10 @@ public sealed interface PropositionalFormula<T> {
         return conjuncts;
       }
 
-      if (conjunct instanceof Conjunction) {
+      if (conjunct instanceof Conjunction<T> conjunction) {
         var oldElement = conjuncts.remove(i);
-        assert conjunct == oldElement;
-        conjuncts.addAll(i, ((Conjunction<T>) conjunct).conjuncts);
+        assert conjunction == oldElement;
+        conjuncts.addAll(i, conjunction.conjuncts);
         i--;
       }
     }
@@ -773,24 +747,9 @@ public sealed interface PropositionalFormula<T> {
   }
 
   static <T> List<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
-
-    if (formula instanceof Variable
-      || formula instanceof Negation
-      || formula instanceof Conjunction
-      || formula instanceof Biconditional) {
-      return List.of(formula);
-    }
-
-    return flattenDisjunction(new ArrayList<>(List.of(formula)));
+    return formula instanceof Disjunction<T> disjunction ? disjunction.disjuncts : List.of(formula);
   }
 
-  static <T> List<PropositionalFormula<T>> disjuncts(
-    List<? extends PropositionalFormula<T>> formulas) {
-
-    return flattenDisjunction(new ArrayList<>(formulas));
-  }
-
-  @SuppressWarnings("PMD.AvoidReassigningLoopVariables")
   private static <T> ArrayList<PropositionalFormula<T>> flattenDisjunction(
     ArrayList<PropositionalFormula<T>> disjuncts) {
 
@@ -803,10 +762,10 @@ public sealed interface PropositionalFormula<T> {
         return disjuncts;
       }
 
-      if (disjunct instanceof Disjunction) {
+      if (disjunct instanceof Disjunction<T> disjunction) {
         var oldElement = disjuncts.remove(i);
-        assert disjunct == oldElement;
-        disjuncts.addAll(i, ((Disjunction<T>) disjunct).disjuncts);
+        assert disjunction == oldElement;
+        disjuncts.addAll(i, disjunction.disjuncts);
         i--;
       }
     }

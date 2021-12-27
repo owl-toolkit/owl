@@ -32,6 +32,7 @@ import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Negation;
 import owl.logic.propositional.sat.Solver;
 
 public sealed class EmersonLeiAcceptance permits
@@ -67,11 +68,11 @@ public sealed class EmersonLeiAcceptance permits
   public static EmersonLeiAcceptance of(PropositionalFormula<Integer> expression) {
     var normalisedExpression = expression.nnf();
 
-    if (Solver.model(normalisedExpression).isEmpty()) {
+    if (Solver.DPLL.model(normalisedExpression).isEmpty()) {
       return new EmersonLeiAcceptance(0, PropositionalFormula.falseConstant());
     }
 
-    if (Solver.model(PropositionalFormula.Negation.of(normalisedExpression)).isEmpty()) {
+    if (Solver.DPLL.model(Negation.of(normalisedExpression)).isEmpty()) {
       return AllAcceptance.ofPartial(PropositionalFormula.trueConstant()).orElseThrow();
     }
 
@@ -160,7 +161,7 @@ public sealed class EmersonLeiAcceptance permits
    * @see #isAccepting(BitSet)
    */
   public Optional<ImmutableBitSet> acceptingSet() {
-    return Solver.model(booleanExpression()).map(ImmutableBitSet::copyOf);
+    return Solver.DPLL.model(booleanExpression()).map(ImmutableBitSet::copyOf);
   }
 
   /**
@@ -170,8 +171,8 @@ public sealed class EmersonLeiAcceptance permits
    * @see #isAccepting(BitSet)
    */
   public Optional<ImmutableBitSet> rejectingSet() {
-    return Solver
-      .model(PropositionalFormula.Negation.of(booleanExpression()))
+    return Solver.DPLL
+      .model(Negation.of(booleanExpression()))
       .map(ImmutableBitSet::copyOf);
   }
 
@@ -210,7 +211,7 @@ public sealed class EmersonLeiAcceptance permits
     }
 
     EmersonLeiAcceptance that = (EmersonLeiAcceptance) o;
-    return sets == that.sets && expression.equals(that.expression);
+    return sets == that.sets && booleanExpression().equals(that.booleanExpression());
   }
 
   @Override

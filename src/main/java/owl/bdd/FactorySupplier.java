@@ -26,7 +26,7 @@ public interface FactorySupplier {
 
   static FactorySupplier defaultSupplier() {
     // TODO: add compile-time switch (JDD vs sylvan)
-    return JBddSupplier.JBDD_SUPPLIER_INSTANCE;
+    return JBddSupplier.INSTANCE;
   }
 
   BddSetFactory getBddSetFactory();

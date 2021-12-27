@@ -58,6 +58,7 @@ import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
 import owl.collections.Pair;
 import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Conjunction;
 import owl.logic.propositional.sat.Solver;
 
 public final class ZielonkaTreeTransformations {
@@ -811,10 +812,10 @@ public final class ZielonkaTreeTransformations {
       // Invert acceptance condition (alpha) in order to obtain alternation in tree.
       // Sort colour sets lexicographically. This ensures that we always compute
       // the same Zielonka tree for a given acceptance condition.
-      var maximalModels = Solver.maximalModels(
-        PropositionalFormula.Conjunction
-          .of(alpha.evaluate(colours) ? PropositionalFormula.Negation.of(alpha) : alpha, beta),
-        colours)
+      var maximalModels = Solver.DEFAULT.maximalModels(
+        Conjunction.of(
+          alpha.evaluate(colours) ? PropositionalFormula.Negation.of(alpha) : alpha, beta),
+          colours)
         .stream()
         .map(ImmutableBitSet::copyOf)
         .sorted()

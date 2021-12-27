@@ -40,9 +40,9 @@ class SolverTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = Solver.Engine.class,
-    names = {"JBDD"})
-  void testModel(Solver.Engine engine) {
+    value = Solver.class,
+    names = {"DPLL", "JBDD"})
+  void testModel(Solver solver) {
     var formula1 = Conjunction.of(
       Negation.of(Variable.of(1)),
       Disjunction.of(
@@ -55,11 +55,11 @@ class SolverTest {
         Negation.of(Variable.of(3))
       ));
 
-    var model1a = Solver.model(formula1, engine);
+    var model1a = solver.model(formula1);
     assertTrue(model1a.isPresent());
-    assertTrue(formula1.evaluate(model1a.get()));
+    assertTrue(formula1.evaluate(model1a.get()), formula1.toString() + " " + model1a.toString());
 
-    var model1b = Solver.model(Negation.of(formula1), engine);
+    var model1b = solver.model(Negation.of(formula1));
     assertTrue(model1b.isPresent());
     assertFalse(formula1.evaluate(model1b.get()));
 
@@ -77,19 +77,55 @@ class SolverTest {
         Negation.of(Variable.of(4)),
         Variable.of(2)));
 
-    var model2a = Solver.model(formula2, engine);
+    var model2a = solver.model(formula2);
     assertTrue(model2a.isEmpty());
 
-    var model2b = Solver.model(Negation.of(formula2), engine);
+    var model2b = solver.model(Negation.of(formula2));
     assertTrue(model2b.isPresent());
     assertFalse(formula2.evaluate(model2b.get()));
   }
 
   @ParameterizedTest
   @EnumSource(
-    value = Solver.Engine.class,
+    value = Solver.class,
+    names = {"DPLL", "JBDD"})
+  void testModelCnf(Solver solver) {
+    var formula1 = List.of(
+      new Solver.Clause<>(List.of(), List.of(1)),
+      new Solver.Clause<>(List.of(1, 2, 3), List.of()),
+      new Solver.Clause<>(List.of(), List.of(2, 3)));
+
+    var model1a = solver.model(formula1);
+    assertTrue(model1a.isPresent());
+    assertTrue(formula1.stream().allMatch(x -> x.evaluate(model1a.get())), formula1.toString() + " " + model1a.toString());
+
+    var formula2 = Conjunction.of(
+      List.of(
+        Negation.of(Variable.of(1)),
+        Disjunction.of(
+          Variable.of(1),
+          Variable.of(3),
+          Variable.of(4)
+        ),
+        Disjunction.of(
+          Negation.of(Variable.of(2)),
+          Negation.of(Variable.of(3))),
+        Negation.of(Variable.of(4)),
+        Variable.of(2)));
+
+    var model2a = solver.model(formula2);
+    assertTrue(model2a.isEmpty());
+
+    var model2b = solver.model(Negation.of(formula2));
+    assertTrue(model2b.isPresent());
+    assertFalse(formula2.evaluate(model2b.get()));
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = Solver.class,
     names = {"JBDD"})
-  void testMaximalModel(Solver.Engine engine) {
+  void testMaximalModel(Solver solver) {
     var formula = Conjunction.of(
       List.of(
         Variable.of(1),
@@ -104,7 +140,7 @@ class SolverTest {
         Negation.of(Variable.of(5))));
 
     for (Set<Integer> upperBound : Sets.powerSet(Set.of(1, 2, 3, 4, 5, 6))) {
-      List<Set<Integer>> actualMaximalModels = Solver.maximalModels(formula, upperBound, engine);
+      List<Set<Integer>> actualMaximalModels = solver.maximalModels(formula, upperBound);
       List<Set<Integer>> expectedMaximalModels = new ArrayList<>();
 
       for (Set<Integer> model : Sets.powerSet(upperBound)) {
@@ -117,27 +153,5 @@ class SolverTest {
 
       assertEquals(new HashSet<>(expectedMaximalModels), new HashSet<>(actualMaximalModels));
     }
-  }
-
-  @ParameterizedTest
-  @EnumSource(
-    value = Solver.Engine.class,
-    names = {"JBDD"})
-  void testIncrementalSolver(Solver.Engine engine) {
-    var incrementalSolver = Solver.incrementalSolver(engine);
-    assertTrue(incrementalSolver.model().isPresent());
-
-    incrementalSolver.pushClauses(-1);
-    assertTrue(incrementalSolver.model().isPresent());
-
-    incrementalSolver.pushClauses(1, 2, 3);
-    assertTrue(incrementalSolver.model().isPresent());
-
-    incrementalSolver.pushClauses(0);
-    assertTrue(incrementalSolver.model().isEmpty());
-
-    incrementalSolver.popClauses();
-    incrementalSolver.pushClauses(1, 2, 3, 4, 0, -2, -3);
-    assertTrue(incrementalSolver.model().isPresent());
   }
 }

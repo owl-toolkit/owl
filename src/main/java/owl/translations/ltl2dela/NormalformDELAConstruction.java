@@ -416,7 +416,7 @@ public final class NormalformDELAConstruction
         var xor = PropositionalFormula.Negation.of(
           PropositionalFormula.Biconditional.of(alpha, simplifiedAcceptance));
 
-        if (Solver.model(xor).isEmpty()) {
+        if (Solver.DPLL.model(xor).isEmpty()) {
           return ImmutableBitSet.copyOf(padding);
         }
       }
