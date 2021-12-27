@@ -19,19 +19,17 @@
 
 package owl.logic.propositional;
 
-import static com.google.common.primitives.ImmutableIntArray.Builder;
-import static com.google.common.primitives.ImmutableIntArray.builder;
 import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import com.google.common.collect.ImmutableBiMap;
-import com.google.common.primitives.ImmutableIntArray;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public final class ConjunctiveNormalForm<V> {
 
@@ -42,7 +40,7 @@ public final class ConjunctiveNormalForm<V> {
    * Example:
    * -1 -2 0 1 2 0 2 3 0 ...
    */
-  public final ImmutableIntArray clauses;
+  public final List<int[]> clauses;
   public final ImmutableBiMap<V, Integer> variableMapping;
   public final int tsetinVariablesLowerBound; // inclusive
   public final int tsetinVariablesUpperBound; // exclusive
@@ -60,56 +58,56 @@ public final class ConjunctiveNormalForm<V> {
   }
 
   public boolean evaluate(BitSet assignment) {
-    boolean clauseValue = false;
+    for (int[] clause : clauses) {
+      boolean clauseValue = false;
 
-    for (int i = 0, s = clauses.length(); i < s; i++) {
-      int literal = clauses.get(i);
-
-      if (literal == 0) {
-        if (!clauseValue) {
-          return false;
-        }
-
-        clauseValue = false;
-      } else if (!clauseValue) {
+      for (int literal : clause) {
         if (literal > 0) {
           clauseValue = assignment.get(literal - 1);
         } else {
           clauseValue = !assignment.get((-literal) - 1);
         }
+
+        if (clauseValue) {
+          break;
+        }
+      }
+
+      if (!clauseValue) {
+        return false;
       }
     }
 
-    return clauseValue;
+    return true;
   }
 
   // Called T in source material.
   // Plaisted, D.A., Greenbaum, S.:
   // A structure-preserving clause form translation. J.Symb. Comput. 2(3), 293–304 (1986)
-  private static <V> ImmutableIntArray encodeFormula(
+  private static <V> List<int[]> encodeFormula(
     PropositionalFormula<V> formula, VariableMappingBuilder<V> variableMapping) {
 
     var nnfFormula = formula.nnf();
-    var cnfBuilder = builder(4 * variableMapping.variables.size());
+    var cnfBuilder = new ArrayList<int[]>();
 
     if (nnfFormula instanceof Variable) {
-      cnfBuilder.add(variableMapping.lookup(nnfFormula));
+      cnfBuilder.add(new int[]{ variableMapping.lookup(nnfFormula) });
     } else if (nnfFormula instanceof Negation<V> negation) {
       var variable = (Variable<V>) negation.operand();
-      cnfBuilder.add(-variableMapping.lookup(variable));
+      cnfBuilder.add(new int[]{ -variableMapping.lookup(variable) });
     } else if (nnfFormula instanceof Conjunction || nnfFormula instanceof Disjunction) {
-      cnfBuilder.add(variableMapping.lookup(nnfFormula));
+      cnfBuilder.add(new int[]{ variableMapping.lookup(nnfFormula) });
       encodeFormula(nnfFormula, variableMapping, cnfBuilder);
     } else {
       assert false : "Unreachable.";
     }
 
-    return cnfBuilder.build();
+    return List.copyOf(cnfBuilder);
   }
 
   // Called T_1 in source material.
   private static <V> void encodeFormula(
-    PropositionalFormula<V> formula, VariableMappingBuilder<V> variableMapping, Builder cnf) {
+    PropositionalFormula<V> formula, VariableMappingBuilder<V> variableMapping, List<int[]> cnf) {
 
     if (formula instanceof Variable || formula instanceof Negation) {
       return;
@@ -120,9 +118,7 @@ public final class ConjunctiveNormalForm<V> {
       int conjunctionVariable = variableMapping.lookup(conjunction);
 
       for (var conjunct : conjunction.conjuncts()) {
-        cnf.add(0);
-        cnf.add(-conjunctionVariable);
-        cnf.add(variableMapping.lookup(conjunct));
+        cnf.add(new int[] { -conjunctionVariable, variableMapping.lookup(conjunct) });
       }
 
       for (var conjunct : conjunction.conjuncts()) {
@@ -132,12 +128,15 @@ public final class ConjunctiveNormalForm<V> {
       var disjunction = (Disjunction<V>) formula;
       int disjunctionVariable = variableMapping.lookup(disjunction);
 
-      cnf.add(0);
-      cnf.add(-disjunctionVariable);
+      int s = disjunction.disjuncts().size();
+      int[] clause = new int[s + 1];
+      clause[0] = -disjunctionVariable;
 
-      for (var disjunct : disjunction.disjuncts()) {
-        cnf.add(variableMapping.lookup(disjunct));
+      for (int i = 0; i < s; i++) {
+        clause[i + 1] = variableMapping.lookup(disjunction.disjuncts().get(i));
       }
+
+      cnf.add(clause);
 
       for (var disjunct : disjunction.disjuncts()) {
         encodeFormula(disjunct, variableMapping, cnf);
@@ -165,9 +164,9 @@ public final class ConjunctiveNormalForm<V> {
       nextFreeVariable = this.variables.size() + 1;
     }
 
-    int lookup(PropositionalFormula<V> formula) {
+    int lookup(PropositionalFormula<V> nnfFormula) {
 
-      if (formula instanceof Conjunction<V> conjunction) {
+      if (nnfFormula instanceof Conjunction<V> conjunction) {
         Integer oldVariable = tseitinConjunctionVariables
           .putIfAbsent(conjunction, nextFreeVariable);
 
@@ -180,7 +179,7 @@ public final class ConjunctiveNormalForm<V> {
         }
       }
 
-      if (formula instanceof Disjunction<V> disjunction) {
+      if (nnfFormula instanceof Disjunction<V> disjunction) {
         Integer oldVariable = tseitinDisjunctionVariables
           .putIfAbsent(disjunction, nextFreeVariable);
 
@@ -193,36 +192,13 @@ public final class ConjunctiveNormalForm<V> {
         }
       }
 
-      Variable<V> variable;
-
-      if (formula instanceof Variable) {
-        variable = (Variable<V>) formula;
-      } else {
-        assert formula instanceof Negation;
-        var negation = (Negation<V>) formula;
-        variable = (Variable<V>) negation.operand();
-      }
+      Variable<V> variable = nnfFormula instanceof Negation<V> negation
+        ? (Variable<V>) negation.operand()
+        : (Variable<V>) nnfFormula;
 
       int variableId = variables.get(variable.variable());
-      return formula instanceof Negation ? -variableId : variableId;
+      return nnfFormula instanceof Negation ? -variableId : variableId;
     }
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (!(o instanceof ConjunctiveNormalForm)) {
-      return false;
-    }
-    ConjunctiveNormalForm<?> that = (ConjunctiveNormalForm<?>) o;
-    return clauses.equals(that.clauses) && variableMapping.equals(that.variableMapping);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(clauses, variableMapping);
   }
 
   @Override

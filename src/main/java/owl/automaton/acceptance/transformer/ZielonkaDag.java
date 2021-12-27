@@ -51,7 +51,7 @@ public final class ZielonkaDag {
     }
 
     // Invert acceptance condition (alpha) in order to obtain alternation in DAG.
-    var maximalModels = Solver.maximalModels(
+    var maximalModels = Solver.DEFAULT.maximalModels(
       alpha.evaluate(node) ? PropositionalFormula.Negation.of(alpha) : alpha, node);
     var maximalModelsAsImmutableBitSets = new ImmutableBitSet[maximalModels.size()];
 

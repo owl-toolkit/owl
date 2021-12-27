@@ -21,140 +21,481 @@ package owl.logic.propositional.sat;
 
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.primitives.ImmutableIntArray;
+import de.tum.in.jbdd.Bdd;
+import de.tum.in.jbdd.BddFactory;
+import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import javax.annotation.Nullable;
 import owl.collections.Collections3;
+import owl.collections.Numbering;
 import owl.logic.propositional.ConjunctiveNormalForm;
 import owl.logic.propositional.PropositionalFormula;
+import owl.logic.propositional.PropositionalFormula.Conjunction;
+import owl.logic.propositional.PropositionalFormula.Disjunction;
+import owl.logic.propositional.PropositionalFormula.Negation;
+import owl.logic.propositional.PropositionalFormula.Variable;
 
 /**
- * Interface for SAT-solver for propositional formulas.
+ * Repository of for SAT-solver implementations for propositional formulas.
  */
-public final class Solver {
+public enum Solver {
 
-  private static final Engine DEFAULT_ENGINE = Engine.JBDD;
+  DPLL {
 
-  private Solver() {}
+    @Nullable
+    @Override
+    protected BitSet modelImpl(ArrayList<int[]> clauses) {
+      return dpll(clauses, new BitSet(), new BitSet());
+    }
 
-  public static IncrementalSolver incrementalSolver() {
-    return incrementalSolver(DEFAULT_ENGINE);
-  }
+    @Nullable
+    private static BitSet dpll(
+      ArrayList<int[]> clauses, BitSet partialAssignment, BitSet assignedVariables) {
 
-  public static IncrementalSolver incrementalSolver(Engine engine) {
-    assert engine == Engine.JBDD;
-    return new JbddIncrementalSolver();
-  }
+      // Unit-Clause Rule
+      while (true) {
+        BitSet positiveUnitClause = new BitSet();
+        BitSet negativeUnitClause = new BitSet();
 
-  /**
-   * Determine if the the given conjunctiveNormalForm is satisfiable and if this is the case return
-   * a satisfying assignment. Note that variables are shifted by 1. Thus {@code bs.get(0)} retrieves
-   * the assigend value to variable 1 in the given conjunctiveNormalForm.
-   *
-   * @param clauses in conjunctive normal form.
-   * @return {@link Optional#empty()} if the given conjunctiveNormalForm is not satisfiable.
-   *     Otherwise a satisfying assignment.
-   */
-  public static Optional<BitSet> model(ImmutableIntArray clauses) {
-    return model(clauses, DEFAULT_ENGINE);
-  }
+        // Search for unit clauses.
+        for (int[] clause : clauses) {
+          assert clause.length >= 1;
 
-  public static Optional<BitSet> model(ImmutableIntArray clauses, Engine engine) {
-    var incrementalSolver = incrementalSolver(engine);
-    incrementalSolver.pushClauses(clauses);
-    return incrementalSolver.model();
-  }
+          if (clause.length == 1) {
+            int literal = clause[0];
 
-  public static <V> Optional<Set<V>> model(PropositionalFormula<V> formula) {
-    return model(formula, DEFAULT_ENGINE);
-  }
+            assert literal != 0;
+            assert !partialAssignment.get(Math.abs(literal));
+            assert !assignedVariables.get(Math.abs(literal));
 
-  public static <V> Optional<Set<V>> model(PropositionalFormula<V> preFormula, Engine engine) {
-    var formula = preFormula.nnf();
-
-    if (formula instanceof PropositionalFormula.Disjunction<V> disjunction) {
-      for (var disjunct : disjunction.disjuncts()) {
-        Optional<Set<V>> satisfiable = model(disjunct, engine);
-
-        if (satisfiable.isPresent()) {
-          return satisfiable;
+            if (literal > 0) {
+              positiveUnitClause.set(literal);
+            } else {
+              negativeUnitClause.set(-literal);
+            }
+          }
         }
+
+        if (positiveUnitClause.isEmpty() && negativeUnitClause.isEmpty()) {
+          break;
+        }
+
+        // Contradiction
+        if (positiveUnitClause.intersects(negativeUnitClause)) {
+          return null;
+        }
+
+        // Propagate unit clauses.
+        partialAssignment.or(positiveUnitClause);
+        assignedVariables.or(positiveUnitClause);
+        assignedVariables.or(negativeUnitClause);
+
+        var newClauses = new ArrayList<int[]>(clauses.size());
+
+        nextClause:
+        for (int clauseIndex = 0, s = clauses.size(); clauseIndex < s; clauseIndex++) {
+          int[] clause = clauses.get(clauseIndex);
+          int[] newClause = new int[clause.length];
+
+          int i = 0;
+
+          for (int literal : clause) {
+            int variable = Math.abs(literal);
+
+            if (!assignedVariables.get(variable)) {
+              newClause[i] = literal;
+              i++;
+            } else {
+              assert positiveUnitClause.get(variable) || negativeUnitClause.get(variable);
+
+              if (partialAssignment.get(variable) == literal > 0) {
+                continue nextClause;
+              }
+            }
+          }
+
+          if (i == 0) {
+            return null;
+          } else if (i == clause.length) {
+            // We did not change anything. Recycle old clause.
+            newClauses.add(clause);
+          } else {
+            newClauses.add(Arrays.copyOf(newClause, i));
+          }
+        }
+
+        clauses = newClauses;
       }
 
+      // Pure-Literal Rule
+      while (true) {
+        BitSet positiveLiterals = new BitSet();
+        BitSet negativeLiterals = new BitSet();
+
+        // Search for pure literals.
+        for (int[] clause : clauses) {
+          for (int literal : clause) {
+            if (literal > 0) {
+              positiveLiterals.set(literal);
+            } else {
+              negativeLiterals.set(-literal);
+            }
+          }
+        }
+
+        BitSet purePositiveLiterals = (BitSet) positiveLiterals.clone();
+        purePositiveLiterals.andNot(negativeLiterals);
+
+        BitSet pureNegativeLiterals = (BitSet) negativeLiterals.clone();
+        pureNegativeLiterals.andNot(positiveLiterals);
+
+        if (purePositiveLiterals.isEmpty() && pureNegativeLiterals.isEmpty()) {
+          break;
+        }
+
+        assert !purePositiveLiterals.intersects(pureNegativeLiterals);
+
+        // Propagate pure literals.
+        partialAssignment.or(purePositiveLiterals);
+        assignedVariables.or(purePositiveLiterals);
+        assignedVariables.or(pureNegativeLiterals);
+
+        var newClauses = new ArrayList<int[]>(clauses.size());
+
+        nextClause:
+        for (int clauseIndex = 0, s = clauses.size(); clauseIndex < s; clauseIndex++) {
+          int[] clause = clauses.get(clauseIndex);
+          int[] newClause = new int[clause.length];
+
+          int i = 0;
+
+          for (int literal : clause) {
+            int variable = Math.abs(literal);
+
+            if (!assignedVariables.get(variable)) {
+              newClause[i] = literal;
+              i++;
+            } else if (partialAssignment.get(variable) == literal > 0) {
+              continue nextClause;
+            }
+          }
+
+          if (i == 0) {
+            return null;
+          } else if (i == clause.length) {
+            // We did not change anything. Recycle old clause.
+            newClauses.add(clause);
+          } else {
+            newClauses.add(Arrays.copyOf(newClause, i));
+          }
+        }
+
+        clauses = newClauses;
+      }
+
+      if (clauses.isEmpty()) {
+        return partialAssignment;
+      }
+
+      // We make the first clause true and propagate the information.
+      int pickedLiteral = clauses.get(0)[0];
+      clauses.add(new int[]{ pickedLiteral });
+      var model = dpll(
+        clauses, (BitSet) partialAssignment.clone(), (BitSet) assignedVariables.clone());
+
+      if (model != null) {
+        assert model.get(Math.abs(pickedLiteral)) == pickedLiteral > 0;
+        return model;
+      }
+
+      clauses.get(clauses.size() - 1)[0] = -pickedLiteral;
+      return dpll(clauses, partialAssignment, assignedVariables);
+    }
+
+    @Override
+    protected <V> List<HashSet<V>> computeMaximalModelsImpl(
+      PropositionalFormula<V> normalisedFormula,
+      List<HashSet<V>> maximalModelsCandidates) {
+
+      throw new UnsupportedOperationException();
+    }
+  },
+
+  JBDD {
+
+    @Nullable
+    @Override
+    protected BitSet modelImpl(ArrayList<int[]> clauses) {
+      var solver = new JbddSolver();
+      solver.pushClauses(clauses);
+      return solver.model();
+    }
+
+    @Override
+    protected <V> List<HashSet<V>> computeMaximalModelsImpl(
+      PropositionalFormula<V> normalisedFormula, List<HashSet<V>> maximalModels) {
+
+      // Enumerate models using a sat solver.
+      var conjunctiveNormalForm = new ConjunctiveNormalForm<>(normalisedFormula);
+      var solver = new JbddSolver();
+      solver.pushClauses(conjunctiveNormalForm.clauses);
+      maximalModels
+        .forEach(x -> blockModelAndAllSubsets(solver, conjunctiveNormalForm, x));
+
+      // single subset optimisation
+      BitSet model;
+
+      while ((model = solver.model()) != null) {
+        // Prune Tsetin variables from model
+        if (conjunctiveNormalForm.tsetinVariablesLowerBound <= model.length()) {
+          model.clear(conjunctiveNormalForm.tsetinVariablesLowerBound, model.length());
+        }
+
+        // Map model to HashSet<V>.
+        HashSet<V> mappedModel = model.stream()
+          .mapToObj(conjunctiveNormalForm.variableMapping.inverse()::get)
+          .collect(Collectors.toCollection(HashSet::new));
+
+        assert normalisedFormula.evaluate(mappedModel);
+        maximalModels.add(mappedModel);
+        maximalModels = Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x));
+
+        // Block and continue.
+        blockModelAndAllSubsets(solver, conjunctiveNormalForm, mappedModel);
+      }
+
+      return maximalModels;
+    }
+
+    private static <V> void blockModelAndAllSubsets(
+      JbddSolver solver, ConjunctiveNormalForm<V> encoding, Set<V> model) {
+
+      int[] blockingClause = IntStream.range(1, encoding.tsetinVariablesLowerBound)
+        .filter(i -> !model.contains(requireNonNull(encoding.variableMapping.inverse().get(i))))
+        .toArray();
+
+      solver.pushClauses(List.of(blockingClause));
+    }
+  };
+
+  public static final Solver DEFAULT = JBDD;
+
+  public <V> Optional<Set<V>> model(PropositionalFormula<V> formula) {
+    return Optional.ofNullable(modelNnfFormula(formula.nnf()));
+  }
+
+  public <V> Optional<Set<V>> model(List<Clause<V>> clauses) {
+    var intClauses = new ArrayList<int[]>(clauses.size());
+    var numbering = new Numbering<V>(clauses.size());
+
+    for (Clause<V> clause : clauses) {
+      int i = 0;
+      int[] intClause = new int[clause.literals()];
+
+      for (V positiveLiteral : clause.positiveLiterals) {
+        intClause[i++] = numbering.lookup(positiveLiteral) + 1;
+      }
+
+      for (V negativeLiteral : clause.negativeLiterals) {
+        intClause[i++] = -(numbering.lookup(negativeLiteral) + 1);
+      }
+
+      intClauses.add(intClause);
+    }
+
+    var model = modelImpl(intClauses);
+
+    if (model == null) {
       return Optional.empty();
     }
 
-    // Pre-process and replace single polarity with fixed value in formula.
-    var polarity = formula.polarity();
-
-    var simplifiedFormula = formula.substitute(
-      variable -> switch (polarity.get(variable)) {
-        case POSITIVE -> PropositionalFormula.trueConstant();
-        case NEGATIVE -> PropositionalFormula.falseConstant();
-        case MIXED -> PropositionalFormula.Variable.of(variable);
-      });
-
-    // Translate into equisatisfiable CNF.
-    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(simplifiedFormula);
-    var modelSimplifiedFormula = model(conjunctiveNormalForm.clauses, engine)
-      .map(bitSet -> bitSet.stream()
-        .map(x -> x + 1) // shift indices
-        .filter(conjunctiveNormalForm.variableMapping::containsValue) // skip Tsetin variables
-        .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i))
+    return Optional.of(model.stream()
+      .mapToObj(i -> numbering.lookup(i - 1))
       .collect(Collectors.toSet()));
+  }
 
-    if (modelSimplifiedFormula.isEmpty()) {
-      return modelSimplifiedFormula;
+  @Nullable
+  protected abstract BitSet modelImpl(ArrayList<int[]> clauses);
+
+  public record Clause<V> (List<V> positiveLiterals, List<V> negativeLiterals) {
+    public Clause {
+      positiveLiterals = List.copyOf(positiveLiterals);
+      negativeLiterals = List.copyOf(negativeLiterals);
     }
 
-    polarity.forEach((variable, value) -> {
-      if (value == PropositionalFormula.Polarity.POSITIVE) {
-        modelSimplifiedFormula.ifPresent(x -> x.add(variable));
+    public int literals() {
+      return positiveLiterals.size() + negativeLiterals.size();
+    }
+
+    public boolean evaluate(Collection<V> model) {
+      if (!Collections.disjoint(positiveLiterals, model)) {
+        return true;
       }
-    });
 
-    return modelSimplifiedFormula;
+      return !model.containsAll(negativeLiterals);
+    }
   }
 
-  public static <V> List<Set<V>> maximalModels(
-    PropositionalFormula<V> formula, Set<V> upperBound) {
+  @Nullable
+  protected <V> HashSet<V> modelNnfFormula(PropositionalFormula<V> nnfFormula) {
 
-    return maximalModels(formula, upperBound, DEFAULT_ENGINE);
+    // Replace variables that occur only with positive or negative polarity by a constant.
+    {
+      var polarities = nnfFormula.polarities();
+      polarities.values().removeIf(polarity -> polarity == PropositionalFormula.Polarity.MIXED);
+
+      if (!polarities.isEmpty()) {
+
+        HashSet<V> model = modelNnfFormula(nnfFormula.<V>substitute(variable -> {
+          var polarity = polarities.get(variable);
+
+          if (polarity == null) {
+            return Variable.of(variable);
+          }
+
+          return switch (polarity) {
+            case POSITIVE -> PropositionalFormula.trueConstant();
+            case NEGATIVE -> PropositionalFormula.falseConstant();
+            case MIXED -> throw new AssertionError("should not be reached.");
+          };
+        }));
+
+        if (model != null) {
+          polarities.forEach((variable, value) -> {
+            if (value == PropositionalFormula.Polarity.POSITIVE) {
+              model.add(variable);
+            }
+          });
+        }
+
+        return model;
+      }
+    }
+
+    // Unit-propagation.
+    if (nnfFormula instanceof Conjunction<V> conjunction) {
+      HashMap<V, Boolean> units = new HashMap<>();
+
+      for (var conjunct : conjunction.conjuncts()) {
+        if (conjunct instanceof Variable<V> variable) {
+
+          // Avoid unboxing.
+          Boolean oldValue = units.put(variable.variable(), Boolean.TRUE);
+
+          // Found a contradiction.
+          if (Boolean.FALSE.equals(oldValue)) {
+            return null;
+          }
+        }
+
+        if (conjunct instanceof Negation<V> negation
+          && negation.operand() instanceof Variable<V> variable) {
+
+          // Avoid unboxing.
+          Boolean oldValue = units.put(variable.variable(), Boolean.FALSE);
+
+          // Found a contradiction.
+          if (Boolean.TRUE.equals(oldValue)) {
+            return null;
+          }
+        }
+      }
+
+      if (!units.isEmpty()) {
+        HashSet<V> model = modelNnfFormula(nnfFormula.<V>substitute(variable -> {
+          Boolean value = units.get(variable);
+
+          if (value == null) {
+            return Variable.of(variable);
+          }
+
+          return value ? PropositionalFormula.trueConstant() : PropositionalFormula.falseConstant();
+        }));
+
+        if (model != null) {
+          units.forEach((variable, value) -> {
+            if (value) {
+              model.add(variable);
+            }
+          });
+        }
+
+        return model;
+      }
+    }
+
+    // Split checking.
+    if (nnfFormula instanceof Disjunction<V> disjunction) {
+      for (PropositionalFormula<V> disjunct : disjunction.disjuncts()) {
+        var model = modelNnfFormula(disjunct);
+
+        if (model != null) {
+          return model;
+        }
+      }
+
+      return null;
+    }
+
+    ConjunctiveNormalForm<V> cnf = new ConjunctiveNormalForm<>(nnfFormula);
+    @Nullable
+    BitSet model = modelImpl(new ArrayList<>(cnf.clauses));
+
+    if (model == null) {
+      return null;
+    }
+
+    var mappedModel = model.stream()
+      .filter(cnf.variableMapping::containsValue) // skip Tsetin variables
+      .mapToObj(i -> cnf.variableMapping.inverse().get(i))
+      .collect(Collectors.toCollection(HashSet::new));
+
+    assert nnfFormula.evaluate(mappedModel);
+    return mappedModel;
   }
 
-  @SuppressWarnings("PMD.AssignmentInOperand")
-  public static <V> List<Set<V>> maximalModels(
-    PropositionalFormula<V> formula, Set<V> upperBound, Engine engine) {
+  public final <V> List<Set<V>> maximalModels(PropositionalFormula<V> formula, Set<V> upperBound) {
+    return List.copyOf(maximalModelsNnfFormula(formula.nnf(), upperBound));
+  }
 
-    PropositionalFormula<V> normalisedFormula = formula.substitute(
+  private <V> List<HashSet<V>> maximalModelsNnfFormula(
+    PropositionalFormula<V> nnfFormula, Set<V> upperBound) {
+
+    PropositionalFormula<V> normalisedFormula = nnfFormula.substitute(
       variable -> upperBound.contains(variable)
-        ? PropositionalFormula.Variable.of(variable)
-        : PropositionalFormula.falseConstant())
-      .nnf();
+        ? Variable.of(variable)
+        : PropositionalFormula.falseConstant());
 
     // Preprocessing to reduce enumeration of models using the SAT solver.
 
     // 1. Check trivial cases.
-    if (normalisedFormula.evaluate(upperBound)) {
-      return List.of(upperBound);
-    }
+    {
+      if (normalisedFormula.evaluate(upperBound)) {
+        return List.of(new HashSet<>(upperBound));
+      }
 
-    if (upperBound.size() == 1) {
-      return normalisedFormula.evaluate(Set.of()) ? List.of(new HashSet<>()) : List.of();
+      if (upperBound.size() == 1) {
+        return normalisedFormula.evaluate(Set.of()) ? List.of(new HashSet<>()) : List.of();
+      }
     }
 
     // 2. Compute lower-bound and replace positive variables by true.
     {
       Set<V> lowerBound = new HashSet<>(upperBound);
 
-      normalisedFormula.polarity().forEach((variable, variablePolarity) -> {
-        if (variablePolarity != PropositionalFormula.Polarity.POSITIVE) {
+      normalisedFormula.polarities().forEach((variable, polarity) -> {
+        if (polarity != PropositionalFormula.Polarity.POSITIVE) {
           lowerBound.remove(variable);
         }
       });
@@ -163,7 +504,7 @@ public final class Solver {
         PropositionalFormula<V> restrictedFormula = normalisedFormula.substitute(
           variable -> lowerBound.contains(variable)
             ? PropositionalFormula.trueConstant()
-            : PropositionalFormula.Variable.of(variable));
+            : Variable.of(variable));
 
         Set<V> newUpperBound = new HashSet<>(upperBound.size());
 
@@ -173,8 +514,8 @@ public final class Solver {
           }
         }
 
-        List<Set<V>> restrictedMaximalModels = maximalModels(restrictedFormula, newUpperBound);
-
+        List<HashSet<V>> restrictedMaximalModels
+          = maximalModelsNnfFormula(restrictedFormula, newUpperBound);
         restrictedMaximalModels.forEach(model -> model.addAll(lowerBound));
         return restrictedMaximalModels;
       }
@@ -182,102 +523,151 @@ public final class Solver {
 
     // 3. If the formula is a disjunction of negations, then the maximal models can be
     //    directly be computed.
+    {
+      if (upperBound.equals(nnfFormula.variables())
+        && normalisedFormula instanceof Disjunction<V> disjunction) {
 
-    if (upperBound.equals(formula.variables())
-      && normalisedFormula instanceof PropositionalFormula.Disjunction<V> disjunction) {
+        boolean allDisjunctsAreNegatedVariables = true;
+        var disjuncts = disjunction.disjuncts();
 
-      boolean allDisjunctsAreNegatedVariables = true;
-      var disjuncts = disjunction.disjuncts();
+        for (int i = 0, s = disjuncts.size(); i < s; i++) {
+          var disjunct = disjuncts.get(i);
 
-      for (int i = 0, s = disjuncts.size(); i < s; i++) {
-        var disjunct = disjuncts.get(i);
-
-        if (!(disjunct instanceof PropositionalFormula.Negation)
-          || !(((PropositionalFormula.Negation<V>) disjunct).operand()
-             instanceof PropositionalFormula.Variable)) {
-          allDisjunctsAreNegatedVariables = false;
-          break;
-        }
-      }
-
-      if (allDisjunctsAreNegatedVariables) {
-        List<Set<V>> maximalModels = new ArrayList<>();
-
-        for (V upperBoundElement : upperBound) {
-          var model = new HashSet<>(upperBound);
-          model.remove(upperBoundElement);
-          assert normalisedFormula.evaluate(model);
-          maximalModels.add(model);
+          if (!(disjunct instanceof Negation)
+            || !(((Negation<V>) disjunct).operand()
+            instanceof Variable)) {
+            allDisjunctsAreNegatedVariables = false;
+            break;
+          }
         }
 
-        return maximalModels;
+        if (allDisjunctsAreNegatedVariables) {
+          List<HashSet<V>> maximalModels = new ArrayList<>();
+
+          for (V upperBoundElement : upperBound) {
+            var model = new HashSet<>(upperBound);
+            model.remove(upperBoundElement);
+            assert normalisedFormula.evaluate(model);
+            maximalModels.add(model);
+          }
+
+          return maximalModels;
+        }
       }
     }
 
     // 4. If the formula is in DNF, extract additional information to speed up search.
-    List<Set<V>> maximalModels = new ArrayList<>();
+    List<HashSet<V>> maximalModelsCandidates = new ArrayList<>();
 
     for (var disjunct : PropositionalFormula.disjuncts(normalisedFormula)) {
       var potentialModel = new HashSet<>(upperBound);
 
       for (var conjunct : PropositionalFormula.conjuncts(disjunct)) {
-        if (conjunct instanceof PropositionalFormula.Negation<V> negation) {
-          potentialModel.remove(((PropositionalFormula.Variable<V>) negation.operand()).variable());
+        if (conjunct instanceof Negation<V> negation) {
+          potentialModel.remove(((Variable<V>) negation.operand()).variable());
         }
       }
 
       if (normalisedFormula.evaluate(potentialModel)) {
         assert !potentialModel.equals(upperBound);
         assert upperBound.containsAll(potentialModel);
-        maximalModels.add(potentialModel);
+        maximalModelsCandidates.add(potentialModel);
       }
     }
 
-    maximalModels = Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x));
+    return List.copyOf(computeMaximalModelsImpl(
+      normalisedFormula,
+      Collections3.maximalElements(maximalModelsCandidates, (x, y) -> y.containsAll(x))));
+  }
 
-    // Enumerate models using a sat solver.
-    var conjunctiveNormalForm = new ConjunctiveNormalForm<>(normalisedFormula);
-    var incrementalSolver = incrementalSolver(engine);
+  protected abstract <V> List<HashSet<V>> computeMaximalModelsImpl(
+    PropositionalFormula<V> normalisedFormula, List<HashSet<V>> maximalModelsCandidates);
 
-    incrementalSolver.pushClauses(conjunctiveNormalForm.clauses);
-    maximalModels
-      .forEach(x -> blockModelAndAllSubsets(incrementalSolver, conjunctiveNormalForm, x));
+  private static class JbddSolver {
 
-    // single subset optimisation
-    Optional<BitSet> model;
+    private final Bdd bdd;
+    private int clauseConjunction;
 
-    while ((model = incrementalSolver.model()).isPresent()) {
-      // Model
-      BitSet prunedModel = model.get();
-      prunedModel.clear(conjunctiveNormalForm.tsetinVariablesLowerBound - 1, prunedModel.length());
+    private JbddSolver() {
+      var configuration = ImmutableBddConfiguration.builder()
+        .logStatisticsOnShutdown(false)
+        .useGlobalComposeCache(false)
+        .integrityDuplicatesMaximalSize(50)
+        .cacheBinaryDivider(4)
+        .cacheTernaryDivider(4)
+        .growthFactor(4)
+        .build();
 
-      // Map model to Set<V>.
-      Set<V> mappedModel = prunedModel.stream()
-        .mapToObj(i -> conjunctiveNormalForm.variableMapping.inverse().get(i + 1))
-        .collect(Collectors.toSet());
-
-      assert normalisedFormula.evaluate(mappedModel);
-      maximalModels.add(mappedModel);
-      maximalModels = Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x));
-
-      // Block and continue.
-      blockModelAndAllSubsets(incrementalSolver, conjunctiveNormalForm, mappedModel);
+      // Do not use buildBddIterative, since 'support(...)' is broken.
+      bdd = BddFactory.buildBddRecursive(10_000, configuration);
+      clauseConjunction = bdd.trueNode();
     }
 
-    return maximalModels;
+    private void pushClauses(List<int[]> clauses) {
+      int max = 0;
+
+      for (int[] clause : clauses) {
+        for (int literal : clause) {
+          max = Math.max(Math.abs(literal), max);
+        }
+      }
+
+      int requiredVariables = Math.max(max - bdd.numberOfVariables(), 0);
+
+      if (requiredVariables > 0) {
+        bdd.createVariables(requiredVariables);
+      }
+
+      int conjunction = bdd.trueNode();
+
+      for (int[] clause : clauses) {
+        int disjunction = bdd.falseNode();
+
+        for (int literal : clause) {
+          if (literal > 0) {
+            disjunction = bdd.updateWith(
+              bdd.or(disjunction, bdd.variableNode(literal - 1)),
+              disjunction);
+          } else {
+            disjunction = bdd.updateWith(
+              bdd.or(disjunction, bdd.not(bdd.variableNode((-literal) - 1))),
+              disjunction);
+          }
+        }
+
+        conjunction = bdd.consume(bdd.and(conjunction, disjunction), conjunction, disjunction);
+      }
+
+      clauseConjunction = bdd.consume(
+        bdd.and(clauseConjunction, conjunction),
+        conjunction,
+        clauseConjunction);
+    }
+
+    @Nullable
+    private BitSet model() {
+      int conjunction = clauseConjunction;
+
+      if (conjunction == bdd.falseNode()) {
+        return null;
+      }
+
+      BitSet model = new BitSet();
+      int currentNode = conjunction;
+
+      while (currentNode != bdd.trueNode()) {
+        int highNode = bdd.high(currentNode);
+
+        if (highNode == bdd.falseNode()) {
+          currentNode = bdd.low(currentNode);
+        } else {
+          model.set(bdd.variable(currentNode) + 1);
+          currentNode = highNode;
+        }
+      }
+
+      return model;
+    }
   }
 
-  private static <V> void blockModelAndAllSubsets(
-    IncrementalSolver solver, ConjunctiveNormalForm<V> encoding, Set<V> model) {
-
-    int[] blockingClause = IntStream.range(1, encoding.tsetinVariablesLowerBound)
-      .filter(i -> !model.contains(requireNonNull(encoding.variableMapping.inverse().get(i))))
-      .toArray();
-
-    solver.pushClauses(blockingClause);
-  }
-
-  enum Engine {
-    JBDD
-  }
 }
