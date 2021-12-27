@@ -136,7 +136,7 @@ public abstract class Edge<S> {
   }
 
   public Edge<S> withAcceptance(int i) {
-    return of(successor(), i);
+    return colours().size() == 1 && colours().contains(i) ? this : of(successor(), i);
   }
 
   public Edge<S> withAcceptance(BitSet acceptance) {
@@ -144,7 +144,7 @@ public abstract class Edge<S> {
   }
 
   public Edge<S> withAcceptance(ImmutableBitSet acceptance) {
-    return of(successor(), acceptance);
+    return colours().equals(acceptance) ? this : of(successor(), acceptance);
   }
 
   public Edge<S> mapAcceptance(IntUnaryOperator transformer) {

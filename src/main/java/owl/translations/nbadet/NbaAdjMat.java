@@ -19,25 +19,22 @@
 
 package owl.translations.nbadet;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Set;
-import java.util.function.IntFunction;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 @SuppressWarnings("PMD.LooseCoupling")
 public final class NbaAdjMat<S> {
 
   private final Automaton<S, ? extends BuchiAcceptance> aut;
-  private final ImmutableBiMap<S,Integer> stateMap;
-  private final BitSet states;
+  private final Numbering<S> stateMap;
 
   //those are used for optimization of the successor sets
   @Nullable private final BitSet aSinks;
@@ -52,31 +49,23 @@ public final class NbaAdjMat<S> {
   }
 
   //bijection between bits and states
-  public ImmutableBiMap<S, Integer> stateMap() {
+  public Numbering<S> stateMap() {
     return this.stateMap;
-  }
-
-  //all used states as bitset
-  public BitSet states() {
-    return states;
   }
 
   //returns map from sym -> state -> (allSuccs, accSuccs)
   public NbaAdjMat(
     Automaton<S, ? extends BuchiAcceptance> automaton,
-    ImmutableBiMap<S, Integer> sMap,
+    Numbering<S> sMap,
     Set<S> aSinks,
     SubsumedStatesMap extIncl) {
 
     this.aut = automaton;
     this.stateMap = sMap;
 
-    this.states = BitSet2
-      .copyOf(((BiMap<S, Integer>) stateMap).keySet(), ((BiMap<S, Integer>) stateMap)::get);
 
     //possible optimizations that might be active
-    this.aSinks = aSinks.isEmpty() ? null : BitSet2
-      .copyOf(aSinks, ((BiMap<S, Integer>) stateMap)::get);
+    this.aSinks = aSinks.isEmpty() ? null : BitSet2.copyOf(aSinks, stateMap::lookup);
     this.usedLangIncl = extIncl.isEmpty() ? null : extIncl;
 
     //compute the matrix
@@ -86,13 +75,13 @@ public final class NbaAdjMat<S> {
       var symmat = new ArrayList<Pair<BitSet,BitSet>>();
 
       IntStream.range(0, aut.states().size()).forEach(st -> {
-        var allSucc = new BitSet(sMap.size());  //all successors on i from st
-        var accSucc = new BitSet(sMap.size());  //those which passed an acc. edge
+        var allSucc = new BitSet();  //all successors on i from st
+        var accSucc = new BitSet();  //those which passed an acc. edge
 
-        aut.edges(sMap.inverse().get(st), sym).forEach(e -> {
-          allSucc.set(sMap.get(e.successor()));
+        aut.edges(sMap.lookup(st), sym).forEach(e -> {
+          allSucc.set(sMap.lookup(e.successor()));
           if (aut.acceptance().isAcceptingEdge(e)) {
-            accSucc.set(sMap.get(e.successor()));
+            accSucc.set(sMap.lookup(e.successor()));
           }
         });
 
@@ -143,18 +132,16 @@ public final class NbaAdjMat<S> {
   }
 
   private String toString(int st, int sym) {
-    IntFunction<S> stmap = stateMap.inverse()::get; //convenience
-
     var succs = succ(st, sym);
-    var aSuccs = BitSet2.asSet(succs.snd(), stmap);
-    var nSuccs = BitSet2.asSet(BitSet2.without(succs.fst(), succs.snd()), stmap);
+    var aSuccs = BitSet2.asSet(succs.snd(), stateMap::lookup);
+    var nSuccs = BitSet2.asSet(BitSet2.without(succs.fst(), succs.snd()), stateMap::lookup);
     var symStr = aut.factory()
       .of(BitSet2.fromInt(sym), aut.atomicPropositions().size()).toString();
 
     if (aSuccs.isEmpty() && nSuccs.isEmpty()) {
       return "";
     }
-    return stateMap.inverse().get(st) + "\t-[" + symStr + "]>\t" + aSuccs + ", " + nSuccs + '\n';
+    return stateMap.lookup(st) + "\t-[" + symStr + "]>\t" + aSuccs + ", " + nSuccs + '\n';
   }
 
   @Override

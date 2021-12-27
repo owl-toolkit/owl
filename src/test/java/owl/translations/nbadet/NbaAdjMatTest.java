@@ -22,14 +22,13 @@ package owl.translations.nbadet;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.Maps;
 import java.util.BitSet;
 import java.util.Set;
 import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 public class NbaAdjMatTest {
@@ -39,7 +38,10 @@ public class NbaAdjMatTest {
     var nba = AutomatonTestUtil.autFromString(
       AutomatonSccDecompositionTest.HOA_NBA_SCCS, BuchiAcceptance.class);
 
-    var idmap = ImmutableBiMap.copyOf(Maps.asMap(nba.states(), st -> st));
+    var idmap = new Numbering<Integer>();
+    for (int i = 0; i < nba.states().size(); i++) {
+      idmap.lookup((Integer) i);
+    }
 
     var aSinks = NbaLangInclusions.getNbaAccPseudoSinks(nba);
     assertEquals(Set.of(9), aSinks);
@@ -52,7 +54,6 @@ public class NbaAdjMatTest {
     //sanity check for creation
     assertSame(nba, mat.original());
     assertSame(idmap, mat.stateMap());
-    assertEquals(nba.states(), BitSet2.asSet(mat.states()));
 
     //test succ
     BitSet bitSet7 = mat.succ(0, 0).fst();

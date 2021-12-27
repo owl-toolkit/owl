@@ -62,11 +62,11 @@ public interface SuccessorFunction<S> extends Function<S, Collection<S>> {
 
       List<S> successors = new ArrayList<>();
 
-      automaton.edges(state).forEach(edge -> {
+      for (Edge<S> edge : automaton.edges(state)) {
         if (edgeFilter.test(edge) && states.contains(edge.successor())) {
           successors.add(edge.successor());
         }
-      });
+      }
 
       return successors;
     };

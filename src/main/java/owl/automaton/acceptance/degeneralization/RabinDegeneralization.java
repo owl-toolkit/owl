@@ -26,9 +26,12 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import com.google.common.collect.Table;
 import com.google.common.primitives.ImmutableIntArray;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Deque;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +41,6 @@ import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.SuccessorFunction;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
@@ -228,7 +230,20 @@ public final class RabinDegeneralization {
         };
 
       resultAutomaton.addInitialState(initialSccState);
-      MutableAutomatonUtil.copyInto(sourceAutomaton, resultAutomaton);
+      // Use a work-list algorithm in case source is an on-the-fly generated automaton.
+      var workList = new ArrayDeque<>(sourceAutomaton.initialStates());
+      var visited = new HashSet<>(workList);
+
+      while (!workList.isEmpty()) {
+        var state1 = workList.remove();
+        resultAutomaton.addState(state1);
+        sourceAutomaton.edgeMap(state1).forEach((x, y) -> {
+          resultAutomaton.addEdge(state1, y, x);
+          if (visited.add(x.successor())) {
+            workList.add(x.successor());
+          }
+        });
+      }
       resultAutomaton.trim();
 
       var sccDecomposition2 = SccDecomposition.of(

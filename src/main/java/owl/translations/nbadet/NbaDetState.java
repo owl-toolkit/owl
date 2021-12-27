@@ -20,8 +20,6 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -33,6 +31,7 @@ import javax.annotation.Nullable;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 /**
@@ -47,7 +46,7 @@ import owl.collections.Pair;
 public abstract class NbaDetState<S> {
   //not handled by AutoValue, just carried around for meaningful toString function
   @Nullable
-  ImmutableBiMap<Integer, S> states;
+  Numbering<S> states;
 
   // --------
 
@@ -76,7 +75,7 @@ public abstract class NbaDetState<S> {
    * The states are distributed in the set into the right components according to the config.
    */
   public static <S> NbaDetState<S> of(NbaDetConf<S> conf, Set<S> initialSet) {
-    return of(conf, BitSet2.copyOf(initialSet, ((BiMap<S, Integer>) conf.aut().stateMap())::get));
+    return of(conf, BitSet2.copyOf(initialSet, conf.aut().stateMap()::lookup));
   }
 
   public static <S> NbaDetState<S> of(NbaDetConf<S> conf, BitSet nbaSet) {
@@ -108,7 +107,7 @@ public abstract class NbaDetState<S> {
 
     NbaDetState<S> ret
       = new AutoValue_NbaDetState<>(nbaSet, rSccs, aSccsBuf, Optional.empty(), dSccs, mSccs);
-    ret.states = conf.aut().stateMap().inverse();
+    ret.states = conf.aut().stateMap();
     return ret;
   }
 
@@ -171,13 +170,13 @@ public abstract class NbaDetState<S> {
    */
   @Override
   public final String toString() {
-    return "N:" + BitSet2.asSet(rSccs(), states::get)
-      + "\tAB:" + BitSet2.asSet(aSccsBuffer(), states::get)
-      + " AC: ("  + (aSccs().isPresent() ? BitSet2.asSet(aSccs().get().fst(), states::get)
+    return "N:" + BitSet2.asSet(rSccs(), states::lookup)
+      + "\tAB:" + BitSet2.asSet(aSccsBuffer(), states::lookup)
+      + " AC: ("  + (aSccs().isPresent() ? BitSet2.asSet(aSccs().get().fst(), states::lookup)
       + "=" + aSccs().get().snd() : "")
-      + ") D:(" + dSccs().stream().map(sl -> sl.toString(states::get))
+      + ") D:(" + dSccs().stream().map(sl -> sl.toString(states::lookup))
                                 .collect(Collectors.joining(" | "))
-      + ") M:(" + mSccs().stream().map(sl -> sl.toString(states::get))
+      + ") M:(" + mSccs().stream().map(sl -> sl.toString(states::lookup))
                                 .collect(Collectors.joining(" | ")) + ')';
   }
 

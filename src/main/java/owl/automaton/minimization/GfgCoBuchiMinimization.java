@@ -32,7 +32,6 @@ import owl.automaton.Automaton;
 import owl.automaton.EmptyAutomaton;
 import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
@@ -55,7 +54,7 @@ public final class GfgCoBuchiMinimization {
 
     Preconditions.checkArgument(dcw.is(Automaton.Property.DETERMINISTIC));
 
-    var dcwCopy = MutableAutomatonUtil.asMutable(dcw);
+    var dcwCopy = HashMapAutomaton.copyOf(dcw);
     var safeComponents = safeComponents(dcwCopy);
 
     if (dcwCopy.initialStates().isEmpty()) {

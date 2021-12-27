@@ -23,12 +23,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import java.util.BitSet;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 public class SubsumedStatesMapTest {
@@ -56,9 +55,9 @@ public class SubsumedStatesMapTest {
     //test a non-empty subsumption map
 
     //identity bimap for states 0-7
-    HashBiMap<Integer,Integer> stm = HashBiMap.create();
+    Numbering<Integer> stm = new Numbering<>();
     for (int i = 0; i < 8; i++) {
-      stm.put(i,i);
+      stm.lookup((Integer) i);
     }
     //pairs: 0<=1, 1<=0, 2<=3, 5<=4
     Set<Pair<Integer,Integer>> pairs = Set.of(
@@ -68,7 +67,7 @@ public class SubsumedStatesMapTest {
     assertFalse(subs.isEmpty());
 
     var bs = BitSet2
-      .copyOf(((BiMap<Integer, Integer>) stm).keySet(), ((BiMap<Integer, Integer>) stm)::get);
+      .copyOf(stm.asMap().keySet(), stm::lookup);
     var remains = (BitSet)bs.clone();
     var removed = new BitSet();
     bs.stream().forEach(i -> {
@@ -76,8 +75,8 @@ public class SubsumedStatesMapTest {
       subs.removeSubsumed(i, remains);
     });
 
-    assertEquals(BitSet2.copyOf(Set.of(3, 4, 6, 7), ((BiMap<Integer, Integer>) stm)::get), remains);
-    assertEquals(BitSet2.copyOf(Set.of(0, 1, 2, 5), ((BiMap<Integer, Integer>) stm)::get), removed);
+    assertEquals(BitSet2.copyOf(Set.of(3, 4, 6, 7), stm::lookup), remains);
+    assertEquals(BitSet2.copyOf(Set.of(0, 1, 2, 5), stm::lookup), removed);
 
   }
 }

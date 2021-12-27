@@ -19,12 +19,17 @@
 
 package owl.automaton;
 
+import static owl.automaton.Automaton.Property.COMPLETE;
+import static owl.automaton.Automaton.Property.DETERMINISTIC;
+import static owl.automaton.Automaton.Property.SEMI_DETERMINISTIC;
+
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +46,7 @@ import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
 import owl.collections.Either;
+import owl.collections.Pair;
 
 /**
  * This class provides a skeletal implementation of the {@code Automaton}
@@ -67,14 +73,14 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   implements Automaton<S, A> {
 
   protected final A acceptance;
-  protected final Set<S> initialStates;
-  protected final BddSetFactory factory;
   protected final List<String> atomicPropositions;
+  protected final BddSetFactory factory;
+  protected final Set<S> initialStates;
 
   // Memoization.
-  private boolean explorationCompleted;
-  private final Map<S, MtBdd<Edge<S>>> memoizedEdgeTrees;
-  private final Map<S, Set<Edge<S>>> memoizedEdges;
+  private boolean explorationCompleted = false;
+  private final Map<S, Pair<MtBdd<Edge<S>>, Set<Edge<S>>>> memoizedEdgeTrees;
+  private final EnumMap<Property, Boolean> memoizedProperties = new EnumMap<>(Property.class);
 
   private AbstractMemoizingAutomaton(
     List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
@@ -90,26 +96,20 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
     this.acceptance = acceptance;
     this.atomicPropositions = List.copyOf(atomicPropositions);
-    this.initialStates = Set.copyOf(initialStates);
     this.factory = factory;
+    this.initialStates = Set.copyOf(initialStates);
+    Preconditions.checkArgument(Collections3.isDistinct(this.atomicPropositions));
 
     if (this.initialStates.isEmpty()) {
-      // TODO: add call to explorationCompleted() after constructor is finished.
-      explorationCompleted = true;
       memoizedEdgeTrees = Map.of();
-      memoizedEdges = Map.of();
     } else {
-      explorationCompleted = false;
-      memoizedEdgeTrees = new HashMap<>(Math.max(this.initialStates.size(), 16));
-      memoizedEdges = new HashMap<>(Math.max(this.initialStates.size(), 16));
+      memoizedEdgeTrees = new HashMap<>(Math.max(this.initialStates.size(), 64));
 
       // Mark initialStates as unexplored.
       for (S initialState : this.initialStates) {
         memoizedEdgeTrees.put(initialState, null);
       }
     }
-
-    Preconditions.checkArgument(Collections3.isDistinct(this.atomicPropositions));
   }
 
   /**
@@ -132,7 +132,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     return new AutomaticMemoizingAutomaton<>(automaton);
   }
 
-  private static class AutomaticMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
+  private static final class AutomaticMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     @Nullable
@@ -160,18 +160,16 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public final MtBdd<Edge<S>> edgeTree(S state) {
-    var edgeTree = memoizedEdgeTrees.get(state);
+    var memoizedPair = memoizedEdgeTrees.get(state);
 
-    if (edgeTree != null) {
-      return edgeTree;
+    if (memoizedPair != null) {
+      return memoizedPair.fst();
     }
 
-    edgeTree = edgeTreeImpl(state);
-    memoizedEdgeTrees.put(state, edgeTree);
-
+    var edgeTree = edgeTreeImpl(state);
     @SuppressWarnings("unchecked")
     Edge<S>[] edges = edgeTree.flatValues().toArray(Edge[]::new);
-    memoizedEdges.put(state, Set.of(edges));
+    memoizedEdgeTrees.put(state, Pair.of(edgeTree, Set.of(edges)));
 
     // Update the set of unexplored states.
     for (Edge<S> edge : edges) {
@@ -201,7 +199,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   public final Set<Edge<S>> edges(S state) {
     // Call edgeTree to ensure that the result is cached.
     edgeTree(state);
-    return Objects.requireNonNull(memoizedEdges.get(state));
+    return Objects.requireNonNull(memoizedEdgeTrees.get(state)).snd();
   }
 
   @Nullable
@@ -253,8 +251,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
         List<S> unexploredStates = new ArrayList<>();
 
         // Copy to avoid concurrent modification exception.
-        memoizedEdgeTrees.forEach((state, tree) -> {
-          if (tree == null) {
+        memoizedEdgeTrees.forEach((state, pair) -> {
+          if (pair == null) {
             unexploredStates.add(state);
           }
         });
@@ -278,21 +276,41 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
   @Override
   public boolean is(Property property) {
-    if (property != Property.COMPLETE && property != Property.SEMI_DETERMINISTIC) {
-      return Automaton.super.is(property);
+
+    // Compute value if not memoized.
+    if (!memoizedProperties.containsKey(property)) {
+      if (property == COMPLETE
+        || property == SEMI_DETERMINISTIC
+        || property == DETERMINISTIC) {
+
+        // force full exploration.
+        states();
+
+        boolean complete = !initialStates.isEmpty();
+        boolean semiDeterministic = true;
+
+        outer:
+        for (var pairs : memoizedEdgeTrees.values()) {
+          for (var edges : pairs.fst().values()) {
+            complete = complete && !edges.isEmpty();
+            semiDeterministic = semiDeterministic && edges.size() <= 1;
+
+            // Early termination.
+            if (!complete && !semiDeterministic) {
+              break outer;
+            }
+          }
+        }
+
+        memoizedProperties.put(COMPLETE, complete);
+        memoizedProperties.put(DETERMINISTIC, initialStates.size() <= 1 && semiDeterministic);
+        memoizedProperties.put(SEMI_DETERMINISTIC, semiDeterministic);
+      } else {
+        memoizedProperties.put(property, Automaton.super.is(property));
+      }
     }
 
-    // force full exploration.
-    states();
-
-    if (property == Property.COMPLETE) {
-      return !initialStates.isEmpty() && memoizedEdgeTrees.values().stream().allMatch(
-        x -> x.values().stream().allMatch(y -> y.size() >= 1));
-    }
-
-    assert property == Property.SEMI_DETERMINISTIC;
-    return memoizedEdgeTrees.values().stream().allMatch(
-      x -> x.values().stream().allMatch(y -> y.size() <= 1));
+    return memoizedProperties.get(property);
   }
 
   boolean edgeTreePrecomputed(S state) {
@@ -474,8 +492,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
     @Override
     public final boolean is(Property property) {
-      return property == Property.SEMI_DETERMINISTIC
-        || property == Property.LIMIT_DETERMINISTIC
+      return property == SEMI_DETERMINISTIC
         || super.is(property);
     }
   }

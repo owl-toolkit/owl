@@ -130,16 +130,8 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-
-    ParityAcceptance that = (ParityAcceptance) o;
-    return acceptanceSets() == that.acceptanceSets() && parity == that.parity;
+    return o instanceof ParityAcceptance that
+      && acceptanceSets() == that.acceptanceSets() && parity == that.parity;
   }
 
   @Override
@@ -192,14 +184,6 @@ public final class ParityAcceptance extends EmersonLeiAcceptance {
 
     public boolean max() {
       return equals(MAX_EVEN) || equals(MAX_ODD);
-    }
-
-    public Parity setEven(boolean even) {
-      return even == even() ? this : flipEven();
-    }
-
-    public Parity setMax(boolean max) {
-      return max == max() ? this : flipMax();
     }
 
     public String evenString() {
