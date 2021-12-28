@@ -20,9 +20,6 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.ImmutableBiMap;
-import com.google.common.collect.Streams;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,6 +32,7 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 import owl.command.AutomatonConversionCommands;
 
@@ -90,7 +88,7 @@ public abstract class NbaDetConf<S> {
   public static <S> Set<Pair<S, S>> filterExternalIncl(
     Set<? extends Pair<S, S>> incl,
     SccDecomposition<? super S> scci,
-    BiMap<S, Integer> stm) {
+    Numbering<S> stm) {
 
     //can only use a < b if b -/> a
     var inclFilt = incl.stream()
@@ -118,7 +116,7 @@ public abstract class NbaDetConf<S> {
     //exclude equivalences (keep one-sided relation, and without reflexive pairs)
     return inclFilt.stream()
       .filter(p -> !eqClass.get(p.fst()).equals(eqClass.get(p.snd()))
-                   || stm.get(p.fst()) < stm.get(p.snd()))
+                   || stm.lookup(p.fst()) < stm.lookup(p.snd()))
       .collect(Collectors.toUnmodifiableSet());
   }
 
@@ -142,9 +140,8 @@ public abstract class NbaDetConf<S> {
     var states = aut.states();
     //var states = new ArrayList<>(aut.states());
     //states.sort(Comparator.comparing(Object::toString)); //more predictable for debugging
-    ImmutableBiMap<S, Integer> stateMap = ImmutableBiMap.copyOf(
-      Streams.mapWithIndex(states.stream(), (k, i) -> Pair.of(k, (int) i))
-        .collect(Collectors.toUnmodifiableMap(Pair::fst, Pair::snd)));
+    Numbering<S> stateMap = new Numbering<>(states.size());
+    states.forEach(stateMap::lookup);
 
     final var sccSets = NbaDetConfSets.of(args, scci, stateMap);
 
@@ -155,7 +152,7 @@ public abstract class NbaDetConf<S> {
     var extIncl = filterExternalIncl(incl, scci, stateMap);
     var intIncl = filterInternalIncl(incl, scci);
 
-    final BitSet aSinksBS = BitSet2.copyOf(aSinks, stateMap::get);
+    final BitSet aSinksBS = BitSet2.copyOf(aSinks, stateMap::lookup);
     final SubsumedStatesMap extMask = args.simExt()
         ? SubsumedStatesMap.of(stateMap, extIncl) : SubsumedStatesMap.empty();
     final SubsumedStatesMap intMask = args.simInt()
@@ -179,11 +176,11 @@ public abstract class NbaDetConf<S> {
   }
 
   public String toString() {
-    IntFunction<S> inv = aut().stateMap().inverse()::get;
+    IntFunction<S> inv = aut().stateMap()::lookup;
     var sb = new StringBuilder(200);
     sb.append("assembled NBA determinization configuration:")
       .append("\nstate to bit mapping: ")
-      .append(aut().stateMap().inverse())
+      .append(aut().stateMap().asMap())
       .append("\ndetected accepting pseudo-sinks: ")
       .append(BitSet2.asSet(accSinks(), inv))
       .append("\nused external language inclusions:\n").append(extMask().toString(inv))

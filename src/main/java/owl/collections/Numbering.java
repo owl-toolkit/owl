@@ -20,7 +20,9 @@
 package owl.collections;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Map;
 
 public class Numbering<E> {
 
@@ -55,5 +57,9 @@ public class Numbering<E> {
     }
 
     return reverseMapping.get(index);
+  }
+
+  public Map<E, Integer> asMap() {
+    return Collections.unmodifiableMap(mapping);
   }
 }

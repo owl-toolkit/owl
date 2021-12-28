@@ -31,7 +31,7 @@ import java.util.stream.IntStream;
 import org.junit.jupiter.api.Test;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonUtil;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.optimization.AcceptanceOptimizations;
 import owl.automaton.algorithm.LanguageContainment;
@@ -74,13 +74,13 @@ class GfgCoBuchiMinimizationTest {
       graphPermutationLanguage(n),
       graphPermutationLanguage2(n)));
 
-    var minimizedAutomaton = MutableAutomatonUtil.asMutable(
+    var minimizedAutomaton = HashMapAutomaton.copyOf(
       GfgCoBuchiMinimization.minimize(automaton2));
     AcceptanceOptimizations.removeDeadStates(minimizedAutomaton);
     assertEquals(gfgAutomaton.states().size(), minimizedAutomaton.states().size(),
       HoaWriter.toString(minimizedAutomaton));
 
-    var minimizedAutomaton2 = MutableAutomatonUtil.asMutable(
+    var minimizedAutomaton2 = HashMapAutomaton.copyOf(
       GfgCoBuchiMinimization.minimize(graphPermutationLanguage(n)));
     AcceptanceOptimizations.removeDeadStates(minimizedAutomaton2);
     assertEquals(gfgAutomaton.states().size(), minimizedAutomaton2.states().size(),

@@ -19,7 +19,6 @@
 
 package owl.translations.nbadet;
 
-import com.google.common.collect.ImmutableBiMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -32,6 +31,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import owl.automaton.edge.Edge;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 /** auxiliary class to work with internally, to avoid overhead of AutoValue builder. */
@@ -40,7 +40,7 @@ final class NbaDetStateFactory<S> {
   private static final Logger logger = Logger.getLogger(NbaDet.class.getName());
 
   //these fields are the same as in NbaDetState
-  ImmutableBiMap<Integer, S> states;
+  Numbering<S> states;
   public BitSet powerSet;
   public BitSet rSccs;
   public BitSet aSccsBuffer;

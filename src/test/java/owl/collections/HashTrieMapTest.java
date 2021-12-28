@@ -139,14 +139,14 @@ public class HashTrieMapTest {
     var args = new AutomatonConversionCommands.Nba2DpaCommand();
 
     var conf = NbaDetConf.prepare(nba, Set.of(), args);
-    var state = NbaDetState.of(conf, BitSet2.copyOf(conf.aut().stateMap().values()));
+    var state = NbaDetState.of(conf, BitSet2.copyOf(conf.aut().stateMap().asMap().values()));
 
     assertEquals(Set.of(
-        BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), conf.aut().stateMap()::get),
-        BitSet2.copyOf(Set.of(10, 11), conf.aut().stateMap()::get),
-        BitSet2.copyOf(Set.of(4, 5), conf.aut().stateMap()::get),
-        BitSet2.copyOf(Set.of(9), conf.aut().stateMap()::get),
-        BitSet2.copyOf(Set.of(7, 8), conf.aut().stateMap()::get)
+        BitSet2.copyOf(Set.of(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11), conf.aut().stateMap()::lookup),
+        BitSet2.copyOf(Set.of(10, 11), conf.aut().stateMap()::lookup),
+        BitSet2.copyOf(Set.of(4, 5), conf.aut().stateMap()::lookup),
+        BitSet2.copyOf(Set.of(9), conf.aut().stateMap()::lookup),
+        BitSet2.copyOf(Set.of(7, 8), conf.aut().stateMap()::lookup)
       ),
       Set.copyOf(state.toTrieEncoding()));
   }

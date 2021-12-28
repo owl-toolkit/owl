@@ -22,8 +22,6 @@ package owl.automaton;
 import static com.google.common.base.Preconditions.checkArgument;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Sets;
 import java.util.ArrayDeque;
@@ -40,8 +38,10 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.annotation.Nullable;
+import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
@@ -50,6 +50,7 @@ import owl.bdd.MtBdd;
 import owl.bdd.MtBddOperations;
 import owl.collections.Collections3;
 import owl.collections.ImmutableBitSet;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 public final class Views {
@@ -113,6 +114,18 @@ public final class Views {
         return property == Property.COMPLETE || super.is(property);
       }
     };
+  }
+
+  public static <S> Automaton<Optional<S>, ? extends BuchiAcceptance>
+    completeBuchi(Automaton<S, ? extends BuchiAcceptance> automaton) {
+
+    return OmegaAcceptanceCast.cast(Views.complete(automaton), BuchiAcceptance.class);
+  }
+
+  public static <S> Automaton<Optional<S>, ? extends CoBuchiAcceptance>
+    completeCoBuchi(Automaton<S, ? extends CoBuchiAcceptance> automaton) {
+
+    return OmegaAcceptanceCast.cast(Views.complete(automaton), CoBuchiAcceptance.class);
   }
 
   /**
@@ -436,14 +449,18 @@ public final class Views {
     dropStateLabels(Automaton<S, ? extends A> automaton) {
 
     if (automaton.initialStates().isEmpty()) {
-      return EmptyAutomaton.of(automaton.atomicPropositions(), automaton.acceptance());
+      return EmptyAutomaton.of(
+        automaton.atomicPropositions(),
+        automaton.factory(),
+        automaton.acceptance());
     }
 
-    BiMap<S, Integer> mapping = HashBiMap.create();
-    Set<Integer> initialStates = new HashSet<>();
-    automaton.initialStates().forEach(x -> initialStates.add(DropStateLabelsImpl.map(mapping, x)));
+    Numbering<S> mapping = new Numbering<>();
 
-    return new DropStateLabelsImpl<>(automaton, initialStates, mapping);
+    return new DropStateLabelsImpl<>(
+      automaton,
+      Collections3.transformSet(automaton.initialStates(), mapping::lookup),
+      mapping);
   }
 
   public static <S> Automaton<S, ParityAcceptance> convertParity(
@@ -479,10 +496,10 @@ public final class Views {
     @Nullable
     private Automaton<S, ? extends A> automaton;
     @Nullable
-    private BiMap<S, Integer> mapping;
+    private Numbering<S> mapping;
 
-    public DropStateLabelsImpl(
-      Automaton<S, ? extends A> automaton, Set<Integer> initialStates, BiMap<S, Integer> mapping) {
+    private DropStateLabelsImpl(
+      Automaton<S, ? extends A> automaton, Set<Integer> initialStates, Numbering<S> mapping) {
       super(
         automaton.atomicPropositions(), automaton.factory(), initialStates, automaton.acceptance());
       this.automaton = automaton;
@@ -490,23 +507,19 @@ public final class Views {
     }
 
     @Override
-    protected MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
-      return automaton.edgeTree(mapping.inverse().get(state)).map(
-        x -> x.stream()
-          .map(y -> y.mapSuccessor(z -> map(mapping, z)))
-          .collect(Collectors.toUnmodifiableSet()));
+    protected final MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
+      assert automaton != null;
+      assert mapping != null;
+
+      return automaton
+        .edgeTree(mapping.lookup(state))
+        .map(x -> Collections3.transformSet(x, y -> y.mapSuccessor(mapping::lookup)));
     }
 
     @Override
-    protected void explorationCompleted() {
+    protected final void explorationCompleted() {
       automaton = null;
       mapping = null;
-    }
-
-    private static <S> Integer map(BiMap<S, Integer> map, S state) {
-      synchronized (map) {
-        return map.computeIfAbsent(state, x -> map.size());
-      }
     }
   }
 }

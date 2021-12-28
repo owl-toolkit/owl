@@ -36,8 +36,8 @@ public final class ParityUtil {
       return automaton;
     }
 
-    MutableAutomaton<S, ParityAcceptance> mutableAutomaton
-      = (MutableAutomaton<S, ParityAcceptance>) MutableAutomatonUtil.asMutable(automaton);
+    var mutableAutomaton
+      = (HashMapAutomaton<S, ParityAcceptance>) HashMapAutomaton.copyOf(automaton);
     Preconditions.checkArgument(mutableAutomaton.is(Automaton.Property.COMPLETE));
 
     // Ensure that there are enough colours to have a rejecting state.

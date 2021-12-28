@@ -442,8 +442,23 @@ public final class HashMapAutomaton<S, A extends EmersonLeiAcceptance>
     Automaton<S, A> source) {
     HashMapAutomaton<S, A> target = new HashMapAutomaton<>(
       source.atomicPropositions(), source.factory(), source.acceptance());
+
     source.initialStates().forEach(target::addInitialState);
-    MutableAutomatonUtil.copyInto(source, target);
+    // Use a work-list algorithm in case source is an on-the-fly generated automaton.
+    Deque<S> workList = new ArrayDeque<>(source.initialStates());
+    Set<S> visited = new HashSet<>(workList);
+
+    while (!workList.isEmpty()) {
+      S state1 = workList.remove();
+      target.addState(state1);
+      source.edgeMap(state1).forEach((x, y) -> {
+        target.addEdge(state1, y, x);
+        if (visited.add(x.successor())) {
+          workList.add(x.successor());
+        }
+      });
+    }
+
     target.trim();
     assert source.states().equals(target.states());
     return target;

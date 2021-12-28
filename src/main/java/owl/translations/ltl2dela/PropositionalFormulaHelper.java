@@ -20,8 +20,6 @@
 package owl.translations.ltl2dela;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
@@ -31,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import javax.annotation.Nullable;
+import owl.collections.Numbering;
 import owl.logic.propositional.PropositionalFormula;
 
 public final class PropositionalFormulaHelper {
@@ -47,25 +46,25 @@ public final class PropositionalFormulaHelper {
 
     Preconditions.checkArgument(formulaVariables.containsAll(refinedFormulaVariables));
 
-    BiMap<K, Integer> variableMap = HashBiMap.create();
+    Numbering<K> variableMap = new Numbering<>();
     Map<K, Boolean> partialAssignment = new HashMap<>();
     int stoppingVariable = 0;
 
     for (K variable : formulaVariables) {
       if (!refinedFormulaVariables.contains(variable)) {
         partialAssignment.put(variable, null);
-        variableMap.put(variable, variableMap.size());
+        variableMap.lookup(variable);
       }
     }
 
     stoppingVariable = partialAssignment.size();
 
     for (K variable : refinedFormulaVariables) {
-      variableMap.put(variable, variableMap.size());
+      variableMap.lookup(variable);
     }
 
     Bdd bdd = BddFactory.buildBddRecursive(1000, ImmutableBddConfiguration.builder().build());
-    bdd.createVariables(variableMap.size() + 1);
+    bdd.createVariables(variableMap.asMap().size() + 1);
 
     int formulaNode = translateBdd(formula, bdd, variableMap);
     int refinedFormulaNode = translateBdd(refinedFormula, bdd, variableMap);
@@ -75,7 +74,7 @@ public final class PropositionalFormulaHelper {
   }
 
   private static <K> Optional<Map<K, Boolean>> findPartialAssignment(
-    int formulaNode, int refinedFormulaNode, Bdd bdd, BiMap<K, Integer> variableMapping,
+    int formulaNode, int refinedFormulaNode, Bdd bdd, Numbering<K> variableMapping,
     int stoppingValue) {
 
     int variable = bdd.isNodeRoot(formulaNode) ? Integer.MAX_VALUE : bdd.variable(formulaNode);
@@ -85,7 +84,7 @@ public final class PropositionalFormulaHelper {
         bdd.low(formulaNode), refinedFormulaNode, bdd, variableMapping, stoppingValue);
 
       if (low.isPresent()) {
-        low.get().put(variableMapping.inverse().get(variable), Boolean.FALSE);
+        low.get().put(variableMapping.lookup(variable), Boolean.FALSE);
         return low;
       }
 
@@ -93,7 +92,7 @@ public final class PropositionalFormulaHelper {
         bdd.high(formulaNode), refinedFormulaNode, bdd, variableMapping, stoppingValue);
 
       if (high.isPresent()) {
-        high.get().put(variableMapping.inverse().get(variable), Boolean.TRUE);
+        high.get().put(variableMapping.lookup(variable), Boolean.TRUE);
       }
 
       return high;
@@ -103,10 +102,10 @@ public final class PropositionalFormulaHelper {
   }
 
   private static <K> int translateBdd(
-    PropositionalFormula<K> formula, Bdd bdd, Map<K, Integer> variableMapping) {
+    PropositionalFormula<K> formula, Bdd bdd, Numbering<K> variableMapping) {
 
     if (formula instanceof PropositionalFormula.Variable<K> variable) {
-      return bdd.variableNode(variableMapping.get(variable.variable()));
+      return bdd.variableNode(variableMapping.lookup(variable.variable()));
     }
 
     if (formula instanceof PropositionalFormula.Negation<K> negation) {

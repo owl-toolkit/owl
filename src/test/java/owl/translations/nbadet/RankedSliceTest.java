@@ -24,12 +24,11 @@ import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.google.common.collect.BiMap;
-import com.google.common.collect.HashBiMap;
 import java.util.List;
 import java.util.Set;
 import org.junit.jupiter.api.Test;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 public class RankedSliceTest {
@@ -101,9 +100,9 @@ public class RankedSliceTest {
     assertEquals(sl, withEmpty.withoutEmptySets());
     assertEquals(empOrig, withEmpty);
 
-    BiMap<Integer,Integer> idmap = HashBiMap.create();
+    Numbering<Integer> idmap = new Numbering<>(32);
     for (int i = 0; i < 32; i++) {
-      idmap.put(i,i);
+      idmap.lookup((Integer) i);
     }
     SubsumedStatesMap pruneMap = SubsumedStatesMap.of(idmap,
       Set.of(Pair.of(1,0),Pair.of(2,0),Pair.of(4,3),Pair.of(5,3)));

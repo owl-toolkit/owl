@@ -19,13 +19,13 @@
 
 package owl.translations.nbadet;
 
-import com.google.common.collect.BiMap;
 import java.util.BitSet;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.IntFunction;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.collections.Pair;
 
 /**
@@ -69,11 +69,11 @@ final class SubsumedStatesMap {
    * If 1<=2 and 2<=1, then careless use will mark both as "subsumed",
    * but usually you want to keep one of them!
    */
-  public static <S> SubsumedStatesMap of(BiMap<S, Integer> stateMap, Set<Pair<S, S>> incls) {
+  public static <S> SubsumedStatesMap of(Numbering<S> stateMap, Set<Pair<S, S>> incls) {
     final var mask = new HashMap<Integer, BitSet>();
     incls.forEach(p -> {
-      int a = stateMap.get(p.fst());
-      int b = stateMap.get(p.snd());
+      int a = stateMap.lookup(p.fst());
+      int b = stateMap.lookup(p.snd());
       if (a != b) {
         if (!mask.containsKey(b)) {
           mask.put(b, new BitSet());

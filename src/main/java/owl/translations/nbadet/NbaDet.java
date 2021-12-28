@@ -36,7 +36,6 @@ import java.util.stream.Collectors;
 import owl.Bibliography;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.Views;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
@@ -287,8 +286,15 @@ public final class NbaDet {
     //preventing a bug or interaction of topo + smart succ. optimizations
     //otherwise some weird bug happens when using succHelper with the "lazy" construction,
     //where the SCC decomp. claims that there are no bottom SCCs, which is obviously impossible
-    var sccAut = MutableAutomatonUtil.asMutable(
-      new AbstractMemoizingAutomaton.EdgeImplementation<>(
+
+    //associated powerset
+    //successor of powerset leaves SCC -> abort exploration here (for now)
+    // should be exactly one successor
+    // get the unique powerset successor
+    // compute determinization successor
+    // map from detstate to pset state, if new state
+    // computed successor + priority
+    var sccAut = new AbstractMemoizingAutomaton.EdgeImplementation<>(
         conf.aut().original().atomicPropositions(),
         conf.aut().original().factory(),
         Set.of(initDpa),
@@ -304,13 +310,14 @@ public final class NbaDet {
           assert refSuc.size() == 1;                  // should be exactly one successor
           var sucPSet = refSuc.iterator().next();     // get the unique powerset successor
 
-          var suc = succHelper.successor(state, val); // compute determinization successor
-          if (!toPS.containsKey(suc.successor())) { // map from detstate to pset state, if new state
-            toPS.put(suc.successor(), sucPSet);
+          var suc1 = succHelper.successor(state, val); // compute determinization successor
+          if (!toPS.containsKey(
+            suc1.successor())) { // map from detstate to pset state, if new state
+            toPS.put(suc1.successor(), sucPSet);
           }
-          return suc; // computed successor + priority
+          return suc1; // computed successor + priority
         }
-      });
+      };
 
     //compute SCCs in partial DPA, get smallest bottom SCC
     var compScci = SccDecomposition.of(sccAut);
@@ -357,7 +364,7 @@ public final class NbaDet {
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
       adjMat.original().atomicPropositions(),
       adjMat.original().factory(),
-      Set.of(BitSet2.copyOf(adjMat.original().initialStates(), adjMat.stateMap()::get)),
+      Set.of(BitSet2.copyOf(adjMat.original().initialStates(), adjMat.stateMap()::lookup)),
       AllAcceptance.INSTANCE) {
 
       @Override

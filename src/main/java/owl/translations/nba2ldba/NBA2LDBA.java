@@ -34,8 +34,8 @@ import owl.automaton.AbstractMemoizingAutomaton.PartitionedEdgeTreeImplementatio
 import owl.automaton.Automaton;
 import owl.automaton.AutomatonUtil;
 import owl.automaton.AutomatonUtil.LimitDeterministicGeneralizedBuchiAutomaton;
+import owl.automaton.HashMapAutomaton;
 import owl.automaton.MutableAutomaton;
-import owl.automaton.MutableAutomatonUtil;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -84,8 +84,8 @@ public final class NBA2LDBA
       }
     }
 
-    MutableAutomaton<Either<?, ?>, BuchiAcceptance> ldba =
-      (MutableAutomaton) MutableAutomatonUtil.asMutable(new BreakpointAutomaton<>(ngba));
+    MutableAutomaton<Either<?, ?>, BuchiAcceptance> ldba = (MutableAutomaton)
+      HashMapAutomaton.copyOf(new BreakpointAutomaton<>(ngba));
     AcceptanceOptimizations.removeDeadStates(ldba);
     return LimitDeterministicGeneralizedBuchiAutomaton.of(ldba,
       ldba.states().stream().filter(x -> x.type() == Either.Type.LEFT).collect(toSet()));

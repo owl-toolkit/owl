@@ -20,7 +20,6 @@
 package owl.translations.nbadet;
 
 import com.google.auto.value.AutoValue;
-import com.google.common.collect.BiMap;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -31,6 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import owl.automaton.algorithm.SccDecomposition;
 import owl.collections.BitSet2;
+import owl.collections.Numbering;
 import owl.command.AutomatonConversionCommands;
 
 /**
@@ -64,7 +64,7 @@ public abstract class NbaDetConfSets {
   public static <S> NbaDetConfSets of(
     AutomatonConversionCommands.Nba2DpaCommand args,
     SccDecomposition<? extends S> scci,
-    BiMap<S, Integer> stateMap) {
+    Numbering<S> stateMap) {
 
     var handled = new HashSet<Integer>(); //keep track of already handled SCCs
 
@@ -74,7 +74,7 @@ public abstract class NbaDetConfSets {
       Set<S> rejStates = scci.rejectingSccs().stream()
         .flatMap(i -> scci.sccs().get(i).stream())
         .collect(Collectors.toUnmodifiableSet());
-      rejStatesBS = BitSet2.copyOf(rejStates, stateMap::get);
+      rejStatesBS = BitSet2.copyOf(rejStates, stateMap::lookup);
 
       handled.addAll(scci.rejectingSccs());
     }
@@ -88,8 +88,8 @@ public abstract class NbaDetConfSets {
       var accStates = accSccs.stream().flatMap(Collection::stream)
                                       .collect(Collectors.toUnmodifiableSet());
 
-      accStatesBS = BitSet2.copyOf(accStates, stateMap::get);
-      accSccs.forEach(s -> asccs.add(BitSet2.copyOf(s, stateMap::get)));
+      accStatesBS = BitSet2.copyOf(accStates, stateMap::lookup);
+      accSccs.forEach(s -> asccs.add(BitSet2.copyOf(s, stateMap::lookup)));
 
       if (!args.sepAccCyc()) {
         //if not requested to separate, put all ASCCs in single determinisation tuple component
@@ -111,7 +111,7 @@ public abstract class NbaDetConfSets {
 
 
       //those must always be separate to work correctly
-      expDetSccs.forEach(s -> dsccs.add(BitSet2.copyOf(s, stateMap::get)));
+      expDetSccs.forEach(s -> dsccs.add(BitSet2.copyOf(s, stateMap::lookup)));
 
       handled.addAll(unhDetSccs);
     }
@@ -119,7 +119,7 @@ public abstract class NbaDetConfSets {
     //SCCs which are not handled specially yet are treated as mixed (generic determinization)
     var msccs = new ArrayList<BitSet>();
     IntStream.range(0, scci.sccs().size()).filter(i -> !handled.contains(i)).forEach(
-      i -> msccs.add(BitSet2.copyOf(scci.sccs().get(i), stateMap::get)));
+      i -> msccs.add(BitSet2.copyOf(scci.sccs().get(i), stateMap::lookup)));
 
     if (!args.sepMix()) {
       //if not requested to separate, put all states in single determinisation tuple component

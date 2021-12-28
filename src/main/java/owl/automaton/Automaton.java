@@ -301,7 +301,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
     SEMI_DETERMINISTIC,
 
     /**
-     * An automaton is limit-deterministic if it is has (generalised) Büchi acceptance condition
+     * An automaton is limit-deterministic if it has a (generalised) Büchi acceptance condition
      * and every state reachable from an edge with an acceptance marking is deterministic. Thus
      * all accepting runs are eventually trapped within a subset of the states that have
      * deterministic transition relation.

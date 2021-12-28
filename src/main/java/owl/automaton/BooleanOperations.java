@@ -545,10 +545,10 @@ public final class BooleanOperations {
 
     @Nullable
     private Automaton<S, ?> backingAutomaton;
-    private final boolean assertComplete;
+    private final boolean complete;
 
     private OverrideAcceptanceCondition(
-      Automaton<S, ?> backingAutomaton, A acceptance, boolean assertComplete) {
+      Automaton<S, ?> backingAutomaton, A acceptance, boolean complete) {
 
       super(
         backingAutomaton.atomicPropositions(),
@@ -557,9 +557,9 @@ public final class BooleanOperations {
         acceptance);
 
       this.backingAutomaton = backingAutomaton;
-      this.assertComplete = assertComplete;
+      this.complete = complete;
 
-      if (assertComplete && initialStates().isEmpty()) {
+      if (complete && initialStates().isEmpty()) {
         throw new IllegalArgumentException("Automaton is not complete.");
       }
 
@@ -577,7 +577,7 @@ public final class BooleanOperations {
         .edgeTree(state).map(edges -> {
           switch (edges.size()) {
             case 0:
-              if (assertComplete) {
+              if (complete) {
                 throw new IllegalArgumentException("Automaton is not complete.");
               }
 
@@ -600,10 +600,11 @@ public final class BooleanOperations {
 
     @Override
     public boolean is(Property property) {
-      return property == Property.DETERMINISTIC
-        || property == Property.SEMI_DETERMINISTIC
-        || (assertComplete && property == Property.COMPLETE)
-        || super.is(property);
+      return switch (property) {
+        case DETERMINISTIC, SEMI_DETERMINISTIC -> true;
+        case COMPLETE -> complete || super.is(Property.COMPLETE);
+        case LIMIT_DETERMINISTIC -> super.is(Property.LIMIT_DETERMINISTIC);
+      };
     }
   }
 }
