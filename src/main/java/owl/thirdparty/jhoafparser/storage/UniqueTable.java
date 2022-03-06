@@ -41,7 +41,7 @@ import java.util.Iterator;
 public class UniqueTable<T> extends AbstractSet<T>
 {
 	/** The unique table */
-	private HashMap<T,T> table = new HashMap<T,T>();
+	private HashMap<T,T> table = new HashMap<>();
 
 	/**
 	 * Add the given object to the unique table, if it not yet exists.

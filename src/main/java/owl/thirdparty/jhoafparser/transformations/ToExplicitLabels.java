@@ -57,13 +57,13 @@ public class ToExplicitLabels implements StoredAutomatonManipulator
 
 	/** Precompute the label expressions for each implicit index */
 	private void prepareExpressions(ImplicitEdgeHelper implicitHelper, StoredAutomaton aut) throws HOAConsumerException {
-		 explicitForImplicit = new ArrayList<BooleanExpression<AtomLabel>>((int) implicitHelper.getEdgesPerState());
+		 explicitForImplicit = new ArrayList<>((int) implicitHelper.getEdgesPerState());
 
 		 if (implicitHelper.getEdgesPerState() > Integer.MAX_VALUE) {
 			 throw new HOAConsumerException("Too many atomic propositions...");
 		 }
 
-		 UniqueTable<BooleanExpression<AtomLabel>> uniqueTable = new UniqueTable<BooleanExpression<AtomLabel>>();
+		 UniqueTable<BooleanExpression<AtomLabel>> uniqueTable = new UniqueTable<>();
 		 for (long i = 0; i < implicitHelper.getEdgesPerState(); i++) {
 
 			BooleanExpression<AtomLabel> expr = implicitHelper.toExplicitLabel(i, uniqueTable);
@@ -74,7 +74,7 @@ public class ToExplicitLabels implements StoredAutomatonManipulator
 					 name = "_"+name;
 				 }
 				 aut.getStoredHeader().addAlias(name, expr);
-				 explicitForImplicit.add(new BooleanExpression<AtomLabel>(AtomLabel.createAlias(name)));
+				 explicitForImplicit.add(new BooleanExpression<>(AtomLabel.createAlias(name)));
 			 } else {
 				 explicitForImplicit.add(expr);
 			 }

@@ -87,10 +87,9 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 				return true;
 			if (obj == null)
 				return false;
-			if (!(obj instanceof StateWithAcceptance))
+			if (!(obj instanceof StateWithAcceptance other))
 				return false;
-			StateWithAcceptance other = (StateWithAcceptance) obj;
-			if (acceptanceSignature == null) {
+      if (acceptanceSignature == null) {
 				if (other.acceptanceSignature != null)
 					return false;
 			} else if (!acceptanceSignature.equals(other.acceptanceSignature))
@@ -116,11 +115,11 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 	private StoredAutomaton target;
 
 	/** A unique table of bit set based acceptance signatures (for efficient storage) */
-	private UniqueTable<BitSet> acceptanceSignatures = new UniqueTable<BitSet>();
+	private UniqueTable<BitSet> acceptanceSignatures = new UniqueTable<>();
 	/** Mapping the state+acc tuples to integers in the transformed automaton */
-	private HashMap<StateWithAcceptance, Integer> transformedStates = new HashMap<StateWithAcceptance, Integer>();
+	private HashMap<StateWithAcceptance, Integer> transformedStates = new HashMap<>();
 	/** Storage for the states that have yet to be explored */
-	private TreeMap<Integer, StateWithAcceptance> statesForOutput = new TreeMap<Integer, StateWithAcceptance>();
+	private TreeMap<Integer, StateWithAcceptance> statesForOutput = new TreeMap<>();
 
 	/** Should we print debug information? */
 	private boolean debug = false;
@@ -190,7 +189,7 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 	private void handleStartStates() {
 		target.getStoredHeader().getStartStates().clear();
 		for (List<Integer> start : source.getStoredHeader().getStartStates()) {
-			List<Integer> transformed = new ArrayList<Integer>();
+			List<Integer> transformed = new ArrayList<>();
 
 			for (Integer s : start) {
 				// empty acceptance signature for the start states
@@ -251,7 +250,7 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 		List<Integer> accSignature;
 
 		if (accSignatureState != null && accSignatureEdge != null) {
-			accSignature = new ArrayList<Integer>(accSignatureState);
+			accSignature = new ArrayList<>(accSignatureState);
 			accSignature.addAll(accSignatureEdge);
 		} else {
 			accSignature = accSignatureEdge != null ? accSignatureEdge : accSignatureState;
@@ -259,7 +258,7 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 
 		BitSet acceptanceSignature = accSignatureToBitSet(accSignature);
 
-		List<Integer> transformed = new ArrayList<Integer>(conjSuccessors.size());
+		List<Integer> transformed = new ArrayList<>(conjSuccessors.size());
 		for (Integer successor : conjSuccessors) {
 			transformed.add(handleState(successor, acceptanceSignature));
 		}
@@ -296,7 +295,7 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 
 	/** Acceptance signature: Translate from BitSet representation to integer list representation */
 	private List<Integer> bitSetToAccSignature(BitSet accSignature) {
-		List<Integer> list = new ArrayList<Integer>();
+		List<Integer> list = new ArrayList<>();
 		for (Integer i = accSignature.nextSetBit(0); i>=0; i = accSignature.nextSetBit(i+1)) {
 			list.add(i);
 		}

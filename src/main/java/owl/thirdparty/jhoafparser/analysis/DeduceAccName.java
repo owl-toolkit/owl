@@ -61,7 +61,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		 * Boolean:    create TRUE/FALSE acceptance set
 		 * Integer(i): if (i>0) take from set i-1, if (i<0) negate set (-i-1).
 		 * */
-		private List<Object> transformedSets = new ArrayList<Object>();
+		private List<Object> transformedSets = new ArrayList<>();
 
 		/** Get the transformed expression */
 		public BooleanExpression<AtomAcceptance> getExpression() {
@@ -155,7 +155,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	 * An ordered list of allowed acceptance conditions (acc-names).
 	 * Conditions appearing earlier are preferred.
 	 **/
-	private List<String> allowedAcceptance = new ArrayList<String>();
+	private List<String> allowedAcceptance = new ArrayList<>();
 
 	/** The chosen transformation to be applied */
 	private Transformed chosenTransformation = null;
@@ -249,7 +249,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			Transformed transformed = new Transformed();
 
 			String name = null;
-			List<Object> extra = new ArrayList<Object>();
+			List<Object> extra = new ArrayList<>();
 
 			switch (allowed) {
 			case "all":
@@ -360,7 +360,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 				List<Integer> accEdge = edge.getAccSignature();
 				if (accEdge != null && hasStateAcceptance) {
 					// merge both acceptance
-					accEdge = new ArrayList<Integer>(accEdge);
+					accEdge = new ArrayList<>(accEdge);
 					accEdge.addAll(state.getAccSignature());
 				}
 				next.addEdgeImplicit(state.getStateId(), edge.getConjSuccessors(), transformAcceptance(accEdge));
@@ -370,7 +370,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 				List<Integer> accEdge = edge.getAccSignature();
 				if (accEdge != null && hasStateAcceptance) {
 					// merge both acceptance
-					accEdge = new ArrayList<Integer>(accEdge);
+					accEdge = new ArrayList<>(accEdge);
 					accEdge.addAll(state.getAccSignature());
 				}
 				next.addEdgeWithLabel(state.getStateId(), edge.getLabelExpr(), edge.getConjSuccessors(), transformAcceptance(accEdge));
@@ -390,7 +390,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	private boolean toAll(BooleanExpression<AtomAcceptance> acc, Transformed transformed) {
 		switch (acc.getType()) {
 		case EXP_TRUE:
-			transformed.setExpression(new BooleanExpression<AtomAcceptance>(true));
+			transformed.setExpression(new BooleanExpression<>(true));
 			return true;
 		default:
 			return false;
@@ -405,7 +405,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	private boolean toNone(BooleanExpression<AtomAcceptance> acc, Transformed transformed) {
 		switch (acc.getType()) {
 		case EXP_FALSE:
-			transformed.setExpression(new BooleanExpression<AtomAcceptance>(false));
+			transformed.setExpression(new BooleanExpression<>(false));
 			return true;
 		default:
 			return false;
@@ -440,7 +440,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			return false;
 		}
 
-		BooleanExpression<AtomAcceptance> Inf = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(inf));
+		BooleanExpression<AtomAcceptance> Inf = new BooleanExpression<>(AtomAcceptance.Inf(inf));
 
 		// if there already exists an expression, do AND (for when called in generalized-Buchi)
 		if (transformed.getExpression() != null) {
@@ -479,7 +479,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			return false;
 		}
 
-		BooleanExpression<AtomAcceptance> Fin = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(fin));
+		BooleanExpression<AtomAcceptance> Fin = new BooleanExpression<>(AtomAcceptance.Fin(fin));
 
 		// if there already exists an expression, do AND (for when called in generalized-Buchi)
 		if (transformed.getExpression() != null) {
@@ -498,14 +498,13 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	private boolean toGeneralizedBuchi(BooleanExpression<AtomAcceptance> acc, Transformed transformed) {
 		switch (acc.getType()) {
 		case EXP_TRUE:
-			return toBuchi(acc, transformed);
+      case EXP_ATOM:
+        return toBuchi(acc, transformed);
 		case EXP_FALSE:
 			// no pair, expression = false
-			transformed.setExpression(new BooleanExpression<AtomAcceptance>(false));
+			transformed.setExpression(new BooleanExpression<>(false));
 			return true;
-		case EXP_ATOM:
-			return toBuchi(acc, transformed);
-		case EXP_AND:
+      case EXP_AND:
 			if (!toGeneralizedBuchi(acc.getLeft(), transformed)) return false;
 			if (!toGeneralizedBuchi(acc.getRight(), transformed)) return false;
 			return true;
@@ -523,13 +522,12 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		switch (acc.getType()) {
 		case EXP_TRUE:
 			// no pair, expression = false
-			transformed.setExpression(new BooleanExpression<AtomAcceptance>(true));
+			transformed.setExpression(new BooleanExpression<>(true));
 			return true;
 		case EXP_FALSE:
-			return toCoBuchi(acc, transformed);
-		case EXP_ATOM:
-			return toCoBuchi(acc, transformed);
-		case EXP_AND:
+      case EXP_ATOM:
+        return toCoBuchi(acc, transformed);
+      case EXP_AND:
 			if (!toGeneralizedCoBuchi(acc.getLeft(), transformed)) return false;
 			if (!toGeneralizedCoBuchi(acc.getRight(), transformed)) return false;
 			return true;
@@ -555,7 +553,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		case EXP_TRUE:
 			return toRabinPair(acc, transformed);
 		case EXP_FALSE:
-			transformed.setExpression(new BooleanExpression<AtomAcceptance>(false));
+			transformed.setExpression(new BooleanExpression<>(false));
 			return true;
 		default:
 			return false;
@@ -620,8 +618,8 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			return false;
 		}
 
-		BooleanExpression<AtomAcceptance> pair = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(fin));
-		pair = pair.and(new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(inf)));
+		BooleanExpression<AtomAcceptance> pair = new BooleanExpression<>(AtomAcceptance.Fin(fin));
+		pair = pair.and(new BooleanExpression<>(AtomAcceptance.Inf(inf)));
 
 		if (transformed.getExpression() == null)
 			transformed.setExpression(pair);
@@ -648,7 +646,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		case EXP_FALSE:
 			return toStreettPair(acc, transformed);
 		case EXP_TRUE:
-			transformed.setExpression(new BooleanExpression<AtomAcceptance>(true));
+			transformed.setExpression(new BooleanExpression<>(true));
 			return true;
 		default:
 			return false;
@@ -713,8 +711,8 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			return false;
 		}
 
-		BooleanExpression<AtomAcceptance> pair = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(fin));
-		pair = pair.or(new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(inf)));
+		BooleanExpression<AtomAcceptance> pair = new BooleanExpression<>(AtomAcceptance.Fin(fin));
+		pair = pair.or(new BooleanExpression<>(AtomAcceptance.Inf(inf)));
 
 		if (transformed.getExpression() == null)
 			transformed.setExpression(pair);
@@ -754,7 +752,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			for (Integer a : acceptance) acc.set(a);
 		}
 
-		List<Integer> result = new ArrayList<Integer>();
+		List<Integer> result = new ArrayList<>();
 
 		int n = chosenTransformation.getNumberOfAccSets();
 		for (int accSetTransformed = 0; accSetTransformed < n; accSetTransformed++) {
@@ -789,13 +787,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	 **/
 	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next)
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new DeduceAccName(next.getNewHOAConsumer());
-			}
-		};
+		return () -> new DeduceAccName(next.getNewHOAConsumer());
 	}
 
 	/**
@@ -804,13 +796,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	 **/
 	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next, final List<String> allowedAcceptance)
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new DeduceAccName(next.getNewHOAConsumer(), allowedAcceptance);
-			}
-		};
+		return () -> new DeduceAccName(next.getNewHOAConsumer(), allowedAcceptance);
 	}
 
 }

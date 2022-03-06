@@ -48,7 +48,7 @@ public class PropertyFilter
 
 	// non-static members
 	/** Set of allowed properties */
-	private Set<String> allowedProperties = new HashSet<String>();
+	private Set<String> allowedProperties = new HashSet<>();
 
 	/**
 	 * Constructor.
@@ -81,7 +81,7 @@ public class PropertyFilter
 
 	/** Filter the given properties according to the allowed properties */
 	public List<String> filter(Collection<String> properties) {
-		ArrayList<String> result = new ArrayList<String>();
+		ArrayList<String> result = new ArrayList<>();
 		for (String property : properties) {
 			if (!isFiltered(property)) {
 				result.add(property);
@@ -92,7 +92,7 @@ public class PropertyFilter
 
 	/** Get the properties dealing with language in HOAF v1 */
 	public static Set<String> getV1LanguageProperties() {
-		HashSet<String> properties = new HashSet<String>();
+		HashSet<String> properties = new HashSet<>();
 
 		properties.add("stutter-invariant"); // hints that the automaton describes a stutter-invariant property
 
@@ -101,7 +101,7 @@ public class PropertyFilter
 
 	/** Get the properties dealing with syntax in HOAF v1 */
 	public static Set<String> getV1SyntaxProperties() {
-		HashSet<String> properties = new HashSet<String>();
+		HashSet<String> properties = new HashSet<>();
 
 		properties.add("state-labels"); // hints that the automaton uses only state labels
 		properties.add("trans-labels"); // hints that the automaton uses only transition labels
@@ -115,7 +115,7 @@ public class PropertyFilter
 
 	/** Get the properties dealing with the branching structure in HOAF v1 */
 	public static Set<String> getV1BranchingProperties() {
-		HashSet<String> properties = new HashSet<String>();
+		HashSet<String> properties = new HashSet<>();
 
 		properties.add("univ-branch"); // hints that the automaton uses universal branching for at least one transition or for the initial state
 		properties.add("no-univ-branch"); // hints that the automaton does not uses universal branching
@@ -127,7 +127,7 @@ public class PropertyFilter
 
 	/** Get the properties dealing with the structure (SCC, etc) of the automaton in HOAF v1 */
 	public static Set<String> getV1StructuralProperties() {
-		HashSet<String> properties = new HashSet<String>();
+		HashSet<String> properties = new HashSet<>();
 
 		properties.add("unambiguous"); // hints that the automaton is unambiguous, i.e., for each word there is at most one accepting run of the automaton (this also applies in the presence of universal branching)
 		properties.add("weak"); // hints that in each strongly connected component (in alternating automata, SCC can be defined in standard way if we see each universal branching transition as a set of non-branching transitions), all transitions (or all states) belong to the same accepting sets

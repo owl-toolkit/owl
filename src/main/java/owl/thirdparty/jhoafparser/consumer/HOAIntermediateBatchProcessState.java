@@ -73,7 +73,7 @@ public abstract class HOAIntermediateBatchProcessState extends HOAIntermediate
 	final public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException
 	{
 		// store edge
-		if (edgesImplicit == null) edgesImplicit = new ArrayList<StoredEdgeImplicit>();
+		if (edgesImplicit == null) edgesImplicit = new ArrayList<>();
 		if (edgesWithLabel != null) throw new HOAConsumerException("Can not mix implicit and explicit edges (state "+stateId+")");
 
 		edgesImplicit.add(new StoredEdgeImplicit(conjSuccessors, accSignature));
@@ -83,7 +83,7 @@ public abstract class HOAIntermediateBatchProcessState extends HOAIntermediate
 	final public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException {
 		// store edge
 
-		if (edgesWithLabel == null) edgesWithLabel = new ArrayList<StoredEdgeWithLabel>();
+		if (edgesWithLabel == null) edgesWithLabel = new ArrayList<>();
 		if (edgesImplicit != null) throw new HOAConsumerException("Can not mix implicit and explicit edges (state "+stateId+")");
 
 		edgesWithLabel.add(new StoredEdgeWithLabel(labelExpr, conjSuccessors, accSignature));

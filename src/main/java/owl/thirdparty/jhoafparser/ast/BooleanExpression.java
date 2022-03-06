@@ -112,13 +112,13 @@ public class BooleanExpression<Atoms extends Atom> {
 	@SuppressWarnings("unchecked")
 	public BooleanExpression<Atoms> clone() {
 		if (isAtom()) {
-			return new BooleanExpression<Atoms>((Atoms) atom.clone());
+			return new BooleanExpression<>((Atoms) atom.clone());
 		}
 
 		BooleanExpression<Atoms> newLeft  = (left  != null ?  left.clone() : null);
 		BooleanExpression<Atoms> newRight = (right != null ? right.clone() : null);
 
-		return new BooleanExpression<Atoms>(type, newLeft, newRight);
+		return new BooleanExpression<>(type, newLeft, newRight);
 	}
 
 	/** Return true if this node is a boolean AND operator */
@@ -136,17 +136,17 @@ public class BooleanExpression<Atoms extends Atom> {
 
 	/** Returns an expression of {@code this} AND {@code other} */
 	public BooleanExpression<Atoms> and(BooleanExpression<Atoms> other) {
-		return new BooleanExpression<Atoms>(Type.EXP_AND, this, other);
+		return new BooleanExpression<>(Type.EXP_AND, this, other);
 	}
 
 	/** Returns an expression of {@code this} OR {@code other} */
 	public BooleanExpression<Atoms> or(BooleanExpression<Atoms> other) {
-		return new BooleanExpression<Atoms>(Type.EXP_OR, this, other);
+		return new BooleanExpression<>(Type.EXP_OR, this, other);
 	}
 
 	/** Returns an expression of NOT {@code this} */
 	public BooleanExpression<Atoms> not() {
-		return new BooleanExpression<Atoms>(Type.EXP_NOT, this, null);
+		return new BooleanExpression<>(Type.EXP_NOT, this, null);
 	}
 
 	/**
@@ -315,11 +315,9 @@ public class BooleanExpression<Atoms extends Atom> {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof BooleanExpression))
+		if (!(obj instanceof @SuppressWarnings("rawtypes")BooleanExpression other))
 			return false;
-		@SuppressWarnings("rawtypes")
-		BooleanExpression other = (BooleanExpression) obj;
-		if (type != other.type)
+    if (type != other.type)
 			return false;
 		if (atom == null) {
 			if (other.atom != null)

@@ -41,13 +41,7 @@ public class HOAConsumerNull implements HOAConsumer {
 	/** Return a factory for building HOAConsumerNull */
 	public static HOAConsumerFactory getFactory()
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new HOAConsumerNull();
-			}
-		};
+		return () -> new HOAConsumerNull();
 	}
 
 	@Override

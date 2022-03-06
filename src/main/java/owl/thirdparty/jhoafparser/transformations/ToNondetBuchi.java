@@ -139,13 +139,10 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 		case EXP_OR:
 			return countInf(acc.getLeft()) + countInf(acc.getRight());
 		case EXP_ATOM:
-			switch (acc.getAtom().getType()) {
-			case TEMPORAL_FIN:
-				return 0;
-			case TEMPORAL_INF:
-				return 1;
-			}
-			break;
+      return switch (acc.getAtom().getType()) {
+        case TEMPORAL_FIN -> 0;
+        case TEMPORAL_INF -> 1;
+      };
 		case EXP_FALSE:
 		case EXP_TRUE:
 			return 0;
@@ -213,7 +210,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 	 * are not used for this clause.
 	 */
 	private List<Integer> translateAcceptance(List<Integer> acceptanceSignature, BooleanExpression<AtomAcceptance> acc, int unused) {
-		List<Integer> result = new ArrayList<Integer>();
+		List<Integer> result = new ArrayList<>();
 		translateAcceptance(acceptanceSignature, acc, 0, result);
 
 		// fill unused Inf
@@ -336,7 +333,8 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 						continue;
 					}
 
-					List<Integer> edgeAccSig = (edge.getAccSignature() != null ? edge.getAccSignature() : new ArrayList<Integer>(0));
+					List<Integer> edgeAccSig = (edge.getAccSignature() != null ? edge.getAccSignature() : new ArrayList<>(
+            0));
 					if (!consistentWithAcceptance(edgeAccSig, acc)) {
 						// drop this edge
 						continue;
@@ -359,30 +357,22 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 			String property = it.next();
 			switch (property) {
 			case "state-labels":
-				// preserved
+        case "stutter-invariant":
+        case "no-univ-branch":
+        case "trans-acc":
+        case "state-acc":
+        case "explicit-labels":
+        case "trans-labels":
+          // preserved
 				break;
-			case "trans-labels":
-				// preserved
-				break;
-			case "implicit-labels":
+        case "implicit-labels":
 				// remove, as the automaton is converted to explicit-labels
 				it.remove();
 				break;
-			case "explicit-labels":
-				// preserved
-				break;
-			case "state-acc":
-				// preserved
-				break;
-			case "trans-acc":
-				// preserved
-				break;
-			case "univ-branch":
-				throw new HOAConsumerException("Automaton is marked as having universal branching, but conversion to non-det Buchi is not supported");
-			case "no-univ-branch":
-				// preserved
-				break;
-			case "deterministic":
+        case "univ-branch":
+				throw new HOAConsumerException(
+          "Automaton is marked as having universal branching, but conversion to non-det Buchi is not supported");
+        case "deterministic":
 				// not preserved, we introduce non-determinism
 				it.remove();
 				break;
@@ -394,12 +384,9 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 				// not preserved, we may introduce ambiguity
 				it.remove();
 				break;
-			case "stutter-invariant":
-				// preserved
-				break;
 
 
-			case "weak":
+        case "weak":
 			case "very-weak":
 			case "inherently-weak":
 			case "terminal":

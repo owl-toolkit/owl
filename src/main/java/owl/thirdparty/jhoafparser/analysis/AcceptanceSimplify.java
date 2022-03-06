@@ -39,14 +39,11 @@ public class AcceptanceSimplify
 {
 	/** Returns a Boolean if the expression is TRUE or FALSE, {@code null} otherwise. */
 	private static Boolean getSimpleTruth(BooleanExpression<AtomAcceptance> acc) {
-		switch (acc.getType()) {
-		case EXP_FALSE:
-			return false;
-		case EXP_TRUE:
-			return true;
-		default:
-			return null;
-		}
+    return switch (acc.getType()) {
+      case EXP_FALSE -> false;
+      case EXP_TRUE -> true;
+      default -> null;
+    };
 	}
 
 	/**
@@ -58,18 +55,17 @@ public class AcceptanceSimplify
 		switch (acc.getType()) {
 		case EXP_TRUE:
 		case EXP_FALSE:
-			return acc;
-		case EXP_ATOM:
-			return acc;
-		case EXP_AND: {
+      case EXP_ATOM:
+        return acc;
+      case EXP_AND: {
 			Boolean left = getSimpleTruth(acc.getLeft());
 			Boolean right = getSimpleTruth(acc.getRight());
 			if (left != null && right != null) {
-				return new BooleanExpression<AtomAcceptance>(left && right);
+				return new BooleanExpression<>(left && right);
 			} else if (left != null) {
-				return (left ? acc.getRight() : new BooleanExpression<AtomAcceptance>(false));
+				return (left ? acc.getRight() : new BooleanExpression<>(false));
 			} else if (right != null) {
-				return (right ? acc.getLeft() : new BooleanExpression<AtomAcceptance>(false));
+				return (right ? acc.getLeft() : new BooleanExpression<>(false));
 			} else {
 				return acc;
 			}
@@ -78,11 +74,11 @@ public class AcceptanceSimplify
 			Boolean left = getSimpleTruth(acc.getLeft());
 			Boolean right = getSimpleTruth(acc.getRight());
 			if (left != null && right != null) {
-				return new BooleanExpression<AtomAcceptance>(left || right);
+				return new BooleanExpression<>(left || right);
 			} else if (left != null) {
-				return (left ? new BooleanExpression<AtomAcceptance>(true) : acc.getRight());
+				return (left ? new BooleanExpression<>(true) : acc.getRight());
 			} else if (right != null) {
-				return (right ? new BooleanExpression<AtomAcceptance>(true) : acc.getLeft());
+				return (right ? new BooleanExpression<>(true) : acc.getLeft());
 			} else {
 				return acc;
 			}
@@ -125,37 +121,38 @@ public class AcceptanceSimplify
 			return Collections.singletonList(uniqueTable.findOrAdd(acc));
 		}
 
-		switch (acc.getType()) {
-		case EXP_OR: {
-			// simply recurse
-			List<BooleanExpression<AtomAcceptance>> left = toDNF(acc.getLeft(), uniqueTable);
-			List<BooleanExpression<AtomAcceptance>> right = toDNF(acc.getRight(), uniqueTable);
-			left.addAll(right);
-			return left;
-		}
-		case EXP_AND: {
-			// recurse
-			List<BooleanExpression<AtomAcceptance>> left = toDNF(acc.getLeft(), uniqueTable);
-			List<BooleanExpression<AtomAcceptance>> right = toDNF(acc.getRight(), uniqueTable);
+    switch (acc.getType()) {
+      case EXP_OR -> {
+        // simply recurse
+        List<BooleanExpression<AtomAcceptance>> left = toDNF(acc.getLeft(), uniqueTable);
+        List<BooleanExpression<AtomAcceptance>> right = toDNF(acc.getRight(), uniqueTable);
+        left.addAll(right);
+        return left;
+      }
+      case EXP_AND -> {
+        // recurse
+        List<BooleanExpression<AtomAcceptance>> left = toDNF(acc.getLeft(), uniqueTable);
+        List<BooleanExpression<AtomAcceptance>> right = toDNF(acc.getRight(), uniqueTable);
 
-			// combine
-			List<BooleanExpression<AtomAcceptance>> result = new ArrayList<BooleanExpression<AtomAcceptance>>();
-			for (BooleanExpression<AtomAcceptance> l : left) {
-				for (BooleanExpression<AtomAcceptance> r : right) {
-					result.add(uniqueTable.findOrAdd(l.and(r)));
-				}
-			}
-			return result;
-		}
-		default:
-			// should never arrive here
-			throw new UnsupportedOperationException("Unsupported operator in acceptance condition: "+acc);
-		}
+        // combine
+        List<BooleanExpression<AtomAcceptance>> result = new ArrayList<>();
+        for (BooleanExpression<AtomAcceptance> l : left) {
+          for (BooleanExpression<AtomAcceptance> r : right) {
+            result.add(uniqueTable.findOrAdd(l.and(r)));
+          }
+        }
+        return result;
+      }
+      default ->
+        // should never arrive here
+        throw new UnsupportedOperationException(
+          "Unsupported operator in acceptance condition: " + acc);
+    }
 	}
 
 	/** Convert acceptance condition into disjunctive normal form (list of conjunctive clauses) */
 	public static List<BooleanExpression<AtomAcceptance>> toDNF(BooleanExpression<AtomAcceptance> acc) {
-		UniqueTable<BooleanExpression<AtomAcceptance>> uniqueTable = new UniqueTable<BooleanExpression<AtomAcceptance>>();
+		UniqueTable<BooleanExpression<AtomAcceptance>> uniqueTable = new UniqueTable<>();
 
 		return toDNF(acc, uniqueTable);
 	}
@@ -164,7 +161,7 @@ public class AcceptanceSimplify
 	public static BooleanExpression<AtomAcceptance> toDNFCondition(BooleanExpression<AtomAcceptance> acc) {
 		List<BooleanExpression<AtomAcceptance>> list = toDNF(acc);
 		if (list.size() == 0) {
-			return new BooleanExpression<AtomAcceptance>(false);
+			return new BooleanExpression<>(false);
 		}
 
 		BooleanExpression<AtomAcceptance> result = list.remove(0);

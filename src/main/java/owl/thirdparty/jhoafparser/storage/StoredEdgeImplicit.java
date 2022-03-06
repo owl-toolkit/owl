@@ -80,10 +80,9 @@ public class StoredEdgeImplicit
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof StoredEdgeImplicit))
+		if (!(obj instanceof StoredEdgeImplicit other))
 			return false;
-		StoredEdgeImplicit other = (StoredEdgeImplicit) obj;
-		if (accSignature == null) {
+    if (accSignature == null) {
 			if (other.accSignature != null)
 				return false;
 		} else if (!accSignature.equals(other.accSignature))

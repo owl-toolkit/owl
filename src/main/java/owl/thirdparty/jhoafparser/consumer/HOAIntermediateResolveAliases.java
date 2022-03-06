@@ -43,7 +43,7 @@ import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 public class HOAIntermediateResolveAliases extends HOAIntermediate
 {
 	/** The map storing alias definitions */
-	HashMap<String, BooleanExpression<AtomLabel>> aliases = new HashMap<String, BooleanExpression<AtomLabel>>();
+	HashMap<String, BooleanExpression<AtomLabel>> aliases = new HashMap<>();
 
 	/** Constructor, with next consumer */
 	public HOAIntermediateResolveAliases(HOAConsumer next)
@@ -57,13 +57,7 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 	 **/
 	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next)
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new HOAIntermediateResolveAliases(next.getNewHOAConsumer());
-			}
-		};
+		return () -> new HOAIntermediateResolveAliases(next.getNewHOAConsumer());
 	}
 
 	/** Returns true if {@code labelExpr} contains any unresolved aliases */
@@ -126,13 +120,13 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 			return labelExpr;
 		case EXP_AND:
 		case EXP_OR:
-			return new BooleanExpression<AtomLabel>(labelExpr.getType(),
-			                                        resolveAliases(labelExpr.getLeft()),
-			                                        resolveAliases(labelExpr.getRight()));
+			return new BooleanExpression<>(labelExpr.getType(),
+        resolveAliases(labelExpr.getLeft()),
+        resolveAliases(labelExpr.getRight()));
 		case EXP_NOT:
-			return new BooleanExpression<AtomLabel>(labelExpr.getType(),
-                                                    resolveAliases(labelExpr.getLeft()),
-                                                    null);
+			return new BooleanExpression<>(labelExpr.getType(),
+        resolveAliases(labelExpr.getLeft()),
+        null);
 		case EXP_ATOM:
 			if (!labelExpr.getAtom().isAlias()) {
 				return labelExpr;

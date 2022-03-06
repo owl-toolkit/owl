@@ -56,24 +56,20 @@ public class ToTransitionAcceptance extends HOAIntermediate
 
 	/** Constructor a stored automaton manipulator from this consumer */
 	public static StoredAutomatonManipulator getStoredAutomatonManipulator() {
-		return new StoredAutomatonManipulator() {
-			@Override
-			public StoredAutomaton manipulate(StoredAutomaton aut) throws HOAConsumerException
-			{
-				HOAConsumerStore storeTransformed = new HOAConsumerStore();
-				HOAConsumer transform = new ToTransitionAcceptance(storeTransformed);
+		return aut -> {
+      HOAConsumerStore storeTransformed = new HOAConsumerStore();
+      HOAConsumer transform = new ToTransitionAcceptance(storeTransformed);
 
-				aut.feedToConsumer(transform);
+      aut.feedToConsumer(transform);
 
-				return storeTransformed.getStoredAutomaton();
-			}
-		};
+      return storeTransformed.getStoredAutomaton();
+    };
 	}
 
 	@Override
 	public void addProperties(List<String> properties) throws HOAConsumerException
 	{
-		List<String> filtered = new ArrayList<String>();
+		List<String> filtered = new ArrayList<>();
 		for (String property : properties) {
 			if (property.equals("state-acc") ||
 			    property.equals("trans-acc")) {
@@ -89,7 +85,7 @@ public class ToTransitionAcceptance extends HOAIntermediate
 	@Override
 	public void notifyBodyStart() throws HOAConsumerException
 	{
-		List<String> property = new ArrayList<String>(1);
+		List<String> property = new ArrayList<>(1);
 		property.add("trans-acc");
 		next.addProperties(property);
 	}
@@ -109,7 +105,7 @@ public class ToTransitionAcceptance extends HOAIntermediate
 		List<Integer> transAccSignature;
 
 		if (accSignature != null && currentStateSignature != null) {
-			transAccSignature = new ArrayList<Integer>(accSignature);
+			transAccSignature = new ArrayList<>(accSignature);
 			transAccSignature.addAll(accSignature);
 		} else {
 			transAccSignature = (accSignature != null ? accSignature : currentStateSignature);
@@ -125,7 +121,7 @@ public class ToTransitionAcceptance extends HOAIntermediate
 		List<Integer> transAccSignature;
 
 		if (accSignature != null && currentStateSignature != null) {
-			transAccSignature = new ArrayList<Integer>(accSignature);
+			transAccSignature = new ArrayList<>(accSignature);
 			transAccSignature.addAll(accSignature);
 		} else {
 			transAccSignature = (accSignature != null ? accSignature : currentStateSignature);

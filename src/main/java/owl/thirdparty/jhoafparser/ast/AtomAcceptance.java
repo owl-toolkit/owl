@@ -135,10 +135,9 @@ public class AtomAcceptance implements Atom {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof AtomAcceptance))
+		if (!(obj instanceof AtomAcceptance other))
 			return false;
-		AtomAcceptance other = (AtomAcceptance) obj;
-		if (type != other.type)
+    if (type != other.type)
 			return false;
 		if (accSet == null) {
 			if (other.accSet != null)

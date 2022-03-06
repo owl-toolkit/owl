@@ -117,12 +117,13 @@ public class ImplicitEdgeHelper
 	 */
 	public BooleanExpression<AtomLabel> toExplicitLabel(long implicitIndex, UniqueTable<BooleanExpression<AtomLabel>> uniqueTable) {
 		if (numberOfAPs == 0)
-			return uniqueTable.findOrAdd(new BooleanExpression<AtomLabel>(true));
+			return uniqueTable.findOrAdd(new BooleanExpression<>(true));
 
 		BooleanExpression<AtomLabel> result = null;
 
 		for (int i=0; i < numberOfAPs; i++) {
-			BooleanExpression<AtomLabel> literal = uniqueTable.findOrAdd(new BooleanExpression<AtomLabel>(AtomLabel.createAPIndex(i)));
+			BooleanExpression<AtomLabel> literal = uniqueTable.findOrAdd(
+        new BooleanExpression<>(AtomLabel.createAPIndex(i)));
 			if (implicitIndex % 2 == 0) {
 				literal = uniqueTable.findOrAdd(literal.not());
 			}

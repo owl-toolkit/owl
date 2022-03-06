@@ -59,13 +59,7 @@ public class HOAConsumerPrint implements HOAConsumer {
 	 **/
 	public static HOAConsumerFactory getFactory(final OutputStream stream)
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new HOAConsumerPrint(stream);
-			}
-		};
+		return () -> new HOAConsumerPrint(stream);
 	}
 
 	@Override

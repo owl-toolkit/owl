@@ -48,7 +48,7 @@ public class SyntacticProperties implements StoredAutomatonManipulator
 
 	/** Deduce syntactic properties */
 	public static List<String> deduceProperties(StoredAutomaton aut) {
-		List<String> deducedProperties = new ArrayList<String>();
+		List<String> deducedProperties = new ArrayList<>();
 
 		boolean state_labels = true;     // hints that the automaton uses only state labels
 		boolean trans_labels = true;     // hints that the automaton uses only transition labels

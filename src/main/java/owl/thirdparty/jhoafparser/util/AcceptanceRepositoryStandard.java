@@ -58,60 +58,47 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 
 	@Override
 	public BooleanExpression<AtomAcceptance> getCanonicalAcceptanceExpression(String accName, List<Object> extraInfo) throws IllegalArgumentException {
-		switch (accName) {
-		case ACC_ALL:
-			return forAll(extraInfo);
-		case ACC_NONE:
-			return forNone(extraInfo);
-
-		case ACC_BUCHI:
-			return forBuchi(extraInfo);
-		case ACC_COBUCHI:
-			return forCoBuchi(extraInfo);
-
-		case ACC_GENERALIZED_BUCHI:
-			return forGenBuchi(extraInfo);
-		case ACC_GENERALIZED_COBUCHI:
-			return forGenCoBuchi(extraInfo);
-
-		case ACC_RABIN:
-			return forRabin(extraInfo);
-		case ACC_STREETT:
-			return forStreett(extraInfo);
-		case ACC_GENERALIZED_RABIN:
-			return forGeneralizedRabin(extraInfo);
-		case ACC_PARITY:
-			return forParity(extraInfo);
-		}
-		return null;
-	}
+    return switch (accName) {
+      case ACC_ALL -> forAll(extraInfo);
+      case ACC_NONE -> forNone(extraInfo);
+      case ACC_BUCHI -> forBuchi(extraInfo);
+      case ACC_COBUCHI -> forCoBuchi(extraInfo);
+      case ACC_GENERALIZED_BUCHI -> forGenBuchi(extraInfo);
+      case ACC_GENERALIZED_COBUCHI -> forGenCoBuchi(extraInfo);
+      case ACC_RABIN -> forRabin(extraInfo);
+      case ACC_STREETT -> forStreett(extraInfo);
+      case ACC_GENERALIZED_RABIN -> forGeneralizedRabin(extraInfo);
+      case ACC_PARITY -> forParity(extraInfo);
+      default -> null;
+    };
+  }
 
 	/** Get canonical for 'all' */
 	public static BooleanExpression<AtomAcceptance> forAll(List<Object> extraInfo) {
 		checkNumberOfArguments(ACC_ALL, extraInfo, 0);
 
-		return new BooleanExpression<AtomAcceptance>(true);
+		return new BooleanExpression<>(true);
 	}
 
 	/** Get canonical for 'none' */
 	public static BooleanExpression<AtomAcceptance> forNone(List<Object> extraInfo) {
 		checkNumberOfArguments(ACC_NONE, extraInfo, 0);
 
-		return new BooleanExpression<AtomAcceptance>(false);
+		return new BooleanExpression<>(false);
 	}
 
 	/** Get canonical for 'Buchi' */
 	public static BooleanExpression<AtomAcceptance> forBuchi(List<Object> extraInfo) {
 		checkNumberOfArguments(ACC_BUCHI, extraInfo, 0);
 
-		return new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(0));
+		return new BooleanExpression<>(AtomAcceptance.Inf(0));
 	}
 
 	/** Get canonical for 'coBuchi' */
 	public static BooleanExpression<AtomAcceptance> forCoBuchi(List<Object> extraInfo) {
 		checkNumberOfArguments(ACC_COBUCHI, extraInfo, 0);
 
-		return new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(0));
+		return new BooleanExpression<>(AtomAcceptance.Fin(0));
 	}
 
 	/** Get canonical for 'generalized-Buchi' */
@@ -120,12 +107,12 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		int numberOfInf = extraInfoToIntegerList(ACC_GENERALIZED_BUCHI, extraInfo).get(0);
 
 		if (numberOfInf == 0) {
-			return new BooleanExpression<AtomAcceptance>(true);
+			return new BooleanExpression<>(true);
 		}
 
 		BooleanExpression<AtomAcceptance> result = null;
 		for (int i = 0; i < numberOfInf; i++) {
-			BooleanExpression<AtomAcceptance> inf = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(i));
+			BooleanExpression<AtomAcceptance> inf = new BooleanExpression<>(AtomAcceptance.Inf(i));
 
 			if (i == 0) {
 				result = inf;
@@ -143,12 +130,12 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		int numberOfFin = extraInfoToIntegerList(ACC_GENERALIZED_COBUCHI, extraInfo).get(0);
 
 		if (numberOfFin == 0) {
-			return new BooleanExpression<AtomAcceptance>(false);
+			return new BooleanExpression<>(false);
 		}
 
 		BooleanExpression<AtomAcceptance> result = null;
 		for (int i = 0; i < numberOfFin; i++) {
-			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(i));
+			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<>(AtomAcceptance.Fin(i));
 
 			if (i == 0) {
 				result = fin;
@@ -166,13 +153,13 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		int numberOfPairs = extraInfoToIntegerList(ACC_RABIN, extraInfo).get(0);
 
 		if (numberOfPairs == 0) {
-			return new BooleanExpression<AtomAcceptance>(false);
+			return new BooleanExpression<>(false);
 		}
 
 		BooleanExpression<AtomAcceptance> result = null;
 		for (int i = 0; i < numberOfPairs; i++) {
-			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(2*i));
-			BooleanExpression<AtomAcceptance> inf = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(2*i+1));
+			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<>(AtomAcceptance.Fin(2 * i));
+			BooleanExpression<AtomAcceptance> inf = new BooleanExpression<>(AtomAcceptance.Inf(2 * i + 1));
 
 			BooleanExpression<AtomAcceptance> pair = fin.and(inf);
 
@@ -192,13 +179,13 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		int numberOfPairs = extraInfoToIntegerList(ACC_STREETT, extraInfo).get(0);
 
 		if (numberOfPairs == 0) {
-			return new BooleanExpression<AtomAcceptance>(true);
+			return new BooleanExpression<>(true);
 		}
 
 		BooleanExpression<AtomAcceptance> result = null;
 		for (int i = 0; i < numberOfPairs; i++) {
-			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(2*i));
-			BooleanExpression<AtomAcceptance> inf = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(2*i+1));
+			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<>(AtomAcceptance.Fin(2 * i));
+			BooleanExpression<AtomAcceptance> inf = new BooleanExpression<>(AtomAcceptance.Inf(2 * i + 1));
 
 			BooleanExpression<AtomAcceptance> pair = fin.or(inf);
 
@@ -230,10 +217,12 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		for (int i = 0; i < numberOfPairs; i++) {
 			int numberOfInf = parameters.get(i+1);
 
-			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(currentIndex++));
+			BooleanExpression<AtomAcceptance> fin = new BooleanExpression<>(
+        AtomAcceptance.Fin(currentIndex++));
 			BooleanExpression<AtomAcceptance> pair = fin;
 			for (int j = 0; j< numberOfInf; j++) {
-				BooleanExpression<AtomAcceptance> inf = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(currentIndex++));
+				BooleanExpression<AtomAcceptance> inf = new BooleanExpression<>(
+          AtomAcceptance.Inf(currentIndex++));
 				pair = pair.and(inf);
 			}
 
@@ -255,17 +244,19 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		boolean even = false;
 
 		String minMax = extraInfoToString(ACC_PARITY, extraInfo, 0);
-		switch (minMax) {
-		case "min": min = true; break;
-		case "max": min = false; break;
-		default: throw new IllegalArgumentException("For acceptance " + ACC_PARITY +", the first argument has to be either 'min' or 'max'");
-		}
+    min = switch (minMax) {
+      case "min" -> true;
+      case "max" -> false;
+      default -> throw new IllegalArgumentException(
+        "For acceptance " + ACC_PARITY + ", the first argument has to be either 'min' or 'max'");
+    };
 		String evenOdd = extraInfoToString(ACC_PARITY, extraInfo, 1);
-		switch (evenOdd) {
-		case "even": even = true; break;
-		case "odd":  even = false; break;
-		default: throw new IllegalArgumentException("For acceptance " + ACC_PARITY +", the second argument has to be either 'even' or 'odd'");
-		}
+    even = switch (evenOdd) {
+      case "even" -> true;
+      case "odd" -> false;
+      default -> throw new IllegalArgumentException(
+        "For acceptance " + ACC_PARITY + ", the second argument has to be either 'even' or 'odd'");
+    };
 
 		int colors;
 		if (!(extraInfo.get(2) instanceof Integer)) {
@@ -277,10 +268,10 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 		}
 
 		if (colors == 0) {
-			if ( min &&  even) return new BooleanExpression<AtomAcceptance>(true);
-			if (!min &&  even) return new BooleanExpression<AtomAcceptance>(false);
-			if ( min && !even) return new BooleanExpression<AtomAcceptance>(false);
-			if (!min && !even) return new BooleanExpression<AtomAcceptance>(true);
+			if ( min &&  even) return new BooleanExpression<>(true);
+			if (!min &&  even) return new BooleanExpression<>(false);
+			if ( min && !even) return new BooleanExpression<>(false);
+			if (!min && !even) return new BooleanExpression<>(true);
 		}
 
 		BooleanExpression<AtomAcceptance> result = null;
@@ -300,9 +291,9 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 
             BooleanExpression<AtomAcceptance> node;
             if (produceInf) {
-            	node = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Inf(color));
+            	node = new BooleanExpression<>(AtomAcceptance.Inf(color));
             } else {
-            	node = new BooleanExpression<AtomAcceptance>(AtomAcceptance.Fin(color));
+            	node = new BooleanExpression<>(AtomAcceptance.Fin(color));
             }
 
             if (result == null) {
@@ -323,7 +314,7 @@ public class AcceptanceRepositoryStandard implements AcceptanceRepository
 
 	/** Convert extra info to list of integers */
 	private static List<Integer> extraInfoToIntegerList(String accName, List<Object> extraInfo) {
-		List<Integer> result = new ArrayList<Integer>(extraInfo.size());
+		List<Integer> result = new ArrayList<>(extraInfo.size());
 		for (Object i : extraInfo) {
 			if (!(i instanceof Integer)) {
 				throw new IllegalArgumentException("For acceptance " + accName + ", all arguments have to be integers");

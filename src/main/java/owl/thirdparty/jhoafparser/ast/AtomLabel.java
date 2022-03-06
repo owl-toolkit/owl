@@ -100,14 +100,10 @@ public class AtomLabel implements Atom {
 
 	@Override
 	public String toString() {
-		switch (type) {
-		case AP_INDEX:
-			return apIndex.toString();
-		case ALIAS:
-			return "@"+aliasName;
-		}
-
-		throw new RuntimeException("Unhandled type");
+    return switch (type) {
+      case AP_INDEX -> apIndex.toString();
+      case ALIAS -> "@" + aliasName;
+    };
 	}
 
 	@Override
@@ -128,23 +124,22 @@ public class AtomLabel implements Atom {
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof AtomLabel))
+		if (!(obj instanceof AtomLabel other))
 			return false;
-		AtomLabel other = (AtomLabel) obj;
-		if (type != other.type)
+    if (type != other.type)
 			return false;
 		if (aliasName == null) {
 			if (other.aliasName != null)
 				return false;
 		} else if (!aliasName.equals(other.aliasName))
 			return false;
-		if (apIndex == null) {
-			if (other.apIndex != null)
-				return false;
-		} else if (!apIndex.equals(other.apIndex))
-			return false;
-		return true;
-	}
+
+    if (apIndex == null) {
+      return other.apIndex == null;
+		} else {
+      return apIndex.equals(other.apIndex);
+    }
+  }
 
 
 }

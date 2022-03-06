@@ -94,10 +94,9 @@ public class StoredEdgeWithLabel
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof StoredEdgeWithLabel))
+		if (!(obj instanceof StoredEdgeWithLabel other))
 			return false;
-		StoredEdgeWithLabel other = (StoredEdgeWithLabel) obj;
-		if (accSignature == null) {
+    if (accSignature == null) {
 			if (other.accSignature != null)
 				return false;
 		} else if (!accSignature.equals(other.accSignature))

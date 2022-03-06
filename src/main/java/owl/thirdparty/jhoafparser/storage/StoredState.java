@@ -109,10 +109,9 @@ public class StoredState
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof StoredState))
+		if (!(obj instanceof StoredState other))
 			return false;
-		StoredState other = (StoredState) obj;
-		if (accSignature == null) {
+    if (accSignature == null) {
 			if (other.accSignature != null)
 				return false;
 		} else if (!accSignature.equals(other.accSignature))

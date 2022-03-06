@@ -69,14 +69,14 @@ public class StoredAutomaton
 	/** Constructor, empty automaton */
 	public StoredAutomaton()
 	{
-		edgesImplicit = new UniqueTable<StoredEdgeImplicit>();
-		edgesWithLabel = new UniqueTable<StoredEdgeWithLabel>();
-		acceptanceSignatures = new UniqueTable<List<Integer>>();
-		labelExpressions = new UniqueTable<BooleanExpression<AtomLabel>>();
+		edgesImplicit = new UniqueTable<>();
+		edgesWithLabel = new UniqueTable<>();
+		acceptanceSignatures = new UniqueTable<>();
+		labelExpressions = new UniqueTable<>();
 
-		stateToImplicitEdges = new TreeMap<Integer, ArrayList<StoredEdgeImplicit>>();
-		stateToEdgesWithLabel = new TreeMap<Integer, ArrayList<StoredEdgeWithLabel>>();
-		indexToState = new TreeMap<Integer, StoredState>();
+		stateToImplicitEdges = new TreeMap<>();
+		stateToEdgesWithLabel = new TreeMap<>();
+		indexToState = new TreeMap<>();
 
 		storedHeader = new StoredHeader();
 	}
@@ -99,26 +99,20 @@ public class StoredAutomaton
 	public void addEdgeImplicit(int stateId, StoredEdgeImplicit edge) {
 		edge = edgesImplicit.findOrAdd(edge);
 
-		ArrayList<StoredEdgeImplicit> edges = stateToImplicitEdges.get(stateId);
-		if (edges == null) {
-			edges = new ArrayList<StoredEdgeImplicit>();
-			stateToImplicitEdges.put(stateId, edges);
-		}
+    ArrayList<StoredEdgeImplicit> edges = stateToImplicitEdges.computeIfAbsent(stateId,
+      k -> new ArrayList<>());
 
-		edges.add(edge);
+    edges.add(edge);
 	}
 
 	/** Add an edge with a label expression for a state */
 	public void addEdgeWithLabel(int stateId, StoredEdgeWithLabel edge) {
 		edge = edgesWithLabel.findOrAdd(edge);
 
-		ArrayList<StoredEdgeWithLabel> edges = stateToEdgesWithLabel.get(stateId);
-		if (edges == null) {
-			edges = new ArrayList<StoredEdgeWithLabel>();
-			stateToEdgesWithLabel.put(stateId, edges);
-		}
+    ArrayList<StoredEdgeWithLabel> edges = stateToEdgesWithLabel.computeIfAbsent(stateId,
+      k -> new ArrayList<>());
 
-		edges.add(edge);
+    edges.add(edge);
 	}
 
 	/** Remove all edges with label expression for the given state */

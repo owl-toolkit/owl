@@ -60,18 +60,18 @@ public class StoredHeader
 	/** The number of states (States-header) */
 	private Integer numberOfStates = null;
 	/** The start states (disjunction of conjunction of state indizes) */
-	private List<List<Integer>> startStates = new ArrayList<List<Integer>>();
+	private List<List<Integer>> startStates = new ArrayList<>();
 	/** The atomic propositions (AP header) */
-	private List<String> aps = new ArrayList<String>();
+	private List<String> aps = new ArrayList<>();
 
 	/** The number of acceptance sets (Acceptance-header) */
 	private int numberOfAcceptanceSets;
 	/** The acceptance condition */
 	private BooleanExpression<AtomAcceptance> accExpr;
 	/** The acc-name headers, consisting of the name of the condition and optionally additional information */
-	private List<NameAndExtra<List<Object>>> accNames = new ArrayList<NameAndExtra<List<Object>>>();
+	private List<NameAndExtra<List<Object>>> accNames = new ArrayList<>();
 	/** The misc. headers, consisting of the name of the header and additional information */
-	private List<NameAndExtra<List<Object>>> miscHeaders = new ArrayList<NameAndExtra<List<Object>>>();
+	private List<NameAndExtra<List<Object>>> miscHeaders = new ArrayList<>();
 
 	/** The name of the automaton (name-header) */
 	private String name;
@@ -81,11 +81,11 @@ public class StoredHeader
 	private String toolVersion;
 
 	/** The properties */
-	private SortedSet<String> properties = new TreeSet<String>();
+	private SortedSet<String> properties = new TreeSet<>();
 	/** The alias definitions */
-	private List<NameAndExtra<BooleanExpression<AtomLabel>>> aliases = new ArrayList<NameAndExtra<BooleanExpression<AtomLabel>>>();
+	private List<NameAndExtra<BooleanExpression<AtomLabel>>> aliases = new ArrayList<>();
 	/** The set of names of defined aliases, for fast lookup */
-	private HashSet<String> aliasNames = new HashSet<String>();
+	private HashSet<String> aliasNames = new HashSet<>();
 
 	@Override
 	/** Construct a deep copy of this header */
@@ -94,9 +94,9 @@ public class StoredHeader
 
 		result.numberOfStates = numberOfStates;
 		for (List<Integer> start : startStates) {
-			result.addStartStates(new ArrayList<Integer>(start));
+			result.addStartStates(new ArrayList<>(start));
 		}
-		result.setAPs(new ArrayList<String>(aps));
+		result.setAPs(new ArrayList<>(aps));
 		result.setAcceptanceCondition(numberOfAcceptanceSets, accExpr.clone());
 		for (NameAndExtra<List<Object>> accName : accNames) {
 			result.provideAcceptanceName(accName.name, accName.extra);
@@ -143,7 +143,7 @@ public class StoredHeader
 		if (hasAlias(name)) {
 			throw new UnsupportedOperationException("Can not store alias "+name+" multiple times");
 		}
-		aliases.add(new NameAndExtra<BooleanExpression<AtomLabel>>(name, labelExpr));
+		aliases.add(new NameAndExtra<>(name, labelExpr));
 		aliasNames.add(name);
 	}
 
@@ -186,7 +186,7 @@ public class StoredHeader
 
 	/** Store the information of a acc-name header */
 	public void provideAcceptanceName(String name, List<Object> extraInfo) {
-		accNames.add(new NameAndExtra<List<Object>>(name, extraInfo));
+		accNames.add(new NameAndExtra<>(name, extraInfo));
 	}
 
 	/** Remove all information concerning acc-name headers */
@@ -242,7 +242,7 @@ public class StoredHeader
 
 	/** Add a misc header */
 	public void addMiscHeader(String name, List<Object> content) {
-		miscHeaders.add(new NameAndExtra<List<Object>>(name, content));
+		miscHeaders.add(new NameAndExtra<>(name, content));
 	}
 
 	/** Get the list of misc headers */
@@ -256,7 +256,7 @@ public class StoredHeader
 	 */
 	public void feedToConsumer(HOAConsumer c) throws HOAConsumerException {
 		if (!properties.isEmpty()) {
-			c.addProperties(new ArrayList<String>(properties));
+			c.addProperties(new ArrayList<>(properties));
 		}
 
 		if (getNumberOfStates() != null)

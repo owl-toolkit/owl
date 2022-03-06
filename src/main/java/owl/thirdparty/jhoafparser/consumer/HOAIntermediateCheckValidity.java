@@ -58,7 +58,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	protected HashSet<String> supportedMiscHeaders = null;
 
 	/** The header names that have occurred so far in the automaton definition */
-	protected HashSet<String> usedHeaders = new HashSet<String>();
+	protected HashSet<String> usedHeaders = new HashSet<>();
 
 	/** The number of states that have been specified in the header (optional) */
 	protected Integer numberOfStates = null;
@@ -76,7 +76,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	protected BitSet startStates = new BitSet();
 
 	/** The defined alias names */
-	protected HashSet<String> aliases = new HashSet<String>();
+	protected HashSet<String> aliases = new HashSet<>();
 	/** Atomic proposition indizes that are defined in alias definitions */
 	protected BitSet apsInAliases = new BitSet();
 
@@ -154,13 +154,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	 **/
 	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next)
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new HOAIntermediateCheckValidity(next.getNewHOAConsumer());
-			}
-		};
+		return () -> new HOAIntermediateCheckValidity(next.getNewHOAConsumer());
 	}
 
 	/** Set Flag: reject semantic (Uppercase) misc headers? */
@@ -179,7 +173,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	public void addSupportedMiscHeader(String supportedMiscHeader)
 	{
 		if (supportedMiscHeaders == null)
-			supportedMiscHeaders = new HashSet<String>();
+			supportedMiscHeaders = new HashSet<>();
 
 		supportedMiscHeaders.add(supportedMiscHeader);
 	}
@@ -242,7 +236,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 		numberOfAPs = aps.size();
 
-		HashSet<String> apSet = new HashSet<String>();
+		HashSet<String> apSet = new HashSet<>();
 		for (String ap : aps) {
 			if (apSet.add(ap) == false) {
 				throw new HOAConsumerException("Atomic proposition "+ap+" appears more than once in AP-header");
@@ -295,21 +289,22 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 		usedHeaders.add("properties");
 
 		for (String property : properties) {
-			switch (property) {
-			case "state_labels": property_state_labels = true; break;
-			case "trans_labels": property_trans_labels = true; break;
-			case "implicit_labels": property_implicit_labels = true; break;
-			case "explicit_labels": property_explicit_labels = true; break;
-			case "state_acc": property_state_acc = true; break;
-			case "trans_acc": property_trans_acc = true; break;
-			case "univ_branch": property_univ_branch = true; break;
-			case "no_univ_branch": property_no_univ_branch = true; break;
-			case "deterministic": property_deterministic = true; break;
-			case "complete": property_complete = true; break;
-			case "colored": property_colored = true; break;
-			default:
-				// do nothing
-			}
+      switch (property) {
+        case "state_labels" -> property_state_labels = true;
+        case "trans_labels" -> property_trans_labels = true;
+        case "implicit_labels" -> property_implicit_labels = true;
+        case "explicit_labels" -> property_explicit_labels = true;
+        case "state_acc" -> property_state_acc = true;
+        case "trans_acc" -> property_trans_acc = true;
+        case "univ_branch" -> property_univ_branch = true;
+        case "no_univ_branch" -> property_no_univ_branch = true;
+        case "deterministic" -> property_deterministic = true;
+        case "complete" -> property_complete = true;
+        case "colored" -> property_colored = true;
+        default -> {
+        }
+        // do nothing
+      }
 		}
 
 		next.addProperties(properties);

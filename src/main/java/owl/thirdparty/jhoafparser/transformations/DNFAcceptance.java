@@ -51,13 +51,7 @@ public class DNFAcceptance extends HOAIntermediate
 	 **/
 	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next)
 	{
-		return new HOAConsumerFactory() {
-			@Override
-			public HOAConsumer getNewHOAConsumer()
-			{
-				return new DNFAcceptance(next.getNewHOAConsumer());
-			}
-		};
+		return () -> new DNFAcceptance(next.getNewHOAConsumer());
 	}
 
 	@Override
