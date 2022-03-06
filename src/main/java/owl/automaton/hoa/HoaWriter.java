@@ -19,8 +19,7 @@
 
 package owl.automaton.hoa;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -38,8 +37,8 @@ import owl.thirdparty.jhoafparser.ast.AtomLabel;
 import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
-import owl.thirdparty.jhoafparser.consumer.HOAConsumerPrint;
 import owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions;
+import owl.thirdparty.jhoafparser.owl.extensions.HOAConsumerPrintFixed;
 import owl.util.OwlVersion;
 
 public final class HoaWriter {
@@ -47,15 +46,15 @@ public final class HoaWriter {
   private HoaWriter() {}
 
   public static <S> String toString(Automaton<S, ?> automaton) {
-    var buffer = new ByteArrayOutputStream();
+    var buffer = new StringWriter();
 
     try {
-      write(automaton, new HOAConsumerPrint(buffer), true);
+      write(automaton, new HOAConsumerPrintFixed(buffer), true);
     } catch (HOAConsumerException ex) {
       throw new UncheckedHoaConsumerException(ex);
     }
 
-    return buffer.toString(StandardCharsets.UTF_8);
+    return buffer.toString();
   }
 
   public static <S> void write(
