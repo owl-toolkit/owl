@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
@@ -220,8 +221,8 @@ public class HOAConsumerPrint implements HOAConsumer {
 	}
 
 	@Override
-	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors,
-			List<Integer> accSignature) {
+	public void addEdgeImplicit(int stateId, Collection<Integer> conjSuccessors,
+			Collection<Integer> accSignature) {
 		try {
 			boolean first = true;
 			for (Integer succ : conjSuccessors) {
@@ -245,7 +246,7 @@ public class HOAConsumerPrint implements HOAConsumer {
 
 	@Override
 	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
-			List<Integer> conjSuccessors, List<Integer> accSignature) {
+			Collection<Integer> conjSuccessors, Collection<Integer> accSignature) {
 		try {
 			if (labelExpr != null) {
 				out.write("[");

@@ -28,6 +28,7 @@
 package owl.thirdparty.jhoafparser.transformations;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
 import owl.thirdparty.jhoafparser.ast.BooleanExpression;
@@ -35,7 +36,6 @@ import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerStore;
 import owl.thirdparty.jhoafparser.consumer.HOAIntermediate;
-import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
 import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
 
 /**
@@ -100,9 +100,9 @@ public class ToTransitionAcceptance extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException
+	public void addEdgeImplicit(int stateId, Collection<Integer> conjSuccessors, Collection<Integer> accSignature) throws HOAConsumerException
 	{
-		List<Integer> transAccSignature;
+		Collection<Integer> transAccSignature;
 
 		if (accSignature != null && currentStateSignature != null) {
 			transAccSignature = new ArrayList<>(accSignature);
@@ -115,10 +115,10 @@ public class ToTransitionAcceptance extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
-		List<Integer> transAccSignature;
+		Collection<Integer> transAccSignature;
 
 		if (accSignature != null && currentStateSignature != null) {
 			transAccSignature = new ArrayList<>(accSignature);

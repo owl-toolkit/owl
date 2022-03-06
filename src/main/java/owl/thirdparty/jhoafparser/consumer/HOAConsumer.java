@@ -27,6 +27,7 @@
 
 package owl.thirdparty.jhoafparser.consumer;
 
+import java.util.Collection;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
@@ -56,19 +57,19 @@ public interface HOAConsumer {
 	 * see the aliases unresolved (return {@code false}). This function should always return
 	 * a constant value.
 	 **/
-	public boolean parserResolvesAliases();
+  boolean parserResolvesAliases();
 
 	/** Called by the parser for the "HOA: version" item [mandatory, once]. */
-	public void notifyHeaderStart(String version) throws HOAConsumerException;
+  void notifyHeaderStart(String version) throws HOAConsumerException;
 
 	/** Called by the parser for the "States: int(numberOfStates)" item [optional, once]. */
-	public void setNumberOfStates(int numberOfStates) throws HOAConsumerException;
+  void setNumberOfStates(int numberOfStates) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each "Start: state-conj" item [optional, multiple].
 	 * @param stateConjunction a list of state indizes, interpreted as a conjunction
 	 **/
-	public void addStartStates(List<Integer> stateConjunction) throws HOAConsumerException;
+  void addStartStates(List<Integer> stateConjunction) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each "Alias: alias-def" item [optional, multiple].
@@ -77,57 +78,57 @@ public interface HOAConsumer {
 	 *  @param name the alias name (without @)
 	 *  @param labelExpr a boolean expression over labels
 	 **/
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException;
+  void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for the "AP: ap-def" item [optional, once].
 	 * @param aps the list of atomic propositions
 	 */
-	public void setAPs(List<String> aps) throws HOAConsumerException;
+  void setAPs(List<String> aps) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for the "Acceptance: acceptance-def" item [mandatory, once].
 	 * @param numberOfSets the number of acceptance sets used to tag state / transition acceptance
 	 * @param accExpr a boolean expression over acceptance atoms
 	 **/
-	public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException;
+  void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each "acc-name: ..." item [optional, multiple].
 	 * @param name the provided name
 	 * @param extraInfo the additional information for this item
 	 * */
-	public void provideAcceptanceName(String name, List<Object> extraInfo) throws HOAConsumerException;
+  void provideAcceptanceName(String name, List<Object> extraInfo) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for the "name: ..." item [optional, once].
 	 **/
-	public void setName(String name) throws HOAConsumerException;
+  void setName(String name) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for the "tool: ..." item [optional, once].
 	 * @param name the tool name
 	 * @param version the tool version ({@code null} if not provided)
 	 **/
-	 public void setTool(String name, String version) throws HOAConsumerException;
+  void setTool(String name, String version) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for the "properties: ..." item [optional, multiple].
 	 * @param properties a list of properties
 	 */
-	public void addProperties(List<String> properties) throws HOAConsumerException;
+  void addProperties(List<String> properties) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each unknown header item [optional, multiple].
 	 * @param name the name of the header (without ':')
 	 * @param content a list of extra information provided by the header
 	 */
-	public void addMiscHeader(String name, List<Object> content) throws HOAConsumerException;
+  void addMiscHeader(String name, List<Object> content) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser to notify that the BODY of the automaton has started [mandatory, once].
 	 */
-	public void notifyBodyStart() throws HOAConsumerException;
+  void notifyBodyStart() throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each "State: ..." item [multiple].
@@ -136,7 +137,8 @@ public interface HOAConsumer {
 	 * @param labelExpr an optional boolean expression over labels (state-labeled) ({@code null} if not provided)
 	 * @param accSignature an optional list of acceptance set indizes (state-labeled acceptance) ({@code null} if not provided)
 	 */
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException;
+  void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr,
+    List<Integer> accSignature) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each implicit edge definition [multiple], i.e.,
@@ -145,46 +147,47 @@ public interface HOAConsumer {
 	 * If the edges are provided in implicit form, after every {@code addState()} there should be 2^|AP| calls to
 	 * {@code addEdgeImplicit}. The corresponding boolean expression over labels / BitSet
 	 * can be obtained by calling BooleanExpression.fromImplicit(i-1) for the i-th call of this function per state.
-	 *
-	 * @param stateId the index of the 'from' state
+	 *  @param stateId the index of the 'from' state
 	 * @param conjSuccessors a list of successor state indizes, interpreted as a conjunction
-	 * @param accSignature an optional list of acceptance set indizes (transition-labeled acceptance) ({@code null} if not provided)
-	 */
+   * @param accSignature an optional list of acceptance set indizes (transition-labeled acceptance) ({@code null} if not provided)
+   */
 
-	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException;
+  void addEdgeImplicit(int stateId, Collection<Integer> conjSuccessors,
+    Collection<Integer> accSignature) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each explicit edge definition [optional, multiple], i.e.,
 	 * where the label is either specified for the edge or as a state-label.
 	 * <br/>
-	 * @param stateId the index of the 'from' state
-	 * @param labelExpr a boolean expression over labels ({@code null} if none provided, only in case of state-labeled states)
-	 * @param conjSuccessors a list of successors state indizes, interpreted as a conjunction
-	 * @param accSignature an optional list of acceptance set indizes (transition-labeled acceptance) ({@code null} if none provided)
-	 */
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException;
+   * @param stateId the index of the 'from' state
+   * @param labelExpr a boolean expression over labels ({@code null} if none provided, only in case of state-labeled states)
+   * @param conjSuccessors a list of successors state indizes, interpreted as a conjunction
+   * @param accSignature an optional list of acceptance set indizes (transition-labeled acceptance) ({@code null} if none provided)
+   */
+  void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
+    Collection<Integer> conjSuccessors, Collection<Integer> accSignature) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser to notify the consumer that the definition for state {@code stateId}
 	 * has ended [multiple].
 	 */
-	public void notifyEndOfState(int stateId) throws HOAConsumerException;
+  void notifyEndOfState(int stateId) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser to notify the consumer that the automata definition has ended [mandatory, once].
 	 */
-	public void notifyEnd() throws HOAConsumerException;
+  void notifyEnd() throws HOAConsumerException;
 
 	/**
 	 * Called by the parser to notify the consumer that an "ABORT" message has been encountered
 	 * (at any time, indicating error, the automaton should be discarded).
 	 */
-	public void notifyAbort();
+  void notifyAbort();
 
 
 	/**
 	 * Is called whenever a condition is encountered that merits a (non-fatal) warning.
 	 * The consumer is free to handle this situation as it wishes.
 	 */
-	public void notifyWarning(String warning) throws HOAConsumerException;
+  void notifyWarning(String warning) throws HOAConsumerException;
 }

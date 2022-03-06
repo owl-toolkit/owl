@@ -28,6 +28,7 @@
 package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
@@ -401,7 +402,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException
+	public void addEdgeImplicit(int stateId, Collection<Integer> conjSuccessors, Collection<Integer> accSignature) throws HOAConsumerException
 	{
 		assert(stateId == currentState);
 
@@ -442,7 +443,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		assert(stateId == currentState);
@@ -683,7 +684,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 	/** Check that the acceptance signature is well-formed, referencing only existing acceptance sets.
 	 * Throws {@code HOAConsumerException} otherwise. */
-	private void checkAcceptanceSignature(List<Integer> accSignature, boolean inTransition) throws HOAConsumerException
+	private void checkAcceptanceSignature(Collection<Integer> accSignature, boolean inTransition) throws HOAConsumerException
 	{
 		for (Integer acceptanceSet : accSignature) {
 			if (acceptanceSet < 0 || acceptanceSet >= numberOfAcceptanceSets) {

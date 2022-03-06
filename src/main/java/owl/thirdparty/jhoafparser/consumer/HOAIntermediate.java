@@ -27,6 +27,7 @@
 
 package owl.thirdparty.jhoafparser.consumer;
 
+import java.util.Collection;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
@@ -140,13 +141,13 @@ public class HOAIntermediate implements HOAConsumer
 	}
 
 	@Override
-	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors, List<Integer> accSignature) throws HOAConsumerException
+	public void addEdgeImplicit(int stateId, Collection<Integer> conjSuccessors, Collection<Integer> accSignature) throws HOAConsumerException
 	{
 		next.addEdgeImplicit(stateId, conjSuccessors, accSignature);
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		next.addEdgeWithLabel(stateId, labelExpr, conjSuccessors, accSignature);

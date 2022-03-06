@@ -28,6 +28,7 @@
 package owl.thirdparty.jhoafparser.storage;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
@@ -204,9 +205,9 @@ public class StoredAutomaton
 	 * If there is already a signature equal to the argument stored, return that,
 	 * otherwise store and return the argument.
 	 */
-	public List<Integer> findOrAdd(List<Integer> acceptanceSignature) {
+	public List<Integer> findOrAdd(Collection<Integer> acceptanceSignature) {
 		if (acceptanceSignature == null) return null;
-		return acceptanceSignatures.findOrAdd(acceptanceSignature);
+		return acceptanceSignatures.findOrAdd(List.copyOf(acceptanceSignature));
 	}
 
 	/** Feed the stored automaton to the consumer */

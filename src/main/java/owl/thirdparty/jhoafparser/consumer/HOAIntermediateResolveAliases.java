@@ -27,6 +27,7 @@
 
 package owl.thirdparty.jhoafparser.consumer;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
@@ -173,7 +174,7 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		if (labelExpr != null && containsAliases(labelExpr)) {

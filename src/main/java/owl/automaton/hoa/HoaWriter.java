@@ -151,7 +151,7 @@ public final class HoaWriter {
           BooleanExpressions.fromPropositionalFormula(valuationSet.toExpression(),
             x -> new BooleanExpression<>(AtomLabel.createAPIndex(x))),
           List.of(numbering.get(edge.successor())),
-          Arrays.asList(edge.colours().toArray(Integer[]::new)));
+          edge.colours());
       }
 
       consumer.notifyEndOfState(stateId);

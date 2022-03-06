@@ -39,6 +39,7 @@ package owl.thirdparty.jhoafparser.owl.extensions;
 import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
@@ -285,8 +286,8 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	}
 
 	@Override
-	public void addEdgeImplicit(int stateId, List<Integer> conjSuccessors,
-    @Nullable List<Integer> accSignature)
+	public void addEdgeImplicit(int stateId, Collection<Integer> conjSuccessors,
+    @Nullable Collection<Integer> accSignature)
     throws HOAConsumerException {
 
 	  try {
@@ -314,7 +315,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 
 	@Override
 	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
-		List<Integer> conjSuccessors, @Nullable List<Integer> accSignature)
+		Collection<Integer> conjSuccessors, @Nullable Collection<Integer> accSignature)
     throws HOAConsumerException {
 
 	  try {
