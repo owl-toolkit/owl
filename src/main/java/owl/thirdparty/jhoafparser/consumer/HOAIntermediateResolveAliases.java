@@ -62,23 +62,13 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 	}
 
 	/** Returns true if {@code labelExpr} contains any unresolved aliases */
-	private boolean containsAliases(BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException {
-		switch (labelExpr.getType()) {
-		case EXP_FALSE:
-		case EXP_TRUE:
-			return false;
-		case EXP_AND:
-		case EXP_OR:
-			if (containsAliases(labelExpr.getLeft())) return true;
-			if (containsAliases(labelExpr.getRight())) return true;
-			return false;
-		case EXP_NOT:
-			if (containsAliases(labelExpr.getLeft())) return true;
-			return false;
-		case EXP_ATOM:
-			return labelExpr.getAtom().isAlias();
-		}
-		throw new HOAConsumerException("Unhandled boolean expression type");
+	private static boolean containsAliases(BooleanExpression<AtomLabel> labelExpr) {
+    return switch (labelExpr.getType()) {
+      case EXP_FALSE, EXP_TRUE -> false;
+      case EXP_AND, EXP_OR -> containsAliases(labelExpr.getLeft()) || containsAliases(labelExpr.getRight());
+      case EXP_NOT -> containsAliases(labelExpr.getLeft());
+      case EXP_ATOM -> labelExpr.getAtom().isAlias();
+    };
 	}
 
 	/**

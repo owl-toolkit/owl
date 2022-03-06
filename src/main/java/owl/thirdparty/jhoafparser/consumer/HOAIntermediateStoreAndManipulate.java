@@ -27,8 +27,6 @@
 
 package owl.thirdparty.jhoafparser.consumer;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
 import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
@@ -43,10 +41,10 @@ import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
 public class HOAIntermediateStoreAndManipulate extends HOAConsumerStore
 {
 	/** The list (ordered) of manipulators to call */
-	private List<StoredAutomatonManipulator> manipulators = new ArrayList<>();
+	private final List<StoredAutomatonManipulator> manipulators;
 
 	/** The next consumer */
-	private HOAConsumer next;
+	private final HOAConsumer next;
 
 	/** Constructor.
 	 * @param manipulators variable-length StoredAutomatonManipulator[] of the manipulators
@@ -62,17 +60,12 @@ public class HOAIntermediateStoreAndManipulate extends HOAConsumerStore
 	public HOAIntermediateStoreAndManipulate(HOAConsumer next, StoredAutomatonManipulator... manipulators)
 	{
 		this.next = next;
-    this.manipulators.addAll(Arrays.asList(manipulators));
+    this.manipulators = List.of(manipulators);
 	}
 
 	/** Get a factory. */
 	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next, final StoredAutomatonManipulator... manipulators) {
 		return () -> new HOAIntermediateStoreAndManipulate(next.getNewHOAConsumer(), manipulators);
-	}
-
-	/** Add another manipulator to the end of the manipulators. */
-	public void addManipulator(StoredAutomatonManipulator manipulator) {
-		manipulators.add(manipulator);
 	}
 
 	@Override
