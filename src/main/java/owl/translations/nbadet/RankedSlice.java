@@ -65,7 +65,7 @@ public abstract class RankedSlice {
 
   /** Wraps a single ranked set into a slice. */
   public static RankedSlice singleton(Pair<BitSet, Integer> entry) {
-    return new AutoValue_RankedSlice(new ArrayList<>(Collections.singletonList(entry)));
+    return new AutoValue_RankedSlice(new ArrayList<>(List.of(entry)));
   }
 
   /** This is to avoid general stream API, but still have convenience. */

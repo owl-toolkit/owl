@@ -28,7 +28,6 @@ import com.google.auto.value.extension.memoized.Memoized;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.BitSet;
-import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
 import owl.bdd.BddSet;
@@ -54,7 +53,7 @@ public abstract class SymbolicSccDecomposition {
    */
   public List<BddSet> sccs(BddSet restrictedTo) {
     if (restrictedTo.isEmpty()) {
-      return Collections.emptyList();
+      return List.of();
     }
     BddSet transitionRelation = automaton().transitionRelation();
     SymbolicAutomaton.VariableAllocation variableAllocation = automaton().variableAllocation();

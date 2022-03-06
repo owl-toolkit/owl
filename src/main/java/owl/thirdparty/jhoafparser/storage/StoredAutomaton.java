@@ -27,6 +27,8 @@
 
 package owl.thirdparty.jhoafparser.storage;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -46,14 +48,14 @@ import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 public class StoredAutomaton
 {
 	/** A unique table for acceptance signatures */
-	private UniqueTable<List<Integer>> acceptanceSignatures;
+	private Interner<List<Integer>> acceptanceSignatures;
 	/** A unique table for label expressions */
-	private UniqueTable<BooleanExpression<AtomLabel>> labelExpressions;
+	private Interner<BooleanExpression<AtomLabel>> labelExpressions;
 
 	/** A unique table for implicit edges */
-	private UniqueTable<StoredEdgeImplicit> edgesImplicit;
+	private Interner<StoredEdgeImplicit> edgesImplicit;
 	/** A unique table for edges with labels */
-	private UniqueTable<StoredEdgeWithLabel> edgesWithLabel;
+	private Interner<StoredEdgeWithLabel> edgesWithLabel;
 
 	/** stores (for each state) the list of implicit edges */
 	private TreeMap<Integer, ArrayList<StoredEdgeImplicit>> stateToImplicitEdges;
@@ -70,10 +72,10 @@ public class StoredAutomaton
 	/** Constructor, empty automaton */
 	public StoredAutomaton()
 	{
-		edgesImplicit = new UniqueTable<>();
-		edgesWithLabel = new UniqueTable<>();
-		acceptanceSignatures = new UniqueTable<>();
-		labelExpressions = new UniqueTable<>();
+		edgesImplicit = Interners.newStrongInterner();
+		edgesWithLabel = Interners.newStrongInterner();
+		acceptanceSignatures = Interners.newStrongInterner();
+		labelExpressions = Interners.newStrongInterner();
 
 		stateToImplicitEdges = new TreeMap<>();
 		stateToEdgesWithLabel = new TreeMap<>();
@@ -98,7 +100,7 @@ public class StoredAutomaton
 	 * i.e., such edges have to be added in order.
 	 */
 	public void addEdgeImplicit(int stateId, StoredEdgeImplicit edge) {
-		edge = edgesImplicit.findOrAdd(edge);
+		edge = edgesImplicit.intern(edge);
 
     ArrayList<StoredEdgeImplicit> edges = stateToImplicitEdges.computeIfAbsent(stateId,
       k -> new ArrayList<>());
@@ -108,7 +110,7 @@ public class StoredAutomaton
 
 	/** Add an edge with a label expression for a state */
 	public void addEdgeWithLabel(int stateId, StoredEdgeWithLabel edge) {
-		edge = edgesWithLabel.findOrAdd(edge);
+		edge = edgesWithLabel.intern(edge);
 
     ArrayList<StoredEdgeWithLabel> edges = stateToEdgesWithLabel.computeIfAbsent(stateId,
       k -> new ArrayList<>());
@@ -196,9 +198,8 @@ public class StoredAutomaton
 	 * otherwise store and return the argument.
 	 */
 	public BooleanExpression<AtomLabel> findOrAdd(BooleanExpression<AtomLabel> exprLabel) {
-		if (exprLabel == null) return null;
-		return labelExpressions.findOrAdd(exprLabel);
-	}
+    return exprLabel == null ? null : labelExpressions.intern(exprLabel);
+  }
 
 	/**
 	 * Stores the acceptance signature such that equal signatures are identified:
@@ -206,9 +207,10 @@ public class StoredAutomaton
 	 * otherwise store and return the argument.
 	 */
 	public List<Integer> findOrAdd(Collection<Integer> acceptanceSignature) {
-		if (acceptanceSignature == null) return null;
-		return acceptanceSignatures.findOrAdd(List.copyOf(acceptanceSignature));
-	}
+    return acceptanceSignature == null
+      ? null
+      : acceptanceSignatures.intern(List.copyOf(acceptanceSignature));
+  }
 
 	/** Feed the stored automaton to the consumer */
 	public void feedToConsumer(HOAConsumer c) throws HOAConsumerException {

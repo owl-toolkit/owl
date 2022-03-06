@@ -27,12 +27,12 @@
 
 package owl.thirdparty.jhoafparser.analysis;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
 import owl.thirdparty.jhoafparser.ast.BooleanExpression;
-import owl.thirdparty.jhoafparser.storage.UniqueTable;
 
 /** Helper class for simplifying a generic acceptance condition */
 public class AcceptanceSimplify
@@ -116,9 +116,9 @@ public class AcceptanceSimplify
 	 * @param uniqueTable a unique table over acceptance expressions
 	 * @returns an equivalent acceptance condition in DNF
 	 **/
-	private static List<BooleanExpression<AtomAcceptance>> toDNF(BooleanExpression<AtomAcceptance> acc, UniqueTable<BooleanExpression<AtomAcceptance>> uniqueTable) {
+	private static List<BooleanExpression<AtomAcceptance>> toDNF(BooleanExpression<AtomAcceptance> acc, Interner<BooleanExpression<AtomAcceptance>> uniqueTable) {
 		if (isConjunctive(acc)) {
-			return Collections.singletonList(uniqueTable.findOrAdd(acc));
+			return List.of(uniqueTable.intern(acc));
 		}
 
     switch (acc.getType()) {
@@ -135,10 +135,10 @@ public class AcceptanceSimplify
         List<BooleanExpression<AtomAcceptance>> right = toDNF(acc.getRight(), uniqueTable);
 
         // combine
-        List<BooleanExpression<AtomAcceptance>> result = new ArrayList<>();
+        List<BooleanExpression<AtomAcceptance>> result = new ArrayList<>(left.size() * right.size());
         for (BooleanExpression<AtomAcceptance> l : left) {
           for (BooleanExpression<AtomAcceptance> r : right) {
-            result.add(uniqueTable.findOrAdd(l.and(r)));
+            result.add(uniqueTable.intern(l.and(r)));
           }
         }
         return result;
@@ -152,9 +152,7 @@ public class AcceptanceSimplify
 
 	/** Convert acceptance condition into disjunctive normal form (list of conjunctive clauses) */
 	public static List<BooleanExpression<AtomAcceptance>> toDNF(BooleanExpression<AtomAcceptance> acc) {
-		UniqueTable<BooleanExpression<AtomAcceptance>> uniqueTable = new UniqueTable<>();
-
-		return toDNF(acc, uniqueTable);
+		return toDNF(acc, Interners.newStrongInterner());
 	}
 
 	/** Convert acceptance condition into disjunctive normal form */

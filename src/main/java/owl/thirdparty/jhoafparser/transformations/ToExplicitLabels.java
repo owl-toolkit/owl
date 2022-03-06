@@ -27,6 +27,8 @@
 
 package owl.thirdparty.jhoafparser.transformations;
 
+import com.google.common.collect.Interner;
+import com.google.common.collect.Interners;
 import java.util.ArrayList;
 import java.util.List;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
@@ -36,7 +38,6 @@ import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
 import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
 import owl.thirdparty.jhoafparser.storage.StoredEdgeImplicit;
 import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
-import owl.thirdparty.jhoafparser.storage.UniqueTable;
 import owl.thirdparty.jhoafparser.util.ImplicitEdgeHelper;
 
 /** A StoredAutomatonManipulator that converts implicit to explicit labels */
@@ -63,7 +64,7 @@ public class ToExplicitLabels implements StoredAutomatonManipulator
 			 throw new HOAConsumerException("Too many atomic propositions...");
 		 }
 
-		 UniqueTable<BooleanExpression<AtomLabel>> uniqueTable = new UniqueTable<>();
+		 Interner<BooleanExpression<AtomLabel>> uniqueTable = Interners.newStrongInterner();
 		 for (long i = 0; i < implicitHelper.getEdgesPerState(); i++) {
 
 			BooleanExpression<AtomLabel> expr = implicitHelper.toExplicitLabel(i, uniqueTable);

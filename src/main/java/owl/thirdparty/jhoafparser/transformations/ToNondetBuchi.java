@@ -28,7 +28,6 @@
 package owl.thirdparty.jhoafparser.transformations;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import owl.thirdparty.jhoafparser.analysis.AcceptanceSimplify;
@@ -102,8 +101,8 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 		target.setStoredHeader(header);
 		header.setNumberOfStates(numberOfStates*(copies+1));
 		header.getAcceptanceNames().clear();
-		header.provideAcceptanceName("generalized-Buchi", Collections.singletonList((Object)numberOfBuchi));
-		header.setAcceptanceCondition(numberOfBuchi, AcceptanceRepositoryStandard.forGenBuchi(Collections.singletonList((Object)numberOfBuchi)));
+		header.provideAcceptanceName("generalized-Buchi", List.of(numberOfBuchi));
+		header.setAcceptanceCondition(numberOfBuchi, AcceptanceRepositoryStandard.forGenBuchi(List.of(numberOfBuchi)));
 
 		handleProperties();
 
@@ -164,7 +163,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 
 	/** Returns a singleton list consisting of state {@code t}*/
 	private List<Integer> gotoState(Integer t) {
-		return Collections.singletonList(t);
+		return List.of(t);
 	}
 
 	/**

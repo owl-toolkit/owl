@@ -27,10 +27,10 @@
 
 package owl.thirdparty.jhoafparser.util;
 
+import com.google.common.collect.Interner;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
 import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
-import owl.thirdparty.jhoafparser.storage.UniqueTable;
 
 /**
  * Helper for keeping track of implicit edges.
@@ -115,23 +115,23 @@ public class ImplicitEdgeHelper
 	 * Construct a boolean expression corresponding to the given implicit edge index.
 	 * @param implicitIndex the edge index (in range (0, 2^|AP|-1)
 	 */
-	public BooleanExpression<AtomLabel> toExplicitLabel(long implicitIndex, UniqueTable<BooleanExpression<AtomLabel>> uniqueTable) {
+	public BooleanExpression<AtomLabel> toExplicitLabel(long implicitIndex, Interner<BooleanExpression<AtomLabel>> uniqueTable) {
 		if (numberOfAPs == 0)
-			return uniqueTable.findOrAdd(new BooleanExpression<>(true));
+			return uniqueTable.intern(new BooleanExpression<>(true));
 
 		BooleanExpression<AtomLabel> result = null;
 
 		for (int i=0; i < numberOfAPs; i++) {
-			BooleanExpression<AtomLabel> literal = uniqueTable.findOrAdd(
+			BooleanExpression<AtomLabel> literal = uniqueTable.intern(
         new BooleanExpression<>(AtomLabel.createAPIndex(i)));
 			if (implicitIndex % 2 == 0) {
-				literal = uniqueTable.findOrAdd(literal.not());
+				literal = uniqueTable.intern(literal.not());
 			}
 			implicitIndex = implicitIndex / 2;
 			if (result == null) {
 				result = literal;
 			} else {
-				result = uniqueTable.findOrAdd(result.and(literal));
+				result = uniqueTable.intern(result.and(literal));
 			}
 		}
 
