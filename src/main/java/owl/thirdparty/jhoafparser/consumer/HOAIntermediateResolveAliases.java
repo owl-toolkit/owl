@@ -1,36 +1,36 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.consumer;
+package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.HashMap;
 import java.util.List;
-
-import jhoafparser.ast.*;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * A {@code HOAIntermediate} that resolves aliases on-the-fly.
@@ -159,7 +159,7 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 		}
 
 		if (containsAliases(labelExpr)) {
-			// check that all the aliases in the expression are already defined 
+			// check that all the aliases in the expression are already defined
 			checkAliasDefinedness(labelExpr);
 
 			// resolve aliases in the expression

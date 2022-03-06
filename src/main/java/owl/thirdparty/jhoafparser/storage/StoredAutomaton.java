@@ -1,39 +1,39 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.storage;
+package owl.thirdparty.jhoafparser.storage;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
-
-import jhoafparser.ast.*;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 
 /**
  * Stores information about a HOA automaton, both the transition structure
@@ -48,7 +48,7 @@ public class StoredAutomaton
 	private UniqueTable<List<Integer>> acceptanceSignatures;
 	/** A unique table for label expressions */
 	private UniqueTable<BooleanExpression<AtomLabel>> labelExpressions;
-	
+
 	/** A unique table for implicit edges */
 	private UniqueTable<StoredEdgeImplicit> edgesImplicit;
 	/** A unique table for edges with labels */
@@ -98,7 +98,7 @@ public class StoredAutomaton
 	 */
 	public void addEdgeImplicit(int stateId, StoredEdgeImplicit edge) {
 		edge = edgesImplicit.findOrAdd(edge);
-		
+
 		ArrayList<StoredEdgeImplicit> edges = stateToImplicitEdges.get(stateId);
 		if (edges == null) {
 			edges = new ArrayList<StoredEdgeImplicit>();
@@ -111,7 +111,7 @@ public class StoredAutomaton
 	/** Add an edge with a label expression for a state */
 	public void addEdgeWithLabel(int stateId, StoredEdgeWithLabel edge) {
 		edge = edgesWithLabel.findOrAdd(edge);
-		
+
 		ArrayList<StoredEdgeWithLabel> edges = stateToEdgesWithLabel.get(stateId);
 		if (edges == null) {
 			edges = new ArrayList<StoredEdgeWithLabel>();
@@ -120,7 +120,7 @@ public class StoredAutomaton
 
 		edges.add(edge);
 	}
-	
+
 	/** Remove all edges with label expression for the given state */
 	public void clearEdgesWithLabel(int stateId) {
 		stateToEdgesWithLabel.remove(stateId);

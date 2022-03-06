@@ -1,44 +1,45 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.consumer;
+package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.BitSet;
 import java.util.HashSet;
 import java.util.List;
-
-import jhoafparser.ast.*;
-import jhoafparser.util.AcceptanceRepository;
-import jhoafparser.util.AcceptanceRepositoryStandard;
-import jhoafparser.util.ImplicitEdgeHelper;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.util.AcceptanceRepository;
+import owl.thirdparty.jhoafparser.util.AcceptanceRepositoryStandard;
+import owl.thirdparty.jhoafparser.util.ImplicitEdgeHelper;
 
 /**
  * HOAIntermediate that checks that the parsed HOA automaton is well-formed.<p>
- * 
+ *
  * Among others, checks for
  * <ul>
  * <li>Conformance of stated properties with the automaton structure.
@@ -55,13 +56,13 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 	/** A list of supported misc headers */
 	protected HashSet<String> supportedMiscHeaders = null;
-	
+
 	/** The header names that have occurred so far in the automaton definition */
 	protected HashSet<String> usedHeaders = new HashSet<String>();
-	
+
 	/** The number of states that have been specified in the header (optional) */
 	protected Integer numberOfStates = null;
-	
+
 	/** The number of acceptance sets (mandatory) */
 	protected Integer numberOfAcceptanceSets = null;
 
@@ -70,7 +71,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 	/** The set of states that occur as target states of some transition */
 	protected BitSet targetStatesOfTransitions = new BitSet();
-	
+
 	/** The set of states that are start states */
 	protected BitSet startStates = new BitSet();
 
@@ -86,10 +87,10 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	protected String accName = null;
 	/** The extra info of the acc-name */
 	protected List<Object> accExtraInfo = null;
-	
+
 	/** The acceptance condition */
 	protected BooleanExpression<AtomAcceptance> acceptance = null;
-	
+
 	/** The index of the current state */
 	protected int currentState = 0;
 	/** Flag: current state has state label */
@@ -110,7 +111,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 	/** Helper for keeping track of the implicit edges */
 	protected ImplicitEdgeHelper implicitEdgeHelper = null;
-	
+
 	/** Automaton asserts that the automaton uses only state labels */
 	protected boolean property_state_labels = false;
 	/** Automaton asserts that the automaton uses only transition labels */
@@ -140,7 +141,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	/** Has this automaton universal branching? */
 	protected boolean hasUniversalBranching = false;
 
-	
+
 	/** Constructor, giving next consumer */
 	public HOAIntermediateCheckValidity(HOAConsumer next)
 	{
@@ -179,10 +180,10 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	{
 		if (supportedMiscHeaders == null)
 			supportedMiscHeaders = new HashSet<String>();
-		
-		supportedMiscHeaders.add(supportedMiscHeader); 
+
+		supportedMiscHeaders.add(supportedMiscHeader);
 	}
-	
+
 	@Override
 	public boolean parserResolvesAliases()
 	{
@@ -268,7 +269,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	{
 		headerAtMostOnce("acc-name");
 		accName = name;
-		
+
 		// TODO: clone
 		accExtraInfo = extraInfo;
 		next.provideAcceptanceName(name,  extraInfo);
@@ -359,7 +360,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 		}
 
 		implicitEdgeHelper = new ImplicitEdgeHelper(numberOfAPs);
-		
+
 		next.notifyBodyStart();
 	}
 
@@ -372,7 +373,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 		}
 		statesWithDefinition.set(id);
 		currentState = id;
-		
+
 		if (accSignature != null) {
 			checkAcceptanceSignature(accSignature, false);
 			currentStateIsColored = (accSignature.size() == 1);
@@ -386,11 +387,11 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 				throw new HOAConsumerException("State "+id+" is not colored");
 			}
 		}
-		
+
 		if (labelExpr != null) {
 			checkLabelExpression(labelExpr);
 		}
-		
+
 		// reset flags
 		currentStateHasStateLabel = (labelExpr != null);
 		currentStateHasTransitionLabel = false;
@@ -435,7 +436,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 			throw new HOAConsumerException("Can not mix explicit and implicit edge definitions (state "+stateId+")");
 		}
 		currentStateHasImplicitEdge = true;
-		
+
 		currentStateHasTransitionLabel = true;
 		if (currentStateHasStateLabel) {
 			throw new HOAConsumerException("Can not mix state labels and implicit edge definitions (state "+stateId+")");
@@ -476,7 +477,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 		if (labelExpr != null) {
 			checkLabelExpression(labelExpr);
 		}
-		
+
 		if (labelExpr != null) {
 			currentStateHasTransitionLabel = true;
 			if (currentStateHasStateLabel) {
@@ -491,7 +492,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 		next.addEdgeWithLabel(stateId, labelExpr, conjSuccessors, accSignature);
 	}
-	
+
 	@Override
 	public void notifyEndOfState(int stateId) throws HOAConsumerException
 	{
@@ -552,16 +553,16 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	// ----------------------------------------------------------------------------
-	
+
 	/** Generate a warning for the next consumer. */
 	private void doWarning(String warning) throws HOAConsumerException
 	{
 		next.notifyWarning(warning);
 	}
 
-	
+
 	// ----------------------------------------------------------------------------
-	
+
 	/** Check whether the given mandatory header has been seen, throw {@code HOAConsumerException} otherwise. */
 	private void headerIsMandatory(String name) throws HOAConsumerException
 	{
@@ -610,7 +611,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	private void checkStates() throws HOAConsumerException
 	{
 		boolean haveComplainedAboutMissingStates = false;
-		
+
 		// if numberOfStates is set, check that all states are in range
 		if (numberOfStates != null) {
 			// the states with a definition
@@ -624,7 +625,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 			if (highestStateIndex >= numberOfStates) {
 				throw new HOAConsumerException("State index "+highestStateIndex+" (target in a transition) is out of range (0 - "+(numberOfStates-1)+")");
 			}
-			
+
 			// the start states
 			highestStateIndex = startStates.length() - 1;
 			if (highestStateIndex >= numberOfStates) {
@@ -651,7 +652,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 			doWarning("There are "+startStatesButNoDefinition.cardinality()+" states that are start states but that have no definition");
 			haveComplainedAboutMissingStates = true;
 		}
-		
+
 		if (haveComplainedAboutMissingStates && property_colored && numberOfAcceptanceSets > 0) {
 			// states without definition are not colored
 			throw new HOAConsumerException("An automaton with property 'colored' can not have states missing a definition");
@@ -684,7 +685,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 		}
 		throw new UnsupportedOperationException("Unknown operator in acceptance condition: "+accExpr);
 	}
-	
+
 	/** Check that the acceptance signature is well-formed, referencing only existing acceptance sets.
 	 * Throws {@code HOAConsumerException} otherwise. */
 	private void checkAcceptanceSignature(List<Integer> accSignature, boolean inTransition) throws HOAConsumerException
@@ -755,7 +756,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 		}
 		throw new UnsupportedOperationException("Unknown operator in label expression: "+expr);
 	}
-	
+
 	/** Check that all aliases and AP indizes in the label expression are defined, throws {@code HOAConsumerException} otherwise. */
 	private void checkLabelExpression(BooleanExpression<AtomLabel> expr) throws HOAConsumerException
 	{
@@ -781,7 +782,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 				int apIndex = expr.getAtom().getAPIndex();
 				if (apIndex >= numberOfAPs) {
 					if (numberOfAPs == 0) {
-						throw new HOAConsumerException("AP index "+apIndex+" in expression is out of range (no APs): "+expr);	
+						throw new HOAConsumerException("AP index "+apIndex+" in expression is out of range (no APs): "+expr);
 					} else {
 						throw new HOAConsumerException("AP index "+apIndex+" in expression is out of range (from 0 to "+(numberOfAPs-1)+"): "+expr);
 					}
@@ -793,11 +794,11 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	// ----------------------------------------------------------------------------
-	
+
 	/** Check that the Acceptance header matches the canonical condition defined by the acc-name header, throws {@code HOAConsumerException} otherwise. */
 	private void checkAccName() throws HOAConsumerException {
 		AcceptanceRepository repository = new AcceptanceRepositoryStandard();
-		
+
 		try {
 			BooleanExpression<AtomAcceptance> canonical = repository.getCanonicalAcceptanceExpression(accName, accExtraInfo);
 			if (canonical == null) {
@@ -807,7 +808,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 			//System.out.println("Canonical: "+canonical);
 			//System.out.println("Acceptance: "+acceptance);
-			
+
 			assert (acceptance != null);
 			if (!BooleanExpression.areSyntacticallyEqual(acceptance, canonical)) {
 				throw new HOAConsumerException("The acceptance given by the Acceptance and by the acc-name headers do not match syntactically:"

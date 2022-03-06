@@ -31,15 +31,15 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerPrint;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerPrint;
+import owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions;
 import owl.util.OwlVersion;
 
 public final class HoaWriter {

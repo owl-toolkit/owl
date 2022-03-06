@@ -1,31 +1,31 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.ast;
+package owl.thirdparty.jhoafparser.ast;
 
 /**
  * Atom of a label expression (either an atomic proposition index or an alias reference)
@@ -38,14 +38,14 @@ public class AtomLabel implements Atom {
 		/** alias reference */
 		ALIAS
 	};
-	
+
 	/** The type of this atom */
 	private Type type;
 	/** For an {@code AP_INDEX}, the index */
 	private Integer apIndex = null;
 	/** For an {@code ALIAS}, the alias name */
 	private String aliasName = null;
-	
+
 	/** private default constructor */
 	private AtomLabel() {type = null;}
 
@@ -56,7 +56,7 @@ public class AtomLabel implements Atom {
 		result.apIndex = apIndex;
 		return result;
 	}
-	
+
 	/** Static constructor for an alias reference atom */
 	public static AtomLabel createAlias(String aliasName) {
 		AtomLabel result = new AtomLabel();
@@ -64,7 +64,7 @@ public class AtomLabel implements Atom {
 		result.aliasName = aliasName;
 		return result;
 	}
-	
+
 	/** Return a copy of this atom */
 	public AtomLabel clone()
 	{
@@ -74,13 +74,13 @@ public class AtomLabel implements Atom {
 			return createAPIndex(apIndex);
 		}
 	}
-	
+
 	/** Returns true if this atom is an alias reference */
 	public boolean isAlias() {return type == Type.ALIAS;}
 
 	/**
 	 * For an alias atom, return the alias name.
-	 * 
+	 *
 	 * @throws UnsupportedOperationException when invoked for an AP index atom
 	 */
 	public String getAliasName() {
@@ -90,7 +90,7 @@ public class AtomLabel implements Atom {
 
 	/**
 	 * For an AP index atom, return the AP index.
-	 * 
+	 *
 	 * @throws UnsupportedOperationException when invoked for an alias atom
 	 */
 	public int getAPIndex() {
@@ -106,7 +106,7 @@ public class AtomLabel implements Atom {
 		case ALIAS:
 			return "@"+aliasName;
 		}
-		
+
 		throw new RuntimeException("Unhandled type");
 	}
 

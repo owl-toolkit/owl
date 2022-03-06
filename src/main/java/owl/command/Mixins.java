@@ -39,11 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
-import jhoafparser.extensions.HOAConsumerPrintFixed;
-import jhoafparser.extensions.ToStateAcceptanceFixed;
-import jhoafparser.parser.generated.ParseException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.automaton.Automaton;
@@ -56,6 +51,11 @@ import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 import owl.ltl.visitors.PrintVisitor;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateStoreAndManipulate;
+import owl.thirdparty.jhoafparser.owl.extensions.HOAConsumerPrintFixed;
+import owl.thirdparty.jhoafparser.owl.extensions.ToStateAcceptanceFixed;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 @SuppressWarnings("PMD.ImmutableField")
 final class Mixins {

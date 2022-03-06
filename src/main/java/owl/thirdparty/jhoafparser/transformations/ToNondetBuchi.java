@@ -1,47 +1,47 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.transformations;
+package owl.thirdparty.jhoafparser.transformations;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-
-import jhoafparser.analysis.AcceptanceSimplify;
-import jhoafparser.ast.*;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.storage.StoredAutomaton;
-import jhoafparser.storage.StoredAutomatonManipulator;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredHeader;
-import jhoafparser.storage.StoredHeader.NameAndExtra;
-import jhoafparser.storage.StoredState;
-import jhoafparser.util.AcceptanceRepositoryStandard;
+import owl.thirdparty.jhoafparser.analysis.AcceptanceSimplify;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
+import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredHeader;
+import owl.thirdparty.jhoafparser.storage.StoredHeader.NameAndExtra;
+import owl.thirdparty.jhoafparser.storage.StoredState;
+import owl.thirdparty.jhoafparser.util.AcceptanceRepositoryStandard;
 
 /**
  * Convert (nondeterministic) automaton to generalized-Buchi acceptance.
@@ -82,19 +82,19 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 	/** Constructor, apply the transformation to the given stored automaton. */
 	private ToNondetBuchi(StoredAutomaton aut) throws HOAConsumerException {
 		source = aut;
-		
+
 		if (source.hasUniversalBranching()) {
 			throw new HOAConsumerException("Automaton has branching, can only convert (non-)deterministic automata to non-deterministic Buchi");
 		}
-		
+
 		if (source.hasEdgesImplicit()) {
 			// TODO: convert to explicit edges
 			throw new HOAConsumerException("Converting to Buchi currently not supported for automata with implicit edges");
 		}
-		
+
 		acceptanceToDNF();
 		calcNumberOfBuchi();
-		
+
 		numberOfStates = Math.max(source.getNumberOfStates(), source.getHighestStateIndex() + 1);
 
 		target = new StoredAutomaton();
@@ -136,7 +136,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 	private int countInf(BooleanExpression<AtomAcceptance> acc) {
 		switch (acc.getType()) {
 		case EXP_AND:
-		case EXP_OR:			
+		case EXP_OR:
 			return countInf(acc.getLeft()) + countInf(acc.getRight());
 		case EXP_ATOM:
 			switch (acc.getAtom().getType()) {
@@ -187,11 +187,11 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 				int index = clause.getAtom().getAcceptanceSet();
 
 				if (clause.getAtom().isNegated()) {
-					// Fin(!index) => 
+					// Fin(!index) =>
 					//  consistent if index does appear
 					return accSignature.contains(index);
 				} else {
-					// Fin(index) => 
+					// Fin(index) =>
 					//  consistent if index does not appear
 					return !accSignature.contains(index);
 				}
@@ -226,7 +226,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 	/**
 	 * Translate an acceptance signature from the source automaton
 	 * to an acceptance signature in the target automaton,
-	 * providing the {@code current} smallest unused acceptance index. 
+	 * providing the {@code current} smallest unused acceptance index.
 	 */
 	private int translateAcceptance(List<Integer> acceptanceSignature, BooleanExpression<AtomAcceptance> acc, int current, List<Integer> transformedSignature) {
 		switch (acc.getType()) {
@@ -250,7 +250,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 		case EXP_TRUE:
 		default:
 			break;
-		
+
 		}
 		throw new UnsupportedOperationException("Unsupported operator in acceptance condition:" + acc);
 	}
@@ -276,7 +276,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 
 					// edge into original, no acceptance
 					target.addEdgeWithLabel(s, new StoredEdgeWithLabel(edge.getLabelExpr(), gotoState(stateInOriginal(t)), null));
-					
+
 					for (int copy = 0; copy < copies; copy++) {
 						// edge into copy, no acceptance
 						target.addEdgeWithLabel(s, new StoredEdgeWithLabel(edge.getLabelExpr(), gotoState(stateInCopy(t, copy)), null));
@@ -298,7 +298,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 
 			// the state index in the copy
 			Integer s_ = stateInCopy(s, copy);
-			
+
 			if (original == null) {
 				original = new StoredState(s_, name, null, null);
 			}
@@ -315,7 +315,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 				// no acceptance signature: keep it that way, acceptance is handled via the edges
 				target.addState(new StoredState(s_, name, original.getLabelExpr(), null));
 			}
-			
+
 			if (makeTerminal) {
 				continue;
 			}
@@ -398,7 +398,7 @@ public class ToNondetBuchi implements StoredAutomatonManipulator
 				// preserved
 				break;
 
-			
+
 			case "weak":
 			case "very-weak":
 			case "inherently-weak":

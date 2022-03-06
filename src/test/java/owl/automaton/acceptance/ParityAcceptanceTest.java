@@ -19,16 +19,16 @@
 
 package owl.automaton.acceptance;
 
-import static jhoafparser.extensions.BooleanExpressions.mkFin;
-import static jhoafparser.extensions.BooleanExpressions.mkInf;
+import static owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions.mkFin;
+import static owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions.mkInf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static owl.util.Assertions.assertThat;
 
 import java.util.List;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.extensions.BooleanExpressions;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.ParityAcceptance.Parity;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions;
 
 class ParityAcceptanceTest {
   @Test

@@ -5,4 +5,4 @@
  * To modify the parser, change the {@code HOAFParserCC.jj} file and
  * regenerate the {@code .java} files using {@code javacc}.
  */
-package jhoafparser.parser.generated;
+package owl.thirdparty.jhoafparser.parser.generated;

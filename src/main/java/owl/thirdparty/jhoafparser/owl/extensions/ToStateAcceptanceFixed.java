@@ -34,7 +34,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jhoafparser.extensions;
+package owl.thirdparty.jhoafparser.owl.extensions;
 
 import com.google.auto.value.AutoValue;
 import java.util.ArrayList;
@@ -49,13 +49,13 @@ import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Function;
 import javax.annotation.Nullable;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.storage.StoredAutomaton;
-import jhoafparser.storage.StoredAutomatonManipulator;
-import jhoafparser.storage.StoredEdgeImplicit;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredHeader;
-import jhoafparser.storage.StoredState;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
+import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeImplicit;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredHeader;
+import owl.thirdparty.jhoafparser.storage.StoredState;
 
 /**
  * Convert automaton to state-based acceptance.

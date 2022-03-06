@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jhoafparser.extensions;
+package owl.thirdparty.jhoafparser.owl.extensions;
 
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Variable;
@@ -33,12 +33,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import jhoafparser.ast.Atom;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.BooleanExpression;
 import owl.logic.propositional.PropositionalFormula;
 import owl.logic.propositional.PropositionalFormula.Conjunction;
 import owl.logic.propositional.PropositionalFormula.Negation;
+import owl.thirdparty.jhoafparser.ast.Atom;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 public final class BooleanExpressions {
 

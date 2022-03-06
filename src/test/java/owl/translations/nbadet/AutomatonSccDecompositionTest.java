@@ -28,7 +28,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
@@ -36,6 +35,7 @@ import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.hoa.HoaReader;
 import owl.bdd.FactorySupplier;
 import owl.collections.Pair;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 public class AutomatonSccDecompositionTest {
 

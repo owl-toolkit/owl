@@ -21,6 +21,6 @@
  * Extensions and fixes for the jhoafparser library.
  */
 @EverythingIsNonnullByDefault
-package jhoafparser.extensions;
+package owl.thirdparty.jhoafparser.owl.extensions;
 
 import owl.util.annotation.EverythingIsNonnullByDefault;

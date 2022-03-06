@@ -42,18 +42,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerStore;
-import jhoafparser.extensions.BooleanExpressions;
-import jhoafparser.extensions.HOAFParserFixed;
-import jhoafparser.parser.generated.ParseException;
-import jhoafparser.storage.StoredAutomaton;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredHeader;
-import jhoafparser.transformations.ToExplicitLabels;
-import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -71,6 +59,18 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerStore;
+import owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions;
+import owl.thirdparty.jhoafparser.owl.extensions.HOAFParserFixed;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
+import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredHeader;
+import owl.thirdparty.jhoafparser.transformations.ToExplicitLabels;
+import owl.thirdparty.jhoafparser.transformations.ToTransitionAcceptance;
 
 public final class HoaReader {
 

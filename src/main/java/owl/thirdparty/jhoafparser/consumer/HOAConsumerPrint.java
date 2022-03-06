@@ -1,31 +1,31 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.consumer;
+package owl.thirdparty.jhoafparser.consumer;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -33,25 +33,26 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.List;
-
-import jhoafparser.ast.*;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * This {@code HOAConsumer} renders the method calls
- * to produce a valid HOA automaton output. 
+ * to produce a valid HOA automaton output.
  */
 public class HOAConsumerPrint implements HOAConsumer {
 	/** The output writer */
 	protected Writer out;
-	
-	/** 
+
+	/**
 	 * Constructor
 	 * @param out the {@code OutputStream}
 	 */
 	public HOAConsumerPrint(OutputStream out) {
 		this.out = new BufferedWriter(new OutputStreamWriter(out));
 	}
-	
+
 	/**
 	 * Return a factory for building HOAConsumerPrint with the given
 	 * output stream.
@@ -210,7 +211,7 @@ public class HOAConsumerPrint implements HOAConsumer {
 				out.write(" ");
 				out.write(quoteString(info));
 			}
-			if (accSignature != null) {	
+			if (accSignature != null) {
 				out.write(" {");
 				boolean first = true;
 				for (Integer acc : accSignature) {
@@ -257,14 +258,14 @@ public class HOAConsumerPrint implements HOAConsumer {
 				out.write(labelExpr.toString());
 				out.write("] ");
 			}
-			
+
 			boolean first = true;
 			for (Integer succ : conjSuccessors) {
 				if (!first) out.write("&");
 				first = false;
 				out.write(succ.toString());
 			}
-			
+
 			if (accSignature != null) {
 				out.write(" {");
 				first = true;

@@ -1,5 +1,5 @@
 /**
- * The {@code jhoafparser.analysis} package contains 
+ * The {@code jhoafparser.analysis} package contains
  * functionality for analyzing HOA information, e.g. acceptance conditions.
  */
-package jhoafparser.analysis;
+package owl.thirdparty.jhoafparser.analysis;

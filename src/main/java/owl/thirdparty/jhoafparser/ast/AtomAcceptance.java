@@ -1,33 +1,33 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.ast;
+package owl.thirdparty.jhoafparser.ast;
 
-/** 
+/**
  * Atom of an acceptance condition, either Fin(accSet), Fin(!accSet), Inf(accSet) or Inf(!accSet)
  */
 public class AtomAcceptance implements Atom {
@@ -37,7 +37,7 @@ public class AtomAcceptance implements Atom {
 		TEMPORAL_FIN,
 		/** Inf(.) atom */
 		TEMPORAL_INF;
-	
+
 		/** Returns the dual of the given acceptance condition type */
 		Type dual() {
 			return (this == TEMPORAL_FIN) ? TEMPORAL_INF : TEMPORAL_FIN;
@@ -53,9 +53,9 @@ public class AtomAcceptance implements Atom {
 
 	/**
 	 * Constructor for an acceptance condition atom.
-	 * 
+	 *
 	 * @param type the type (TEMPORAL_FIN, TEMPORAL_INF)
-	 * @param accSet the acceptance set index 
+	 * @param accSet the acceptance set index
 	 * @param negated is the acceptance set negated, e.g., Fin(!2)?
 	 * */
 	public AtomAcceptance(Type type, Integer accSet, boolean negated) {
@@ -63,7 +63,7 @@ public class AtomAcceptance implements Atom {
 		this.accSet = accSet;
 		this.negated = negated;
 	}
-	
+
 	/** Static constructor for a Fin(accSet) atom */
 	public static AtomAcceptance Fin(int accSet) {
 		return new AtomAcceptance(Type.TEMPORAL_FIN, accSet, false);
@@ -78,12 +78,12 @@ public class AtomAcceptance implements Atom {
 	public static AtomAcceptance Inf(int accSet) {
 		return new AtomAcceptance(Type.TEMPORAL_INF, accSet, false);
 	}
-	
+
 	/** Static constructor for an Inf(!accSet) atom */
 	public static AtomAcceptance InfNot(int accSet) {
 		return new AtomAcceptance(Type.TEMPORAL_INF, accSet, true);
 	}
-	
+
 	/** Returns a copy of this atom. */
 	public Atom clone()
 	{
@@ -95,7 +95,7 @@ public class AtomAcceptance implements Atom {
 	{
 		return type;
 	}
-	
+
 	/** Returns the acceptance set index of this atom. */
 	public int getAcceptanceSet() {
 		return accSet;

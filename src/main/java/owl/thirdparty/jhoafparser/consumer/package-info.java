@@ -4,4 +4,4 @@
  * <p>
  * In addition, provides several implementations for useful consumers and intermediates.
  */
-package jhoafparser.consumer;
+package owl.thirdparty.jhoafparser.consumer;

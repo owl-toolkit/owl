@@ -1,31 +1,31 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.util;
+package owl.thirdparty.jhoafparser.util;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,7 +45,7 @@ public class PropertyFilter
 	private static Set<String> v1BranchingProperties = getV1BranchingProperties();
 	/** Set of properties that are preserved as long as there is no change of the structure */
 	private static Set<String> v1StructuralProperties = getV1StructuralProperties();
-	
+
 	// non-static members
 	/** Set of allowed properties */
 	private Set<String> allowedProperties = new HashSet<String>();
@@ -68,7 +68,7 @@ public class PropertyFilter
 	public void allowProperty(String property) {
 		allowedProperties.add(property);
 	}
-	
+
 	/** Remove property from the set of allowed properties */
 	public void disallowProperty(String property) {
 		allowedProperties.remove(property);
@@ -89,7 +89,7 @@ public class PropertyFilter
 		}
 		return result;
 	}
-	
+
 	/** Get the properties dealing with language in HOAF v1 */
 	public static Set<String> getV1LanguageProperties() {
 		HashSet<String> properties = new HashSet<String>();
@@ -138,7 +138,7 @@ public class PropertyFilter
 
 		return properties;
 	}
-	
-	
-	
+
+
+
 }

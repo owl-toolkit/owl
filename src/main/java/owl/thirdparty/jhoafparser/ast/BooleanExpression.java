@@ -1,32 +1,32 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
 
-package jhoafparser.ast;
+package owl.thirdparty.jhoafparser.ast;
 
 import java.util.BitSet;
 
@@ -45,7 +45,7 @@ import java.util.BitSet;
  * With {@code AtomLabel}, this represents a label expression
  * over atomic propositions, with {@code AtomAcceptance} an
  * expression of Fin/Inf acceptance conditions.
- * 
+ *
  * @param <Atoms> The atoms (leaf nodes) in the abstract syntax tree.
  */
 public class BooleanExpression<Atoms extends Atom> {
@@ -82,7 +82,7 @@ public class BooleanExpression<Atoms extends Atom> {
 		this.right=right;
 		this.atom=null;
 	}
-	
+
 	/** Constructor for a boolean leaf node (true / false) with the given value */
 	public BooleanExpression(boolean value) {
 		this.type = (value ? Type.EXP_TRUE : Type.EXP_FALSE);
@@ -90,7 +90,7 @@ public class BooleanExpression<Atoms extends Atom> {
 		this.right = null;
 		this.atom = null;
 	}
-	
+
 	/** Constructor for an atom leaf node */
 	public BooleanExpression(Atoms atom) {
 		type = Type.EXP_ATOM;
@@ -149,24 +149,24 @@ public class BooleanExpression<Atoms extends Atom> {
 		return new BooleanExpression<Atoms>(Type.EXP_NOT, this, null);
 	}
 
-	/** 
+	/**
 	 * Static helper function, calculating the bits that are set for
 	 * a given implicit edge index, i.e., the binary representation
 	 * of the index.
 	 */
 	public static BitSet fromImplicit(long implicitIndex) {
 		BitSet bs = new BitSet();
-		
+
 		int bit = 0;
 		while (implicitIndex != 0) {
 			bs.set(bit, (implicitIndex & 0x01)==1);
 			implicitIndex = implicitIndex >> 2;
 			bit++;
 		}
-		
+
 		return bs;
 	}
-	
+
 	/**
 	 * Returns a boolean expression with {@code AtomLabel} atoms for the
 	 * given implicit edge index and number of atomic propositions.
@@ -174,31 +174,31 @@ public class BooleanExpression<Atoms extends Atom> {
 	public static BooleanExpression<AtomLabel> fromImplicit(long implicitIndex, int apSize) {
 		BooleanExpression<AtomLabel> result = null;
 		BitSet bs = fromImplicit(implicitIndex);
-		
+
 		for (int i = 0; i < apSize; i++) {
-			BooleanExpression<AtomLabel> label = new BooleanExpression<AtomLabel>(AtomLabel.createAPIndex(new Integer(i)));
+			BooleanExpression<AtomLabel> label = new BooleanExpression<>(AtomLabel.createAPIndex(i));
 			if (bs.get(i) == false) {
 				label = label.not();
 			}
-			
+
 			if (result != null)
 				result = result.and(label);
 			else
 				result = label;
 		}
-		
+
 		return result;
 	}
 
 	/**
 	 * Returns true if the two boolean expression are syntactically equal, i.e.,
 	 * if the tree structure matches and the atoms are equal.
-	 */ 
+	 */
 	public static boolean areSyntacticallyEqual(BooleanExpression<?> expr1, BooleanExpression<?> expr2)
 	{
 		if (expr1 == null || expr2 == null) return false;
 		if (expr1.getType() != expr2.getType()) return false;
-		
+
 		switch (expr1.getType()) {
 		case EXP_TRUE:
 		case EXP_FALSE:
@@ -220,7 +220,7 @@ public class BooleanExpression<Atoms extends Atom> {
 	/**
 	 * Returns true if the node needs to be parenthesized
 	 * if the parent node has the given {@code enclosingType}
-	 * to preserve operator precedence. 
+	 * to preserve operator precedence.
 	 */
 	public boolean needsParentheses(Type enclosingType) {
 		switch (type) {
@@ -256,7 +256,7 @@ public class BooleanExpression<Atoms extends Atom> {
 			result.append(left.toStringInfix());
 			if (paren) result.append(")");
 			result.append(" & ");
-			
+
 			paren = right.needsParentheses(Type.EXP_AND);
 			if (paren) result.append("(");
 			result.append(right.toStringInfix());
@@ -269,7 +269,7 @@ public class BooleanExpression<Atoms extends Atom> {
 			result.append(left.toStringInfix());
 			if (paren) result.append(")");
 			result.append(" | ");
-			
+
 			paren = right.needsParentheses(Type.EXP_OR);
 			if (paren) result.append("(");
 			result.append(right.toStringInfix());

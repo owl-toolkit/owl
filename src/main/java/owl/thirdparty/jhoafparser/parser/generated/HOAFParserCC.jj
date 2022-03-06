@@ -1,28 +1,28 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
 options {
@@ -35,13 +35,13 @@ package jhoafparser.parser.generated;
 
 import java.io.*;
 import java.util.*;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerFactory;
-import jhoafparser.consumer.HOAIntermediateResolveAliases;
-import jhoafparser.consumer.HOAIntermediateCheckValidity;
-import jhoafparser.parser.HOAFParserSettings;
-import jhoafparser.ast.*;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerFactory;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateResolveAliases;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateCheckValidity;
+import owl.thirdparty.jhoafparser.parser.HOAFParserSettings;
+import owl.thirdparty.jhoafparser.ast.*;
 
 /**
  * The generated parser.
@@ -103,7 +103,7 @@ public class HOAFParserCC
 	 *
 	 * @param str The input stream with the automaton description
 	 * @param userConsumer The consumer that receives the notifications about the parsed elements from the parser
-	 * @param settings Settings for the parser (may be {@code null}) 
+	 * @param settings Settings for the parser (may be {@code null})
 	 */
 	public static void parseHOA(InputStream str, final HOAConsumer userConsumer, HOAFParserSettings settings) throws ParseException
 	{
@@ -125,7 +125,7 @@ public class HOAFParserCC
 
 		consumer = consumerFactory.getNewHOAConsumer();
 		newAutomaton();
-		
+
 		// Parse
 		try {
 			SingleAutomaton();
@@ -134,7 +134,7 @@ public class HOAFParserCC
 			consumer = null;
 		}
 	}
-	
+
 	/**
 	 * Entry point for parsing a stream of automata in HOA format.
 	 * <br> Note: this parser is non-reentrant, i.e., it is
@@ -143,7 +143,7 @@ public class HOAFParserCC
 	 * @param str The input stream with the automaton description
 	 * @param userFactory A factory that produces HOAConsumers, one for each automaton encountered,
 	 *                      that receive the notifications about the parsed elements from the parser
-	 * @param settings Settings for the parser (may be {@code null}) 
+	 * @param settings Settings for the parser (may be {@code null})
 	 */
 	public static void parseHOA(InputStream str, final HOAConsumerFactory userFactory, HOAFParserSettings settings) throws ParseException
 	{
@@ -193,7 +193,7 @@ public class HOAFParserCC
 		return new HOAConsumerFactory() {
 			public HOAConsumer getNewHOAConsumer() {
 				HOAConsumer consumer = userFactory.getNewHOAConsumer();
-				
+
 				if (consumer.parserResolvesAliases()) {
 					consumer = new HOAIntermediateResolveAliases(consumer);
 				}
@@ -220,7 +220,7 @@ PARSER_END(HOAFParserCC)
 
 TOKEN_MGR_DECLS : {
 
-    static int commentNestingDepth ; 
+    static int commentNestingDepth ;
 }
 
 // Skip (but store) all other white space
@@ -231,28 +231,28 @@ SPECIAL_TOKEN :
 }
 
 
-// When a /* is seen in the DEFAULT state, remember it and switch to the IN_COMMENT state, 
+// When a /* is seen in the DEFAULT state, remember it and switch to the IN_COMMENT state,
 // initialising the nesting depth counter
-MORE : 
+MORE :
 {
 	"/*" { commentNestingDepth = 1 ; } : IN_COMMENT
 }
 
 // When a /* is seen in the IN_COMMENT state, remember it and increase
 // the nesting depth counter and go to IN_COMMENT_DEEP state
-<IN_COMMENT> MORE : 
+<IN_COMMENT> MORE :
 {
 	 "/*" { commentNestingDepth += 1 ; } : IN_COMMENT_DEEP
 }
 
 // When a /* is seen in the IN_COMMENT_DEEP state, remember it and increase
 // the nesting depth counter and stay in the IN_COMMENT_DEEP state
-<IN_COMMENT_DEEP> MORE : 
+<IN_COMMENT_DEEP> MORE :
 {
 	 "/*" { commentNestingDepth += 1 ; } : IN_COMMENT_DEEP
 }
 
- // When any other character is seen in the IN_COMMENT or IN_COMMENT_DEEP state, 
+ // When any other character is seen in the IN_COMMENT or IN_COMMENT_DEEP state,
  // it's part of the comment.
 < IN_COMMENT >      MORE :  {< ~[] >}
 < IN_COMMENT_DEEP > MORE :  {< ~[] >}
@@ -265,7 +265,7 @@ MORE :
 	"*/": DEFAULT
 }
 
-// When a */ is seen in the IN_COMMENT_DEEP state 
+// When a */ is seen in the IN_COMMENT_DEEP state
 // decrease the nesting depth and if depth=1 switch back to
 // IN_COMMENT state
 < IN_COMMENT_DEEP > MORE :
@@ -335,7 +335,7 @@ void Automata() :
 	  {
 		consumer=consumerFactory.getNewHOAConsumer();
 		newAutomaton();
-	   } Automaton() 
+	   } Automaton()
 	 )
 	)+
 }
@@ -387,12 +387,12 @@ void Format() :
 }
 
 
-void HeaderItem() : 
+void HeaderItem() :
 {
 }
 {
 	  HeaderItemStates()
-	| HeaderItemStart() 
+	| HeaderItemStart()
 	| HeaderItemAP()
 	| HeaderItemAlias()
 	| HeaderItemAcceptance()
@@ -422,7 +422,7 @@ void HeaderItemStart() :
 	<START>
 	startState = Integer() { startStates.add(startState); }
 	(
-	 <AND> 
+	 <AND>
 	 startState = Integer() { startStates.add(startState); }
 	)*
 	{
@@ -440,9 +440,9 @@ void HeaderItemAP() :
 {
     (
 	  <AP>
-	  apCount = Integer() 
+	  apCount = Integer()
 	  (
-	    ap = QuotedString() 
+	    ap = QuotedString()
 	    {
 	      if (apSet.contains(ap)) {
 	         throw new ParseException("Atomic proposition \""+ap+"\" is a duplicate!");
@@ -461,7 +461,7 @@ void HeaderItemAP() :
 }
 
 
-void HeaderItemAlias() : 
+void HeaderItemAlias() :
 {
 	String alias;
 	BooleanExpression<AtomLabel> labelExpression;
@@ -507,7 +507,7 @@ BooleanExpression<AtomAcceptance> AcceptanceConditionAnd() :
 }
 {
 	left = AcceptanceConditionAtom()
-	(<AND> right = AcceptanceConditionAtom() { left = left.and(right); } )* 
+	(<AND> right = AcceptanceConditionAtom() { left = left.and(right); } )*
 	{
 		return left;
 	}
@@ -598,7 +598,7 @@ void HeaderItemName() :
 {
 	<NAME>
 	name = QuotedString()
-	
+
 	{
 		consumer.setName(name);
 	}
@@ -614,7 +614,7 @@ void HeaderItemProperties() :
 	(
 	 property = Identifier() {properties.add(property);}
 	)*
-	
+
 	{
 		consumer.addProperties(properties);
 	}
@@ -636,7 +636,7 @@ void HeaderItemMisc() :
 	 | o = QuotedString() {content.add(o);}
 	 | o = <TRUE> {content.add("t");}
 	 | o = <FALSE> {content.add("f");}
-	)* 
+	)*
 	{
 		consumer.addMiscHeader(headerName, content);
 	}
@@ -666,7 +666,7 @@ void StateName() :
 	state = Integer()     // name of the state
 	( stateComment = QuotedString() )? // state comment
 	( accSignature = AcceptanceSignature() )?
-	
+
 	{
 		if (currentState != null) {
 			consumer.notifyEndOfState(currentState);
@@ -695,13 +695,13 @@ void Edge() :
 	( labelExpr = Label() )?
 	conjStates = StateConjunction()
 	( accSignature = AcceptanceSignature() )?
-	
+
 	{
 		if (labelExpr != null || currentStateHasStateLabel) {
 			consumer.addEdgeWithLabel(currentState, labelExpr, conjStates, accSignature);
 		} else {
 			consumer.addEdgeImplicit(currentState, conjStates, accSignature);
-		
+
 		}
 	}
 }
@@ -772,7 +772,7 @@ List<Integer> AcceptanceSignature() :
 	  accSet = Integer() {accSignature.add(accSet);}
 	)*
 	<RCURLY>
-	
+
 	{return accSignature;}
 }
 
@@ -784,7 +784,7 @@ List<Integer> StateConjunction() :
 {
 	state = Integer() {conjStates.add(state);}
 	( <AND> state = Integer() {conjStates.add(state);} )*
-	
+
 	{return conjStates;}
 }
 
@@ -802,7 +802,7 @@ String Identifier() :
 {
 	<REG_IDENT> { return getToken(0).image; }
 }
-	
+
 // Integer
 
 int Integer() :
@@ -817,7 +817,7 @@ String QuotedString() :
 	String s;
 }
 {
-	<REG_STRING> { 
+	<REG_STRING> {
 		s = getToken(0).image;
 		// remove outer quotes "
 		s = s.substring(1, s.length()-1);
@@ -837,11 +837,11 @@ String HeaderName() :
 	}
 }
 
-String AliasName() : 
+String AliasName() :
 {
 }
 {
-	<REG_ANAME> { 
+	<REG_ANAME> {
 	  String s = getToken(0).image;
 	  // remove @
 	  return s.substring(1);

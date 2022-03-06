@@ -34,7 +34,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jhoafparser.extensions;
+package owl.thirdparty.jhoafparser.owl.extensions;
 
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -42,11 +42,11 @@ import java.io.Writer;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomAcceptance;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 
 /**
  * This {@code HOAConsumer} renders the method calls

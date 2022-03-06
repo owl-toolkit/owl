@@ -21,14 +21,14 @@ package owl.automaton.hoa;
 
 import java.util.List;
 import java.util.Set;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerNull;
-import jhoafparser.consumer.HOAIntermediateCheckValidity;
 import org.junit.jupiter.api.Test;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerNull;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateCheckValidity;
 
 public class HoaWriterTest {
 

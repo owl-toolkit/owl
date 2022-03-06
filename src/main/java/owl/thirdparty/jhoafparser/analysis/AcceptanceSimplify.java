@@ -1,38 +1,38 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.analysis;
+package owl.thirdparty.jhoafparser.analysis;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
-import jhoafparser.ast.*;
-import jhoafparser.storage.UniqueTable;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.storage.UniqueTable;
 
 /** Helper class for simplifying a generic acceptance condition */
 public class AcceptanceSimplify
@@ -41,9 +41,9 @@ public class AcceptanceSimplify
 	private static Boolean getSimpleTruth(BooleanExpression<AtomAcceptance> acc) {
 		switch (acc.getType()) {
 		case EXP_FALSE:
-			return new Boolean(false);
+			return false;
 		case EXP_TRUE:
-			return new Boolean(true);
+			return true;
 		default:
 			return null;
 		}
@@ -115,7 +115,7 @@ public class AcceptanceSimplify
 	 * Converts the given acceptance condition into disjunctive normal form (DNF).
 	 * <p>
 	 * Uses a unique table to allow sharing of subformulas.
-	 * 
+	 *
 	 * @param acc the acceptance condition that should be transformed
 	 * @param uniqueTable a unique table over acceptance expressions
 	 * @returns an equivalent acceptance condition in DNF

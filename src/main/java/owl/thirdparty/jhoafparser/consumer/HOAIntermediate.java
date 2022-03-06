@@ -1,36 +1,36 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.consumer;
+package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.List;
-
-import jhoafparser.ast.*;
-
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * The {@code HOAIntermediate} class provides a mechanism to chain
@@ -40,14 +40,13 @@ import jhoafparser.ast.*;
  * <p>
  * By overriding methods, this behavior can be customized, e.g.,
  * validating constraints on the input ({@link HOAIntermediateCheckValidity}),
- * performing on-the-fly transformations ({@link HOAIntermediateResolveAliases})
- * or simply for debugging ({@link HOAIntermediateTrace}).
+ * performing on-the-fly transformations ({@link HOAIntermediateResolveAliases}).
  */
 public class HOAIntermediate implements HOAConsumer
 {
 	/** The next consumer. */
 	protected HOAConsumer next;
-	
+
 	/** Constructor, providing the next consumer */
 	public HOAIntermediate(HOAConsumer next)
 	{
@@ -170,7 +169,7 @@ public class HOAIntermediate implements HOAConsumer
 	{
 		next.notifyAbort();
 	}
-	
+
 	@Override
 	public void notifyWarning(String warning) throws HOAConsumerException
 	{

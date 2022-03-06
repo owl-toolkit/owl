@@ -1,10 +1,9 @@
-package jhoafparser.parser;
+package owl.thirdparty.jhoafparser.parser;
 
 import java.io.InputStream;
-
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerFactory;
-import jhoafparser.parser.generated.ParseException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerFactory;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 /**
  * Public interface to the HOA format parser.
@@ -24,7 +23,7 @@ public class HOAFParser
 	 * @param userConsumer The consumer that receives the notifications about the parsed elements from the parser
 	 */
 	public static void parseHOA(InputStream str, HOAConsumer userConsumer) throws ParseException {
-		jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userConsumer);
+    owl.thirdparty.jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userConsumer);
 	}
 
 	/**
@@ -34,12 +33,12 @@ public class HOAFParser
 	 *
 	 * @param str The input stream with the automaton description
 	 * @param userConsumer The consumer that receives the notifications about the parsed elements from the parser
-	 * @param settings Settings for the parser (may be {@code null}) 
+	 * @param settings Settings for the parser (may be {@code null})
 	 */
 	public static void parseHOA(InputStream str,
 	                            HOAConsumer userConsumer,
 	                            HOAFParserSettings settings) throws ParseException {
-		jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userConsumer, settings);
+    owl.thirdparty.jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userConsumer, settings);
 	}
 
 	/**
@@ -53,7 +52,7 @@ public class HOAFParser
 	 */
 	public static void parseHOA(InputStream str,
 	                            HOAConsumerFactory userFactory) throws ParseException {
-		jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userFactory, null);
+    owl.thirdparty.jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userFactory, null);
 	}
 
 	/**
@@ -64,12 +63,12 @@ public class HOAFParser
 	 * @param str The input stream with the automaton description
 	 * @param userFactory A factory that produces HOAConsumers, one for each automaton encountered,
 	 *                      that receive the notifications about the parsed elements from the parser
-	 * @param settings Settings for the parser (may be {@code null}) 
+	 * @param settings Settings for the parser (may be {@code null})
 	 */
 	public static void parseHOA(InputStream str,
 	                            HOAConsumerFactory userFactory,
 	                            HOAFParserSettings settings) throws ParseException {
-		jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userFactory, settings);
+    owl.thirdparty.jhoafparser.parser.generated.HOAFParserCC.parseHOA(str, userFactory, settings);
 	}
 
 

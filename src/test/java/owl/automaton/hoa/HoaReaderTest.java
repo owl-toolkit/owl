@@ -29,7 +29,6 @@ import java.util.BitSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.function.Supplier;
-import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
@@ -45,6 +44,7 @@ import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
 import owl.bdd.FactorySupplier;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 class HoaReaderTest {
 

@@ -1,31 +1,31 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.transformations;
+package owl.thirdparty.jhoafparser.transformations;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -34,18 +34,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.TreeMap;
-
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.storage.StoredAutomaton;
-import jhoafparser.storage.StoredAutomatonManipulator;
-import jhoafparser.storage.StoredEdgeImplicit;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredState;
-import jhoafparser.storage.UniqueTable;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
+import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeImplicit;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredState;
+import owl.thirdparty.jhoafparser.storage.UniqueTable;
 
 /**
  * Convert automaton to state-based acceptance.
- * 
+ *
  * This conversion relies on storing the acceptance signatures of the
  * incoming transitions in the states, i.e., duplicating states depending
  * on the acceptance signature that was seen when reaching the state.
@@ -80,7 +79,7 @@ public class ToStateAcceptance implements StoredAutomatonManipulator
 			result = prime * result + ((originalStateId == null) ? 0 : originalStateId.hashCode());
 			return result;
 		}
-		
+
 		@Override
 		public boolean equals(Object obj)
 		{

@@ -1,45 +1,45 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.analysis;
+package owl.thirdparty.jhoafparser.analysis;
 
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-
-import jhoafparser.ast.*;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerFactory;
-import jhoafparser.consumer.HOAIntermediateBatchProcessState;
-import jhoafparser.storage.StoredEdgeImplicit;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredState;
-import jhoafparser.util.PropertyFilter;
+import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.thirdparty.jhoafparser.ast.BooleanExpression;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerFactory;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateBatchProcessState;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeImplicit;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredState;
+import owl.thirdparty.jhoafparser.util.PropertyFilter;
 
 /**
  * Analysis class for deducing an acc-name for a given acceptance condition.
@@ -57,7 +57,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		/**
 		 * Information for constructing the acceptance sets of the transformed
 		 * condition.<br>
-		 * 
+		 *
 		 * Boolean:    create TRUE/FALSE acceptance set
 		 * Integer(i): if (i>0) take from set i-1, if (i<0) negate set (-i-1).
 		 * */
@@ -91,7 +91,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		 */
 		public int createAccSet(boolean value) {
 			int result = transformedSets.size();
-			transformedSets.add(new Boolean(value));
+			transformedSets.add(value);
 			return result;
 		}
 
@@ -143,7 +143,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			}
 			return ((int)transformedSets.get(transformedAccSet) < 0);
 		}
-		
+
 	}
 
 	/** The number of acceptance sets in the original automaton */
@@ -162,10 +162,10 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 
 	/** Default value: should acceptance be placed on states if there are no other constrainsts? */
 	private boolean defaultPlaceAcceptanceOnState = false;
-	
+
 	/** Property filter to filter out properties that may become invalid */
 	private PropertyFilter propertyFilter = new PropertyFilter(true,  // preserves language
-	                                                           true,  // does preserve the syntax 
+	                                                           true,  // does preserve the syntax
 	                                                           true,  // preserves branching
 	                                                           true   // preserves structure
 	                                                           );
@@ -190,7 +190,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 	}
 
 	/**
-	 * Constructor, provide (ordered) list of allowed acceptance conditions 
+	 * Constructor, provide (ordered) list of allowed acceptance conditions
 	 * (names valid in the acc-name header).
 	 * Conditions appearing earlier are preferred.
 	 * */
@@ -300,7 +300,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 				// Unknown acceptance, ignore
 				break;
 			}
-			
+
 			if (name != null) {
 				// we have a new condition!
 				next.setAcceptanceCondition(transformed.getNumberOfAccSets(), transformed.getExpression());
@@ -328,9 +328,9 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			// we don't actually transform anything, let parent handle feeding to the next consumer
 			return true;
 		}
-		
+
 		// go ahead, apply transformation
-	
+
 		// determine where to place acceptance
 		boolean placeAcceptanceOnState;
 		boolean hasStateAcceptance = hasStateAcceptance(state);
@@ -348,13 +348,13 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			// place on default location
 			placeAcceptanceOnState = defaultPlaceAcceptanceOnState;
 		}
-	
+
 		if (placeAcceptanceOnState) {
 			next.addState(state.getStateId(), state.getInfo(), state.getLabelExpr(), transformAcceptance(state.getAccSignature()));
 		} else {
 			next.addState(state.getStateId(), state.getInfo(), state.getLabelExpr(), null);
 		}
-	
+
 		if (edgesImplicit != null) {
 			for (StoredEdgeImplicit edge : edgesImplicit) {
 				List<Integer> accEdge = edge.getAccSignature();
@@ -378,7 +378,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 		} else {
 			// no edge, terminal => acceptance is irrelevant
 		}
-	
+
 		return false;
 	}
 
@@ -428,11 +428,11 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			break;
 		case EXP_ATOM: {
 			AtomAcceptance atom = acc.getAtom();
-			
+
 			if (atom.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
 				return false;
 			}
-			
+
 			inf = transformed.createAccSet(atom.getAcceptanceSet(), atom.isNegated());
 			break;
 		}
@@ -467,7 +467,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			break;
 		case EXP_ATOM: {
 			AtomAcceptance atom = acc.getAtom();
-			
+
 			if (atom.getType() == AtomAcceptance.Type.TEMPORAL_INF) {
 				return false;
 			}
@@ -581,7 +581,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			break;
 		case EXP_ATOM: {
 			AtomAcceptance atom = acc.getAtom();
-			
+
 			if (atom.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
 				fin = transformed.createAccSet(atom.getAcceptanceSet(), atom.isNegated());
 				inf = transformed.createAccSet(true);
@@ -674,7 +674,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 			break;
 		case EXP_ATOM: {
 			AtomAcceptance atom = acc.getAtom();
-			
+
 			if (atom.getType() == AtomAcceptance.Type.TEMPORAL_FIN) {
 				fin = transformed.createAccSet(atom.getAcceptanceSet(), atom.isNegated());
 				inf = transformed.createAccSet(true);
@@ -745,7 +745,7 @@ public class DeduceAccName extends HOAIntermediateBatchProcessState
 
 	/**
 	 * Construct the transformed acceptance signature
-	 * according to chosenTransformation and the original acceptance 
+	 * according to chosenTransformation and the original acceptance
 	 */
 	private List<Integer> transformAcceptance(List<Integer> acceptance) {
 		// create bit set from the original acceptance

@@ -1,41 +1,40 @@
 //==============================================================================
-//	
+//
 //	Copyright (c) 2014-
 //	Authors:
 //	* Joachim Klein <klein@tcs.inf.tu-dresden.de>
 //	* David Mueller <david.mueller@tcs.inf.tu-dresden.de>
-//	
+//
 //------------------------------------------------------------------------------
-//	
+//
 //	This file is part of the jhoafparser library, http://automata.tools/hoa/jhoafparser/
 //
 //	The jhoafparser library is free software; you can redistribute it and/or
 //	modify it under the terms of the GNU Lesser General Public
 //	License as published by the Free Software Foundation; either
 //	version 2.1 of the License, or (at your option) any later version.
-//	
+//
 //	The jhoafparser library is distributed in the hope that it will be useful,
 //	but WITHOUT ANY WARRANTY; without even the implied warranty of
 //	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
 //	Lesser General Public License for more details.
-//	
+//
 //	You should have received a copy of the GNU Lesser General Public
 //	License along with this library; if not, write to the Free Software
 //	Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
-//	
+//
 //==============================================================================
 
-package jhoafparser.analysis;
+package owl.thirdparty.jhoafparser.analysis;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.storage.StoredAutomaton;
-import jhoafparser.storage.StoredAutomatonManipulator;
-import jhoafparser.storage.StoredEdgeImplicit;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredState;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
+import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeImplicit;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredState;
 
 /** Deduce syntactic properties and add to the stored automaton. */
 public class SyntacticProperties implements StoredAutomatonManipulator
@@ -65,11 +64,11 @@ public class SyntacticProperties implements StoredAutomatonManipulator
 		boolean has_labels = false;
 		boolean has_acceptance = false;
 		boolean has_one_state = (aut.getNumberOfStates() > 0);
-		
+
 		if (aut.getStoredHeader().getStartStates().size() > 1) {
 			deterministic = false;
 		}
-		
+
 		for (List<Integer> start : aut.getStoredHeader().getStartStates()) {
 			if (start.size() > 1) {
 				deterministic = false;

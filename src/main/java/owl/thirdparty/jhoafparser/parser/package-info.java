@@ -4,4 +4,4 @@
  * <p>
  * The actual (javacc-generated) parser is located in {@link jhoafparser.parser.generated}.
  */
-package jhoafparser.parser;
+package owl.thirdparty.jhoafparser.parser;

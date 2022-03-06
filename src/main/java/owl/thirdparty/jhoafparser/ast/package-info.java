@@ -6,4 +6,4 @@
  * used to represent label expressions (over atomic proposition indizes and aliases)
  * or acceptance conditions (over Fin/Inf expressions).
  */
-package jhoafparser.ast;
+package owl.thirdparty.jhoafparser.ast;

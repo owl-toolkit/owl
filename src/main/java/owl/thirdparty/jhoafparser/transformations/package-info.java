@@ -1,6 +1,6 @@
 /**
- * The {@code jhoafparser.transformations} package contains 
+ * The {@code jhoafparser.transformations} package contains
  * (on-the-fly or stored-automaton-based) transformations of
  * HOA automata.
  */
-package jhoafparser.transformations;
+package owl.thirdparty.jhoafparser.transformations;
