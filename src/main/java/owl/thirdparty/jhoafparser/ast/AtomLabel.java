@@ -30,60 +30,37 @@ package owl.thirdparty.jhoafparser.ast;
 /**
  * Atom of a label expression (either an atomic proposition index or an alias reference)
  */
-public class AtomLabel implements Atom {
-	/** The type of the label */
-	private enum Type {
+public record AtomLabel(Type type, Integer apIndex, String aliasName) {
+
+  /** The type of the label */
+	public enum Type {
 		/** atomic proposition index */
 		AP_INDEX,
 		/** alias reference */
 		ALIAS
 	};
 
-	/** The type of this atom */
-	private Type type;
-	/** For an {@code AP_INDEX}, the index */
-	private Integer apIndex = null;
-	/** For an {@code ALIAS}, the alias name */
-	private String aliasName = null;
-
-	/** private default constructor */
-	private AtomLabel() {type = null;}
-
 	/** Static constructor for an AP index atom */
 	public static AtomLabel createAPIndex(Integer apIndex) {
-		AtomLabel result = new AtomLabel();
-		result.type = Type.AP_INDEX;
-		result.apIndex = apIndex;
-		return result;
+		return new AtomLabel(Type.AP_INDEX, apIndex, null);
 	}
 
 	/** Static constructor for an alias reference atom */
 	public static AtomLabel createAlias(String aliasName) {
-		AtomLabel result = new AtomLabel();
-		result.type = Type.ALIAS;
-		result.aliasName = aliasName;
-		return result;
-	}
-
-	/** Return a copy of this atom */
-	public AtomLabel clone()
-	{
-		if (isAlias()) {
-			return createAlias(aliasName);
-		} else {
-			return createAPIndex(apIndex);
-		}
+		return new AtomLabel(Type.ALIAS, null, aliasName);
 	}
 
 	/** Returns true if this atom is an alias reference */
-	public boolean isAlias() {return type == Type.ALIAS;}
+	public boolean isAlias() {
+    return type == Type.ALIAS;
+  }
 
 	/**
 	 * For an alias atom, return the alias name.
 	 *
 	 * @throws UnsupportedOperationException when invoked for an AP index atom
 	 */
-	public String getAliasName() {
+	public String aliasName() {
 		if (!isAlias()) throw new UnsupportedOperationException(this.toString()+" is not an alias");
 		return aliasName;
 	}
@@ -93,7 +70,7 @@ public class AtomLabel implements Atom {
 	 *
 	 * @throws UnsupportedOperationException when invoked for an alias atom
 	 */
-	public int getAPIndex() {
+	public Integer apIndex() {
 		if (isAlias()) throw new UnsupportedOperationException(this.toString()+" is not an AP index");
 		return apIndex;
 	}
@@ -105,41 +82,4 @@ public class AtomLabel implements Atom {
       case ALIAS -> "@" + aliasName;
     };
 	}
-
-	@Override
-	public int hashCode()
-	{
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((aliasName == null) ? 0 : aliasName.hashCode());
-		result = prime * result + ((apIndex == null) ? 0 : apIndex.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj)
-	{
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (!(obj instanceof AtomLabel other))
-			return false;
-    if (type != other.type)
-			return false;
-		if (aliasName == null) {
-			if (other.aliasName != null)
-				return false;
-		} else if (!aliasName.equals(other.aliasName))
-			return false;
-
-    if (apIndex == null) {
-      return other.apIndex == null;
-		} else {
-      return apIndex.equals(other.apIndex);
-    }
-  }
-
-
 }

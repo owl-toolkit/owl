@@ -34,9 +34,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 
@@ -44,18 +43,7 @@ import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 public class StoredHeader
 {
 	/** A name and extra information */
-	public static class NameAndExtra<T> {
-		/** The name */
-		public String name;
-		/** The extra information */
-		public T extra;
-
-		/** Constructor */
-		NameAndExtra(String name, T extraInfo) {
-			this.name = name;
-			this.extra = extraInfo;
-		}
-	}
+	public record NameAndExtra<T>(String name, T extra) {}
 
 	/** The number of states (States-header) */
 	private Integer numberOfStates = null;
@@ -67,7 +55,7 @@ public class StoredHeader
 	/** The number of acceptance sets (Acceptance-header) */
 	private int numberOfAcceptanceSets;
 	/** The acceptance condition */
-	private BooleanExpression<AtomAcceptance> accExpr;
+	private PropositionalFormula<Integer> accExpr;
 	/** The acc-name headers, consisting of the name of the condition and optionally additional information */
 	private List<NameAndExtra<List<Object>>> accNames = new ArrayList<>();
 	/** The misc. headers, consisting of the name of the header and additional information */
@@ -83,7 +71,7 @@ public class StoredHeader
 	/** The properties */
 	private SortedSet<String> properties = new TreeSet<>();
 	/** The alias definitions */
-	private List<NameAndExtra<BooleanExpression<AtomLabel>>> aliases = new ArrayList<>();
+	private List<NameAndExtra<PropositionalFormula<AtomLabel>>> aliases = new ArrayList<>();
 	/** The set of names of defined aliases, for fast lookup */
 	private HashSet<String> aliasNames = new HashSet<>();
 
@@ -97,15 +85,15 @@ public class StoredHeader
 			result.addStartStates(new ArrayList<>(start));
 		}
 		result.setAPs(new ArrayList<>(aps));
-		result.setAcceptanceCondition(numberOfAcceptanceSets, accExpr.clone());
+		result.setAcceptanceCondition(numberOfAcceptanceSets, accExpr);
 		for (NameAndExtra<List<Object>> accName : accNames) {
 			result.provideAcceptanceName(accName.name, accName.extra);
 		}
 		for (NameAndExtra<List<Object>> miscHeader : miscHeaders) {
 			result.provideAcceptanceName(miscHeader.name, miscHeader.extra);
 		}
-		for (NameAndExtra<BooleanExpression<AtomLabel>> alias : aliases) {
-			result.addAlias(alias.name, alias.extra.clone());
+		for (NameAndExtra<PropositionalFormula<AtomLabel>> alias : aliases) {
+			result.addAlias(alias.name, alias.extra);
 		}
 		if (name != null) {
 			result.setTool(tool, toolVersion);
@@ -139,7 +127,7 @@ public class StoredHeader
 	}
 
 	/** Add the alias definition for {@code name} */
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) {
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) {
 		if (hasAlias(name)) {
 			throw new UnsupportedOperationException("Can not store alias "+name+" multiple times");
 		}
@@ -148,7 +136,7 @@ public class StoredHeader
 	}
 
 	/** Get the list of alias definitions */
-	public List<NameAndExtra<BooleanExpression<AtomLabel>>> getAliases() {
+	public List<NameAndExtra<PropositionalFormula<AtomLabel>>> getAliases() {
 		return aliases;
 	}
 
@@ -169,7 +157,7 @@ public class StoredHeader
 	}
 
 	/** Set the acceptance condition (number of acceptance sets and expression) */
-	public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) {
+	public void setAcceptanceCondition(int numberOfSets, PropositionalFormula<Integer> accExpr) {
 		numberOfAcceptanceSets = numberOfSets;
 		this.accExpr = accExpr;
 	}
@@ -180,7 +168,7 @@ public class StoredHeader
 	}
 
 	/** Get the acceptance condition expression */
-	public BooleanExpression<AtomAcceptance> getAcceptanceCondition() {
+	public PropositionalFormula<Integer> getAcceptanceCondition() {
 		return accExpr;
 	}
 
@@ -268,7 +256,7 @@ public class StoredHeader
 
 		c.setAPs(getAPs());
 
-		for (NameAndExtra<BooleanExpression<AtomLabel>> alias : getAliases()) {
+		for (NameAndExtra<PropositionalFormula<AtomLabel>> alias : getAliases()) {
 			c.addAlias(alias.name, alias.extra);
 		}
 

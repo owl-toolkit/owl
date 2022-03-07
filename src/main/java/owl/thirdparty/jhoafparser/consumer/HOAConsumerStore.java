@@ -29,9 +29,8 @@ package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.Collection;
 import java.util.List;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
 import owl.thirdparty.jhoafparser.storage.StoredEdgeImplicit;
 import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
@@ -88,7 +87,7 @@ public class HOAConsumerStore implements HOAConsumer
 	}
 
 	@Override
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) throws HOAConsumerException
 	{
 		storedAutomaton.getStoredHeader().addAlias(name, storedAutomaton.findOrAdd(labelExpr));
 	}
@@ -100,7 +99,7 @@ public class HOAConsumerStore implements HOAConsumer
 	}
 
 	@Override
-	public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException
+	public void setAcceptanceCondition(int numberOfSets, PropositionalFormula<Integer> accExpr) throws HOAConsumerException
 	{
 		storedAutomaton.getStoredHeader().setAcceptanceCondition(numberOfSets, accExpr);
 	}
@@ -143,7 +142,7 @@ public class HOAConsumerStore implements HOAConsumer
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
 	{
 		storedAutomaton.addState(new StoredState(id, info, storedAutomaton.findOrAdd(labelExpr), storedAutomaton.findOrAdd(accSignature)));
 	}
@@ -155,7 +154,7 @@ public class HOAConsumerStore implements HOAConsumer
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		storedAutomaton.addEdgeWithLabel(stateId, new StoredEdgeWithLabel(storedAutomaton.findOrAdd(labelExpr), storedAutomaton.findOrAdd(conjSuccessors), storedAutomaton.findOrAdd(accSignature)));

@@ -33,8 +33,8 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.TreeMap;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 
@@ -42,7 +42,6 @@ import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
  * Stores information about a HOA automaton, both the transition structure
  * and header information.
  * <p>
- * A {@code StoredAutomaton} is usually the result of {@link jhoafparser.consumer.HOAConsumerStore}.
  * A stored automaton can be "fed back" to a consumer via the {@code feedToConsumer} method.
  */
 public class StoredAutomaton
@@ -50,7 +49,7 @@ public class StoredAutomaton
 	/** A unique table for acceptance signatures */
 	private Interner<List<Integer>> acceptanceSignatures;
 	/** A unique table for label expressions */
-	private Interner<BooleanExpression<AtomLabel>> labelExpressions;
+	private Interner<PropositionalFormula<AtomLabel>> labelExpressions;
 
 	/** A unique table for implicit edges */
 	private Interner<StoredEdgeImplicit> edgesImplicit;
@@ -197,7 +196,7 @@ public class StoredAutomaton
 	 * If there is already an expression equal to the argument stored, return that,
 	 * otherwise store and return the argument.
 	 */
-	public BooleanExpression<AtomLabel> findOrAdd(BooleanExpression<AtomLabel> exprLabel) {
+	public PropositionalFormula<AtomLabel> findOrAdd(PropositionalFormula<AtomLabel> exprLabel) {
     return exprLabel == null ? null : labelExpressions.intern(exprLabel);
   }
 

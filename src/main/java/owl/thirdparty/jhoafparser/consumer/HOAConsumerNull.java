@@ -29,9 +29,8 @@ package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.Collection;
 import java.util.List;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * This {@code HOAConsumer} provides a "no-operation" end-point
@@ -63,7 +62,7 @@ public class HOAConsumerNull implements HOAConsumer {
 	}
 
 	@Override
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) {
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) {
 	}
 
 	@Override
@@ -72,7 +71,7 @@ public class HOAConsumerNull implements HOAConsumer {
 
 	@Override
 	public void setAcceptanceCondition(int numberOfSets,
-			BooleanExpression<AtomAcceptance> accExpr) {
+			PropositionalFormula<Integer> accExpr) {
 	}
 
 	@Override
@@ -100,7 +99,7 @@ public class HOAConsumerNull implements HOAConsumer {
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr,
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr,
 			List<Integer> accSignature) {
 	}
 
@@ -110,7 +109,7 @@ public class HOAConsumerNull implements HOAConsumer {
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr,
 			Collection<Integer> conjSuccessors, Collection<Integer> accSignature) {
 	}
 

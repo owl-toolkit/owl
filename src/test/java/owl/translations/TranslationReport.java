@@ -63,7 +63,6 @@ import owl.collections.Collections3;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.LatexPrintVisitor;
-import owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions;
 import owl.translations.ExternalTranslator.InputMode;
 import owl.translations.ltl2dra.NormalformDRAConstruction;
 import owl.translations.ltl2dra.SymmetricDRAConstruction;
@@ -288,8 +287,7 @@ class TranslationReport {
       set.name().toLowerCase(),
       formulaSet.stream().map(LabelledFormula::formula).toList(),
       resultTable,
-      z -> BooleanExpressions.toDnf(
-        BooleanExpressions.fromPropositionalFormula(z.booleanExpression())).size(), 25, true);
+      z -> -1, 25, true);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {

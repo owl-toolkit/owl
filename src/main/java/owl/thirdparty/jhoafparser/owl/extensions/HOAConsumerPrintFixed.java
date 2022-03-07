@@ -43,9 +43,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.regex.Pattern;
 import javax.annotation.Nullable;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 
@@ -117,11 +116,11 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	}
 
 	@Override
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr)
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr)
     throws HOAConsumerException {
 
 	  try {
-			out.write(String.format("Alias: @%s %s", name, labelExpr));
+			out.write(String.format("Alias: @%s %s", name, labelExpr.nnf().toString(false)));
       out.newLine();
 		} catch (IOException e) {
       throw new HOAConsumerException(e.toString());
@@ -146,14 +145,15 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	}
 
 	@Override
-	public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr)
+	public void setAcceptanceCondition(int numberOfSets, PropositionalFormula<Integer> accExpr)
     throws HOAConsumerException {
 
 	  try {
 			out.write("Acceptance: ");
 			out.write(Integer.toString(numberOfSets));
 			out.write(" ");
-			out.write(accExpr.toString());
+			out.write(accExpr.toString(
+        false, (atom, negated) -> (negated ? "Fin(" : "Inf(") + atom + ")"));
       out.newLine();
 		} catch (IOException e) {
       throw new HOAConsumerException(e.toString());
@@ -251,7 +251,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr,
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr,
     @Nullable List<Integer> accSignature)
     throws HOAConsumerException {
 
@@ -259,7 +259,7 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 			out.write("State: ");
 
 			if (labelExpr != null) {
-				out.write(String.format("[%s] ", labelExpr));
+				out.write(String.format("[%s] ", labelExpr.nnf().toString(false)));
 			}
 
 			out.write(Integer.toString(id));
@@ -314,22 +314,22 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr,
 		Collection<Integer> conjSuccessors, @Nullable Collection<Integer> accSignature)
     throws HOAConsumerException {
 
 	  try {
 			if (labelExpr != null) {
 				out.write("[");
-				out.write(labelExpr.toString());
+				out.write(labelExpr.toString(false));
 				out.write("] ");
 			}
 
 			boolean first = true;
-			for (Integer succ : conjSuccessors) {
+			for (int succ : conjSuccessors) {
 				if (!first) out.write("&");
 				first = false;
-				out.write(succ.toString());
+				out.write(Integer.toString(succ));
 			}
 
 			if (accSignature != null && !accSignature.isEmpty()) {
@@ -386,5 +386,4 @@ public class HOAConsumerPrintFixed implements HOAConsumer {
 	public void notifyWarning(String warning) throws HOAConsumerException {
 		throw new HOAConsumerException(warning);
 	}
-
 }

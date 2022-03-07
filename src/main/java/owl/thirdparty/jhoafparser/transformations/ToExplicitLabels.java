@@ -31,8 +31,8 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import java.util.ArrayList;
 import java.util.List;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
 import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
@@ -41,20 +41,9 @@ import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
 import owl.thirdparty.jhoafparser.util.ImplicitEdgeHelper;
 
 /** A StoredAutomatonManipulator that converts implicit to explicit labels */
-public class ToExplicitLabels implements StoredAutomatonManipulator
-{
-	/** Should we generate an alias for each implicit index? */
-	private boolean preferToUseAliases = false;
-	/** The (pre-computed) label expression for each implicit index */
-	private List<BooleanExpression<AtomLabel>> explicitForImplicit;
-
-	/** Constructor
-	 *
-	 * @param preferToUseAliases Should we generate an alias for each implicit index?
-	 **/
-	public ToExplicitLabels(boolean preferToUseAliases) {
-		this.preferToUseAliases = preferToUseAliases;
-	}
+public class ToExplicitLabels implements StoredAutomatonManipulator {
+  /** The (pre-computed) label expression for each implicit index */
+	private List<PropositionalFormula<AtomLabel>> explicitForImplicit;
 
 	/** Precompute the label expressions for each implicit index */
 	private void prepareExpressions(ImplicitEdgeHelper implicitHelper, StoredAutomaton aut) throws HOAConsumerException {
@@ -64,46 +53,30 @@ public class ToExplicitLabels implements StoredAutomatonManipulator
 			 throw new HOAConsumerException("Too many atomic propositions...");
 		 }
 
-		 Interner<BooleanExpression<AtomLabel>> uniqueTable = Interners.newStrongInterner();
+		 Interner<PropositionalFormula<AtomLabel>> uniqueTable = Interners.newStrongInterner();
+
 		 for (long i = 0; i < implicitHelper.getEdgesPerState(); i++) {
-
-			BooleanExpression<AtomLabel> expr = implicitHelper.toExplicitLabel(i, uniqueTable);
-
-			 if (preferToUseAliases) {
-				 String name = "i"+i;
-				 while (aut.getStoredHeader().hasAlias(name)) {
-					 name = "_"+name;
-				 }
-				 aut.getStoredHeader().addAlias(name, expr);
-				 explicitForImplicit.add(new BooleanExpression<>(AtomLabel.createAlias(name)));
-			 } else {
-				 explicitForImplicit.add(expr);
-			 }
-		 }
+       explicitForImplicit.add(implicitHelper.toExplicitLabel(i, uniqueTable));
+     }
 	}
 
-	/** Convert the automaton from implicit to explicit labels */
-	private void convert(StoredAutomaton aut) throws HOAConsumerException {
-		 ImplicitEdgeHelper implicitHelper = new ImplicitEdgeHelper(aut.getStoredHeader().getAPs().size());
-
-		 for (int stateId = 0; stateId <= aut.getHighestStateIndex(); stateId++) {
-			 if (aut.hasEdgesImplicit(stateId)) {
-				 if (explicitForImplicit == null) prepareExpressions(implicitHelper, aut);
-				 int implicitEdge = 0;
-				 for (StoredEdgeImplicit edge : aut.getEdgesImplicit(stateId)) {
-					 aut.addEdgeWithLabel(stateId, new StoredEdgeWithLabel(explicitForImplicit.get(implicitEdge), edge.getConjSuccessors(), edge.getAccSignature()));
-					 implicitEdge++;
-				 }
-				 aut.clearEdgesImplicit(stateId);
-			 }
-		 }
-	}
-
-	@Override
+  @Override
 	public StoredAutomaton manipulate(StoredAutomaton aut) throws HOAConsumerException
 	{
-		convert(aut);
-		return aut;
-	}
+    ImplicitEdgeHelper implicitHelper = new ImplicitEdgeHelper(aut.getStoredHeader().getAPs().size());
 
+    for (int stateId = 0; stateId <= aut.getHighestStateIndex(); stateId++) {
+      if (aut.hasEdgesImplicit(stateId)) {
+        if (explicitForImplicit == null) prepareExpressions(implicitHelper, aut);
+        int implicitEdge = 0;
+        for (StoredEdgeImplicit edge : aut.getEdgesImplicit(stateId)) {
+          aut.addEdgeWithLabel(stateId, new StoredEdgeWithLabel(explicitForImplicit.get(implicitEdge), edge.getConjSuccessors(), edge.getAccSignature()));
+          implicitEdge++;
+        }
+        aut.clearEdgesImplicit(stateId);
+      }
+    }
+
+    return aut;
+	}
 }

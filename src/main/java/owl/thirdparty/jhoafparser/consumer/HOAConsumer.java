@@ -29,9 +29,8 @@ package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.Collection;
 import java.util.List;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * The {@code HOAConsumer} interface is the basic means of interacting with the parser and
@@ -74,11 +73,10 @@ public interface HOAConsumer {
 	/**
 	 * Called by the parser for each "Alias: alias-def" item [optional, multiple].
 	 * Will be called no matter the return value of {@code parserResolvesAliases()}.
-	 *
-	 *  @param name the alias name (without @)
+	 *   @param name the alias name (without @)
 	 *  @param labelExpr a boolean expression over labels
-	 **/
-  void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException;
+   **/
+  void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for the "AP: ap-def" item [optional, once].
@@ -88,10 +86,10 @@ public interface HOAConsumer {
 
 	/**
 	 * Called by the parser for the "Acceptance: acceptance-def" item [mandatory, once].
-	 * @param numberOfSets the number of acceptance sets used to tag state / transition acceptance
-	 * @param accExpr a boolean expression over acceptance atoms
-	 **/
-  void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException;
+   * @param numberOfSets the number of acceptance sets used to tag state / transition acceptance
+   * @param accExpr a boolean expression over acceptance atoms
+   **/
+  void setAcceptanceCondition(int numberOfSets, PropositionalFormula<Integer> accExpr) throws HOAConsumerException;
 
 	/**
 	 * Called by the parser for each "acc-name: ..." item [optional, multiple].
@@ -132,12 +130,12 @@ public interface HOAConsumer {
 
 	/**
 	 * Called by the parser for each "State: ..." item [multiple].
-	 * @param id the identifier for this state
-	 * @param info an optional String providing additional information about the state ({@code null} if not provided)
-	 * @param labelExpr an optional boolean expression over labels (state-labeled) ({@code null} if not provided)
-	 * @param accSignature an optional list of acceptance set indizes (state-labeled acceptance) ({@code null} if not provided)
-	 */
-  void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr,
+   * @param id the identifier for this state
+   * @param info an optional String providing additional information about the state ({@code null} if not provided)
+   * @param labelExpr an optional boolean expression over labels (state-labeled) ({@code null} if not provided)
+   * @param accSignature an optional list of acceptance set indizes (state-labeled acceptance) ({@code null} if not provided)
+   */
+  void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr,
     List<Integer> accSignature) throws HOAConsumerException;
 
 	/**
@@ -164,7 +162,7 @@ public interface HOAConsumer {
    * @param conjSuccessors a list of successors state indizes, interpreted as a conjunction
    * @param accSignature an optional list of acceptance set indizes (transition-labeled acceptance) ({@code null} if none provided)
    */
-  void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr,
+  void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr,
     Collection<Integer> conjSuccessors, Collection<Integer> accSignature) throws HOAConsumerException;
 
 	/**

@@ -34,10 +34,8 @@ import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
-import owl.thirdparty.jhoafparser.owl.extensions.BooleanExpressions;
 import owl.thirdparty.jhoafparser.owl.extensions.HOAConsumerPrintFixed;
 import owl.util.OwlVersion;
 
@@ -101,9 +99,7 @@ public final class HoaWriter {
       consumer.provideAcceptanceName(acceptance.name(), acceptance.nameExtra());
     }
 
-    consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
-      BooleanExpressions.fromPropositionalFormula(acceptance.booleanExpression()));
-
+    consumer.setAcceptanceCondition(acceptance.acceptanceSets(), acceptance.booleanExpression().nnf());
     consumer.addProperties(List.of("trans-acc", "no-univ-branch"));
 
     // jhoafparser does not adhere to the spec. If we call an automaton without initial
@@ -147,8 +143,7 @@ public final class HoaWriter {
         }
 
         consumer.addEdgeWithLabel(stateId,
-          BooleanExpressions.fromPropositionalFormula(valuationSet.toExpression(),
-            x -> new BooleanExpression<>(AtomLabel.createAPIndex(x))),
+          valuationSet.toExpression().map(AtomLabel::createAPIndex),
           List.of(numbering.get(edge.successor())),
           edge.colours());
       }

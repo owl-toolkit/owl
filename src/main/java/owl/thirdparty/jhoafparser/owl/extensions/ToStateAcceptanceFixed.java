@@ -96,10 +96,10 @@ public class ToStateAcceptanceFixed implements StoredAutomatonManipulator {
     StoredHeader clone = header.clone();
 
     clone.getAcceptanceNames().clear();
-    header.getAcceptanceNames().forEach(x -> clone.provideAcceptanceName(x.name, x.extra));
+    header.getAcceptanceNames().forEach(x -> clone.provideAcceptanceName(x.name(), x.extra()));
 
     clone.getMiscHeaders().clear();
-    header.getMiscHeaders().forEach(x -> clone.addMiscHeader(x.name, x.extra));
+    header.getMiscHeaders().forEach(x -> clone.addMiscHeader(x.name(), x.extra()));
 
     return clone;
   }
@@ -148,7 +148,7 @@ public class ToStateAcceptanceFixed implements StoredAutomatonManipulator {
     target.getStoredHeader().getProperties().add("state-acc");
 
     // don't know about non-Owl misc headers
-    target.getStoredHeader().getMiscHeaders().removeIf(x -> !x.name.startsWith("owl"));
+    target.getStoredHeader().getMiscHeaders().removeIf(x -> !x.name().startsWith("owl"));
   }
 
   /** Handle the initial states, used as starting point for the later exploration phase. */

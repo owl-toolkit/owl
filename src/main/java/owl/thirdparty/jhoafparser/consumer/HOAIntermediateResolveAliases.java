@@ -30,8 +30,9 @@ package owl.thirdparty.jhoafparser.consumer;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import owl.automaton.hoa.HoaWriter;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * A {@code HOAIntermediate} that resolves aliases on-the-fly.
@@ -44,7 +45,7 @@ import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 public class HOAIntermediateResolveAliases extends HOAIntermediate
 {
 	/** The map storing alias definitions */
-	HashMap<String, BooleanExpression<AtomLabel>> aliases = new HashMap<>();
+	HashMap<String, PropositionalFormula<AtomLabel>> aliases = new HashMap<>();
 
 	/** Constructor, with next consumer */
 	public HOAIntermediateResolveAliases(HOAConsumer next)
@@ -52,92 +53,50 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 		super(next);
 	}
 
-	/**
-	 * Return a factory for building HOAIntermediateResolveAliases,
-	 * using the provided HOAConsumerFactory to construct the next HOAConsumer.
-	 **/
-	public static HOAConsumerFactory getFactory(final HOAConsumerFactory next)
-	{
-		return () -> new HOAIntermediateResolveAliases(next.getNewHOAConsumer());
-	}
-
 	/** Returns true if {@code labelExpr} contains any unresolved aliases */
-	private static boolean containsAliases(BooleanExpression<AtomLabel> labelExpr) {
-    return switch (labelExpr.getType()) {
-      case EXP_FALSE, EXP_TRUE -> false;
-      case EXP_AND, EXP_OR -> containsAliases(labelExpr.getLeft()) || containsAliases(labelExpr.getRight());
-      case EXP_NOT -> containsAliases(labelExpr.getLeft());
-      case EXP_ATOM -> labelExpr.getAtom().isAlias();
-    };
+	private static boolean containsAliases(PropositionalFormula<AtomLabel> labelExpr) {
+    return labelExpr.variables().stream().anyMatch(AtomLabel::isAlias);
 	}
 
 	/**
 	 * Check that all aliases used in {@code labelExpr} are defined,
 	 * otherwise throw {@code HOAConsumerException}
 	 **/
-	private void checkAliasDefinedness(BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException {
-		switch (labelExpr.getType()) {
-		case EXP_FALSE:
-		case EXP_TRUE:
-			return;
-		case EXP_AND:
-		case EXP_OR:
-			checkAliasDefinedness(labelExpr.getLeft());
-			checkAliasDefinedness(labelExpr.getRight());
-			return;
-		case EXP_NOT:
-			checkAliasDefinedness(labelExpr.getLeft());
-			return;
-		case EXP_ATOM:
-			if (labelExpr.getAtom().isAlias()) {
-				String aliasName = labelExpr.getAtom().getAliasName();
-				if (!aliases.containsKey(aliasName)) {
-					throw new HOAConsumerException("Expression "+labelExpr+" uses undefined alias @"+aliasName);
-				}
-			}
-			return;
-		}
-		throw new HOAConsumerException("Unhandled boolean expression type");
+	private void checkAliasDefinedness(PropositionalFormula<AtomLabel> labelExpr) throws HOAConsumerException {
+    for (var atom : labelExpr.variables()) {
+      if (atom.isAlias()) {
+        String aliasName = atom.aliasName();
+        if (!aliases.containsKey(aliasName)) {
+          throw new HOAConsumerException("Expression "+labelExpr+" uses undefined alias @"+aliasName);
+        }
+      }
+    }
 	}
 
 	/**
 	 * Return a label expression that is obtained by replacing all aliases from the argument expression.
 	 **/
-	private BooleanExpression<AtomLabel> resolveAliases(BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException
+	private PropositionalFormula<AtomLabel> resolveAliases(PropositionalFormula<AtomLabel> labelExpr)
 	{
-		switch (labelExpr.getType()) {
-		case EXP_TRUE:
-		case EXP_FALSE:
-			return labelExpr;
-		case EXP_AND:
-		case EXP_OR:
-			return new BooleanExpression<>(labelExpr.getType(),
-        resolveAliases(labelExpr.getLeft()),
-        resolveAliases(labelExpr.getRight()));
-		case EXP_NOT:
-			return new BooleanExpression<>(labelExpr.getType(),
-        resolveAliases(labelExpr.getLeft()),
-        null);
-		case EXP_ATOM:
-			if (!labelExpr.getAtom().isAlias()) {
-				return labelExpr;
+		return labelExpr.substitute(atom -> {
+			if (!atom.isAlias()) {
+				return PropositionalFormula.Variable.of(atom);
 			} else {
-				BooleanExpression<AtomLabel> resolved = aliases.get(labelExpr.getAtom().getAliasName());
+				PropositionalFormula<AtomLabel> resolved = aliases.get(atom.aliasName());
 				if (resolved == null) {
-					throw new HOAConsumerException("Can not resolve alias @"+labelExpr.getAtom().getAliasName());
+					throw new HoaWriter.UncheckedHoaConsumerException(
+            new HOAConsumerException("Can not resolve alias @"+ atom.aliasName()));
 				}
 				if (containsAliases(resolved)) {
 					resolved = resolveAliases(resolved);
 				}
 				return resolved;
 			}
-		}
-
-		throw new HOAConsumerException("Unhandled boolean expression type");
+    });
 	}
 
 	@Override
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) throws HOAConsumerException
 	{
 		if (aliases.containsKey(name)) {
 			throw new HOAConsumerException("Alias "+name+" is defined multiple times!");
@@ -155,7 +114,7 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
 	{
 		if (labelExpr != null && containsAliases(labelExpr)) {
 			labelExpr = resolveAliases(labelExpr);
@@ -164,7 +123,7 @@ public class HOAIntermediateResolveAliases extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		if (labelExpr != null && containsAliases(labelExpr)) {

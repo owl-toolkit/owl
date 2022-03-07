@@ -30,13 +30,11 @@ package owl.thirdparty.jhoafparser.transformations;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
-import owl.thirdparty.jhoafparser.consumer.HOAConsumerStore;
 import owl.thirdparty.jhoafparser.consumer.HOAIntermediate;
-import owl.thirdparty.jhoafparser.storage.StoredAutomatonManipulator;
 
 /**
  * Convert automaton to transition-based acceptance (on-the-fly).
@@ -54,30 +52,15 @@ public class ToTransitionAcceptance extends HOAIntermediate
 		super(next);
 	}
 
-	/** Constructor a stored automaton manipulator from this consumer */
-	public static StoredAutomatonManipulator getStoredAutomatonManipulator() {
-		return aut -> {
-      HOAConsumerStore storeTransformed = new HOAConsumerStore();
-      HOAConsumer transform = new ToTransitionAcceptance(storeTransformed);
-
-      aut.feedToConsumer(transform);
-
-      return storeTransformed.getStoredAutomaton();
-    };
-	}
-
 	@Override
 	public void addProperties(List<String> properties) throws HOAConsumerException
 	{
 		List<String> filtered = new ArrayList<>();
 		for (String property : properties) {
-			if (property.equals("state-acc") ||
-			    property.equals("trans-acc")) {
-				// don't add to filtered
-			} else {
-				filtered.add(property);
-			}
-		}
+      if (!property.equals("state-acc") && !property.equals("trans-acc")) {
+        filtered.add(property);
+      }
+    }
 
 		next.addProperties(filtered);
 	}
@@ -91,7 +74,7 @@ public class ToTransitionAcceptance extends HOAIntermediate
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
 	{
 		currentStateSignature = accSignature;
 
@@ -115,7 +98,7 @@ public class ToTransitionAcceptance extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		Collection<Integer> transAccSignature;

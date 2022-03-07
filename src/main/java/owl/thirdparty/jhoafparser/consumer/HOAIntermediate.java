@@ -29,9 +29,8 @@ package owl.thirdparty.jhoafparser.consumer;
 
 import java.util.Collection;
 import java.util.List;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * The {@code HOAIntermediate} class provides a mechanism to chain
@@ -79,7 +78,7 @@ public class HOAIntermediate implements HOAConsumer
 	}
 
 	@Override
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) throws HOAConsumerException
 	{
 		next.addAlias(name, labelExpr);
 	}
@@ -91,7 +90,7 @@ public class HOAIntermediate implements HOAConsumer
 	}
 
 	@Override
-	public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException
+	public void setAcceptanceCondition(int numberOfSets, PropositionalFormula<Integer> accExpr) throws HOAConsumerException
 	{
 		next.setAcceptanceCondition(numberOfSets, accExpr);
 	}
@@ -135,7 +134,7 @@ public class HOAIntermediate implements HOAConsumer
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
 	{
 		next.addState(id, info, labelExpr, accSignature);
 	}
@@ -147,7 +146,7 @@ public class HOAIntermediate implements HOAConsumer
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		next.addEdgeWithLabel(stateId, labelExpr, conjSuccessors, accSignature);

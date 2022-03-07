@@ -31,11 +31,9 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import owl.thirdparty.jhoafparser.ast.AtomAcceptance;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.util.AcceptanceRepository;
-import owl.thirdparty.jhoafparser.util.AcceptanceRepositoryStandard;
 import owl.thirdparty.jhoafparser.util.ImplicitEdgeHelper;
 
 /**
@@ -90,7 +88,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	protected List<Object> accExtraInfo = null;
 
 	/** The acceptance condition */
-	protected BooleanExpression<AtomAcceptance> acceptance = null;
+	protected PropositionalFormula<Integer> acceptance = null;
 
 	/** The index of the current state */
 	protected int currentState = 0;
@@ -218,7 +216,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	@Override
-	public void addAlias(String name, BooleanExpression<AtomLabel> labelExpr) throws HOAConsumerException
+	public void addAlias(String name, PropositionalFormula<AtomLabel> labelExpr) throws HOAConsumerException
 	{
 		usedHeaders.add("Alias");
 
@@ -248,13 +246,13 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	@Override
-	public void setAcceptanceCondition(int numberOfSets, BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException
+	public void setAcceptanceCondition(int numberOfSets, PropositionalFormula<Integer> accExpr) throws HOAConsumerException
 	{
 		headerAtMostOnce("Acceptance");
 		numberOfAcceptanceSets = numberOfSets;
 
 		checkAcceptanceCondition(accExpr);
-		acceptance = accExpr.clone();
+		acceptance = accExpr;
 
 		next.setAcceptanceCondition(numberOfSets, accExpr);
 	}
@@ -361,7 +359,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	@Override
-	public void addState(int id, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
+	public void addState(int id, String info, PropositionalFormula<AtomLabel> labelExpr, List<Integer> accSignature) throws HOAConsumerException
 	{
 		checkStateIndex(id);
 		if (statesWithDefinition.get(id)) {
@@ -443,7 +441,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	@Override
-	public void addEdgeWithLabel(int stateId, BooleanExpression<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
+	public void addEdgeWithLabel(int stateId, PropositionalFormula<AtomLabel> labelExpr, Collection<Integer> conjSuccessors, Collection<Integer> accSignature)
 			throws HOAConsumerException
 	{
 		assert(stateId == currentState);
@@ -657,29 +655,30 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 
 	/** Check that the acceptance condition is well-formed, referencing only existing acceptance sets.
 	 * Throws {@code HOAConsumerException} otherwise. */
-	private void checkAcceptanceCondition(BooleanExpression<AtomAcceptance> accExpr) throws HOAConsumerException
+	private void checkAcceptanceCondition(PropositionalFormula<Integer> accExpr) throws HOAConsumerException
 	{
-		assert (numberOfAcceptanceSets != null);
+    assert (numberOfAcceptanceSets != null);
 
-		switch (accExpr.getType()) {
-		case EXP_TRUE:
-		case EXP_FALSE:
-			return;
-		case EXP_AND:
-		case EXP_OR:
-			checkAcceptanceCondition(accExpr.getLeft());
-			checkAcceptanceCondition(accExpr.getRight());
-			return;
-		case EXP_NOT:
-			throw new HOAConsumerException("Acceptance condition contains boolean negation, not allowed");
-		case EXP_ATOM:
-			int acceptanceSet = accExpr.getAtom().getAcceptanceSet();
-			if (acceptanceSet < 0 || acceptanceSet >= numberOfAcceptanceSets) {
-				throw new HOAConsumerException("Acceptance condition contains acceptance set with index "+acceptanceSet+", valid range is 0 - "+(numberOfAcceptanceSets-1));
-			}
-			return;
-		}
-		throw new UnsupportedOperationException("Unknown operator in acceptance condition: "+accExpr);
+    if (accExpr instanceof PropositionalFormula.Conjunction<Integer> conjunction) {
+      for (var child : conjunction.conjuncts()) {
+        checkAcceptanceCondition(child);
+      }
+    } else if (accExpr instanceof PropositionalFormula.Disjunction<Integer> disjunction) {
+      for (var child : disjunction.disjuncts()) {
+        checkAcceptanceCondition(child);
+      }
+    } else if (accExpr instanceof PropositionalFormula.Variable<Integer> variable) {
+      int acceptanceSet = variable.variable();
+      if (acceptanceSet < 0 || acceptanceSet >= numberOfAcceptanceSets) {
+        throw new HOAConsumerException(
+          "Acceptance condition contains acceptance set with index " + acceptanceSet
+            + ", valid range is 0 - " + (numberOfAcceptanceSets - 1));
+      }
+    } else if (accExpr instanceof PropositionalFormula.Negation<Integer> negation && negation.operand() instanceof PropositionalFormula.Variable<Integer> variable) {
+      checkAcceptanceCondition(variable);
+    } else {
+      throw new HOAConsumerException("Acceptance condition contains " + accExpr + ", not allowed");
+    }
 	}
 
 	/** Check that the acceptance signature is well-formed, referencing only existing acceptance sets.
@@ -700,29 +699,15 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	}
 
 	/** Check that all aliases in the label expression are defined, throws {@code HOAConsumerException} otherwise. */
-	private void checkAliasesAreDefined(BooleanExpression<AtomLabel> expr) throws HOAConsumerException
+	private void checkAliasesAreDefined(PropositionalFormula<AtomLabel> expr) throws HOAConsumerException
 	{
-		switch (expr.getType()) {
-		case EXP_TRUE:
-		case EXP_FALSE:
-			return;
-		case EXP_AND:
-		case EXP_OR:
-			checkAliasesAreDefined(expr.getLeft());
-			checkAliasesAreDefined(expr.getRight());
-			return;
-		case EXP_NOT:
-			checkAliasesAreDefined(expr.getLeft());
-			return;
-		case EXP_ATOM:
-			if (expr.getAtom().isAlias()) {
-				if (!aliases.contains(expr.getAtom().getAliasName())) {
-					throw new HOAConsumerException("Alias @"+expr.getAtom().getAliasName()+" is not defined");
+		for (var atom : expr.variables()) {
+			if (atom.isAlias()) {
+				if (!aliases.contains(atom.aliasName())) {
+					throw new HOAConsumerException("Alias @"+atom.aliasName()+" is not defined");
 				}
 			}
-			return;
 		}
-		throw new UnsupportedOperationException("Unknown operator in label expression: "+expr);
 	}
 
 	/**
@@ -731,72 +716,47 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 	 * @param expr the expression
 	 * @param result a BitSet where the additional bits corresponding to APs are set
 	 */
-	private void gatherLabels(BooleanExpression<AtomLabel> expr, BitSet result) {
-		switch (expr.getType()) {
-		case EXP_TRUE:
-		case EXP_FALSE:
-			return;
-		case EXP_AND:
-		case EXP_OR:
-			gatherLabels(expr.getLeft(), result);
-			gatherLabels(expr.getRight(), result);
-			return;
-		case EXP_NOT:
-			gatherLabels(expr.getLeft(), result);
-			return;
-		case EXP_ATOM:
-			if (!expr.getAtom().isAlias()) {
-				result.set(expr.getAtom().getAPIndex());
-			}
-			return;
-		}
-		throw new UnsupportedOperationException("Unknown operator in label expression: "+expr);
-	}
+	private void gatherLabels(PropositionalFormula<AtomLabel> expr, BitSet result) {
+    for (AtomLabel atom : expr.variables()) {
+      if (!atom.isAlias()) {
+        result.set(atom.apIndex());
+      }
+    }
+  }
 
 	/** Check that all aliases and AP indizes in the label expression are defined, throws {@code HOAConsumerException} otherwise. */
-	private void checkLabelExpression(BooleanExpression<AtomLabel> expr) throws HOAConsumerException
+	private void checkLabelExpression(PropositionalFormula<AtomLabel> expr) throws HOAConsumerException
 	{
-		switch (expr.getType()) {
-		case EXP_TRUE:
-		case EXP_FALSE:
-			return;
-		case EXP_AND:
-		case EXP_OR:
-			checkLabelExpression(expr.getLeft());
-			checkLabelExpression(expr.getRight());
-			return;
-		case EXP_NOT:
-			checkLabelExpression(expr.getLeft());
-			return;
-		case EXP_ATOM:
-			if (expr.getAtom().isAlias()) {
-				if (!aliases.contains(expr.getAtom().getAliasName())) {
-					throw new HOAConsumerException("Alias @"+expr.getAtom().getAliasName()+" is not defined");
-				}
-			} else {
-				assert(numberOfAPs != null);
-				int apIndex = expr.getAtom().getAPIndex();
-				if (apIndex >= numberOfAPs) {
-					if (numberOfAPs == 0) {
-						throw new HOAConsumerException("AP index "+apIndex+" in expression is out of range (no APs): "+expr);
-					} else {
-						throw new HOAConsumerException("AP index "+apIndex+" in expression is out of range (from 0 to "+(numberOfAPs-1)+"): "+expr);
-					}
-				}
-			}
-			return;
-		}
-		throw new UnsupportedOperationException("Unknown operator in label expression: "+expr);
+    for (var atom : expr.variables()) {
+      if (atom.isAlias()) {
+        if (!aliases.contains(atom.aliasName())) {
+          throw new HOAConsumerException("Alias @" + atom.aliasName() + " is not defined");
+        }
+      } else {
+        assert (numberOfAPs != null);
+        int apIndex = atom.apIndex();
+        if (apIndex >= numberOfAPs) {
+          if (numberOfAPs == 0) {
+            throw new HOAConsumerException(
+              "AP index " + apIndex + " in expression is out of range (no APs): " + expr);
+          } else {
+            throw new HOAConsumerException(
+              "AP index " + apIndex + " in expression is out of range (from 0 to " + (numberOfAPs
+                - 1) + "): " + expr);
+          }
+        }
+      }
+    }
 	}
 
 	// ----------------------------------------------------------------------------
 
 	/** Check that the Acceptance header matches the canonical condition defined by the acc-name header, throws {@code HOAConsumerException} otherwise. */
 	private void checkAccName() throws HOAConsumerException {
-		AcceptanceRepository repository = new AcceptanceRepositoryStandard();
+		AcceptanceRepository repository = new AcceptanceRepository();
 
 		try {
-			BooleanExpression<AtomAcceptance> canonical = repository.getCanonicalAcceptanceExpression(accName, accExtraInfo);
+			PropositionalFormula<Integer> canonical = AcceptanceRepository.getCanonicalAcceptanceExpression(accName, accExtraInfo);
 			if (canonical == null) {
 				// acceptance name is not known
 				return;
@@ -806,7 +766,7 @@ public class HOAIntermediateCheckValidity extends HOAIntermediate
 			//System.out.println("Acceptance: "+acceptance);
 
 			assert (acceptance != null);
-			if (!BooleanExpression.areSyntacticallyEqual(acceptance, canonical)) {
+			if (!acceptance.equals(canonical)) {
 				throw new HOAConsumerException("The acceptance given by the Acceptance and by the acc-name headers do not match syntactically:"
 						+ "\nFrom Acceptance-header: "+acceptance
 						+ "\nCanonical expression for acc-name-header: "+canonical);

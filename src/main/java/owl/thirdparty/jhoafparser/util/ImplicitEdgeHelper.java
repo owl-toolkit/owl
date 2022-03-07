@@ -27,9 +27,11 @@
 
 package owl.thirdparty.jhoafparser.util;
 
+import static owl.logic.propositional.PropositionalFormula.*;
+
 import com.google.common.collect.Interner;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
 
 /**
@@ -115,23 +117,24 @@ public class ImplicitEdgeHelper
 	 * Construct a boolean expression corresponding to the given implicit edge index.
 	 * @param implicitIndex the edge index (in range (0, 2^|AP|-1)
 	 */
-	public BooleanExpression<AtomLabel> toExplicitLabel(long implicitIndex, Interner<BooleanExpression<AtomLabel>> uniqueTable) {
-		if (numberOfAPs == 0)
-			return uniqueTable.intern(new BooleanExpression<>(true));
+	public PropositionalFormula<AtomLabel> toExplicitLabel(long implicitIndex, Interner<PropositionalFormula<AtomLabel>> uniqueTable) {
+		if (numberOfAPs == 0) {
+      return uniqueTable.intern(trueConstant());
+    }
 
-		BooleanExpression<AtomLabel> result = null;
+		PropositionalFormula<AtomLabel> result = null;
 
 		for (int i=0; i < numberOfAPs; i++) {
-			BooleanExpression<AtomLabel> literal = uniqueTable.intern(
-        new BooleanExpression<>(AtomLabel.createAPIndex(i)));
+      PropositionalFormula<AtomLabel> literal = uniqueTable.intern(
+        Variable.of(AtomLabel.createAPIndex(i)));
 			if (implicitIndex % 2 == 0) {
-				literal = uniqueTable.intern(literal.not());
+				literal = uniqueTable.intern(Negation.of(literal));
 			}
 			implicitIndex = implicitIndex / 2;
 			if (result == null) {
 				result = literal;
 			} else {
-				result = uniqueTable.intern(result.and(literal));
+				result = uniqueTable.intern(Conjunction.of(result, literal));
 			}
 		}
 

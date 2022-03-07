@@ -45,7 +45,7 @@ public class HOAIntermediateStoreAndManipulate extends HOAConsumerStore
 
 	/** The next consumer */
 	private final HOAConsumer next;
-  
+
 	/** Constructor.
 	 * @param next the next consumer
 	 * @param manipulators variable-length StoredAutomatonManipulator[] of the manipulators

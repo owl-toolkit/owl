@@ -19,6 +19,7 @@
 
 package owl.logic.propositional;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Comparators;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -28,8 +29,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.StringJoiner;
+import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 
 /**
  * A propositional formula.
@@ -90,6 +93,18 @@ public sealed interface PropositionalFormula<T> {
     return countVariables().keySet();
   }
 
+  default PropositionalFormula<T> and(PropositionalFormula<T> that) {
+    return Conjunction.of(this, that);
+  }
+
+  default PropositionalFormula<T> or(PropositionalFormula<T> that) {
+    return Disjunction.of(this, that);
+  }
+
+  default PropositionalFormula<T> not() {
+    return Negation.of(this);
+  }
+
   boolean containsVariable(T variable);
 
   /**
@@ -110,6 +125,15 @@ public sealed interface PropositionalFormula<T> {
   <R> PropositionalFormula<R> map(Function<? super T, R> mapper);
 
   void countVariables(Map<T, Integer> occurrences);
+
+  @Override
+  String toString();
+
+  default String toString(boolean utf8) {
+    return toString(utf8, null);
+  }
+
+  String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString);
 
   enum Polarity {
     POSITIVE, NEGATIVE, MIXED
@@ -214,6 +238,18 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
+    public String toString() {
+      return toString(true);
+    }
+
+    @Override
+    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+      return leftOperand.toString(utf8, variableToString)
+        + (utf8 ? "↔" : "<->")
+        + rightOperand.toString(utf8, variableToString);
+    }
+
+    @Override
     public boolean equals(Object o) {
       return this == o || o instanceof Biconditional<?> that
         && leftOperand.equals(that.leftOperand)
@@ -222,7 +258,7 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public int hashCode() {
-      return leftOperand.hashCode() + rightOperand.hashCode();
+      return Biconditional.class.hashCode() + leftOperand.hashCode() + rightOperand.hashCode();
     }
   }
 
@@ -233,7 +269,10 @@ public sealed interface PropositionalFormula<T> {
 
     public Conjunction {
       conjuncts = List.copyOf(conjuncts);
-      assert conjuncts.stream().noneMatch(Conjunction.class::isInstance) : conjuncts;
+
+      for (PropositionalFormula<T> conjunct : conjuncts) {
+        Preconditions.checkArgument(!(conjunct instanceof Conjunction));
+      }
     }
 
     public static <T> PropositionalFormula<T> of(
@@ -260,12 +299,25 @@ public sealed interface PropositionalFormula<T> {
     private static <T> PropositionalFormula<T>
       ofTrusted(ArrayList<PropositionalFormula<T>> conjuncts) {
 
-      var normalisedConjuncts = flattenConjunction(conjuncts);
+      for (int i = 0; i < conjuncts.size(); i++) {
+        var conjunct = conjuncts.get(i);
 
-      return switch (normalisedConjuncts.size()) {
+        if (conjunct.isFalse()) {
+          return falseConstant();
+        }
+
+        if (conjunct instanceof Conjunction<T> conjunction) {
+          var oldElement = conjuncts.remove(i);
+          assert conjunction == oldElement;
+          conjuncts.addAll(i, conjunction.conjuncts);
+          i--;
+        }
+      }
+
+      return switch (conjuncts.size()) {
         case 0 -> trueConstant();
-        case 1 -> normalisedConjuncts.iterator().next();
-        default -> new Conjunction<>(List.copyOf(normalisedConjuncts));
+        case 1 -> conjuncts.get(0);
+        default -> new Conjunction<>(conjuncts);
       };
     }
 
@@ -329,12 +381,23 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public String toString() {
+      return toString(true);
+    }
+
+    @Override
+    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       return switch (conjuncts.size()) {
-        case 0 -> "tt";
-        case 1 -> conjuncts.get(0).toString();
-        default -> conjuncts.stream()
-          .map(Object::toString)
-          .collect(Collectors.joining(" ∧ ", "(", ")"));
+        case 0 -> utf8 ? "⊤" : "t";
+        case 1 -> conjuncts.get(0).toString(utf8, variableToString);
+        default -> {
+          StringJoiner joiner = new StringJoiner(utf8 ? " ∧ " : " & ", "(", ")");
+
+          for (PropositionalFormula<T> conjunct : conjuncts) {
+            joiner.add(conjunct.toString(utf8, variableToString));
+          }
+
+          yield joiner.toString();
+        }
       };
     }
 
@@ -381,13 +444,13 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public boolean equals(Object o) {
-      return this == o || o instanceof Conjunction<?> that
-        && conjuncts.equals(that.conjuncts);
+      return this == o
+        || o instanceof Conjunction<?> that && conjuncts.equals(that.conjuncts);
     }
 
     @Override
     public int hashCode() {
-      return conjuncts.hashCode();
+      return Conjunction.class.hashCode() + conjuncts.hashCode();
     }
   }
 
@@ -398,7 +461,10 @@ public sealed interface PropositionalFormula<T> {
 
     public Disjunction {
       disjuncts = List.copyOf(disjuncts);
-      assert disjuncts.stream().noneMatch(Disjunction.class::isInstance) : disjuncts;
+
+      for (PropositionalFormula<T> disjunct : disjuncts) {
+        Preconditions.checkArgument(!(disjunct instanceof Disjunction));
+      }
     }
 
     public static <T> PropositionalFormula<T> of(
@@ -425,12 +491,25 @@ public sealed interface PropositionalFormula<T> {
     private static <T> PropositionalFormula<T>
       ofTrusted(ArrayList<PropositionalFormula<T>> disjuncts) {
 
-      var normalisedDisjuncts = flattenDisjunction(disjuncts);
+      for (int i = 0; i < disjuncts.size(); i++) {
+        var disjunct = disjuncts.get(i);
 
-      return switch (normalisedDisjuncts.size()) {
+        if (disjunct.isTrue()) {
+          return trueConstant();
+        }
+
+        if (disjunct instanceof Disjunction<T> disjunction) {
+          var oldElement = disjuncts.remove(i);
+          assert disjunction == oldElement;
+          disjuncts.addAll(i, disjunction.disjuncts);
+          i--;
+        }
+      }
+
+      return switch (disjuncts.size()) {
         case 0 -> falseConstant();
-        case 1 -> normalisedDisjuncts.iterator().next();
-        default -> new Disjunction<>(List.copyOf(normalisedDisjuncts));
+        case 1 -> disjuncts.iterator().next();
+        default -> new Disjunction<>(disjuncts);
       };
     }
 
@@ -494,12 +573,23 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public String toString() {
+      return toString(true);
+    }
+
+    @Override
+    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       return switch (disjuncts.size()) {
-        case 0 -> "ff";
-        case 1 -> disjuncts.get(0).toString();
-        default -> disjuncts.stream()
-          .map(Object::toString)
-          .collect(Collectors.joining(" ∨ ", "(", ")"));
+        case 0 -> utf8 ? "⊥" : "f";
+        case 1 -> disjuncts.get(0).toString(utf8, variableToString);
+        default -> {
+          StringJoiner joiner = new StringJoiner(utf8 ? " ∨ " : " | ", "(", ")");
+
+          for (PropositionalFormula<T> disjunct : disjuncts) {
+            joiner.add(disjunct.toString(utf8, variableToString));
+          }
+
+          yield joiner.toString();
+        }
       };
     }
 
@@ -546,17 +636,23 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public boolean equals(Object o) {
-      return this == o || o instanceof Disjunction<?> that
-        && disjuncts.equals(that.disjuncts);
+      return this == o
+        || o instanceof Disjunction<?> that && disjuncts.equals(that.disjuncts);
     }
 
     @Override
     public int hashCode() {
-      return disjuncts.hashCode();
+      return Disjunction.class.hashCode() + disjuncts.hashCode();
     }
   }
 
   record Negation<T>(PropositionalFormula<T> operand) implements PropositionalFormula<T> {
+
+    public Negation {
+      Preconditions.checkArgument(!operand.isTrue());
+      Preconditions.checkArgument(!operand.isFalse());
+      Preconditions.checkArgument(!(operand instanceof Negation));
+    }
 
     public static <T> PropositionalFormula<T> of(PropositionalFormula<T> operand) {
       if (operand.isTrue()) {
@@ -612,11 +708,6 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString() {
-      return "¬" + operand;
-    }
-
-    @Override
     public <S> PropositionalFormula<S> substitute(
       Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Negation.of(operand.substitute(substitution)));
@@ -633,14 +724,30 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
+    public String toString() {
+      return toString(true);
+    }
+
+    @Override
+    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+      if (variableToString != null
+        && operand instanceof PropositionalFormula.Variable<T> variable) {
+
+        return variableToString.apply(variable.variable, true);
+      }
+
+      return (utf8 ? "¬" : "!") + operand.toString(utf8, variableToString);
+    }
+
+    @Override
     public boolean equals(Object o) {
-      return this == o || o instanceof Negation<?> that
-        && operand.equals(that.operand);
+      return this == o
+        || o instanceof Negation<?> that && operand.equals(that.operand);
     }
 
     @Override
     public int hashCode() {
-      return operand.hashCode();
+      return Negation.class.hashCode() + operand.hashCode();
     }
   }
 
@@ -677,11 +784,6 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString() {
-      return variable.toString();
-    }
-
-    @Override
     public <S> PropositionalFormula<S> substitute(
       Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(substitution.apply(variable));
@@ -708,14 +810,26 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
+    public String toString() {
+      return toString(true);
+    }
+
+    @Override
+    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+      return variableToString == null
+        ? variable.toString()
+        : variableToString.apply(variable, false);
+    }
+
+    @Override
     public boolean equals(Object o) {
-      return this == o || o instanceof Variable<?> that
-        && variable.equals(that.variable);
+      return this == o
+        || o instanceof Variable<?> that && variable.equals(that.variable);
     }
 
     @Override
     public int hashCode() {
-      return variable.hashCode();
+      return Variable.class.hashCode() + variable.hashCode();
     }
   }
 
@@ -723,53 +837,7 @@ public sealed interface PropositionalFormula<T> {
     return formula instanceof Conjunction<T> conjunction ? conjunction.conjuncts : List.of(formula);
   }
 
-  private static <T> ArrayList<PropositionalFormula<T>> flattenConjunction(
-    ArrayList<PropositionalFormula<T>> conjuncts) {
-
-    for (int i = 0; i < conjuncts.size(); i++) {
-      var conjunct = conjuncts.get(i);
-
-      if (conjunct.isFalse()) {
-        conjuncts.clear();
-        conjuncts.add(falseConstant());
-        return conjuncts;
-      }
-
-      if (conjunct instanceof Conjunction<T> conjunction) {
-        var oldElement = conjuncts.remove(i);
-        assert conjunction == oldElement;
-        conjuncts.addAll(i, conjunction.conjuncts);
-        i--;
-      }
-    }
-
-    return conjuncts;
-  }
-
   static <T> List<PropositionalFormula<T>> disjuncts(PropositionalFormula<T> formula) {
     return formula instanceof Disjunction<T> disjunction ? disjunction.disjuncts : List.of(formula);
-  }
-
-  private static <T> ArrayList<PropositionalFormula<T>> flattenDisjunction(
-    ArrayList<PropositionalFormula<T>> disjuncts) {
-
-    for (int i = 0; i < disjuncts.size(); i++) {
-      var disjunct = disjuncts.get(i);
-
-      if (disjunct.isTrue()) {
-        disjuncts.clear();
-        disjuncts.add(trueConstant());
-        return disjuncts;
-      }
-
-      if (disjunct instanceof Disjunction<T> disjunction) {
-        var oldElement = disjuncts.remove(i);
-        assert disjunction == oldElement;
-        disjuncts.addAll(i, disjunction.disjuncts);
-        i--;
-      }
-    }
-
-    return disjuncts;
   }
 }

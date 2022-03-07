@@ -28,8 +28,8 @@
 package owl.thirdparty.jhoafparser.storage;
 
 import java.util.List;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * A stored edge of a HOA automaton with explicit label expression
@@ -37,14 +37,14 @@ import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 public class StoredEdgeWithLabel
 {
 	/** The label expression */
-	private BooleanExpression<AtomLabel> labelExpr;
+	private PropositionalFormula<AtomLabel> labelExpr;
 	/** The successors */
 	private List<Integer> conjSuccessors;
 	/** The acceptance signature */
 	private List<Integer> accSignature;
 
 	/** Constructor. accSignature may be {@code null} */
-	public StoredEdgeWithLabel(BooleanExpression<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature)
+	public StoredEdgeWithLabel(PropositionalFormula<AtomLabel> labelExpr, List<Integer> conjSuccessors, List<Integer> accSignature)
 	{
 		super();
 		this.labelExpr = labelExpr;
@@ -55,7 +55,7 @@ public class StoredEdgeWithLabel
 	/**
 	 * @return the label expression
 	 */
-	public BooleanExpression<AtomLabel> getLabelExpr()
+	public PropositionalFormula<AtomLabel> getLabelExpr()
 	{
 		return labelExpr;
 	}

@@ -28,8 +28,8 @@
 package owl.thirdparty.jhoafparser.storage;
 
 import java.util.List;
+import owl.logic.propositional.PropositionalFormula;
 import owl.thirdparty.jhoafparser.ast.AtomLabel;
-import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 
 /**
  * A stored state of an HOA automaton
@@ -37,21 +37,19 @@ import owl.thirdparty.jhoafparser.ast.BooleanExpression;
 public class StoredState
 {
 	/** The state id */
-	private int stateId;
+	private final int stateId;
 
 	/** (optional) information */
-	private String info;
+	private final String info;
 
 	/** (optional) a label expression */
-	private BooleanExpression<AtomLabel> labelExpr;
+	private final PropositionalFormula<AtomLabel> labelExpr;
 
 	/** (optional) an acceptance signature */
-	private List<Integer> accSignature;
+	private final List<Integer> accSignature;
 
 	/** Constructor */
-	public StoredState(int stateId, String info, BooleanExpression<AtomLabel> labelExpr, List<Integer> accSignature)
-	{
-		super();
+	public StoredState(int stateId, String info, PropositionalFormula<AtomLabel> labelExpr, List<Integer> accSignature) {
 		this.stateId = stateId;
 		this.info = info;
 		this.labelExpr = labelExpr;
@@ -77,7 +75,7 @@ public class StoredState
 	/**
 	 * @return the label expression
 	 */
-	public BooleanExpression<AtomLabel> getLabelExpr()
+	public PropositionalFormula<AtomLabel> getLabelExpr()
 	{
 		return labelExpr;
 	}

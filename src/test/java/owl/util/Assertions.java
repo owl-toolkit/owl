@@ -25,8 +25,7 @@ import java.util.function.Predicate;
 import javax.annotation.Nullable;
 
 public final class Assertions {
-  private Assertions() {
-  }
+  private Assertions() {}
 
   public static <T> void assertThat(@Nullable T actual, Predicate<T> expected) {
     if (!expected.test(actual)) {
