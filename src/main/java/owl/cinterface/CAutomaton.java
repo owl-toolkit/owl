@@ -26,6 +26,7 @@ import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.INITIAL;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.REJECTING;
 
 import com.google.common.collect.Iterables;
+import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -64,7 +65,6 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AlternatingCycleDecomposition;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
-import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.Path;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
 import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
@@ -442,11 +442,11 @@ public final class CAutomaton {
       if (stateId == REJECTING) {
         state = ZielonkaState.of(
           NormalformDELAConstruction.State.of(
-            PropositionalFormula.falseConstant(), Map.of(), Set.of()), Path.of());
+            PropositionalFormula.falseConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
       } else if (stateId == ACCEPTING) {
         state = ZielonkaState.of(
           NormalformDELAConstruction.State.of(
-            PropositionalFormula.trueConstant(), Map.of(), Set.of()), Path.of());
+            PropositionalFormula.trueConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
       } else {
         var uncastedState = stateId == INITIAL && automaton.index2StateMap.isEmpty()
           ? automaton.automaton.initialState()
@@ -490,7 +490,7 @@ public final class CAutomaton {
       var decomposedState = decomposedStates.addressOf(i);
       decomposedState.stateFormula(stateFormulasSorted.indexOf(stateFormula));
       decomposedState.roundRobinCounters(CIntVectors.copyOf(roundRobinCounters));
-      decomposedState.zielonkaPath(CIntVectors.copyOf(zielonkaPath.indices()));
+      decomposedState.zielonkaPath(CIntVectors.copyOf(zielonkaPath));
 
       var iterator = stateMap.entrySet().iterator();
       ZielonkaNormalFormState.StateMapEntry entries = iterator.hasNext()

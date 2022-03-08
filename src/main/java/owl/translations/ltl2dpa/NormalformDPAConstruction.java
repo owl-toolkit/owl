@@ -136,7 +136,7 @@ public final class NormalformDPAConstruction
       List<ImmutableBitSet> colours = new ArrayList<>();
 
       {
-        ImmutableIntArray path = successor.path().indices();
+        ImmutableIntArray path = successor.path();
         ZielonkaTree node = tree;
 
         int i = 0;

@@ -86,7 +86,7 @@ public class AcdTest {
 
         if (acd.edges().containsKey(state)) {
           assertTrue(acd.restrictPathToSubtree(state, acd.leftMostLeaf(state))
-            .indices().stream().allMatch(x -> x == 0));
+            .stream().allMatch(x -> x == 0));
         }
       }
     }

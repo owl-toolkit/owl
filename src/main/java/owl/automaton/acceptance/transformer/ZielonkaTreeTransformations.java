@@ -264,8 +264,8 @@ public final class ZielonkaTreeTransformations {
         return pathEdge.mapSuccessor(x -> ZielonkaState.of(edge.successor(), x));
       }
 
-      private Edge<Path> edge(
-        Edge<S> edge, Path path, AlternatingCycleDecomposition<S> acd) {
+      private Edge<ImmutableIntArray> edge(
+        Edge<S> edge, ImmutableIntArray path, AlternatingCycleDecomposition<S> acd) {
 
         S successor = edge.successor();
         assert acd.edges().containsKey(successor);
@@ -275,8 +275,8 @@ public final class ZielonkaTreeTransformations {
         int anchorLevel = 0;
         var successorPathBuilder = ImmutableIntArray.builder(acd.height() + 2);
 
-        for (int i = 0, s = path.indices().length(); i < s; i++) {
-          int nextAnchorIndex = path.indices().get(i);
+        for (int i = 0, s = path.length(); i < s; i++) {
+          int nextAnchorIndex = path.get(i);
           var nextAnchor = anchor.children().get(nextAnchorIndex);
 
           if (!nextAnchor.edges().containsKey(successor)
@@ -302,9 +302,9 @@ public final class ZielonkaTreeTransformations {
         }
 
         if (stateInChildPresent) {
-          int nextNodeId = path.indices().length() == anchorLevel
+          int nextNodeId = path.length() == anchorLevel
             ? -1
-            : path.indices().get(anchorLevel);
+            : path.get(anchorLevel);
 
           AlternatingCycleDecomposition<S> nextNode;
 
@@ -320,24 +320,22 @@ public final class ZielonkaTreeTransformations {
 
         // min-even parity.
         return Edge.of(
-          Path.of(successorPathBuilder.build()),
+          successorPathBuilder.build().trimmed(),
           anchorLevel + (acceptingZielonkaTreeRoots.contains(successor) ? 0 : 1));
       }
 
-      private Edge<Path> edge(
-        Edge<S> edge, Path path, ConditionalZielonkaTree root) {
+      private Edge<ImmutableIntArray> edge(
+        Edge<S> edge, ImmutableIntArray path, ConditionalZielonkaTree root) {
 
         ImmutableBitSet colours = edge.colours().intersection(root.colours());
 
         int anchorLevel = 0;
         var node = root;
         var successorPathBuilder = ImmutableIntArray.builder(root.height() + 1);
-        Path successorPath = null;
+        ImmutableIntArray successorPath = null;
 
-        var indices = path.indices();
-
-        for (int i = 0, s = indices.length(); i < s; i++) {
-          int edgeIndex = indices.get(i);
+        for (int i = 0, s = path.length(); i < s; i++) {
+          int edgeIndex = path.get(i);
           assert !node.children().isEmpty() : String.format("root: %s, path: %s", root, path);
           var child = node.children().get(edgeIndex);
 
@@ -366,7 +364,7 @@ public final class ZielonkaTreeTransformations {
             successorPathBuilder.add(nextEdge);
             // extend path to left most leaf.
             child.leftMostLeaf(successorPathBuilder);
-            successorPath = Path.of(successorPathBuilder.build());
+            successorPath = successorPathBuilder.build().trimmed();
 
             // We did not fully cycle around.
             if (child.colours().containsAll(colours)) {
@@ -384,15 +382,14 @@ public final class ZielonkaTreeTransformations {
         }
 
         if (successorPath == null) {
-          successorPath = Path.of(successorPathBuilder.build());
+          successorPath = successorPathBuilder.build().trimmed();
           var successorNode = root.subtree(successorPath);
 
           // We have not yet reached a leaf.
           if (!successorNode.children().isEmpty()) {
-            successorPathBuilder = ImmutableIntArray.builder()
-              .addAll(successorPath.indices());
+            successorPathBuilder = ImmutableIntArray.builder().addAll(successorPath);
             successorNode.leftMostLeaf(successorPathBuilder);
-            successorPath = Path.of(successorPathBuilder.build());
+            successorPath = successorPathBuilder.build().trimmed();
           }
         }
 
@@ -706,10 +703,10 @@ public final class ZielonkaTreeTransformations {
         colours(), edges(), List.copyOf(qChildren), height(qChildren));
     }
 
-    public Path restrictPathToSubtree(S state, Path unrestrictedPath) {
-      var builder = ImmutableIntArray.builder(unrestrictedPath.indices().length());
-      restrictPathToSubtree(state, unrestrictedPath.indices(), 0, builder);
-      return Path.of(builder.build());
+    public ImmutableIntArray restrictPathToSubtree(S state, ImmutableIntArray unrestrictedPath) {
+      var builder = ImmutableIntArray.builder(unrestrictedPath.length());
+      restrictPathToSubtree(state, unrestrictedPath, 0, builder);
+      return builder.build().trimmed();
     }
 
     private void restrictPathToSubtree(
@@ -751,11 +748,11 @@ public final class ZielonkaTreeTransformations {
       return -1;
     }
 
-    public Path leftMostLeaf(S state) {
+    public ImmutableIntArray leftMostLeaf(S state) {
       assert edges().containsKey(state);
       var pathBuilder = ImmutableIntArray.builder(height());
       leftMostLeaf(pathBuilder, state);
-      return Path.of(pathBuilder.build());
+      return pathBuilder.build().trimmed();
     }
 
     private void leftMostLeaf(ImmutableIntArray.Builder builder, S state) {
@@ -838,8 +835,8 @@ public final class ZielonkaTreeTransformations {
       return zielonkaTree;
     }
 
-    public ConditionalZielonkaTree subtree(Path path) {
-      return subtree(path.indices().asList());
+    public ConditionalZielonkaTree subtree(ImmutableIntArray path) {
+      return subtree(path.asList());
     }
 
     public ConditionalZielonkaTree subtree(List<Integer> path) {
@@ -852,10 +849,10 @@ public final class ZielonkaTreeTransformations {
       return subtree;
     }
 
-    private Path leftMostLeaf() {
+    private ImmutableIntArray leftMostLeaf() {
       var pathBuilder = ImmutableIntArray.builder(height());
       leftMostLeaf(pathBuilder);
-      return Path.of(pathBuilder.build());
+      return pathBuilder.build().trimmed();
     }
 
     private void leftMostLeaf(ImmutableIntArray.Builder builder) {
@@ -871,31 +868,13 @@ public final class ZielonkaTreeTransformations {
   }
 
   @AutoValue
-  public abstract static class Path {
-
-    private static final Map<ImmutableIntArray, Path> INTERNER = new HashMap<>();
-
-    public abstract ImmutableIntArray indices();
-
-    public static Path of() {
-      return of(ImmutableIntArray.of());
-    }
-
-    public static Path of(ImmutableIntArray indices) {
-      // Do not call trimmed(), since most of the time the size of the indices array is almost
-      // correct.
-      return INTERNER.computeIfAbsent(indices, AutoValue_ZielonkaTreeTransformations_Path::new);
-    }
-  }
-
-  @AutoValue
   public abstract static class ZielonkaState<S> implements AnnotatedState<S> {
     @Override
     public abstract S state();
 
-    public abstract Path path();
+    public abstract ImmutableIntArray path();
 
-    public static <S> ZielonkaState<S> of(S state, Path path) {
+    public static <S> ZielonkaState<S> of(S state, ImmutableIntArray path) {
       return new AutoValue_ZielonkaTreeTransformations_ZielonkaState<>(state, path);
     }
   }
