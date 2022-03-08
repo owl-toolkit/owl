@@ -19,8 +19,7 @@
 
 package owl.automaton.hoa;
 
-import java.io.ByteArrayOutputStream;
-import java.nio.charset.StandardCharsets;
+import java.io.StringWriter;
 import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Deque;
@@ -31,15 +30,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.consumer.HOAConsumer;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerPrint;
-import jhoafparser.extensions.BooleanExpressions;
 import owl.automaton.Automaton;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSet;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumer;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.owl.extensions.HOAConsumerPrintFixed;
 import owl.util.OwlVersion;
 
 public final class HoaWriter {
@@ -47,15 +44,15 @@ public final class HoaWriter {
   private HoaWriter() {}
 
   public static <S> String toString(Automaton<S, ?> automaton) {
-    var buffer = new ByteArrayOutputStream();
+    var buffer = new StringWriter();
 
     try {
-      write(automaton, new HOAConsumerPrint(buffer), true);
+      write(automaton, new HOAConsumerPrintFixed(buffer), true);
     } catch (HOAConsumerException ex) {
       throw new UncheckedHoaConsumerException(ex);
     }
 
-    return buffer.toString(StandardCharsets.UTF_8);
+    return buffer.toString();
   }
 
   public static <S> void write(
@@ -102,9 +99,7 @@ public final class HoaWriter {
       consumer.provideAcceptanceName(acceptance.name(), acceptance.nameExtra());
     }
 
-    consumer.setAcceptanceCondition(acceptance.acceptanceSets(),
-      BooleanExpressions.fromPropositionalFormula(acceptance.booleanExpression()));
-
+    consumer.setAcceptanceCondition(acceptance.acceptanceSets(), acceptance.booleanExpression().nnf());
     consumer.addProperties(List.of("trans-acc", "no-univ-branch"));
 
     // jhoafparser does not adhere to the spec. If we call an automaton without initial
@@ -148,10 +143,9 @@ public final class HoaWriter {
         }
 
         consumer.addEdgeWithLabel(stateId,
-          BooleanExpressions.fromPropositionalFormula(valuationSet.toExpression(),
-            x -> new BooleanExpression<>(AtomLabel.createAPIndex(x))),
+          valuationSet.toExpression().map(AtomLabel::createAPIndex),
           List.of(numbering.get(edge.successor())),
-          Arrays.asList(edge.colours().toArray(Integer[]::new)));
+          edge.colours());
       }
 
       consumer.notifyEndOfState(stateId);

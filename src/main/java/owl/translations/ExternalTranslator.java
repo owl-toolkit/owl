@@ -37,12 +37,12 @@ import java.util.function.Function;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
-import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.hoa.HoaReader;
 import owl.bdd.FactorySupplier;
 import owl.ltl.LabelledFormula;
 import owl.ltl.visitors.PrintVisitor;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 public class ExternalTranslator implements Function<LabelledFormula, Automaton<Integer, ?>> {
   private static final Logger logger = Logger.getLogger(ExternalTranslator.class.getName());

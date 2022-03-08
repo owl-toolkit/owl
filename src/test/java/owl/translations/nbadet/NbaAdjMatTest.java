@@ -24,12 +24,12 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.BitSet;
 import java.util.Set;
-import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.BuchiAcceptance;
 import owl.collections.BitSet2;
 import owl.collections.Numbering;
 import owl.collections.Pair;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 public class NbaAdjMatTest {
 

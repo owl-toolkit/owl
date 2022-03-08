@@ -28,7 +28,6 @@ import static owl.util.Assertions.assertThat;
 
 import java.util.ArrayDeque;
 import java.util.BitSet;
-import java.util.Collection;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -49,9 +48,9 @@ class HashMapAutomatonTest {
       = HashMapAutomaton.create(List.of("a"), AllAcceptance.INSTANCE);
     assertFalse(automaton.is(Property.COMPLETE));
     assertTrue(automaton.is(Property.DETERMINISTIC));
-    assertThat(AutomatonUtil.getIncompleteStates(automaton).keySet(), Collection::isEmpty);
-    assertThat(automaton.initialStates(), Collection::isEmpty);
-    assertThat(automaton.states(), Collection::isEmpty);
+    assertEquals(Set.of(), AutomatonUtil.getIncompleteStates(automaton).keySet());
+    assertEquals(Set.of(), automaton.initialStates());
+    assertEquals(Set.of(), automaton.states());
   }
 
   @Test

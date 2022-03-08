@@ -21,14 +21,19 @@ package owl.automaton.hoa;
 
 import java.util.List;
 import java.util.Set;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerNull;
-import jhoafparser.consumer.HOAIntermediateCheckValidity;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.MethodSource;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.BuchiAcceptance;
+import owl.automaton.algorithm.LanguageContainment;
 import owl.automaton.edge.Edge;
 import owl.bdd.MtBdd;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerNull;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateCheckValidity;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 public class HoaWriterTest {
 
@@ -46,5 +51,18 @@ public class HoaWriterTest {
     // This call should complete without exception.
     HoaWriter.write(
       automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
+  }
+
+  private static List<String> hoaStrings() {
+    return HoaExampleRepository.VALID_AUTOMATA;
+  }
+
+  @ParameterizedTest
+  @MethodSource("hoaStrings")
+  void testHoaWriter(String hoaString) throws ParseException {
+    var automaton = HoaReader.read(hoaString);
+    var reconstructedHoaString = HoaWriter.toString(automaton);
+    var reconstructedAutomaton = HoaReader.read(reconstructedHoaString);
+    Assertions.assertTrue(LanguageContainment.languageEquivalent(automaton, reconstructedAutomaton));
   }
 }

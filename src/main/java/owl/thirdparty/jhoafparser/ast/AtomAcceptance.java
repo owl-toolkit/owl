@@ -17,10 +17,24 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-/**
- * Extensions and fixes for the jhoafparser library.
- */
-@EverythingIsNonnullByDefault
-package jhoafparser.extensions;
+package owl.thirdparty.jhoafparser.ast;
 
-import owl.util.annotation.EverythingIsNonnullByDefault;
+import owl.logic.propositional.PropositionalFormula;
+
+/** The acceptance condition type of this atom */
+public enum AtomAcceptance {
+  /** Fin(.) atom */
+  TEMPORAL_FIN,
+  /** Inf(.) atom */
+  TEMPORAL_INF;
+
+  /** Static constructor for a Fin(accSet) atom */
+  public static PropositionalFormula<Integer> Fin(int accSet) {
+    return PropositionalFormula.Negation.of(PropositionalFormula.Variable.of(accSet));
+  }
+
+  /** Static constructor for an Inf(accSet) atom */
+  public static PropositionalFormula.Variable<Integer> Inf(int accSet) {
+    return PropositionalFormula.Variable.of(accSet);
+  }
+}

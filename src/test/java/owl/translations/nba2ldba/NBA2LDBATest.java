@@ -20,9 +20,6 @@
 package owl.translations.nba2ldba;
 
 import java.io.StringReader;
-import jhoafparser.consumer.HOAConsumerNull;
-import jhoafparser.consumer.HOAIntermediateCheckValidity;
-import jhoafparser.parser.generated.ParseException;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
@@ -30,6 +27,9 @@ import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.hoa.HoaReader;
 import owl.automaton.hoa.HoaWriter;
 import owl.bdd.FactorySupplier;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerNull;
+import owl.thirdparty.jhoafparser.consumer.HOAIntermediateCheckValidity;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 class NBA2LDBATest {
 

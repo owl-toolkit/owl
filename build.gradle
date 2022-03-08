@@ -97,9 +97,6 @@ dependencies {
     // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
     implementation 'org.antlr:antlr4-runtime:4.8-1'
 
-    // https://automata.tools/hoa/jhoafparser/
-    implementation files('lib/jhoafparser-1.1.1.jar')
-
     // https://www.graalvm.org/
     // https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk
     implementation 'org.graalvm.sdk:graal-sdk:21.0.0.2'

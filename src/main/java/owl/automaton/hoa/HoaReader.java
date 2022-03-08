@@ -20,12 +20,8 @@
 package owl.automaton.hoa;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static owl.logic.propositional.PropositionalFormula.Conjunction;
 import static owl.logic.propositional.PropositionalFormula.Disjunction;
-import static owl.logic.propositional.PropositionalFormula.Negation;
 import static owl.logic.propositional.PropositionalFormula.Variable;
-import static owl.logic.propositional.PropositionalFormula.falseConstant;
-import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.collect.Iterables;
 import java.io.Reader;
@@ -42,18 +38,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import javax.annotation.Nullable;
-import jhoafparser.ast.AtomLabel;
-import jhoafparser.ast.BooleanExpression;
-import jhoafparser.consumer.HOAConsumerException;
-import jhoafparser.consumer.HOAConsumerStore;
-import jhoafparser.extensions.BooleanExpressions;
-import jhoafparser.extensions.HOAFParserFixed;
-import jhoafparser.parser.generated.ParseException;
-import jhoafparser.storage.StoredAutomaton;
-import jhoafparser.storage.StoredEdgeWithLabel;
-import jhoafparser.storage.StoredHeader;
-import jhoafparser.transformations.ToExplicitLabels;
-import jhoafparser.transformations.ToTransitionAcceptance;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
 import owl.automaton.acceptance.AllAcceptance;
@@ -68,9 +52,20 @@ import owl.automaton.acceptance.ParityAcceptance.Parity;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.edge.Edge;
 import owl.bdd.BddSetFactory;
+import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
+import owl.thirdparty.jhoafparser.ast.AtomLabel;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerStore;
+import owl.thirdparty.jhoafparser.owl.extensions.HOAFParserFixed;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
+import owl.thirdparty.jhoafparser.storage.StoredAutomaton;
+import owl.thirdparty.jhoafparser.storage.StoredEdgeWithLabel;
+import owl.thirdparty.jhoafparser.storage.StoredHeader;
+import owl.thirdparty.jhoafparser.transformations.ToExplicitLabels;
+import owl.thirdparty.jhoafparser.transformations.ToTransitionAcceptance;
 
 public final class HoaReader {
 
@@ -97,6 +92,10 @@ public final class HoaReader {
 
     HOAFParserFixed.parseHOA(reader,
       () -> new ToTransitionAcceptance(new HoaConsumerAutomatonSupplier()));
+  }
+
+  public static Automaton<Integer, ?> read(String string) throws ParseException {
+    return read(string, FactorySupplier.defaultSupplier()::getBddSetFactory, null);
   }
 
   public static Automaton<Integer, ?> read(
@@ -134,10 +133,10 @@ public final class HoaReader {
   private static EmersonLeiAcceptance acceptance(StoredHeader header) throws HOAConsumerException {
 
     var name = Iterables.getOnlyElement(header.getAcceptanceNames(), null);
-    var formula = BooleanExpressions.toPropositionalFormula(header.getAcceptanceCondition());
+    var formula = header.getAcceptanceCondition();
     int sets = header.getNumberOfAcceptanceSets();
 
-    switch (name == null ? "default" : name.name.toLowerCase(Locale.ENGLISH)) {
+    switch (name == null ? "default" : name.name().toLowerCase(Locale.ENGLISH)) {
       case "all":
         return AllAcceptance.ofPartial(formula).orElseThrow();
 
@@ -145,23 +144,23 @@ public final class HoaReader {
         return BuchiAcceptance.ofPartial(formula).orElseThrow();
 
       case "parity":
-        check(name.extra.size() == 3, "Malformed parity condition.");
+        check(name.extra().size() == 3, "Malformed parity condition.");
 
-        String stringPriority = name.extra.get(0).toString();
+        String stringPriority = name.extra().get(0).toString();
         boolean max = switch (stringPriority) {
           case "max" -> true;
           case "min" -> false;
           default -> throw new HOAConsumerException("Unknown priority " + stringPriority);
         };
 
-        String stringParity = name.extra.get(1).toString();
+        String stringParity = name.extra().get(1).toString();
         boolean even = switch (stringParity) {
           case "even" -> true;
           case "odd" -> false;
           default -> throw new HOAConsumerException("Unknown parity " + stringParity);
         };
 
-        String stringColours = name.extra.get(2).toString();
+        String stringColours = name.extra().get(2).toString();
         int colours;
         try {
           colours = Integer.parseInt(stringColours);
@@ -183,7 +182,7 @@ public final class HoaReader {
       case "generalized-buchi":
         // acc-name: generalized-Buchi 3
         // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
-        int size1 = Integer.parseInt(name.extra.get(0).toString());
+        int size1 = Integer.parseInt(name.extra().get(0).toString());
         var generalizedBuchiAcceptance
           = GeneralizedBuchiAcceptance.ofPartial(formula).orElseThrow();
         check(generalizedBuchiAcceptance.acceptanceSets() == size1, "Mismatch.");
@@ -192,7 +191,7 @@ public final class HoaReader {
       case "generalized-co-buchi":
         // acc-name: generalized-co-Buchi 3
         // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
-        int size2 = Integer.parseInt(name.extra.get(0).toString());
+        int size2 = Integer.parseInt(name.extra().get(0).toString());
         var generalizedCoBuchiAcceptance
           = GeneralizedCoBuchiAcceptance.ofPartial(formula).orElseThrow();
         check(generalizedCoBuchiAcceptance.acceptanceSets() == size2, "Mismatch.");
@@ -238,7 +237,7 @@ public final class HoaReader {
 
     // Remove implicit edges and replace them with explicit edges.
     if (storedAutomaton.hasEdgesImplicit()) {
-      new ToExplicitLabels(false).manipulate(storedAutomaton);
+      new ToExplicitLabels().manipulate(storedAutomaton);
     }
 
     assert !storedAutomaton.hasEdgesImplicit();
@@ -286,7 +285,7 @@ public final class HoaReader {
     @Nullable
     private int[] mapping;
     @Nullable
-    private Map<String, BooleanExpression<AtomLabel>> aliases;
+    private Map<String, PropositionalFormula<AtomLabel>> aliases;
 
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
     private StoredAutomatonConverter(
@@ -302,8 +301,8 @@ public final class HoaReader {
       this.storedAutomaton = storedAutomaton;
       this.mapping = remapping;
       this.aliases = new HashMap<>();
-      storedAutomaton.getStoredHeader().getAliases()
-        .forEach(x -> this.aliases.put(x.name, x.extra));
+      storedAutomaton.getStoredHeader().getAliases().forEach(
+        x -> this.aliases.put(x.name(), x.extra()));
     }
 
     @Override
@@ -347,48 +346,19 @@ public final class HoaReader {
     }
 
     private PropositionalFormula<Integer> resolveAndRemap(
-      BooleanExpression<? extends AtomLabel> expression) {
+      PropositionalFormula<? extends AtomLabel> expression) {
 
-      if (expression.isFALSE()) {
-        return falseConstant();
-      }
-
-      if (expression.isTRUE()) {
-        return trueConstant();
-      }
-
-      if (expression.isAtom()) {
-        AtomLabel atom = expression.getAtom();
-
+      return expression.substitute(atom -> {
         if (atom.isAlias()) {
-          String alias = atom.getAliasName();
+          String alias = atom.aliasName();
           checkArgument(
             aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
           return resolveAndRemap(aliases.get(alias));
         } else {
-          int apIndex = atom.getAPIndex();
+          int apIndex = atom.apIndex();
           return Variable.of(mapping == null ? apIndex : mapping[apIndex]);
         }
-      }
-
-      if (expression.isNOT()) {
-        return Negation.of(
-          resolveAndRemap(expression.getLeft()));
-      }
-
-      if (expression.isAND()) {
-        return Conjunction.of(
-          resolveAndRemap(expression.getLeft()),
-          resolveAndRemap(expression.getRight()));
-      }
-
-      if (expression.isOR()) {
-        return Disjunction.of(
-          resolveAndRemap(expression.getLeft()),
-          resolveAndRemap(expression.getRight()));
-      }
-
-      throw new IllegalArgumentException("Unsupported Case: " + expression);
+      });
     }
   }
 }

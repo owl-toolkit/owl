@@ -34,11 +34,11 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package jhoafparser.extensions;
+package owl.thirdparty.jhoafparser.owl.extensions;
 
 import java.io.Reader;
-import jhoafparser.consumer.HOAConsumerFactory;
-import jhoafparser.parser.generated.ParseException;
+import owl.thirdparty.jhoafparser.consumer.HOAConsumerFactory;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 /**
  * Public interface to the HOA format parser.

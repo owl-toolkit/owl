@@ -32,9 +32,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Predicate;
-import jhoafparser.parser.generated.ParseException;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 import picocli.CommandLine;
 import picocli.CommandLine.Model.CommandSpec;
 

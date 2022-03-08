@@ -21,13 +21,13 @@ package owl.translations.nbadet;
 
 import java.io.StringReader;
 import java.util.HashMap;
-import jhoafparser.parser.generated.ParseException;
 import owl.automaton.Automaton;
 import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.hoa.HoaReader;
 import owl.bdd.FactorySupplier;
+import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 
 public final class AutomatonTestUtil {
 

@@ -46,7 +46,6 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
-import jhoafparser.extensions.BooleanExpressions;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -288,8 +287,7 @@ class TranslationReport {
       set.name().toLowerCase(),
       formulaSet.stream().map(LabelledFormula::formula).toList(),
       resultTable,
-      z -> BooleanExpressions.toDnf(
-        BooleanExpressions.fromPropositionalFormula(z.booleanExpression())).size(), 25, true);
+      z -> -1, 25, true);
 
     try (Writer writer = Files.newBufferedWriter(
       Paths.get(set.name() + ".tex"), StandardCharsets.UTF_8)) {
