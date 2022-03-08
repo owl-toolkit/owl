@@ -131,9 +131,9 @@ public abstract sealed class MtBdd<E> {
 
       if (value.containsVariable(smallestVariable)) {
         trueValues.add(
-          value.substitute(v -> v == smallestVariable ? trueConstant() : Variable.of(v)));
+          value.substitute(smallestVariable, trueConstant()));
         falseValues.add(
-          value.substitute(v -> v == smallestVariable ? falseConstant() : Variable.of(v)));
+          value.substitute(smallestVariable, falseConstant()));
       } else {
         trueValues.add(value);
         falseValues.add(value);

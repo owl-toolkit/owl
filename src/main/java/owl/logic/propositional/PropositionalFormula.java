@@ -60,6 +60,8 @@ public sealed interface PropositionalFormula<T> {
     return nnf(false);
   }
 
+  PropositionalFormula<T> substitute(T variable, PropositionalFormula<T> substitution);
+
   <S> PropositionalFormula<S> substitute(
     Function<? super T, ? extends PropositionalFormula<S>> substitution);
 
@@ -185,6 +187,14 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public boolean evaluate(Set<? extends T> assignment) {
       return leftOperand.evaluate(assignment) == rightOperand.evaluate(assignment);
+    }
+
+    @Override
+    public PropositionalFormula<T> substitute(
+      T variable, PropositionalFormula<T> substitution) {
+
+      return deduplicate(Biconditional.of(
+        leftOperand.substitute(variable, substitution), rightOperand.substitute(variable, substitution)));
     }
 
     @Override
@@ -402,6 +412,14 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
+    public PropositionalFormula<T> substitute(T variable,
+      PropositionalFormula<T> substitution) {
+
+      return deduplicate(
+        Conjunction.ofTrusted(mapOperands(x -> x.substitute(variable, substitution))));
+    }
+
+    @Override
     public <S> PropositionalFormula<S> substitute(
       Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Conjunction.ofTrusted(mapOperands(x -> x.substitute(substitution))));
@@ -594,6 +612,14 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
+    public PropositionalFormula<T> substitute(T variable,
+      PropositionalFormula<T> substitution) {
+
+      return deduplicate(
+        Disjunction.ofTrusted(mapOperands(x -> x.substitute(variable, substitution))));
+    }
+
+    @Override
     public <S> PropositionalFormula<S> substitute(
       Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Disjunction.ofTrusted(mapOperands(x -> x.substitute(substitution))));
@@ -708,6 +734,12 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
+    public PropositionalFormula<T> substitute(T variable,
+      PropositionalFormula<T> substitution) {
+      return deduplicate(Negation.of(operand.substitute(variable, substitution)));
+    }
+
+    @Override
     public <S> PropositionalFormula<S> substitute(
       Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Negation.of(operand.substitute(substitution)));
@@ -781,6 +813,12 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public int height() {
       return 1;
+    }
+
+    @Override
+    public PropositionalFormula<T> substitute(T variable,
+      PropositionalFormula<T> substitution) {
+      return this.variable.equals(variable) ? deduplicate(substitution) : this;
     }
 
     @Override

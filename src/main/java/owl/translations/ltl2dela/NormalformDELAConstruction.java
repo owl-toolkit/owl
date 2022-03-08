@@ -573,9 +573,7 @@ public final class NormalformDELAConstruction
             ? PropositionalFormula.<Integer>trueConstant()
             : PropositionalFormula.<Integer>falseConstant();
 
-        alpha = alpha.substitute(i -> i == weakIndex
-          ? value
-          : PropositionalFormula.Variable.of(i));
+        alpha = alpha.substitute(weakIndex, value);
 
         var remainingVariables = alpha.variables();
         classification.entrySet().forEach(entry -> {
