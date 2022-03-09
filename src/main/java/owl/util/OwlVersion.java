@@ -25,7 +25,7 @@ public final class OwlVersion implements CommandLine.IVersionProvider {
 
   // Fall-back strings if MANIFEST cannot be accessed correctly.
   private static final String NAME = "owl";
-  private static final String VERSION = "21.1-development";
+  private static final String VERSION = "22.0-development";
 
   private OwlVersion() {}
 
