@@ -19,8 +19,8 @@
 
 package owl.command;
 
-import static picocli.CommandLine.ArgGroup;
-import static picocli.CommandLine.Option;
+import static owl.thirdparty.picocli.CommandLine.ArgGroup;
+import static owl.thirdparty.picocli.CommandLine.Option;
 
 import com.google.common.base.Preconditions;
 import com.google.common.base.Stopwatch;

@@ -19,7 +19,6 @@
 
 package owl.bdd;
 
-import static owl.logic.propositional.PropositionalFormula.Variable;
 import static owl.logic.propositional.PropositionalFormula.falseConstant;
 import static owl.logic.propositional.PropositionalFormula.trueConstant;
 

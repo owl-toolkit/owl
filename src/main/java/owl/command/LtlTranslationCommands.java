@@ -45,13 +45,13 @@ import owl.automaton.acceptance.ParityAcceptance;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.command.Mixins.AutomatonWriter;
 import owl.ltl.LabelledFormula;
+import owl.thirdparty.picocli.CommandLine;
+import owl.thirdparty.picocli.CommandLine.Command;
+import owl.thirdparty.picocli.CommandLine.Mixin;
+import owl.thirdparty.picocli.CommandLine.Option;
 import owl.translations.LtlTranslationRepository;
 import owl.translations.LtlTranslationRepository.LtlToLdbaTranslation;
 import owl.translations.LtlTranslationRepository.LtlToNbaTranslation;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Mixin;
-import picocli.CommandLine.Option;
 
 @SuppressWarnings("PMD.ImmutableField")
 final class LtlTranslationCommands {

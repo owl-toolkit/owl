@@ -19,7 +19,7 @@
 
 package owl.command;
 
-import static picocli.CommandLine.Command;
+import static owl.thirdparty.picocli.CommandLine.Command;
 
 import java.util.List;
 import java.util.concurrent.Callable;

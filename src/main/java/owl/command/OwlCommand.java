@@ -19,11 +19,11 @@
 
 package owl.command;
 
-import static picocli.CommandLine.Command;
-import static picocli.CommandLine.IExecutionExceptionHandler;
-import static picocli.CommandLine.ParameterException;
-import static picocli.CommandLine.ParseResult;
-import static picocli.CommandLine.Spec;
+import static owl.thirdparty.picocli.CommandLine.Command;
+import static owl.thirdparty.picocli.CommandLine.IExecutionExceptionHandler;
+import static owl.thirdparty.picocli.CommandLine.ParameterException;
+import static owl.thirdparty.picocli.CommandLine.ParseResult;
+import static owl.thirdparty.picocli.CommandLine.Spec;
 
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import java.io.UncheckedIOException;
@@ -35,8 +35,8 @@ import java.util.function.Predicate;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.thirdparty.jhoafparser.parser.generated.ParseException;
-import picocli.CommandLine;
-import picocli.CommandLine.Model.CommandSpec;
+import owl.thirdparty.picocli.CommandLine;
+import owl.thirdparty.picocli.CommandLine.Model.CommandSpec;
 
 @Command(name = "owl",
          description =

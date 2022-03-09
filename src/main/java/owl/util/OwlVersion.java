@@ -19,7 +19,7 @@
 
 package owl.util;
 
-import picocli.CommandLine;
+import owl.thirdparty.picocli.CommandLine;
 
 public final class OwlVersion implements CommandLine.IVersionProvider {
 
