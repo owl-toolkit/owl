@@ -20,11 +20,11 @@
 package owl.command;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static picocli.CommandLine.ArgGroup;
-import static picocli.CommandLine.Command;
-import static picocli.CommandLine.Mixin;
-import static picocli.CommandLine.Option;
-import static picocli.CommandLine.Parameters;
+import static owl.thirdparty.picocli.CommandLine.ArgGroup;
+import static owl.thirdparty.picocli.CommandLine.Command;
+import static owl.thirdparty.picocli.CommandLine.Mixin;
+import static owl.thirdparty.picocli.CommandLine.Option;
+import static owl.thirdparty.picocli.CommandLine.Parameters;
 
 import java.io.BufferedWriter;
 import java.io.IOException;

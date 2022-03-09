@@ -37,7 +37,7 @@ apply plugin: 'antlr'
 // apply from:   'gradle/idea.gradle'
 
 project.group = 'de.tum.in'
-project.version = '21.1-development'
+project.version = '22.0-development'
 
 project.archivesBaseName = 'owl'
 project.mainClassName = 'owl.command.OwlCommand'
@@ -88,14 +88,14 @@ repositories {
 
 dependencies {
     // https://github.com/google/guava
-    implementation 'com.google.guava:guava:30.1.1-jre'
+    implementation 'com.google.guava:guava:31.1-jre'
 
     // https://github.com/incaseoftrouble/jbdd
     implementation 'de.tum.in:jbdd:0.5.2'
 
     // http://www.antlr.org/
     // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
-    implementation 'org.antlr:antlr4-runtime:4.8-1'
+    implementation 'org.antlr:antlr4-runtime:4.9.3'
 
     // https://www.graalvm.org/
     // https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk
@@ -109,12 +109,12 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.6.2'
     testRuntimeOnly    'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 
-    antlr 'org.antlr:antlr4:4.8-1'
+    antlr 'org.antlr:antlr4:4.9.3'
     // We remove unused runtime dependencies below.
 
     // https://mvnrepository.com/artifact/com.google.auto.value/auto-value
-    implementation 'com.google.auto.value:auto-value-annotations:1.7.4'
-    annotationProcessor 'com.google.auto.value:auto-value:1.7.4'
+    implementation 'com.google.auto.value:auto-value-annotations:1.8.2'
+    annotationProcessor 'com.google.auto.value:auto-value:1.8.2'
 }
 
 // Remove jars that are not used during runtime from classpath.

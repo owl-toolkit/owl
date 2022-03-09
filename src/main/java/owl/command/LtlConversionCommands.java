@@ -19,9 +19,9 @@
 
 package owl.command;
 
-import static picocli.CommandLine.Command;
-import static picocli.CommandLine.Mixin;
-import static picocli.CommandLine.Option;
+import static owl.thirdparty.picocli.CommandLine.Command;
+import static owl.thirdparty.picocli.CommandLine.Mixin;
+import static owl.thirdparty.picocli.CommandLine.Option;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

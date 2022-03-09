@@ -25,8 +25,8 @@ import static owl.command.Mixins.AcceptanceSimplifier;
 import static owl.command.Mixins.AutomatonReader;
 import static owl.command.Mixins.Diagnostics;
 import static owl.command.Mixins.Verifier;
-import static picocli.CommandLine.Command;
-import static picocli.CommandLine.Mixin;
+import static owl.thirdparty.picocli.CommandLine.Command;
+import static owl.thirdparty.picocli.CommandLine.Mixin;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -51,12 +51,12 @@ import owl.automaton.algorithm.simulations.BuchiSimulation;
 import owl.automaton.minimization.GfgCoBuchiMinimization;
 import owl.command.Mixins.AutomatonWriter;
 import owl.thirdparty.jhoafparser.consumer.HOAConsumerException;
+import owl.thirdparty.picocli.CommandLine;
+import owl.thirdparty.picocli.CommandLine.Option;
 import owl.translations.nba2ldba.NBA2LDBA;
 import owl.translations.nbadet.NbaDet;
 import owl.translations.nbadet.NbaDetConf;
 import owl.translations.nbadet.NbaLangInclusions;
-import picocli.CommandLine;
-import picocli.CommandLine.Option;
 
 @SuppressWarnings("PMD.ImmutableField")
 public class AutomatonConversionCommands {

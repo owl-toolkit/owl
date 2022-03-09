@@ -27,7 +27,12 @@
 
 package owl.thirdparty.jhoafparser.util;
 
-import static owl.logic.propositional.PropositionalFormula.*;
+import static owl.logic.propositional.PropositionalFormula.Conjunction;
+import static owl.logic.propositional.PropositionalFormula.Disjunction;
+import static owl.logic.propositional.PropositionalFormula.Negation;
+import static owl.logic.propositional.PropositionalFormula.Variable;
+import static owl.logic.propositional.PropositionalFormula.falseConstant;
+import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import java.util.ArrayList;
 import java.util.List;

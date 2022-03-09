@@ -19,8 +19,8 @@
 
 package owl.command;
 
-import static picocli.CommandLine.Option;
-import static picocli.CommandLine.ParentCommand;
+import static owl.thirdparty.picocli.CommandLine.Option;
+import static owl.thirdparty.picocli.CommandLine.ParentCommand;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import java.util.List;

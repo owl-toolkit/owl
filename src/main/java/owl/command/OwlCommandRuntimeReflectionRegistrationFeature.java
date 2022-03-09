@@ -23,8 +23,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import org.graalvm.nativeimage.hosted.Feature;
 import org.graalvm.nativeimage.hosted.RuntimeReflection;
+import owl.thirdparty.picocli.CommandLine.Command;
 import owl.util.OwlVersion;
-import picocli.CommandLine.Command;
 
 public class OwlCommandRuntimeReflectionRegistrationFeature implements Feature {
 
@@ -37,7 +37,7 @@ public class OwlCommandRuntimeReflectionRegistrationFeature implements Feature {
         registerCommand(subcommand);
       }
 
-      var autoHelpMixin = Class.forName("picocli.CommandLine$AutoHelpMixin");
+      var autoHelpMixin = Class.forName("owl.thirdparty.picocli.CommandLine$AutoHelpMixin");
       RuntimeReflection.register(autoHelpMixin);
       RuntimeReflection.register(autoHelpMixin.getDeclaredFields());
 
