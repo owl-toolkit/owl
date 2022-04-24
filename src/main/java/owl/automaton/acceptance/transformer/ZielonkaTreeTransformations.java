@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -20,6 +20,7 @@
 package owl.automaton.acceptance.transformer;
 
 import static owl.automaton.acceptance.ParityAcceptance.Parity.MIN_EVEN;
+import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
@@ -63,30 +64,30 @@ import owl.logic.propositional.sat.Solver;
 
 public final class ZielonkaTreeTransformations {
 
-  private ZielonkaTreeTransformations() {}
+  private ZielonkaTreeTransformations() {
+  }
 
   public static <S> Automaton<ZielonkaState<S>, ParityAcceptance>
-    transform(Automaton<S, ?> automaton) {
+  transform(Automaton<S, ?> automaton) {
 
     var cachedAutomaton = AbstractMemoizingAutomaton.memoizingAutomaton(automaton);
     var sccDecomposition = SccDecomposition.of(cachedAutomaton);
 
     return transform(
-      cachedAutomaton,
-      OptionalInt.empty(),
-      (x, y) -> sccDecomposition.index(x) != sccDecomposition.index(y),
-      x -> cachedAutomaton.acceptance().booleanExpression(),
-      x -> PropositionalFormula.trueConstant());
+        cachedAutomaton,
+        OptionalInt.empty(),
+        (x, y) -> sccDecomposition.index(x) != sccDecomposition.index(y),
+        x -> cachedAutomaton.acceptance().booleanExpression()
+    );
   }
 
   // TODO: it might be the case that depending on the iteration order the sizes are different.
   public static <S> AutomatonWithZielonkaTreeLookup<ZielonkaState<S>, ParityAcceptance>
-    transform(
+  transform(
       AbstractMemoizingAutomaton<S, ?> automaton,
       OptionalInt lookahead,
       BiPredicate<S, S> sccChange,
-      Function<S, ? extends PropositionalFormula<Integer>> localAlpha,
-      Function<S, ? extends PropositionalFormula<Integer>> localBeta) {
+      Function<S, ? extends PropositionalFormula<Integer>> localAlpha) {
 
     // Fixed configuration flag.
     boolean stutter = true;
@@ -99,16 +100,16 @@ public final class ZielonkaTreeTransformations {
       private final Map<S, ZielonkaTree> zielonkaTrees = new HashMap<>();
       private final Set<S> acceptingZielonkaTreeRoots = new HashSet<>();
       private final AcdCache<S> acdCache = new AcdCache<>(
-        automaton.acceptance());
+          automaton.acceptance());
 
       // Alternating Cycle Decomposition
       private final List<AlternatingCycleDecomposition<S>>
-        alternatingCycleDecompositions = new ArrayList<>();
+          alternatingCycleDecompositions = new ArrayList<>();
 
       // Conditional Zielonka Trees
       private final Table<
-        PropositionalFormula<Integer>, PropositionalFormula<Integer>, ConditionalZielonkaTree>
-        cachedConditionalZielonkaTrees = HashBasedTable.create();
+          PropositionalFormula<Integer>, PropositionalFormula<Integer>, ConditionalZielonkaTree>
+          cachedConditionalZielonkaTrees = HashBasedTable.create();
 
       private ZielonkaTree zielonkaTree(S state, Set<S> exploredStates) {
         ZielonkaTree zielonkaTree = zielonkaTrees.get(state);
@@ -125,12 +126,11 @@ public final class ZielonkaTreeTransformations {
         // conditional Zielonka tree for state.
         if (boundedSccExploration.isEmpty()) {
           var alpha = localAlpha.apply(state);
-          var beta = localBeta.apply(state);
-          var conditionalZielonkaTree = cachedConditionalZielonkaTrees.get(alpha, beta);
+          var conditionalZielonkaTree = cachedConditionalZielonkaTrees.get(alpha, trueConstant());
 
           if (conditionalZielonkaTree == null) {
-            conditionalZielonkaTree = ConditionalZielonkaTree.of(alpha, beta);
-            cachedConditionalZielonkaTrees.put(alpha, beta, conditionalZielonkaTree);
+            conditionalZielonkaTree = ConditionalZielonkaTree.of(alpha, trueConstant());
+            cachedConditionalZielonkaTrees.put(alpha, trueConstant(), conditionalZielonkaTree);
           }
 
           zielonkaTrees.put(state, conditionalZielonkaTree);
@@ -145,27 +145,27 @@ public final class ZielonkaTreeTransformations {
 
         // A complete over-approximation of an SCC detected. The forest now uses ACD.
         alternatingCycleDecompositions.addAll(
-          AlternatingCycleDecomposition.of(automaton, boundedSccExploration, acdCache));
+            AlternatingCycleDecomposition.of(automaton, boundedSccExploration, acdCache));
 
         for (S exploredState : boundedSccExploration) {
           int index = AlternatingCycleDecomposition
-            .find(alternatingCycleDecompositions, exploredState);
+              .find(alternatingCycleDecompositions, exploredState);
 
           // The state is transient, we fake an alternating cycle decomposition.
           if (index == -1) {
             zielonkaTrees.put(exploredState, AlternatingCycleDecomposition.of(
-              AllAcceptance.INSTANCE,
-              ImmutableBitSet.of(),
-              Map.of(exploredState, Set.of()),
-              acdCache));
+                AllAcceptance.INSTANCE,
+                ImmutableBitSet.of(),
+                Map.of(exploredState, Set.of()),
+                acdCache));
           } else {
             var alternatingCycleDecomposition
-              = alternatingCycleDecompositions.get(index);
+                = alternatingCycleDecompositions.get(index);
             zielonkaTrees.put(exploredState, alternatingCycleDecomposition);
 
             // Is the root of the tree accepting?
             if (automaton.acceptance().booleanExpression()
-              .evaluate(alternatingCycleDecomposition.colours())) {
+                .evaluate(alternatingCycleDecomposition.colours())) {
               acceptingZielonkaTreeRoots.add(exploredState);
             }
           }
@@ -235,14 +235,14 @@ public final class ZielonkaTreeTransformations {
 
         @SuppressWarnings("unchecked")
         var initialPath = stateTree instanceof AlternatingCycleDecomposition
-          ? ((AlternatingCycleDecomposition<S>) stateTree).leftMostLeaf(initialState)
-          : ((ConditionalZielonkaTree) stateTree).leftMostLeaf();
+            ? ((AlternatingCycleDecomposition<S>) stateTree).leftMostLeaf(initialState)
+            : ((ConditionalZielonkaTree) stateTree).leftMostLeaf();
 
         return ZielonkaState.of(initialState, initialPath);
       }
 
       private Edge<ZielonkaState<S>> edge(
-        ZielonkaState<S> state, Edge<S> edge, Set<S> exploredStates) {
+          ZielonkaState<S> state, Edge<S> edge, Set<S> exploredStates) {
 
         var stateTree = zielonkaTree(state.state(), exploredStates);
         var successorTree = zielonkaTree(edge.successor(), exploredStates);
@@ -254,18 +254,18 @@ public final class ZielonkaTreeTransformations {
 
         @SuppressWarnings("unchecked")
         var pathEdge = successorTree instanceof AlternatingCycleDecomposition
-          ? edge(edge, state.path(), (AlternatingCycleDecomposition<S>) successorTree)
-          : edge(edge, state.path(), (ConditionalZielonkaTree) successorTree);
+            ? edge(edge, state.path(), (AlternatingCycleDecomposition<S>) successorTree)
+            : edge(edge, state.path(), (ConditionalZielonkaTree) successorTree);
 
         assert successorTree instanceof AlternatingCycleDecomposition
-          || ((ConditionalZielonkaTree) successorTree).subtree(pathEdge.successor()) != null
-          : "dangling path";
+            || ((ConditionalZielonkaTree) successorTree).subtree(pathEdge.successor()) != null
+            : "dangling path";
 
         return pathEdge.mapSuccessor(x -> ZielonkaState.of(edge.successor(), x));
       }
 
       private Edge<ImmutableIntArray> edge(
-        Edge<S> edge, ImmutableIntArray path, AlternatingCycleDecomposition<S> acd) {
+          Edge<S> edge, ImmutableIntArray path, AlternatingCycleDecomposition<S> acd) {
 
         S successor = edge.successor();
         assert acd.edges().containsKey(successor);
@@ -280,7 +280,7 @@ public final class ZielonkaTreeTransformations {
           var nextAnchor = anchor.children().get(nextAnchorIndex);
 
           if (!nextAnchor.edges().containsKey(successor)
-            || !nextAnchor.colours().containsAll(edge.colours())) {
+              || !nextAnchor.colours().containsAll(edge.colours())) {
             break;
           }
 
@@ -303,8 +303,8 @@ public final class ZielonkaTreeTransformations {
 
         if (stateInChildPresent) {
           int nextNodeId = path.length() == anchorLevel
-            ? -1
-            : path.get(anchorLevel);
+              ? -1
+              : path.get(anchorLevel);
 
           AlternatingCycleDecomposition<S> nextNode;
 
@@ -320,12 +320,12 @@ public final class ZielonkaTreeTransformations {
 
         // min-even parity.
         return Edge.of(
-          successorPathBuilder.build().trimmed(),
-          anchorLevel + (acceptingZielonkaTreeRoots.contains(successor) ? 0 : 1));
+            successorPathBuilder.build().trimmed(),
+            anchorLevel + (acceptingZielonkaTreeRoots.contains(successor) ? 0 : 1));
       }
 
       private Edge<ImmutableIntArray> edge(
-        Edge<S> edge, ImmutableIntArray path, ConditionalZielonkaTree root) {
+          Edge<S> edge, ImmutableIntArray path, ConditionalZielonkaTree root) {
 
         ImmutableBitSet colours = edge.colours().intersection(root.colours());
 
@@ -351,8 +351,8 @@ public final class ZielonkaTreeTransformations {
               nextEdge = (nextEdge + 1) % node.children().size();
               child = node.children().get(nextEdge);
             } while (
-              stutter && nextEdge != edgeIndex
-                && !child.colours().containsAll(colours)
+                stutter && nextEdge != edgeIndex
+                    && !child.colours().containsAll(colours)
             );
 
             // We did a full turn around, reset to a default value.
@@ -369,12 +369,12 @@ public final class ZielonkaTreeTransformations {
             // We did not fully cycle around.
             if (child.colours().containsAll(colours)) {
               int colour = acceptingZielonkaTreeRoots.contains(edge.successor())
-                ? anchorLevel
-                : anchorLevel + 1;
+                  ? anchorLevel
+                  : anchorLevel + 1;
 
               // Recursively descend, but override acceptance mark.
               return edge(edge.withAcceptance(colours), successorPath, root)
-                .withAcceptance(colour);
+                  .withAcceptance(colour);
             }
 
             break;
@@ -395,8 +395,8 @@ public final class ZielonkaTreeTransformations {
 
         // min-even parity
         return Edge.of(
-          successorPath,
-          acceptingZielonkaTreeRoots.contains(edge.successor()) ? anchorLevel : anchorLevel + 1);
+            successorPath,
+            acceptingZielonkaTreeRoots.contains(edge.successor()) ? anchorLevel : anchorLevel + 1);
       }
     }
 
@@ -409,14 +409,15 @@ public final class ZielonkaTreeTransformations {
     var acceptance = new ParityAcceptance(automaton.acceptance().acceptanceSets() + 2, MIN_EVEN);
 
     class AutomatonWithZielonkaTreeLookupImpl
-      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<ZielonkaState<S>, ParityAcceptance>
-      implements AutomatonWithZielonkaTreeLookup<ZielonkaState<S>, ParityAcceptance> {
+        extends
+        AbstractMemoizingAutomaton.EdgeTreeImplementation<ZielonkaState<S>, ParityAcceptance>
+        implements AutomatonWithZielonkaTreeLookup<ZielonkaState<S>, ParityAcceptance> {
 
       private AutomatonWithZielonkaTreeLookupImpl(
-        List<String> atomicPropositions,
-        BddSetFactory factory,
-        Set<ZielonkaState<S>> initialStates,
-        ParityAcceptance acceptance) {
+          List<String> atomicPropositions,
+          BddSetFactory factory,
+          Set<ZielonkaState<S>> initialStates,
+          ParityAcceptance acceptance) {
 
         super(atomicPropositions, factory, initialStates, acceptance);
       }
@@ -426,9 +427,9 @@ public final class ZielonkaTreeTransformations {
         Set<S> exploredStates = new HashSet<>();
 
         return automaton
-          .edgeTree(state.state())
-          .map(edges -> Collections3.transformSet(edges,
-            edge -> forest.edge(state, edge, exploredStates)));
+            .edgeTree(state.state())
+            .map(edges -> Collections3.transformSet(edges,
+                edge -> forest.edge(state, edge, exploredStates)));
       }
 
       @Override
@@ -438,7 +439,7 @@ public final class ZielonkaTreeTransformations {
     }
 
     return new AutomatonWithZielonkaTreeLookupImpl(
-      automaton.atomicPropositions(), automaton.factory(), initialStates, acceptance);
+        automaton.atomicPropositions(), automaton.factory(), initialStates, acceptance);
   }
 
   public interface ZielonkaTreeLookup<S> {
@@ -448,7 +449,7 @@ public final class ZielonkaTreeTransformations {
   }
 
   public interface AutomatonWithZielonkaTreeLookup<S, A extends EmersonLeiAcceptance>
-    extends Automaton<S, A>, ZielonkaTreeLookup<S> {
+      extends Automaton<S, A>, ZielonkaTreeLookup<S> {
 
   }
 
@@ -470,8 +471,8 @@ public final class ZielonkaTreeTransformations {
     abstract Map<S, Set<Edge<S>>> edges();
 
     static <S> AcdCacheEntry<S> of(
-      ImmutableBitSet colours,
-      Map<S, Set<Edge<S>>> edges) {
+        ImmutableBitSet colours,
+        Map<S, Set<Edge<S>>> edges) {
 
       return new AutoValue_ZielonkaTreeTransformations_AcdCacheEntry<>(colours, Map.copyOf(edges));
     }
@@ -496,17 +497,17 @@ public final class ZielonkaTreeTransformations {
 
     @Nullable
     AlternatingCycleDecomposition<S> get(
-      ImmutableBitSet colours,
-      Map<S, Set<Edge<S>>> edges) {
+        ImmutableBitSet colours,
+        Map<S, Set<Edge<S>>> edges) {
 
       return cache.get(AcdCacheEntry.of(colours, edges));
     }
 
     @Nullable
     AlternatingCycleDecomposition<S> put(
-      ImmutableBitSet colours,
-      Map<S, Set<Edge<S>>> edges,
-      AlternatingCycleDecomposition<S> acd) {
+        ImmutableBitSet colours,
+        Map<S, Set<Edge<S>>> edges,
+        AlternatingCycleDecomposition<S> acd) {
 
       return cache.put(AcdCacheEntry.of(colours, edges), acd);
     }
@@ -528,32 +529,32 @@ public final class ZielonkaTreeTransformations {
     public abstract int height();
 
     public static <S> List<AlternatingCycleDecomposition<S>> of(
-      Automaton<S, ?> automaton) {
+        Automaton<S, ?> automaton) {
       return of(automaton, automaton.states(), new AcdCache<>(automaton.acceptance()));
     }
 
     public static <S> List<AlternatingCycleDecomposition<S>> of(
-      Automaton<S, ?> automaton, Set<S> restrictedStates, AcdCache<S> cache) {
+        Automaton<S, ?> automaton, Set<S> restrictedStates, AcdCache<S> cache) {
 
       List<AlternatingCycleDecomposition<S>> acd = new ArrayList<>();
       SccDecomposition<S> sccDecomposition = SccDecomposition.of(
-        restrictedStates, SuccessorFunction.filter(automaton, restrictedStates));
+          restrictedStates, SuccessorFunction.filter(automaton, restrictedStates));
 
       for (Set<S> scc : sccDecomposition.sccsWithoutTransient()) {
         Map<S, Set<Edge<S>>> sccEdges = new HashMap<>(scc.size());
 
         for (S state : scc) {
           sccEdges.put(state, automaton.edges(state).stream()
-            .filter(edge -> scc.contains(edge.successor()))
-            .collect(Collectors.toUnmodifiableSet()));
+              .filter(edge -> scc.contains(edge.successor()))
+              .collect(Collectors.toUnmodifiableSet()));
         }
 
         sccEdges = Map.copyOf(sccEdges);
 
         var coloursOfChildScc = sccEdges.values().stream()
-          .flatMap(x -> x.stream().map(Edge::colours))
-          .reduce(ImmutableBitSet::union)
-          .orElse(ImmutableBitSet.of());
+            .flatMap(x -> x.stream().map(Edge::colours))
+            .reduce(ImmutableBitSet::union)
+            .orElse(ImmutableBitSet.of());
 
         acd.add(of(automaton.acceptance(), coloursOfChildScc, sccEdges, cache));
       }
@@ -562,10 +563,10 @@ public final class ZielonkaTreeTransformations {
     }
 
     public static <S> AlternatingCycleDecomposition<S> of(
-      EmersonLeiAcceptance alpha,
-      ImmutableBitSet colours,
-      Map<S, Set<Edge<S>>> edges,
-      AcdCache<S> cache) {
+        EmersonLeiAcceptance alpha,
+        ImmutableBitSet colours,
+        Map<S, Set<Edge<S>>> edges,
+        AcdCache<S> cache) {
 
       if (!alpha.booleanExpression().isTrue()) {
         assert cache.alpha.equals(alpha.booleanExpression());
@@ -579,7 +580,7 @@ public final class ZielonkaTreeTransformations {
       List<AlternatingCycleDecomposition<S>> childrenBuilder = new ArrayList<>();
 
       for (Pair<ImmutableBitSet, Map<S, Set<Edge<S>>>> x
-        : childrenOf(alpha, colours, edges, cache)) {
+          : childrenOf(alpha, colours, edges, cache)) {
 
         childrenBuilder.add(of(alpha, x.fst(), x.snd(), cache));
       }
@@ -587,7 +588,7 @@ public final class ZielonkaTreeTransformations {
       var children = List.copyOf(childrenBuilder);
 
       AlternatingCycleDecomposition<S> acd
-        = new AutoValue_ZielonkaTreeTransformations_AlternatingCycleDecomposition<>(
+          = new AutoValue_ZielonkaTreeTransformations_AlternatingCycleDecomposition<>(
           colours, edges, children, height(children));
 
       if (!alpha.booleanExpression().isTrue()) {
@@ -609,10 +610,10 @@ public final class ZielonkaTreeTransformations {
     }
 
     private static <S> List<Pair<ImmutableBitSet, Map<S, Set<Edge<S>>>>> childrenOf(
-      EmersonLeiAcceptance alpha,
-      ImmutableBitSet colours,
-      Map<S, Set<Edge<S>>> edges,
-      AcdCache<S> cache) {
+        EmersonLeiAcceptance alpha,
+        ImmutableBitSet colours,
+        Map<S, Set<Edge<S>>> edges,
+        AcdCache<S> cache) {
 
       assert isClosed(edges);
 
@@ -639,7 +640,7 @@ public final class ZielonkaTreeTransformations {
         };
 
         for (Set<S> childScc
-          : SccDecomposition.of(edges.keySet(), successorFunction).sccsWithoutTransient()) {
+            : SccDecomposition.of(edges.keySet(), successorFunction).sccsWithoutTransient()) {
           Map<S, Set<Edge<S>>> childEdges = new HashMap<>(edges.size());
 
           for (S childSccState : childScc) {
@@ -654,7 +655,7 @@ public final class ZielonkaTreeTransformations {
             assert !newFilteredEdges.isEmpty();
             @SuppressWarnings({"unchecked", "unused"})
             var unused
-              = childEdges.put(childSccState, Set.of(newFilteredEdges.toArray(Edge[]::new)));
+                = childEdges.put(childSccState, Set.of(newFilteredEdges.toArray(Edge[]::new)));
           }
 
           childEdges = Map.copyOf(childEdges);
@@ -669,7 +670,7 @@ public final class ZielonkaTreeTransformations {
           }
 
           if (alpha.booleanExpression().evaluate(coloursOfChildScc)
-            == alpha.booleanExpression().evaluate(childColours)) {
+              == alpha.booleanExpression().evaluate(childColours)) {
             children.add(Pair.of(coloursOfChildScc, Map.copyOf(childEdges)));
           } else {
             children.addAll(childrenOf(alpha, coloursOfChildScc, childEdges, cache));
@@ -678,11 +679,11 @@ public final class ZielonkaTreeTransformations {
       }
 
       return Collections3.maximalElements(children,
-        (pair1, pair2) -> isSubsetEq(pair1.snd(), pair2.snd()));
+          (pair1, pair2) -> isSubsetEq(pair1.snd(), pair2.snd()));
     }
 
     private static <S> boolean isSubsetEq(
-      Map<S, Set<Edge<S>>> edge1, Map<S, Set<Edge<S>>> edge2) {
+        Map<S, Set<Edge<S>>> edge1, Map<S, Set<Edge<S>>> edge2) {
 
       for (Map.Entry<S, Set<Edge<S>>> entry : edge1.entrySet()) {
         var value2 = edge2.get(entry.getKey());
@@ -700,7 +701,7 @@ public final class ZielonkaTreeTransformations {
       qChildren.removeIf(x -> !x.edges().containsKey(state));
       qChildren.replaceAll(x -> x.restriction(state));
       return new AutoValue_ZielonkaTreeTransformations_AlternatingCycleDecomposition<>(
-        colours(), edges(), List.copyOf(qChildren), height(qChildren));
+          colours(), edges(), List.copyOf(qChildren), height(qChildren));
     }
 
     public ImmutableIntArray restrictPathToSubtree(S state, ImmutableIntArray unrestrictedPath) {
@@ -710,7 +711,7 @@ public final class ZielonkaTreeTransformations {
     }
 
     private void restrictPathToSubtree(
-      S state, ImmutableIntArray unrestrictedPath, int index, ImmutableIntArray.Builder builder) {
+        S state, ImmutableIntArray unrestrictedPath, int index, ImmutableIntArray.Builder builder) {
 
       if (index == unrestrictedPath.length()) {
         return;
@@ -734,8 +735,8 @@ public final class ZielonkaTreeTransformations {
 
     private static <S> boolean isClosed(Map<S, ? extends Collection<Edge<S>>> edges) {
       return edges.values().stream()
-        .flatMap(x -> x.stream().map(Edge::successor))
-        .allMatch(edges::containsKey);
+          .flatMap(x -> x.stream().map(Edge::successor))
+          .allMatch(edges::containsKey);
     }
 
     private static <S> int find(List<AlternatingCycleDecomposition<S>> acd, S state) {
@@ -788,17 +789,17 @@ public final class ZielonkaTreeTransformations {
     public abstract int height();
 
     public static ConditionalZielonkaTree of(
-      PropositionalFormula<Integer> alpha,
-      PropositionalFormula<Integer> beta) {
+        PropositionalFormula<Integer> alpha,
+        PropositionalFormula<Integer> beta) {
 
       return of(ImmutableBitSet.copyOf(alpha.variables()), alpha, beta, new HashMap<>());
     }
 
     private static ConditionalZielonkaTree of(
-      ImmutableBitSet colours,
-      PropositionalFormula<Integer> alpha,
-      PropositionalFormula<Integer> beta,
-      Map<ImmutableBitSet, ConditionalZielonkaTree> cache) {
+        ImmutableBitSet colours,
+        PropositionalFormula<Integer> alpha,
+        PropositionalFormula<Integer> beta,
+        Map<ImmutableBitSet, ConditionalZielonkaTree> cache) {
 
       var zielonkaTree = cache.get(colours);
 
@@ -810,13 +811,13 @@ public final class ZielonkaTreeTransformations {
       // Sort colour sets lexicographically. This ensures that we always compute
       // the same Zielonka tree for a given acceptance condition.
       var maximalModels = Solver.DEFAULT.maximalModels(
-        Conjunction.of(
-          alpha.evaluate(colours) ? PropositionalFormula.Negation.of(alpha) : alpha, beta),
-          colours)
-        .stream()
-        .map(ImmutableBitSet::copyOf)
-        .sorted()
-        .toArray(ImmutableBitSet[]::new);
+              Conjunction.of(
+                  alpha.evaluate(colours) ? PropositionalFormula.Negation.of(alpha) : alpha, beta),
+              colours)
+          .stream()
+          .map(ImmutableBitSet::copyOf)
+          .sorted()
+          .toArray(ImmutableBitSet[]::new);
 
       var children = new ArrayList<ConditionalZielonkaTree>();
       int height = 0;
@@ -828,8 +829,8 @@ public final class ZielonkaTreeTransformations {
       }
 
       zielonkaTree = INTERNER.intern(
-        new AutoValue_ZielonkaTreeTransformations_ConditionalZielonkaTree(
-          colours, List.copyOf(children), height));
+          new AutoValue_ZielonkaTreeTransformations_ConditionalZielonkaTree(
+              colours, List.copyOf(children), height));
 
       cache.put(colours, zielonkaTree);
       return zielonkaTree;
@@ -869,6 +870,7 @@ public final class ZielonkaTreeTransformations {
 
   @AutoValue
   public abstract static class ZielonkaState<S> implements AnnotatedState<S> {
+
     @Override
     public abstract S state();
 

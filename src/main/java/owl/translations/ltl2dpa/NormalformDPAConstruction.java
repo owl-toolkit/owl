@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -45,27 +45,27 @@ import owl.translations.canonical.DeterministicConstructions.BreakpointStateReje
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 
 public final class NormalformDPAConstruction
-  implements Function<LabelledFormula, Automaton<ZielonkaState<State>, ParityAcceptance>> {
+    implements Function<LabelledFormula, Automaton<ZielonkaState<State>, ParityAcceptance>> {
 
   private final NormalformDELAConstruction normalformDELAConstruction;
   private final OptionalInt lookahead;
 
   public NormalformDPAConstruction(OptionalInt lookahead) {
     this.lookahead = lookahead;
-    this.normalformDELAConstruction = new NormalformDELAConstruction(lookahead);
+    this.normalformDELAConstruction = new NormalformDELAConstruction();
   }
 
   @Override
   public AutomatonWithZielonkaTreeLookup<ZielonkaState<State>, ParityAcceptance>
-    apply(LabelledFormula formula) {
+  apply(LabelledFormula formula) {
 
     var delwConstruction = normalformDELAConstruction.applyConstruction(formula);
     return transform(
-      delwConstruction.automaton(),
-      lookahead,
-      State::inDifferentSccs,
-      delwConstruction::alpha,
-      delwConstruction::beta);
+        delwConstruction.automaton(),
+        lookahead,
+        State::inDifferentSccs,
+        delwConstruction::alpha
+    );
   }
 
   // [0, 1, 2, 3, ...] -> [0.5, 0.25, 0.125, ...]
@@ -75,9 +75,9 @@ public final class NormalformDPAConstruction
   }
 
   private static double approximateTrueness(
-    PropositionalFormula<Integer> formula,
-    Map<Integer, BreakpointStateRejecting> stateMap,
-    BitSet processedStates) {
+      PropositionalFormula<Integer> formula,
+      Map<Integer, BreakpointStateRejecting> stateMap,
+      BitSet processedStates) {
 
     if (formula instanceof PropositionalFormula.Variable<Integer> variable) {
 
@@ -91,14 +91,14 @@ public final class NormalformDPAConstruction
 
     if (formula instanceof PropositionalFormula.Negation<Integer> negation) {
       return 1.0d - approximateTrueness(
-        negation.operand(), stateMap, processedStates);
+          negation.operand(), stateMap, processedStates);
     }
 
     if (formula instanceof PropositionalFormula.Biconditional<Integer> biconditional) {
 
       return Math.abs(
-        approximateTrueness(biconditional.leftOperand(), stateMap, processedStates)
-          - approximateTrueness(biconditional.rightOperand(), stateMap, processedStates)
+          approximateTrueness(biconditional.leftOperand(), stateMap, processedStates)
+              - approximateTrueness(biconditional.rightOperand(), stateMap, processedStates)
       );
     }
 
@@ -126,7 +126,7 @@ public final class NormalformDPAConstruction
   }
 
   public static ToDoubleFunction<Edge<ZielonkaState<State>>> scoringFunction(
-    AutomatonWithZielonkaTreeLookup<ZielonkaState<State>, ParityAcceptance> automaton) {
+      AutomatonWithZielonkaTreeLookup<ZielonkaState<State>, ParityAcceptance> automaton) {
 
     return edge -> {
       ZielonkaState<State> successor = edge.successor();
@@ -186,9 +186,9 @@ public final class NormalformDPAConstruction
       // Process components irrelevant to the Zielonka-tree.
       {
         double trueness = approximateTrueness(
-          successor.state().stateFormula(),
-          successor.state().stateMap(),
-          processedStates);
+            successor.state().stateFormula(),
+            successor.state().stateMap(),
+            processedStates);
 
         double nextEvent = 2.0d * Math.abs(trueness - 0.5d);
 

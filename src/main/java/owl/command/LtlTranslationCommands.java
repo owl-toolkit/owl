@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2020  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -56,13 +56,14 @@ import owl.translations.LtlTranslationRepository.LtlToNbaTranslation;
 @SuppressWarnings("PMD.ImmutableField")
 final class LtlTranslationCommands {
 
-  private LtlTranslationCommands() {}
+  private LtlTranslationCommands() {
+  }
 
   private abstract static class AbstractLtl2AutomatonCommand
-    <L extends A, A extends EmersonLeiAcceptance> extends AbstractOwlSubcommand {
+      <L extends A, A extends EmersonLeiAcceptance> extends AbstractOwlSubcommand {
 
     protected static final String LIST_AVAILABLE_TRANSLATIONS = "The default translation is "
-      + "${DEFAULT-VALUE} and the following translations are available: ${COMPLETION-CANDIDATES}.";
+        + "${DEFAULT-VALUE} and the following translations are available: ${COMPLETION-CANDIDATES}.";
 
     @Mixin
     private FormulaReader formulaReader = null;
@@ -77,9 +78,9 @@ final class LtlTranslationCommands {
     private AcceptanceSimplifier acceptanceSimplifier = null;
 
     @Option(
-      names = "--skip-translation-portfolio",
-      description = "Bypass the portfolio of constructions from [S19, SE20] that directly "
-        + "translates 'simple' fragments of LTL to automata."
+        names = "--skip-translation-portfolio",
+        description = "Bypass the portfolio of constructions from [S19, SE20] that directly "
+            + "translates 'simple' fragments of LTL to automata."
     )
     private boolean skipPortfolio = false;
 
@@ -112,7 +113,7 @@ final class LtlTranslationCommands {
       var translator = translation.translation(acceptanceClass, basicOptions, lookahead());
 
       try (var source = formulaReader.source();
-           var sink = automatonWriter.sink(subcommand, rawArgs())) {
+          var sink = automatonWriter.sink(subcommand, rawArgs())) {
 
         Iterator<LabelledFormula> formulaIterator = source.iterator();
 
@@ -139,16 +140,16 @@ final class LtlTranslationCommands {
   }
 
   private abstract static class AbstractLtl2NbaCommand
-    extends AbstractLtl2AutomatonCommand<BuchiAcceptance, GeneralizedBuchiAcceptance> {
+      extends AbstractLtl2AutomatonCommand<BuchiAcceptance, GeneralizedBuchiAcceptance> {
 
     @Option(
-      names = {"-t", "--translation"},
-      description = {
-        LIST_AVAILABLE_TRANSLATIONS,
-        "EKS20: " + LtlToNbaTranslation.EKS20_DESCRIPTION
-      },
-      defaultValue = "EKS20",
-      showDefaultValue = CommandLine.Help.Visibility.NEVER
+        names = {"-t", "--translation"},
+        description = {
+            LIST_AVAILABLE_TRANSLATIONS,
+            "EKS20: " + LtlToNbaTranslation.EKS20_DESCRIPTION
+        },
+        defaultValue = "EKS20",
+        showDefaultValue = CommandLine.Help.Visibility.NEVER
     )
     private LtlToNbaTranslation translation = LtlToNbaTranslation.DEFAULT;
 
@@ -159,17 +160,18 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2nba",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a non-deterministic Büchi automaton "
-        + "(NBA).",
-      "Usage Examples:",
-      "  owl ltl2nba -f 'F (a & G b)'",
-      "  owl ltl2nba -t EKS20 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2nba",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a non-deterministic Büchi automaton "
+              + "(NBA).",
+          "Usage Examples:",
+          "  owl ltl2nba -f 'F (a & G b)'",
+          "  owl ltl2nba -t EKS20 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2NbaCommand extends AbstractLtl2NbaCommand {
+
     @Override
     protected Class<? extends GeneralizedBuchiAcceptance> acceptanceClass() {
       return BuchiAcceptance.class;
@@ -177,17 +179,18 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2ngba",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a non-deterministic generalized "
-        + "Büchi automaton (NGBA).",
-      "Usage Examples:",
-      "  owl ltl2ngba -f 'F (a & G b)'",
-      "  owl ltl2ngba -t EKS20 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2ngba",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a non-deterministic generalized "
+              + "Büchi automaton (NGBA).",
+          "Usage Examples:",
+          "  owl ltl2ngba -f 'F (a & G b)'",
+          "  owl ltl2ngba -t EKS20 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2NgbaCommand extends AbstractLtl2NbaCommand {
+
     @Override
     protected Class<? extends GeneralizedBuchiAcceptance> acceptanceClass() {
       return GeneralizedBuchiAcceptance.class;
@@ -195,18 +198,18 @@ final class LtlTranslationCommands {
   }
 
   private abstract static class AbstractLtl2LdbaCommand
-    extends AbstractLtl2AutomatonCommand<BuchiAcceptance, GeneralizedBuchiAcceptance> {
+      extends AbstractLtl2AutomatonCommand<BuchiAcceptance, GeneralizedBuchiAcceptance> {
 
     @Option(
-      names = {"-t", "--translation"},
-      description = {
-        LIST_AVAILABLE_TRANSLATIONS,
-        "SEJK16: " + LtlToLdbaTranslation.SEJK16_DESCRIPTION,
-        "EKS20: " + LtlToLdbaTranslation.EKS20_DESCRIPTION,
-        "SMALLEST_AUTOMATON: " + LtlToLdbaTranslation.SMALLEST_AUTOMATON_DESCRIPTION
-      },
-      defaultValue = "SEJK16",
-      showDefaultValue = CommandLine.Help.Visibility.NEVER
+        names = {"-t", "--translation"},
+        description = {
+            LIST_AVAILABLE_TRANSLATIONS,
+            "SEJK16: " + LtlToLdbaTranslation.SEJK16_DESCRIPTION,
+            "EKS20: " + LtlToLdbaTranslation.EKS20_DESCRIPTION,
+            "SMALLEST_AUTOMATON: " + LtlToLdbaTranslation.SMALLEST_AUTOMATON_DESCRIPTION
+        },
+        defaultValue = "SEJK16",
+        showDefaultValue = CommandLine.Help.Visibility.NEVER
     )
     private LtlToLdbaTranslation translation = LtlToLdbaTranslation.DEFAULT;
 
@@ -217,17 +220,18 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2ldba",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a limit-deterministic Büchi automaton "
-        + "(LDBA).",
-      "Usage Examples:",
-      "  owl ltl2ldba -f 'F (a & G b)'",
-      "  owl ltl2ldba -t EKS20 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2ldba",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a limit-deterministic Büchi automaton "
+              + "(LDBA).",
+          "Usage Examples:",
+          "  owl ltl2ldba -f 'F (a & G b)'",
+          "  owl ltl2ldba -t EKS20 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2LdbaCommand extends AbstractLtl2LdbaCommand {
+
     @Override
     protected Class<? extends GeneralizedBuchiAcceptance> acceptanceClass() {
       return BuchiAcceptance.class;
@@ -235,17 +239,18 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2ldgba",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a limit-deterministic generalized "
-        + "Büchi automaton (LDGBA).",
-      "Usage Examples:",
-      "  owl ltl2ldgba -f 'F (a & G b)'",
-      "  owl ltl2ldgba -t EKS20 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2ldgba",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a limit-deterministic generalized "
+              + "Büchi automaton (LDGBA).",
+          "Usage Examples:",
+          "  owl ltl2ldgba -f 'F (a & G b)'",
+          "  owl ltl2ldgba -t EKS20 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2LdgbaCommand extends AbstractLtl2LdbaCommand {
+
     @Override
     protected Class<? extends GeneralizedBuchiAcceptance> acceptanceClass() {
       return GeneralizedBuchiAcceptance.class;
@@ -253,57 +258,58 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2dpa",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a deterministic parity automaton "
-        + "(DPA).",
-      "Usage Examples:",
-      "  owl ltl2dpa -f 'F (a & G b)'",
-      "  owl ltl2dpa -t SEJK16_EKRS17 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2dpa",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a deterministic parity automaton "
+              + "(DPA).",
+          "Usage Examples:",
+          "  owl ltl2dpa -f 'F (a & G b)'",
+          "  owl ltl2dpa -t SEJK16_EKRS17 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2DpaCommand
-    extends AbstractLtl2AutomatonCommand<ParityAcceptance, ParityAcceptance> {
+      extends AbstractLtl2AutomatonCommand<ParityAcceptance, ParityAcceptance> {
 
     @Option(
-      names = {"-t", "--translation"},
-      description = {
-        LIST_AVAILABLE_TRANSLATIONS,
-        "SEJK16_EKRS17: " + LtlToDpaTranslation.SEJK16_EKRS17_DESCRIPTION,
-        "EKS20_EKRS17: " + LtlToDpaTranslation.EKS20_EKRS17_DESCRIPTION,
-        "SYMBOLIC_SE20_BKS10: " + LtlToDpaTranslation.SYMBOLIC_SE20_BKS10_DESCRIPTION,
-        "SLM21: " + LtlToDpaTranslation.SLM21_DESCRIPTION,
-        "SMALLEST_AUTOMATON: " + LtlToDpaTranslation.SMALLEST_AUTOMATON_DESCRIPTION
-      },
-      defaultValue = "SLM21",
-      showDefaultValue = CommandLine.Help.Visibility.NEVER
+        names = {"-t", "--translation"},
+        description = {
+            LIST_AVAILABLE_TRANSLATIONS,
+            "SEJK16_EKRS17: " + LtlToDpaTranslation.SEJK16_EKRS17_DESCRIPTION,
+            "EKS20_EKRS17: " + LtlToDpaTranslation.EKS20_EKRS17_DESCRIPTION,
+            "SYMBOLIC_SE20_BKS10: " + LtlToDpaTranslation.SYMBOLIC_SE20_BKS10_DESCRIPTION,
+            "SLM21: " + LtlToDpaTranslation.SLM21_DESCRIPTION,
+            "SMALLEST_AUTOMATON: " + LtlToDpaTranslation.SMALLEST_AUTOMATON_DESCRIPTION
+        },
+        defaultValue = "SLM21",
+        showDefaultValue = CommandLine.Help.Visibility.NEVER
     )
     private LtlToDpaTranslation translation = LtlToDpaTranslation.DEFAULT;
 
     @Option(
-      names = "--" + Bibliography.TACAS_17_1_CITEKEY + "-skip-complement",
-      description = "Bypass the parallel computation of a DPA for the negation of the formula. If "
-        + "the parallel computation is enabled, then two DPAs are computed and the "
-        + "smaller one (in terms of number of states) is returned."
+        names = "--" + Bibliography.TACAS_17_1_CITEKEY + "-skip-complement",
+        description =
+            "Bypass the parallel computation of a DPA for the negation of the formula. If "
+                + "the parallel computation is enabled, then two DPAs are computed and the "
+                + "smaller one (in terms of number of states) is returned."
     )
     private boolean skipComplement = false;
 
     @Option(
-      names = {"--" + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "-lookahead"},
-      description = {
-        "The number of successor states that are explored in order to (1) compute an exact "
-          + "semantic classification of a state, e.g., weak accepting, and (2) in order to compute "
-          + "the 'Alternating Cycle Decomposition' [" + Bibliography.ICALP_21_CITEKEY + "]. If the "
-          + "number of explored states exceeds this bound, a sound approximations are used as "
-          + "desribed in [" + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "]. If the "
-          + "value is 0, only approximations are used. If the value is negative, then all "
-          + "states are explored and exact semantic information is used. The value is by default "
-          + "${DEFAULT-VALUE}. If the construction times out, try setting this value to 0 and then "
-          + "increase it again in order to obtain smaller automata. This option only affects the "
-          + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "-translation."
-      },
-      defaultValue = "-1"
+        names = {"--" + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "-lookahead"},
+        description = {
+            "The number of successor states that are explored in order to compute "
+                + "the 'Alternating Cycle Decomposition' [" + Bibliography.ICALP_21_CITEKEY
+                + "]. If the "
+                + "number of explored states exceeds this bound, a sound approximations are used as "
+                + "desribed in [" + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "]. If the "
+                + "value is 0, only approximations are used. If the value is negative, then all "
+                + "states are explored and exact semantic information is used. The value is by default "
+                + "${DEFAULT-VALUE}. If the construction times out, try setting this value to 0 and then "
+                + "increase it again in order to obtain smaller automata. This option only affects the "
+                + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "-translation."
+        },
+        defaultValue = "-1"
     )
     private int lookahead = -1;
 
@@ -329,26 +335,26 @@ final class LtlTranslationCommands {
   }
 
   private abstract static class AbstractLtl2DraCommand
-    extends AbstractLtl2AutomatonCommand<RabinAcceptance, GeneralizedRabinAcceptance> {
+      extends AbstractLtl2AutomatonCommand<RabinAcceptance, GeneralizedRabinAcceptance> {
 
     @Option(
-      names = {"-t", "--translation"},
-      description = {
-        LIST_AVAILABLE_TRANSLATIONS,
-        "EKS16: " + LtlToDraTranslation.EKS16_DESCRIPTION,
-        "EKS20: " + LtlToDraTranslation.EKS20_DESCRIPTION,
-        "SE20: " + LtlToDraTranslation.SE20_DESCRIPTION,
-        "SMALLEST_AUTOMATON: " + LtlToDraTranslation.SMALLEST_AUTOMATON_DESCRIPTION
-      },
-      defaultValue = "EKS20",
-      showDefaultValue = CommandLine.Help.Visibility.NEVER
+        names = {"-t", "--translation"},
+        description = {
+            LIST_AVAILABLE_TRANSLATIONS,
+            "EKS16: " + LtlToDraTranslation.EKS16_DESCRIPTION,
+            "EKS20: " + LtlToDraTranslation.EKS20_DESCRIPTION,
+            "SE20: " + LtlToDraTranslation.SE20_DESCRIPTION,
+            "SMALLEST_AUTOMATON: " + LtlToDraTranslation.SMALLEST_AUTOMATON_DESCRIPTION
+        },
+        defaultValue = "EKS20",
+        showDefaultValue = CommandLine.Help.Visibility.NEVER
     )
     private LtlToDraTranslation translation = LtlToDraTranslation.DEFAULT;
 
     @Option(
-      names = {"--" + Bibliography.LICS_20_CITEKEY + "-no-dual-normal-form"},
-      description = "Do not use the dual normal form of [SE20] for the translation to "
-        + "deterministic automata. This option is only honoured if SE20 is selected as translation."
+        names = {"--" + Bibliography.LICS_20_CITEKEY + "-no-dual-normal-form"},
+        description = "Do not use the dual normal form of [SE20] for the translation to "
+            + "deterministic automata. This option is only honoured if SE20 is selected as translation."
     )
     private boolean noSe20dual = true;
 
@@ -364,16 +370,17 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2dra",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a deterministic Rabin automaton (DRA).",
-      "Usage Examples:",
-      "  owl ltl2dra -f 'F (a & G b)'",
-      "  owl ltl2dra -t SE20 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2dra",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a deterministic Rabin automaton (DRA).",
+          "Usage Examples:",
+          "  owl ltl2dra -f 'F (a & G b)'",
+          "  owl ltl2dra -t SE20 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2DraCommand extends AbstractLtl2DraCommand {
+
     @Override
     protected Class<? extends GeneralizedRabinAcceptance> acceptanceClass() {
       return RabinAcceptance.class;
@@ -381,17 +388,18 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2dgra",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a deterministic generalized Rabin "
-        + "automaton (DGRA).",
-      "Usage Examples:",
-      "  owl ltl2dgra -f 'F (a & G b)'",
-      "  owl ltl2dgra -t SE20 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2dgra",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a deterministic generalized Rabin "
+              + "automaton (DGRA).",
+          "Usage Examples:",
+          "  owl ltl2dgra -f 'F (a & G b)'",
+          "  owl ltl2dgra -t SE20 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2DgraCommand extends AbstractLtl2DraCommand {
+
     @Override
     protected Class<? extends GeneralizedRabinAcceptance> acceptanceClass() {
       return GeneralizedRabinAcceptance.class;
@@ -399,47 +407,31 @@ final class LtlTranslationCommands {
   }
 
   @Command(
-    name = "ltl2dela",
-    description = {
-      "Translate a linear temporal logic (LTL) formula into a deterministic Emerson-Lei "
-        + "automaton (DELA).",
-      "Usage Examples:",
-      "  owl ltl2dela -f 'F (a & G b)'",
-      "  owl ltl2dela -t MS17 -i input-file -o output-file",
-      MiscCommands.BibliographyCommand.HOW_TO_USE
-    }
+      name = "ltl2dela",
+      description = {
+          "Translate a linear temporal logic (LTL) formula into a deterministic Emerson-Lei "
+              + "automaton (DELA).",
+          "Usage Examples:",
+          "  owl ltl2dela -f 'F (a & G b)'",
+          "  owl ltl2dela -t MS17 -i input-file -o output-file",
+          MiscCommands.BibliographyCommand.HOW_TO_USE
+      }
   )
   static final class Ltl2DelaCommand
-    extends AbstractLtl2AutomatonCommand<EmersonLeiAcceptance, EmersonLeiAcceptance> {
+      extends AbstractLtl2AutomatonCommand<EmersonLeiAcceptance, EmersonLeiAcceptance> {
 
     @Option(
-      names = {"-t", "--translation"},
-      description = {
-        LIST_AVAILABLE_TRANSLATIONS,
-        "MS17: " + LtlToDelaTranslation.MS17_DESCRIPTION,
-        "SLM21: " + LtlToDelaTranslation.SLM21_DESCRIPTION,
-        "SMALLEST_AUTOMATON: " + LtlToDelaTranslation.SMALLEST_AUTOMATON_DESCRIPTION
-      },
-      defaultValue = "SLM21",
-      showDefaultValue = CommandLine.Help.Visibility.NEVER
+        names = {"-t", "--translation"},
+        description = {
+            LIST_AVAILABLE_TRANSLATIONS,
+            "MS17: " + LtlToDelaTranslation.MS17_DESCRIPTION,
+            "SLM21: " + LtlToDelaTranslation.SLM21_DESCRIPTION,
+            "SMALLEST_AUTOMATON: " + LtlToDelaTranslation.SMALLEST_AUTOMATON_DESCRIPTION
+        },
+        defaultValue = "SLM21",
+        showDefaultValue = CommandLine.Help.Visibility.NEVER
     )
     private LtlToDelaTranslation translation = LtlToDelaTranslation.DEFAULT;
-
-    @Option(
-      names = {"--" + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "-lookahead"},
-      description = {
-        "The number of successor states that are explored in order to compute an exact semantic "
-          + "classification of a state, e.g., weak accepting. If the number of explored states "
-          + "exceeds this bound, a sound, but incomplete syntactic check is performed. If the "
-          + "value is 0, only syntactic checks are performed. If the value is negative, then all "
-          + "states are explored. The value is by default ${DEFAULT-VALUE}. If the construction "
-          + "times out, try setting this value to 0 and then increase it again in order to obtain "
-          + "smaller automata. This option only affects the "
-          + Bibliography.UNDER_SUBMISSION_21_CITEKEY + "-translation."
-      },
-      defaultValue = "-1"
-    )
-    private int lookahead = -1;
 
     @Override
     protected LtlToDelaTranslation translation() {
@@ -454,11 +446,6 @@ final class LtlTranslationCommands {
     @Override
     protected EnumSet<LtlTranslationRepository.Option> extraOptions() {
       return EnumSet.noneOf(LtlTranslationRepository.Option.class);
-    }
-
-    @Override
-    protected OptionalInt lookahead() {
-      return lookahead < 0 ? OptionalInt.empty() : OptionalInt.of(lookahead);
     }
   }
 }
