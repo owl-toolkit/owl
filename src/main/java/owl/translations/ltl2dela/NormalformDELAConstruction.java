@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -21,15 +21,11 @@ package owl.translations.ltl2dela;
 
 import static owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import static owl.translations.canonical.DeterministicConstructions.SafetyCoSafety;
-import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.NOT_SUSPENDABLE;
-import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.SUSPENDABLE;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.TERMINAL_ACCEPTING;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.TERMINAL_REJECTING;
-import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.TRANSIENT_NOT_SUSPENDED;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.TRANSIENT_SUSPENDED;
-import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_ACCEPTING_NOT_SUSPENDED;
+import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.UNKNOWN;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_ACCEPTING_SUSPENDED;
-import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_REJECTING_NOT_SUSPENDED;
 import static owl.translations.ltl2dela.NormalformDELAConstruction.Classification.WEAK_REJECTING_SUSPENDED;
 import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
 import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
@@ -47,7 +43,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NavigableMap;
 import java.util.NavigableSet;
-import java.util.OptionalInt;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -55,10 +50,7 @@ import java.util.function.Function;
 import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.Automaton;
-import owl.automaton.AutomatonUtil;
-import owl.automaton.Views;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
-import owl.automaton.algorithm.SccDecomposition;
 import owl.automaton.edge.Edge;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
@@ -88,27 +80,21 @@ import owl.translations.mastertheorem.Normalisation;
 
 /**
  * A translation from LTL to deterministic Emerson-Lei automata using the \Delta_2-normalisation
- * procedure. Future Work / TODO:
- * - Use lookahead to find more accepting and rejecting sinks. For this use an exhaustive SCC
- *   analysis that is bounded by the lookahead.
- * - Round-Robin Chains that are independent from GF- / FG-subformulas. The heuristic depends on the
- *   fact that suspension collapse a SCC to a single state.
- * - Store round-robin chains for beta generation.
- * - Use non-trivial beta generation (using LTL Axioms.)
+ * procedure. Future Work / TODO: - Use lookahead to find more accepting and rejecting sinks. For
+ * this use an exhaustive SCC analysis that is bounded by the lookahead. - Round-Robin Chains that
+ * are independent from GF- / FG-subformulas. The heuristic depends on the fact that suspension
+ * collapse a SCC to a single state.
  */
 public final class NormalformDELAConstruction
-  implements Function<LabelledFormula, Automaton<NormalformDELAConstruction.State, ?>> {
+    implements Function<LabelledFormula, Automaton<NormalformDELAConstruction.State, ?>> {
 
   private static final Normalisation NORMALISATION
-    = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
+      = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
 
   private static final Normalisation DUAL_NORMALISATION
-    = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
+      = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
 
-  private final OptionalInt lookahead;
-
-  public NormalformDELAConstruction(OptionalInt lookahead) {
-    this.lookahead = lookahead;
+  public NormalformDELAConstruction() {
   }
 
   @Override
@@ -120,8 +106,8 @@ public final class NormalformDELAConstruction
     // Ensure that the input formula is in negation normal form and that
     // X-operators occur only in-front of temporal operators.
     var normalisedFormula = RemoveNegation.apply(
-      PushNextThroughPropositionalVisitor.apply(formula));
-    return new Construction(normalisedFormula, lookahead);
+        PushNextThroughPropositionalVisitor.apply(formula));
+    return new Construction(normalisedFormula);
   }
 
   private static final class RemoveNegation extends PropositionalVisitor<Formula> {
@@ -148,7 +134,7 @@ public final class NormalformDELAConstruction
       var rightOperand = biconditional.rightOperand().accept(this);
 
       if (SyntacticFragments.DELTA_1.contains(leftOperand)
-        && SyntacticFragments.DELTA_1.contains(rightOperand)) {
+          && SyntacticFragments.DELTA_1.contains(rightOperand)) {
 
         var nnfFormula = Biconditional.of(leftOperand, rightOperand).nnf();
         assert SyntacticFragments.DELTA_1.contains(nnfFormula);
@@ -189,35 +175,32 @@ public final class NormalformDELAConstruction
 
     // Caches
     private final Map<State, PropositionalFormula<Integer>> alphaCache = new HashMap<>();
-    private final Map<State, PropositionalFormula<Integer>> betaCache = new HashMap<>();
     private final Map<PropositionalFormula<Integer>, ImmutableBitSet> notAlphaColoursCache
-      = new HashMap<>();
+        = new HashMap<>();
 
     private final AbstractMemoizingAutomaton<State, EmersonLeiAcceptance> automaton;
 
-    private Construction(LabelledFormula formula, OptionalInt lookahead) {
+    private Construction(LabelledFormula formula) {
 
       var factories
-        = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
+          = FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions());
 
       // Underlying automaton.
       dbw = SafetyCoSafety.of(factories, BooleanConstant.TRUE, true, true);
 
       var normalFormConstructor = new NormalFormConverter();
       var normalForm
-        = PropositionalSimplifier.INSTANCE.apply(formula.formula().accept(normalFormConstructor));
+          = PropositionalSimplifier.INSTANCE.apply(formula.formula().accept(normalFormConstructor));
       var referenceCounterVisitor = new CountingVisitor();
       referenceCounterVisitor.apply(normalForm);
       referenceCounterVisitor.referenceCounter.entrySet().removeIf(e -> e.getValue().equals(1));
       var initialStateFormulaConstructor
-        = new InitialStateConstructor(dbw, referenceCounterVisitor.referenceCounter.keySet());
+          = new InitialStateConstructor(dbw, referenceCounterVisitor.referenceCounter.keySet());
       var initialStateFormula = initialStateFormulaConstructor.apply(normalForm);
       var initialStates = initialStateFormulaConstructor.initialStates;
-      classifier = new BreakpointStateRejectingClassifier(dbw,
-        // Scale lookahead for each component.
-        lookahead.stream().map(x -> Math.max(0, x / Math.max(1, initialStates.size()))).findAny());
+      classifier = new BreakpointStateRejectingClassifier(dbw);
       roundRobinCandidates = ImmutableBitSet
-        .copyOf(initialStateFormulaConstructor.roundRobinCandidate);
+          .copyOf(initialStateFormulaConstructor.roundRobinCandidate);
 
       // Assert that round-robin candidates are referred to in the state-formula at most once.
       var occurrences = new HashMap<>(initialStateFormula.countVariables());
@@ -231,11 +214,11 @@ public final class NormalformDELAConstruction
       }
 
       State initialState
-        = createState(initialStateFormula, stateMap, ImmutableBitSet.of(), new BitSet());
+          = createState(initialStateFormula, stateMap, ImmutableBitSet.of(), new BitSet());
       acceptance = EmersonLeiAcceptance.of(initialState.stateFormula());
 
       automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-        dbw.atomicPropositions(), dbw.factory(), Set.of(initialState), acceptance) {
+          dbw.atomicPropositions(), dbw.factory(), Set.of(initialState), acceptance) {
 
         @Override
         protected MtBdd<Edge<State>> edgeTreeImpl(State state) {
@@ -253,11 +236,11 @@ public final class NormalformDELAConstruction
         }
 
         private MtBdd<Edge<State>> edgeTreeImpl(
-          State state,
-          List<Integer> keys,
-          List<MtBdd<Edge<BreakpointStateRejecting>>> values,
-          Map<List<Edge<BreakpointStateRejecting>>, Edge<State>> mapperCache,
-          int leaves) {
+            State state,
+            List<Integer> keys,
+            List<MtBdd<Edge<BreakpointStateRejecting>>> values,
+            Map<List<Edge<BreakpointStateRejecting>>, Edge<State>> mapperCache,
+            int leaves) {
 
           int variable = nextVariable(values);
 
@@ -267,9 +250,8 @@ public final class NormalformDELAConstruction
             for (int i = 0, s = keys.size(); i < s; i++) {
               var value = values.get(i);
 
-              if (value instanceof MtBdd.Leaf) {
-                edges.add(Iterables.getOnlyElement(
-                  ((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) value).value));
+              if (value instanceof MtBdd.Leaf<Edge<BreakpointStateRejecting>> leaf) {
+                edges.add(Iterables.getOnlyElement(leaf.value));
               } else {
                 assert value == null;
                 edges.add(null);
@@ -277,7 +259,7 @@ public final class NormalformDELAConstruction
             }
 
             Edge<State> edge = mapperCache.computeIfAbsent(
-              edges, y -> Construction.this.edge(state, keys, edges));
+                edges, y -> Construction.this.edge(state, keys, edges));
 
             return edge.successor().stateFormula().isFalse() ? MtBdd.of() : MtBdd.of(Set.of(edge));
           }
@@ -289,7 +271,7 @@ public final class NormalformDELAConstruction
             shortCircuit(state, keys, falseTrees);
           }
           var falseCartesianProduct
-            = edgeTreeImpl(state, keys, falseTrees, mapperCache, falseLeaves);
+              = edgeTreeImpl(state, keys, falseTrees, mapperCache, falseLeaves);
 
           var trueTrees = new ArrayList<>(values);
           trueTrees.replaceAll(x -> descendTrueIf(x, variable));
@@ -298,7 +280,7 @@ public final class NormalformDELAConstruction
             shortCircuit(state, keys, trueTrees);
           }
           var trueCartesianProduct
-            = edgeTreeImpl(state, keys, trueTrees, mapperCache, trueLeaves);
+              = edgeTreeImpl(state, keys, trueTrees, mapperCache, trueLeaves);
 
           return MtBdd.of(variable, trueCartesianProduct, falseCartesianProduct);
         }
@@ -309,8 +291,8 @@ public final class NormalformDELAConstruction
           for (var tree : trees) {
             // Remember tree might be null, but instanceof also checks for that.
             variable = Math.min(variable, tree instanceof MtBdd.Node
-              ? ((MtBdd.Node<?>) tree).variable
-              : Integer.MAX_VALUE);
+                ? ((MtBdd.Node<?>) tree).variable
+                : Integer.MAX_VALUE);
           }
 
           return variable;
@@ -335,14 +317,14 @@ public final class NormalformDELAConstruction
         }
 
         private void shortCircuit(
-          State state, List<Integer> keys, List<MtBdd<Edge<BreakpointStateRejecting>>> trees) {
+            State state, List<Integer> keys, List<MtBdd<Edge<BreakpointStateRejecting>>> trees) {
 
           List<Edge<BreakpointStateRejecting>> leaves = new ArrayList<>(trees.size());
 
           for (MtBdd<Edge<BreakpointStateRejecting>> x : trees) {
             leaves.add(x instanceof MtBdd.Leaf
-              ? Iterables.getOnlyElement(((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) x).value)
-              : null);
+                ? Iterables.getOnlyElement(((MtBdd.Leaf<Edge<BreakpointStateRejecting>>) x).value)
+                : null);
           }
 
           var successorMap = successorMap(keys, leaves, null);
@@ -392,7 +374,7 @@ public final class NormalformDELAConstruction
       var acceptanceCondition = automaton.acceptance().booleanExpression();
       var alphaColours = BitSet2.copyOf(alpha.variables());
       var partialAssignment
-        = PropositionalFormulaHelper.findPartialAssignment(acceptanceCondition, alpha);
+          = PropositionalFormulaHelper.findPartialAssignment(acceptanceCondition, alpha);
 
       if (partialAssignment != null) {
         BitSet padding = new BitSet();
@@ -401,11 +383,11 @@ public final class NormalformDELAConstruction
         // TODO: Move verification code to findPartialAssignment.
         // Verify correctness.
         var simplifiedAcceptance = acceptanceCondition.substitute(
-          x -> alphaColours.get(x)
-            ? PropositionalFormula.Variable.of(x)
-            : padding.get(x)
-              ? PropositionalFormula.trueConstant()
-              : PropositionalFormula.falseConstant());
+            x -> alphaColours.get(x)
+                ? PropositionalFormula.Variable.of(x)
+                : padding.get(x)
+                    ? PropositionalFormula.trueConstant()
+                    : PropositionalFormula.falseConstant());
 
         // Quick, syntactic check
         if (simplifiedAcceptance.equals(alpha)) {
@@ -414,7 +396,7 @@ public final class NormalformDELAConstruction
 
         // Complete, semantic check.
         var xor = PropositionalFormula.Negation.of(
-          PropositionalFormula.Biconditional.of(alpha, simplifiedAcceptance));
+            PropositionalFormula.Biconditional.of(alpha, simplifiedAcceptance));
 
         if (Solver.DPLL.model(xor).isEmpty()) {
           return ImmutableBitSet.copyOf(padding);
@@ -422,11 +404,11 @@ public final class NormalformDELAConstruction
       }
 
       throw new AssertionError("This should not have been reached, since alpha is "
-        + "computed from acceptanceCondition by substituting variables by constants.");
+          + "computed from acceptanceCondition by substituting variables by constants.");
     }
 
     private Map<Integer, BreakpointStateRejecting> successorMap(
-      List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges, @Nullable BitSet colours) {
+        List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges, @Nullable BitSet colours) {
       Map<Integer, BreakpointStateRejecting> successorMap = new HashMap<>(edges.size());
 
       for (int i = 0, s = keys.size(); i < s; i++) {
@@ -449,12 +431,16 @@ public final class NormalformDELAConstruction
     }
 
     private Edge<State> edge(
-      State state, List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges) {
+        State state, List<Integer> keys, List<Edge<BreakpointStateRejecting>> edges) {
 
       BitSet colours = new BitSet();
       Map<Integer, BreakpointStateRejecting> successorMap = successorMap(keys, edges, colours);
       State successor = createState(
-        state.stateFormula(), successorMap, state.roundRobinCounters(), colours);
+          state.stateFormula(), successorMap, state.roundRobinCounters(), colours);
+
+      if (!state.stateFormula().equals(successor.stateFormula())) {
+        return Edge.of(successor);
+      }
 
       PropositionalFormula<Integer> alpha = alphaCache.get(successor);
       // Remove colours outside of alpha...
@@ -466,10 +452,10 @@ public final class NormalformDELAConstruction
     }
 
     private State createState(
-      PropositionalFormula<Integer> stateFormula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
-      ImmutableBitSet oldRoundRobinCounters,
-      BitSet acceptingEdges) {
+        PropositionalFormula<Integer> stateFormula,
+        Map<Integer, BreakpointStateRejecting> stateMap,
+        ImmutableBitSet oldRoundRobinCounters,
+        BitSet acceptingEdges) {
 
       assert roundRobinCandidates.containsAll(oldRoundRobinCounters);
 
@@ -477,18 +463,18 @@ public final class NormalformDELAConstruction
 
       // Keep this in sync with shortCircuit.
       PropositionalFormula<Integer> newStateFormula
-        = stateFormula.substitute(index -> {
-          // The state has been short-circuited.
-          if (!classification.containsKey(index)) {
-            return PropositionalFormula.Variable.of(index);
-          }
+          = stateFormula.substitute(index -> {
+        // The state has been short-circuited.
+        if (!classification.containsKey(index)) {
+          return PropositionalFormula.Variable.of(index);
+        }
 
         return switch (classification.get(index)) {
           case TERMINAL_ACCEPTING -> PropositionalFormula.trueConstant();
           case TERMINAL_REJECTING -> PropositionalFormula.falseConstant();
           default -> PropositionalFormula.Variable.of(index);
         };
-        });
+      });
 
       assert stateMap.keySet().containsAll(newStateFormula.variables()) : "Short-circuiting failed";
       newStateFormula = pruneRedundantConjunctsAndDisjuncts(newStateFormula, stateMap);
@@ -503,40 +489,22 @@ public final class NormalformDELAConstruction
       assert !classification.containsValue(TERMINAL_REJECTING);
 
       // If there is a state that is transient and can be suspended then suspend everything.
-      if (classification.containsValue(TRANSIENT_SUSPENDED)
-        || classification.containsValue(TRANSIENT_NOT_SUSPENDED)) {
-
-        // If there is a state that is transient and but cannot be safely suspended, then suspend
-        // everything except that state.
-        int protectedIndex = classification.containsValue(TRANSIENT_SUSPENDED)
-          ? -1
-          : classification.entrySet().stream()
-            .filter(entry -> entry.getValue() == TRANSIENT_NOT_SUSPENDED)
-            .map(Map.Entry::getKey)
-            .findFirst().orElseThrow();
-
-        stateMap.entrySet().forEach(entry -> {
-          if (entry.getKey() != protectedIndex) {
-            entry.setValue(entry.getValue().suspend());
-          }
-        });
-
+      if (classification.containsValue(TRANSIENT_SUSPENDED)) {
+        stateMap.entrySet().forEach(entry -> entry.setValue(entry.getValue().suspend()));
         var state = State.of(newStateFormula, stateMap, ImmutableBitSet.of());
         alphaCache.put(state, PropositionalFormula.trueConstant());
-        betaCache.put(state, PropositionalFormula.trueConstant());
         return state;
       }
 
       assert !classification.containsValue(TRANSIENT_SUSPENDED);
-      assert !classification.containsValue(TRANSIENT_NOT_SUSPENDED);
 
       // Evaluate all suspendable states that belong to a weak accepting and rejecting SCC.
       var alpha = newStateFormula.substitute(
-        index -> switch (classification.get(index)) {
-          case WEAK_ACCEPTING_SUSPENDED -> PropositionalFormula.trueConstant();
-          case WEAK_REJECTING_SUSPENDED -> PropositionalFormula.falseConstant();
-          default -> PropositionalFormula.Variable.of(index);
-        });
+          index -> switch (classification.get(index)) {
+            case WEAK_ACCEPTING_SUSPENDED -> PropositionalFormula.trueConstant();
+            case WEAK_REJECTING_SUSPENDED -> PropositionalFormula.falseConstant();
+            default -> PropositionalFormula.Variable.of(index);
+          });
 
       {
         var remainingVariables = alpha.variables();
@@ -552,69 +520,22 @@ public final class NormalformDELAConstruction
         classification.keySet().retainAll(remainingVariables);
       }
 
-      assert !classification.containsValue(WEAK_ACCEPTING_SUSPENDED);
-      assert !classification.containsValue(WEAK_REJECTING_SUSPENDED);
-
-      // Iteratively look for states that belong to a weak accepting or rejecting SCC and replace
-      // them by a constant, clean-up and repeat.
-      while (true) {
-        var firstWeakIndex = classification.entrySet().stream()
-          .filter(entry -> entry.getValue() == WEAK_ACCEPTING_NOT_SUSPENDED
-            || entry.getValue() == WEAK_REJECTING_NOT_SUSPENDED)
-          .findFirst();
-
-        if (firstWeakIndex.isEmpty()) {
-          break;
-        }
-
-        int weakIndex = firstWeakIndex.get().getKey();
-        var value =
-          firstWeakIndex.get().getValue() == WEAK_ACCEPTING_NOT_SUSPENDED
-            ? PropositionalFormula.<Integer>trueConstant()
-            : PropositionalFormula.<Integer>falseConstant();
-
-        alpha = alpha.substitute(weakIndex, value);
-
-        var remainingVariables = alpha.variables();
-        classification.entrySet().forEach(entry -> {
-          if (remainingVariables.contains(entry.getKey())) {
-            return;
-          }
-
-          if (entry.getKey() == weakIndex) {
-            entry.setValue(NOT_SUSPENDABLE);
-            return;
-          }
-
-          assert Set.of(
-            WEAK_ACCEPTING_NOT_SUSPENDED,
-            WEAK_REJECTING_NOT_SUSPENDED,
-            SUSPENDABLE,
-            NOT_SUSPENDABLE).contains(entry.getValue());
-
-          if (entry.getValue() != NOT_SUSPENDABLE) {
-            entry.setValue(SUSPENDABLE);
-            stateMap.computeIfPresent(entry.getKey(), (x, y) -> y.suspend());
-          }
-        });
-      }
-
-      assert Set.of(SUSPENDABLE, NOT_SUSPENDABLE).containsAll(classification.values());
+      assert Set.of(UNKNOWN).containsAll(classification.values());
       assert classification.keySet().containsAll(alpha.variables());
 
       // Apply round-robin suspension.
       var newRoundRobinCounters = new BitSet();
       var roundRobinChains = roundRobinSuspension(
-        alpha, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters);
+          alpha, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters);
 
       alpha = alpha.substitute(x -> {
         ImmutableBitSet roundRobinChain = Iterables.getOnlyElement(
-          roundRobinChains.stream().filter(chain -> chain.contains(x)).toList(),
-          null);
+            roundRobinChains.stream().filter(chain -> chain.contains(x)).toList(),
+            null);
 
         return roundRobinChain == null
-          ? PropositionalFormula.Variable.of(x)
-          : PropositionalFormula.Variable.of(roundRobinChain.first().orElseThrow());
+            ? PropositionalFormula.Variable.of(x)
+            : PropositionalFormula.Variable.of(roundRobinChain.first().orElseThrow());
       });
 
       var state = State.of(newStateFormula, stateMap, newRoundRobinCounters);
@@ -624,7 +545,7 @@ public final class NormalformDELAConstruction
     }
 
     private NavigableSet<Integer> roundRobinChain(
-      PropositionalFormula.Conjunction<Integer> conjunction) {
+        PropositionalFormula.Conjunction<Integer> conjunction) {
 
       var roundRobinChain = new TreeSet<Integer>();
 
@@ -640,7 +561,7 @@ public final class NormalformDELAConstruction
     }
 
     private NavigableSet<Integer> roundRobinChain(
-      PropositionalFormula.Disjunction<Integer> disjunction) {
+        PropositionalFormula.Disjunction<Integer> disjunction) {
 
       var roundRobinChain = new TreeSet<Integer>();
 
@@ -659,8 +580,8 @@ public final class NormalformDELAConstruction
 
     private NavigableSet<Integer> roundRobinChain(PropositionalFormula<Integer> formula) {
       if (formula instanceof PropositionalFormula.Variable
-        || formula instanceof PropositionalFormula.Negation
-        || formula instanceof PropositionalFormula.Biconditional) {
+          || formula instanceof PropositionalFormula.Negation
+          || formula instanceof PropositionalFormula.Biconditional) {
         return new TreeSet<>();
       }
 
@@ -672,11 +593,11 @@ public final class NormalformDELAConstruction
     }
 
     private List<ImmutableBitSet> roundRobinSuspension(
-      PropositionalFormula<Integer> alpha,
-      Map<Integer, BreakpointStateRejecting> stateMap,
-      BitSet acceptingEdges,
-      ImmutableBitSet oldRoundRobinCounters,
-      BitSet newRoundRobinCounters) {
+        PropositionalFormula<Integer> alpha,
+        Map<Integer, BreakpointStateRejecting> stateMap,
+        BitSet acceptingEdges,
+        ImmutableBitSet oldRoundRobinCounters,
+        BitSet newRoundRobinCounters) {
 
       var roundRobinChains = new ArrayList<ImmutableBitSet>();
       var roundRobinChain = roundRobinChain(alpha);
@@ -694,8 +615,8 @@ public final class NormalformDELAConstruction
 
         // Skip around
         for (int nextIndex : Iterables.concat(
-          roundRobinChain.tailSet(currentIndex, true),
-          roundRobinChain.headSet(currentIndex, false))) {
+            roundRobinChain.tailSet(currentIndex, true),
+            roundRobinChain.headSet(currentIndex, false))) {
 
           if (!acceptingEdges.get(nextIndex)) {
             currentIndex = nextIndex;
@@ -712,7 +633,7 @@ public final class NormalformDELAConstruction
         // Suspend other elements of the chain.
         for (Map.Entry<Integer, BreakpointStateRejecting> entry : stateMap.entrySet()) {
           if (roundRobinChain.contains(entry.getKey())
-            && entry.getKey() != currentIndex) {
+              && entry.getKey() != currentIndex) {
 
             entry.setValue(entry.getValue().suspend());
           }
@@ -725,43 +646,46 @@ public final class NormalformDELAConstruction
       if (alpha instanceof PropositionalFormula.Biconditional<Integer> castedAlpha) {
 
         roundRobinChains.addAll(
-          roundRobinSuspension(
-            castedAlpha.leftOperand(),
-            stateMap,
-            acceptingEdges,
-            oldRoundRobinCounters,
-            newRoundRobinCounters));
+            roundRobinSuspension(
+                castedAlpha.leftOperand(),
+                stateMap,
+                acceptingEdges,
+                oldRoundRobinCounters,
+                newRoundRobinCounters));
 
         roundRobinChains.addAll(
-          roundRobinSuspension(
-            castedAlpha.rightOperand(),
-            stateMap,
-            acceptingEdges,
-            oldRoundRobinCounters,
-            newRoundRobinCounters));
+            roundRobinSuspension(
+                castedAlpha.rightOperand(),
+                stateMap,
+                acceptingEdges,
+                oldRoundRobinCounters,
+                newRoundRobinCounters));
 
       } else if (alpha instanceof PropositionalFormula.Conjunction<Integer> castedAlpha) {
         for (var conjunct : castedAlpha.conjuncts()) {
           roundRobinChains.addAll(
-            roundRobinSuspension(
-              conjunct, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters));
+              roundRobinSuspension(
+                  conjunct, stateMap, acceptingEdges, oldRoundRobinCounters,
+                  newRoundRobinCounters));
         }
       } else if (alpha instanceof PropositionalFormula.Disjunction<Integer> castedAlpha) {
         for (var disjunct : castedAlpha.disjuncts()) {
           roundRobinChains.addAll(
-            roundRobinSuspension(
-              disjunct, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters));
+              roundRobinSuspension(
+                  disjunct, stateMap, acceptingEdges, oldRoundRobinCounters,
+                  newRoundRobinCounters));
         }
       } else {
         assert alpha instanceof PropositionalFormula.Negation
-          || alpha instanceof PropositionalFormula.Variable;
+            || alpha instanceof PropositionalFormula.Variable;
       }
 
       return roundRobinChains;
     }
 
     private PropositionalFormula<Integer> pruneRedundantConjunctsAndDisjuncts(
-      PropositionalFormula<Integer> stateFormula, Map<Integer, BreakpointStateRejecting> stateMap) {
+        PropositionalFormula<Integer> stateFormula,
+        Map<Integer, BreakpointStateRejecting> stateMap) {
 
       if (stateFormula instanceof PropositionalFormula.Variable) {
         return stateFormula;
@@ -769,13 +693,13 @@ public final class NormalformDELAConstruction
 
       if (stateFormula instanceof PropositionalFormula.Negation<Integer> negation) {
         return PropositionalFormula.Negation.of(
-          pruneRedundantConjunctsAndDisjuncts(negation.operand(), stateMap));
+            pruneRedundantConjunctsAndDisjuncts(negation.operand(), stateMap));
       }
 
       if (stateFormula instanceof PropositionalFormula.Biconditional<Integer> biconditional) {
 
         if (isVariableOrNegationOfVariable(biconditional.leftOperand())
-          && isVariableOrNegationOfVariable(biconditional.rightOperand())) {
+            && isVariableOrNegationOfVariable(biconditional.rightOperand())) {
 
           var leftLanguage = language(biconditional.leftOperand(), stateMap);
           var rightLanguage = language(biconditional.rightOperand(), stateMap);
@@ -790,16 +714,41 @@ public final class NormalformDELAConstruction
         }
 
         return PropositionalFormula.Biconditional.of(
-          pruneRedundantConjunctsAndDisjuncts(biconditional.leftOperand(), stateMap),
-          pruneRedundantConjunctsAndDisjuncts(biconditional.rightOperand(), stateMap));
+            pruneRedundantConjunctsAndDisjuncts(biconditional.leftOperand(), stateMap),
+            pruneRedundantConjunctsAndDisjuncts(biconditional.rightOperand(), stateMap));
       }
 
       if (stateFormula instanceof PropositionalFormula.Conjunction<Integer> conjunction) {
 
         return PropositionalFormula.Conjunction.of(Collections3.maximalElements(
-          conjunction.conjuncts().stream()
-            .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
-            .toList(),
+            conjunction.conjuncts().stream()
+                .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
+                .toList(),
+            (x, y) -> {
+              if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
+                return false;
+              }
+
+              var xLanguage = language(x, stateMap);
+              var yLanguage = language(y, stateMap);
+
+              // If they don't share temporal operators, don't try to compute language implication.
+              if (Collections.disjoint(
+                  xLanguage.temporalOperators(), yLanguage.temporalOperators())) {
+
+                return false;
+              }
+
+              return yLanguage.implies(xLanguage);
+            }));
+      }
+
+      assert stateFormula instanceof PropositionalFormula.Disjunction;
+
+      return PropositionalFormula.Disjunction.of(Collections3.maximalElements(
+          ((PropositionalFormula.Disjunction<Integer>) stateFormula).disjuncts().stream()
+              .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
+              .toList(),
           (x, y) -> {
             if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
               return false;
@@ -810,50 +759,25 @@ public final class NormalformDELAConstruction
 
             // If they don't share temporal operators, don't try to compute language implication.
             if (Collections.disjoint(
-              xLanguage.temporalOperators(), yLanguage.temporalOperators())) {
+                xLanguage.temporalOperators(), yLanguage.temporalOperators())) {
 
               return false;
             }
 
-            return yLanguage.implies(xLanguage);
+            return xLanguage.implies(yLanguage);
           }));
-      }
-
-      assert stateFormula instanceof PropositionalFormula.Disjunction;
-
-      return PropositionalFormula.Disjunction.of(Collections3.maximalElements(
-        ((PropositionalFormula.Disjunction<Integer>) stateFormula).disjuncts().stream()
-          .map(x -> pruneRedundantConjunctsAndDisjuncts(x, stateMap))
-          .toList(),
-        (x, y) -> {
-          if (!isVariableOrNegationOfVariable(x) || !isVariableOrNegationOfVariable(y)) {
-            return false;
-          }
-
-          var xLanguage = language(x, stateMap);
-          var yLanguage = language(y, stateMap);
-
-          // If they don't share temporal operators, don't try to compute language implication.
-          if (Collections.disjoint(
-            xLanguage.temporalOperators(), yLanguage.temporalOperators())) {
-
-            return false;
-          }
-
-          return xLanguage.implies(yLanguage);
-        }));
     }
 
     private static boolean isVariableOrNegationOfVariable(PropositionalFormula<?> formula) {
       return formula instanceof PropositionalFormula.Variable
-        || (formula instanceof PropositionalFormula.Negation
-        && ((PropositionalFormula.Negation<?>) formula).operand()
-        instanceof PropositionalFormula.Variable);
+          || (formula instanceof PropositionalFormula.Negation
+          && ((PropositionalFormula.Negation<?>) formula).operand()
+          instanceof PropositionalFormula.Variable);
     }
 
     private static EquivalenceClass language(
-      PropositionalFormula<Integer> stateFormula,
-      Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
+        PropositionalFormula<Integer> stateFormula,
+        Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
 
       assert isVariableOrNegationOfVariable(stateFormula);
 
@@ -872,58 +796,6 @@ public final class NormalformDELAConstruction
 
     public PropositionalFormula<Integer> alpha(State state) {
       return alphaCache.get(state);
-    }
-
-    public PropositionalFormula<Integer> beta(State state) {
-      return betaCache.computeIfAbsent(state, this::computeBeta);
-    }
-
-    // TODO: build implication graph and propagate information for state formula?
-    private PropositionalFormula<Integer> computeBeta(State state) {
-      var variables = alpha(state).variables();
-
-      List<PropositionalFormula<Integer>> facts = new ArrayList<>();
-
-      for (int var1 : variables) {
-        for (int var2 : variables) {
-          if (var1 == var2) {
-            continue;
-          }
-
-          var state1 = state.stateMap().get(var1);
-          var state2 = state.stateMap().get(var2);
-
-          var clazz1 = state1.all();
-          var clazz2 = state2.all();
-
-          if (Collections.disjoint(clazz1.temporalOperators(), clazz2.temporalOperators())) {
-            continue;
-          }
-
-          if (clazz1.implies(clazz2)) {
-            var neg1 = PropositionalFormula.Negation.of(PropositionalFormula.Variable.of(var1));
-            var pos2 = PropositionalFormula.Variable.of(var2);
-
-            facts.add(PropositionalFormula.Disjunction.of(neg1, pos2));
-          }
-
-          //          var dbw1 = Views.replaceInitialStates(dbw, Set.of(state1));
-          //          var dbw2 = Views.replaceInitialStates(dbw, Set.of(state2));
-          //
-          //          if (LanguageContainment.contains(dbw1, dbw2)) {
-          //            if (clazz1.implies(clazz2) || clazz1.not().or(clazz2).isTrue()) {
-          //              System.err.println("found (impl): " + clazz1 + " " + clazz2);
-          //            }
-          //
-          //            var neg1 = PropositionalFormula.Negation.of(PropositionalFormula
-          //            .Variable.of(var1));
-          //            var pos2 = PropositionalFormula.Variable.of(var2);
-          //
-          //            facts.add(PropositionalFormula.Disjunction.of(neg1, pos2));
-        }
-      }
-
-      return PropositionalFormula.Conjunction.of(facts);
     }
   }
 
@@ -993,7 +865,7 @@ public final class NormalformDELAConstruction
   }
 
   private static final class NormalFormConverter
-    extends PropositionalVisitor<Formula> {
+      extends PropositionalVisitor<Formula> {
 
     @Override
     protected Formula visit(Formula.TemporalOperator formula) {
@@ -1009,18 +881,18 @@ public final class NormalformDELAConstruction
       }
 
       var normalForm1 =
-        PushNextThroughPropositionalVisitor.apply(
-          SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
-            NORMALISATION.apply(formula)));
+          PushNextThroughPropositionalVisitor.apply(
+              SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+                  NORMALISATION.apply(formula)));
 
       var normalForm2 =
-        PushNextThroughPropositionalVisitor.apply(
-          SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
-            DUAL_NORMALISATION.apply(formula)));
+          PushNextThroughPropositionalVisitor.apply(
+              SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
+                  DUAL_NORMALISATION.apply(formula)));
 
       if (normalForm1 instanceof Disjunction) {
         if (normalForm2 instanceof Disjunction
-          && normalForm1.operands.size() < normalForm2.operands.size()) {
+            && normalForm1.operands.size() < normalForm2.operands.size()) {
           return normalForm1.accept(this);
         }
 
@@ -1029,8 +901,8 @@ public final class NormalformDELAConstruction
 
       if (normalForm1 instanceof Conjunction) {
         if (normalForm2 instanceof Disjunction
-          || (normalForm2 instanceof Conjunction
-          && normalForm1.operands.size() < normalForm2.operands.size())) {
+            || (normalForm2 instanceof Conjunction
+            && normalForm1.operands.size() < normalForm2.operands.size())) {
           return normalForm1.accept(this);
         }
 
@@ -1052,8 +924,8 @@ public final class NormalformDELAConstruction
     @Override
     public Formula visit(Biconditional biconditional) {
       return Biconditional.of(
-        biconditional.leftOperand().accept(this),
-        biconditional.rightOperand().accept(this));
+          biconditional.leftOperand().accept(this),
+          biconditional.rightOperand().accept(this));
     }
 
     @Override
@@ -1073,7 +945,7 @@ public final class NormalformDELAConstruction
   }
 
   private static final class InitialStateConstructor
-    extends PropositionalVisitor<PropositionalFormula<Integer>> {
+      extends PropositionalVisitor<PropositionalFormula<Integer>> {
 
     private final SafetyCoSafety dbw;
     private final List<BreakpointStateRejecting> initialStates = new ArrayList<>();
@@ -1082,8 +954,8 @@ public final class NormalformDELAConstruction
     private final BitSet roundRobinCandidate = new BitSet();
 
     public InitialStateConstructor(
-      SafetyCoSafety dbw,
-      Set<Formula.TemporalOperator> nonUnique) {
+        SafetyCoSafety dbw,
+        Set<Formula.TemporalOperator> nonUnique) {
 
       this.dbw = dbw;
       this.nonUnique = nonUnique;
@@ -1091,10 +963,10 @@ public final class NormalformDELAConstruction
 
     private boolean uniqueReference(Formula.TemporalOperator formula) {
       assert SyntacticFragments.isSafetyCoSafety(formula)
-        || SyntacticFragments.isCoSafetySafety(formula);
+          || SyntacticFragments.isCoSafetySafety(formula);
 
       return !nonUnique.contains(formula)
-        && !nonUnique.contains((Formula.TemporalOperator) formula.not());
+          && !nonUnique.contains((Formula.TemporalOperator) formula.not());
     }
 
     private PropositionalFormula<Integer> add(Formula formula) {
@@ -1145,16 +1017,16 @@ public final class NormalformDELAConstruction
     public PropositionalFormula<Integer> visit(BooleanConstant booleanConstant) {
 
       return booleanConstant.value
-        ? PropositionalFormula.trueConstant()
-        : PropositionalFormula.falseConstant();
+          ? PropositionalFormula.trueConstant()
+          : PropositionalFormula.falseConstant();
     }
 
     @Override
     public PropositionalFormula<Integer> visit(Biconditional biconditional) {
 
       return PropositionalFormula.Biconditional.of(
-        biconditional.leftOperand().accept(this),
-        biconditional.rightOperand().accept(this));
+          biconditional.leftOperand().accept(this),
+          biconditional.rightOperand().accept(this));
     }
 
     @Override
@@ -1166,10 +1038,10 @@ public final class NormalformDELAConstruction
       for (Formula operand : conjunction.operands) {
         boolean isWeak = SyntacticFragments.DELTA_1.contains(operand);
         boolean isCoSafetySafetyAndUnique = operand instanceof Formula.TemporalOperator
-          && SyntacticFragments.isCoSafetySafety(operand)
-          && uniqueReference((Formula.TemporalOperator) operand);
+            && SyntacticFragments.isCoSafetySafety(operand)
+            && uniqueReference((Formula.TemporalOperator) operand);
         boolean isChainable = SyntacticFragments.isGfCoSafety(operand)
-          && uniqueReference((Formula.TemporalOperator) operand);
+            && uniqueReference((Formula.TemporalOperator) operand);
 
         if (isWeak || isCoSafetySafetyAndUnique) {
           weakOrCoSafetySafety.add(operand);
@@ -1198,10 +1070,10 @@ public final class NormalformDELAConstruction
       for (Formula operand : disjunction.operands) {
         boolean isWeak = SyntacticFragments.DELTA_1.contains(operand);
         boolean isSafetyCoSafetyAndUnique = operand instanceof Formula.TemporalOperator
-          && SyntacticFragments.isSafetyCoSafety(operand)
-          && uniqueReference((Formula.TemporalOperator) operand);
+            && SyntacticFragments.isSafetyCoSafety(operand)
+            && uniqueReference((Formula.TemporalOperator) operand);
         boolean isChainable = SyntacticFragments.isFgSafety(operand)
-          && uniqueReference((Formula.TemporalOperator) operand);
+            && uniqueReference((Formula.TemporalOperator) operand);
 
         if (isWeak || isSafetyCoSafetyAndUnique) {
           weakOrSafetyCoSafety.add(operand);
@@ -1233,23 +1105,23 @@ public final class NormalformDELAConstruction
     public abstract ImmutableBitSet roundRobinCounters();
 
     public static State of(
-      PropositionalFormula<Integer> stateFormula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
-      BitSet counters) {
+        PropositionalFormula<Integer> stateFormula,
+        Map<Integer, BreakpointStateRejecting> stateMap,
+        BitSet counters) {
 
       return of(stateFormula, stateMap, ImmutableBitSet.copyOf(counters));
     }
 
     public static State of(
-      PropositionalFormula<Integer> stateFormula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
-      Set<Integer> counters) {
+        PropositionalFormula<Integer> stateFormula,
+        Map<Integer, BreakpointStateRejecting> stateMap,
+        Set<Integer> counters) {
 
       assert stateFormula.variables().equals(stateMap.keySet());
       assert stateMap.keySet().containsAll(counters);
 
       return new AutoValue_NormalformDELAConstruction_State(
-        stateFormula, Map.copyOf(stateMap), ImmutableBitSet.copyOf(counters));
+          stateFormula, Map.copyOf(stateMap), ImmutableBitSet.copyOf(counters));
     }
 
     public boolean inDifferentSccs(State otherState) {
@@ -1283,12 +1155,10 @@ public final class NormalformDELAConstruction
   static class BreakpointStateRejectingClassifier {
 
     private final SafetyCoSafety dbw;
-    private final OptionalInt lookahead;
     private final Map<BreakpointStateRejecting, Classification> memoizedResults = new HashMap<>();
 
-    BreakpointStateRejectingClassifier(SafetyCoSafety dbw, OptionalInt lookahead) {
+    BreakpointStateRejectingClassifier(SafetyCoSafety dbw) {
       this.dbw = dbw;
-      this.lookahead = lookahead;
     }
 
     // This should only be called on unsuspended states (or by SafetyCoSafety suspended states).
@@ -1305,44 +1175,12 @@ public final class NormalformDELAConstruction
         return classification;
       }
 
-      var restrictedDbw = Views.filtered(dbw, Views.Filter.<BreakpointStateRejecting>builder()
-        .initialStates(Set.of(state))
-        .edgeFilter((dbwState, edge) ->
-          !BlockingElements.surelyContainedInDifferentSccs(dbwState.all(), edge.successor().all()))
-        .build());
-
-      // The restricted automaton is too large, thus we skip the semantic analysis.
-      if (lookahead.isPresent()
-        && !AutomatonUtil.isLessOrEqual(restrictedDbw, lookahead.getAsInt())) {
-
-        return memoize(state, NOT_SUSPENDABLE);
-      }
-
-      var sccDecomposition = SccDecomposition.of(restrictedDbw);
-
-      for (Set<BreakpointStateRejecting> scc : sccDecomposition.sccs()) {
-        for (BreakpointStateRejecting sccState : scc) {
-          // We already computed a value for the scc state.
-          if (memoizedResults.containsKey(sccState)) {
-            continue;
-          }
-
-          // If the Scc does not contain the state we started with, then a syntactic classification
-          // might suffice.
-          if (scc.contains(state) || classifySyntactically(sccState) == null) {
-            classifySemantically(sccState, sccDecomposition);
-          }
-        }
-      }
-
-      classification = memoizedResults.get(state);
-      assert classification != null;
-      return classification;
+      return memoize(state, UNKNOWN);
     }
 
     // This should only be called on unsuspended states (or by SafetyCoSafety suspended states).
     NavigableMap<Integer, Classification> classify(
-      Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
+        Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
 
       var map = new TreeMap<Integer, Classification>();
 
@@ -1355,7 +1193,7 @@ public final class NormalformDELAConstruction
 
     @Nullable
     private Classification classifySyntactically(
-      BreakpointStateRejecting state) {
+        BreakpointStateRejecting state) {
 
       assert !memoizedResults.containsKey(state);
 
@@ -1388,48 +1226,11 @@ public final class NormalformDELAConstruction
       return null;
     }
 
-    private Classification classifySemantically(
-      BreakpointStateRejecting state, SccDecomposition<BreakpointStateRejecting> sccDecomposition) {
-
-      assert !memoizedResults.containsKey(state);
-      assert !state.isSuspended();
-
-      int index = sccDecomposition.index(state);
-
-      // Check for transient SCCs.
-      if (sccDecomposition.transientSccs().contains(index)) {
-        return memoize(state, TRANSIENT_NOT_SUSPENDED);
-      }
-
-      if (sccDecomposition.acceptingSccs().contains(index)) {
-        return memoize(sccDecomposition.sccs().get(index), WEAK_ACCEPTING_NOT_SUSPENDED);
-      }
-
-      if (sccDecomposition.rejectingSccs().contains(index)) {
-        return memoize(sccDecomposition.sccs().get(index), WEAK_REJECTING_NOT_SUSPENDED);
-      }
-
-      var scc = sccDecomposition.sccs().get(index);
-
-      if (scc.size() == Collections3.transformSet(scc, BreakpointStateRejecting::all).size()) {
-        return memoize(scc, NOT_SUSPENDABLE);
-      }
-
-      return memoize(scc, SUSPENDABLE);
-    }
-
     private Classification memoize(
-      BreakpointStateRejecting state, Classification classification) {
+        BreakpointStateRejecting state, Classification classification) {
 
       var oldStatus = memoizedResults.put(state, classification);
       assert oldStatus == null || oldStatus == classification;
-      return classification;
-    }
-
-    private Classification memoize(
-      Set<? extends BreakpointStateRejecting> scc, Classification classification) {
-
-      scc.forEach(x -> memoize(x, classification));
       return classification;
     }
   }
@@ -1437,17 +1238,9 @@ public final class NormalformDELAConstruction
   enum Classification {
     TERMINAL_ACCEPTING, // The state is terminal accepting, e.g., an accepting sink.
     TERMINAL_REJECTING, // The state is terminal rejecting, e.g., a rejecting sink.
-
     TRANSIENT_SUSPENDED, // The state is in a transient SCC and suspended.
-    TRANSIENT_NOT_SUSPENDED, // The state is in a transient SCC and not suspended.
-
     WEAK_ACCEPTING_SUSPENDED,
-    WEAK_ACCEPTING_NOT_SUSPENDED,
-
     WEAK_REJECTING_SUSPENDED,
-    WEAK_REJECTING_NOT_SUSPENDED,
-
-    SUSPENDABLE,
-    NOT_SUSPENDABLE
+    UNKNOWN
   }
 }

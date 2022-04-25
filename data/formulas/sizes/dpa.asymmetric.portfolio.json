@@ -4290,6 +4290,17 @@
     }
   },
   {
+    "formula": "(Fa & G(Xb | (b & Fc)))",
+    "properties": {
+      "size": 14,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "(Fa & XF(b & Xc))",
     "properties": {
       "size": 7,
@@ -4755,6 +4766,17 @@
     "formula": "(Ga | (GFb & (GFa | GFc)))",
     "properties": {
       "size": 5,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "(Ga | F(Xb & (b | Gc)))",
+    "properties": {
+      "size": 14,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 3,
@@ -6886,6 +6908,17 @@
     }
   },
   {
+    "formula": "((!a) M (((!b & GFa & G(b | Xa)) | (b & (FG!a | F(!b & X!a))))))",
+    "properties": {
+      "size": 7,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((a) R ((!b | !c | ((Gb) M (((c | d) & (!d | ((!c) R ((a | !c))))))))))",
     "properties": {
       "size": 19,
@@ -6900,6 +6933,17 @@
     "formula": "((a) U ((b & c & ((F!b) W (((!c & !d) | (d & ((c) U ((a & c))))))))))",
     "properties": {
       "size": 12,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "((a) W (((b & GFa & G(b | Xa)) | (!b & (FG!a | F(!b & X!a))))))",
+    "properties": {
+      "size": 16,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 3,
@@ -7321,6 +7365,28 @@
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 8,
+      "complete": true,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "XX(G(!a | X(b & ((Fa) U (c))) | X(!b & ((G!a) R (!c)))) & G(a | X((b | ((Fa) U (c))) & (!b | ((G!a) R (!c))))))",
+    "properties": {
+      "size": 54,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 5,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "XX(F(a & X(b | ((Fa) U (c))) & X(!b | ((G!a) R (!c)))) | F(!a & X((b & ((Fa) U (c))) | (!b & ((G!a) R (!c))))))",
+    "properties": {
+      "size": 28,
+      "initialStatesSize": 1,
+      "acceptanceName": "ParityAcceptance",
+      "acceptanceSets": 3,
       "complete": true,
       "deterministic": true
     }
