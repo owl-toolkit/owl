@@ -1,0 +1,36 @@
+---
+
+name: Weekly random testing
+on:
+  schedule:
+    - cron: '13 0 * * 1'
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      all_platforms: false
+
+  test:
+    name: Test correctness
+    runs-on: ubuntu-latest
+    container:
+      image: gitlab.lrz.de:5005/i7/owl:9e31fba0
+    strategy:
+      matrix:
+        suite: ['ltl2nba-random', 'ltl2ldba-random', 'ltl2dpa-random', 'ltl2dra-random', 'ltl2dela-random']
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download Distribution
+        uses: actions/download-artifact@v3
+        with:
+          name: distribution-linux-amd64
+      - name: Extract Binary
+        run: |
+          unzip -d unzipped ./*.zip
+          mv unzipped/owl-*/bin/owl .
+      - name: Run Suite
+        run: python3 scripts/util.py test ${{ matrix.suite }}

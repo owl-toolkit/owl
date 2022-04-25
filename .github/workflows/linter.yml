@@ -1,0 +1,29 @@
+---
+
+name: Linter
+on:
+  push:
+    branches:
+      - 'main'
+      - 'release-*'
+  pull_request:
+    branches:
+      - 'main'
+      - 'release-*'
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Lint Code Base
+        uses: github/super-linter/slim@v4
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVA: false
+          # VALIDATE_GOOGLE_JAVA_FORMAT: true
