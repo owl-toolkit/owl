@@ -1,10 +1,18 @@
 # Owl
 
-A tool collection and library for <b>O</b>mega-<b>w</b>ords, ω-automata and <b>L</b>inear Temporal Logic (LTL).
+A tool collection and library for <b>O</b>mega-<b>w</b>ords, ω-automata and <b>L</b>inear Temporal
+Logic (LTL).
 
-### Quick Start
+## Citing
 
-Download the latest release for your platform from the official [website](https://owl.model.in.tum.de/) and perform the following steps:
+If you want to cite Owl or one of the implemented constructions, then please refer to the help
+messages (`./owl <subcommand> --help`, `./owl bibliography --help`) to find the correct reference
+to cite.
+
+## Quick Start
+
+Download the latest release for your platform from the
+official [website](https://owl.model.in.tum.de/) and perform the following steps:
 
 1. Unzip the distribution with: `unzip -d <destination> owl-<platform>-<version>.zip`
 2. Change into the directory containing the executable with: `cd <destination>/bin`
@@ -183,25 +191,18 @@ Usage Examples:
 
 ### Content of the Distribution
 
-Owl is distributed as a platform-specific distributions. Note that the
-platform-specific distributions contain a platform-independent Java library.
-A distribution contains the following folders:
+Owl is distributed as platform-specific distributions. Note that the platform-specific distributions
+contain a platform-independent Java library. A distribution contains the following folders:
 
 * `bin` - Platform-specific command-line tool.
 * `doc` - Additional documentation.
 * `jar` - Platform-independent Java library, source-code, and documentation.
 * `lib` - Platform-specific C library and headers.
 
-See the [format descriptions](docs/FORMATS.md) for a description of accepted inputs.
-Owl contains a variety of command-line tools originating from Rabinizer 4.0, Delag, and nbadet.
+See the [format descriptions](docs/FORMATS.md) for a description of accepted inputs. Owl contains a
+variety of command-line tools originating from Rabinizer 4.0, Delag, and nbadet.
 
 ### Building a Distribution
 
 If there is no precompiled distribution for your platform available or if you want to use the latest
 snapshot, follow the [build instructions](BUILDING.md) to build your own distribution.
-
-## Citing
-
-If you want to cite Owl or one of the implemented constructions, then please refer to the help
-messages (`./owl <subcommand> --help`, `./owl bibliography --help`) to find the correct reference
-to cite.

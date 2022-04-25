@@ -28,7 +28,7 @@ idea {
         ipr {
             withXml { xmlProvider ->
                 def projectXml = xmlProvider.asNode()
-                customizeCodeStyle(projectXml, file("config/idea-codestyle.xml").getText("UTF-8"))
+                customizeCodeStyle(projectXml, file("config/intellij-java-google-style.xml").getText("UTF-8"))
                 customizeEncoding(projectXml)
             }
         }
@@ -59,7 +59,7 @@ static customizeCodeStyle(project, codeStyle) {
 
     codeStyleNode.appendNode('option', [name: 'USE_PER_PROJECT_SETTINGS', value: 'true'])
     def projectSettingsNode = codeStyleNode.appendNode('option', [name: 'PER_PROJECT_SETTINGS'])
-        .appendNode('value')
+            .appendNode('value')
 
     def codeStyleXml = new XmlParser().parseText(codeStyle)
     codeStyleXml.children().each { option ->
@@ -78,8 +78,8 @@ static customizeEncoding(project) {
     } else {
         // Create new node with default values.
         project.appendNode 'Encoding',
-            [useUTFGuessing                  : true,
-             native2AsciiForPropertiesFiles  : true,
-             defaultCharsetForPropertiesFiles: 'UTF-8']
+                [useUTFGuessing                  : true,
+                 native2AsciiForPropertiesFiles  : true,
+                 defaultCharsetForPropertiesFiles: 'UTF-8']
     }
 }
