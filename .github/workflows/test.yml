@@ -1,0 +1,63 @@
+---
+
+name: Check pull request
+on:
+  pull_request:
+    branches:
+      - 'main'
+      - 'release-*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+    with:
+      all_platforms: false
+
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - name: Run Checks
+        run: gradle --no-daemon check sizeRegressionTest
+        # Excluded performanceTest due to unstable nature
+      - name: Upload Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-reports
+          path: |
+            build/reports
+            build/test-results
+          retention-days: 1
+          if-no-files-found: error
+
+  test:
+    name: Test correctness
+    runs-on: ubuntu-latest
+    container:
+      image: gitlab.lrz.de:5005/i7/owl:9e31fba0
+    strategy:
+      matrix:
+        suite: ['ltl-to-delta2', 'ltl2aut-all-flags', 'ltl2nba', 'ltl2ldba', 'ltl2dpa', 'ltl2dpa-symbolic', 'ltl2dra', 'ltl2dela', 'aut2parity', 'ngba2ldba', 'nba2dpa-default', 'aut-utilities' ]
+        # Expensive Suite: nba2dpa-complete
+    needs: [build]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Download Distribution
+        uses: actions/download-artifact@v3
+        with:
+          name: distribution-linux-amd64
+      - name: Extract Binary
+        run: |
+          unzip -d unzipped ./*.zip
+          mv unzipped/owl-*/bin/owl .
+      - name: Run Suite
+        run: python3 scripts/util.py test ${{ matrix.suite }}

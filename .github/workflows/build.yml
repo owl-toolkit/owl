@@ -1,0 +1,106 @@
+---
+
+name: Build distributions
+
+on:
+  workflow_call:
+    inputs:
+      all_platforms:
+        description: 'Build distributions for all platforms.'
+        default: false
+        required: false
+        type: boolean
+
+jobs:
+  build-linux-amd64:
+    name: Build Linux Distribution (amd64, Ubuntu 20.04)
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup GraalVM
+        uses: graalvm/setup-graalvm@v1
+        with:
+          version: '21.3.1'
+          java-version: '17'
+          components: 'native-image'
+      - name: Build
+        run: ./gradlew --no-daemon nativeImageDistZip -Pdisable-pandoc
+      - name: Quickcheck
+        run: |
+          unzip -d build/unzipped build/distributions/*.zip
+          mv build/unzipped/owl-*/bin/* .
+          sh ./scripts/kick-the-tires.sh
+      - name: Upload Reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports-linux-amd64
+          path: |
+            build/native-executable/reports
+            build/native-library/reports
+          retention-days: 1
+          if-no-files-found: error
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: distribution-linux-amd64
+          path: build/distributions
+          retention-days: 7
+          if-no-files-found: error
+
+  build-linux-amd64-static:
+    name: Build Linux Distribution (amd64, static)
+    if: ${{ inputs.all_platforms }}
+    runs-on: ubuntu-20.04
+    # We need to use our own container since the GraalVM action does not properly setup Musl.
+    container:
+      image: gitlab.lrz.de:5005/i7/owl:9e31fba0
+    env:
+      GRAAL_HOME: "/opt/graalvm-ce-java17-21.3.0"
+      MUSL_CC: "/usr/local/musl/bin/musl-gcc"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build
+        run: ./gradlew --no-daemon nativeImageDistZip -Pstatic-native-executable -Pdisable-pandoc
+      - name: Quickcheck
+        run: |
+          unzip -d build/unzipped build/distributions/*.zip
+          mv build/unzipped/owl-*/bin/* .
+          sh ./scripts/kick-the-tires.sh
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: distribution-linux-amd64
+          path: build/distributions
+          retention-days: 7
+          if-no-files-found: error
+
+  build-universal:
+    name: Build JRE Distribution
+    if: ${{ inputs.all_platforms }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      - name: Build
+        run: gradle --no-daemon distZip -Pdisable-pandoc
+      - name: Quickcheck
+        run: |
+          unzip -d build/unzipped build/distributions/*.zip
+          mv build/unzipped/owl-*/ distUnzip
+          distUnzip/bin/owl --version
+          distUnzip/bin/owl --help
+      - name: Upload Distribution
+        uses: actions/upload-artifact@v3
+        with:
+          name: distribution-jre
+          path: build/distributions
+          retention-days: 7
+          if-no-files-found: error
