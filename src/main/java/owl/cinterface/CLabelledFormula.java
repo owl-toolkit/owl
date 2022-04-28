@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -62,48 +62,47 @@ public final class CLabelledFormula {
 
   private static final int MAX_ITERATIONS = 10;
 
-  private CLabelledFormula() {}
+  private CLabelledFormula() {
+  }
 
   @CEntryPoint(
-    name = NAMESPACE + "parse",
-    documentation = {
-      "Parse the given string with the given atomic propositions and return an LTL formula.",
-      CInterface.CHAR_TO_STRING,
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "parse",
+      documentation = {
+          "Parse the given string with the given atomic propositions and return an LTL formula.",
+          CInterface.CHAR_TO_STRING,
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle parse(
-    IsolateThread thread,
-    CCharPointer cFormulaString,
-    CCharPointerPointer cAtomicPropositions,
-    int cAtomicPropositionsLength) {
+      IsolateThread thread,
+      CCharPointer cFormulaString,
+      CCharPointerPointer cAtomicPropositions,
+      int cAtomicPropositionsLength) {
 
     var labelledFormula = LtlParser.parse(
-      CTypeConversion.toJavaString(cFormulaString),
-      atomicPropositions(cAtomicPropositions, cAtomicPropositionsLength));
+        CTypeConversion.toJavaString(cFormulaString),
+        atomicPropositions(cAtomicPropositions, cAtomicPropositionsLength));
     return ObjectHandles.getGlobal().create(labelledFormula);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "parse_with_finite_semantics",
-    documentation = {
-      "Parse the given string with the given atomic propositions and return an LTL formula "
-        + "with finite semantics.",
-      CInterface.CHAR_TO_STRING,
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "parse_with_finite_semantics",
+      documentation = {
+          "Parse the given string with the given atomic propositions and return an LTL formula "
+              + "with finite semantics.",
+          CInterface.CHAR_TO_STRING,
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle create(
-    IsolateThread thread,
-    CCharPointer cFormulaString,
-    CCharPointerPointer cAtomicPropositions,
-    int cAtomicPropositionsLength) {
+      IsolateThread thread,
+      CCharPointer cFormulaString,
+      CCharPointerPointer cAtomicPropositions,
+      int cAtomicPropositionsLength) {
 
     var labelledFormula = LtlfParser.parseAndTranslateToLtl(
-      CTypeConversion.toJavaString(cFormulaString),
-      atomicPropositions(cAtomicPropositions, cAtomicPropositionsLength));
+        CTypeConversion.toJavaString(cFormulaString),
+        atomicPropositions(cAtomicPropositions, cAtomicPropositionsLength));
     return ObjectHandles.getGlobal().create(labelledFormula);
   }
 
@@ -130,37 +129,36 @@ public final class CLabelledFormula {
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "simplify",
-    documentation = {
-      "Simplify the given LTL formula assuming a Game-semantics where atomic propositions less ",
-      "than `firstOutputAtomicProposition` is controlled by the environment trying to dissatisfy ",
-      "the formula and atomic proposition greater or equal are controlled by the system. The ",
-      "status of atomic proposition is written to the passed int pointer using the encoding ",
-      "provided by `atomic_proposition_status_t`",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "simplify",
+      documentation = {
+          "Simplify the given LTL formula assuming a Game-semantics where atomic propositions less ",
+          "than `firstOutputAtomicProposition` is controlled by the environment trying to dissatisfy ",
+          "the formula and atomic proposition greater or equal are controlled by the system. The ",
+          "status of atomic proposition is written to the passed int pointer using the encoding ",
+          "provided by `atomic_proposition_status_t`",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle simplify(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    int firstOutputAtomicProposition,
-    CIntPointer cAtomicPropositionStatuses,
-    int cAtomicPropositionsStatusesLength) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      int firstOutputAtomicProposition,
+      CIntPointer cAtomicPropositionStatuses,
+      int cAtomicPropositionsStatusesLength) {
 
     return ObjectHandles.getGlobal().create(
-      simplify(
-        ObjectHandles.getGlobal().get(cLabelledFormula),
-        firstOutputAtomicProposition,
-        cAtomicPropositionStatuses,
-        cAtomicPropositionsStatusesLength));
+        simplify(
+            ObjectHandles.getGlobal().get(cLabelledFormula),
+            firstOutputAtomicProposition,
+            cAtomicPropositionStatuses,
+            cAtomicPropositionsStatusesLength));
   }
 
   static LabelledFormula simplify(
-    LabelledFormula labelledFormula,
-    int firstOutputAtomicProposition,
-    CIntPointer cAtomicPropositionStatuses,
-    int cAtomicPropositionsStatusesLength) {
+      LabelledFormula labelledFormula,
+      int firstOutputAtomicProposition,
+      CIntPointer cAtomicPropositionStatuses,
+      int cAtomicPropositionsStatusesLength) {
 
     int atomicPropositions = labelledFormula.atomicPropositions().size();
     var atomicPropositionStatuses = new AtomicPropositionStatus[atomicPropositions];
@@ -168,7 +166,7 @@ public final class CLabelledFormula {
 
     // Translate to a restricted negation normal form.
     var processedFormula = PushNextThroughPropositionalVisitor
-      .apply(labelledFormula).formula().substitute(Formula::nnf);
+        .apply(labelledFormula).formula().substitute(Formula::nnf);
 
     Formula oldFormula;
     Formula newFormula = processedFormula;
@@ -178,9 +176,9 @@ public final class CLabelledFormula {
     do {
       oldFormula = newFormula;
       var polaritySimplifier = new PolaritySimplifier(
-        oldFormula, atomicPropositionStatuses, firstOutputAtomicProposition);
+          oldFormula, atomicPropositionStatuses, firstOutputAtomicProposition);
       newFormula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
-        oldFormula.accept(polaritySimplifier)
+          oldFormula.accept(polaritySimplifier)
       );
       iterations++;
     } while (iterations < MAX_ITERATIONS && !oldFormula.equals(newFormula));
@@ -189,31 +187,32 @@ public final class CLabelledFormula {
 
     // Mark all occurring atomic propositions as USED.
     processedFormula.atomicPropositions(true).stream().forEach(
-      atomicProposition -> {
-        assert atomicPropositionStatuses[atomicProposition] == UNUSED;
-        atomicPropositionStatuses[atomicProposition] = USED;
-      }
+        atomicProposition -> {
+          assert atomicPropositionStatuses[atomicProposition] == UNUSED;
+          atomicPropositionStatuses[atomicProposition] = USED;
+        }
     );
 
     // Write the atomic proposition statuses to the specified destination.
     for (int i = 0; i < cAtomicPropositionsStatusesLength; i++) {
       var status = i < atomicPropositions ? atomicPropositionStatuses[i] : UNUSED;
       cAtomicPropositionStatuses.write(i,
-        ImageInfo.inImageCode() ? status.getCValue() : status.ordinal());
+          ImageInfo.inImageCode() ? status.getCValue() : status.ordinal());
     }
 
     return labelledFormula.wrap(processedFormula);
   }
 
   private static class PolaritySimplifier extends Converter {
+
     private final AtomicPropositionStatus[] atomicPropositionStatuses;
     private final Set<Literal> singlePolarityInputVariables;
     private final Set<Literal> singlePolarityOutputVariables;
 
     @SuppressWarnings("PMD")
     private PolaritySimplifier(Formula formula,
-      AtomicPropositionStatus[] atomicPropositionStatuses,
-      int firstOutputVariable) {
+        AtomicPropositionStatus[] atomicPropositionStatuses,
+        int firstOutputVariable) {
       super(SyntacticFragment.ALL);
 
       this.atomicPropositionStatuses = atomicPropositionStatuses;
@@ -221,12 +220,12 @@ public final class CLabelledFormula {
       Set<Literal> atoms = formula.nnf().subformulas(Literal.class);
 
       singlePolarityInputVariables = atoms.stream()
-        .filter(x -> x.getAtom() < firstOutputVariable && !atoms.contains(x.not()))
-        .collect(Collectors.toSet());
+          .filter(x -> x.getAtom() < firstOutputVariable && !atoms.contains(x.not()))
+          .collect(Collectors.toSet());
 
       singlePolarityOutputVariables = atoms.stream()
-        .filter(x -> firstOutputVariable <= x.getAtom() && !atoms.contains(x.not()))
-        .collect(Collectors.toSet());
+          .filter(x -> firstOutputVariable <= x.getAtom() && !atoms.contains(x.not()))
+          .collect(Collectors.toSet());
     }
 
     @Override
@@ -235,7 +234,7 @@ public final class CLabelledFormula {
         var constant = literal.isNegated() ? CONSTANT_TRUE : CONSTANT_FALSE;
 
         assert atomicPropositionStatuses[literal.getAtom()] == UNUSED
-          || atomicPropositionStatuses[literal.getAtom()] == constant;
+            || atomicPropositionStatuses[literal.getAtom()] == constant;
 
         atomicPropositionStatuses[literal.getAtom()] = constant;
         return BooleanConstant.FALSE;
@@ -245,7 +244,7 @@ public final class CLabelledFormula {
         var constant = literal.isNegated() ? CONSTANT_FALSE : CONSTANT_TRUE;
 
         assert atomicPropositionStatuses[literal.getAtom()] == UNUSED
-          || atomicPropositionStatuses[literal.getAtom()] == constant;
+            || atomicPropositionStatuses[literal.getAtom()] == constant;
 
         atomicPropositionStatuses[literal.getAtom()] = constant;
         return BooleanConstant.TRUE;
@@ -258,8 +257,8 @@ public final class CLabelledFormula {
     @Override
     public Formula visit(Biconditional biconditional) {
       assert Collections.disjoint(
-        biconditional.subformulas(Literal.class),
-        Sets.union(singlePolarityInputVariables, singlePolarityOutputVariables));
+          biconditional.subformulas(Literal.class),
+          Sets.union(singlePolarityInputVariables, singlePolarityOutputVariables));
 
       return biconditional;
     }

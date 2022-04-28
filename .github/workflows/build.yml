@@ -21,7 +21,7 @@ jobs:
       - name: Setup GraalVM
         uses: graalvm/setup-graalvm@v1
         with:
-          version: '21.3.1'
+          version: '22.1.0'
           java-version: '17'
           components: 'native-image'
       - name: Build
@@ -50,7 +50,8 @@ jobs:
 
   build-linux-amd64-static:
     name: Build Linux Distribution (amd64, static)
-    if: ${{ inputs.all_platforms }}
+    # Disable until the docker images are updated.
+    if: false
     runs-on: ubuntu-20.04
     # We need to use our own container since the GraalVM action does not properly setup Musl.
     container:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -30,61 +30,57 @@ import org.graalvm.nativeimage.c.type.CCharPointer;
 import org.graalvm.nativeimage.c.type.CTypeConversion;
 import org.graalvm.word.PointerBase;
 import org.graalvm.word.UnsignedWord;
-import org.graalvm.word.WordFactory;
 import owl.util.OwlVersion;
 
 @CContext(CInterface.CDirectives.class)
 public final class CInterface {
 
   public static final String CALL_DESTROY
-    = "This function returns a void pointer to an opaque Java object handle. The object is not "
-    + "collected by the garbage collected unless 'destroy_object_handle' is called on the pointer.";
+      = "This function returns a void pointer to an opaque Java object handle. The object is not "
+      + "collected by the garbage collected unless 'destroy_object_handle' is called on the pointer.";
 
   public static final String CHAR_TO_STRING
-    = "Decodes a 0 terminated C char* to a Java string using the platform's default charset.";
+      = "Decodes a 0 terminated C char* to a Java string using the platform's default charset.";
 
   public static final int SEPARATOR = -232_323;
 
   public static final int FEATURE_SEPARATOR = -424_242;
 
-  private CInterface() {}
+  private CInterface() {
+  }
 
   @CEntryPoint(
-    name = "destroy_object_handle",
-    exceptionHandler = PrintStackTraceAndExit.ReturnVoid.class
+      name = "destroy_object_handle"
   )
   public static void destroyObjectHandle(IsolateThread thread, ObjectHandle handle) {
     ObjectHandles.getGlobal().destroy(handle);
   }
 
   @CEntryPoint(
-    name = "free_unmanaged_memory",
-    exceptionHandler = PrintStackTraceAndExit.ReturnVoid.class
+      name = "free_unmanaged_memory"
   )
   public static void freeUnmanagedMemory(IsolateThread thread, PointerBase ptr) {
     UnmanagedMemory.free(ptr);
   }
 
   @CEntryPoint(
-    name = "print_object_handle",
-    exceptionHandler = PrintStackTraceAndExit.ReturnUnsignedWord.class
+      name = "print_object_handle"
   )
   public static UnsignedWord printObjectHandle(
-    IsolateThread thread, ObjectHandle handle, CCharPointer buffer, UnsignedWord bufferSize) {
+      IsolateThread thread, ObjectHandle handle, CCharPointer buffer, UnsignedWord bufferSize) {
 
     return CTypeConversion.toCString(
-      ObjectHandles.getGlobal().get(handle).toString(), buffer, bufferSize);
+        ObjectHandles.getGlobal().get(handle).toString(), buffer, bufferSize);
   }
 
   @CEntryPoint(
-    name = "owl_version",
-    exceptionHandler = PrintStackTraceAndExit.ReturnUnsignedWord.class
+      name = "owl_version"
   )
   public static UnsignedWord owlVersion(
-    IsolateThread thread, CCharPointer buffer, UnsignedWord bufferSize) {
+      IsolateThread thread, CCharPointer buffer, UnsignedWord bufferSize) {
 
     return CTypeConversion.toCString(
-      OwlVersion.getNameAndVersion().version(), buffer, bufferSize);
+        OwlVersion.getNameAndVersion().version(), buffer, bufferSize);
   }
 
   public static class CDirectives implements CContext.Directives {
@@ -96,74 +92,10 @@ public final class CInterface {
 
       if (headerLocation == null) {
         throw new IllegalArgumentException("Location of header file is missing."
-          + "Use -DowlHeader=/foo/bar/ to define location.");
+            + "Use -DowlHeader=/foo/bar/ to define location.");
       }
 
       return List.of(String.format("\"%s/owltypes.h\"", headerLocation));
-    }
-  }
-
-  static final class PrintStackTraceAndExit {
-
-    private PrintStackTraceAndExit() {}
-
-    static void handleException(Throwable throwable) {
-      throwable.printStackTrace(System.err);
-      System.err.flush();
-      System.exit(-1);
-    }
-
-    static final class ReturnObjectHandle {
-      private ReturnObjectHandle() {}
-
-      static ObjectHandle handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return ObjectHandles.getGlobal().create(null);
-      }
-    }
-
-    static final class ReturnUnsignedWord {
-      private ReturnUnsignedWord() {}
-
-      static UnsignedWord handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return WordFactory.unsigned(Long.MIN_VALUE);
-      }
-    }
-
-    static final class ReturnBoolean {
-      private ReturnBoolean() {}
-
-      static boolean handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return false;
-      }
-    }
-
-    static final class ReturnInt {
-      private ReturnInt() {}
-
-      static int handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return Integer.MIN_VALUE;
-      }
-    }
-
-    static final class ReturnAcceptance {
-      private ReturnAcceptance() {}
-
-      static CAutomaton.Acceptance handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-        return CAutomaton.Acceptance.BUCHI;
-      }
-    }
-
-    static final class ReturnVoid {
-      private ReturnVoid() {}
-
-      static void handleException(Throwable throwable) {
-        PrintStackTraceAndExit.handleException(throwable);
-      }
     }
   }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -85,21 +85,21 @@ public final class CAutomaton {
   private static final String NAMESPACE = "automaton_";
   private static final Pattern WHITE_SPACE = Pattern.compile("\\s+");
 
-  private CAutomaton() {}
+  private CAutomaton() {
+  }
 
   @CEntryPoint(
-    name = NAMESPACE + "parse",
-    documentation = {
-      "Read a (deterministic) automaton from a char* serialised in the HOA format.",
-      CInterface.CHAR_TO_STRING,
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "parse",
+      documentation = {
+          "Read a (deterministic) automaton from a char* serialised in the HOA format.",
+          CInterface.CHAR_TO_STRING,
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle parse(
-    IsolateThread thread,
-    CCharPointer cCharPointer)
-    throws ParseException {
+      IsolateThread thread,
+      CCharPointer cCharPointer)
+      throws ParseException {
 
     var hoa = CTypeConversion.toJavaString(cCharPointer);
 
@@ -138,7 +138,7 @@ public final class CAutomaton {
       int size = Integer.parseInt(splitString[0]);
 
       atomicPropositions = new ArrayList<>(
-        Arrays.asList(splitString).subList(1, splitString.length));
+          Arrays.asList(splitString).subList(1, splitString.length));
 
       checkArgument(atomicPropositions.size() == size, "Malformed HOA file.");
     }
@@ -159,22 +159,22 @@ public final class CAutomaton {
     reorderedAtomicPropositions.addAll(controllableAp);
 
     var automaton = DeterministicAutomatonWrapper.of(
-      HoaReader.read(hoa, FactorySupplier.defaultSupplier()::getBddSetFactory, List.copyOf(reorderedAtomicPropositions)), uncontrollableAp.size());
+        HoaReader.read(hoa, FactorySupplier.defaultSupplier()::getBddSetFactory,
+            List.copyOf(reorderedAtomicPropositions)), uncontrollableAp.size());
     return ObjectHandles.getGlobal().create(automaton);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "of",
-    documentation = {
-      "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation) {
 
     return of(cLabelledFormula, translation, Set.of(), -1);
   }
@@ -182,215 +182,204 @@ public final class CAutomaton {
   // Varargs-simulation
 
   @CEntryPoint(
-    name = NAMESPACE + "of0",
-    documentation = {
-    "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of0",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    int lookahead) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int lookahead) {
 
     return of(cLabelledFormula, translation, Set.of(), lookahead);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "of1",
-    documentation = {
-      "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of1",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    int lookahead,
-    LtlTranslationRepository.Option o1) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int lookahead,
+      LtlTranslationRepository.Option o1) {
 
     return of(cLabelledFormula, translation, Set.of(o1), lookahead);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "of2",
-    documentation = {
-      "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of2",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    int lookahead,
-    LtlTranslationRepository.Option o1,
-    LtlTranslationRepository.Option o2) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int lookahead,
+      LtlTranslationRepository.Option o1,
+      LtlTranslationRepository.Option o2) {
 
     return of(cLabelledFormula, translation, Set.of(o1, o2), lookahead);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "of3",
-    documentation = {
-      "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of3",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    int lookahead,
-    LtlTranslationRepository.Option o1,
-    LtlTranslationRepository.Option o2,
-    LtlTranslationRepository.Option o3) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int lookahead,
+      LtlTranslationRepository.Option o1,
+      LtlTranslationRepository.Option o2,
+      LtlTranslationRepository.Option o3) {
 
     return of(cLabelledFormula, translation, Set.of(o1, o2, o3), lookahead);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "of4",
-    documentation = {
-      "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of4",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    int lookahead,
-    LtlTranslationRepository.Option o1,
-    LtlTranslationRepository.Option o2,
-    LtlTranslationRepository.Option o3,
-    LtlTranslationRepository.Option o4) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int lookahead,
+      LtlTranslationRepository.Option o1,
+      LtlTranslationRepository.Option o2,
+      LtlTranslationRepository.Option o3,
+      LtlTranslationRepository.Option o4) {
 
     return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4), lookahead);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "of5",
-    documentation = {
-      "Translate the given formula to deterministic parity automaton.",
-      CInterface.CALL_DESTROY
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnObjectHandle.class
+      name = NAMESPACE + "of5",
+      documentation = {
+          "Translate the given formula to deterministic parity automaton.",
+          CInterface.CALL_DESTROY
+      }
   )
   public static ObjectHandle of(
-    IsolateThread thread,
-    ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    int lookahead,
-    LtlTranslationRepository.Option o1,
-    LtlTranslationRepository.Option o2,
-    LtlTranslationRepository.Option o3,
-    LtlTranslationRepository.Option o4,
-    LtlTranslationRepository.Option o5) {
+      IsolateThread thread,
+      ObjectHandle cLabelledFormula,
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int lookahead,
+      LtlTranslationRepository.Option o1,
+      LtlTranslationRepository.Option o2,
+      LtlTranslationRepository.Option o3,
+      LtlTranslationRepository.Option o4,
+      LtlTranslationRepository.Option o5) {
 
     return of(cLabelledFormula, translation, Set.of(o1, o2, o3, o4, o5), lookahead);
   }
 
   private static ObjectHandle of(ObjectHandle cLabelledFormula,
-    LtlTranslationRepository.LtlToDpaTranslation translation,
-    Set<LtlTranslationRepository.Option> translationOptions,
-    int lookahead) {
+      LtlTranslationRepository.LtlToDpaTranslation translation,
+      Set<LtlTranslationRepository.Option> translationOptions,
+      int lookahead) {
 
     OptionalInt lookaheadOptional = lookahead >= 0
-      ? OptionalInt.of(lookahead)
-      : OptionalInt.empty();
+        ? OptionalInt.of(lookahead)
+        : OptionalInt.empty();
 
     var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
-    var automaton = translation.translation(ParityAcceptance.class, translationOptions, lookaheadOptional).apply(formula);
+    var automaton = translation.translation(ParityAcceptance.class, translationOptions,
+        lookaheadOptional).apply(formula);
     return ObjectHandles.getGlobal().create(DeterministicAutomatonWrapper.of(automaton, -1));
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "acceptance_condition",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnAcceptance.class
+      name = NAMESPACE + "acceptance_condition"
   )
   public static Acceptance acceptanceCondition(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton) {
+      IsolateThread thread,
+      ObjectHandle cDeterministicAutomaton) {
 
     return get(cDeterministicAutomaton).acceptance;
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "acceptance_condition_sets",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnInt.class
+      name = NAMESPACE + "acceptance_condition_sets"
   )
   public static int acceptanceConditionSets(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton) {
+      IsolateThread thread,
+      ObjectHandle cDeterministicAutomaton) {
 
     return get(cDeterministicAutomaton).automaton.acceptance().acceptanceSets();
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "atomic_propositions",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnInt.class
+      name = NAMESPACE + "atomic_propositions"
   )
   public static int atomicPropositions(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton) {
+      IsolateThread thread,
+      ObjectHandle cDeterministicAutomaton) {
 
     return get(cDeterministicAutomaton).automaton.atomicPropositions().size();
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "atomic_propositions_uncontrollable_size",
-    documentation = "Atomic propositions of the range [0, s[ are uncontrollable and [s, l[ are "
-      + "controllable, where s is the value returned by this method. -1 is the default return "
-      + "value, when this value cannot be determined.",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnInt.class
+      name = NAMESPACE + "atomic_propositions_uncontrollable_size",
+      documentation = "Atomic propositions of the range [0, s[ are uncontrollable and [s, l[ are "
+          + "controllable, where s is the value returned by this method. -1 is the default return "
+          + "value, when this value cannot be determined."
   )
   public static int atomicPropositionsUncontrollableSize(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton) {
+      IsolateThread thread,
+      ObjectHandle cDeterministicAutomaton) {
 
     return get(cDeterministicAutomaton).uncontrollableApSize;
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "atomic_propositions_label",
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnUnsignedWord.class
+      name = NAMESPACE + "atomic_propositions_label"
   )
   public static UnsignedWord atomicPropositions(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton,
-    int index,
-    CCharPointer buffer,
-    UnsignedWord bufferSize){
+      IsolateThread thread,
+      ObjectHandle cDeterministicAutomaton,
+      int index,
+      CCharPointer buffer,
+      UnsignedWord bufferSize) {
 
     return CTypeConversion.toCString(
-      get(cDeterministicAutomaton).automaton.atomicPropositions().get(index), buffer, bufferSize);
+        get(cDeterministicAutomaton).automaton.atomicPropositions().get(index), buffer, bufferSize);
   }
 
   @CEntryPoint(
-    name = NAMESPACE + "edge_tree",
-    documentation = {
-      "Serialise the edges leaving the given state into a tree buffer, edge buffer, and an ",
-      "optional score buffer. If the scores are not required, the pointer may be set to NULL.",
-      "The pointer returned via the vector_{int,double}_t structures must be freed using",
-      "the method `free_unmanaged_memory`."
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnVoid.class
+      name = NAMESPACE + "edge_tree",
+      documentation = {
+          "Serialise the edges leaving the given state into a tree buffer, edge buffer, and an ",
+          "optional score buffer. If the scores are not required, the pointer may be set to NULL.",
+          "The pointer returned via the vector_{int,double}_t structures must be freed using",
+          "the method `free_unmanaged_memory`."
+      }
   )
   public static void edgeTree(
-    IsolateThread thread,
-    ObjectHandle cDeterministicAutomaton,
-    int state,
-    CIntVector cTreeBuffer,
-    CIntVector cEdgeBuffer,
-    CDoubleVector cScoreBuffer) {
+      IsolateThread thread,
+      ObjectHandle cDeterministicAutomaton,
+      int state,
+      CIntVector cTreeBuffer,
+      CIntVector cEdgeBuffer,
+      CDoubleVector cScoreBuffer) {
 
     boolean computeScores = cScoreBuffer.isNonNull();
     var tree = get(cDeterministicAutomaton).edgeTree(state, computeScores);
@@ -404,15 +393,15 @@ public final class CAutomaton {
   }
 
   @CEntryPoint(
-    name = CAutomaton.NAMESPACE + "extract_features_normal_form_zielonka_construction",
-    documentation = {
-      "Returns a feature vector of the same length as the passed state vector. The memory is ",
-      "managed by Java and at the moment there is no API-call to deallocate it."
-    }
+      name = CAutomaton.NAMESPACE + "extract_features_normal_form_zielonka_construction",
+      documentation = {
+          "Returns a feature vector of the same length as the passed state vector. The memory is ",
+          "managed by Java and at the moment there is no API-call to deallocate it."
+      }
   )
   @SuppressWarnings("unchecked")
   public static ZielonkaNormalFormState extractFeatures(
-    IsolateThread thread, ObjectHandle automatonObjectHandle, CIntVector stateIds) {
+      IsolateThread thread, ObjectHandle automatonObjectHandle, CIntVector stateIds) {
 
     var automaton = get(automatonObjectHandle);
 
@@ -422,12 +411,12 @@ public final class CAutomaton {
     checkArgument(size >= 0);
 
     var zielonkaAutomaton = (AutomatonWithZielonkaTreeLookup<
-      ZielonkaState<NormalformDELAConstruction.State>, ParityAcceptance>) automaton.automaton;
+        ZielonkaState<NormalformDELAConstruction.State>, ParityAcceptance>) automaton.automaton;
 
     ZielonkaNormalFormState decomposedStates = size == 0
-      ? nullPointer()
-      : org.graalvm.nativeimage.UnmanagedMemory
-        .malloc(SizeOf.unsigned(ZielonkaNormalFormState.class).multiply(size));
+        ? nullPointer()
+        : org.graalvm.nativeimage.UnmanagedMemory
+            .malloc(SizeOf.unsigned(ZielonkaNormalFormState.class).multiply(size));
 
     // Extract states.
     List<ZielonkaState<NormalformDELAConstruction.State>> states = new ArrayList<>();
@@ -441,20 +430,20 @@ public final class CAutomaton {
 
       if (stateId == REJECTING) {
         state = ZielonkaState.of(
-          NormalformDELAConstruction.State.of(
-            PropositionalFormula.falseConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
+            NormalformDELAConstruction.State.of(
+                PropositionalFormula.falseConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
       } else if (stateId == ACCEPTING) {
         state = ZielonkaState.of(
-          NormalformDELAConstruction.State.of(
-            PropositionalFormula.trueConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
+            NormalformDELAConstruction.State.of(
+                PropositionalFormula.trueConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
       } else {
         var uncastedState = stateId == INITIAL && automaton.index2StateMap.isEmpty()
-          ? automaton.automaton.initialState()
-          : automaton.index2StateMap.get(stateId);
+            ? automaton.automaton.initialState()
+            : automaton.index2StateMap.get(stateId);
 
         if (!(uncastedState instanceof ZielonkaState)) {
           throw new IllegalArgumentException(
-            "feature extraction only works for 'unpublished zielonka'");
+              "feature extraction only works for 'unpublished zielonka'");
         }
 
         state = (ZielonkaState<NormalformDELAConstruction.State>) uncastedState;
@@ -463,9 +452,9 @@ public final class CAutomaton {
       states.add(state);
       stateFormulas.add(state.state().stateFormula());
       state.state().stateMap().forEach((key, breakPointState) ->
-        encoders
-          .computeIfAbsent(key, x -> new EquivalenceClassEncoder())
-          .put(breakPointState));
+          encoders
+              .computeIfAbsent(key, x -> new EquivalenceClassEncoder())
+              .put(breakPointState));
     }
 
     List<PropositionalFormula<Integer>> stateFormulasSorted = new ArrayList<>(stateFormulas);
@@ -494,9 +483,9 @@ public final class CAutomaton {
 
       var iterator = stateMap.entrySet().iterator();
       ZielonkaNormalFormState.StateMapEntry entries = iterator.hasNext()
-        ? org.graalvm.nativeimage.UnmanagedMemory.malloc(
+          ? org.graalvm.nativeimage.UnmanagedMemory.malloc(
           SizeOf.unsigned(ZielonkaNormalFormState.StateMapEntry.class).multiply(stateMap.size()))
-        : nullPointer();
+          : nullPointer();
 
       decomposedState.stateMap(entries);
       decomposedState.stateMapSize(stateMap.size());
@@ -537,9 +526,9 @@ public final class CAutomaton {
     void stateFormula(int stateFormula);
 
     /**
-     * An array of size `stateMapSize` storing a mapping of indices to states of the underlying
-     * DBW. The keys used in the mapping are exactly the variables used in the state formula and
-     * are unordered and might be non-continuous.
+     * An array of size `stateMapSize` storing a mapping of indices to states of the underlying DBW.
+     * The keys used in the mapping are exactly the variables used in the state formula and are
+     * unordered and might be non-continuous.
      */
     @CField("state_map")
     StateMapEntry stateMap();
@@ -610,8 +599,8 @@ public final class CAutomaton {
       void rejectingProfile(CIntVector profile);
 
       /**
-       * A non-negative, unique integer used to disambiguate state from other states mapped to
-       * the same all_profile and rejecting_profile.
+       * A non-negative, unique integer used to disambiguate state from other states mapped to the
+       * same all_profile and rejecting_profile.
        */
       @CField("disambiguation")
       int disambiguation();
@@ -622,38 +611,37 @@ public final class CAutomaton {
   }
 
   @CEntryPoint(
-    name = CAutomaton.NAMESPACE + "extract_features",
-    documentation = { "Signature: ",
-      "boolean (void* automaton, vector_int_t* states, vector_int_t* features)",
-      "Extract features from the given set of states of an automaton. This method returns `true` "
-        + "if the features disambiguate the given state set. If `false` is returned, the caller of"
-        + " the method needs to disambiguate two states with the same set of features by "
-        + "additional means, e.g. by adding extra bits. The caller might request the inclusion of "
-        + "the accepting and rejecting sink by adding OWL_ACCEPTING_SINK and OWL_REJECTING_SINK to "
-        + "the state set. These states are then added on a best-effort basis. [Some automata do "
-        + "not have a canonical accepting and rejecting sinks]",
-      "The encoding of the feature vector is as follows:",
-      "",
-      "|---------------------------------------------------------------------------------------------------------------------|",
-      "| int (state) | feature_type_t | ... | OWL_FEATURE_SEPARATOR | feature_type | ... | OWL_SEPARATOR | int (state) | ... |",
-      "|---------------------------------------------------------------------------------------------------------------------|",
-      "",
-      "Features are then encoded as follows.",
-      "- PERMUTATION: an int sequence of variable length with no duplicates.",
-      "- ROUND_ROBIN_COUNTER: a single int.",
-      "- TEMPORAL_OPERATORS_PROFILE: an int sequence of variable length with no duplicates."
-    },
-    exceptionHandler = CInterface.PrintStackTraceAndExit.ReturnBoolean.class
+      name = CAutomaton.NAMESPACE + "extract_features",
+      documentation = {"Signature: ",
+          "boolean (void* automaton, vector_int_t* states, vector_int_t* features)",
+          "Extract features from the given set of states of an automaton. This method returns `true` "
+              + "if the features disambiguate the given state set. If `false` is returned, the caller of"
+              + " the method needs to disambiguate two states with the same set of features by "
+              + "additional means, e.g. by adding extra bits. The caller might request the inclusion of "
+              + "the accepting and rejecting sink by adding OWL_ACCEPTING_SINK and OWL_REJECTING_SINK to "
+              + "the state set. These states are then added on a best-effort basis. [Some automata do "
+              + "not have a canonical accepting and rejecting sinks]",
+          "The encoding of the feature vector is as follows:",
+          "",
+          "|---------------------------------------------------------------------------------------------------------------------|",
+          "| int (state) | feature_type_t | ... | OWL_FEATURE_SEPARATOR | feature_type | ... | OWL_SEPARATOR | int (state) | ... |",
+          "|---------------------------------------------------------------------------------------------------------------------|",
+          "",
+          "Features are then encoded as follows.",
+          "- PERMUTATION: an int sequence of variable length with no duplicates.",
+          "- ROUND_ROBIN_COUNTER: a single int.",
+          "- TEMPORAL_OPERATORS_PROFILE: an int sequence of variable length with no duplicates."
+      }
   )
   public static boolean extractFeatures(
-    IsolateThread thread,
-    ObjectHandle automatonObjectHandle,
-    CIntVector states,
-    CIntVector features) {
+      IsolateThread thread,
+      ObjectHandle automatonObjectHandle,
+      CIntVector states,
+      CIntVector features) {
 
     if (ImageInfo.inImageCode()) {
       boolean consistentDeclarations = CInterface.SEPARATOR == CInterface.owlSeparator()
-        && CInterface.FEATURE_SEPARATOR == CInterface.owlFeatureSeparator();
+          && CInterface.FEATURE_SEPARATOR == CInterface.owlFeatureSeparator();
 
       if (!consistentDeclarations) {
         throw new AssertionError("C headers declare conflicting constants.");
@@ -690,20 +678,10 @@ public final class CAutomaton {
           featuresBuilder.add(feature.type().getCValue());
 
           switch (feature.type()) {
-            case PERMUTATION:
-              featuresBuilder.addAll(feature.permutation());
-              break;
-
-            case ROUND_ROBIN_COUNTER:
-              featuresBuilder.add(feature.roundRobinCounter());
-              break;
-
-            case TEMPORAL_OPERATORS_PROFILE:
-              featuresBuilder.addAll(feature.temporalOperatorsProfile());
-              break;
-
-            default:
-              throw new AssertionError("not reachable.");
+            case PERMUTATION -> featuresBuilder.addAll(feature.permutation());
+            case ROUND_ROBIN_COUNTER -> featuresBuilder.add(feature.roundRobinCounter());
+            case TEMPORAL_OPERATORS_PROFILE ->
+                featuresBuilder.addAll(feature.temporalOperatorsProfile());
           }
 
           featuresBuilder.add(CInterface.FEATURE_SEPARATOR);
@@ -715,7 +693,7 @@ public final class CAutomaton {
       featuresBuilder.moveTo(features);
       return Collections3.hasDistinctValues(featuresMap);
     } catch (IllegalArgumentException ex) {
-      // We do no support this state type. Return empty vector and indicate that it is unambiguous.
+      // We do not support this state type. Return empty vector and indicate that it is unambiguous.
       featuresBuilder.moveTo(features);
       return false;
     }
@@ -745,7 +723,6 @@ public final class CAutomaton {
       }
 
       if (acceptance instanceof ParityAcceptance parityAcceptance) {
-
         if (parityAcceptance.parity().even()) {
           if (parityAcceptance.parity().max()) {
             return PARITY_MAX_EVEN;
@@ -785,11 +762,11 @@ public final class CAutomaton {
     private final ToDoubleFunction<? super Edge<S>> qualityScore;
 
     private <A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper(
-      Automaton<S, ? extends A> automaton,
-      Acceptance acceptance,
-      Function<? super S, OptionalInt> sinkDetection,
-      ToDoubleFunction<? super Edge<S>> qualityScore,
-      int uncontrollableApSize) {
+        Automaton<S, ? extends A> automaton,
+        Acceptance acceptance,
+        Function<? super S, OptionalInt> sinkDetection,
+        ToDoubleFunction<? super Edge<S>> qualityScore,
+        int uncontrollableApSize) {
 
       checkArgument(automaton.initialStates().size() == 1);
       assert automaton.is(Automaton.Property.DETERMINISTIC);
@@ -807,8 +784,8 @@ public final class CAutomaton {
 
       if (ImageInfo.inImageCode()) {
         boolean consistentDeclarations = INITIAL == CInterface.owlInitialState()
-          && ACCEPTING == CInterface.owlAcceptingSink()
-          && REJECTING == CInterface.owlRejectingSink();
+            && ACCEPTING == CInterface.owlAcceptingSink()
+            && REJECTING == CInterface.owlRejectingSink();
 
         if (!consistentDeclarations) {
           throw new AssertionError("C headers declare conflicting constants.");
@@ -817,7 +794,7 @@ public final class CAutomaton {
     }
 
     static <S> DeterministicAutomatonWrapper<S, ?>
-      of(Automaton<S, ?> automaton, int uncontrollableApSize) {
+    of(Automaton<S, ?> automaton, int uncontrollableApSize) {
 
       Function<S, OptionalInt> sinkDetection = (S state) -> {
         Set<Set<Edge<S>>> edgeSetSet = automaton.edgeTree(state).values();
@@ -850,15 +827,15 @@ public final class CAutomaton {
       // Inject scoring if the automaton is known.
       if (automaton instanceof AutomatonWithZielonkaTreeLookup) {
         scoring = NormalformDPAConstruction.scoringFunction(
-          (AutomatonWithZielonkaTreeLookup) automaton);
+            (AutomatonWithZielonkaTreeLookup) automaton);
       }
 
       return new DeterministicAutomatonWrapper<>(
-        automaton,
-        Acceptance.fromOmegaAcceptance(automaton.acceptance()),
-        sinkDetection,
-        scoring,
-        uncontrollableApSize
+          automaton,
+          Acceptance.fromOmegaAcceptance(automaton.acceptance()),
+          sinkDetection,
+          scoring,
+          uncontrollableApSize
       );
     }
 
@@ -886,10 +863,10 @@ public final class CAutomaton {
     }
 
     private void serialise(
-      MtBdd<Edge<S>> edgeTree,
-      SerialisedEdgeTree buffers,
-      int treeBufferWriteBackPosition,
-      Map<MtBdd<Edge<S>>, Integer> cachedPositions) {
+        MtBdd<Edge<S>> edgeTree,
+        SerialisedEdgeTree buffers,
+        int treeBufferWriteBackPosition,
+        Map<MtBdd<Edge<S>>, Integer> cachedPositions) {
 
       var treeBuffer = buffers.tree;
       Integer position = cachedPositions.get(edgeTree);
@@ -933,8 +910,8 @@ public final class CAutomaton {
     SerialisedEdgeTree edgeTree(int stateIndex, boolean computeScores) {
       // If the automaton accepts everything, then index2stateMap is empty.
       S state = stateIndex == INITIAL && index2StateMap.isEmpty()
-        ? automaton.initialState()
-        : index2StateMap.get(stateIndex);
+          ? automaton.initialState()
+          : index2StateMap.get(stateIndex);
 
       var edgeTree = automaton.edgeTree(state);
       var serialisedEdgeTree = new SerialisedEdgeTree(computeScores);
@@ -944,6 +921,7 @@ public final class CAutomaton {
   }
 
   static class SerialisedEdgeTree {
+
     final CIntVectorBuilder tree;
     final CIntVectorBuilder edges;
     @Nullable

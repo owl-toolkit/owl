@@ -26,7 +26,7 @@ jobs:
           java-version: '17'
           cache: 'gradle'
       - name: Run Checks
-        run: gradle --no-daemon check sizeRegressionTest
+        run: gradle --no-daemon --no-parallel --max-workers 1 check sizeRegressionTest
         # Excluded performanceTest due to unstable nature
       - name: Upload Reports
         uses: actions/upload-artifact@v3
