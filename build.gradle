@@ -99,7 +99,7 @@ dependencies {
 
     // https://www.graalvm.org/
     // https://mvnrepository.com/artifact/org.graalvm.sdk/graal-sdk
-    implementation 'org.graalvm.sdk:graal-sdk:21.0.0.2'
+    implementation 'org.graalvm.sdk:graal-sdk:22.1.0'
 
     // https://github.com/google/gson
     testImplementation 'com.google.code.gson:gson:2.8.5'
@@ -163,7 +163,7 @@ task performanceTest(type: Test) {
 }
 
 tasks.withType(Test) {
-    maxHeapSize = "16G"
+    maxHeapSize = "6G"
 }
 
 // ---------------- Native Compilation ----------------
@@ -181,8 +181,8 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         enableNativeAssertions ? '-ea' : '-da',
         "-DowlHeader=${projectDir}/src/main/c/headers",
         '--shared',
-        // (can cause deadlock during image-build)
-        '--initialize-at-build-time=com.google,org.apache,org.antlr,de.tum,owl,jhoafparser',
+        '--initialize-at-build-time',
+        '--link-at-build-time=com.google,org.antlr,de.tum,owl',
         '--no-fallback',
         '--native-image-info',
         // (uncomment for performance analysis)
@@ -214,8 +214,8 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         enableNativeAssertions ? '-ea' : '-da',
         "-DowlHeader=${projectDir}/src/main/c/headers",
         '--features=owl.command.OwlCommandRuntimeReflectionRegistrationFeature',
-        // (can cause deadlock during image-build)
-        '--initialize-at-build-time=com.google,org.apache,org.antlr,de.tum,owl,jhoafparser',
+        '--initialize-at-build-time',
+        '--link-at-build-time=com.google,org.antlr,de.tum,owl',
         '--no-fallback',
         '--native-image-info',
         // (uncomment for performance analysis)

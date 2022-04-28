@@ -26,4 +26,5 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_JAVA: false
-          # VALIDATE_GOOGLE_JAVA_FORMAT: true
+          # Deactive until Java 17 is supported.
+          VALIDATE_GOOGLE_JAVA_FORMAT: false
