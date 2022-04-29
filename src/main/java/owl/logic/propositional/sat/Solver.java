@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -24,6 +24,12 @@ import static java.util.Objects.requireNonNull;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
@@ -34,6 +40,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.annotation.Nullable;
@@ -52,21 +59,22 @@ import owl.logic.propositional.PropositionalFormula.Variable;
 public enum Solver {
 
   DPLL {
-
     @Nullable
     @Override
-    protected BitSet modelImpl(ArrayList<int[]> clauses) {
-      return dpll(clauses, new BitSet(), new BitSet());
+    protected BitSet modelImpl(int[][] clauses) {
+      return dpll(new ArrayList<>(Arrays.asList(clauses)), new BitSet(), new BitSet());
     }
 
     @Nullable
     private static BitSet dpll(
-      ArrayList<int[]> clauses, BitSet partialAssignment, BitSet assignedVariables) {
+        ArrayList<int[]> clauses, BitSet partialAssignment, BitSet assignedVariables) {
+
+      int largestSeenVariable = assignedVariables.length();
 
       // Unit-Clause Rule
       while (true) {
-        BitSet positiveUnitClause = new BitSet();
-        BitSet negativeUnitClause = new BitSet();
+        BitSet positiveUnitClause = new BitSet(largestSeenVariable);
+        BitSet negativeUnitClause = new BitSet(largestSeenVariable);
 
         // Search for unit clauses.
         for (int[] clause : clauses) {
@@ -112,6 +120,7 @@ public enum Solver {
 
           for (int literal : clause) {
             int variable = Math.abs(literal);
+            largestSeenVariable = Math.max(largestSeenVariable, variable);
 
             if (!assignedVariables.get(variable)) {
               newClause[i] = literal;
@@ -140,8 +149,8 @@ public enum Solver {
 
       // Pure-Literal Rule
       while (true) {
-        BitSet positiveLiterals = new BitSet();
-        BitSet negativeLiterals = new BitSet();
+        BitSet positiveLiterals = new BitSet(largestSeenVariable);
+        BitSet negativeLiterals = new BitSet(largestSeenVariable);
 
         // Search for pure literals.
         for (int[] clause : clauses) {
@@ -149,6 +158,7 @@ public enum Solver {
             if (literal > 0) {
               positiveLiterals.set(literal);
             } else {
+              assert literal < 0;
               negativeLiterals.set(-literal);
             }
           }
@@ -210,9 +220,9 @@ public enum Solver {
 
       // We make the first clause true and propagate the information.
       int pickedLiteral = clauses.get(0)[0];
-      clauses.add(new int[]{ pickedLiteral });
+      clauses.add(new int[]{pickedLiteral});
       var model = dpll(
-        clauses, (BitSet) partialAssignment.clone(), (BitSet) assignedVariables.clone());
+          clauses, (BitSet) partialAssignment.clone(), (BitSet) assignedVariables.clone());
 
       if (model != null) {
         assert model.get(Math.abs(pickedLiteral)) == pickedLiteral > 0;
@@ -225,33 +235,32 @@ public enum Solver {
 
     @Override
     protected <V> List<HashSet<V>> computeMaximalModelsImpl(
-      PropositionalFormula<V> normalisedFormula,
-      List<HashSet<V>> maximalModelsCandidates) {
+        PropositionalFormula<V> normalisedFormula,
+        List<HashSet<V>> maximalModelsCandidates) {
 
       throw new UnsupportedOperationException();
     }
   },
 
   JBDD {
-
     @Nullable
     @Override
-    protected BitSet modelImpl(ArrayList<int[]> clauses) {
-      var solver = new JbddSolver();
+    protected BitSet modelImpl(int[][] clauses) {
+      var solver = new Solver.JbddSolver();
       solver.pushClauses(clauses);
       return solver.model();
     }
 
     @Override
     protected <V> List<HashSet<V>> computeMaximalModelsImpl(
-      PropositionalFormula<V> normalisedFormula, List<HashSet<V>> maximalModels) {
+        PropositionalFormula<V> normalisedFormula, List<HashSet<V>> maximalModels) {
 
       // Enumerate models using a sat solver.
       var conjunctiveNormalForm = new ConjunctiveNormalForm<>(normalisedFormula);
-      var solver = new JbddSolver();
-      solver.pushClauses(conjunctiveNormalForm.clauses);
+      var solver = new Solver.JbddSolver();
+      solver.pushClauses(conjunctiveNormalForm.clauses.toArray(int[][]::new));
       maximalModels
-        .forEach(x -> blockModelAndAllSubsets(solver, conjunctiveNormalForm, x));
+          .forEach(x -> blockModelAndAllSubsets(solver, conjunctiveNormalForm, x));
 
       // single subset optimisation
       BitSet model;
@@ -264,8 +273,8 @@ public enum Solver {
 
         // Map model to HashSet<V>.
         HashSet<V> mappedModel = model.stream()
-          .mapToObj(conjunctiveNormalForm.variableMapping.inverse()::get)
-          .collect(Collectors.toCollection(HashSet::new));
+            .mapToObj(conjunctiveNormalForm.variableMapping.inverse()::get)
+            .collect(Collectors.toCollection(HashSet::new));
 
         assert normalisedFormula.evaluate(mappedModel);
         maximalModels.add(mappedModel);
@@ -279,29 +288,179 @@ public enum Solver {
     }
 
     private static <V> void blockModelAndAllSubsets(
-      JbddSolver solver, ConjunctiveNormalForm<V> encoding, Set<V> model) {
+        Solver.JbddSolver solver, ConjunctiveNormalForm<V> encoding, Set<V> model) {
 
       int[] blockingClause = IntStream.range(1, encoding.tsetinVariablesLowerBound)
-        .filter(i -> !model.contains(requireNonNull(encoding.variableMapping.inverse().get(i))))
-        .toArray();
+          .filter(i -> !model.contains(requireNonNull(encoding.variableMapping.inverse().get(i))))
+          .toArray();
 
-      solver.pushClauses(List.of(blockingClause));
+      solver.pushClauses(new int[][]{blockingClause});
+    }
+  },
+
+  KISSAT_EXTERNAL {
+
+    private static final ProcessBuilder KISSAT_GLOBAL
+        = new ProcessBuilder(List.of("kissat", "-q"));
+
+    private static final ProcessBuilder KISSAT_LOCAL
+        = new ProcessBuilder(List.of("./kissat", "-q"));
+
+    private static final ProcessBuilder KISSAT_JUNIT
+        = new ProcessBuilder(List.of("./thirdparty/kissat/build/kissat", "-q"));
+
+    private static final Pattern SPLIT_PATTERN = Pattern.compile("\\s+");
+
+    @Nullable
+    @Override
+    protected BitSet modelImpl(int[][] clauses) {
+      int largestVariable = 0;
+
+      for (int[] clause : clauses) {
+        for (int literal : clause) {
+          largestVariable = Math.max(largestVariable, Math.abs(literal));
+        }
+      }
+
+      try {
+        Process kissat = null;
+        IOException firstIoException = null;
+
+        // Check if kissat is in the current directory.
+        try {
+          kissat = KISSAT_LOCAL.start();
+        } catch (IOException ioException) {
+          firstIoException = ioException;
+        }
+
+        assert (kissat == null) == (firstIoException != null);
+
+        if (kissat == null) {
+          // Check if kissat is in PATH.
+          try {
+            kissat = KISSAT_GLOBAL.start();
+          } catch (IOException ignore) {
+            // Ignore exception
+          }
+        }
+
+        if (kissat == null) {
+          // Check if kissat is in the build directory.
+          try {
+            kissat = KISSAT_JUNIT.start();
+          } catch (IOException ignore) {
+            // Ignore exception
+          }
+        }
+
+        if (kissat == null) {
+          throw firstIoException;
+        }
+
+        try (var reader = new BufferedReader(new InputStreamReader(kissat.getInputStream()))) {
+          
+          // Restrict lifetime of writer.
+          try (var writer = new BufferedOutputStream(kissat.getOutputStream())) {
+            Solver.writeCnf(largestVariable, clauses, writer);
+          }
+
+          BitSet assignment = new BitSet(largestVariable + 1);
+          String resultLine = reader.readLine();
+
+          if (resultLine != null && resultLine.startsWith("s UNSATISFIABLE")) {
+            return null;
+          }
+
+          if (resultLine != null && resultLine.startsWith("s SATISFIABLE")) {
+            reader.lines().forEach(x -> {
+              String[] split = SPLIT_PATTERN.split(x);
+              assert "v".equals(split[0]);
+
+              for (int i = 1; i < split.length; i++) {
+                int literal = Integer.parseInt(split[i]);
+
+                if (literal > 0) {
+                  assignment.set(literal);
+                }
+              }
+            });
+
+            return assignment;
+          }
+
+          throw new IOException("Could not parse answer (%s) from kissat.".formatted(resultLine));
+        }
+      } catch (IOException ioException) {
+        throw new UncheckedIOException(ioException);
+      }
+    }
+
+    @Override
+    protected <V> List<HashSet<V>> computeMaximalModelsImpl(
+        PropositionalFormula<V> normalisedFormula,
+        List<HashSet<V>> maximalModelsCandidates) {
+
+      throw new UnsupportedOperationException();
     }
   };
 
-  public static final Solver DEFAULT = JBDD;
+  private static void writeCnf(
+      final int largestVariable, int[][] clauses, BufferedOutputStream writer)
+      throws IOException {
+
+    // String representation cache.
+
+    byte[] newLine = System.lineSeparator().getBytes(StandardCharsets.UTF_8);
+    byte[] whiteSpace = " ".getBytes(StandardCharsets.UTF_8);
+
+    {
+      byte[] header = "p cnf %d %d"
+          .formatted(largestVariable, clauses.length)
+          .getBytes(StandardCharsets.UTF_8);
+      writer.write(header);
+      writer.write(newLine);
+    }
+
+    {
+      // We store '0' at largestVariable
+      byte[][] literals = new byte[2 * largestVariable + 1][];
+
+      for (int i = -largestVariable; i <= largestVariable; i++) {
+        literals[i + largestVariable] = Integer.toString(i).getBytes(StandardCharsets.UTF_8);
+      }
+
+      for (int[] clause : clauses) {
+        for (int literal : clause) {
+          writer.write(literals[literal + largestVariable]);
+          writer.write(whiteSpace);
+        }
+
+        writer.write(literals[largestVariable]);
+        writer.write(newLine);
+      }
+    }
+
+    writer.flush();
+  }
+
+  public static final Solver DEFAULT_MODELS = KISSAT_EXTERNAL;
+
+  public static final Solver DEFAULT_MAXIMAL_MODELS = JBDD;
 
   public <V> Optional<Set<V>> model(PropositionalFormula<V> formula) {
     return Optional.ofNullable(modelNnfFormula(formula.nnf()));
   }
 
   public <V> Optional<Set<V>> model(List<Clause<V>> clauses) {
-    var intClauses = new ArrayList<int[]>(clauses.size());
-    var numbering = new Numbering<V>(clauses.size());
+    int clausesSize = clauses.size();
+    var intClauses = new int[clausesSize][];
+    var numbering = new Numbering<V>(clausesSize);
 
-    for (Clause<V> clause : clauses) {
-      int i = 0;
+    for (int j = 0; j < clausesSize; j++) {
+      Clause<V> clause = clauses.get(j);
+
       int[] intClause = new int[clause.literals()];
+      int i = 0;
 
       for (V positiveLiteral : clause.positiveLiterals) {
         intClause[i++] = numbering.lookup(positiveLiteral) + 1;
@@ -311,7 +470,7 @@ public enum Solver {
         intClause[i++] = -(numbering.lookup(negativeLiteral) + 1);
       }
 
-      intClauses.add(intClause);
+      intClauses[j] = intClause;
     }
 
     var model = modelImpl(intClauses);
@@ -320,18 +479,60 @@ public enum Solver {
       return Optional.empty();
     }
 
-    return Optional.of(model.stream()
-      .mapToObj(i -> numbering.lookup(i - 1))
-      .collect(Collectors.toSet()));
+    var mappedModel = new HashSet<V>(model.cardinality());
+    model.stream().forEach(i -> mappedModel.add(numbering.lookup(i - 1)));
+    return Optional.of(mappedModel);
   }
 
   @Nullable
-  protected abstract BitSet modelImpl(ArrayList<int[]> clauses);
+  protected abstract BitSet modelImpl(int[][] clauses);
 
-  public record Clause<V> (List<V> positiveLiterals, List<V> negativeLiterals) {
+  public record Clause<V>(List<? extends V> positiveLiterals, List<? extends V> negativeLiterals) {
+
     public Clause {
       positiveLiterals = List.copyOf(positiveLiterals);
       negativeLiterals = List.copyOf(negativeLiterals);
+    }
+
+    public static <V> Clause<V> assertTrue(V variable) {
+      return new Clause<>(List.of(variable), List.of());
+    }
+
+    public static <V> Clause<V> assertFalse(V variable) {
+      return new Clause<>(List.of(), List.of(variable));
+    }
+
+    public static <V> Clause<V> implication(List<V> antecedents, V consequent) {
+      return new Clause<>(List.of(consequent), antecedents);
+    }
+
+    public static <V> Clause<V> implication(V antecedent, V consequent) {
+      return implication(List.of(antecedent), consequent);
+    }
+
+    public static <V> Clause<V> atLeastOneIs(List<? extends V> variables, boolean value) {
+      return value
+          ? new Clause<>(variables, List.of())
+          : new Clause<>(List.of(), variables);
+    }
+
+    public static <V> List<Clause<V>> atMostOne(List<? extends V> variables) {
+      var clauses = new ArrayList<Clause<V>>(variables.size() * variables.size());
+
+      for (int i = 0, s = variables.size(); i < s; i++) {
+        for (int j = i + 1; j < s; j++) {
+          clauses.add(new Clause<>(List.of(), List.of(variables.get(i), variables.get(j))));
+        }
+      }
+
+      return clauses;
+    }
+
+    public static <V> List<Clause<V>> exactlyOne(List<? extends V> variables) {
+      var clauses = new ArrayList<Clause<V>>(variables.size() * variables.size() + 1);
+      clauses.add(atLeastOneIs(variables, true));
+      clauses.addAll(atMostOne(variables));
+      return clauses;
     }
 
     public int literals() {
@@ -357,7 +558,7 @@ public enum Solver {
 
       if (!polarities.isEmpty()) {
 
-        HashSet<V> model = modelNnfFormula(nnfFormula.<V>substitute(variable -> {
+        HashSet<V> model = modelNnfFormula(nnfFormula.substitute(variable -> {
           var polarity = polarities.get(variable);
 
           if (polarity == null) {
@@ -365,8 +566,8 @@ public enum Solver {
           }
 
           return switch (polarity) {
-            case POSITIVE -> PropositionalFormula.trueConstant();
-            case NEGATIVE -> PropositionalFormula.falseConstant();
+            case POSITIVE -> PropositionalFormula.<V>trueConstant();
+            case NEGATIVE -> PropositionalFormula.<V>falseConstant();
             case MIXED -> throw new AssertionError("should not be reached.");
           };
         }));
@@ -400,7 +601,7 @@ public enum Solver {
         }
 
         if (conjunct instanceof Negation<V> negation
-          && negation.operand() instanceof Variable<V> variable) {
+            && negation.operand() instanceof Variable<V> variable) {
 
           // Avoid unboxing.
           Boolean oldValue = units.put(variable.variable(), Boolean.FALSE);
@@ -413,14 +614,16 @@ public enum Solver {
       }
 
       if (!units.isEmpty()) {
-        HashSet<V> model = modelNnfFormula(nnfFormula.<V>substitute(variable -> {
+        HashSet<V> model = modelNnfFormula(nnfFormula.substitute(variable -> {
           Boolean value = units.get(variable);
 
           if (value == null) {
             return Variable.of(variable);
           }
 
-          return value ? PropositionalFormula.trueConstant() : PropositionalFormula.falseConstant();
+          return value
+              ? PropositionalFormula.<V>trueConstant()
+              : PropositionalFormula.<V>falseConstant();
         }));
 
         if (model != null) {
@@ -450,16 +653,16 @@ public enum Solver {
 
     ConjunctiveNormalForm<V> cnf = new ConjunctiveNormalForm<>(nnfFormula);
     @Nullable
-    BitSet model = modelImpl(new ArrayList<>(cnf.clauses));
+    BitSet model = modelImpl(cnf.clauses.toArray(int[][]::new));
 
     if (model == null) {
       return null;
     }
 
     var mappedModel = model.stream()
-      .filter(cnf.variableMapping::containsValue) // skip Tsetin variables
-      .mapToObj(i -> cnf.variableMapping.inverse().get(i))
-      .collect(Collectors.toCollection(HashSet::new));
+        .filter(cnf.variableMapping::containsValue) // skip Tsetin variables
+        .mapToObj(i -> cnf.variableMapping.inverse().get(i))
+        .collect(Collectors.toCollection(HashSet::new));
 
     assert nnfFormula.evaluate(mappedModel);
     return mappedModel;
@@ -470,12 +673,12 @@ public enum Solver {
   }
 
   private <V> List<HashSet<V>> maximalModelsNnfFormula(
-    PropositionalFormula<V> nnfFormula, Set<V> upperBound) {
+      PropositionalFormula<V> nnfFormula, Set<V> upperBound) {
 
     PropositionalFormula<V> normalisedFormula = nnfFormula.substitute(
-      variable -> upperBound.contains(variable)
-        ? Variable.of(variable)
-        : PropositionalFormula.falseConstant());
+        variable -> upperBound.contains(variable)
+            ? Variable.of(variable)
+            : PropositionalFormula.falseConstant());
 
     // Preprocessing to reduce enumeration of models using the SAT solver.
 
@@ -502,9 +705,9 @@ public enum Solver {
 
       if (!lowerBound.isEmpty()) {
         PropositionalFormula<V> restrictedFormula = normalisedFormula.substitute(
-          variable -> lowerBound.contains(variable)
-            ? PropositionalFormula.trueConstant()
-            : Variable.of(variable));
+            variable -> lowerBound.contains(variable)
+                ? PropositionalFormula.trueConstant()
+                : Variable.of(variable));
 
         Set<V> newUpperBound = new HashSet<>(upperBound.size());
 
@@ -515,7 +718,7 @@ public enum Solver {
         }
 
         List<HashSet<V>> restrictedMaximalModels
-          = maximalModelsNnfFormula(restrictedFormula, newUpperBound);
+            = maximalModelsNnfFormula(restrictedFormula, newUpperBound);
         restrictedMaximalModels.forEach(model -> model.addAll(lowerBound));
         return restrictedMaximalModels;
       }
@@ -525,7 +728,7 @@ public enum Solver {
     //    directly be computed.
     {
       if (upperBound.equals(nnfFormula.variables())
-        && normalisedFormula instanceof Disjunction<V> disjunction) {
+          && normalisedFormula instanceof Disjunction<V> disjunction) {
 
         boolean allDisjunctsAreNegatedVariables = true;
         var disjuncts = disjunction.disjuncts();
@@ -534,8 +737,8 @@ public enum Solver {
           var disjunct = disjuncts.get(i);
 
           if (!(disjunct instanceof Negation)
-            || !(((Negation<V>) disjunct).operand()
-            instanceof Variable)) {
+              || !(((Negation<V>) disjunct).operand()
+              instanceof Variable)) {
             allDisjunctsAreNegatedVariables = false;
             break;
           }
@@ -576,12 +779,12 @@ public enum Solver {
     }
 
     return List.copyOf(computeMaximalModelsImpl(
-      normalisedFormula,
-      Collections3.maximalElements(maximalModelsCandidates, (x, y) -> y.containsAll(x))));
+        normalisedFormula,
+        Collections3.maximalElements(maximalModelsCandidates, (x, y) -> y.containsAll(x))));
   }
 
   protected abstract <V> List<HashSet<V>> computeMaximalModelsImpl(
-    PropositionalFormula<V> normalisedFormula, List<HashSet<V>> maximalModelsCandidates);
+      PropositionalFormula<V> normalisedFormula, List<HashSet<V>> maximalModelsCandidates);
 
   private static class JbddSolver {
 
@@ -590,20 +793,20 @@ public enum Solver {
 
     private JbddSolver() {
       var configuration = ImmutableBddConfiguration.builder()
-        .logStatisticsOnShutdown(false)
-        .useGlobalComposeCache(false)
-        .integrityDuplicatesMaximalSize(50)
-        .cacheBinaryDivider(4)
-        .cacheTernaryDivider(4)
-        .growthFactor(4)
-        .build();
+          .logStatisticsOnShutdown(false)
+          .useGlobalComposeCache(false)
+          .integrityDuplicatesMaximalSize(50)
+          .cacheBinaryDivider(4)
+          .cacheTernaryDivider(4)
+          .growthFactor(4)
+          .build();
 
       // Do not use buildBddIterative, since 'support(...)' is broken.
       bdd = BddFactory.buildBddRecursive(10_000, configuration);
       clauseConjunction = bdd.trueNode();
     }
 
-    private void pushClauses(List<int[]> clauses) {
+    private void pushClauses(int[][] clauses) {
       int max = 0;
 
       for (int[] clause : clauses) {
@@ -626,12 +829,12 @@ public enum Solver {
         for (int literal : clause) {
           if (literal > 0) {
             disjunction = bdd.updateWith(
-              bdd.or(disjunction, bdd.variableNode(literal - 1)),
-              disjunction);
+                bdd.or(disjunction, bdd.variableNode(literal - 1)),
+                disjunction);
           } else {
             disjunction = bdd.updateWith(
-              bdd.or(disjunction, bdd.not(bdd.variableNode((-literal) - 1))),
-              disjunction);
+                bdd.or(disjunction, bdd.not(bdd.variableNode((-literal) - 1))),
+                disjunction);
           }
         }
 
@@ -639,9 +842,9 @@ public enum Solver {
       }
 
       clauseConjunction = bdd.consume(
-        bdd.and(clauseConjunction, conjunction),
-        conjunction,
-        clauseConjunction);
+          bdd.and(clauseConjunction, conjunction),
+          conjunction,
+          clauseConjunction);
     }
 
     @Nullable

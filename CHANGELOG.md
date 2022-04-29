@@ -1,4 +1,6 @@
-# 22.0 (development, unreleased)
+# Changelog
+
+## 22.0 (development, unreleased)
 
 Major Changes:
 
@@ -6,9 +8,11 @@ Major Changes:
 * Owl now requires Java 17.
 * Owl now maintains a customised fork of jhoafparser.
 * Removed the `ltl2dela --SLM21-lookahead` option due to problematic semantic classification checks.
-* Owl maintains a simple DPLL implementation.
+* Owl maintains a simple DPLL implementation and a Kissat backend.
+* Migrated to GitHub Actions CI.
+* Updated to GraalVM 22.1.
 
-# 21.0
+## 21.0
 
 Major Changes:
 
@@ -70,7 +74,7 @@ Bugfixes:
   procedure. Thanks to Rubén Rafael Rubio Cuéllar for testing the implementation
   and reporting issues.
 
-# 2020.06
+## 2020.06
 
 Modules:
 
@@ -156,14 +160,14 @@ Bugfixes:
 * Fixes for non-deterministic behaviour of code implementing constructions of
   non-deterministic automata (`NonDeterministicConstructions`).
 
-# 2019.06.03
+## 2019.06.03
 
 Bugfixes:
 
 * Fixed a compilation issues in the native components. Thanks to Philipp Meyer
   for reporting and fixing this issue.
 
-# 2019.06.02
+## 2019.06.02
 
 Bugfixes:
 
@@ -171,14 +175,14 @@ Bugfixes:
   Thanks to Alexandre Duret-Lutz for reporting this issue.
 * Correctly parse HOA-files without a well-known acceptance type.
 
-# 2019.06.01
+## 2019.06.01
 
 Bugfixes:
 
 * Fixed a small soundness bug in the ltl2n{a,ba,gba} modules. Thanks to
   Alexandre Duret-Lutz for reporting this issue.
 
-# 2019.06.00
+## 2019.06.00
 
 Modules:
 
@@ -188,7 +192,7 @@ Modules:
 
 * Removed TLSF support. Ensuring the correct implementation of the TLSF
   specification posed a too large maintenance burden. Users of the TLSF format
-  can use Syfco (https://github.com/reactive-systems/syfco) to translate it to
+  can use [Syfco](https://github.com/reactive-systems/syfco) to translate it to
   a basic LTL formula.
 
   _Warning_: There are several specifications from Syntcomp in the TLSF (basic)
@@ -249,17 +253,17 @@ Bugfixes:
 * The `hoa` module now correctly parsed the `-s` and `--state-acceptance`
   options.
 
-# 2018.06.00
+## 2018.06.00
 
 TBD (see gitlog)
 
-# 1.2-SNAPSHOT
+## 1.2-SNAPSHOT
 
 Library:
 
 * Support the `xor` operator in the LTL input.
 
-# 1.1 (2017-03-28)
+## 1.1 (2017-03-28)
 
 Tools:
 
@@ -274,7 +278,7 @@ Library:
 * Redesigned automaton classes.
 * Implement an emptiness check for a given SCC.
 
-# 1.0 (2017-02-03)
+## 1.0 (2017-02-03)
 
 Tools:
 

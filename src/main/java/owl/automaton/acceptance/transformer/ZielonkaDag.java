@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -51,8 +51,8 @@ public final class ZielonkaDag {
     }
 
     // Invert acceptance condition (alpha) in order to obtain alternation in DAG.
-    var maximalModels = Solver.DEFAULT.maximalModels(
-      alpha.evaluate(node) ? PropositionalFormula.Negation.of(alpha) : alpha, node);
+    var maximalModels = Solver.DEFAULT_MAXIMAL_MODELS.maximalModels(
+        alpha.evaluate(node) ? PropositionalFormula.Negation.of(alpha) : alpha, node);
     var maximalModelsAsImmutableBitSets = new ImmutableBitSet[maximalModels.size()];
 
     for (int i = 0, s = maximalModels.size(); i < s; i++) {
@@ -60,7 +60,7 @@ public final class ZielonkaDag {
     }
 
     assert Stream.of(maximalModelsAsImmutableBitSets)
-      .allMatch(successor -> alpha.evaluate(node) != alpha.evaluate(successor));
+        .allMatch(successor -> alpha.evaluate(node) != alpha.evaluate(successor));
 
     // Sort colour sets lexicographically. This ensures that we always compute
     // the same Zielonka dag for a given acceptance condition.

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -48,7 +48,8 @@ import owl.logic.propositional.PropositionalFormula;
  */
 public abstract sealed class MtBdd<E> {
 
-  private MtBdd() {}
+  private MtBdd() {
+  }
 
   @SuppressWarnings("unchecked")
   public static <E> MtBdd<E> of() {
@@ -85,9 +86,9 @@ public abstract sealed class MtBdd<E> {
 
   @SuppressWarnings("PMD.LooseCoupling")
   private static <E> MtBdd<E> of(
-    ArrayList<E> keys,
-    ArrayList<PropositionalFormula<Integer>> values,
-    HashMap<ArrayList<PropositionalFormula<Integer>>, MtBdd<E>> cache) {
+      ArrayList<E> keys,
+      ArrayList<PropositionalFormula<Integer>> values,
+      HashMap<ArrayList<PropositionalFormula<Integer>>, MtBdd<E>> cache) {
 
     var tree = cache.get(values);
 
@@ -98,9 +99,9 @@ public abstract sealed class MtBdd<E> {
     int nextVariable = Integer.MAX_VALUE;
 
     for (PropositionalFormula<Integer> formula : values) {
-      var variable = formula.smallestVariable();
-      if (variable.isPresent()) {
-        nextVariable = Math.min(nextVariable, variable.get());
+      var variable = formula.minVariable(Integer::compareTo);
+      if (variable != null) {
+        nextVariable = Math.min(nextVariable, variable);
         Preconditions.checkState(0 <= nextVariable && nextVariable < Integer.MAX_VALUE);
       }
     }
@@ -119,7 +120,6 @@ public abstract sealed class MtBdd<E> {
       return MtBdd.of(trueKeys);
     }
 
-
     int smallestVariable = nextVariable;
 
     ArrayList<PropositionalFormula<Integer>> trueValues = new ArrayList<>(values.size());
@@ -130,9 +130,9 @@ public abstract sealed class MtBdd<E> {
 
       if (value.containsVariable(smallestVariable)) {
         trueValues.add(
-          value.substitute(smallestVariable, trueConstant()));
+            value.substitute(smallestVariable, trueConstant()));
         falseValues.add(
-          value.substitute(smallestVariable, falseConstant()));
+            value.substitute(smallestVariable, falseConstant()));
       } else {
         trueValues.add(value);
         falseValues.add(value);
@@ -174,25 +174,26 @@ public abstract sealed class MtBdd<E> {
   }
 
   public final <T> MtBdd<T> map(
-    Function<? super Set<E>, ? extends Set<? extends T>> mapper) {
+      Function<? super Set<E>, ? extends Set<? extends T>> mapper) {
     return memoizedMap(mapper, new HashMap<>());
   }
 
   protected abstract <T> MtBdd<T> memoizedMap(
-    Function<? super Set<E>, ? extends Set<? extends T>> mapper,
-    Map<MtBdd<E>, MtBdd<T>> memoizedCalls);
+      Function<? super Set<E>, ? extends Set<? extends T>> mapper,
+      Map<MtBdd<E>, MtBdd<T>> memoizedCalls);
 
   protected abstract Map<E, BddSet> memoizedInverse(
-    BddSetFactory factory,
-    Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
-    IntUnaryOperator mapping);
+      BddSetFactory factory,
+      Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
+      IntUnaryOperator mapping);
 
   protected abstract void memoizedFlatValues(Set<E> values, Set<MtBdd<E>> seenNodes);
 
   protected abstract void memoizedValues(
-    Set<Set<E>> values, Set<MtBdd<E>> seenNodes);
+      Set<Set<E>> values, Set<MtBdd<E>> seenNodes);
 
   public static final class Leaf<E> extends MtBdd<E> {
+
     private static final MtBdd<?> EMPTY = new Leaf<>(Set.of());
 
     public final Set<E> value;
@@ -223,17 +224,17 @@ public abstract sealed class MtBdd<E> {
 
     @Override
     protected <T> MtBdd<T> memoizedMap(
-      Function<? super Set<E>, ? extends Set<? extends T>> mapper,
-      Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
+        Function<? super Set<E>, ? extends Set<? extends T>> mapper,
+        Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
       return memoizedCalls.computeIfAbsent(this, x -> of(mapper.apply(value)));
     }
 
     @Override
     protected Map<E, BddSet> memoizedInverse(
-      BddSetFactory factory,
-      Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
-      IntUnaryOperator mapping) {
+        BddSetFactory factory,
+        Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
+        IntUnaryOperator mapping) {
 
       return memoizedCalls.computeIfAbsent(this, x -> Maps.asMap(value, y -> factory.of(true)));
     }
@@ -255,6 +256,7 @@ public abstract sealed class MtBdd<E> {
   }
 
   public static final class Node<E> extends MtBdd<E> {
+
     public final int variable;
     public final MtBdd<E> trueChild;
     public final MtBdd<E> falseChild;
@@ -300,8 +302,8 @@ public abstract sealed class MtBdd<E> {
 
     @Override
     protected void memoizedValues(
-      Set<Set<E>> values,
-      Set<MtBdd<E>> seenNodes) {
+        Set<Set<E>> values,
+        Set<MtBdd<E>> seenNodes) {
 
       if (!seenNodes.add(this)) {
         return;
@@ -314,8 +316,8 @@ public abstract sealed class MtBdd<E> {
     // Perfect for fork/join-parallesism
     @Override
     protected <T> MtBdd<T> memoizedMap(
-      Function<? super Set<E>, ? extends Set<? extends T>> mapper,
-      Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
+        Function<? super Set<E>, ? extends Set<? extends T>> mapper,
+        Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
       MtBdd<T> mappedNode = memoizedCalls.get(this);
 
@@ -324,17 +326,17 @@ public abstract sealed class MtBdd<E> {
       }
 
       mappedNode = of(variable,
-        trueChild.memoizedMap(mapper, memoizedCalls),
-        falseChild.memoizedMap(mapper, memoizedCalls));
+          trueChild.memoizedMap(mapper, memoizedCalls),
+          falseChild.memoizedMap(mapper, memoizedCalls));
       memoizedCalls.put(this, mappedNode);
       return mappedNode;
     }
 
     @Override
     protected Map<E, BddSet> memoizedInverse(
-      BddSetFactory factory,
-      Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
-      IntUnaryOperator mapping) {
+        BddSetFactory factory,
+        Map<MtBdd<E>, Map<E, BddSet>> memoizedCalls,
+        IntUnaryOperator mapping) {
 
       Map<E, BddSet> map = memoizedCalls.get(this);
 
@@ -347,9 +349,9 @@ public abstract sealed class MtBdd<E> {
       var newMap = new HashMap<E, BddSet>();
 
       trueChild.memoizedInverse(factory, memoizedCalls, mapping).forEach(
-        (key, set) -> newMap.merge(key, set.intersection(trueMask), BddSet::union));
+          (key, set) -> newMap.merge(key, set.intersection(trueMask), BddSet::union));
       falseChild.memoizedInverse(factory, memoizedCalls, mapping).forEach(
-        (key, set) -> newMap.merge(key, set.intersection(falseMask), BddSet::union));
+          (key, set) -> newMap.merge(key, set.intersection(falseMask), BddSet::union));
 
       memoizedCalls.put(this, newMap);
       return newMap;
@@ -366,9 +368,9 @@ public abstract sealed class MtBdd<E> {
       }
 
       return hashCode == that.hashCode
-        && variable == that.variable
-        && trueChild.equals(that.trueChild)
-        && falseChild.equals(that.falseChild);
+          && variable == that.variable
+          && trueChild.equals(that.trueChild)
+          && falseChild.equals(that.falseChild);
     }
 
     @Override

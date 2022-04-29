@@ -810,7 +810,7 @@ public final class ZielonkaTreeTransformations {
       // Invert acceptance condition (alpha) in order to obtain alternation in tree.
       // Sort colour sets lexicographically. This ensures that we always compute
       // the same Zielonka tree for a given acceptance condition.
-      var maximalModels = Solver.DEFAULT.maximalModels(
+      var maximalModels = Solver.DEFAULT_MAXIMAL_MODELS.maximalModels(
               Conjunction.of(
                   alpha.evaluate(colours) ? PropositionalFormula.Negation.of(alpha) : alpha, beta),
               colours)
