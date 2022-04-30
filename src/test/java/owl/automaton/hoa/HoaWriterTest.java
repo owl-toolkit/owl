@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -40,17 +40,17 @@ public class HoaWriterTest {
   @Test
   void testStateWithoutOutgoingEdgesBug() throws HOAConsumerException {
     var automaton = new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      List.of("a"), Set.of(1, 2), BuchiAcceptance.INSTANCE) {
+        List.of("a"), Set.of(1, 2), BuchiAcceptance.INSTANCE) {
 
       @Override
       public MtBdd<Edge<Integer>> edgeTreeImpl(Integer state) {
-        return state == 1 ? MtBdd.of(Set.of(Edge.of(2, 0))) : MtBdd.of();
+        return state == 1 ? MtBdd.of(Edge.of(2, 0)) : MtBdd.of();
       }
     };
 
     // This call should complete without exception.
     HoaWriter.write(
-      automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
+        automaton, new HOAIntermediateCheckValidity(new HOAConsumerNull()), true);
   }
 
   private static List<String> hoaStrings() {
@@ -63,6 +63,7 @@ public class HoaWriterTest {
     var automaton = HoaReader.read(hoaString);
     var reconstructedHoaString = HoaWriter.toString(automaton);
     var reconstructedAutomaton = HoaReader.read(reconstructedHoaString);
-    Assertions.assertTrue(LanguageContainment.languageEquivalent(automaton, reconstructedAutomaton));
+    Assertions.assertTrue(
+        LanguageContainment.languageEquivalent(automaton, reconstructedAutomaton));
   }
 }

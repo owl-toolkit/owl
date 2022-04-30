@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -29,6 +29,7 @@ import java.util.BitSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.OptionalInt;
@@ -42,8 +43,8 @@ import java.util.stream.Stream;
 /**
  * This class implements an immutable vector of bits. Each component of the bit set has a
  * {@code boolean} value. The bits of a {@code ImmutableBitSet} are indexed by nonnegative integers.
- * This class further implements the {@code Set} and provide methods to access integer
- * values without boxing.
+ * This class further implements the {@code Set} and provide methods to access integer values
+ * without boxing.
  *
  * <p>This is a simple implementation backed by either singleton values or a BitSet. Thus using
  * large indices increases the allocated memory, since the backing BitSet does not have sparse
@@ -66,21 +67,21 @@ import java.util.stream.Stream;
  */
 // TODO: implement SortedSet, NavigableSet
 // TODO: add ImmutableBitSet.Builder
-public abstract class ImmutableBitSet extends AbstractSet<Integer>
-  implements Comparable<ImmutableBitSet> {
+public sealed abstract class ImmutableBitSet
+    extends AbstractSet<Integer>
+    implements Comparable<ImmutableBitSet> {
 
-  private static final Interner<Small> SMALL_INTERNER = Interners.newWeakInterner();
-  private static final Interner<Large> LARGE_INTERNER = Interners.newWeakInterner();
-
-  private ImmutableBitSet() {}
+  private ImmutableBitSet() {
+  }
 
   public static ImmutableBitSet of() {
-    return Small.EMPTY;
+    return Small.SMALL_CACHE.get(0);
   }
 
   public static ImmutableBitSet of(int element) {
     Preconditions.checkArgument(element >= 0);
-    return element < 1024 ? SMALL_INTERNER.intern(new Small(element)) : new Small(element);
+    return element < Small.SMALL_CACHE_LIMIT ? Small.SMALL_CACHE.get(element + 1)
+        : new Small(element);
   }
 
   public static ImmutableBitSet of(int... elements) {
@@ -141,21 +142,21 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
       return of();
     }
 
-    int firstColour = iterator.next();
+    int firstElement = iterator.next();
 
     if (!iterator.hasNext()) {
-      return of(firstColour);
+      return of(firstElement);
     }
 
-    BitSet colours = new BitSet();
-    colours.set(firstColour);
-    iterator.forEachRemaining(colours::set);
+    BitSet elements = new BitSet();
+    elements.set(firstElement);
+    iterator.forEachRemaining(elements::set);
 
-    if (colours.cardinality() == 1) {
-      return of(firstColour);
+    if (elements.cardinality() == 1) {
+      return of(firstElement);
     }
 
-    return Large.of(colours);
+    return Large.of(elements);
   }
 
   public abstract OptionalInt first();
@@ -163,8 +164,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
   public abstract OptionalInt last();
 
   /**
-   * Returns the least element in this set strictly greater than the
-   * given element.
+   * Returns the least element in this set strictly greater than the given element.
    *
    * @param e the value to match
    * @return the least element greater than {@code e}.
@@ -173,8 +173,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
   public abstract OptionalInt higher(int e);
 
   /**
-   * Returns the greatest element in this set strictly less than the
-   * given element.
+   * Returns the greatest element in this set strictly less than the given element.
    *
    * @param e the value to match
    * @return the greatest element less than {@code e}.
@@ -185,7 +184,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
   @Override
   public abstract boolean isEmpty();
 
-  public abstract boolean contains(int colour);
+  public abstract boolean contains(int element);
 
   @Override
   public final boolean contains(Object o) {
@@ -197,16 +196,16 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     return false;
   }
 
-  public abstract boolean containsAll(BitSet colours);
+  public abstract boolean containsAll(BitSet set);
 
   @Override
   public final boolean containsAll(Collection<?> c) {
-    if (c instanceof ImmutableBitSet.Small) {
-      return c.isEmpty() || contains(((Small) c).element);
+    if (c instanceof ImmutableBitSet.Small smallC) {
+      return c.isEmpty() || contains(smallC.element);
     }
 
-    if (c instanceof ImmutableBitSet.Large) {
-      return containsAll(((Large) c).elements);
+    if (c instanceof ImmutableBitSet.Large largeC) {
+      return containsAll(largeC.elements);
     }
 
     return super.containsAll(c);
@@ -221,8 +220,8 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
 
   @Override
   public final void forEach(Consumer<? super Integer> action) {
-    if (action instanceof IntConsumer) {
-      forEach((IntConsumer) action);
+    if (action instanceof IntConsumer intAction) {
+      forEach(intAction);
     } else {
       forEach((IntConsumer) action::accept);
     }
@@ -292,26 +291,42 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     return copyOf(intersection);
   }
 
-  public boolean intersects(Collection<Integer> otherSet) {
+  public boolean intersects(BitSet that) {
     if (this.isEmpty()) {
       return false;
     }
 
-    if (this == otherSet) {
+    if (this instanceof Small thisSmall) {
+      return that.get(thisSmall.element);
+    } else if (this instanceof Large thisLarge) {
+      return thisLarge.elements.intersects(that);
+    } else {
+      throw new AssertionError("unreachable");
+    }
+  }
+
+  public boolean intersects(Collection<Integer> that) {
+    if (this.isEmpty()) {
+      return false;
+    }
+
+    if (this == that) {
       return true;
     }
 
-    if (this instanceof Large && otherSet instanceof Large) {
-      return ((Large) this).elements.intersects(((Large) otherSet).elements);
+    if (this instanceof Large thisLarge && that instanceof Large thatLarge) {
+      return thisLarge.elements.intersects(thatLarge.elements);
     }
 
-    return !Collections.disjoint(this, otherSet);
+    return !Collections.disjoint(this, that);
   }
 
   private static final class Small extends ImmutableBitSet {
-    private static final ImmutableBitSet EMPTY = new Small(Small.EMPTY_ELEMENT_VALUE);
 
     private static final int EMPTY_ELEMENT_VALUE = -1;
+    private static final int SMALL_CACHE_LIMIT = 128;
+    private static final List<Small> SMALL_CACHE = IntStream.rangeClosed(-1, 128)
+        .mapToObj(Small::new).toList();
 
     private final int element;
 
@@ -403,9 +418,9 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     }
 
     @Override
-    public boolean containsAll(BitSet colours) {
-      return colours.isEmpty()
-        || (colours.cardinality() == 1 && contains(colours.nextSetBit(0)));
+    public boolean containsAll(BitSet set) {
+      return set.isEmpty()
+          || (set.cardinality() == 1 && contains(set.nextSetBit(0)));
     }
 
     @Override
@@ -451,6 +466,9 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
   }
 
   private static final class Large extends ImmutableBitSet {
+
+    private static final Interner<Large> LARGE_INTERNER = Interners.newWeakInterner();
+
     private final BitSet elements;
 
     private Large(BitSet elements) {
@@ -461,7 +479,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     private static Large of(BitSet elements) {
       Large instance = new Large(elements);
 
-      // We cache small instances.
+      // We cache only 'small' instances.
       if (elements.length() < 2 * Long.SIZE && instance.size() < 4) {
         return LARGE_INTERNER.intern(instance);
       }
@@ -474,6 +492,10 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
       return OptionalInt.of(elements.nextSetBit(0));
     }
 
+    private int firstInt() {
+      return elements.nextSetBit(0);
+    }
+
     @Override
     public OptionalInt last() {
       return OptionalInt.of(elements.length() - 1);
@@ -483,16 +505,16 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     public OptionalInt higher(int e) {
       int nextElement = elements.nextSetBit(Math.max(0, e + 1));
       return nextElement >= 0
-        ? OptionalInt.of(nextElement)
-        : OptionalInt.empty();
+          ? OptionalInt.of(nextElement)
+          : OptionalInt.empty();
     }
 
     @Override
     public OptionalInt lower(int e) {
       int previousElement = elements.previousSetBit(Math.min(-1, e - 1));
       return previousElement >= 0
-        ? OptionalInt.of(previousElement)
-        : OptionalInt.empty();
+          ? OptionalInt.of(previousElement)
+          : OptionalInt.empty();
     }
 
     @Override
@@ -516,16 +538,12 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
         return true;
       }
 
-      if (!(o instanceof Set)) {
-        return false;
-      }
-
       if (o instanceof ImmutableBitSet.Small) {
         return false;
       }
 
-      if (o instanceof ImmutableBitSet.Large) {
-        return elements.equals(((Large) o).elements);
+      if (o instanceof ImmutableBitSet.Large thatLarge) {
+        return elements.equals(thatLarge.elements);
       }
 
       return super.equals(o);
@@ -553,8 +571,8 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     }
 
     @Override
-    public boolean containsAll(BitSet colours) {
-      BitSet copy = BitSet2.copyOf(colours);
+    public boolean containsAll(BitSet set) {
+      BitSet copy = BitSet2.copyOf(set);
       copy.andNot(this.elements);
       return copy.isEmpty();
     }
@@ -582,6 +600,7 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
     @Override
     public BitSet copyInto(BitSet target) {
       // It is safe to use target without worrying about target changing our internal state.
+      // Implicit NullCheck.
       if (BitSet.class.equals(target.getClass())) {
         target.or(elements);
       } else {
@@ -603,6 +622,12 @@ public abstract class ImmutableBitSet extends AbstractSet<Integer>
 
       if (sizeComparison != 0) {
         return sizeComparison;
+      }
+
+      int firstElementComparison = Integer.compare(firstInt(), ((Large) o).firstInt());
+
+      if (firstElementComparison != 0) {
+        return firstElementComparison;
       }
 
       return Arrays.compare(elements.stream().toArray(), ((Large) o).elements.stream().toArray());

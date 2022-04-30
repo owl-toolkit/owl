@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer, Remco Abraham)
  *
  * This file is part of Owl.
  *
@@ -39,7 +39,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.OptionalInt;
-import java.util.Set;
 import java.util.function.IntUnaryOperator;
 import javax.annotation.Nullable;
 import owl.bdd.BddSet;
@@ -108,7 +107,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
   @Override
   public BddSet intersection(BddSet... bddSets) {
     int node = bdd.trueNode();
-    for (BddSet bddSet: bddSets) {
+    for (BddSet bddSet : bddSets) {
       node = bdd.updateWith(bdd.and(((JBddSet) bddSet).node, node), node);
     }
     return create(bdd.dereference(node));
@@ -121,11 +120,11 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
   @Override
   public <S> MtBdd<S> toMtBdd(Map<? extends S, ? extends BddSet> sets) {
-    MtBdd<S> union = MtBdd.of(Set.of());
+    MtBdd<S> union = MtBdd.of();
 
     for (Map.Entry<? extends S, ? extends BddSet> entry : sets.entrySet()) {
       union = MtBddOperations.union(union,
-        toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>()));
+          toTree(entry.getKey(), getNode(entry.getValue()), new HashMap<>()));
     }
 
     return union;
@@ -142,8 +141,8 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
     var atomicProposition = Variable.of(bdd.variable(node));
     return Disjunction.of(
-      Conjunction.of(atomicProposition, toExpression(bdd.high(node))),
-      Conjunction.of(Negation.of(atomicProposition), toExpression(bdd.low(node))));
+        Conjunction.of(atomicProposition, toExpression(bdd.high(node))),
+        Conjunction.of(Negation.of(atomicProposition), toExpression(bdd.low(node))));
   }
 
   private int variableNode(int variable) {
@@ -183,11 +182,11 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     if (bddNode == falseNode) {
       tree = MtBdd.of();
     } else if (bddNode == trueNode) {
-      tree = MtBdd.of(Set.of(value));
+      tree = MtBdd.of(value);
     } else {
       tree = MtBdd.of(bdd.variable(bddNode),
-        toTree(value, bdd.high(bddNode), cache),
-        toTree(value, bdd.low(bddNode), cache));
+          toTree(value, bdd.high(bddNode), cache),
+          toTree(value, bdd.low(bddNode), cache));
     }
 
     cache.put(bddNode, tree);
@@ -215,16 +214,16 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
 
     if (bddVariable == node.variable) {
       return MtBdd.of(node.variable,
-        filter(node.trueChild, bddHigh),
-        filter(node.falseChild, bddLow));
+          filter(node.trueChild, bddHigh),
+          filter(node.falseChild, bddLow));
     } else if (bddVariable < node.variable) {
       return MtBdd.of(bddVariable,
-        filter(tree, bddHigh),
-        filter(tree, bddLow));
+          filter(tree, bddHigh),
+          filter(tree, bddLow));
     } else {
       return MtBdd.of(node.variable,
-        filter(node.trueChild, bddNode),
-        filter(node.falseChild, bddNode));
+          filter(node.trueChild, bddNode),
+          filter(node.falseChild, bddNode));
     }
   }
 
@@ -258,7 +257,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     @Override
     public BddSet project(ImmutableBitSet quantifiedAtomicPropositions) {
       return factory.create(
-        factory.bdd.exists(node, quantifiedAtomicPropositions.copyInto(new BitSet())));
+          factory.bdd.exists(node, quantifiedAtomicPropositions.copyInto(new BitSet())));
     }
 
     @Override
@@ -276,7 +275,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
           substitutions[i] = factory.variableNode(j);
         } else {
           throw new IllegalArgumentException(
-            String.format("Invalid mapping: {%s} -> {%s}", i, j));
+              String.format("Invalid mapping: {%s} -> {%s}", i, j));
         }
       }
 
@@ -366,7 +365,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     }
 
     private Iterator<BitSet> createBddIterator(
-      ImmutableBitSet support, OptionalInt currentVariable, int node, BitSet path) {
+        ImmutableBitSet support, OptionalInt currentVariable, int node, BitSet path) {
 
       if (node == factory.falseNode) {
         return Collections.emptyIterator();
@@ -383,8 +382,8 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       int bddVariable = factory.bdd.variable(node);
 
       if (currentVariable.isEmpty()
-        || bddVariable < currentVariable.getAsInt()
-        || !support.contains(bddVariable)) {
+          || bddVariable < currentVariable.getAsInt()
+          || !support.contains(bddVariable)) {
 
         throw new IllegalArgumentException("Detected a BDD-variable that is not in the support.");
       }
@@ -422,11 +421,11 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
         this.path = path;
 
         lowIterator = createBddIterator(support,
-          support.higher(variable),
-          node != factory.trueNode && variable == bdd.variable(node)
-            ? bdd.low(node)
-            : node,
-          path);
+            support.higher(variable),
+            node != factory.trueNode && variable == bdd.variable(node)
+                ? bdd.low(node)
+                : node,
+            path);
       }
 
       private void initHighIterator() {
@@ -435,12 +434,12 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
         path.clear(variable + 1, support.last().orElseThrow() + 1);
         path.set(variable);
         highIterator = createBddIterator(
-          support,
-          support.higher(variable),
-          node != factory.trueNode && variable == factory.bdd.variable(node)
-            ? factory.bdd.high(node)
-            : node,
-          path);
+            support,
+            support.higher(variable),
+            node != factory.trueNode && variable == factory.bdd.variable(node)
+                ? factory.bdd.high(node)
+                : node,
+            path);
       }
 
       private void checkInvariants() {

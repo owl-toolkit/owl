@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2017, 2022  (Tobias Meggendorfer, Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -42,6 +42,7 @@ import owl.ltl.visitors.Converter;
 import owl.ltl.visitors.Visitor;
 
 class RabinizerStateFactory {
+
   final boolean eager;
 
   RabinizerStateFactory(boolean eager) {
@@ -50,11 +51,12 @@ class RabinizerStateFactory {
 
   BitSet getClassSensitiveAlphabet(EquivalenceClass equivalenceClass) {
     return eager
-      ? equivalenceClass.atomicPropositions(false)
-      : equivalenceClass.unfold().atomicPropositions(false);
+        ? equivalenceClass.atomicPropositions(false)
+        : equivalenceClass.unfold().atomicPropositions(false);
   }
 
   static final class ProductStateFactory extends RabinizerStateFactory {
+
     ProductStateFactory(boolean eager) {
       super(eager);
     }
@@ -71,6 +73,7 @@ class RabinizerStateFactory {
   }
 
   static final class MasterStateFactory extends RabinizerStateFactory {
+
     private final boolean fairnessFragment;
 
     MasterStateFactory(boolean eager, boolean fairnessFragment) {
@@ -88,10 +91,10 @@ class RabinizerStateFactory {
 
       if (eager) {
         if (fairnessFragment) {
-          successorTree = MtBdd.of(Set.of(state));
+          successorTree = MtBdd.of(state);
         } else {
           successorTree = state.temporalStepTree()
-            .map(x -> Collections3.transformSet(x, EquivalenceClass::unfold));
+              .map(x -> Collections3.transformSet(x, EquivalenceClass::unfold));
         }
       } else {
         successorTree = state.unfold().temporalStepTree();
@@ -107,6 +110,7 @@ class RabinizerStateFactory {
   }
 
   static final class MonitorStateFactory extends RabinizerStateFactory {
+
     private static final Visitor<Formula> substitutionVisitor = new MonitorUnfoldVisitor();
     private static final Function<Formula, Formula> unfolding = f -> f.accept(substitutionVisitor);
     private final boolean noSubFormula;
@@ -135,13 +139,13 @@ class RabinizerStateFactory {
     EquivalenceClass getRankSuccessor(EquivalenceClass equivalenceClass, BitSet valuation) {
       if (noSubFormula) {
         return eager
-          ? equivalenceClass.temporalStep(valuation).unfold()
-          : equivalenceClass.unfold().temporalStep(valuation);
+            ? equivalenceClass.temporalStep(valuation).unfold()
+            : equivalenceClass.unfold().temporalStep(valuation);
       }
 
       return eager
-        ? equivalenceClass.temporalStep(valuation).substitute(unfolding)
-        : equivalenceClass.substitute(unfolding).temporalStep(valuation);
+          ? equivalenceClass.temporalStep(valuation).substitute(unfolding)
+          : equivalenceClass.substitute(unfolding).temporalStep(valuation);
     }
 
     BitSet getSensitiveAlphabet(MonitorState state) {
@@ -159,6 +163,7 @@ class RabinizerStateFactory {
     }
 
     private static final class MonitorUnfoldVisitor extends Converter {
+
       MonitorUnfoldVisitor() {
         super(SyntacticFragment.FGMU);
       }
@@ -186,13 +191,13 @@ class RabinizerStateFactory {
       @Override
       public Formula visit(UOperator uOperator) {
         return Disjunction.of(uOperator.rightOperand().accept(this),
-          Conjunction.of(uOperator.leftOperand().accept(this), uOperator));
+            Conjunction.of(uOperator.leftOperand().accept(this), uOperator));
       }
 
       @Override
       public Formula visit(MOperator mOperator) {
         return Conjunction.of(mOperator.rightOperand().accept(this),
-          Disjunction.of(mOperator.leftOperand().accept(this), mOperator));
+            Disjunction.of(mOperator.leftOperand().accept(this), mOperator));
       }
     }
   }

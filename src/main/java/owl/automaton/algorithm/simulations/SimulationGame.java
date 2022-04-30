@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Anton Pirogov, Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -37,8 +37,8 @@ import owl.game.Game;
  * @param <T> Type of simulation state that is used.
  */
 public class SimulationGame<S, T extends SimulationState>
-  extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, ParityAcceptance>
-  implements Game<T, ParityAcceptance> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, ParityAcceptance>
+    implements Game<T, ParityAcceptance> {
 
   final SimulationType<S, T> simulationType;
 
@@ -49,7 +49,7 @@ public class SimulationGame<S, T extends SimulationState>
 
   @Override
   public MtBdd<Edge<T>> edgeTreeImpl(T state) {
-    return MtBdd.of(simulationType.edges(state));
+    return MtBdd.copyOf(simulationType.edges(state));
   }
 
   @Override

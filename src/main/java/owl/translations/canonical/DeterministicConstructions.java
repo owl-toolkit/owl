@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -84,18 +84,19 @@ public final class DeterministicConstructions {
 
   private static final boolean DISABLE_EXPENSIVE_ASSERT = true;
 
-  private DeterministicConstructions() {}
+  private DeterministicConstructions() {
+  }
 
   abstract static class Base<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     final EquivalenceClassFactory factory;
 
     Base(Factories factories, S initialState, A acceptance) {
       super(factories.eqFactory.atomicPropositions(),
-        factories.vsFactory,
-        Set.of(initialState),
-        acceptance);
+          factories.vsFactory,
+          Set.of(initialState),
+          acceptance);
 
       this.factory = factories.eqFactory;
     }
@@ -103,8 +104,8 @@ public final class DeterministicConstructions {
     @Override
     public boolean is(Property property) {
       if (property == Property.DETERMINISTIC
-        || property == Property.SEMI_DETERMINISTIC
-        || property == Property.LIMIT_DETERMINISTIC) {
+          || property == Property.SEMI_DETERMINISTIC
+          || property == Property.LIMIT_DETERMINISTIC) {
         return true;
       }
 
@@ -125,12 +126,12 @@ public final class DeterministicConstructions {
 
     static MtBdd<EquivalenceClass> successorTreeInternal(EquivalenceClass clazz) {
       return clazz.temporalStepTree()
-        .map(preSuccessors -> transformSet(preSuccessors, EquivalenceClass::unfold));
+          .map(preSuccessors -> transformSet(preSuccessors, EquivalenceClass::unfold));
     }
   }
 
   private abstract static class Looping<A extends EmersonLeiAcceptance>
-    extends Base<EquivalenceClass, A> {
+      extends Base<EquivalenceClass, A> {
 
     private Looping(Factories factories, Formula formula, A acceptance) {
       super(factories, initialStateInternal(factories.eqFactory.of(formula)), acceptance);
@@ -139,7 +140,7 @@ public final class DeterministicConstructions {
     @Override
     public final MtBdd<Edge<EquivalenceClass>> edgeTreeImpl(EquivalenceClass clazz) {
       return clazz.temporalStepTree()
-        .map(x -> Collections3.ofNullable(buildEdge(Iterables.getOnlyElement(x).unfold())));
+          .map(x -> Collections3.ofNullable(buildEdge(Iterables.getOnlyElement(x).unfold())));
     }
 
     @Nullable
@@ -147,6 +148,7 @@ public final class DeterministicConstructions {
   }
 
   public static final class CoSafety extends Looping<BuchiAcceptance> {
+
     private CoSafety(Factories factories, Formula formula) {
       super(factories, formula, BuchiAcceptance.INSTANCE);
     }
@@ -164,12 +166,13 @@ public final class DeterministicConstructions {
       }
 
       return successor.isTrue()
-        ? Edge.of(successor.factory().of(true), 0)
-        : Edge.of(successor);
+          ? Edge.of(successor.factory().of(true), 0)
+          : Edge.of(successor);
     }
   }
 
   public static final class Safety extends Looping<AllAcceptance> {
+
     private Safety(Factories factories, Formula formula) {
       super(factories, formula, AllAcceptance.INSTANCE);
 
@@ -193,6 +196,7 @@ public final class DeterministicConstructions {
   }
 
   public static final class Tracking extends Base<EquivalenceClass, AllAcceptance> {
+
     public Tracking(Factories factories) {
       super(factories, factories.eqFactory.of(BooleanConstant.TRUE), AllAcceptance.INSTANCE);
     }
@@ -245,23 +249,23 @@ public final class DeterministicConstructions {
   }
 
   public static class GfCoSafety
-    extends Base<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance> {
+      extends Base<RoundRobinState<EquivalenceClass>, GeneralizedBuchiAcceptance> {
 
     private final RoundRobinState<EquivalenceClass> fallbackInitialState;
     private final MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet>>
-      initialStatesSuccessorTree;
+        initialStatesSuccessorTree;
 
     private GfCoSafety(Factories factories, RoundRobinState<EquivalenceClass> initialState,
-      RoundRobinState<EquivalenceClass> fallbackInitialState,
-      MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet>> tree,
-      GeneralizedBuchiAcceptance acceptance) {
+        RoundRobinState<EquivalenceClass> fallbackInitialState,
+        MtBdd<Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet>> tree,
+        GeneralizedBuchiAcceptance acceptance) {
       super(factories, initialState, acceptance);
       this.fallbackInitialState = fallbackInitialState;
       this.initialStatesSuccessorTree = tree;
     }
 
     public static GfCoSafety of(Factories factories, Set<? extends Formula> formulas,
-      boolean generalized) {
+        boolean generalized) {
 
       checkArgument(!formulas.isEmpty());
 
@@ -293,44 +297,44 @@ public final class DeterministicConstructions {
 
       // Iteratively build common edge-tree.
       var initialStatesSuccessorTreeTemp
-        = MtBdd.of(Set.of(List.<RoundRobinState<EquivalenceClass>>of()));
+          = MtBdd.of(List.<RoundRobinState<EquivalenceClass>>of());
 
       for (int i = 0; i < automata.size(); i++) {
         int j = i;
         var initialState = initialStateInternal(factory.of(automata.get(j)));
         var initialStateSuccessorTree = initialState.temporalStepTree()
-          .map(x -> transformSet(x, y -> RoundRobinState.of(j, y.unfold())));
+            .map(x -> transformSet(x, y -> RoundRobinState.of(j, y.unfold())));
         initialStatesSuccessorTreeTemp = cartesianProduct(
-          initialStatesSuccessorTreeTemp,
-          initialStateSuccessorTree,
-          Collections3::add);
+            initialStatesSuccessorTreeTemp,
+            initialStateSuccessorTree,
+            Collections3::add);
       }
 
       var initialStatesSuccessorTree = cartesianProduct(
-        initialStatesSuccessorTreeTemp,
-        Util.singleStepTree(singletonAutomata),
-        (x, y) -> Pair.of(List.copyOf(x), y));
+          initialStatesSuccessorTreeTemp,
+          Util.singleStepTree(singletonAutomata),
+          (x, y) -> Pair.of(List.copyOf(x), y));
 
       var fallbackInitialState
-        = RoundRobinState.of(0, initialStateInternal(factory.of(automata.get(0))));
+          = RoundRobinState.of(0, initialStateInternal(factory.of(automata.get(0))));
 
       // We avoid (or at least reduce the chances for) an unreachable initial state by eagerly
       // performing a single step.
       var initialState = buildEdge(0,
-        successorInternal(fallbackInitialState.state(), ImmutableBitSet.of()),
-        initialStatesSuccessorTree.get(new BitSet()).iterator().next(),
-        fallbackInitialState).successor();
+          successorInternal(fallbackInitialState.state(), ImmutableBitSet.of()),
+          initialStatesSuccessorTree.get(new BitSet()).iterator().next(),
+          fallbackInitialState).successor();
 
       return new GfCoSafety(factories,
-        initialState, fallbackInitialState,
-        initialStatesSuccessorTree,
-        GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1));
+          initialState, fallbackInitialState,
+          initialStatesSuccessorTree,
+          GeneralizedBuchiAcceptance.of(singletonAutomata.size() + 1));
     }
 
     private static Edge<RoundRobinState<EquivalenceClass>> buildEdge(int index,
-      EquivalenceClass successor,
-      Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet> initialStateSuccessors,
-      RoundRobinState<EquivalenceClass> fallbackInitialState) {
+        EquivalenceClass successor,
+        Pair<List<RoundRobinState<EquivalenceClass>>, ImmutableBitSet> initialStateSuccessors,
+        RoundRobinState<EquivalenceClass> fallbackInitialState) {
 
       if (!successor.isTrue()) {
         return Edge.of(RoundRobinState.of(index, successor), initialStateSuccessors.snd());
@@ -363,10 +367,10 @@ public final class DeterministicConstructions {
 
     @Override
     public final MtBdd<Edge<RoundRobinState<EquivalenceClass>>> edgeTreeImpl(
-      RoundRobinState<EquivalenceClass> state) {
+        RoundRobinState<EquivalenceClass> state) {
       var successorTree = successorTreeInternal(state.state());
       return cartesianProduct(successorTree, initialStatesSuccessorTree,
-        (x, y) -> buildEdge(state.index(), x, y, fallbackInitialState));
+          (x, y) -> buildEdge(state.index(), x, y, fallbackInitialState));
     }
 
     @Override
@@ -380,14 +384,14 @@ public final class DeterministicConstructions {
   }
 
   public static final class CoSafetySafety
-    extends Base<BreakpointStateAccepting, CoBuchiAcceptance> {
+      extends Base<BreakpointStateAccepting, CoBuchiAcceptance> {
 
     private final SuspensionCheck suspensionCheck;
     private final boolean complete;
 
     private CoSafetySafety(
-      Factories factories, BreakpointStateAccepting initialState, SuspensionCheck suspensionCheck,
-      boolean complete) {
+        Factories factories, BreakpointStateAccepting initialState, SuspensionCheck suspensionCheck,
+        boolean complete) {
 
       super(factories, initialState, CoBuchiAcceptance.INSTANCE);
       this.suspensionCheck = suspensionCheck;
@@ -399,12 +403,12 @@ public final class DeterministicConstructions {
     }
 
     public static CoSafetySafety of(Factories factories, Formula formula, boolean complete,
-      boolean deactivateSuspensionCheckOnInitialFormula) {
+        boolean deactivateSuspensionCheckOnInitialFormula) {
       checkArgument(SyntacticFragments.isCoSafetySafety(formula));
 
       var formulaClass = factories.eqFactory.of(formula);
       var suspensionCheck = new SuspensionCheck(
-        deactivateSuspensionCheckOnInitialFormula ? factories.eqFactory.of(true) : formulaClass);
+          deactivateSuspensionCheckOnInitialFormula ? factories.eqFactory.of(true) : formulaClass);
       BreakpointStateAccepting initialState;
 
       if (suspensionCheck.isBlocked(formulaClass.unfold())) {
@@ -420,14 +424,14 @@ public final class DeterministicConstructions {
     public MtBdd<Edge<BreakpointStateAccepting>> edgeTreeImpl(BreakpointStateAccepting state) {
 
       return cartesianProduct(
-        state.all().temporalStepTree(),
-        state.accepting().temporalStepTree(),
-        (all, accepting) -> edge(state.all(), all, accepting));
+          state.all().temporalStepTree(),
+          state.accepting().temporalStepTree(),
+          (all, accepting) -> edge(state.all(), all, accepting));
     }
 
     @Nullable
     private Edge<BreakpointStateAccepting> edge(
-      EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass accepting) {
+        EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass accepting) {
 
       // all over-approximates accepting or is suspended (true).
       assert DISABLE_EXPENSIVE_ASSERT || accepting.implies(all) || accepting.isTrue();
@@ -436,8 +440,8 @@ public final class DeterministicConstructions {
 
       if (allUnfolded.isFalse()) {
         return complete
-          ? Edge.of(BreakpointStateAccepting.of(factory.of(false)), 0)
-          : null;
+            ? Edge.of(BreakpointStateAccepting.of(factory.of(false)), 0)
+            : null;
       }
 
       if (allUnfolded.isTrue()) {
@@ -452,7 +456,7 @@ public final class DeterministicConstructions {
       assert !allUnfolded.isTrue();
 
       if (suspensionCheck.isBlockedByCoSafety(allUnfolded)
-        || suspensionCheck.isBlockedByTransient(allUnfolded)) {
+          || suspensionCheck.isBlockedByTransient(allUnfolded)) {
 
         return Edge.of(BreakpointStateAccepting.of(allUnfolded), 0);
       }
@@ -461,7 +465,7 @@ public final class DeterministicConstructions {
 
       // This state has been suspended, restart.
       if (acceptingUnfolded.isTrue()
-        || BlockingElements.surelyContainedInDifferentSccs(previousAll, allUnfolded)) {
+          || BlockingElements.surelyContainedInDifferentSccs(previousAll, allUnfolded)) {
         return Edge.of(BreakpointStateAccepting.of(allUnfolded, accepting(all)), 0);
       }
 
@@ -479,7 +483,7 @@ public final class DeterministicConstructions {
     // Extract from all runs the runs that are in the accepting part of the AWW[2,R].
     private static EquivalenceClass accepting(EquivalenceClass all) {
       var accepting = all.substitute(
-        x -> isSafety(x) ? x : BooleanConstant.FALSE);
+          x -> isSafety(x) ? x : BooleanConstant.FALSE);
 
       assert isSafety(accepting);
 
@@ -498,7 +502,7 @@ public final class DeterministicConstructions {
         }
 
         xRemovedAccepting = accepting.substitute(x ->
-          x instanceof XOperator && !protectedXOperators.contains(x) ? BooleanConstant.FALSE : x);
+            x instanceof XOperator && !protectedXOperators.contains(x) ? BooleanConstant.FALSE : x);
       } while (!accepting.equals(xRemovedAccepting));
 
       // The accepting runs are transient, retry.
@@ -512,13 +516,14 @@ public final class DeterministicConstructions {
 
   @AutoValue
   public abstract static class BreakpointStateAccepting {
+
     public abstract EquivalenceClass all();
 
     public abstract EquivalenceClass accepting();
 
     public static BreakpointStateAccepting of(EquivalenceClass all) {
       return new AutoValue_DeterministicConstructions_BreakpointStateAccepting(
-        all, all.factory().of(true));
+          all, all.factory().of(true));
     }
 
     public static BreakpointStateAccepting of(EquivalenceClass all, EquivalenceClass accepting) {
@@ -538,7 +543,7 @@ public final class DeterministicConstructions {
     @Override
     public final String toString() {
       return String.format("BreakpointStateAccepting{all=%s, accepting=%s}",
-        all(), accepting().isTrue() ? "[suspended]" : accepting());
+          all(), accepting().isTrue() ? "[suspended]" : accepting());
     }
   }
 
@@ -548,10 +553,10 @@ public final class DeterministicConstructions {
     private final boolean complete;
 
     private SafetyCoSafety(
-      Factories factories,
-      BreakpointStateRejecting initialState,
-      SuspensionCheck suspensionCheck,
-      boolean complete) {
+        Factories factories,
+        BreakpointStateRejecting initialState,
+        SuspensionCheck suspensionCheck,
+        boolean complete) {
 
       super(factories, initialState, BuchiAcceptance.INSTANCE);
       this.suspensionCheck = suspensionCheck;
@@ -560,8 +565,8 @@ public final class DeterministicConstructions {
 
     public static SafetyCoSafety of(LabelledFormula formula) {
       return of(
-        FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions()),
-        formula.formula());
+          FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions()),
+          formula.formula());
     }
 
     public static SafetyCoSafety of(Factories factories, Formula formula) {
@@ -569,17 +574,17 @@ public final class DeterministicConstructions {
     }
 
     public static SafetyCoSafety of(Factories factories, Formula formula, boolean complete,
-      boolean deactivateSuspensionCheckOnInitialFormula) {
+        boolean deactivateSuspensionCheckOnInitialFormula) {
 
       checkArgument(SyntacticFragments.isSafetyCoSafety(formula));
 
       var formulaClass = factories.eqFactory.of(formula);
       var suspensionCheck = deactivateSuspensionCheckOnInitialFormula
-        ? new SuspensionCheck()
-        : new SuspensionCheck(formulaClass);
+          ? new SuspensionCheck()
+          : new SuspensionCheck(formulaClass);
 
       return new SafetyCoSafety(
-        factories, initialState(formulaClass, suspensionCheck), suspensionCheck, complete);
+          factories, initialState(formulaClass, suspensionCheck), suspensionCheck, complete);
     }
 
     // TODO: this method violates the assumption of AbstractCachedStatesAutomaton
@@ -588,7 +593,7 @@ public final class DeterministicConstructions {
     }
 
     private static BreakpointStateRejecting initialState(
-      EquivalenceClass formulaClass, SuspensionCheck suspensionCheck) {
+        EquivalenceClass formulaClass, SuspensionCheck suspensionCheck) {
 
       if (suspensionCheck.isBlocked(formulaClass.unfold())) {
         return BreakpointStateRejecting.of(formulaClass.unfold());
@@ -601,14 +606,14 @@ public final class DeterministicConstructions {
     public MtBdd<Edge<BreakpointStateRejecting>> edgeTreeImpl(BreakpointStateRejecting state) {
 
       return cartesianProduct(
-        state.all().temporalStepTree(),
-        state.rejecting().temporalStepTree(),
-        (all, rejecting) -> edge(state.all(), all, rejecting));
+          state.all().temporalStepTree(),
+          state.rejecting().temporalStepTree(),
+          (all, rejecting) -> edge(state.all(), all, rejecting));
     }
 
     @Nullable
     private Edge<BreakpointStateRejecting> edge(
-      EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass rejecting) {
+        EquivalenceClass previousAll, EquivalenceClass all, EquivalenceClass rejecting) {
 
       // all under-approximates rejecting or rejecting is set to false during suspension.
       // assert DISABLE_EXPENSIVE_ASSERT || all.implies(rejecting) || rejecting.isFalse();
@@ -617,8 +622,8 @@ public final class DeterministicConstructions {
 
       if (allUnfolded.isFalse()) {
         return complete
-          ? Edge.of(BreakpointStateRejecting.of(factory.of(false)))
-          : null;
+            ? Edge.of(BreakpointStateRejecting.of(factory.of(false)))
+            : null;
       }
 
       if (allUnfolded.isTrue()) {
@@ -633,7 +638,7 @@ public final class DeterministicConstructions {
       assert !allUnfolded.isTrue();
 
       if (suspensionCheck.isBlockedByTransient(allUnfolded)
-        || suspensionCheck.isBlockedByCoSafety(allUnfolded)) {
+          || suspensionCheck.isBlockedByCoSafety(allUnfolded)) {
 
         return Edge.of(BreakpointStateRejecting.of(allUnfolded));
       }
@@ -642,7 +647,7 @@ public final class DeterministicConstructions {
 
       // We have been suspended or switched the SCC, reset the rejecting-field.
       if (rejectingUnfolded.isFalse()
-        || BlockingElements.surelyContainedInDifferentSccs(previousAll, allUnfolded)) {
+          || BlockingElements.surelyContainedInDifferentSccs(previousAll, allUnfolded)) {
         return Edge.of(BreakpointStateRejecting.of(allUnfolded, rejecting(all)));
       }
 
@@ -655,8 +660,8 @@ public final class DeterministicConstructions {
 
         if (nextRejectingUnfolded.isFalse()) {
           return complete
-            ? Edge.of(BreakpointStateRejecting.of(factory.of(false)))
-            : null;
+              ? Edge.of(BreakpointStateRejecting.of(factory.of(false)))
+              : null;
         }
 
         return Edge.of(BreakpointStateRejecting.of(allUnfolded, nextRejectingUnfolded), 0);
@@ -670,7 +675,7 @@ public final class DeterministicConstructions {
     // Extract from all runs the runs that are in the rejecting part of the AWW[2,A].
     private static EquivalenceClass rejecting(EquivalenceClass all) {
       var rejecting = all.substitute(
-        x -> isCoSafety(x) ? x : BooleanConstant.TRUE);
+          x -> isCoSafety(x) ? x : BooleanConstant.TRUE);
 
       // The run is now in the rejecting part of the AWW[2,A].
       assert isCoSafety(rejecting);
@@ -691,7 +696,7 @@ public final class DeterministicConstructions {
         }
 
         xRemovedRejecting = rejecting.substitute(x ->
-          x instanceof XOperator && !protectedXOperators.contains(x) ? BooleanConstant.TRUE : x);
+            x instanceof XOperator && !protectedXOperators.contains(x) ? BooleanConstant.TRUE : x);
       } while (!rejecting.equals(xRemovedRejecting));
 
       // If the remaining rejecting runs are transient, repeat with an unfolded 'all'.
@@ -705,13 +710,14 @@ public final class DeterministicConstructions {
 
   @AutoValue
   public abstract static class BreakpointStateRejecting {
+
     public abstract EquivalenceClass all();
 
     public abstract EquivalenceClass rejecting();
 
     public static BreakpointStateRejecting of(EquivalenceClass all) {
       return new AutoValue_DeterministicConstructions_BreakpointStateRejecting(
-        all, all.factory().of(false));
+          all, all.factory().of(false));
     }
 
     public static BreakpointStateRejecting of(EquivalenceClass all, EquivalenceClass rejecting) {
@@ -735,7 +741,7 @@ public final class DeterministicConstructions {
     @Override
     public final String toString() {
       return String.format("BreakpointStateRejecting{all=%s, rejecting=%s}",
-        all(), isSuspended() ? "[suspended]" : rejecting());
+          all(), isSuspended() ? "[suspended]" : rejecting());
     }
   }
 
@@ -759,20 +765,20 @@ public final class DeterministicConstructions {
 
     public boolean isBlocked(EquivalenceClass clazz) {
       return isBlockedByTransient(clazz)
-        || isBlockedByCoSafety(clazz)
-        || isBlockedBySafety(clazz);
+          || isBlockedByCoSafety(clazz)
+          || isBlockedBySafety(clazz);
     }
 
     public boolean isBlockedByCoSafety(EquivalenceClass clazz) {
       return coSafetyBlocked.computeIfAbsent(clazz,
-        x -> !Collections.disjoint(x.temporalOperators(true), blockingCoSafety)
-          || BlockingElements.isBlockedByCoSafety(x));
+          x -> !Collections.disjoint(x.temporalOperators(true), blockingCoSafety)
+              || BlockingElements.isBlockedByCoSafety(x));
     }
 
     public boolean isBlockedBySafety(EquivalenceClass clazz) {
       return safetyBlocked.computeIfAbsent(clazz,
-        x -> !Collections.disjoint(x.temporalOperators(true), blockingSafety)
-          || BlockingElements.isBlockedBySafety(x));
+          x -> !Collections.disjoint(x.temporalOperators(true), blockingSafety)
+              || BlockingElements.isBlockedBySafety(x));
     }
 
     public boolean isBlockedByTransient(EquivalenceClass clazz) {
@@ -781,21 +787,21 @@ public final class DeterministicConstructions {
   }
 
   public static final class CoSafetySafetyRoundRobin
-    extends Base<BreakpointStateAcceptingRoundRobin, CoBuchiAcceptance> {
+      extends Base<BreakpointStateAcceptingRoundRobin, CoBuchiAcceptance> {
 
     private static final PruneRejectingStates PRUNE_REJECTING_STATES = new PruneRejectingStates();
 
     private final SuspensionCheck suspensionCheck;
     private final boolean complete;
     private Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
-      profilesCache;
+        profilesCache;
 
     private CoSafetySafetyRoundRobin(
-      Factories factories,
-      BreakpointStateAcceptingRoundRobin initialState,
-      SuspensionCheck suspensionCheck,
-      boolean complete, Map<EquivalenceClass,
-      NavigableMap<Set<TemporalOperator>, EquivalenceClass>> profilesCache) {
+        Factories factories,
+        BreakpointStateAcceptingRoundRobin initialState,
+        SuspensionCheck suspensionCheck,
+        boolean complete, Map<EquivalenceClass,
+        NavigableMap<Set<TemporalOperator>, EquivalenceClass>> profilesCache) {
 
       super(factories, initialState, CoBuchiAcceptance.INSTANCE);
       this.suspensionCheck = suspensionCheck;
@@ -805,25 +811,25 @@ public final class DeterministicConstructions {
 
     public static CoSafetySafetyRoundRobin of(LabelledFormula labelledFormula) {
       var factories = FactorySupplier.defaultSupplier().getFactories(
-        labelledFormula.atomicPropositions(), AP_SEPARATE);
+          labelledFormula.atomicPropositions(), AP_SEPARATE);
       return of(factories, labelledFormula.formula(), false, false);
     }
 
     public static CoSafetySafetyRoundRobin of(
-      Factories factories, Formula formula,
-      boolean complete, boolean deactivateSuspensionCheckOnInitialFormula) {
+        Factories factories, Formula formula,
+        boolean complete, boolean deactivateSuspensionCheckOnInitialFormula) {
 
       checkArgument(factories.eqFactory.defaultEncoding() == AP_SEPARATE);
       checkArgument(SyntacticFragments.isCoSafetySafety(formula));
 
       var formulaClass = factories.eqFactory.of(formula);
       var suspensionCheck = deactivateSuspensionCheckOnInitialFormula
-        ? new SuspensionCheck()
-        : new SuspensionCheck(formulaClass);
+          ? new SuspensionCheck()
+          : new SuspensionCheck(formulaClass);
       BreakpointStateAcceptingRoundRobin initialState;
 
       Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
-        profilesCache = new IdentityHashMap<>();
+          profilesCache = new IdentityHashMap<>();
 
       var allEdge = allOnly(formulaClass, suspensionCheck);
 
@@ -834,7 +840,7 @@ public final class DeterministicConstructions {
       }
 
       return new CoSafetySafetyRoundRobin(
-        factories, initialState, suspensionCheck, complete, profilesCache);
+          factories, initialState, suspensionCheck, complete, profilesCache);
     }
 
     @Override
@@ -847,24 +853,24 @@ public final class DeterministicConstructions {
 
     @Override
     public MtBdd<Edge<BreakpointStateAcceptingRoundRobin>> edgeTreeImpl(
-      BreakpointStateAcceptingRoundRobin state) {
+        BreakpointStateAcceptingRoundRobin state) {
 
       return cartesianProduct(
-        state.all().temporalStepTree(),
-        state.accepting().temporalStepTree(),
-        (all, accepting) -> edge(state.all(), all, accepting, state.profile()));
+          state.all().temporalStepTree(),
+          state.accepting().temporalStepTree(),
+          (all, accepting) -> edge(state.all(), all, accepting, state.profile()));
     }
 
     @Nullable
     private Edge<BreakpointStateAcceptingRoundRobin> edge(
-      EquivalenceClass previousAll,
-      EquivalenceClass all,
-      EquivalenceClass accepting,
-      Set<TemporalOperator> profile) {
+        EquivalenceClass previousAll,
+        EquivalenceClass all,
+        EquivalenceClass accepting,
+        Set<TemporalOperator> profile) {
 
       // all over-approximates accepting or is suspended (true).
       assert DISABLE_EXPENSIVE_ASSERT
-        || accepting.isTrue() || accepting.implies(all.encode(AP_COMBINED));
+          || accepting.isTrue() || accepting.implies(all.encode(AP_COMBINED));
 
       var allUnfoldedEdge = allOnly(all, suspensionCheck);
 
@@ -880,8 +886,8 @@ public final class DeterministicConstructions {
 
       // This state has been suspended or we switched SCC.
       if (profile.isEmpty()
-        || nextAccepting.profile().isEmpty()
-        || BlockingElements.surelyContainedInDifferentSccs(previousAll, all.unfold())) {
+          || nextAccepting.profile().isEmpty()
+          || BlockingElements.surelyContainedInDifferentSccs(previousAll, all.unfold())) {
 
         return Edge.of(nextAccepting, 0);
       }
@@ -895,12 +901,12 @@ public final class DeterministicConstructions {
       }
 
       return Edge.of(
-        BreakpointStateAcceptingRoundRobin.of(all.unfold(), acceptingUnfolded, profile));
+          BreakpointStateAcceptingRoundRobin.of(all.unfold(), acceptingUnfolded, profile));
     }
 
     @Nullable
     private static Edge<EquivalenceClass> allOnly(
-      EquivalenceClass all, SuspensionCheck suspensionCheck) {
+        EquivalenceClass all, SuspensionCheck suspensionCheck) {
 
       var allUnfolded = all.unfold();
       var allUnfoldedWithCombinedAp = allUnfolded.encode(AP_COMBINED).unfold();
@@ -946,38 +952,38 @@ public final class DeterministicConstructions {
     }
 
     private static EquivalenceClass unfoldAndFilterAndUnfold(
-      EquivalenceClass accepting, Set<TemporalOperator> profile) {
+        EquivalenceClass accepting, Set<TemporalOperator> profile) {
 
       return accepting.factory().of(Disjunction.of(
-        accepting.unfold()
-          .disjunctiveNormalForm()
-          .stream()
-          .filter(clause -> clause.containsAll(profile))
-          .map(Conjunction::of)))
-        .unfold();
+              accepting.unfold()
+                  .disjunctiveNormalForm()
+                  .stream()
+                  .filter(clause -> clause.containsAll(profile))
+                  .map(Conjunction::of)))
+          .unfold();
     }
 
     private static BreakpointStateAcceptingRoundRobin nextAccepting(
-      EquivalenceClass all,
-      Set<TemporalOperator> currentProfile,
-      Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
-        acceptingRunsCache) {
+        EquivalenceClass all,
+        Set<TemporalOperator> currentProfile,
+        Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
+            acceptingRunsCache) {
 
       var acceptingRuns = acceptingRunsCache.computeIfAbsent(
-        extractRunsInAcceptingStates(all), CoSafetySafetyRoundRobin::partitionAcceptingRuns);
+          extractRunsInAcceptingStates(all), CoSafetySafetyRoundRobin::partitionAcceptingRuns);
 
       var tailEntry = acceptingRuns.higherEntry(currentProfile);
 
       if (tailEntry != null) {
         return BreakpointStateAcceptingRoundRobin.of(
-          all.unfold(), tailEntry.getValue(), tailEntry.getKey());
+            all.unfold(), tailEntry.getValue(), tailEntry.getKey());
       }
 
       var headEntry = acceptingRuns.headMap(currentProfile, true).firstEntry();
 
       if (headEntry != null) {
         return BreakpointStateAcceptingRoundRobin.of(
-          all.unfold(), headEntry.getValue(), headEntry.getKey());
+            all.unfold(), headEntry.getValue(), headEntry.getKey());
       }
 
       // There is no place to go and thus we suspend.
@@ -1001,9 +1007,9 @@ public final class DeterministicConstructions {
         for (Formula formula : accepting.support(false)) {
           if (!(formula instanceof XOperator)) {
             assert formula instanceof Literal
-              || formula instanceof GOperator
-              || formula instanceof WOperator
-              || formula instanceof ROperator;
+                || formula instanceof GOperator
+                || formula instanceof WOperator
+                || formula instanceof ROperator;
 
             protectedXOperators.addAll(formula.subformulas(XOperator.class));
           }
@@ -1023,10 +1029,10 @@ public final class DeterministicConstructions {
     }
 
     private static NavigableMap<Set<TemporalOperator>, EquivalenceClass>
-      partitionAcceptingRuns(EquivalenceClass accepting) {
+    partitionAcceptingRuns(EquivalenceClass accepting) {
 
       var partition
-        = new TreeMap<Set<TemporalOperator>, EquivalenceClass>(Formulas::compare);
+          = new TreeMap<Set<TemporalOperator>, EquivalenceClass>(Formulas::compare);
 
       // Check that encodings are correct.
       // Without separate encoding the DNF computation is buggy.
@@ -1047,9 +1053,9 @@ public final class DeterministicConstructions {
           }
 
           assert maximalElement instanceof GOperator
-            || maximalElement instanceof ROperator
-            || maximalElement instanceof WOperator
-            : "DNF contained an unexpected element: " + maximalElement;
+              || maximalElement instanceof ROperator
+              || maximalElement instanceof WOperator
+              : "DNF contained an unexpected element: " + maximalElement;
 
           newProfile.add((TemporalOperator) maximalElement);
         }
@@ -1060,11 +1066,11 @@ public final class DeterministicConstructions {
         }
 
         partition.compute(
-          Set.copyOf(newProfile),
-          (key, oldValue) -> {
-            var newValue = combinedFactory.of(Conjunction.of(clause));
-            return oldValue == null ? newValue : oldValue.or(newValue);
-          });
+            Set.copyOf(newProfile),
+            (key, oldValue) -> {
+              var newValue = combinedFactory.of(Conjunction.of(clause));
+              return oldValue == null ? newValue : oldValue.or(newValue);
+            });
       }
 
       var entryIterator = partition.entrySet().iterator();
@@ -1105,8 +1111,8 @@ public final class DeterministicConstructions {
       @Override
       public Formula visit(MOperator mOperator) {
         return Conjunction.of(
-          mOperator.leftOperand().accept(this),
-          mOperator.rightOperand().accept(this));
+            mOperator.leftOperand().accept(this),
+            mOperator.rightOperand().accept(this));
       }
 
       @Override
@@ -1147,19 +1153,19 @@ public final class DeterministicConstructions {
     public abstract Set<TemporalOperator> profile();
 
     public static BreakpointStateAcceptingRoundRobin of(
-      EquivalenceClass all) {
+        EquivalenceClass all) {
 
       checkArgument(all == all.unfold());
       checkArgument(all.encoding() == AP_COMBINED
-        || (!isSafety(all.encode(AP_COMBINED)) && !isCoSafety(all.encode(AP_COMBINED))));
+          || (!isSafety(all.encode(AP_COMBINED)) && !isCoSafety(all.encode(AP_COMBINED))));
 
       var accepting = all.factory().withDefaultEncoding(AP_COMBINED).of(true);
       return new AutoValue_DeterministicConstructions_BreakpointStateAcceptingRoundRobin(
-        all, accepting, Set.of());
+          all, accepting, Set.of());
     }
 
     public static BreakpointStateAcceptingRoundRobin of(
-      EquivalenceClass all, EquivalenceClass accepting, Set<TemporalOperator> profile) {
+        EquivalenceClass all, EquivalenceClass accepting, Set<TemporalOperator> profile) {
 
       checkArgument(all == all.unfold());
       checkArgument(accepting == accepting.unfold());
@@ -1176,7 +1182,7 @@ public final class DeterministicConstructions {
 
       assert DISABLE_EXPENSIVE_ASSERT || accepting.implies(all.encode(AP_COMBINED));
       return new AutoValue_DeterministicConstructions_BreakpointStateAcceptingRoundRobin(
-        all, accepting, Set.copyOf(profile));
+          all, accepting, Set.copyOf(profile));
     }
 
     public final BreakpointStateAcceptingRoundRobin suspend() {
@@ -1186,28 +1192,28 @@ public final class DeterministicConstructions {
     @Override
     public final String toString() {
       return String.format("BSARR{all=%s, accepting=%s, profile=%s}",
-        all().disjunctiveNormalForm(),
-        accepting().isTrue() ? "[suspended]" : accepting().disjunctiveNormalForm(),
-        profile().isEmpty() ? "[suspended]" : profile());
+          all().disjunctiveNormalForm(),
+          accepting().isTrue() ? "[suspended]" : accepting().disjunctiveNormalForm(),
+          profile().isEmpty() ? "[suspended]" : profile());
     }
   }
 
   public static final class SafetyCoSafetyRoundRobin
-    extends Base<BreakpointStateRejectingRoundRobin, BuchiAcceptance> {
+      extends Base<BreakpointStateRejectingRoundRobin, BuchiAcceptance> {
 
     private static final PruneAcceptingStates PRUNE_ACCEPTING_STATES = new PruneAcceptingStates();
 
     private final SuspensionCheck suspensionCheck;
     private final boolean complete;
     private Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
-      profilesCache;
+        profilesCache;
 
     private SafetyCoSafetyRoundRobin(
-      Factories factories,
-      BreakpointStateRejectingRoundRobin initialState,
-      SuspensionCheck suspensionCheck,
-      boolean complete, Map<EquivalenceClass,
-      NavigableMap<Set<TemporalOperator>, EquivalenceClass>> profilesCache) {
+        Factories factories,
+        BreakpointStateRejectingRoundRobin initialState,
+        SuspensionCheck suspensionCheck,
+        boolean complete, Map<EquivalenceClass,
+        NavigableMap<Set<TemporalOperator>, EquivalenceClass>> profilesCache) {
 
       super(factories, initialState, BuchiAcceptance.INSTANCE);
       this.suspensionCheck = suspensionCheck;
@@ -1217,25 +1223,25 @@ public final class DeterministicConstructions {
 
     public static SafetyCoSafetyRoundRobin of(LabelledFormula labelledFormula) {
       var factories = FactorySupplier.defaultSupplier().getFactories(
-        labelledFormula.atomicPropositions(), AP_SEPARATE);
+          labelledFormula.atomicPropositions(), AP_SEPARATE);
       return of(factories, labelledFormula.formula(), false, false);
     }
 
     public static SafetyCoSafetyRoundRobin of(
-      Factories factories, Formula formula,
-      boolean complete, boolean deactivateSuspensionCheckOnInitialFormula) {
+        Factories factories, Formula formula,
+        boolean complete, boolean deactivateSuspensionCheckOnInitialFormula) {
 
       checkArgument(factories.eqFactory.defaultEncoding() == AP_SEPARATE);
       checkArgument(SyntacticFragments.isSafetyCoSafety(formula));
 
       var formulaClass = factories.eqFactory.of(formula);
       var suspensionCheck = deactivateSuspensionCheckOnInitialFormula
-        ? new SuspensionCheck()
-        : new SuspensionCheck(formulaClass);
+          ? new SuspensionCheck()
+          : new SuspensionCheck(formulaClass);
       BreakpointStateRejectingRoundRobin initialState;
 
       Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
-        profilesCache = new IdentityHashMap<>();
+          profilesCache = new IdentityHashMap<>();
 
       var allEdge = allOnly(formulaClass, suspensionCheck);
 
@@ -1246,7 +1252,7 @@ public final class DeterministicConstructions {
       }
 
       return new SafetyCoSafetyRoundRobin(
-        factories, initialState, suspensionCheck, complete, profilesCache);
+          factories, initialState, suspensionCheck, complete, profilesCache);
     }
 
     @Override
@@ -1259,24 +1265,24 @@ public final class DeterministicConstructions {
 
     @Override
     public MtBdd<Edge<BreakpointStateRejectingRoundRobin>> edgeTreeImpl(
-      BreakpointStateRejectingRoundRobin state) {
+        BreakpointStateRejectingRoundRobin state) {
 
       return cartesianProduct(
-        state.all().temporalStepTree(),
-        state.rejecting().temporalStepTree(),
-        (all, rejecting) -> edge(state.all(), all, rejecting, state.profile()));
+          state.all().temporalStepTree(),
+          state.rejecting().temporalStepTree(),
+          (all, rejecting) -> edge(state.all(), all, rejecting, state.profile()));
     }
 
     @Nullable
     private Edge<BreakpointStateRejectingRoundRobin> edge(
-      EquivalenceClass previousAll,
-      EquivalenceClass all,
-      EquivalenceClass rejecting,
-      Set<TemporalOperator> profile) {
+        EquivalenceClass previousAll,
+        EquivalenceClass all,
+        EquivalenceClass rejecting,
+        Set<TemporalOperator> profile) {
 
       // all over-approximates rejecting or is suspended (true).
       assert DISABLE_EXPENSIVE_ASSERT
-        || rejecting.isFalse() || all.encode(AP_COMBINED).implies(rejecting);
+          || rejecting.isFalse() || all.encode(AP_COMBINED).implies(rejecting);
 
       var allUnfoldedEdge = allOnly(all, suspensionCheck);
 
@@ -1297,7 +1303,7 @@ public final class DeterministicConstructions {
 
       // This state has been suspended or we switched SCC.
       if (profile.isEmpty()
-        || BlockingElements.surelyContainedInDifferentSccs(previousAll, all.unfold())) {
+          || BlockingElements.surelyContainedInDifferentSccs(previousAll, all.unfold())) {
 
         return Edge.of(nextRejecting);
       }
@@ -1311,12 +1317,12 @@ public final class DeterministicConstructions {
       }
 
       return Edge.of(
-        BreakpointStateRejectingRoundRobin.of(all.unfold(), rejectingUnfolded, profile));
+          BreakpointStateRejectingRoundRobin.of(all.unfold(), rejectingUnfolded, profile));
     }
 
     @Nullable
     private static Edge<EquivalenceClass> allOnly(
-      EquivalenceClass all, SuspensionCheck suspensionCheck) {
+        EquivalenceClass all, SuspensionCheck suspensionCheck) {
 
       var allUnfolded = all.unfold();
       var allUnfoldedWithCombinedAp = allUnfolded.encode(AP_COMBINED).unfold();
@@ -1362,38 +1368,38 @@ public final class DeterministicConstructions {
     }
 
     private static EquivalenceClass unfoldAndFilterAndUnfold(
-      EquivalenceClass rejecting, Set<TemporalOperator> profile) {
+        EquivalenceClass rejecting, Set<TemporalOperator> profile) {
 
       return rejecting.factory().of(Conjunction.of(
-          rejecting.unfold()
-            .conjunctiveNormalForm()
-            .stream()
-            .filter(clause -> clause.containsAll(profile))
-            .map(Disjunction::of)))
-        .unfold();
+              rejecting.unfold()
+                  .conjunctiveNormalForm()
+                  .stream()
+                  .filter(clause -> clause.containsAll(profile))
+                  .map(Disjunction::of)))
+          .unfold();
     }
 
     private static BreakpointStateRejectingRoundRobin nextRejecting(
-      EquivalenceClass all,
-      Set<TemporalOperator> currentProfile,
-      Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
-        rejectingRunsCache) {
+        EquivalenceClass all,
+        Set<TemporalOperator> currentProfile,
+        Map<EquivalenceClass, NavigableMap<Set<TemporalOperator>, EquivalenceClass>>
+            rejectingRunsCache) {
 
       var rejectingRuns = rejectingRunsCache.computeIfAbsent(
-        extractRunsInRejectingStates(all), SafetyCoSafetyRoundRobin::partitionRejectingRuns);
+          extractRunsInRejectingStates(all), SafetyCoSafetyRoundRobin::partitionRejectingRuns);
 
       var tailEntry = rejectingRuns.higherEntry(currentProfile);
 
       if (tailEntry != null) {
         return BreakpointStateRejectingRoundRobin.of(
-          all.unfold(), tailEntry.getValue(), tailEntry.getKey());
+            all.unfold(), tailEntry.getValue(), tailEntry.getKey());
       }
 
       var headEntry = rejectingRuns.headMap(currentProfile, true).firstEntry();
 
       if (headEntry != null) {
         return BreakpointStateRejectingRoundRobin.of(
-          all.unfold(), headEntry.getValue(), headEntry.getKey());
+            all.unfold(), headEntry.getValue(), headEntry.getKey());
       }
 
       // There is no place to go and thus we suspend.
@@ -1417,9 +1423,9 @@ public final class DeterministicConstructions {
         for (Formula formula : rejecting.support(false)) {
           if (!(formula instanceof XOperator)) {
             assert formula instanceof Literal
-              || formula instanceof FOperator
-              || formula instanceof UOperator
-              || formula instanceof MOperator;
+                || formula instanceof FOperator
+                || formula instanceof UOperator
+                || formula instanceof MOperator;
 
             protectedXOperators.addAll(formula.subformulas(XOperator.class));
           }
@@ -1439,10 +1445,10 @@ public final class DeterministicConstructions {
     }
 
     private static NavigableMap<Set<TemporalOperator>, EquivalenceClass>
-      partitionRejectingRuns(EquivalenceClass rejecting) {
+    partitionRejectingRuns(EquivalenceClass rejecting) {
 
       var partition
-        = new TreeMap<Set<TemporalOperator>, EquivalenceClass>(Formulas::compare);
+          = new TreeMap<Set<TemporalOperator>, EquivalenceClass>(Formulas::compare);
 
       // Check that encodings are correct.
       // Without separate encoding the DNF computation is buggy.
@@ -1463,9 +1469,9 @@ public final class DeterministicConstructions {
           }
 
           assert maximalElement instanceof FOperator
-            || maximalElement instanceof UOperator
-            || maximalElement instanceof MOperator
-            : "CNF contained an unexpected element: " + maximalElement;
+              || maximalElement instanceof UOperator
+              || maximalElement instanceof MOperator
+              : "CNF contained an unexpected element: " + maximalElement;
 
           newProfile.add((TemporalOperator) maximalElement);
         }
@@ -1476,11 +1482,11 @@ public final class DeterministicConstructions {
         }
 
         partition.compute(
-          Set.copyOf(newProfile),
-          (key, oldValue) -> {
-            var newValue = combinedFactory.of(Disjunction.of(clause));
-            return oldValue == null ? newValue : oldValue.and(newValue);
-          });
+            Set.copyOf(newProfile),
+            (key, oldValue) -> {
+              var newValue = combinedFactory.of(Disjunction.of(clause));
+              return oldValue == null ? newValue : oldValue.and(newValue);
+            });
       }
 
       var entryIterator = partition.entrySet().iterator();
@@ -1538,8 +1544,8 @@ public final class DeterministicConstructions {
       @Override
       public Formula visit(WOperator wOperator) {
         return Disjunction.of(
-          wOperator.leftOperand().accept(this),
-          wOperator.rightOperand().accept(this));
+            wOperator.leftOperand().accept(this),
+            wOperator.rightOperand().accept(this));
       }
 
       @Override
@@ -1563,19 +1569,19 @@ public final class DeterministicConstructions {
     public abstract Set<TemporalOperator> profile();
 
     public static BreakpointStateRejectingRoundRobin of(
-      EquivalenceClass all) {
+        EquivalenceClass all) {
 
       checkArgument(all == all.unfold());
       checkArgument(all.encoding() == AP_COMBINED
-        || (!isSafety(all.encode(AP_COMBINED)) && !isCoSafety(all.encode(AP_COMBINED))));
+          || (!isSafety(all.encode(AP_COMBINED)) && !isCoSafety(all.encode(AP_COMBINED))));
 
       var accepting = all.factory().withDefaultEncoding(AP_COMBINED).of(false);
       return new AutoValue_DeterministicConstructions_BreakpointStateRejectingRoundRobin(
-        all, accepting, Set.of());
+          all, accepting, Set.of());
     }
 
     public static BreakpointStateRejectingRoundRobin of(
-      EquivalenceClass all, EquivalenceClass rejecting, Set<TemporalOperator> profile) {
+        EquivalenceClass all, EquivalenceClass rejecting, Set<TemporalOperator> profile) {
 
       checkArgument(all == all.unfold());
       checkArgument(rejecting == rejecting.unfold());
@@ -1592,7 +1598,7 @@ public final class DeterministicConstructions {
 
       assert DISABLE_EXPENSIVE_ASSERT || rejecting.implies(all.encode(AP_COMBINED));
       return new AutoValue_DeterministicConstructions_BreakpointStateRejectingRoundRobin(
-        all, rejecting, Set.copyOf(profile));
+          all, rejecting, Set.copyOf(profile));
     }
 
     public final BreakpointStateRejectingRoundRobin suspend() {
@@ -1602,9 +1608,9 @@ public final class DeterministicConstructions {
     @Override
     public final String toString() {
       return String.format("BSRRR{all=%s, rejecting=%s, profile=%s}",
-        all().conjunctiveNormalForm(),
-        rejecting().isFalse() ? "[suspended]" : rejecting().conjunctiveNormalForm(),
-        profile().isEmpty() ? "[suspended]" : profile());
+          all().conjunctiveNormalForm(),
+          rejecting().isFalse() ? "[suspended]" : rejecting().conjunctiveNormalForm(),
+          profile().isEmpty() ? "[suspended]" : profile());
     }
   }
 }
