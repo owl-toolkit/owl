@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -61,7 +61,7 @@ import owl.ltl.visitors.PrintVisitor;
 import owl.ltl.visitors.PropositionalIntVisitor;
 
 final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquivalenceClass>
-  implements EquivalenceClassFactory {
+    implements EquivalenceClassFactory {
 
   private static final List<int[]> LIST_OF_EMPTY = List.of(new int[]{});
 
@@ -107,7 +107,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
     if (this.encoding == Encoding.AP_SEPARATE) {
       reencodingFactory = new JBddEquivalenceClassFactory(
-        JBddSupplier.create(32_000), atomicPropositions, Encoding.AP_COMBINED);
+          JBddSupplier.create(32_000), atomicPropositions, Encoding.AP_COMBINED);
     } else {
       assert this.encoding == Encoding.AP_COMBINED;
       reencodingFactory = null;
@@ -172,9 +172,9 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     if (scanForUnknown) {
       // Scan for unknown modal operators.
       var newPropositions = formula.subformulas(TemporalOperator.class)
-        .stream()
-        .filter(y -> !temporalOperatorMapping.containsKey(y))
-        .collect(Collectors.toCollection(TreeSet::new));
+          .stream()
+          .filter(y -> !temporalOperatorMapping.containsKey(y))
+          .collect(Collectors.toCollection(TreeSet::new));
 
       if (!newPropositions.isEmpty()) {
         // Create variables.
@@ -236,8 +236,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     return of(
-      representatives == null ? null : Conjunction.of(representatives),
-      bdd.dereference(andNode));
+        representatives == null ? null : Conjunction.of(representatives),
+        bdd.dereference(andNode));
   }
 
   @Override
@@ -263,12 +263,13 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     return of(
-      representatives == null ? null : Disjunction.of(representatives),
-      bdd.dereference(orNode));
+        representatives == null ? null : Disjunction.of(representatives),
+        bdd.dereference(orNode));
   }
 
   // Translates a formula into a BDD under the assumption every subformula is already registered.
   private final class JBddVisitor extends PropositionalIntVisitor {
+
     @Override
     public int visit(Literal literal) {
       if (encoding == Encoding.AP_COMBINED) {
@@ -587,7 +588,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     private double truenessCache = Double.NaN;
 
     private JBddEquivalenceClass(JBddEquivalenceClassFactory factory, int node,
-      @Nullable Formula internalRepresentative) {
+        @Nullable Formula internalRepresentative) {
       this.factory = factory;
       this.node = node;
       this.representative = internalRepresentative;
@@ -636,7 +637,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
           for (int j = 0; j < zeroPath.length; j++) {
             int zeroPathVariable = zeroPath[j];
             assert zeroPathVariable < atomicPropositionsVariables
-              : "Node encodes non-negated TemporalOperator";
+                : "Node encodes non-negated TemporalOperator";
 
             if (0 <= zeroPathVariable) {
               assert factory.encoding == Encoding.AP_COMBINED;
@@ -684,7 +685,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
           for (int j = 0; j < onePath.length; j++) {
             int onePathVariable = onePath[j];
             assert -(atomicPropositionsVariables + 1) <= onePathVariable
-              : "Node encodes negation of TemporalOperator";
+                : "Node encodes negation of TemporalOperator";
 
             if (onePathVariable < 0) {
               assert factory.encoding == Encoding.AP_COMBINED;
@@ -725,9 +726,9 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     @Override
     public String toString() {
       return representative == null
-        ? String.format("%d", node)
-        : PrintVisitor.toString(
-            LabelledFormula.of(representative, factory.atomicPropositions), false);
+          ? String.format("%d", node)
+          : PrintVisitor.toString(
+              LabelledFormula.of(representative, factory.atomicPropositions), false);
     }
 
     @Override
@@ -767,8 +768,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
         if (i < atomicPropositionsRegion) {
           assert factory.encoding == Encoding.AP_SEPARATE || i % 2 == 0;
           support[j] = i % 2 == 0
-            ? Literal.of(i / 2, false)
-            : Literal.of((i - 1) / 2, true);
+              ? Literal.of(i / 2, false)
+              : Literal.of((i - 1) / 2, true);
         } else {
           support[j] = factory.temporalOperatorReverseMapping[i - atomicPropositionsRegion];
         }
@@ -790,7 +791,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
       for (Formula formula : support) {
         supportIncludeNested.addAll(
-          formula.subformulas(x -> x instanceof Literal || x instanceof TemporalOperator));
+            formula.subformulas(x -> x instanceof Literal || x instanceof TemporalOperator));
       }
 
       if (factory.encoding == Encoding.AP_COMBINED) {
@@ -812,8 +813,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
       assert supportCacheIncludeNested == null;
       supportCacheIncludeNested = supportIncludeNested.size() == supportCache.size()
-        ? supportCache
-        : List.copyOf(supportIncludeNested);
+          ? supportCache
+          : List.copyOf(supportIncludeNested);
     }
 
     @Override
@@ -825,21 +826,21 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     public EquivalenceClass and(EquivalenceClass other) {
       var otherCasted = factory.cast(other);
       return factory.of(
-        Conjunction.of(representative(), otherCasted.representative()),
-        factory.bdd.and(node, otherCasted.node));
+          Conjunction.of(representative(), otherCasted.representative()),
+          factory.bdd.and(node, otherCasted.node));
     }
 
     @Override
     public EquivalenceClass or(EquivalenceClass other) {
       var otherCasted = factory.cast(other);
       return factory.of(
-        Disjunction.of(representative(), otherCasted.representative()),
-        factory.bdd.or(node, otherCasted.node));
+          Disjunction.of(representative(), otherCasted.representative()),
+          factory.bdd.or(node, otherCasted.node));
     }
 
     @Override
     public EquivalenceClass substitute(
-      Function<? super TemporalOperator, ? extends Formula> substitution) {
+        Function<? super TemporalOperator, ? extends Formula> substitution) {
 
       var newRepresentative = representative().substitute(substitution);
 
@@ -872,7 +873,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     }
 
     private MtBdd<EquivalenceClass> temporalStepTree(
-      Formula initialRepresentative, BitSet pathTrace) {
+        Formula initialRepresentative, BitSet pathTrace) {
 
       if (temporalStepTreeCache != null) {
         return temporalStepTreeCache;
@@ -882,8 +883,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       int atom = bdd.isNodeRoot(node) ? factory.atomicPropositionsVariables : bdd.variable(node);
 
       if (atom >= factory.atomicPropositionsVariables) {
-        temporalStepTreeCache = MtBdd.of(Set.of(
-          factory.of(initialRepresentative.temporalStep(pathTrace), false)));
+        temporalStepTreeCache = MtBdd.of(
+            factory.of(initialRepresentative.temporalStep(pathTrace), false));
       } else {
         int atomicProposition;
         int trueSubTreeNode;
@@ -911,11 +912,11 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
 
         pathTrace.set(atomicProposition);
         var trueSubTree = factory.of(null, trueSubTreeNode)
-          .temporalStepTree(initialRepresentative, pathTrace);
+            .temporalStepTree(initialRepresentative, pathTrace);
 
         pathTrace.clear(atomicProposition, pathTrace.length());
         var falseSubTree = factory.of(null, falseSubTreeNode)
-          .temporalStepTree(initialRepresentative, pathTrace);
+            .temporalStepTree(initialRepresentative, pathTrace);
 
         temporalStepTreeCache = MtBdd.of(atomicProposition, trueSubTree, falseSubTree);
       }
@@ -953,7 +954,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
         var satisfyingAssignments = new BigDecimal(factory.bdd.countSatisfyingAssignments(node));
         var assignments = BigDecimal.valueOf(2).pow(factory.bdd.numberOfVariables());
         truenessCache = satisfyingAssignments.divide(assignments, 24, RoundingMode.HALF_DOWN)
-          .doubleValue();
+            .doubleValue();
       }
 
       return truenessCache;
@@ -970,6 +971,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
   }
 
   private static final class DistinctList<E> extends AbstractSet<E> {
+
     private final List<E> elements;
 
     private DistinctList(List<E> elements) {
@@ -1020,7 +1022,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     @Override
     public Spliterator<E> spliterator() {
       return Spliterators.spliterator(elements,
-        Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL);
+          Spliterator.DISTINCT | Spliterator.IMMUTABLE | Spliterator.NONNULL);
     }
   }
 }

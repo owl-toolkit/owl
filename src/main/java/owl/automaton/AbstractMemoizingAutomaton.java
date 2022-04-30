@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -49,28 +49,25 @@ import owl.collections.Either;
 import owl.collections.Pair;
 
 /**
- * This class provides a skeletal implementation of the {@code Automaton}
- * interface to minimize the effort required to implement this interface.
+ * This class provides a skeletal implementation of the {@code Automaton} interface to minimize the
+ * effort required to implement this interface.
  *
  * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
- * transition relation, and the acceptance condition is fixed. It makes use of this
- * assumption by caching the set of states and by memoizing the transition relation
- * as {@link MtBdd}.
+ * transition relation, and the acceptance condition is fixed. It makes use of this assumption by
+ * caching the set of states and by memoizing the transition relation as {@link MtBdd}.
  *
  * <p>Depending on the computation of the transition relation different sub-classes are
- * available:
- * {@link owl.automaton.AbstractMemoizingAutomaton.EdgeImplementation},
+ * available: {@link owl.automaton.AbstractMemoizingAutomaton.EdgeImplementation},
  * {@link owl.automaton.AbstractMemoizingAutomaton.EdgesImplementation},
  * {@link owl.automaton.AbstractMemoizingAutomaton.EdgeTreeImplementation}, and
- * {@link owl.automaton.AbstractMemoizingAutomaton.EdgeMapImplementation}.
- * It is recommended to extend
- * {@link owl.automaton.AbstractMemoizingAutomaton.EdgeTreeImplementation}.
+ * {@link owl.automaton.AbstractMemoizingAutomaton.EdgeMapImplementation}. It is recommended to
+ * extend {@link owl.automaton.AbstractMemoizingAutomaton.EdgeTreeImplementation}.
  *
  * @param <S> the state type
  * @param <A> the acceptance condition type
  **/
 public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
-  implements Automaton<S, A> {
+    implements Automaton<S, A> {
 
   protected final A acceptance;
   protected final List<String> atomicPropositions;
@@ -83,16 +80,16 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   private final EnumMap<Property, Boolean> memoizedProperties = new EnumMap<>(Property.class);
 
   private AbstractMemoizingAutomaton(
-    List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
+      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
     this(atomicPropositions,
-      FactorySupplier.defaultSupplier().getBddSetFactory(),
-      initialStates,
-      acceptance);
+        FactorySupplier.defaultSupplier().getBddSetFactory(),
+        initialStates,
+        acceptance);
   }
 
   private AbstractMemoizingAutomaton(
-    List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
 
     this.acceptance = acceptance;
     this.atomicPropositions = List.copyOf(atomicPropositions);
@@ -118,12 +115,12 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
    * dropped once the automaton is completely explored.
    *
    * @param automaton the automaton
-   * @param <S> foo
-   * @param <A> bar
+   * @param <S>       foo
+   * @param <A>       bar
    * @return a caching instance.
    */
   public static <S, A extends EmersonLeiAcceptance> AbstractMemoizingAutomaton<S, A>
-    memoizingAutomaton(Automaton<S, A> automaton) {
+  memoizingAutomaton(Automaton<S, A> automaton) {
 
     if (automaton instanceof AbstractMemoizingAutomaton) {
       return (AbstractMemoizingAutomaton<S, A>) automaton;
@@ -133,17 +130,17 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   }
 
   private static final class AutomaticMemoizingAutomaton<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     @Nullable
     private Automaton<S, A> backingAutomaton;
 
     public AutomaticMemoizingAutomaton(Automaton<S, A> automaton) {
       super(
-        automaton.atomicPropositions(),
-        automaton.factory(),
-        automaton.initialStates(),
-        automaton.acceptance());
+          automaton.atomicPropositions(),
+          automaton.factory(),
+          automaton.initialStates(),
+          automaton.acceptance());
       this.backingAutomaton = automaton;
     }
 
@@ -270,8 +267,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     }
 
     return memoizedEdgeTrees.isEmpty()
-      ? Set.of()
-      : Collections.unmodifiableSet(memoizedEdgeTrees.keySet());
+        ? Set.of()
+        : Collections.unmodifiableSet(memoizedEdgeTrees.keySet());
   }
 
   @Override
@@ -280,8 +277,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     // Compute value if not memoized.
     if (!memoizedProperties.containsKey(property)) {
       if (property == COMPLETE
-        || property == SEMI_DETERMINISTIC
-        || property == DETERMINISTIC) {
+          || property == SEMI_DETERMINISTIC
+          || property == DETERMINISTIC) {
 
         // force full exploration.
         states();
@@ -325,13 +322,12 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   }
 
   /**
-   * This class provides a skeletal implementation of the {@code Automaton}
-   * interface to minimize the effort required to implement this interface.
+   * This class provides a skeletal implementation of the {@code Automaton} interface to minimize
+   * the effort required to implement this interface.
    *
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
-   * transition relation, and the acceptance condition is fixed. It makes use of this
-   * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link MtBdd}.
+   * transition relation, and the acceptance condition is fixed. It makes use of this assumption by
+   * caching the set of states and by memoizing the transition relation as {@link MtBdd}.
    *
    * <p>This is the recommended implementation class.
    *
@@ -339,44 +335,45 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
    * @param <A> the acceptance condition type
    **/
   public abstract static class EdgeTreeImplementation<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton<S, A> {
+      extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeTreeImplementation(
-      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
       super(atomicPropositions, initialStates, acceptance);
     }
 
     public EdgeTreeImplementation(
-      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates,
+        A acceptance) {
 
       super(atomicPropositions, factory, initialStates, acceptance);
     }
   }
 
   /**
-   * This class provides a skeletal implementation of the {@code Automaton}
-   * interface to minimize the effort required to implement this interface.
+   * This class provides a skeletal implementation of the {@code Automaton} interface to minimize
+   * the effort required to implement this interface.
    *
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
-   * transition relation, and the acceptance condition is fixed. It makes use of this
-   * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link MtBdd}.
+   * transition relation, and the acceptance condition is fixed. It makes use of this assumption by
+   * caching the set of states and by memoizing the transition relation as {@link MtBdd}.
    *
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
   public abstract static class EdgeMapImplementation<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton<S, A> {
+      extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgeMapImplementation(
-      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
       super(atomicPropositions, initialStates, acceptance);
     }
 
     public EdgeMapImplementation(
-      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates,
+        A acceptance) {
 
       super(atomicPropositions, factory, initialStates, acceptance);
     }
@@ -390,28 +387,28 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
   }
 
   /**
-   * This class provides a skeletal implementation of the {@code Automaton}
-   * interface to minimize the effort required to implement this interface.
+   * This class provides a skeletal implementation of the {@code Automaton} interface to minimize
+   * the effort required to implement this interface.
    *
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
-   * transition relation, and the acceptance condition is fixed. It makes use of this
-   * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link MtBdd}.
+   * transition relation, and the acceptance condition is fixed. It makes use of this assumption by
+   * caching the set of states and by memoizing the transition relation as {@link MtBdd}.
    *
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
   public abstract static class EdgesImplementation<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton<S, A> {
+      extends AbstractMemoizingAutomaton<S, A> {
 
     public EdgesImplementation(
-      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
       super(atomicPropositions, initialStates, acceptance);
     }
 
     public EdgesImplementation(
-      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates,
+        A acceptance) {
 
       super(atomicPropositions, factory, initialStates, acceptance);
     }
@@ -429,13 +426,13 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     protected final MtBdd<Edge<S>> edgeTreeImpl(S state) {
       var stateAtomicPropositions = stateAtomicPropositions(state);
       return edgeTreeImplRecursive(state,
-        new BitSet(),
-        stateAtomicPropositions,
-        stateAtomicPropositions.nextSetBit(0));
+          new BitSet(),
+          stateAtomicPropositions,
+          stateAtomicPropositions.nextSetBit(0));
     }
 
     private MtBdd<Edge<S>> edgeTreeImplRecursive(
-      S state, BitSet partialValuation, BitSet stateAtomicPropositions, int currentVariable) {
+        S state, BitSet partialValuation, BitSet stateAtomicPropositions, int currentVariable) {
 
       int nextVariable = stateAtomicPropositions.nextSetBit(currentVariable + 1);
 
@@ -443,40 +440,40 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
         partialValuation.set(currentVariable);
         partialValuation.clear(currentVariable + 1, atomicPropositions().size());
         var trueChild
-          = edgeTreeImplRecursive(state, partialValuation, stateAtomicPropositions, nextVariable);
+            = edgeTreeImplRecursive(state, partialValuation, stateAtomicPropositions, nextVariable);
         partialValuation.clear(currentVariable, atomicPropositions().size());
         var falseChild
-          = edgeTreeImplRecursive(state, partialValuation, stateAtomicPropositions, nextVariable);
+            = edgeTreeImplRecursive(state, partialValuation, stateAtomicPropositions, nextVariable);
         return MtBdd.of(currentVariable, trueChild, falseChild);
       }
 
-      return MtBdd.of(edgesImpl(state, (BitSet) partialValuation.clone()));
+      return MtBdd.copyOf(edgesImpl(state, (BitSet) partialValuation.clone()));
     }
   }
 
   /**
-   * This class provides a skeletal implementation of the {@code Automaton}
-   * interface to minimize the effort required to implement this interface.
+   * This class provides a skeletal implementation of the {@code Automaton} interface to minimize
+   * the effort required to implement this interface.
    *
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
-   * transition relation, and the acceptance condition is fixed. It makes use of this
-   * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link MtBdd}.
+   * transition relation, and the acceptance condition is fixed. It makes use of this assumption by
+   * caching the set of states and by memoizing the transition relation as {@link MtBdd}.
    *
    * @param <S> the state type
    * @param <A> the acceptance condition type
    **/
   public abstract static class EdgeImplementation<S, A extends EmersonLeiAcceptance>
-    extends EdgesImplementation<S, A> {
+      extends EdgesImplementation<S, A> {
 
     public EdgeImplementation(
-      List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, Set<S> initialStates, A acceptance) {
 
       super(atomicPropositions, initialStates, acceptance);
     }
 
     public EdgeImplementation(
-      List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates, A acceptance) {
+        List<String> atomicPropositions, BddSetFactory factory, Set<S> initialStates,
+        A acceptance) {
 
       super(atomicPropositions, factory, initialStates, acceptance);
     }
@@ -493,18 +490,17 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     @Override
     public final boolean is(Property property) {
       return property == SEMI_DETERMINISTIC
-        || super.is(property);
+          || super.is(property);
     }
   }
 
   /**
-   * This class provides a skeletal implementation of the {@code Automaton}
-   * interface to minimize the effort required to implement this interface.
+   * This class provides a skeletal implementation of the {@code Automaton} interface to minimize
+   * the effort required to implement this interface.
    *
    * <p>It assumes that the automaton is immutable, i.e., the set of initial states, the
-   * transition relation, and the acceptance condition is fixed. It makes use of this
-   * assumption by caching the set of states and by memoizing the transition relation
-   * as {@link MtBdd}.
+   * transition relation, and the acceptance condition is fixed. It makes use of this assumption by
+   * caching the set of states and by memoizing the transition relation as {@link MtBdd}.
    *
    * <p>This class assumes that there are two separate parts of the automaton with state type
    * A and B. Runs can move from A to B but not the other way.
@@ -514,8 +510,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
    * @param <C> the acceptance condition type
    **/
   public abstract static class
-    PartitionedEdgeTreeImplementation<A, B, C extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton<Either<A, B>, C> {
+  PartitionedEdgeTreeImplementation<A, B, C extends EmersonLeiAcceptance>
+      extends AbstractMemoizingAutomaton<Either<A, B>, C> {
 
     @Nullable
     // We only memoize edges for state-type B, since only they can be visited several times via
@@ -523,33 +519,33 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
     private Map<B, MtBdd<Edge<Either<A, B>>>> memoizedEdgesB = new HashMap<>();
 
     public PartitionedEdgeTreeImplementation(
-      List<String> atomicPropositions,
-      Set<? extends A> initialStatesA,
-      Set<? extends B> initialStatesB,
-      C acceptance) {
+        List<String> atomicPropositions,
+        Set<? extends A> initialStatesA,
+        Set<? extends B> initialStatesB,
+        C acceptance) {
 
       super(
-        atomicPropositions,
-        Sets.union(
-          Collections3.transformSet(initialStatesA, Either::left),
-          Collections3.transformSet(initialStatesB, Either::right)),
-        acceptance);
+          atomicPropositions,
+          Sets.union(
+              Collections3.transformSet(initialStatesA, Either::left),
+              Collections3.transformSet(initialStatesB, Either::right)),
+          acceptance);
     }
 
     public PartitionedEdgeTreeImplementation(
-      List<String> atomicPropositions,
-      BddSetFactory factory,
-      Set<? extends A> initialStatesA,
-      Set<? extends B> initialStatesB,
-      C acceptance) {
+        List<String> atomicPropositions,
+        BddSetFactory factory,
+        Set<? extends A> initialStatesA,
+        Set<? extends B> initialStatesB,
+        C acceptance) {
 
       super(
-        atomicPropositions,
-        factory,
-        Sets.union(
-          Collections3.transformSet(initialStatesA, Either::left),
-          Collections3.transformSet(initialStatesB, Either::right)),
-        acceptance);
+          atomicPropositions,
+          factory,
+          Sets.union(
+              Collections3.transformSet(initialStatesA, Either::left),
+              Collections3.transformSet(initialStatesB, Either::right)),
+          acceptance);
     }
 
     @Override
@@ -565,7 +561,7 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
 
           for (B bState : moveAtoB(aState)) {
             trees.add(memoizedEdgesB.computeIfAbsent(
-              bState, x -> edgeTreeImplB(x).map(this::liftB)));
+                bState, x -> edgeTreeImplB(x).map(this::liftB)));
           }
 
           return MtBddOperations.union(trees).map(this::deduplicate);
@@ -573,8 +569,8 @@ public abstract class AbstractMemoizingAutomaton<S, A extends EmersonLeiAcceptan
         case RIGHT:
           var b = state.right();
           return memoizedEdgesB
-            .computeIfAbsent(b, x -> edgeTreeImplB(x).map(this::liftB))
-            .map(this::deduplicate);
+              .computeIfAbsent(b, x -> edgeTreeImplB(x).map(this::liftB))
+              .map(this::deduplicate);
 
         default:
           throw new AssertionError("unreachable");

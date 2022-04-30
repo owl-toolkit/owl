@@ -261,7 +261,7 @@ public final class NormalformDELAConstruction
             Edge<State> edge = mapperCache.computeIfAbsent(
                 edges, y -> Construction.this.edge(state, keys, edges));
 
-            return edge.successor().stateFormula().isFalse() ? MtBdd.of() : MtBdd.of(Set.of(edge));
+            return edge.successor().stateFormula().isFalse() ? MtBdd.of() : MtBdd.of(edge);
           }
 
           var falseTrees = new ArrayList<>(values);

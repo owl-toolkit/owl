@@ -37,6 +37,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 
 /**
@@ -56,12 +57,22 @@ public abstract sealed class MtBdd<E> {
     return (MtBdd<E>) Leaf.EMPTY;
   }
 
-  public static <E> MtBdd<E> of(Collection<? extends E> value) {
-    return switch (value.size()) {
-      case 0 -> of();
-      case 1 -> new Leaf<>(Set.of(value.iterator().next()));
-      default -> new Leaf<>(Set.copyOf(value));
-    };
+  public static <E> MtBdd<E> of(E value) {
+    return new Leaf<>(Set.of(value));
+  }
+
+  public static <E> MtBdd<E> of(E value1, E value2) {
+    return new Leaf<>(Set.of(value1, value2));
+  }
+
+  @SafeVarargs
+  @SuppressWarnings("varargs")
+  public static <E> MtBdd<E> of(E... values) {
+    return new Leaf<>(values);
+  }
+
+  public static <E> MtBdd<E> copyOf(Collection<? extends E> value) {
+    return value.isEmpty() ? of() : new Leaf<>(Set.copyOf(value));
   }
 
   public static <E> MtBdd<E> of(int variable, MtBdd<E> trueChild, MtBdd<E> falseChild) {
@@ -84,7 +95,6 @@ public abstract sealed class MtBdd<E> {
     return of(keys, values, new HashMap<>());
   }
 
-  @SuppressWarnings("PMD.LooseCoupling")
   private static <E> MtBdd<E> of(
       ArrayList<E> keys,
       ArrayList<PropositionalFormula<Integer>> values,
@@ -102,7 +112,7 @@ public abstract sealed class MtBdd<E> {
       var variable = formula.minVariable(Integer::compareTo);
       if (variable != null) {
         nextVariable = Math.min(nextVariable, variable);
-        Preconditions.checkState(0 <= nextVariable && nextVariable < Integer.MAX_VALUE);
+        Preconditions.checkArgument(0 <= nextVariable && nextVariable < Integer.MAX_VALUE);
       }
     }
 
@@ -117,7 +127,10 @@ public abstract sealed class MtBdd<E> {
         }
       }
 
-      return MtBdd.of(trueKeys);
+      // Cannot access E[]-constructor.
+      @SuppressWarnings("unchecked")
+      MtBdd<E> leaf = (MtBdd<E>) MtBdd.of(trueKeys.toArray());
+      return leaf;
     }
 
     int smallestVariable = nextVariable;
@@ -125,14 +138,10 @@ public abstract sealed class MtBdd<E> {
     ArrayList<PropositionalFormula<Integer>> trueValues = new ArrayList<>(values.size());
     ArrayList<PropositionalFormula<Integer>> falseValues = new ArrayList<>(values.size());
 
-    for (int i = 0, s = values.size(); i < s; i++) {
-      var value = values.get(i);
-
+    for (PropositionalFormula<Integer> value : values) {
       if (value.containsVariable(smallestVariable)) {
-        trueValues.add(
-            value.substitute(smallestVariable, trueConstant()));
-        falseValues.add(
-            value.substitute(smallestVariable, falseConstant()));
+        trueValues.add(value.substitute(smallestVariable, trueConstant()));
+        falseValues.add(value.substitute(smallestVariable, falseConstant()));
       } else {
         trueValues.add(value);
         falseValues.add(value);
@@ -145,6 +154,8 @@ public abstract sealed class MtBdd<E> {
   }
 
   public abstract Set<E> get(BitSet valuation);
+
+  public abstract Set<E> get(ImmutableBitSet valuation);
 
   /**
    * Collect all values in a single set. The return value of this method is not retained and
@@ -198,12 +209,21 @@ public abstract sealed class MtBdd<E> {
 
     public final Set<E> value;
 
+    private Leaf(E[] value) {
+      this.value = Set.of(value);
+    }
+
     private Leaf(Set<E> value) {
-      this.value = value;
+      this.value = Set.copyOf(value);
     }
 
     @Override
     public Set<E> get(BitSet valuation) {
+      return value;
+    }
+
+    @Override
+    public Set<E> get(ImmutableBitSet valuation) {
       return value;
     }
 
@@ -227,7 +247,7 @@ public abstract sealed class MtBdd<E> {
         Function<? super Set<E>, ? extends Set<? extends T>> mapper,
         Map<MtBdd<E>, MtBdd<T>> memoizedCalls) {
 
-      return memoizedCalls.computeIfAbsent(this, x -> of(mapper.apply(value)));
+      return memoizedCalls.computeIfAbsent(this, x -> copyOf(mapper.apply(value)));
     }
 
     @Override
@@ -263,10 +283,6 @@ public abstract sealed class MtBdd<E> {
     private final int hashCode;
 
     private Node(int variable, MtBdd<E> trueChild, MtBdd<E> falseChild) {
-      if (variable < 0) {
-        throw new IndexOutOfBoundsException(variable);
-      }
-
       if (trueChild instanceof Node<E> trueNode) {
         Objects.checkIndex(variable, trueNode.variable);
       }
@@ -278,16 +294,21 @@ public abstract sealed class MtBdd<E> {
       this.variable = variable;
       this.trueChild = trueChild;
       this.falseChild = falseChild;
-      int result = 1;
-      result = 31 * result + variable;
-      result = 31 * result + trueChild.hashCode();
-      result = 31 * result + falseChild.hashCode();
+
+      int result = (1000003) ^ variable;
+      result = (1000003 * result) ^ trueChild.hashCode();
+      result = (1000003 * result) ^ falseChild.hashCode();
       this.hashCode = result;
     }
 
     @Override
     public Set<E> get(BitSet valuation) {
       return valuation.get(variable) ? trueChild.get(valuation) : falseChild.get(valuation);
+    }
+
+    @Override
+    public Set<E> get(ImmutableBitSet valuation) {
+      return valuation.contains(variable) ? trueChild.get(valuation) : falseChild.get(valuation);
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -24,7 +24,6 @@ import java.util.BitSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import owl.bdd.MtBdd;
 import owl.collections.ImmutableBitSet;
 import owl.ltl.BooleanConstant;
@@ -35,14 +34,15 @@ import owl.ltl.Literal;
 
 final class Util {
 
-  private Util() {}
+  private Util() {
+  }
 
   static MtBdd<ImmutableBitSet> singleStepTree(List<Formula> singleSteps) {
     return singleStepTreeRecursive(singleSteps, new HashMap<>());
   }
 
   private static MtBdd<ImmutableBitSet> singleStepTreeRecursive(List<Formula> singleSteps,
-    Map<List<Formula>, MtBdd<ImmutableBitSet>> cache) {
+      Map<List<Formula>, MtBdd<ImmutableBitSet>> cache) {
     MtBdd<ImmutableBitSet> result = cache.get(singleSteps);
 
     if (result != null) {
@@ -67,7 +67,7 @@ final class Util {
         }
       }
 
-      result = MtBdd.of(Set.of(ImmutableBitSet.copyOf(acceptance)));
+      result = MtBdd.of(ImmutableBitSet.copyOf(acceptance));
     } else {
       int variable = nextVariable;
 
@@ -75,9 +75,9 @@ final class Util {
       Formula[] falseSingleSteps = new Formula[singleSteps.size()];
 
       Arrays.setAll(trueSingleSteps,
-        i -> temporalStep(singleSteps.get(i), variable, true));
+          i -> temporalStep(singleSteps.get(i), variable, true));
       Arrays.setAll(falseSingleSteps,
-        i -> temporalStep(singleSteps.get(i), variable, false));
+          i -> temporalStep(singleSteps.get(i), variable, false));
 
       var trueChild = singleStepTreeRecursive(Arrays.asList(trueSingleSteps), cache);
       var falseChild = singleStepTreeRecursive(Arrays.asList(falseSingleSteps), cache);
@@ -106,8 +106,8 @@ final class Util {
       return Conjunction.of(conjunction.map(x -> temporalStep(x, atom, valuation)));
     }
 
-    if (formula instanceof Disjunction) {
-      return Disjunction.of(((Disjunction) formula).map(x -> temporalStep(x, atom, valuation)));
+    if (formula instanceof Disjunction disjunction) {
+      return Disjunction.of(disjunction.map(x -> temporalStep(x, atom, valuation)));
     }
 
     assert formula instanceof BooleanConstant;

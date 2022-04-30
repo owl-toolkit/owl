@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -38,17 +38,18 @@ import owl.collections.Either;
 
 public final class GenericConstructions {
 
-  private GenericConstructions() {}
+  private GenericConstructions() {
+  }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<Either<Integer, S>, A> delay(
-    Automaton<S, A> automaton, int steps) {
+      Automaton<S, A> automaton, int steps) {
     Preconditions.checkArgument(steps > 0, "steps needs to be positive.");
     List<Either<Integer, S>> delayingStates = IntStream
-      .range(0, steps)
-      .mapToObj(Either::<Integer, S>left)
-      .toList();
+        .range(0, steps)
+        .mapToObj(Either::<Integer, S>left)
+        .toList();
     Set<Edge<Either<Integer, S>>> initialStateEdges = Set.copyOf(
-      Collections3.transformSet(automaton.initialStates(), x -> Edge.of(Either.right(x))));
+        Collections3.transformSet(automaton.initialStates(), x -> Edge.of(Either.right(x))));
 
     return new Automaton<>() {
       @Override
@@ -74,7 +75,8 @@ public final class GenericConstructions {
       @Override
       public Set<Either<Integer, S>> states() {
         return Sets.union(
-          Set.copyOf(delayingStates), Collections3.transformSet(automaton.states(), Either::right));
+            Set.copyOf(delayingStates),
+            Collections3.transformSet(automaton.states(), Either::right));
       }
 
       @Override
@@ -105,7 +107,7 @@ public final class GenericConstructions {
       }
 
       private MtBdd<Edge<Either<Integer, S>>> nextTree(int index) {
-        return MtBdd.of(next(index));
+        return MtBdd.copyOf(next(index));
       }
 
       private Set<Edge<Either<Integer, S>>> lift(Set<Edge<S>> edges) {

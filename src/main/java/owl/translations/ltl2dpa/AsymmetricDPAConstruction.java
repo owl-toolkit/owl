@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -59,13 +59,13 @@ import owl.translations.ltl2ldba.AsymmetricProductState;
 import owl.translations.mastertheorem.AsymmetricEvaluatedFixpoints;
 
 final class AsymmetricDPAConstruction {
-  private static final AsymmetricLDBAConstruction<BuchiAcceptance> LDBA_CONSTRUCTION
-    = AsymmetricLDBAConstruction.of(BuchiAcceptance.class);
 
+  private static final AsymmetricLDBAConstruction<BuchiAcceptance> LDBA_CONSTRUCTION
+      = AsymmetricLDBAConstruction.of(BuchiAcceptance.class);
 
 
   Automaton<AsymmetricRankingState, ParityAcceptance> of(
-    LabelledFormula labelledFormula, boolean complete) {
+      LabelledFormula labelledFormula, boolean complete) {
 
     var nnfLabelledFormula = labelledFormula.nnf();
     var ldba = LDBA_CONSTRUCTION.apply(nnfLabelledFormula);
@@ -74,33 +74,33 @@ final class AsymmetricDPAConstruction {
     if (ldba.initialComponent().initialStates().isEmpty()) {
       var acceptance = new ParityAcceptance(3, Parity.MIN_ODD);
       var eqFactory =
-        FactorySupplier.defaultSupplier().getEquivalenceClassFactory(atomicPropositions);
+          FactorySupplier.defaultSupplier().getEquivalenceClassFactory(atomicPropositions);
 
       return complete
-        ? SingletonAutomaton.of(
-            atomicPropositions,
-            AsymmetricRankingState.of(eqFactory.of(false)),
-            acceptance,
-            acceptance.rejectingSet().orElseThrow())
-        : EmptyAutomaton.of(
-            atomicPropositions,
-            acceptance);
+          ? SingletonAutomaton.of(
+          atomicPropositions,
+          AsymmetricRankingState.of(eqFactory.of(false)),
+          acceptance,
+          acceptance.rejectingSet().orElseThrow())
+          : EmptyAutomaton.of(
+              atomicPropositions,
+              acceptance);
     }
 
     var builder = new Builder(nnfLabelledFormula.formula(), ldba, complete);
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      builder.ldba.acceptingComponent().atomicPropositions(),
-      builder.ldba.factory(),
-      Set.of(builder.initialState),
-      builder.acceptance) {
+        builder.ldba.acceptingComponent().atomicPropositions(),
+        builder.ldba.factory(),
+        Set.of(builder.initialState),
+        builder.acceptance) {
 
       @Nullable
       private AsymmetricDPAConstruction.Builder internalBuilder = builder;
 
       @Override
       protected MtBdd<Edge<AsymmetricRankingState>> edgeTreeImpl(
-        AsymmetricRankingState state) {
+          AsymmetricRankingState state) {
         return internalBuilder.edgeTree(state);
       }
 
@@ -112,12 +112,13 @@ final class AsymmetricDPAConstruction {
   }
 
   private static final class Builder {
+
     private final ParityAcceptance acceptance;
     private final AsymmetricRankingState initialState;
     private final EquivalenceClassFactory factory;
     private final List<Set<EquivalenceClass>> initialComponentSccs;
     private final AnnotatedLDBA<EquivalenceClass, AsymmetricProductState, BuchiAcceptance, SortedSet
-      <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>> ldba;
+        <AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass, Set<AsymmetricProductState>>> ldba;
     private final Set<Formula.TemporalOperator> blockingSafetyOperators;
 
     private final Map<EquivalenceClass, Boolean> blockedByTransient = new HashMap<>();
@@ -127,24 +128,24 @@ final class AsymmetricDPAConstruction {
     private final Edge<AsymmetricRankingState> rejectingEdge;
 
     private Builder(Formula formula, AnnotatedLDBA<EquivalenceClass, AsymmetricProductState,
-      BuchiAcceptance, SortedSet<AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass,
-      Set<AsymmetricProductState>>> ldba,
-      boolean complete) {
+        BuchiAcceptance, SortedSet<AsymmetricEvaluatedFixpoints>, Function<EquivalenceClass,
+        Set<AsymmetricProductState>>> ldba,
+        boolean complete) {
 
       this.ldba = ldba;
       this.initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       acceptance = new ParityAcceptance(
-        2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
+          2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
       EquivalenceClass ldbaInitialState = ldba.initialComponent().initialState();
       factory = ldbaInitialState.factory();
       blockingSafetyOperators = BlockingElements.blockingSafetyFormulas(factory.of(formula));
       initialState = edge(ldbaInitialState, List.of(), -1).successor();
 
       rejectingEdge = complete
-        ? Edge.of(
-            AsymmetricRankingState.of(factory.of(false)),
-            acceptance.rejectingSet().orElseThrow())
-        : null;
+          ? Edge.of(
+          AsymmetricRankingState.of(factory.of(false)),
+          acceptance.rejectingSet().orElseThrow())
+          : null;
     }
 
     private boolean isBlockedByTransient(EquivalenceClass state) {
@@ -153,12 +154,12 @@ final class AsymmetricDPAConstruction {
 
     private boolean isBlockedBySafety(EquivalenceClass state) {
       return blockedBySafety.computeIfAbsent(state,
-        x -> !Collections.disjoint(x.temporalOperators(), blockingSafetyOperators)
-          || BlockingElements.isBlockedBySafety(x));
+          x -> !Collections.disjoint(x.temporalOperators(), blockingSafetyOperators)
+              || BlockingElements.isBlockedBySafety(x));
     }
 
     private Edge<AsymmetricRankingState> edge(EquivalenceClass successor,
-      List<Edge<AsymmetricProductState>> rankingEdges, int previousSafetyProgress) {
+        List<Edge<AsymmetricProductState>> rankingEdges, int previousSafetyProgress) {
 
       // Short-circuit, if the language includes a non-empty safety language.
       if (isBlockedByTransient(successor) || isBlockedBySafety(successor)) {
@@ -168,19 +169,19 @@ final class AsymmetricDPAConstruction {
       // Compute reachable fixpoints (and corresponding states) for ranking pruning and saturation.
       Set<AsymmetricEvaluatedFixpoints> availableFixpoints = new HashSet<>();
       List<NavigableMap<AsymmetricEvaluatedFixpoints, AsymmetricProductState>> partitionedFixpoints
-        = List.of(
+          = List.of(
           new TreeMap<>(), // Pure liveness-languages
           new TreeMap<>(), // General languages
           new TreeMap<>(), // Almost safety-languages
           new TreeMap<>()  // Safety-languages
-        );
+      );
 
       for (AsymmetricProductState jumpTarget : ldba.stateAnnotation().apply(successor)) {
         var fixpoints = jumpTarget.evaluatedFixpoints;
 
         boolean changed = availableFixpoints.add(fixpoints);
         assert changed : "Detected two jumps to the same component."
-          + ldba.stateAnnotation().apply(successor);
+            + ldba.stateAnnotation().apply(successor);
 
         if (fixpoints.isSafety()) {
           if (SyntacticFragments.isSafety(jumpTarget.language())) {
@@ -207,7 +208,7 @@ final class AsymmetricDPAConstruction {
           var rankingEdge = iterator.next();
 
           if (rankingEdge == null
-            || !ldba.acceptingComponent().states().contains(rankingEdge.successor())) {
+              || !ldba.acceptingComponent().states().contains(rankingEdge.successor())) {
             rankingColor = Math.min(2 * ranking.size(), rankingColor);
             continue;
           }
@@ -218,7 +219,7 @@ final class AsymmetricDPAConstruction {
 
           // There are no jumps to this component anymore.
           if (!availableFixpoints.contains(fixpoints)
-            || successorLanguage.implies(rankingLanguage)) {
+              || successorLanguage.implies(rankingLanguage)) {
             rankingColor = Math.min(2 * ranking.size(), rankingColor);
             continue;
           }
@@ -232,8 +233,8 @@ final class AsymmetricDPAConstruction {
 
           // Check last element of ranking (could be safety)
           if (!iterator.hasNext()
-            && partitionedFixpoints.get(3).containsKey(rankingSuccessor.evaluatedFixpoints)
-            && ldba.annotation().headSet(fixpoints).size() == previousSafetyProgress) {
+              && partitionedFixpoints.get(3).containsKey(rankingSuccessor.evaluatedFixpoints)
+              && ldba.annotation().headSet(fixpoints).size() == previousSafetyProgress) {
             rankingLanguage = factory.of(BooleanConstant.TRUE);
           }
         }
@@ -248,13 +249,13 @@ final class AsymmetricDPAConstruction {
       } else {
         // Add partitions 0 to 2.
         for (AsymmetricProductState jumpTarget : Iterables.concat(
-          partitionedFixpoints.get(0).values(),
-          partitionedFixpoints.get(1).values(),
-          partitionedFixpoints.get(2).values())) {
+            partitionedFixpoints.get(0).values(),
+            partitionedFixpoints.get(1).values(),
+            partitionedFixpoints.get(2).values())) {
           var jumpTargetLanguage = jumpTarget.language();
 
           if (!jumpTargetLanguage.implies(rankingLanguage)
-            && ldba.acceptingComponent().states().contains(jumpTarget)) {
+              && ldba.acceptingComponent().states().contains(jumpTarget)) {
             ranking.add(jumpTarget);
             rankingLanguage = rankingLanguage.or(jumpTargetLanguage);
           }
@@ -268,8 +269,8 @@ final class AsymmetricDPAConstruction {
         if (previousSafetyProgress >= 0) {
           var previousSafetyFixpoints = Iterables.get(ldba.annotation(), previousSafetyProgress);
           orderedSafetyStates = Iterables.concat(
-            availableSafetyFixpoints.tailMap(previousSafetyFixpoints, false).values(),
-            availableSafetyFixpoints.headMap(previousSafetyFixpoints, true).values());
+              availableSafetyFixpoints.tailMap(previousSafetyFixpoints, false).values(),
+              availableSafetyFixpoints.headMap(previousSafetyFixpoints, true).values());
         } else {
           orderedSafetyStates = availableSafetyFixpoints.values();
         }
@@ -278,7 +279,7 @@ final class AsymmetricDPAConstruction {
 
         for (AsymmetricProductState safetyState : orderedSafetyStates) {
           if (!safetyState.language().implies(rankingLanguage)
-            && ldba.acceptingComponent().states().contains(safetyState)) {
+              && ldba.acceptingComponent().states().contains(safetyState)) {
             ranking.add(safetyState);
             safetyProgress = ldba.annotation().headSet(safetyState.evaluatedFixpoints).size();
             break;
@@ -291,43 +292,43 @@ final class AsymmetricDPAConstruction {
     }
 
     private MtBdd<Edge<AsymmetricRankingState>> edgeTree(
-      AsymmetricRankingState macroState) {
+        AsymmetricRankingState macroState) {
 
       if (macroState.state().isFalse() && rejectingEdge != null) {
-        return MtBdd.of(Set.of(rejectingEdge));
+        return MtBdd.of(rejectingEdge);
       }
 
       // We obtain the successor of the state in the initial component.
       var successorTree = ldba.initialComponent()
-        .edgeTree(macroState.state())
-        .map(edges -> {
-          if (edges.isEmpty() && rejectingEdge != null) {
-            return Set.of(rejectingEdge.successor().state());
-          } else {
-            return Edges.successors(edges);
-          }
-        });
+          .edgeTree(macroState.state())
+          .map(edges -> {
+            if (edges.isEmpty() && rejectingEdge != null) {
+              return Set.of(rejectingEdge.successor().state());
+            } else {
+              return Edges.successors(edges);
+            }
+          });
 
       var rankingEdgeTree
-        = MtBddOperations.cartesianProductWithNull(macroState.ranking()
+          = MtBddOperations.cartesianProductWithNull(macroState.ranking()
           .stream()
           .map(state -> ldba.acceptingComponent().edgeTree(state))
           .toList());
 
       return MtBddOperations.cartesianProduct(successorTree, rankingEdgeTree,
-        (successor, rankingEdges) -> {
-          if (successor.isFalse()) {
-            return Objects.requireNonNull(rejectingEdge);
-          }
+          (successor, rankingEdges) -> {
+            if (successor.isFalse()) {
+              return Objects.requireNonNull(rejectingEdge);
+            }
 
-          // If a SCC switch occurs, the ranking and the safety progress is reset.
-          if (initialComponentSccs.stream()
-            .anyMatch(x -> x.contains(macroState.state()) && !x.contains(successor))) {
-            return edge(successor, List.of(), -1).withoutAcceptance();
-          }
+            // If a SCC switch occurs, the ranking and the safety progress is reset.
+            if (initialComponentSccs.stream()
+                .anyMatch(x -> x.contains(macroState.state()) && !x.contains(successor))) {
+              return edge(successor, List.of(), -1).withoutAcceptance();
+            }
 
-          return edge(successor, rankingEdges, macroState.safetyIndex());
-        });
+            return edge(successor, rankingEdges, macroState.safetyIndex());
+          });
     }
   }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -32,107 +32,107 @@ import owl.bdd.MtBdd;
 import owl.collections.ImmutableBitSet;
 
 public final class SingletonAutomaton<S, A extends EmersonLeiAcceptance>
-  extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
+    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
   private final MtBdd<Edge<S>> selfLoopEdges;
 
   private SingletonAutomaton(
-    List<String> atomicPropositions,
-    S singletonState,
-    BddSetFactory factory,
-    @Nullable ImmutableBitSet acceptanceSets,
-    A acceptance) {
+      List<String> atomicPropositions,
+      S singletonState,
+      BddSetFactory factory,
+      @Nullable ImmutableBitSet acceptanceSets,
+      A acceptance) {
 
     super(atomicPropositions, factory, Set.of(singletonState), acceptance);
     this.selfLoopEdges = acceptanceSets == null
-      ? MtBdd.of()
-      : MtBdd.of(Set.of(Edge.of(singletonState, acceptanceSets)));
+        ? MtBdd.of()
+        : MtBdd.of(Edge.of(singletonState, acceptanceSets));
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    List<String> atomicPropositions, S state, A acceptance) {
+      List<String> atomicPropositions, S state, A acceptance) {
 
     return new SingletonAutomaton<>(
-      atomicPropositions,
-      state,
-      FactorySupplier.defaultSupplier().getBddSetFactory(),
-      null,
-      acceptance);
+        atomicPropositions,
+        state,
+        FactorySupplier.defaultSupplier().getBddSetFactory(),
+        null,
+        acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    List<String> atomicPropositions, BddSetFactory factory, S state, A acceptance) {
+      List<String> atomicPropositions, BddSetFactory factory, S state, A acceptance) {
 
     return new SingletonAutomaton<>(
-      atomicPropositions,
-      state,
-      factory,
-      null,
-      acceptance);
+        atomicPropositions,
+        state,
+        factory,
+        null,
+        acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    List<String> atomicPropositions,
-    S state,
-    A acceptance,
-    Set<Integer> acceptanceSet) {
+      List<String> atomicPropositions,
+      S state,
+      A acceptance,
+      Set<Integer> acceptanceSet) {
 
     return new SingletonAutomaton<>(
-      atomicPropositions,
-      state,
-      FactorySupplier.defaultSupplier().getBddSetFactory(),
-      ImmutableBitSet.copyOf(acceptanceSet),
-      acceptance);
+        atomicPropositions,
+        state,
+        FactorySupplier.defaultSupplier().getBddSetFactory(),
+        ImmutableBitSet.copyOf(acceptanceSet),
+        acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    List<String> atomicPropositions,
-    BddSetFactory factory,
-    S state,
-    A acceptance,
-    Set<Integer> acceptanceSet) {
+      List<String> atomicPropositions,
+      BddSetFactory factory,
+      S state,
+      A acceptance,
+      Set<Integer> acceptanceSet) {
 
     return new SingletonAutomaton<>(
-      atomicPropositions,
-      state,
-      factory,
-      ImmutableBitSet.copyOf(acceptanceSet),
-      acceptance);
+        atomicPropositions,
+        state,
+        factory,
+        ImmutableBitSet.copyOf(acceptanceSet),
+        acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    List<String> atomicPropositions,
-    S state,
-    A acceptance,
-    BitSet acceptanceSet) {
+      List<String> atomicPropositions,
+      S state,
+      A acceptance,
+      BitSet acceptanceSet) {
 
     return new SingletonAutomaton<>(
-      atomicPropositions,
-      state,
-      FactorySupplier.defaultSupplier().getBddSetFactory(),
-      ImmutableBitSet.copyOf(acceptanceSet),
-      acceptance);
+        atomicPropositions,
+        state,
+        FactorySupplier.defaultSupplier().getBddSetFactory(),
+        ImmutableBitSet.copyOf(acceptanceSet),
+        acceptance);
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
-    List<String> atomicPropositions,
-    BddSetFactory factory,
-    S state,
-    A acceptance,
-    BitSet acceptanceSet) {
+      List<String> atomicPropositions,
+      BddSetFactory factory,
+      S state,
+      A acceptance,
+      BitSet acceptanceSet) {
 
     return new SingletonAutomaton<>(
-      atomicPropositions,
-      state,
-      factory,
-      ImmutableBitSet.copyOf(acceptanceSet),
-      acceptance);
+        atomicPropositions,
+        state,
+        factory,
+        ImmutableBitSet.copyOf(acceptanceSet),
+        acceptance);
   }
 
   @Override
   protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
     Preconditions.checkArgument(initialStates.contains(state),
-      "This state is not in the automaton");
+        "This state is not in the automaton");
     return selfLoopEdges;
   }
 }

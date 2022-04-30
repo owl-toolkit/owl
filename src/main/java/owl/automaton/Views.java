@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2017, 2022  (Salomon Sickert, Tobias Meggendorfer, Remco Abraham)
  *
  * This file is part of Owl.
  *
@@ -55,16 +55,17 @@ import owl.collections.Pair;
 
 public final class Views {
 
-  private Views() {}
+  private Views() {
+  }
 
   public static <S> Automaton<Optional<S>, ?> complete(Automaton<S, ?> automaton) {
 
     Set<Optional<S>> initialStates = automaton.initialStates().isEmpty()
-      ? Set.of(Optional.empty())
-      : automaton.initialStates()
-        .stream()
-        .map(Optional::of)
-        .collect(Collectors.toUnmodifiableSet());
+        ? Set.of(Optional.empty())
+        : automaton.initialStates()
+            .stream()
+            .map(Optional::of)
+            .collect(Collectors.toUnmodifiableSet());
 
     Optional<ImmutableBitSet> rejectingSet = automaton.acceptance().rejectingSet();
     EmersonLeiAcceptance acceptance;
@@ -83,30 +84,30 @@ public final class Views {
     }
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.atomicPropositions(),
-      automaton.factory(),
-      initialStates,
-      acceptance) {
+        automaton.atomicPropositions(),
+        automaton.factory(),
+        initialStates,
+        acceptance) {
 
       @Override
       protected MtBdd<Edge<Optional<S>>> edgeTreeImpl(Optional<S> state) {
         if (state.isEmpty()) {
-          return MtBdd.of(Set.of(sinkEdge));
+          return MtBdd.of(sinkEdge);
         }
 
         var edgeTree = automaton.edgeTree(state.get());
 
         if (dropAcceptanceSets) {
           return edgeTree.map(edges -> edges.isEmpty()
-            ? Set.of(sinkEdge)
-            : Collections3.transformSet(edges,
-              edge -> Edge.of(Optional.of(edge.successor()))));
+              ? Set.of(sinkEdge)
+              : Collections3.transformSet(edges,
+                  edge -> Edge.of(Optional.of(edge.successor()))));
         }
 
         return edgeTree.map(edges -> edges.isEmpty()
-          ? Set.of(sinkEdge)
-          : Collections3.transformSet(edges,
-            edge -> edge.withSuccessor(Optional.of(edge.successor()))));
+            ? Set.of(sinkEdge)
+            : Collections3.transformSet(edges,
+                edge -> edge.withSuccessor(Optional.of(edge.successor()))));
       }
 
       @Override
@@ -117,35 +118,36 @@ public final class Views {
   }
 
   public static <S> Automaton<Optional<S>, ? extends BuchiAcceptance>
-    completeBuchi(Automaton<S, ? extends BuchiAcceptance> automaton) {
+  completeBuchi(Automaton<S, ? extends BuchiAcceptance> automaton) {
 
     return OmegaAcceptanceCast.cast(Views.complete(automaton), BuchiAcceptance.class);
   }
 
   public static <S> Automaton<Optional<S>, ? extends CoBuchiAcceptance>
-    completeCoBuchi(Automaton<S, ? extends CoBuchiAcceptance> automaton) {
+  completeCoBuchi(Automaton<S, ? extends CoBuchiAcceptance> automaton) {
 
     return OmegaAcceptanceCast.cast(Views.complete(automaton), CoBuchiAcceptance.class);
   }
 
   /**
-   * Create a filtered view on the passed automaton. The returned automaton only contains
-   * states that are reachable from the initial states. States can be protected from removal by
-   * marking them as initial. It is assumed that passed automaton is not changed.
+   * Create a filtered view on the passed automaton. The returned automaton only contains states
+   * that are reachable from the initial states. States can be protected from removal by marking
+   * them as initial. It is assumed that passed automaton is not changed.
    *
    * @param automaton the backing automaton
-   * @param filter the filter defined on the automaton
-   * @param <S> the type of the states
-   * @param <A> the type of
+   * @param filter    the filter defined on the automaton
+   * @param <S>       the type of the states
+   * @param <A>       the type of
    * @return a on-the-fly generated view on the automaton.
    */
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> filtered(
-    Automaton<S, A> automaton, Filter<S> filter) {
+      Automaton<S, A> automaton, Filter<S> filter) {
     return new AutomatonView<>(automaton, filter);
   }
 
   @AutoValue
   public abstract static class Filter<S> {
+
     @Nullable
     abstract Set<S> initialStates();
 
@@ -176,6 +178,7 @@ public final class Views {
 
     @AutoValue.Builder
     public abstract static class Builder<S> {
+
       public abstract Builder<S> initialStates(@Nullable Set<S> initialStates);
 
       public abstract Builder<S> stateFilter(@Nullable Predicate<S> filter);
@@ -187,7 +190,7 @@ public final class Views {
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A>
-    replaceInitialStates(Automaton<S, ? extends A> automaton, Set<? extends S> initialStates) {
+  replaceInitialStates(Automaton<S, ? extends A> automaton, Set<? extends S> initialStates) {
 
     Set<S> initialStatesCopy = Set.copyOf(initialStates);
 
@@ -260,7 +263,7 @@ public final class Views {
   }
 
   private static final class AutomatonView<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<S, A> {
 
     private final Automaton<S, A> backingAutomaton;
 
@@ -272,10 +275,10 @@ public final class Views {
 
     private AutomatonView(Automaton<S, A> automaton, Filter<S> settings) {
       super(
-        automaton.atomicPropositions(),
-        automaton.factory(),
-        initialStates(automaton, settings),
-        automaton.acceptance());
+          automaton.atomicPropositions(),
+          automaton.factory(),
+          initialStates(automaton, settings),
+          automaton.acceptance());
 
       if (automaton instanceof AutomatonView<S, A> view) {
         this.backingAutomaton = view.backingAutomaton;
@@ -290,8 +293,8 @@ public final class Views {
 
     @Nullable
     static <T> Predicate<T> and(
-      @Nullable Predicate<T> predicate1,
-      @Nullable Predicate<T> predicate2) {
+        @Nullable Predicate<T> predicate1,
+        @Nullable Predicate<T> predicate2) {
       if (predicate1 == null) {
         return predicate2;
       }
@@ -305,8 +308,8 @@ public final class Views {
 
     @Nullable
     static <T, U> BiPredicate<T, U> and(
-      @Nullable BiPredicate<T, U> predicate1,
-      @Nullable BiPredicate<T, U> predicate2) {
+        @Nullable BiPredicate<T, U> predicate1,
+        @Nullable BiPredicate<T, U> predicate2) {
       if (predicate1 == null) {
         return predicate2;
       }
@@ -319,7 +322,7 @@ public final class Views {
     }
 
     private static <S> Set<S> initialStates(
-      Automaton<S, ?> automaton, Filter<S> settings) {
+        Automaton<S, ?> automaton, Filter<S> settings) {
       Set<S> initialStates = settings.initialStates();
 
       if (initialStates == null) {
@@ -354,26 +357,26 @@ public final class Views {
       }
 
       return edges.map((Set<Edge<S>> set) -> set.stream()
-        .filter(edge -> edgeFilter(state, edge) && stateFilter(edge.successor()))
-        .collect(Collectors.toUnmodifiableSet()));
+          .filter(edge -> edgeFilter(state, edge) && stateFilter(edge.successor()))
+          .collect(Collectors.toUnmodifiableSet()));
     }
   }
 
   /**
-   * This is essentially {@code fmap :: (S -> T) -> Automaton<S, A> -> Automaton<T, A>}.
-   * When the function is injective, the effect is just replacing states of type S with states of
-   * type T. If it is not, the result will be a quotient wrt. the equivalence classes induced by
-   * the preimages.
+   * This is essentially {@code fmap :: (S -> T) -> Automaton<S, A> -> Automaton<T, A>}. When the
+   * function is injective, the effect is just replacing states of type S with states of type T. If
+   * it is not, the result will be a quotient wrt. the equivalence classes induced by the
+   * preimages.
    *
-   * @param <S> input state type
-   * @param <T> output state type
-   * @param <A> acceptance condition
-   * @param automaton input automaton
+   * @param <S>             input state type
+   * @param <T>             output state type
+   * @param <A>             acceptance condition
+   * @param automaton       input automaton
    * @param mappingFunction function from S to T
    * @return Output automaton where states are mapped from S to T (and possibly quotiented)
    */
   public static <S, T, A extends EmersonLeiAcceptance> Automaton<T, A>
-    quotientAutomaton(Automaton<S, A> automaton, Function<? super S, ? extends T> mappingFunction) {
+  quotientAutomaton(Automaton<S, A> automaton, Function<? super S, ? extends T> mappingFunction) {
 
     Map<S, T> mapping = new HashMap<>();
     ImmutableListMultimap.Builder<T, S> reverseMappingBuilder = ImmutableListMultimap.builder();
@@ -388,19 +391,19 @@ public final class Views {
   }
 
   private static class QuotientAutomaton<S, T, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, A> {
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<T, A> {
 
     private final Automaton<S, A> automaton;
     private final Map<S, T> mapping;
     private final ImmutableListMultimap<T, S> reverseMapping;
 
     private QuotientAutomaton(Automaton<S, A> automaton, Map<S, T> mapping,
-      ImmutableListMultimap<T, S> reverseMapping) {
+        ImmutableListMultimap<T, S> reverseMapping) {
       super(
-        automaton.atomicPropositions(),
-        automaton.factory(),
-        automaton.initialStates().stream().map(mapping::get).collect(Collectors.toSet()),
-        automaton.acceptance());
+          automaton.atomicPropositions(),
+          automaton.factory(),
+          automaton.initialStates().stream().map(mapping::get).collect(Collectors.toSet()),
+          automaton.acceptance());
 
       this.automaton = automaton;
       this.mapping = Map.copyOf(mapping);
@@ -410,7 +413,7 @@ public final class Views {
     @Override
     public MtBdd<Edge<T>> edgeTreeImpl(T state) {
       return MtBddOperations.cartesianProduct(
-        reverseMapping.get(state).stream().map(automaton::edgeTree).toList()
+          reverseMapping.get(state).stream().map(automaton::edgeTree).toList()
       ).map(x -> {
         Set<Edge<T>> set = new HashSet<>();
         for (List<Edge<S>> edges : x) {
@@ -424,47 +427,47 @@ public final class Views {
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<Pair<S, ImmutableBitSet>, A>
-    stateAcceptanceAutomaton(Automaton<S, ? extends A> automaton) {
+  stateAcceptanceAutomaton(Automaton<S, ? extends A> automaton) {
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.atomicPropositions(),
-      automaton.factory(),
-      automaton.initialStates().stream()
-        .map(state -> Pair.of(state, ImmutableBitSet.of()))
-        .collect(Collectors.toUnmodifiableSet()),
-      automaton.acceptance()) {
+        automaton.atomicPropositions(),
+        automaton.factory(),
+        automaton.initialStates().stream()
+            .map(state -> Pair.of(state, ImmutableBitSet.of()))
+            .collect(Collectors.toUnmodifiableSet()),
+        automaton.acceptance()) {
 
       @Override
       protected MtBdd<Edge<Pair<S, ImmutableBitSet>>> edgeTreeImpl(Pair<S, ImmutableBitSet> state) {
 
         return automaton.edgeTree(state.fst()).map(edges -> edges.stream()
-          .map(edge -> edge.mapSuccessor(successor -> Pair.of(successor, edge.colours())))
-          .collect(Collectors.toUnmodifiableSet()));
+            .map(edge -> edge.mapSuccessor(successor -> Pair.of(successor, edge.colours())))
+            .collect(Collectors.toUnmodifiableSet()));
 
       }
     };
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<Integer, A>
-    dropStateLabels(Automaton<S, ? extends A> automaton) {
+  dropStateLabels(Automaton<S, ? extends A> automaton) {
 
     if (automaton.initialStates().isEmpty()) {
       return EmptyAutomaton.of(
-        automaton.atomicPropositions(),
-        automaton.factory(),
-        automaton.acceptance());
+          automaton.atomicPropositions(),
+          automaton.factory(),
+          automaton.acceptance());
     }
 
     Numbering<S> mapping = new Numbering<>();
 
     return new DropStateLabelsImpl<>(
-      automaton,
-      Collections3.transformSet(automaton.initialStates(), mapping::lookup),
-      mapping);
+        automaton,
+        Collections3.transformSet(automaton.initialStates(), mapping::lookup),
+        mapping);
   }
 
   public static <S> Automaton<S, ParityAcceptance> convertParity(
-    Automaton<S, ? extends ParityAcceptance> automaton, ParityAcceptance.Parity toParity) {
+      Automaton<S, ? extends ParityAcceptance> automaton, ParityAcceptance.Parity toParity) {
 
     if (automaton.acceptance().parity() == toParity) {
       return (Automaton<S, ParityAcceptance>) automaton;
@@ -478,20 +481,20 @@ public final class Views {
     var newParityAcceptance = new ParityAcceptance(sets + 1, toParity);
 
     return new AbstractMemoizingAutomaton.EdgeTreeImplementation<>(
-      automaton.atomicPropositions(),
-      automaton.initialStates(),
-      newParityAcceptance) {
+        automaton.atomicPropositions(),
+        automaton.initialStates(),
+        newParityAcceptance) {
 
       @Override
       protected MtBdd<Edge<S>> edgeTreeImpl(S state) {
         return automaton.edgeTree(state)
-          .map(x -> Collections3.transformSet(x, y -> y.mapAcceptance(z -> z + 1)));
+            .map(x -> Collections3.transformSet(x, y -> y.mapAcceptance(z -> z + 1)));
       }
     };
   }
 
   private static class DropStateLabelsImpl<S, A extends EmersonLeiAcceptance>
-    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Integer, A> {
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Integer, A> {
 
     @Nullable
     private Automaton<S, ? extends A> automaton;
@@ -499,9 +502,10 @@ public final class Views {
     private Numbering<S> mapping;
 
     private DropStateLabelsImpl(
-      Automaton<S, ? extends A> automaton, Set<Integer> initialStates, Numbering<S> mapping) {
+        Automaton<S, ? extends A> automaton, Set<Integer> initialStates, Numbering<S> mapping) {
       super(
-        automaton.atomicPropositions(), automaton.factory(), initialStates, automaton.acceptance());
+          automaton.atomicPropositions(), automaton.factory(), initialStates,
+          automaton.acceptance());
       this.automaton = automaton;
       this.mapping = mapping;
     }
@@ -512,8 +516,8 @@ public final class Views {
       assert mapping != null;
 
       return automaton
-        .edgeTree(mapping.lookup(state))
-        .map(x -> Collections3.transformSet(x, y -> y.mapSuccessor(mapping::lookup)));
+          .edgeTree(mapping.lookup(state))
+          .map(x -> Collections3.transformSet(x, y -> y.mapSuccessor(mapping::lookup)));
     }
 
     @Override
