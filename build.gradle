@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -168,7 +168,26 @@ tasks.withType(Test) {
 
 // ---------------- Native Compilation ----------------
 
-task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
+task buildKissat {
+  description "Build Kissat Binary"
+
+  doLast {
+    exec {
+      workingDir "${projectDir}/thirdparty/kissat/"
+      commandLine "./configure"
+    }
+    exec {
+      workingDir "${projectDir}/thirdparty/kissat/"
+      commandLine "make"
+    }
+    exec {
+      workingDir "${projectDir}/thirdparty/kissat/build"
+      commandLine "./kissat", "--banner"
+    }
+  }
+}
+
+task buildNativeLibrary(type: Exec, dependsOn: [jar, buildKissat]) {
     mkdir "${buildDir}/native-library"
     workingDir "${buildDir}/native-library"
 
@@ -184,7 +203,6 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time',
         '--link-at-build-time=com.google,org.antlr,de.tum,owl',
         '--no-fallback',
-        '--native-image-info',
         // (uncomment for performance analysis)
         // '-H:+PrintAnalysisCallTree',
         // '-H:DashboardDump=reports/graalvm-dashboard.dump',
@@ -199,7 +217,7 @@ task buildNativeLibrary(type: Exec, dependsOn: [jar]) {
     }
 }
 
-task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
+task buildNativeExecutable(type: Exec, dependsOn: [jar, buildKissat]) {
     mkdir "${buildDir}/native-executable"
     workingDir "${buildDir}/native-executable"
 
@@ -217,7 +235,6 @@ task buildNativeExecutable(type: Exec, dependsOn: [jar]) {
         '--initialize-at-build-time',
         '--link-at-build-time=com.google,org.antlr,de.tum,owl',
         '--no-fallback',
-        '--native-image-info',
         // (uncomment for performance analysis)
         // '-H:+PrintAnalysisCallTree',
         // '-H:DashboardDump=reports/graalvm-dashboard.dump',
@@ -273,6 +290,7 @@ distributions {
             from compileMarkdown
 
             into("bin") {
+                from("thirdparty/kissat/build/kissat")
                 from("scripts/rabinizer.sh")
             }
 
@@ -302,6 +320,7 @@ distributions {
             from compileMarkdown
 
             into("bin") {
+                from("thirdparty/kissat/build/kissat")
                 from "$buildDir/native-executable" include "owl"
             }
 
@@ -325,6 +344,9 @@ distributions {
     }
 }
 
+tasks.getByPath(":test").dependsOn(tasks.getByPath(":buildKissat"))
+tasks.getByPath(":distZip").dependsOn(tasks.getByPath(":buildKissat"))
+tasks.getByPath(":distTar").dependsOn(tasks.getByPath(":buildKissat"))
 tasks.getByPath(":nativeImageDistZip").dependsOn(tasks.getByPath(":buildNativeExecutable"))
 tasks.getByPath(":nativeImageDistTar").dependsOn(tasks.getByPath(":buildNativeExecutable"))
 tasks.getByPath(":nativeImageDistZip").dependsOn(tasks.getByPath(":buildNativeLibrary"))

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -27,7 +27,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
@@ -36,7 +35,7 @@ import javax.annotation.Nullable;
 
 /**
  * A propositional formula.
- *
+ * <p>
  * TODO: As a workaround for java.lang.IllegalAccessException:
  *   class com.oracle.svm.methodhandles.Util_java_lang_invoke_MethodHandle cannot access a member of
  *   class java.lang.invoke.DelegatingMethodHandle (in module java.base) with modifiers "protected
@@ -45,9 +44,6 @@ import javax.annotation.Nullable;
  * @param <T> the variable type.
  */
 public sealed interface PropositionalFormula<T> {
-
-  Comparator NATURAL_COMPARATOR
-    = Comparators.emptiesLast(Comparator.naturalOrder());
 
   boolean evaluate(Set<? extends T> assignment);
 
@@ -63,7 +59,7 @@ public sealed interface PropositionalFormula<T> {
   PropositionalFormula<T> substitute(T variable, PropositionalFormula<T> substitution);
 
   <S> PropositionalFormula<S> substitute(
-    Function<? super T, ? extends PropositionalFormula<S>> substitution);
+      Function<? super T, ? extends PropositionalFormula<S>> substitution);
 
   PropositionalFormula<T> nnf(boolean negated);
 
@@ -114,7 +110,8 @@ public sealed interface PropositionalFormula<T> {
    *
    * @return the smallest variable.
    */
-  Optional<T> smallestVariable();
+  @Nullable
+  T minVariable(Comparator<T> comparator);
 
   default Map<T, Integer> countVariables() {
     Map<T, Integer> occurrences = new HashMap<>();
@@ -152,10 +149,10 @@ public sealed interface PropositionalFormula<T> {
 
   record Biconditional<T>(PropositionalFormula<T> leftOperand,
                           PropositionalFormula<T> rightOperand)
-    implements PropositionalFormula<T> {
+      implements PropositionalFormula<T> {
 
     public static <T> PropositionalFormula<T> of(
-      PropositionalFormula<T> leftOperand, PropositionalFormula<T> rightOperand) {
+        PropositionalFormula<T> leftOperand, PropositionalFormula<T> rightOperand) {
 
       if (leftOperand.isTrue()) {
         return rightOperand;
@@ -191,25 +188,26 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public PropositionalFormula<T> substitute(
-      T variable, PropositionalFormula<T> substitution) {
+        T variable, PropositionalFormula<T> substitution) {
 
       return deduplicate(Biconditional.of(
-        leftOperand.substitute(variable, substitution), rightOperand.substitute(variable, substitution)));
+          leftOperand.substitute(variable, substitution),
+          rightOperand.substitute(variable, substitution)));
     }
 
     @Override
     public <S> PropositionalFormula<S> substitute(
-      Function<? super T, ? extends PropositionalFormula<S>> substitution) {
+        Function<? super T, ? extends PropositionalFormula<S>> substitution) {
 
       return deduplicate(Biconditional.of(
-        leftOperand.substitute(substitution), rightOperand.substitute(substitution)));
+          leftOperand.substitute(substitution), rightOperand.substitute(substitution)));
     }
 
     @Override
     public PropositionalFormula<T> nnf(boolean negated) {
       return Disjunction.of(
-        Conjunction.of(leftOperand.nnf(false), rightOperand.nnf(false)),
-        Conjunction.of(leftOperand.nnf(true), rightOperand.nnf(true))).nnf(negated);
+          Conjunction.of(leftOperand.nnf(false), rightOperand.nnf(false)),
+          Conjunction.of(leftOperand.nnf(true), rightOperand.nnf(true))).nnf(negated);
     }
 
     @Override
@@ -242,9 +240,12 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Optional<T> smallestVariable() {
+    @Nullable
+    public T minVariable(Comparator<T> comparator) {
       return Comparators.min(
-        leftOperand.smallestVariable(), rightOperand.smallestVariable(), NATURAL_COMPARATOR);
+          leftOperand.minVariable(comparator),
+          rightOperand.minVariable(comparator),
+          comparator);
     }
 
     @Override
@@ -253,17 +254,18 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+    public String toString(boolean utf8,
+        @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       return leftOperand.toString(utf8, variableToString)
-        + (utf8 ? "↔" : "<->")
-        + rightOperand.toString(utf8, variableToString);
+          + (utf8 ? "↔" : "<->")
+          + rightOperand.toString(utf8, variableToString);
     }
 
     @Override
     public boolean equals(Object o) {
       return this == o || o instanceof Biconditional<?> that
-        && leftOperand.equals(that.leftOperand)
-        && rightOperand.equals(that.rightOperand);
+          && leftOperand.equals(that.leftOperand)
+          && rightOperand.equals(that.rightOperand);
     }
 
     @Override
@@ -273,7 +275,7 @@ public sealed interface PropositionalFormula<T> {
   }
 
   record Conjunction<T>(List<PropositionalFormula<T>> conjuncts)
-    implements PropositionalFormula<T> {
+      implements PropositionalFormula<T> {
 
     private static final Conjunction<?> TRUE = new Conjunction<>(List.of());
 
@@ -286,28 +288,28 @@ public sealed interface PropositionalFormula<T> {
     }
 
     public static <T> PropositionalFormula<T> of(
-      PropositionalFormula<T> operand1,
-      PropositionalFormula<T> operand2) {
+        PropositionalFormula<T> operand1,
+        PropositionalFormula<T> operand2) {
 
       return ofTrusted(new ArrayList<>(List.of(operand1, operand2)));
     }
 
     public static <T> PropositionalFormula<T> of(
-      PropositionalFormula<T> operand1,
-      PropositionalFormula<T> operand2,
-      PropositionalFormula<T> operand3) {
+        PropositionalFormula<T> operand1,
+        PropositionalFormula<T> operand2,
+        PropositionalFormula<T> operand3) {
 
       return ofTrusted(new ArrayList<>(List.of(operand1, operand2, operand3)));
     }
 
     public static <T> PropositionalFormula<T>
-      of(List<? extends PropositionalFormula<T>> conjuncts) {
+    of(List<? extends PropositionalFormula<T>> conjuncts) {
 
       return ofTrusted(new ArrayList<>(conjuncts));
     }
 
     private static <T> PropositionalFormula<T>
-      ofTrusted(ArrayList<PropositionalFormula<T>> conjuncts) {
+    ofTrusted(ArrayList<PropositionalFormula<T>> conjuncts) {
 
       for (int i = 0; i < conjuncts.size(); i++) {
         var conjunct = conjuncts.get(i);
@@ -345,8 +347,8 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public PropositionalFormula<T> nnf(boolean negated) {
       return negated
-        ? Disjunction.ofTrusted(mapOperands(x -> x.nnf(negated)))
-        : deduplicate(Conjunction.ofTrusted(mapOperands(x -> x.nnf(negated))));
+          ? Disjunction.ofTrusted(mapOperands(x -> x.nnf(negated)))
+          : deduplicate(Conjunction.ofTrusted(mapOperands(x -> x.nnf(negated))));
     }
 
     @Override
@@ -395,7 +397,8 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+    public String toString(boolean utf8,
+        @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       return switch (conjuncts.size()) {
         case 0 -> utf8 ? "⊤" : "t";
         case 1 -> conjuncts.get(0).toString(utf8, variableToString);
@@ -413,15 +416,15 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public PropositionalFormula<T> substitute(T variable,
-      PropositionalFormula<T> substitution) {
+        PropositionalFormula<T> substitution) {
 
       return deduplicate(
-        Conjunction.ofTrusted(mapOperands(x -> x.substitute(variable, substitution))));
+          Conjunction.ofTrusted(mapOperands(x -> x.substitute(variable, substitution))));
     }
 
     @Override
     public <S> PropositionalFormula<S> substitute(
-      Function<? super T, ? extends PropositionalFormula<S>> substitution) {
+        Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Conjunction.ofTrusted(mapOperands(x -> x.substitute(substitution))));
     }
 
@@ -437,7 +440,7 @@ public sealed interface PropositionalFormula<T> {
     }
 
     private <S> ArrayList<PropositionalFormula<S>> mapOperands(
-      Function<PropositionalFormula<T>, PropositionalFormula<S>> mapper) {
+        Function<PropositionalFormula<T>, PropositionalFormula<S>> mapper) {
       var operands = new ArrayList<PropositionalFormula<S>>(this.conjuncts.size());
       for (var conjunct : this.conjuncts) {
         operands.add(mapper.apply(conjunct));
@@ -446,24 +449,28 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Optional<T> smallestVariable() {
-      Optional<T> smallestVariableOfConjunct = Optional.empty();
-
-      for (PropositionalFormula<T> conjunct : conjuncts) {
-        Optional<T> smallestVariable = conjunct.smallestVariable();
-
-        if (NATURAL_COMPARATOR.compare(smallestVariable, smallestVariableOfConjunct) < 0) {
-          smallestVariableOfConjunct = smallestVariable;
-        }
+    @Nullable
+    public T minVariable(Comparator<T> comparator) {
+      if (conjuncts.isEmpty()) {
+        return null;
       }
 
-      return smallestVariableOfConjunct;
+      T min = Objects.requireNonNull(conjuncts.get(0).minVariable(comparator));
+
+      for (int i = 1, s = conjuncts.size(); i < s; i++) {
+        min = Comparators.min(
+            min,
+            Objects.requireNonNull(conjuncts.get(i).minVariable(comparator)),
+            comparator);
+      }
+
+      return min;
     }
 
     @Override
     public boolean equals(Object o) {
       return this == o
-        || o instanceof Conjunction<?> that && conjuncts.equals(that.conjuncts);
+          || o instanceof Conjunction<?> that && conjuncts.equals(that.conjuncts);
     }
 
     @Override
@@ -473,7 +480,7 @@ public sealed interface PropositionalFormula<T> {
   }
 
   record Disjunction<T>(List<PropositionalFormula<T>> disjuncts)
-    implements PropositionalFormula<T> {
+      implements PropositionalFormula<T> {
 
     private static final Disjunction<?> FALSE = new Disjunction<>(List.of());
 
@@ -486,28 +493,28 @@ public sealed interface PropositionalFormula<T> {
     }
 
     public static <T> PropositionalFormula<T> of(
-      PropositionalFormula<T> operand1,
-      PropositionalFormula<T> operand2) {
+        PropositionalFormula<T> operand1,
+        PropositionalFormula<T> operand2) {
 
       return ofTrusted(new ArrayList<>(List.of(operand1, operand2)));
     }
 
     public static <T> PropositionalFormula<T> of(
-      PropositionalFormula<T> operand1,
-      PropositionalFormula<T> operand2,
-      PropositionalFormula<T> operand3) {
+        PropositionalFormula<T> operand1,
+        PropositionalFormula<T> operand2,
+        PropositionalFormula<T> operand3) {
 
       return ofTrusted(new ArrayList<>(List.of(operand1, operand2, operand3)));
     }
 
     public static <T> PropositionalFormula<T>
-      of(List<? extends PropositionalFormula<T>> disjuncts) {
+    of(List<? extends PropositionalFormula<T>> disjuncts) {
 
       return ofTrusted(new ArrayList<>(disjuncts));
     }
 
     private static <T> PropositionalFormula<T>
-      ofTrusted(ArrayList<PropositionalFormula<T>> disjuncts) {
+    ofTrusted(ArrayList<PropositionalFormula<T>> disjuncts) {
 
       for (int i = 0; i < disjuncts.size(); i++) {
         var disjunct = disjuncts.get(i);
@@ -545,8 +552,8 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public PropositionalFormula<T> nnf(boolean negated) {
       return negated
-        ? Conjunction.ofTrusted(mapOperands(x -> x.nnf(negated)))
-        : deduplicate(Disjunction.ofTrusted(mapOperands(x -> x.nnf(negated))));
+          ? Conjunction.ofTrusted(mapOperands(x -> x.nnf(negated)))
+          : deduplicate(Disjunction.ofTrusted(mapOperands(x -> x.nnf(negated))));
     }
 
     @Override
@@ -595,7 +602,8 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+    public String toString(boolean utf8,
+        @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       return switch (disjuncts.size()) {
         case 0 -> utf8 ? "⊥" : "f";
         case 1 -> disjuncts.get(0).toString(utf8, variableToString);
@@ -613,15 +621,15 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public PropositionalFormula<T> substitute(T variable,
-      PropositionalFormula<T> substitution) {
+        PropositionalFormula<T> substitution) {
 
       return deduplicate(
-        Disjunction.ofTrusted(mapOperands(x -> x.substitute(variable, substitution))));
+          Disjunction.ofTrusted(mapOperands(x -> x.substitute(variable, substitution))));
     }
 
     @Override
     public <S> PropositionalFormula<S> substitute(
-      Function<? super T, ? extends PropositionalFormula<S>> substitution) {
+        Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Disjunction.ofTrusted(mapOperands(x -> x.substitute(substitution))));
     }
 
@@ -637,22 +645,26 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Optional<T> smallestVariable() {
-      Optional<T> smallestVariableOfDisjunct = Optional.empty();
-
-      for (PropositionalFormula<T> disjunct : disjuncts) {
-        Optional<T> smallestVariable = disjunct.smallestVariable();
-
-        if (NATURAL_COMPARATOR.compare(smallestVariable, smallestVariableOfDisjunct) < 0) {
-          smallestVariableOfDisjunct = smallestVariable;
-        }
+    @Nullable
+    public T minVariable(Comparator<T> comparator) {
+      if (disjuncts.isEmpty()) {
+        return null;
       }
 
-      return smallestVariableOfDisjunct;
+      T min = Objects.requireNonNull(disjuncts.get(0).minVariable(comparator));
+
+      for (int i = 1, s = disjuncts.size(); i < s; i++) {
+        min = Comparators.min(
+            min,
+            Objects.requireNonNull(disjuncts.get(i).minVariable(comparator)),
+            comparator);
+      }
+
+      return min;
     }
 
     private <S> ArrayList<PropositionalFormula<S>> mapOperands(
-      Function<PropositionalFormula<T>, PropositionalFormula<S>> mapper) {
+        Function<PropositionalFormula<T>, PropositionalFormula<S>> mapper) {
       var operands = new ArrayList<PropositionalFormula<S>>(this.disjuncts.size());
       for (var conjunct : this.disjuncts) {
         operands.add(mapper.apply(conjunct));
@@ -663,7 +675,7 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public boolean equals(Object o) {
       return this == o
-        || o instanceof Disjunction<?> that && disjuncts.equals(that.disjuncts);
+          || o instanceof Disjunction<?> that && disjuncts.equals(that.disjuncts);
     }
 
     @Override
@@ -735,13 +747,13 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public PropositionalFormula<T> substitute(T variable,
-      PropositionalFormula<T> substitution) {
+        PropositionalFormula<T> substitution) {
       return deduplicate(Negation.of(operand.substitute(variable, substitution)));
     }
 
     @Override
     public <S> PropositionalFormula<S> substitute(
-      Function<? super T, ? extends PropositionalFormula<S>> substitution) {
+        Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(Negation.of(operand.substitute(substitution)));
     }
 
@@ -751,8 +763,8 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Optional<T> smallestVariable() {
-      return operand.smallestVariable();
+    public T minVariable(Comparator<T> comparator) {
+      return operand.minVariable(comparator);
     }
 
     @Override
@@ -761,9 +773,10 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+    public String toString(boolean utf8,
+        @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       if (variableToString != null
-        && operand instanceof PropositionalFormula.Variable<T> variable) {
+          && operand instanceof PropositionalFormula.Variable<T> variable) {
 
         return variableToString.apply(variable.variable, true);
       }
@@ -774,7 +787,7 @@ public sealed interface PropositionalFormula<T> {
     @Override
     public boolean equals(Object o) {
       return this == o
-        || o instanceof Negation<?> that && operand.equals(that.operand);
+          || o instanceof Negation<?> that && operand.equals(that.operand);
     }
 
     @Override
@@ -817,13 +830,13 @@ public sealed interface PropositionalFormula<T> {
 
     @Override
     public PropositionalFormula<T> substitute(T variable,
-      PropositionalFormula<T> substitution) {
+        PropositionalFormula<T> substitution) {
       return this.variable.equals(variable) ? deduplicate(substitution) : this;
     }
 
     @Override
     public <S> PropositionalFormula<S> substitute(
-      Function<? super T, ? extends PropositionalFormula<S>> substitution) {
+        Function<? super T, ? extends PropositionalFormula<S>> substitution) {
       return deduplicate(substitution.apply(variable));
     }
 
@@ -843,8 +856,8 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public Optional<T> smallestVariable() {
-      return Optional.of(variable);
+    public T minVariable(Comparator<T> comparator) {
+      return variable;
     }
 
     @Override
@@ -853,16 +866,17 @@ public sealed interface PropositionalFormula<T> {
     }
 
     @Override
-    public String toString(boolean utf8, @Nullable BiFunction<? super T, Boolean, String> variableToString) {
+    public String toString(boolean utf8,
+        @Nullable BiFunction<? super T, Boolean, String> variableToString) {
       return variableToString == null
-        ? variable.toString()
-        : variableToString.apply(variable, false);
+          ? variable.toString()
+          : variableToString.apply(variable, false);
     }
 
     @Override
     public boolean equals(Object o) {
       return this == o
-        || o instanceof Variable<?> that && variable.equals(that.variable);
+          || o instanceof Variable<?> that && variable.equals(that.variable);
     }
 
     @Override

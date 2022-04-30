@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -40,20 +40,20 @@ class SolverTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = Solver.class,
-    names = {"DPLL", "JBDD"})
+      value = Solver.class,
+      names = {"DPLL", "JBDD", "KISSAT_EXTERNAL"})
   void testModel(Solver solver) {
     var formula1 = Conjunction.of(
-      Negation.of(Variable.of(1)),
-      Disjunction.of(
-        Variable.of(1),
-        Variable.of(2),
-        Variable.of(3)
-      ),
-      Disjunction.of(
-        Negation.of(Variable.of(2)),
-        Negation.of(Variable.of(3))
-      ));
+        Negation.of(Variable.of(1)),
+        Disjunction.of(
+            Variable.of(1),
+            Variable.of(2),
+            Variable.of(3)
+        ),
+        Disjunction.of(
+            Negation.of(Variable.of(2)),
+            Negation.of(Variable.of(3))
+        ));
 
     var model1a = solver.model(formula1);
     assertTrue(model1a.isPresent());
@@ -64,18 +64,18 @@ class SolverTest {
     assertFalse(formula1.evaluate(model1b.get()));
 
     var formula2 = Conjunction.of(
-      List.of(
-        Negation.of(Variable.of(1)),
-        Disjunction.of(
-          Variable.of(1),
-          Variable.of(3),
-          Variable.of(4)
-        ),
-        Disjunction.of(
-          Negation.of(Variable.of(2)),
-          Negation.of(Variable.of(3))),
-        Negation.of(Variable.of(4)),
-        Variable.of(2)));
+        List.of(
+            Negation.of(Variable.of(1)),
+            Disjunction.of(
+                Variable.of(1),
+                Variable.of(3),
+                Variable.of(4)
+            ),
+            Disjunction.of(
+                Negation.of(Variable.of(2)),
+                Negation.of(Variable.of(3))),
+            Negation.of(Variable.of(4)),
+            Variable.of(2)));
 
     var model2a = solver.model(formula2);
     assertTrue(model2a.isEmpty());
@@ -87,31 +87,32 @@ class SolverTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = Solver.class,
-    names = {"DPLL", "JBDD"})
+      value = Solver.class,
+      names = {"DPLL", "JBDD", "KISSAT_EXTERNAL"})
   void testModelCnf(Solver solver) {
     var formula1 = List.of(
-      new Solver.Clause<>(List.of(), List.of(1)),
-      new Solver.Clause<>(List.of(1, 2, 3), List.of()),
-      new Solver.Clause<>(List.of(), List.of(2, 3)));
+        new Solver.Clause<>(List.of(), List.of(1)),
+        new Solver.Clause<>(List.of(1, 2, 3), List.of()),
+        new Solver.Clause<>(List.of(), List.of(2, 3)));
 
     var model1a = solver.model(formula1);
     assertTrue(model1a.isPresent());
-    assertTrue(formula1.stream().allMatch(x -> x.evaluate(model1a.get())), formula1.toString() + " " + model1a.toString());
+    assertTrue(formula1.stream().allMatch(x -> x.evaluate(model1a.get())),
+        formula1.toString() + " " + model1a.toString());
 
     var formula2 = Conjunction.of(
-      List.of(
-        Negation.of(Variable.of(1)),
-        Disjunction.of(
-          Variable.of(1),
-          Variable.of(3),
-          Variable.of(4)
-        ),
-        Disjunction.of(
-          Negation.of(Variable.of(2)),
-          Negation.of(Variable.of(3))),
-        Negation.of(Variable.of(4)),
-        Variable.of(2)));
+        List.of(
+            Negation.of(Variable.of(1)),
+            Disjunction.of(
+                Variable.of(1),
+                Variable.of(3),
+                Variable.of(4)
+            ),
+            Disjunction.of(
+                Negation.of(Variable.of(2)),
+                Negation.of(Variable.of(3))),
+            Negation.of(Variable.of(4)),
+            Variable.of(2)));
 
     var model2a = solver.model(formula2);
     assertTrue(model2a.isEmpty());
@@ -123,21 +124,21 @@ class SolverTest {
 
   @ParameterizedTest
   @EnumSource(
-    value = Solver.class,
-    names = {"JBDD"})
+      value = Solver.class,
+      names = {"JBDD"})
   void testMaximalModel(Solver solver) {
     var formula = Conjunction.of(
-      List.of(
-        Variable.of(1),
-        Disjunction.of(
-          Negation.of(Variable.of(1)),
-          Variable.of(2),
-          Variable.of(3)),
-        Disjunction.of(
-          Negation.of(Variable.of(2)),
-          Negation.of(Variable.of(3))),
-        Variable.of(4),
-        Negation.of(Variable.of(5))));
+        List.of(
+            Variable.of(1),
+            Disjunction.of(
+                Negation.of(Variable.of(1)),
+                Variable.of(2),
+                Variable.of(3)),
+            Disjunction.of(
+                Negation.of(Variable.of(2)),
+                Negation.of(Variable.of(3))),
+            Variable.of(4),
+            Negation.of(Variable.of(5))));
 
     for (Set<Integer> upperBound : Sets.powerSet(Set.of(1, 2, 3, 4, 5, 6))) {
       List<Set<Integer>> actualMaximalModels = solver.maximalModels(formula, upperBound);
@@ -147,7 +148,7 @@ class SolverTest {
         if (formula.evaluate(model)) {
           expectedMaximalModels.add(model);
           expectedMaximalModels = Collections3
-            .maximalElements(expectedMaximalModels, (x, y) -> y.containsAll(x));
+              .maximalElements(expectedMaximalModels, (x, y) -> y.containsAll(x));
         }
       }
 

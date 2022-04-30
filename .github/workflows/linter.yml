@@ -25,6 +25,9 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
+          # We use Google Jave Format.
           VALIDATE_JAVA: false
           # Deactive until Java 17 is supported.
           VALIDATE_GOOGLE_JAVA_FORMAT: false
+          # Too sensitive.
+          VALIDATE_JSCPD: false
