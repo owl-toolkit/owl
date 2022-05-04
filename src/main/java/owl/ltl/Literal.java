@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -21,10 +21,11 @@ package owl.ltl;
 
 import static java.util.Objects.checkIndex;
 
-import java.util.Arrays;
+import com.google.common.base.Preconditions;
 import java.util.BitSet;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnegative;
 import owl.ltl.visitors.BinaryVisitor;
 import owl.ltl.visitors.IntVisitor;
@@ -32,42 +33,45 @@ import owl.ltl.visitors.Visitor;
 
 // TODO: fix naming.
 public final class Literal extends Formula.PropositionalOperator {
-  private static final int CACHE_SIZE = 128;
-  private static final Literal[] cache = new Literal[CACHE_SIZE];
+
+  private static final List<Literal> CACHE = IntStream.range(0, 128)
+      .mapToObj(Literal::new)
+      .toList();
   private final int index;
   private final Literal negation;
 
-  static {
-    Arrays.setAll(cache, Literal::new);
-  }
 
   private Literal(Literal other) {
     super(Literal.class, List.of(), Integer.hashCode(-other.index));
     this.index = -other.index;
     this.negation = other;
-    assert (getAtom() == other.getAtom()) && (isNegated() ^ other.isNegated());
+
+    assert getAtom() == other.getAtom();
+    assert isNegated() ^ other.isNegated();
   }
 
+  // TODO: do not leak 'this'
   private Literal(@Nonnegative int index) {
     super(Literal.class, List.of(), Integer.hashCode(index + 1));
     checkIndex(index, Integer.MAX_VALUE);
     this.index = index + 1;
     this.negation = new Literal(this);
-    assert getAtom() == negation.getAtom() && (isNegated() ^ negation.isNegated());
+
+    assert getAtom() == negation.getAtom();
+    assert isNegated() ^ negation.isNegated();
   }
 
 
-  public static Literal of(@Nonnegative int index) {
-    return of(index, false);
+  public static Literal of(@Nonnegative int atomicProposition) {
+    return of(atomicProposition, false);
   }
 
-  public static Literal of(@Nonnegative int index, boolean negate) {
-    if (index >= CACHE_SIZE) {
-      Literal literal = new Literal(index);
-      return negate ? literal.negation : literal;
-    }
+  public static Literal of(@Nonnegative int atomicProposition, boolean negate) {
+    Preconditions.checkArgument(atomicProposition >= 0);
 
-    Literal literal = cache[index];
+    var literal = atomicProposition >= CACHE.size()
+        ? new Literal(atomicProposition)
+        : CACHE.get(atomicProposition);
     return negate ? literal.negation : literal;
   }
 

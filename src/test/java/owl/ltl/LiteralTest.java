@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -94,7 +94,7 @@ class LiteralTest {
 
   @Test
   void testConstructor() {
-    Assertions.assertThrows(IndexOutOfBoundsException.class, () -> Literal.of(-1));
+    Assertions.assertThrows(IllegalArgumentException.class, () -> Literal.of(-1));
   }
 
   @Test

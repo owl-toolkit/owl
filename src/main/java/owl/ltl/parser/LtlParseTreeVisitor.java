@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -20,15 +20,15 @@
 package owl.ltl.parser;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import owl.collections.Collections3;
 import owl.grammar.LTLParser.AndExpressionContext;
 import owl.grammar.LTLParser.BinaryOpContext;
 import owl.grammar.LTLParser.BinaryOperationContext;
-import owl.grammar.LTLParser.BoolContext;
 import owl.grammar.LTLParser.BooleanContext;
 import owl.grammar.LTLParser.DoubleQuotedVariableContext;
 import owl.grammar.LTLParser.ExpressionContext;
@@ -57,23 +57,24 @@ import owl.ltl.XOperator;
 final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
 
   private final List<String> atomicPropositions;
-  private final List<Literal> literalCache;
+  private final Map<String, Integer> atomicPropositionsLookup;
 
   LtlParseTreeVisitor() {
     this.atomicPropositions = new ArrayList<>();
-    this.literalCache = new ArrayList<>();
+    this.atomicPropositionsLookup = new HashMap<>();
   }
 
   LtlParseTreeVisitor(List<String> atomicPropositions) {
     this.atomicPropositions = List.copyOf(atomicPropositions);
+    this.atomicPropositionsLookup = new HashMap<>();
 
-    if (!Collections3.isDistinct(this.atomicPropositions)) {
-      throw new IllegalArgumentException();
+    for (int i = 0, s = this.atomicPropositions.size(); i < s; i++) {
+      var oldValue = atomicPropositionsLookup.put(this.atomicPropositions.get(i), i);
+
+      if (oldValue != null) {
+        throw new IllegalArgumentException();
+      }
     }
-
-    Literal[] literalList = new Literal[this.atomicPropositions.size()];
-    Arrays.setAll(literalList, Literal::of);
-    this.literalCache = List.of(literalList);
   }
 
   List<String> atomicPropositions() {
@@ -84,17 +85,24 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitAndExpression(AndExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
 
-    return Conjunction.of(ctx.children.stream()
-      .filter(child -> !(child instanceof TerminalNode))
-      .map(this::visit));
+    var children = new ArrayList<Formula>(ctx.getChildCount());
+
+    for (ParseTree child : ctx.children) {
+      if (!(child instanceof TerminalNode)) {
+        children.add(visit(child));
+      }
+    }
+
+    return Conjunction.of(children);
   }
 
   @Override
   public Formula visitBinaryOperation(BinaryOperationContext ctx) {
     assert ctx.getChildCount() == 3;
-    assert ctx.left != null && ctx.right != null;
+    assert ctx.left != null;
+    assert ctx.right != null;
 
-    BinaryOpContext binaryOp = ctx.binaryOp();
+    BinaryOpContext binaryOp = ctx.op;
     Formula left = visit(ctx.left);
     Formula right = visit(ctx.right);
 
@@ -132,7 +140,7 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   @Override
   public Formula visitBoolean(BooleanContext ctx) {
     assert ctx.getChildCount() == 1;
-    BoolContext constant = ctx.bool();
+    var constant = ctx.constant;
 
     if (constant.FALSE() != null) {
       return BooleanConstant.FALSE;
@@ -168,16 +176,22 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   public Formula visitOrExpression(OrExpressionContext ctx) {
     assert ctx.getChildCount() > 0;
 
-    return Disjunction.of(ctx.children.stream()
-      .filter(child -> !(child instanceof TerminalNode))
-      .map(this::visit));
+    var children = new ArrayList<Formula>(ctx.getChildCount());
+
+    for (ParseTree child : ctx.children) {
+      if (!(child instanceof TerminalNode)) {
+        children.add(visit(child));
+      }
+    }
+
+    return Disjunction.of(children);
   }
 
   @Override
   @SuppressWarnings("PMD.ConfusingTernary")
   public Formula visitUnaryOperation(UnaryOperationContext ctx) {
     assert ctx.getChildCount() == 2;
-    UnaryOpContext unaryOp = ctx.unaryOp();
+    UnaryOpContext unaryOp = ctx.op;
     Formula operand = visit(ctx.inner);
 
     if (unaryOp.NOT() != null) {
@@ -218,22 +232,22 @@ final class LtlParseTreeVisitor extends LTLParserBaseVisitor<Formula> {
   }
 
   private Literal lookupLiteral(String name) {
-    assert atomicPropositions.size() == literalCache.size();
-    int index = atomicPropositions.indexOf(name);
+    Integer index = atomicPropositionsLookup.get(name);
 
-    if (index == -1) {
-      if (!(atomicPropositions instanceof ArrayList)) {
-        throw new IllegalStateException("Encountered unknown variable " + name
-          + " with fixed set " + atomicPropositions);
-      }
-
-      int newIndex = atomicPropositions.size();
-      Literal literal = Literal.of(newIndex);
-      atomicPropositions.add(name);
-      literalCache.add(literal);
-      return literal;
+    if (index != null) {
+      return Literal.of(index);
     }
 
-    return literalCache.get(index);
+    // We need to add a new element, but atomicPropositions is read-only
+    if (!(atomicPropositions instanceof ArrayList)) {
+      throw new IllegalStateException(
+          "Encountered unknown variable %s with fixed set %s".formatted(name, atomicPropositions));
+    }
+
+    int newIndex = atomicPropositions.size();
+    atomicPropositions.add(name);
+    var oldValue = atomicPropositionsLookup.put(name, newIndex);
+    assert oldValue == null;
+    return Literal.of(newIndex);
   }
 }
