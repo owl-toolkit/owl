@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -23,7 +23,6 @@ import java.util.BitSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import owl.bdd.EquivalenceClassFactory;
 import owl.bdd.MtBdd;
 
@@ -31,13 +30,13 @@ import owl.bdd.MtBdd;
  * A propositional equivalence class of an LTL formula.
  *
  * @implSpec If two implementing objects were created by different factories, methods combining or
- *     comparing these objects are allowed to throw exceptions.
+ * comparing these objects are allowed to throw exceptions.
  */
 public interface EquivalenceClass extends LtlLanguageExpressible {
 
   /**
-   * Collects all literals used in the bdd and stores the corresponding atomic propositions in
-   * the BitSet. See also {@link Formula#atomicPropositions(boolean)}.
+   * Collects all literals used in the bdd and stores the corresponding atomic propositions in the
+   * BitSet. See also {@link Formula#atomicPropositions(boolean)}.
    */
   default BitSet atomicPropositions(boolean includeNested) {
     BitSet atomicPropositions = new BitSet();
@@ -92,18 +91,10 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   List<Formula> support(boolean includeNested);
 
   default Set<Formula.TemporalOperator> temporalOperators() {
-    return support(false).stream()
-      .filter(Formula.TemporalOperator.class::isInstance)
-      .map(Formula.TemporalOperator.class::cast)
-      .collect(Collectors.toUnmodifiableSet());
+    return temporalOperators(false);
   }
 
-  default Set<Formula.TemporalOperator> temporalOperators(boolean includeNested) {
-    return support(includeNested).stream()
-      .filter(Formula.TemporalOperator.class::isInstance)
-      .map(Formula.TemporalOperator.class::cast)
-      .collect(Collectors.toUnmodifiableSet());
-  }
+  Set<Formula.TemporalOperator> temporalOperators(boolean includeNested);
 
   boolean implies(EquivalenceClass other);
 
@@ -114,11 +105,11 @@ public interface EquivalenceClass extends LtlLanguageExpressible {
   /**
    * See {@link Formula#substitute(Function)}.
    *
-   * @param substitution
-   *   The substitution function. It is only called on modal / temporal operators.
+   * @param substitution The substitution function. It is only called on modal / temporal
+   *                     operators.
    */
   EquivalenceClass substitute(
-    Function<? super Formula.TemporalOperator, ? extends Formula> substitution);
+      Function<? super Formula.TemporalOperator, ? extends Formula> substitution);
 
   /**
    * See {@link Formula#temporalStep(BitSet)}.

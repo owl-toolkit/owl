@@ -28,7 +28,7 @@ import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
@@ -41,7 +41,6 @@ import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.LabelledFormula;
-import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 
 public final class NormalformDPAConstruction
@@ -76,7 +75,7 @@ public final class NormalformDPAConstruction
 
   private static double approximateTrueness(
       PropositionalFormula<Integer> formula,
-      Map<Integer, BreakpointStateRejecting> stateMap,
+      State state,
       BitSet processedStates) {
 
     if (formula instanceof PropositionalFormula.Variable<Integer> variable) {
@@ -86,19 +85,19 @@ public final class NormalformDPAConstruction
         return 0.5d;
       }
 
-      return stateMap.get(variable.variable()).all().trueness();
+      return state.get(variable.variable()).all().trueness();
     }
 
     if (formula instanceof PropositionalFormula.Negation<Integer> negation) {
       return 1.0d - approximateTrueness(
-          negation.operand(), stateMap, processedStates);
+          negation.operand(), state, processedStates);
     }
 
     if (formula instanceof PropositionalFormula.Biconditional<Integer> biconditional) {
 
       return Math.abs(
-          approximateTrueness(biconditional.leftOperand(), stateMap, processedStates)
-              - approximateTrueness(biconditional.rightOperand(), stateMap, processedStates)
+          approximateTrueness(biconditional.leftOperand(), state, processedStates)
+              - approximateTrueness(biconditional.rightOperand(), state, processedStates)
       );
     }
 
@@ -106,7 +105,7 @@ public final class NormalformDPAConstruction
       double trueness = 1.0d;
 
       for (var conjunct : conjunction.conjuncts()) {
-        trueness = Math.min(trueness, approximateTrueness(conjunct, stateMap, processedStates));
+        trueness = Math.min(trueness, approximateTrueness(conjunct, state, processedStates));
       }
 
       return trueness;
@@ -119,7 +118,7 @@ public final class NormalformDPAConstruction
     double trueness = 0.0d;
 
     for (var disjunct : disjunction.disjuncts()) {
-      trueness = Math.max(trueness, approximateTrueness(disjunct, stateMap, processedStates));
+      trueness = Math.max(trueness, approximateTrueness(disjunct, state, processedStates));
     }
 
     return trueness;
@@ -170,7 +169,7 @@ public final class NormalformDPAConstruction
           double nextBuechiEvent = 0.0d;
 
           for (int activeColour : activeColours) {
-            var dbwState = successor.state().stateMap().get(activeColour);
+            var dbwState = Objects.requireNonNull(successor.state().get(activeColour));
             processedStates.set(activeColour);
 
             // TODO: access round-robin information to find other chained state components.
@@ -187,7 +186,7 @@ public final class NormalformDPAConstruction
       {
         double trueness = approximateTrueness(
             successor.state().stateFormula(),
-            successor.state().stateMap(),
+            successor.state(),
             processedStates);
 
         double nextEvent = 2.0d * Math.abs(trueness - 0.5d);

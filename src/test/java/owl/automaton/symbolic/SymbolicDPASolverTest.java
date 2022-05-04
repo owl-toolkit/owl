@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Remco Abraham)
  *
  * This file is part of Owl.
  *
@@ -64,9 +64,9 @@ public class SymbolicDPASolverTest {
   private static TestCase[] testCases(String file) throws IOException {
     Gson gson = new Gson();
     try (Reader reader = new BufferedReader(new InputStreamReader(
-      Objects.requireNonNull(Thread.currentThread()
-        .getContextClassLoader()
-        .getResourceAsStream(file))))
+        Objects.requireNonNull(Thread.currentThread()
+            .getContextClassLoader()
+            .getResourceAsStream(file))))
     ) {
       return gson.fromJson(reader, TestCase[].class);
     }
@@ -74,19 +74,20 @@ public class SymbolicDPASolverTest {
 
   private static Stream<DynamicTest> tests(String file, boolean realizable) throws IOException {
     return Arrays.stream(testCases(file)).map(
-      testCase -> DynamicTest.dynamicTest(testCase.formula,
-        () -> assertTimeoutPreemptively(Duration.of(30, ChronoUnit.SECONDS), () -> {
-          LabelledFormula formula = LtlParser.parse(testCase.formula);
-          var dpa = SymbolicAutomaton.of(
-            Views.convertParity(SLM21.translation(
-              EnumSet.of(SIMPLIFY_FORMULA, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS, COMPLETE))
-              .apply(formula), ParityAcceptance.Parity.MIN_EVEN));
-          ImmutableBitSet controllable = controllable(formula.atomicPropositions(),
-            testCase.controllable);
-          assertSame(new DFISymbolicDPASolver().solve(dpa, controllable).winner(),
-            realizable ? CONTROLLER : ENVIRONMENT
-          );
-        })));
+        testCase -> DynamicTest.dynamicTest(testCase.formula,
+            () -> assertTimeoutPreemptively(Duration.of(10, ChronoUnit.SECONDS), () -> {
+              LabelledFormula formula = LtlParser.parse(testCase.formula);
+              var dpa = SymbolicAutomaton.of(
+                  Views.convertParity(SLM21.translation(
+                          EnumSet.of(SIMPLIFY_FORMULA, USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
+                              COMPLETE))
+                      .apply(formula), ParityAcceptance.Parity.MIN_EVEN));
+              ImmutableBitSet controllable = controllable(formula.atomicPropositions(),
+                  testCase.controllable);
+              assertSame(new DFISymbolicDPASolver().solve(dpa, controllable).winner(),
+                  realizable ? CONTROLLER : ENVIRONMENT
+              );
+            })));
   }
 
   private static ImmutableBitSet controllable(List<String> aps, String[] controllable) {
@@ -98,6 +99,7 @@ public class SymbolicDPASolverTest {
   }
 
   private static final class TestCase {
+
     String formula;
     String[] controllable;
     String[] uncontrollable;

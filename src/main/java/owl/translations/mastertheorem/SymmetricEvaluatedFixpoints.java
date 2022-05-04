@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -50,7 +50,7 @@ import owl.translations.canonical.DeterministicConstructions;
 import owl.translations.canonical.NonDeterministicConstructions;
 
 public final class SymmetricEvaluatedFixpoints
-  implements Comparable<SymmetricEvaluatedFixpoints>, LtlLanguageExpressible {
+    implements Comparable<SymmetricEvaluatedFixpoints>, LtlLanguageExpressible {
 
   public final Fixpoints fixpoints;
 
@@ -67,10 +67,10 @@ public final class SymmetricEvaluatedFixpoints
   private final EquivalenceClass language;
 
   private SymmetricEvaluatedFixpoints(
-    Fixpoints fixpoints,
-    Collection<FOperator> almostAlways,
-    Collection<GOperator> infinitelyOften,
-    EquivalenceClass language) {
+      Fixpoints fixpoints,
+      Collection<FOperator> almostAlways,
+      Collection<GOperator> infinitelyOften,
+      EquivalenceClass language) {
     this.fixpoints = fixpoints;
     this.almostAlways = Set.copyOf(almostAlways);
     this.infinitelyOften = Set.copyOf(infinitelyOften);
@@ -78,7 +78,7 @@ public final class SymmetricEvaluatedFixpoints
   }
 
   public static Set<SymmetricEvaluatedFixpoints> build(
-    Formula formula, Fixpoints fixpoints, Factories factories) {
+      Formula formula, Fixpoints fixpoints, Factories factories) {
     var unusedFixpoints = new HashSet<>(fixpoints.fixpoints());
     var toCoSafety = new ExtendedRewriter.ToCoSafety(fixpoints, unusedFixpoints::remove);
     var toSafety = new ExtendedRewriter.ToSafety(fixpoints, unusedFixpoints::remove);
@@ -103,7 +103,7 @@ public final class SymmetricEvaluatedFixpoints
       for (Set<Formula> clause : NormalForms.toCnf(infinitelyOften)) {
         assert !clause.isEmpty();
         Formula disjunction = Disjunction.of(clause.stream()
-          .map(SymmetricEvaluatedFixpoints::unwrapGf));
+            .map(SymmetricEvaluatedFixpoints::unwrapGf));
         assert !(disjunction instanceof BooleanConstant);
         infinitelyOftenFormulas.add(wrapGf(disjunction));
       }
@@ -122,13 +122,13 @@ public final class SymmetricEvaluatedFixpoints
 
             if (unwrappedConjunct instanceof FOperator) {
               infinitelyOftenFormulas.removeIf(
-                y -> y.operand().equals(unwrappedConjunct));
+                  y -> y.operand().equals(unwrappedConjunct));
             } else if (unwrappedConjunct instanceof UOperator) {
               infinitelyOftenFormulas.removeIf(
-                y -> unwrapGf(y).equals(unwrapX(((UOperator) unwrappedConjunct).rightOperand())));
+                  y -> unwrapGf(y).equals(unwrapX(((UOperator) unwrappedConjunct).rightOperand())));
             } else if (unwrappedConjunct instanceof MOperator) {
               infinitelyOftenFormulas.removeIf(
-                y -> unwrapGf(y).equals(unwrapX(((MOperator) unwrappedConjunct).leftOperand())));
+                  y -> unwrapGf(y).equals(unwrapX(((MOperator) unwrappedConjunct).leftOperand())));
             } else {
               infinitelyOftenFormulas.remove(wrapGf(unwrappedConjunct));
             }
@@ -161,7 +161,7 @@ public final class SymmetricEvaluatedFixpoints
       for (Set<Formula> clause : NormalForms.toDnf(almostAlways)) {
         assert !clause.isEmpty();
         Formula conjunction = Conjunction.of(
-          clause.stream().map(SymmetricEvaluatedFixpoints::unwrapFg));
+            clause.stream().map(SymmetricEvaluatedFixpoints::unwrapFg));
         assert !(conjunction instanceof BooleanConstant);
         alternatives.add(wrapFg(conjunction));
       }
@@ -173,10 +173,11 @@ public final class SymmetricEvaluatedFixpoints
     // Detect un-used fixpoint operators outside of a fixpoint scope by examining the top-level
     // formula.
     var toSafetyWithoutGreatestFixpoints
-      = new ExtendedRewriter.ToSafety(fixpoints.leastFixpoints(), unusedFixpoints::remove);
+        = new ExtendedRewriter.ToSafety(fixpoints.leastFixpoints(), unusedFixpoints::remove);
 
     for (Formula.TemporalOperator greatestFixpoint :
-      formula.subformulas(Fixpoint.GreatestFixpoint.class::isInstance, Formula.TemporalOperator.class::cast)) {
+        formula.subformulas(Fixpoint.GreatestFixpoint.class::isInstance,
+            Formula.TemporalOperator.class::cast)) {
       toSafetyWithoutGreatestFixpoints.apply(greatestFixpoint);
     }
 
@@ -187,10 +188,10 @@ public final class SymmetricEvaluatedFixpoints
     Set<SymmetricEvaluatedFixpoints> fixpointsSet = new HashSet<>();
 
     for (List<FOperator> almostAlwaysFormulas
-      : Sets.cartesianProduct(almostAlwaysFormulasAlternatives)) {
+        : Sets.cartesianProduct(almostAlwaysFormulasAlternatives)) {
       var language = Conjunction.of(Stream.concat(
-        almostAlwaysFormulas.stream().map(Formula.UnaryTemporalOperator::operand),
-        infinitelyOftenFormulas.stream()));
+          almostAlwaysFormulas.stream().map(Formula.UnaryTemporalOperator::operand),
+          infinitelyOftenFormulas.stream()));
       var languageClazz = factories.eqFactory.of(language.unfold());
 
       if (languageClazz.isFalse()) {
@@ -198,7 +199,7 @@ public final class SymmetricEvaluatedFixpoints
       }
 
       fixpointsSet.add(new SymmetricEvaluatedFixpoints(fixpoints,
-        almostAlwaysFormulas, infinitelyOftenFormulas, languageClazz));
+          almostAlwaysFormulas, infinitelyOftenFormulas, languageClazz));
     }
 
     return fixpointsSet;
@@ -236,8 +237,8 @@ public final class SymmetricEvaluatedFixpoints
 
     SymmetricEvaluatedFixpoints that = (SymmetricEvaluatedFixpoints) o;
     return fixpoints.equals(that.fixpoints)
-      && almostAlways.equals(that.almostAlways)
-      && infinitelyOften.equals(that.infinitelyOften);
+        && almostAlways.equals(that.almostAlways)
+        && infinitelyOften.equals(that.infinitelyOften);
   }
 
   @Override
@@ -271,52 +272,54 @@ public final class SymmetricEvaluatedFixpoints
 
   public DeterministicAutomata deterministicAutomata(Factories factories, boolean generalized) {
     var safetyAutomaton = DeterministicConstructions.Safety.of(factories,
-      Conjunction.of(almostAlways.stream().map(Formula.UnaryTemporalOperator::operand)));
+        Conjunction.of(almostAlways.stream().map(Formula.UnaryTemporalOperator::operand)), false);
 
     var gfCoSafetyAutomaton = infinitelyOften.isEmpty()
-      ? null
-      : DeterministicConstructions.GfCoSafety
-        .of(factories, new TreeSet<>(infinitelyOften), generalized);
+        ? null
+        : DeterministicConstructions.GfCoSafety
+            .of(factories, new TreeSet<>(infinitelyOften), generalized);
 
     assert !safetyAutomaton.initialState().isFalse();
     return new DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
   }
 
   public NonDeterministicAutomata nonDeterministicAutomata(
-    Factories factories, boolean generalized) {
+      Factories factories, boolean generalized) {
 
     var safetyAutomaton = NonDeterministicConstructions.Safety.of(factories,
-      Conjunction.of(almostAlways.stream().map(Formula.UnaryTemporalOperator::operand)));
+        Conjunction.of(almostAlways.stream().map(Formula.UnaryTemporalOperator::operand)));
 
     var gfCoSafetyAutomaton = infinitelyOften.isEmpty()
-      ? null
-      : NonDeterministicConstructions.GfCoSafety
-        .of(factories, new TreeSet<>(infinitelyOften), generalized);
+        ? null
+        : NonDeterministicConstructions.GfCoSafety
+            .of(factories, new TreeSet<>(infinitelyOften), generalized);
 
     return new NonDeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton);
   }
 
   public static final class DeterministicAutomata {
+
     @Nullable
     public final DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
     public final DeterministicConstructions.Safety safetyAutomaton;
 
     private DeterministicAutomata(
-      @Nullable DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
-      DeterministicConstructions.Safety safetyAutomaton) {
+        @Nullable DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
+        DeterministicConstructions.Safety safetyAutomaton) {
       this.gfCoSafetyAutomaton = gfCoSafetyAutomaton;
       this.safetyAutomaton = safetyAutomaton;
     }
   }
 
   public static final class NonDeterministicAutomata {
+
     @Nullable
     public final NonDeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
     public final NonDeterministicConstructions.Safety safetyAutomaton;
 
     private NonDeterministicAutomata(
-      @Nullable NonDeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
-      NonDeterministicConstructions.Safety safetyAutomaton) {
+        @Nullable NonDeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
+        NonDeterministicConstructions.Safety safetyAutomaton) {
       this.gfCoSafetyAutomaton = gfCoSafetyAutomaton;
       this.safetyAutomaton = safetyAutomaton;
     }
@@ -348,8 +351,8 @@ public final class SymmetricEvaluatedFixpoints
     }
 
     return formula instanceof GOperator
-      ? new FOperator(formula)
-      : new FOperator(new GOperator(formula));
+        ? new FOperator(formula)
+        : new FOperator(new GOperator(formula));
   }
 
   private static GOperator wrapGf(Formula formula) {
@@ -358,7 +361,7 @@ public final class SymmetricEvaluatedFixpoints
     }
 
     return formula instanceof FOperator
-      ? new GOperator(formula)
-      : new GOperator(new FOperator(formula));
+        ? new GOperator(formula)
+        : new GOperator(new FOperator(formula));
   }
 }

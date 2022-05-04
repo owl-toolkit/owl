@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2017, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -38,11 +38,13 @@ import owl.ltl.LabelledFormula;
 import owl.ltl.parser.LtlParser;
 
 class LTL2DAModuleFunctionTest {
+
   private static final String LARGE = "(a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)"
       + "& X G (x1 | x2 | x3)";
 
   private static final Function<LabelledFormula, Automaton<?, ? extends ParityAcceptance>>
-    TRANSLATOR = LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation();
+      TRANSLATOR = LtlTranslationRepository.LtlToDpaTranslation.SEJK16_EKRS17.translation();
+
 
   @Test
   void construct() {
@@ -85,4 +87,6 @@ class LTL2DAModuleFunctionTest {
     assertEquals(edge, automaton.edge(state, empty));
     assertEquals(Map.of(edge, automaton.factory().of(true)), automaton.edgeMap(state));
   }
+
+
 }

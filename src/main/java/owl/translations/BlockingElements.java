@@ -39,7 +39,8 @@ import owl.ltl.SyntacticFragments;
  */
 public final class BlockingElements {
 
-  private BlockingElements() {}
+  private BlockingElements() {
+  }
 
   public static boolean isBlockedByCoSafety(EquivalenceClass state) {
     assert state.equals(state.unfold());
@@ -55,7 +56,7 @@ public final class BlockingElements {
     }
 
     // Pre-filter.
-    for (var iterator = successors.iterator(); iterator.hasNext();) {
+    for (var iterator = successors.iterator(); iterator.hasNext(); ) {
       var successor = iterator.next();
 
       // The successor class belongs to different SCC, hence it is irrelevant.
@@ -96,7 +97,7 @@ public final class BlockingElements {
     }
 
     // Pre-filter.
-    for (var iterator = successors.iterator(); iterator.hasNext();) {
+    for (var iterator = successors.iterator(); iterator.hasNext(); ) {
       var successor = iterator.next();
 
       // The successor class belongs to different SCC, hence it is irrelevant.
@@ -159,23 +160,23 @@ public final class BlockingElements {
   }
 
   public static boolean surelyContainedInDifferentSccs(
-    EquivalenceClass state1, EquivalenceClass state2) {
+      EquivalenceClass state1, EquivalenceClass state2) {
 
     return !state1.support(true).equals(state2.support(true));
   }
 
   private static boolean detectSccChange(
-    EquivalenceClass state, EquivalenceClass successor) {
+      EquivalenceClass state, EquivalenceClass successor) {
 
     List<Formula> stateSupport = state.support(true);
     List<Formula> successorSupport = successor.support(true);
-    assert stateSupport.containsAll(successorSupport);
+    // assert stateSupport.containsAll(successorSupport);
     assert stateSupport.size() >= successorSupport.size();
     return stateSupport.size() > successorSupport.size();
   }
 
   private static Stream<Set<Formula.TemporalOperator>>
-    extractBlockingCoSafetyFormulas(EquivalenceClass clazz) {
+  extractBlockingCoSafetyFormulas(EquivalenceClass clazz) {
 
     var nonCoSafetyFormulas = new ArrayList<>(clazz.temporalOperators());
     nonCoSafetyFormulas.removeIf(SyntacticFragments::isCoSafety);
@@ -191,7 +192,7 @@ public final class BlockingElements {
         assert literal instanceof Formula.TemporalOperator;
 
         if (SyntacticFragments.isCoSafety(literal)
-          && !isProperSubformula(literal, nonCoSafetyFormulas)) {
+            && !isProperSubformula(literal, nonCoSafetyFormulas)) {
 
           clauseCoSafetyFormulas.add((Formula.TemporalOperator) literal);
         }
@@ -200,12 +201,12 @@ public final class BlockingElements {
       // Select only the temporal operators that do not occur in the scope of other temporal
       // operators, since blocking should only depend on them.
       return new HashSet<>(
-        Collections3.maximalElements(clauseCoSafetyFormulas, (x, y) -> y.anyMatch(x::equals)));
+          Collections3.maximalElements(clauseCoSafetyFormulas, (x, y) -> y.anyMatch(x::equals)));
     });
   }
 
   private static Stream<Set<Formula.TemporalOperator>>
-    extractBlockingSafetyFormulas(EquivalenceClass clazz) {
+  extractBlockingSafetyFormulas(EquivalenceClass clazz) {
 
     var nonSafetyFormulas = new ArrayList<>(clazz.temporalOperators());
     nonSafetyFormulas.removeIf(SyntacticFragments::isSafety);
@@ -221,7 +222,7 @@ public final class BlockingElements {
         assert formula instanceof Formula.TemporalOperator;
 
         if (SyntacticFragments.isSafety(formula)
-          && !isProperSubformula(formula, nonSafetyFormulas)) {
+            && !isProperSubformula(formula, nonSafetyFormulas)) {
 
           clauseSafetyFormulas.add((Formula.TemporalOperator) formula);
         }
@@ -230,7 +231,7 @@ public final class BlockingElements {
       // Select only the temporal operators that do not occur in the scope of other temporal
       // operators, since blocking should only depend on them.
       return new HashSet<>(
-        Collections3.maximalElements(clauseSafetyFormulas, (x, y) -> y.anyMatch(x::equals)));
+          Collections3.maximalElements(clauseSafetyFormulas, (x, y) -> y.anyMatch(x::equals)));
     });
   }
 

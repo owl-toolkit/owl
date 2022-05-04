@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -45,7 +45,7 @@ import owl.translations.canonical.DeterministicConstructions;
 
 // TODO: migrate to record / AutoValue.
 public final class AsymmetricEvaluatedFixpoints
-  implements Comparable<AsymmetricEvaluatedFixpoints>, LtlLanguageExpressible {
+    implements Comparable<AsymmetricEvaluatedFixpoints>, LtlLanguageExpressible {
 
   public final Fixpoints fixpoints;
 
@@ -56,7 +56,7 @@ public final class AsymmetricEvaluatedFixpoints
   public final EquivalenceClass language;
 
   private AsymmetricEvaluatedFixpoints(Fixpoints fixpoints, Set<GOperator> gSafety,
-    Set<GOperator> gCoSafety, Set<GOperator> gfCoSafety, EquivalenceClass language) {
+      Set<GOperator> gCoSafety, Set<GOperator> gfCoSafety, EquivalenceClass language) {
 
     this.fixpoints = fixpoints;
 
@@ -119,9 +119,9 @@ public final class AsymmetricEvaluatedFixpoints
     }
 
     var language = factories.eqFactory.of(
-      Conjunction.of(
-        Stream.of(gSafety, gCoSafety, gfCoSafety).flatMap(Collection::stream)))
-      .unfold();
+            Conjunction.of(
+                Stream.of(gSafety, gCoSafety, gfCoSafety).flatMap(Collection::stream)))
+        .unfold();
 
     if (language.isFalse() || gOperatorsRewritten.isEmpty()) {
       return null;
@@ -165,9 +165,9 @@ public final class AsymmetricEvaluatedFixpoints
 
     AsymmetricEvaluatedFixpoints that = (AsymmetricEvaluatedFixpoints) o;
     return fixpoints.equals(that.fixpoints)
-      && gSafety.equals(that.gSafety)
-      && gCoSafety.equals(that.gCoSafety)
-      && gfCoSafety.equals(that.gfCoSafety);
+        && gSafety.equals(that.gSafety)
+        && gCoSafety.equals(that.gCoSafety)
+        && gfCoSafety.equals(that.gfCoSafety);
   }
 
   @Override
@@ -191,21 +191,21 @@ public final class AsymmetricEvaluatedFixpoints
   @Override
   public String toString() {
     return String.format("(%s, %s, %s, %s)",
-      new TreeSet<>(gSafety), new TreeSet<>(gCoSafety), new TreeSet<>(gfCoSafety), fixpoints);
+        new TreeSet<>(gSafety), new TreeSet<>(gCoSafety), new TreeSet<>(gfCoSafety), fixpoints);
   }
 
   // Automata Classes
 
   public AsymmetricEvaluatedFixpoints.DeterministicAutomata deterministicAutomata(
-    Factories factories, boolean generalized) {
+      Factories factories, boolean generalized) {
 
     var safetyAutomaton = DeterministicConstructions.Safety.of(
-      factories, Conjunction.of(gSafety));
+        factories, Conjunction.of(gSafety), false);
 
     var coSafety = gCoSafety.stream()
-      .sorted()
-      .map(x -> factories.eqFactory.of(x.operand().unfold()))
-      .toList();
+        .sorted()
+        .map(x -> factories.eqFactory.of(x.operand().unfold()))
+        .toList();
 
     var fCoSafety = new ArrayList<EquivalenceClass>();
     var gfCoSafetyAutomaton = (DeterministicConstructions.GfCoSafety) null;
@@ -227,19 +227,20 @@ public final class AsymmetricEvaluatedFixpoints
 
       if (!fCoSafetySingleStep.isEmpty()) {
         gfCoSafetyAutomaton = DeterministicConstructions.GfCoSafety.of(factories,
-          new HashSet<>(fCoSafetySingleStep), true);
+            new HashSet<>(fCoSafetySingleStep), true);
       }
     } else {
       gfCoSafety.stream().sorted().forEachOrdered(
-        x -> fCoSafety.add(factories.eqFactory.of(x.operand().unfold())));
+          x -> fCoSafety.add(factories.eqFactory.of(x.operand().unfold())));
     }
 
     assert !safetyAutomaton.initialState().isFalse();
     return new AsymmetricEvaluatedFixpoints
-      .DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton, coSafety, fCoSafety);
+        .DeterministicAutomata(gfCoSafetyAutomaton, safetyAutomaton, coSafety, fCoSafety);
   }
 
   public static final class DeterministicAutomata {
+
     @Nullable
     public final DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton;
     public final DeterministicConstructions.Safety safetyAutomaton;
@@ -249,10 +250,10 @@ public final class AsymmetricEvaluatedFixpoints
     public final List<EquivalenceClass> fCoSafety;
 
     private DeterministicAutomata(
-      @Nullable DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
-      DeterministicConstructions.Safety safetyAutomaton,
-      List<EquivalenceClass> coSafety,
-      List<EquivalenceClass> fCoSafety) {
+        @Nullable DeterministicConstructions.GfCoSafety gfCoSafetyAutomaton,
+        DeterministicConstructions.Safety safetyAutomaton,
+        List<EquivalenceClass> coSafety,
+        List<EquivalenceClass> fCoSafety) {
       this.gfCoSafetyAutomaton = gfCoSafetyAutomaton;
       this.safetyAutomaton = safetyAutomaton;
       this.coSafety = List.copyOf(coSafety);

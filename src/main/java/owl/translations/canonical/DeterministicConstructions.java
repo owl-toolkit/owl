@@ -66,6 +66,7 @@ import owl.ltl.EquivalenceClass;
 import owl.ltl.FOperator;
 import owl.ltl.Formula;
 import owl.ltl.Formula.TemporalOperator;
+import owl.ltl.FormulaStatistics;
 import owl.ltl.Formulas;
 import owl.ltl.GOperator;
 import owl.ltl.LabelledFormula;
@@ -77,6 +78,7 @@ import owl.ltl.SyntacticFragments;
 import owl.ltl.UOperator;
 import owl.ltl.WOperator;
 import owl.ltl.XOperator;
+import owl.ltl.rewriter.SimplifierRepository;
 import owl.ltl.visitors.Converter;
 import owl.translations.BlockingElements;
 
@@ -85,6 +87,80 @@ public final class DeterministicConstructions {
   private static final boolean DISABLE_EXPENSIVE_ASSERT = true;
 
   private DeterministicConstructions() {
+  }
+
+  /*
+   * While pushing down {F,G}-operators as far as possible is exposes more of the Boolean structure
+   * of an LTL formula, it has adverse effects on the performance of the BDD-representation as more
+   * variables must be used and caching of unfold() is slower. This method tries to pull G and F up
+   * in the AST.
+   */
+  private static Formula normalise(Formula formula) {
+    return recombineUniqueOperators(SimplifierRepository.PULL_UP_X.apply(formula));
+  }
+
+  private static Formula recombineUniqueOperators(Formula formula) {
+    var nonUniqueOperators = FormulaStatistics.countTemporalOperators(formula);
+    nonUniqueOperators.values().removeIf(x -> x == 1);
+    class RecombineOperators extends Converter {
+
+      private RecombineOperators() {
+        super(SyntacticFragment.NNF);
+      }
+
+      @Override
+      public Formula visit(Conjunction conjunction) {
+        int size = conjunction.operands.size();
+
+        List<Formula> gOperatorOperands = new ArrayList<>(size);
+        List<Formula> operands = new ArrayList<>(size);
+
+        for (Formula operand : conjunction.operands) {
+          Formula visitedOperand = operand.accept(this);
+
+          if (visitedOperand instanceof GOperator gOperator
+              && !nonUniqueOperators.containsKey(gOperator)) {
+
+            gOperatorOperands.add(gOperator.operand());
+          } else {
+            operands.add(operand);
+          }
+        }
+
+        if (!gOperatorOperands.isEmpty()) {
+          operands.add(new GOperator(Conjunction.of(gOperatorOperands)));
+        }
+
+        return Conjunction.of(operands);
+      }
+
+      public Formula visit(Disjunction disjunction) {
+        int size = disjunction.operands.size();
+
+        List<Formula> fOperatorOperands = new ArrayList<>(size);
+        List<Formula> operands = new ArrayList<>(size);
+
+        for (Formula operand : disjunction.operands) {
+          Formula visitedOperand = operand.accept(this);
+
+          if (visitedOperand instanceof FOperator fOperator
+              && !nonUniqueOperators.containsKey(fOperator)) {
+
+            fOperatorOperands.add(fOperator.operand());
+          } else {
+            operands.add(operand);
+          }
+        }
+
+        if (!fOperatorOperands.isEmpty()) {
+          operands.add(new FOperator(Disjunction.of(fOperatorOperands)));
+        }
+
+        return Disjunction.of(operands);
+      }
+    }
+
+    return formula.accept(new RecombineOperators());
   }
 
   abstract static class Base<S, A extends EmersonLeiAcceptance>
@@ -134,7 +210,9 @@ public final class DeterministicConstructions {
       extends Base<EquivalenceClass, A> {
 
     private Looping(Factories factories, Formula formula, A acceptance) {
-      super(factories, initialStateInternal(factories.eqFactory.of(formula)), acceptance);
+      super(factories,
+          initialStateInternal(factories.eqFactory.of(formula)),
+          acceptance);
     }
 
     @Override
@@ -155,7 +233,7 @@ public final class DeterministicConstructions {
 
     public static CoSafety of(Factories factories, Formula formula) {
       checkArgument(isCoSafety(formula), formula);
-      return new CoSafety(factories, formula);
+      return new CoSafety(factories, normalise(formula));
     }
 
     @Override
@@ -175,12 +253,15 @@ public final class DeterministicConstructions {
 
     private Safety(Factories factories, Formula formula) {
       super(factories, formula, AllAcceptance.INSTANCE);
-
     }
 
     public static Safety of(Factories factories, Formula formula) {
+      return of(factories, formula, true);
+    }
+
+    public static Safety of(Factories factories, Formula formula, boolean normalise) {
       checkArgument(isSafety(formula), formula);
-      return new Safety(factories, formula);
+      return new Safety(factories, normalise ? normalise(formula) : formula);
     }
 
     @Override
@@ -406,7 +487,7 @@ public final class DeterministicConstructions {
         boolean deactivateSuspensionCheckOnInitialFormula) {
       checkArgument(SyntacticFragments.isCoSafetySafety(formula));
 
-      var formulaClass = factories.eqFactory.of(formula);
+      var formulaClass = factories.eqFactory.of(normalise(formula));
       var suspensionCheck = new SuspensionCheck(
           deactivateSuspensionCheckOnInitialFormula ? factories.eqFactory.of(true) : formulaClass);
       BreakpointStateAccepting initialState;
@@ -578,7 +659,7 @@ public final class DeterministicConstructions {
 
       checkArgument(SyntacticFragments.isSafetyCoSafety(formula));
 
-      var formulaClass = factories.eqFactory.of(formula);
+      var formulaClass = factories.eqFactory.of(normalise(formula));
       var suspensionCheck = deactivateSuspensionCheckOnInitialFormula
           ? new SuspensionCheck()
           : new SuspensionCheck(formulaClass);
@@ -1613,4 +1694,6 @@ public final class DeterministicConstructions {
           profile().isEmpty() ? "[suspended]" : profile());
     }
   }
+
+
 }

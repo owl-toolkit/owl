@@ -26,6 +26,7 @@ import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.INITIAL;
 import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.REJECTING;
 
 import com.google.common.collect.Iterables;
+import com.google.common.collect.Streams;
 import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,6 +36,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
@@ -71,11 +73,14 @@ import owl.automaton.hoa.HoaReader;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
 import owl.collections.Collections3;
+import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.LabelledFormula;
 import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 import owl.translations.LtlTranslationRepository;
+import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
+import owl.translations.ltl2dela.NormalformDELAConstruction.State;
 import owl.translations.ltl2dpa.NormalformDPAConstruction;
 
 @SuppressWarnings("PMD.CouplingBetweenObjects")
@@ -430,12 +435,20 @@ public final class CAutomaton {
 
       if (stateId == REJECTING) {
         state = ZielonkaState.of(
-            NormalformDELAConstruction.State.of(
-                PropositionalFormula.falseConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
+            new State(
+                PropositionalFormula.falseConstant(),
+                ImmutableBitSet.of(),
+                List.of(),
+                ImmutableBitSet.of()),
+            ImmutableIntArray.of());
       } else if (stateId == ACCEPTING) {
         state = ZielonkaState.of(
-            NormalformDELAConstruction.State.of(
-                PropositionalFormula.trueConstant(), Map.of(), Set.of()), ImmutableIntArray.of());
+            new State(
+                PropositionalFormula.trueConstant(),
+                ImmutableBitSet.of(),
+                List.of(),
+                ImmutableBitSet.of()),
+            ImmutableIntArray.of());
       } else {
         var uncastedState = stateId == INITIAL && automaton.index2StateMap.isEmpty()
             ? automaton.automaton.initialState()
@@ -451,8 +464,10 @@ public final class CAutomaton {
 
       states.add(state);
       stateFormulas.add(state.state().stateFormula());
-      state.state().stateMap().forEach((key, breakPointState) ->
-          encoders
+      Streams.forEachPair(
+          state.state().stateMapKeys().stream(),
+          state.state().stateMapValues().stream(),
+          (key, breakPointState) -> encoders
               .computeIfAbsent(key, x -> new EquivalenceClassEncoder())
               .put(breakPointState));
     }
@@ -464,7 +479,10 @@ public final class CAutomaton {
       // Load state fields.
       var state = states.get(i);
       var stateFormula = state.state().stateFormula();
-      var stateMap = state.state().stateMap();
+      State state1 = state.state();
+      Set<Entry<Integer, BreakpointStateRejecting>> stateMap = new HashSet<>();
+      Streams.forEachPair(state1.stateMapKeys().stream(), state1.stateMapValues().stream(),
+          (x, y) -> stateMap.add(Map.entry(x, y)));
       var roundRobinCounters = state.state().roundRobinCounters();
       var zielonkaPath = state.path();
       var zielonkaTree = zielonkaAutomaton.lookup(state);
@@ -481,7 +499,7 @@ public final class CAutomaton {
       decomposedState.roundRobinCounters(CIntVectors.copyOf(roundRobinCounters));
       decomposedState.zielonkaPath(CIntVectors.copyOf(zielonkaPath));
 
-      var iterator = stateMap.entrySet().iterator();
+      var iterator = stateMap.iterator();
       ZielonkaNormalFormState.StateMapEntry entries = iterator.hasNext()
           ? org.graalvm.nativeimage.UnmanagedMemory.malloc(
           SizeOf.unsigned(ZielonkaNormalFormState.StateMapEntry.class).multiply(stateMap.size()))

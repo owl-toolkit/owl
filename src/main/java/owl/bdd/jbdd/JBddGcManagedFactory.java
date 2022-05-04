@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -27,15 +27,19 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
+sealed abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode>
+    permits JBddEquivalenceClassFactory, JBddSetFactory {
 
-  final Bdd bdd;
+  protected final Bdd bdd;
   private final Map<Integer, JBddNodeReference<V>> gcObjects = new HashMap<>();
   private final Map<Integer, V> nonGcObjects = new HashMap<>();
   private final ReferenceQueue<V> queue = new ReferenceQueue<>();
 
-  JBddGcManagedFactory(Bdd bdd) {
+  private final boolean gcDisabled;
+
+  JBddGcManagedFactory(Bdd bdd, boolean gcDisabled) {
     this.bdd = bdd;
+    this.gcDisabled = gcDisabled;
   }
 
   // This is not thread safe!
@@ -45,7 +49,7 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
     // Root nodes and variables are exempt from GC.
     if (bdd.isNodeRoot(node) || bdd.isVariableOrNegated(node)) {
       assert bdd.getReferenceCount(node) == -1
-        : reportReferenceCountMismatch(-1, bdd.getReferenceCount(node));
+          : reportReferenceCountMismatch(-1, bdd.getReferenceCount(node));
 
       return nonGcObjects.merge(node, wrapper, (oldWrapper, newWrapper) -> oldWrapper);
     }
@@ -54,14 +58,14 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
 
     if (canonicalReference == null) {
       // The BDD was created and needs a reference to be protected.
-      assert bdd.getReferenceCount(node) == 0
-        : reportReferenceCountMismatch(0, bdd.getReferenceCount(node));
+      assert gcDisabled || bdd.getReferenceCount(node) == 0
+          : reportReferenceCountMismatch(0, bdd.getReferenceCount(node));
 
       bdd.reference(node);
     } else {
       // The BDD already existed.
-      assert bdd.getReferenceCount(node) == 1
-        : reportReferenceCountMismatch(1, bdd.getReferenceCount(node));
+      assert gcDisabled || bdd.getReferenceCount(node) == 1
+          : reportReferenceCountMismatch(1, bdd.getReferenceCount(node));
 
       V canonicalWrapper = canonicalReference.get();
 
@@ -76,12 +80,12 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
       }
     }
 
-    assert bdd.getReferenceCount(node) == 1;
+    assert gcDisabled || bdd.getReferenceCount(node) == 1;
     // Remove queued BDDs from the mapping.
     processReferenceQueue(node);
     // Insert BDD into mapping.
     gcObjects.put(node, new JBddNodeReference<>(wrapper, queue));
-    assert bdd.getReferenceCount(node) == 1;
+    assert gcDisabled || bdd.getReferenceCount(node) == 1;
     return wrapper;
   }
 
@@ -109,7 +113,7 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
       int node = ((JBddNodeReference<?>) reference).node;
       gcObjects.remove(node);
 
-      if (node != protectedNode) {
+      if (!gcDisabled && node != protectedNode) {
         assert bdd.getReferenceCount(node) == 1;
         bdd.dereference(node);
         assert bdd.getReferenceCount(node) == 0;
@@ -123,6 +127,7 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
   }
 
   private static final class JBddNodeReference<V extends JBddNode> extends WeakReference<V> {
+
     private final int node;
 
     private JBddNodeReference(V wrapper, ReferenceQueue<? super V> queue) {
@@ -132,11 +137,12 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
   }
 
   interface JBddNode {
+
     int node();
   }
 
   private static String reportReferenceCountMismatch(int expected, int actual) {
     return String.format(
-      "Expected reference count {%d}, but actual count is {%d}.", expected, actual);
+        "Expected reference count {%d}, but actual count is {%d}.", expected, actual);
   }
 }
