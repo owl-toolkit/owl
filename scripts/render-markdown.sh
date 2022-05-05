@@ -22,9 +22,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-[ ${#} -eq 1 ] || (echo "No destination path given"; exit 1)
+[ ${#} -eq 1 ] || echo "No destination path given" && exit 1
 
-# shellcheck source=./vars.sh
+# shellcheck source=scripts/vars.sh
 source "$(dirname "$0")/vars.sh"
 
 files=("README.md" "CHANGELOG.md" "doc/"*)
