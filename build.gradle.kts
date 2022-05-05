@@ -263,7 +263,7 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
     mkdir("${buildDir}/native-library")
     workingDir("${buildDir}/native-library")
 
-    val command = (System.getenv("GRAAL_HOME") ?.let { "${it}/bin/" } ?: "")  + "native-image"
+    val command = (System.getenv("GRAAL_HOME")?.let { "${it}/bin/" } ?: "") + "native-image"
 
     commandLine(
         command,
@@ -281,7 +281,7 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
         // "-H:+DashboardAll",
         "-H:+ReportExceptionStackTraces",
         // "-H:-UseServiceLoaderFeature",
-        "-Djava.lang.Integer.IntegerCache.high=1024"// Cache more boxed integers.
+        "-Djava.lang.Integer.IntegerCache.high=1024" // Cache more boxed integers.
     )
 
     (System.getenv("CC"))?.let { args("-H:CCompilerPath=${it}") }
@@ -432,8 +432,8 @@ publishing {
 
             pom {
                 name.set("owl")
-                description.set("A tool collection and library for Omega-words, -automata" +
-                        " and Linear Temporal Logic (LTL)")
+                description.set("A tool collection and library for " +
+                        "Omega-words, -automata and Linear Temporal Logic (LTL)")
                 url.set("https://github.com/incaseoftrouble/naturals-util")
 
                 licenses {
