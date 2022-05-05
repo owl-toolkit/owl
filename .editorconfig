@@ -1,0 +1,6 @@
+[*.{kt,kts}]
+insert_final_newline=true
+
+[build.gradle.kts]
+max_line_length=off
+disabled_rules=string-template,no-consecutive-blank-lines,wrapping,indent

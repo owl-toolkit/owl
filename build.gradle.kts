@@ -432,8 +432,7 @@ publishing {
 
             pom {
                 name.set("owl")
-                description.set("A tool collection and library for " +
-                        "Omega-words, -automata and Linear Temporal Logic (LTL)")
+                description.set("A tool collection and library for Omega-words, -automata and Linear Temporal Logic (LTL)")
                 url.set("https://github.com/incaseoftrouble/naturals-util")
 
                 licenses {
