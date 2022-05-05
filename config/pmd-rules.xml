@@ -127,6 +127,4 @@
             <property name="maximumVariables" value="2" />
         </properties>
     </rule>
-
-    <exclude-pattern>.*/owl/grammar/.*</exclude-pattern>
 </ruleset>

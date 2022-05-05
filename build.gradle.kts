@@ -1,3 +1,5 @@
+import org.gradle.nativeplatform.platform.internal.DefaultNativePlatform
+
 /*
  * Copyright (C) 2016, 2022  (See AUTHORS)
  *
@@ -18,7 +20,7 @@
  */
 
 plugins {
-    java
+    `java-library`
     distribution
     application
     antlr
@@ -41,6 +43,7 @@ plugins {
 
 group = "de.tum.in"
 version = "22.0-development"
+val owlMainClass = "owl.command.OwlCommand"
 
 base {
     archivesName.set("owl")
@@ -56,22 +59,18 @@ java {
     withSourcesJar()
 }
 
-tasks.compileJava {
-    options.compilerArgs.addAll(
-        listOf(
-            "-Xlint:cast",
-            "-Xlint:deprecation",
-            "-Xlint:divzero",
-            "-Xlint:empty",
-            "-Xlint:finally",
-            "-Xlint:overrides",
-            // "-Xlint:processing",
-            "-Xlint:try",
-            // "-Xlint:unchecked",
-            "-Xlint:varargs",
-            "-Werror"
+tasks.jar {
+    manifest {
+        attributes(
+            "Implementation-Title" to "owl",
+            "Implementation-Version" to project.version,
+            "Main-Class" to owlMainClass
         )
-    )
+    }
+}
+
+application {
+    mainClass.set(owlMainClass)
 }
 
 idea {
@@ -81,17 +80,7 @@ idea {
     }
 }
 
-tasks.jar {
-    manifest {
-        attributes(
-            "Implementation-Title" to "owl",
-            "Implementation-Version" to project.version
-            // "Main-Class" to project.mainClassName -- should be set by application plugin
-        )
-    }
-}
-
-val os = org.gradle.nativeplatform.platform.internal.DefaultNativePlatform.getCurrentOperatingSystem()!!
+val os = DefaultNativePlatform.getCurrentOperatingSystem()!!
 val buildMarkdown = !os.isWindows && !project.hasProperty("disable-pandoc")
 val staticNativeExecutable = project.hasProperty("static-native-executable")
 val enableNativeAssertions = project.hasProperty("enable-native-assertions")
@@ -142,6 +131,8 @@ listOf(configurations.runtimeClasspath, configurations.testRuntimeClasspath).for
     }
 }
 
+// ---------------- Testing ----------------
+
 tasks.test {
     useJUnitPlatform {
         excludeTags("size-regression-test", "size-regression-train", "size-report", "performance")
@@ -175,12 +166,33 @@ tasks.withType<Test> {
     maxHeapSize = "6G"
 }
 
+// ---------------- Compilation ----------------
+
+tasks.compileJava {
+    options.compilerArgs.addAll(
+        listOf(
+            "-Xlint:cast",
+            "-Xlint:deprecation",
+            "-Xlint:divzero",
+            "-Xlint:empty",
+            "-Xlint:finally",
+            "-Xlint:overrides",
+            // "-Xlint:processing",
+            "-Xlint:try",
+            // "-Xlint:unchecked",
+            "-Xlint:varargs",
+            "-Werror"
+        )
+    )
+}
+
 // ---------------- ANTLR ----------------
 
 tasks.generateGrammarSource {
     arguments.addAll(listOf("-visitor", "-long-messages", "-lib", "src/main/antlr"))
     outputDirectory = file("${project.buildDir}/generated-src/antlr/main/owl/grammar")
 }
+tasks.getByPath(":sourcesJar").dependsOn(tasks.generateGrammarSource)
 
 // ---------------- Static Analysis ----------------
 
@@ -210,7 +222,7 @@ tasks.withType<Pmd> {
 
 // ---------------- Native Compilation ----------------
 
-val kissatDir ="${projectDir}/thirdparty/kissat"
+val kissatDir = "${projectDir}/thirdparty/kissat"
 val configureKissat = tasks.register<Exec>("configureKissat") {
     group = "native"
     description = "Configure Kissat"
@@ -235,8 +247,13 @@ val buildKissat = tasks.register<Exec>("buildKissat") {
             commandLine("${kissatDir}/build/kissat", "--banner")
         }
     }
-    // No need to cache, make takes care of that
+
+    outputs.dir("${kissatDir}/build/")
+    // outputs.cacheIf { true }
 }
+
+tasks.test.configure { dependsOn(buildKissat) }
+
 
 val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
     group = "native"
@@ -246,8 +263,7 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
     mkdir("${buildDir}/native-library")
     workingDir("${buildDir}/native-library")
 
-    val graalHome = System.getenv("GRAAL_HOME")
-    val command = (if (graalHome == null) "" else "$graalHome/bin/") + "native-image"
+    val command = (System.getenv("GRAAL_HOME") ?.let { "${it}/bin/" } ?: "")  + "native-image"
 
     commandLine(
         command,
@@ -269,9 +285,9 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
     )
 
     (System.getenv("CC"))?.let { args("-H:CCompilerPath=${it}") }
-    outputs.files(file("${project.buildDir}/native-library")
-        .listFiles { _, name -> name.endsWith(".h") || name.endsWith(".so") || name.endsWith(".dynlib") }
-    )
+    outputs.files(file("${project.buildDir}/native-library").listFiles { _, name ->
+        name.endsWith(".h") || name.endsWith(".so") || name.endsWith(".dynlib")
+    })
 }
 
 val buildNativeExecutable = tasks.register<Exec>("buildNativeExecutable") {
@@ -289,7 +305,7 @@ val buildNativeExecutable = tasks.register<Exec>("buildNativeExecutable") {
     commandLine(
         command,
         "owl",
-        "-jar", tasks.jar.get().destinationDirectory.file(tasks.jar.get().archiveFileName),
+        "-jar", tasks.jar.get().archiveFile.get(),
         "-cp", sourceSets["main"].runtimeClasspath.asPath,
         if (enableNativeAssertions) "-ea" else "-da",
         "-DowlHeader=${projectDir}/src/main/c/headers",
@@ -335,16 +351,13 @@ tasks.javadoc.configure {
         encoding = "UTF-8"
         links("https://docs.oracle.com/en/java/javase/17/docs/api")
         addBooleanOption("html5", true)
-        addStringOption("Xdoclint:none")
+        addBooleanOption("Xdoclint:none", true) // Very lenient
         quiet()
     }
+    exclude("**/thirdparty/**")
 }
 
 // ---------------- Distributions ----------------
-
-application {
-    mainClass.set("owl.command.OwlCommand")
-}
 
 val nativeDistributionOsIdentifier =
     if (os.isMacOsX) "macos"
@@ -361,15 +374,17 @@ distributions {
             from("AUTHORS")
             from("LICENSE")
             from(compileMarkdown)
+
             into("bin") {
-                from(buildKissat)
+                from(buildKissat) {
+                    include("kissat") // Need more / less?
+                }
                 from("scripts/rabinizer.sh")
             }
-
             into("jar") {
                 from(tasks.jar)
-                from(tasks.javadoc)
-                from(sourceSets["main"])
+                from(tasks.getByPath(":sourcesJar"))
+                from(tasks.getByPath(":javadocJar"))
             }
         }
     }
@@ -382,29 +397,24 @@ distributions {
             from(compileMarkdown)
 
             into("bin") {
-                from(buildKissat)
+                from(buildKissat) {
+                    include("kissat") // Need more / less?
+                }
+                from("scripts/rabinizer.sh")
                 from(buildNativeExecutable)
             }
-
-            into("bin") {
-                from("scripts/rabinizer.sh")
-            }
-
             into("lib") {
-                from("$projectDir/src/main/headers")
+                from("${projectDir}/src/main/headers") // Should headers go to src?
                 from(buildNativeLibrary)
             }
-
             into("jar") {
                 from(tasks.jar)
-                from(tasks.javadoc)
-                from(sourceSets["main"])
+                from(tasks.getByPath(":sourcesJar"))
+                from(tasks.getByPath(":javadocJar"))
             }
         }
     }
 }
-
-tasks.test.configure { dependsOn(buildKissat) }
 
 // ---------------- Publishing ----------------
 
@@ -422,7 +432,8 @@ publishing {
 
             pom {
                 name.set("owl")
-                description.set("A tool collection and library for Omega-words, -automata and Linear Temporal Logic (LTL)")
+                description.set("A tool collection and library for Omega-words, -automata" +
+                        " and Linear Temporal Logic (LTL)")
                 url.set("https://github.com/incaseoftrouble/naturals-util")
 
                 licenses {
