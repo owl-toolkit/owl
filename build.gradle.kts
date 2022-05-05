@@ -190,15 +190,16 @@ pmd {
     ruleSetFiles = files("${project.projectDir}/config/pmd-rules.xml")
     ruleSets = listOf() // We specify all rules in rules.xml
     isConsoleOutput = false
-    isIgnoreFailures = false
+    isIgnoreFailures = true
 }
 
 tasks.withType<Pmd> {
+    group = "verification"
+
     reports {
         xml.required.set(false)
         html.required.set(true)
     }
-
     excludes.addAll(
         listOf(
             "**/generated*/**",
@@ -211,7 +212,9 @@ tasks.withType<Pmd> {
 
 val kissatDir ="${projectDir}/thirdparty/kissat"
 val configureKissat = tasks.register<Exec>("configureKissat") {
+    group = "native"
     description = "Configure Kissat"
+
     workingDir(kissatDir)
     commandLine("./configure")
 
@@ -220,8 +223,10 @@ val configureKissat = tasks.register<Exec>("configureKissat") {
 }
 
 val buildKissat = tasks.register<Exec>("buildKissat") {
-    dependsOn(configureKissat)
+    group = "native"
     description = "Build Kissat Binary"
+    dependsOn(configureKissat)
+
     workingDir(kissatDir)
     commandLine("make")
 
@@ -234,7 +239,10 @@ val buildKissat = tasks.register<Exec>("buildKissat") {
 }
 
 val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
+    group = "native"
+    description = "Compile the native library"
     dependsOn(tasks.jar, buildKissat)
+
     mkdir("${buildDir}/native-library")
     workingDir("${buildDir}/native-library")
 
@@ -267,6 +275,8 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
 }
 
 val buildNativeExecutable = tasks.register<Exec>("buildNativeExecutable") {
+    group = "native"
+    description = "Compile the native executable"
     dependsOn(tasks.jar, buildKissat)
 
     mkdir("${buildDir}/native-executable")
@@ -309,6 +319,8 @@ val buildNativeExecutable = tasks.register<Exec>("buildNativeExecutable") {
 
 // Compile the markdown files
 val compileMarkdown = tasks.register<Exec>("compileMarkdown") {
+    group = "documentation"
+
     executable("scripts/render-markdown.sh")
     outputs.dir("${project.buildDir}/docs/markdown")
     args("${project.buildDir}/docs/markdown")
