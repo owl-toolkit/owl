@@ -2741,7 +2741,7 @@
   {
     "formula": "(FGa & (Ga | ((b) U (Ga))))",
     "properties": {
-      "size": 2,
+      "size": 4,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 5,
@@ -3478,7 +3478,7 @@
   {
     "formula": "(GFa | (Fa & ((b) R (Fa))))",
     "properties": {
-      "size": 3,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 5,
@@ -4875,7 +4875,7 @@
   {
     "formula": "((((((Ga) M (a))) W (b))) U (((a) R (Xa))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 4,
@@ -8065,7 +8065,7 @@
   {
     "formula": "((a) U ((b & c & ((F!b) W (((!c & !d) | (d & ((c) U ((a & c))))))))))",
     "properties": {
-      "size": 25,
+      "size": 26,
       "initialStatesSize": 1,
       "acceptanceName": "ParityAcceptance",
       "acceptanceSets": 5,

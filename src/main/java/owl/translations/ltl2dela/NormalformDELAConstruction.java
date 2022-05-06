@@ -30,7 +30,7 @@ import static owl.translations.ltl2dela.NormalformDELAConstruction.Classificatio
 import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_PI_2_AND_FG_PI_1;
 import static owl.translations.mastertheorem.Normalisation.NormalisationMethod.SE20_SIGMA_2_AND_GF_SIGMA_1;
 
-import com.google.auto.value.AutoValue;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.google.common.collect.Iterables;
@@ -41,10 +41,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NavigableMap;
 import java.util.NavigableSet;
+import java.util.Objects;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.function.Function;
 import javax.annotation.Nullable;
@@ -222,14 +221,12 @@ public final class NormalformDELAConstruction
 
         @Override
         protected MtBdd<Edge<State>> edgeTreeImpl(State state) {
-          Map<Integer, BreakpointStateRejecting> stateMap = state.stateMap();
-          List<Integer> keys = new ArrayList<>(stateMap.size());
-          List<MtBdd<Edge<BreakpointStateRejecting>>> values = new ArrayList<>(stateMap.size());
+          List<Integer> keys = new ArrayList<>(state.stateMapKeys);
+          List<MtBdd<Edge<BreakpointStateRejecting>>> values = new ArrayList<>(keys.size());
 
-          stateMap.forEach((key, value) -> {
-            keys.add(key);
+          for (BreakpointStateRejecting value : state.stateMapValues) {
             values.add(dbw.edgeTree(value));
-          });
+          }
 
           // Remember, dbw needs to be complete!
           return edgeTreeImpl(state, keys, values, new HashMap<>(), 0);
@@ -459,7 +456,7 @@ public final class NormalformDELAConstruction
 
       assert roundRobinCandidates.containsAll(oldRoundRobinCounters);
 
-      NavigableMap<Integer, Classification> classification = classifier.classify(stateMap);
+      Map<Integer, Classification> classification = classifier.classify(stateMap);
 
       // Keep this in sync with shortCircuit.
       PropositionalFormula<Integer> newStateFormula
@@ -477,7 +474,7 @@ public final class NormalformDELAConstruction
       });
 
       assert stateMap.keySet().containsAll(newStateFormula.variables()) : "Short-circuiting failed";
-      newStateFormula = pruneRedundantConjunctsAndDisjuncts(newStateFormula, stateMap);
+      newStateFormula = newStateFormula; // pruneRedundantConjunctsAndDisjuncts(newStateFormula, stateMap);
 
       {
         var remainingVariables = newStateFormula.variables();
@@ -529,16 +526,22 @@ public final class NormalformDELAConstruction
           alpha, stateMap, acceptingEdges, oldRoundRobinCounters, newRoundRobinCounters);
 
       alpha = alpha.substitute(x -> {
-        ImmutableBitSet roundRobinChain = Iterables.getOnlyElement(
-            roundRobinChains.stream().filter(chain -> chain.contains(x)).toList(),
-            null);
+        ImmutableBitSet selectedRoundRobinChain = null;
 
-        return roundRobinChain == null
+        for (ImmutableBitSet chain : roundRobinChains) {
+          if (chain.contains(x)) {
+            selectedRoundRobinChain = chain;
+            break;
+          }
+        }
+
+        return selectedRoundRobinChain == null
             ? PropositionalFormula.Variable.of(x)
-            : PropositionalFormula.Variable.of(roundRobinChain.first().orElseThrow());
+            : PropositionalFormula.Variable.of(selectedRoundRobinChain.first().orElseThrow());
       });
 
-      var state = State.of(newStateFormula, stateMap, newRoundRobinCounters);
+      var state = State.of(
+          newStateFormula, stateMap, ImmutableBitSet.copyOf(newRoundRobinCounters));
       var oldAlpha = alphaCache.put(state, alpha);
       assert oldAlpha == null || alpha.equals(oldAlpha);
       return state;
@@ -1095,55 +1098,90 @@ public final class NormalformDELAConstruction
     }
   }
 
-  @AutoValue
-  public abstract static class State {
+  public record State(PropositionalFormula<Integer> stateFormula,
+                      ImmutableBitSet stateMapKeys,
+                      List<BreakpointStateRejecting> stateMapValues,
+                      ImmutableBitSet roundRobinCounters) {
 
-    public abstract PropositionalFormula<Integer> stateFormula();
+    public State {
+      Objects.requireNonNull(stateFormula);
+      Objects.requireNonNull(stateMapKeys);
+      stateMapValues = List.copyOf(stateMapValues);
+      Objects.requireNonNull(roundRobinCounters);
 
-    public abstract Map<Integer, BreakpointStateRejecting> stateMap();
-
-    public abstract ImmutableBitSet roundRobinCounters();
-
-    public static State of(
-        PropositionalFormula<Integer> stateFormula,
-        Map<Integer, BreakpointStateRejecting> stateMap,
-        BitSet counters) {
-
-      return of(stateFormula, stateMap, ImmutableBitSet.copyOf(counters));
+      Preconditions.checkArgument(stateFormula.variables().equals(stateMapKeys));
+      Preconditions.checkArgument(stateMapKeys.size() == stateMapValues.size());
+      Preconditions.checkArgument(stateMapKeys.containsAll(roundRobinCounters));
     }
 
     public static State of(
         PropositionalFormula<Integer> stateFormula,
         Map<Integer, BreakpointStateRejecting> stateMap,
-        Set<Integer> counters) {
+        ImmutableBitSet counters) {
 
-      assert stateFormula.variables().equals(stateMap.keySet());
-      assert stateMap.keySet().containsAll(counters);
+      var stateMapKeys = ImmutableBitSet.copyOf(stateMap.keySet());
+      var stateMapValues = new BreakpointStateRejecting[stateMapKeys.size()];
 
-      return new AutoValue_NormalformDELAConstruction_State(
-          stateFormula, Map.copyOf(stateMap), ImmutableBitSet.copyOf(counters));
+      int i = 0;
+      for (Integer key : stateMapKeys) {
+        stateMapValues[i] = stateMap.get(key);
+        i++;
+      }
+
+      return new State(
+          stateFormula,
+          stateMapKeys,
+          List.of(stateMapValues),
+          counters);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) {
+        return true;
+      }
+
+      return o instanceof State otherState
+          && stateMapKeys.equals(otherState.stateMapKeys)
+          && roundRobinCounters.equals(otherState.roundRobinCounters)
+          && stateMapValues.equals(otherState.stateMapValues)
+          && stateFormula.equals(otherState.stateFormula);
+    }
+
+    @Override
+    public int hashCode() {
+      return stateMapValues.hashCode();
+    }
+
+    @Nullable
+    public BreakpointStateRejecting get(int i) {
+      int index = 0;
+
+      for (int key : stateMapKeys) {
+        if (key == i) {
+          break;
+        } else {
+          index++;
+        }
+      }
+
+      return index < stateMapValues.size() ? stateMapValues.get(index) : null;
     }
 
     public boolean inDifferentSccs(State otherState) {
-      if (!stateFormula().equals(otherState.stateFormula())) {
+      if (!stateMapKeys.equals(otherState.stateMapKeys)) {
         return true;
       }
 
-      if (stateMap().size() != otherState.stateMap().size()) {
+      if (!stateFormula.equals(otherState.stateFormula)) {
         return true;
       }
 
-      for (var entry : stateMap().entrySet()) {
-        var value2 = otherState.stateMap().get(entry.getKey());
+      for (int i = 0, s = stateMapValues.size(); i < s; i++) {
+        var value1 = stateMapValues.get(i);
+        var value2 = otherState.stateMapValues.get(i);
 
-        if (value2 == null) {
-          return true;
-        }
-
-        var all1 = entry.getValue().all();
-        var all2 = value2.all();
-
-        if (BlockingElements.surelyContainedInDifferentSccs(all1, all2)) {
+        if (BlockingElements.surelyContainedInDifferentSccs(value1.all(), value2.all())) {
           return true;
         }
       }
@@ -1179,10 +1217,10 @@ public final class NormalformDELAConstruction
     }
 
     // This should only be called on unsuspended states (or by SafetyCoSafety suspended states).
-    NavigableMap<Integer, Classification> classify(
+    Map<Integer, Classification> classify(
         Map<Integer, ? extends BreakpointStateRejecting> stateMap) {
 
-      var map = new TreeMap<Integer, Classification>();
+      var map = new HashMap<Integer, Classification>(stateMap.size());
 
       stateMap.forEach((key, state) -> {
         map.put(key, classify(state));

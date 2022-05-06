@@ -29,6 +29,8 @@ import static owl.logic.propositional.PropositionalFormula.trueConstant;
 
 import com.google.common.base.Preconditions;
 import de.tum.in.jbdd.Bdd;
+import de.tum.in.jbdd.BddFactory;
+import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collections;
@@ -55,12 +57,26 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
   private final int falseNode;
   private int variables;
 
-  JBddSetFactory(Bdd factory) {
-    super(factory);
+  JBddSetFactory(int size) {
+    super(createBdd(size), false);
 
-    trueNode = factory.trueNode();
-    falseNode = factory.falseNode();
+    trueNode = this.bdd.trueNode();
+    falseNode = this.bdd.falseNode();
     variables = 0;
+  }
+
+  private static Bdd createBdd(int size) {
+    var configuration = ImmutableBddConfiguration.builder()
+        .logStatisticsOnShutdown(false)
+        .useGlobalComposeCache(false)
+        .integrityDuplicatesMaximalSize(50)
+        .cacheBinaryDivider(4)
+        .cacheTernaryDivider(4)
+        .growthFactor(4)
+        .build();
+
+    // Do not use buildBddIterative, since 'support(...)' is broken.
+    return BddFactory.buildBddRecursive(size, configuration);
   }
 
   @Override

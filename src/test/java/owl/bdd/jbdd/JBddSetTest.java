@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -19,7 +19,6 @@
 
 package owl.bdd.jbdd;
 
-import de.tum.in.jbdd.BddFactory;
 import owl.bdd.BddSetFactory;
 import owl.collections.BddSetTest;
 
@@ -27,6 +26,6 @@ public class JBddSetTest extends BddSetTest {
 
   @Override
   protected BddSetFactory factory() {
-    return new JBddSetFactory(BddFactory.buildBdd(1024));
+    return new JBddSetFactory(1024);
   }
 }

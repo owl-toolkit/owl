@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2017, 2022  (Salomon Sickert, Tobias Meggendorfer)
  *
  * This file is part of Owl.
  *
@@ -19,9 +19,6 @@
 
 package owl.bdd.jbdd;
 
-import de.tum.in.jbdd.Bdd;
-import de.tum.in.jbdd.BddFactory;
-import de.tum.in.jbdd.ImmutableBddConfiguration;
 import java.util.List;
 import owl.bdd.BddSetFactory;
 import owl.bdd.EquivalenceClassFactory;
@@ -30,29 +27,16 @@ import owl.bdd.FactorySupplier;
 public enum JBddSupplier implements FactorySupplier {
   INSTANCE;
 
-  static Bdd create(int size) {
-    var configuration = ImmutableBddConfiguration.builder()
-      .logStatisticsOnShutdown(false)
-      .useGlobalComposeCache(false)
-      .integrityDuplicatesMaximalSize(50)
-      .cacheBinaryDivider(4)
-      .cacheTernaryDivider(4)
-      .growthFactor(2)
-      .build();
-
-    // Do not use buildBddIterative, since 'support(...)' is broken.
-    return BddFactory.buildBddRecursive(size, configuration);
-  }
-
   @Override
   public EquivalenceClassFactory getEquivalenceClassFactory(
-    List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding) {
-    Bdd eqFactoryBdd = create(1024 * (atomicPropositions.size() + 1));
-    return new JBddEquivalenceClassFactory(eqFactoryBdd, atomicPropositions, defaultEncoding);
+      List<String> atomicPropositions,
+      EquivalenceClassFactory.Encoding defaultEncoding) {
+
+    return new JBddEquivalenceClassFactory(atomicPropositions, defaultEncoding);
   }
 
   @Override
   public BddSetFactory getBddSetFactory() {
-    return new JBddSetFactory(create(1024));
+    return new JBddSetFactory(1024);
   }
 }

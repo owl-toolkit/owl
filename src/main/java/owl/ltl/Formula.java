@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016, 2022  (Salomon Sickert, Tobias Meggendorfer, and Max Prokop)
  *
  * This file is part of Owl.
  *
@@ -19,12 +19,10 @@
 
 package owl.ltl;
 
-import com.google.common.collect.Comparators;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
-import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.List;
@@ -39,9 +37,6 @@ import owl.ltl.visitors.IntVisitor;
 import owl.ltl.visitors.Visitor;
 
 public abstract sealed class Formula implements Comparable<Formula> {
-
-  private static final Comparator<Iterable<Formula>>
-    LIST_COMPARATOR = Comparators.lexicographical(Formula::compareTo);
 
   public final List<Formula> operands;
 
@@ -74,7 +69,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
       if (formula instanceof Literal) {
         atomicPropositions.set(((Literal) formula).getAtom());
       } else if (formula instanceof PropositionalOperator
-        || (includeNested && formula instanceof TemporalOperator)) {
+          || (includeNested && formula instanceof TemporalOperator)) {
         workQueue.addAll(formula.operands);
       }
     }
@@ -138,10 +133,17 @@ public abstract sealed class Formula implements Comparable<Formula> {
       return lengthComparison;
     }
 
-    return LIST_COMPARATOR.compare(operands, that.operands);
+    for (int i = 0, s = operands.size(); i < s; i++) {
+      int operandComparison = operands.get(i).compareTo(that.operands.get(i));
+
+      if (operandComparison != 0) {
+        return operandComparison;
+      }
+    }
+
+    return 0;
   }
 
-  @SuppressWarnings("PMD")
   protected int compareValue(Formula o) {
     return 0;
   }
@@ -157,10 +159,10 @@ public abstract sealed class Formula implements Comparable<Formula> {
     }
 
     return this.hashCode == that.hashCode
-      && this.height == that.height
-      && this.getClass().equals(that.getClass())
-      && this.equalsValue(that)
-      && this.operands.equals(that.operands);
+        && this.height == that.height
+        && this.getClass().equals(that.getClass())
+        && this.equalsValue(that)
+        && this.operands.equals(that.operands);
   }
 
   protected boolean equalsValue(Formula o) {
@@ -205,7 +207,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
   }
 
   public final <E> Set<E> subformulas(
-    Predicate<? super Formula> predicate, Function<? super Formula, E> cast) {
+      Predicate<? super Formula> predicate, Function<? super Formula, E> cast) {
 
     if (operands.isEmpty()) {
       return predicate.test(this) ? Set.of(cast.apply(this)) : Set.of();
@@ -228,7 +230,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
   }
 
   public abstract Formula substitute(
-    Function<? super TemporalOperator, ? extends Formula> substitution);
+      Function<? super TemporalOperator, ? extends Formula> substitution);
 
   /**
    * Do a single temporal step. This means that one layer of X-operators is removed and literals are
@@ -239,14 +241,14 @@ public abstract sealed class Formula implements Comparable<Formula> {
   public abstract Formula unfold();
 
   public abstract static sealed class PropositionalOperator extends Formula
-    permits Biconditional, BooleanConstant, NaryPropositionalOperator, Literal, Negation {
+      permits Biconditional, BooleanConstant, NaryPropositionalOperator, Literal, Negation {
 
     PropositionalOperator(Class<? extends PropositionalOperator> clazz, List<Formula> children) {
       super(clazz, children);
     }
 
     PropositionalOperator(
-      Class<? extends PropositionalOperator> clazz, List<Formula> children, int valueHashCode) {
+        Class<? extends PropositionalOperator> clazz, List<Formula> children, int valueHashCode) {
       super(clazz, children, valueHashCode);
     }
 
@@ -257,6 +259,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
   }
 
   public abstract static sealed class TemporalOperator extends Formula {
+
     TemporalOperator(Class<? extends TemporalOperator> clazz, List<Formula> children) {
       super(clazz, children);
     }
@@ -265,7 +268,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
 
     @Override
     public final Formula substitute(
-      Function<? super TemporalOperator, ? extends Formula> substitution) {
+        Function<? super TemporalOperator, ? extends Formula> substitution) {
       return substitution.apply(this);
     }
 
@@ -294,7 +297,7 @@ public abstract sealed class Formula implements Comparable<Formula> {
   }
 
   public abstract static sealed class UnaryTemporalOperator extends TemporalOperator
-    permits FOperator, GOperator, XOperator {
+      permits FOperator, GOperator, XOperator {
 
     UnaryTemporalOperator(Class<? extends UnaryTemporalOperator> clazz, Formula operand) {
       super(clazz, List.of(operand));
@@ -312,10 +315,10 @@ public abstract sealed class Formula implements Comparable<Formula> {
   }
 
   public abstract static sealed class BinaryTemporalOperator extends TemporalOperator
-    permits MOperator, ROperator, UOperator, WOperator {
+      permits MOperator, ROperator, UOperator, WOperator {
 
     BinaryTemporalOperator(Class<? extends BinaryTemporalOperator> clazz,
-      Formula leftOperand, Formula rightOperand) {
+        Formula leftOperand, Formula rightOperand) {
       super(clazz, List.of(leftOperand, rightOperand));
     }
 
@@ -346,10 +349,10 @@ public abstract sealed class Formula implements Comparable<Formula> {
   }
 
   public abstract static sealed class NaryPropositionalOperator extends PropositionalOperator
-    permits Conjunction, Disjunction {
+      permits Conjunction, Disjunction {
 
     NaryPropositionalOperator(
-      Class<? extends NaryPropositionalOperator> clazz, List<Formula> children) {
+        Class<? extends NaryPropositionalOperator> clazz, List<Formula> children) {
       super(clazz, children);
     }
 
@@ -370,8 +373,8 @@ public abstract sealed class Formula implements Comparable<Formula> {
     @Override
     public final String toString() {
       return operands.stream()
-        .map(Formula::toString)
-        .collect(Collectors.joining(operatorSymbol(), "(", ")"));
+          .map(Formula::toString)
+          .collect(Collectors.joining(operatorSymbol(), "(", ")"));
     }
 
     protected static List<? extends Formula> sortedList(Set<? extends Formula> children) {
