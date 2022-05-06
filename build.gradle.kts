@@ -377,7 +377,7 @@ distributions {
 
             into("bin") {
                 from(buildKissat) {
-                    include("kissat") // Need more / less?
+                    include("kissat")
                 }
                 from("scripts/rabinizer.sh")
             }
@@ -398,7 +398,7 @@ distributions {
 
             into("bin") {
                 from(buildKissat) {
-                    include("kissat") // Need more / less?
+                    include("kissat")
                 }
                 from("scripts/rabinizer.sh")
                 from(buildNativeExecutable)

@@ -3,7 +3,13 @@
    <configuration>
       <verify-metadata>true</verify-metadata>
       <verify-signatures>false</verify-signatures>
-   </configuration>
+     <trusted-artifacts>
+       <trust file=".*-javadoc[.]jar" regex="true"/>
+       <trust file=".*-sources[.]jar" regex="true"/>
+       <trust file=".*[.]pom" regex="true"/>
+       <trust file=".*[.]module" regex="true"/>
+       <trust file="gradle-.*-src.zip" regex="true"/>
+     </trusted-artifacts>   </configuration>
    <components>
       <component group="com.beust" name="jcommander" version="1.48">
          <artifact name="jcommander-1.48.jar">
