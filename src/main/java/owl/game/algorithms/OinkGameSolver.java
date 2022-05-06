@@ -189,14 +189,13 @@ public final class OinkGameSolver implements ParityGameSolver {
       throw new IllegalArgumentException("input game must be complete");
     }
 
-    WinningRegions<S> winningRegions;
     StringWriter gameRepresentationWriter = new StringWriter();
     PrintWriter represantationWriter = new PrintWriter(gameRepresentationWriter);
 
     Map<Integer, S> mapping = toOinkInstance(game, represantationWriter);
 
     ProcessBuilder oinkProcessBuilder = new ProcessBuilder("oink", "-o", "/dev/stdout");
-    Process oinkProcess = null;
+    Process oinkProcess;
 
     try {
       oinkProcess = oinkProcessBuilder.start();
@@ -243,7 +242,7 @@ public final class OinkGameSolver implements ParityGameSolver {
     }
 
     try {
-      winningRegions = parseSolution(oinkReader, mapping);
+      WinningRegions<S> winningRegions = parseSolution(oinkReader, mapping);
       oinkReader.close();
       return winningRegions;
     } catch (IOException e) {

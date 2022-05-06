@@ -32,6 +32,7 @@ jobs:
         # Excluded performanceTest due to unstable nature
       - name: Upload Reports
         uses: actions/upload-artifact@v3
+        if: always() # Also upload failing reports
         with:
           name: test-reports
           path: |

@@ -266,6 +266,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
       return factory;
     }
 
+    @Override
     public BddSet complement() {
       return factory.create(factory.bdd.not(node));
     }

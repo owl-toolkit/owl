@@ -37,6 +37,7 @@ public abstract class PropositionalIntVisitor implements IntVisitor {
 
   protected abstract int visit(Formula.TemporalOperator formula);
 
+  @Override
   public abstract int visit(Literal literal);
 
   @Override

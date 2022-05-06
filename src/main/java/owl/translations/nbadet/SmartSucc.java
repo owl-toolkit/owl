@@ -361,15 +361,13 @@ public class SmartSucc<S> {
   }
 
   public static Pair<BitSet,List<BitSet>> kCutMask(List<BitSet> th, int k) {
-    var forbidden = new BitSet();
     var masks = new ArrayList<BitSet>();
     var tmp = new BitSet();
     for (int i = k; i < th.size(); ++i) {
       tmp.or(th.get(i));
       masks.add((BitSet) tmp.clone());
     }
-    forbidden = BitSet2.without(th.get(0), tmp);
-    return Pair.of(forbidden, masks);
+    return Pair.of(BitSet2.without(th.get(0), tmp), masks);
   }
 
   /**
@@ -382,7 +380,7 @@ public class SmartSucc<S> {
       return false; //trees must agree on "rough" tree structure
     }
 
-    final var msk = kCutMask(th2, k); //given k, gives latest appearance level and forbidden states
+    var msk = kCutMask(th2, k); //given k, gives latest appearance level and forbidden states
 
     BitSet tmp = new BitSet();
     for (int i = k; i < th1.size(); i++) {

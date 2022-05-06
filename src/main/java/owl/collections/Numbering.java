@@ -22,12 +22,13 @@ package owl.collections;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Numbering<E> {
 
-  private final HashMap<E, Integer> mapping;
-  private final ArrayList<E> reverseMapping;
+  private final Map<E, Integer> mapping;
+  private final List<E> reverseMapping;
 
   public Numbering() {
     mapping = new HashMap<>();

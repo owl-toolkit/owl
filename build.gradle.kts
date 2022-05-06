@@ -188,21 +188,23 @@ tasks.compileJava {
 
 // ---------------- ANTLR ----------------
 
+val antlrDir = "${project.buildDir}/generated/sources/antlr/"
 tasks.generateGrammarSource {
     arguments.addAll(listOf("-visitor", "-long-messages", "-lib", "src/main/antlr"))
-    outputDirectory = file("${project.buildDir}/generated-src/antlr/main/owl/grammar")
+    outputDirectory = file("${antlrDir}/java/main/owl/grammar")
 }
+sourceSets["main"].java { srcDir("${antlrDir}/java/main/") }
 tasks.getByPath(":sourcesJar").dependsOn(tasks.generateGrammarSource)
 
 // ---------------- Static Analysis ----------------
 
 pmd {
-    toolVersion = "6.44.0" // https://pmd.github.io/
+    toolVersion = "6.45.0" // https://pmd.github.io/
     reportsDir = file("${project.buildDir}/reports/pmd")
     ruleSetFiles = files("${project.projectDir}/config/pmd-rules.xml")
     ruleSets = listOf() // We specify all rules in rules.xml
     isConsoleOutput = false
-    isIgnoreFailures = true
+    isIgnoreFailures = true // PMD is broken on github actions
 }
 
 tasks.withType<Pmd> {
@@ -214,7 +216,7 @@ tasks.withType<Pmd> {
     }
     excludes.addAll(
         listOf(
-            "**/generated*/**",
+            "**/generated/**",
             "**/thirdparty/**"
         )
     )
@@ -448,7 +450,7 @@ publishing {
                         name.set("Salomon Sickert-Zehnter")
                         email.set("salomon.sickert@mail.huji.ac.il")
                         url.set("https://github.com/sickert")
-                        timezone.set("Asia/Teheran")
+                        timezone.set("Asia/Jerusalem")
                     }
                     developer {
                         id.set("incaseoftrouble")

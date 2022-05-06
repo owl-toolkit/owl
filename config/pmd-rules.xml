@@ -3,128 +3,54 @@
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
-    <description>RuleSet for owl</description>
+  <description>RuleSet for owl</description>
 
-    <rule ref="category/java/bestpractices.xml">
-        <exclude name="AccessorClassGeneration"/>
-        <exclude name="AccessorMethodGeneration"/>
-        <exclude name="UseVarargs"/>
-        <exclude name="GuardLogStatement"/>
-        <exclude name="JUnit4TestShouldUseTestAnnotation"/>
-        <exclude name="JUnitAssertionsShouldIncludeMessage"/>
-        <exclude name="JUnitTestContainsTooManyAsserts"/>
-        <exclude name="JUnitTestsShouldIncludeAssert"/>
-        <exclude name="MissingOverride" /> <!-- Bug: Static methods -->
-    </rule>
+  <rule ref="category/java/bestpractices.xml">
+    <exclude name="AccessorClassGeneration"/>
+    <exclude name="AccessorMethodGeneration"/>
+    <exclude name="UseVarargs"/>
+    <exclude name="GuardLogStatement"/>
+    <exclude name="JUnit4TestShouldUseTestAnnotation"/>
+    <exclude name="JUnitAssertionsShouldIncludeMessage"/>
+    <exclude name="JUnitTestContainsTooManyAsserts"/>
+    <exclude name="JUnitTestsShouldIncludeAssert"/>
+    <exclude name="AbstractClassWithoutAbstractMethod"/>
+    <exclude name="AvoidReassigningParameters"/>
+    <exclude name="LiteralsFirstInComparisons"/>
+    <exclude name="UnusedPrivateMethod"/> <!-- Buggy with private methods of inner classes -->
+    <exclude name="LooseCoupling"/>
+    <exclude name="ForLoopVariableCount"/>
+    <exclude name="AvoidReassigningLoopVariables"/>
+    <exclude name="JUnit5TestShouldBePackagePrivate"/>
+  </rule>
 
-    <rule ref="category/java/codestyle.xml">
-        <exclude name="ShortVariable"/>
-        <exclude name="LongVariable"/>
-        <exclude name="ShortMethodName"/>
-        <exclude name="CallSuperInConstructor"/>
-        <exclude name="OnlyOneReturn"/>
-        <exclude name="MethodArgumentCouldBeFinal"/>
-        <exclude name="LocalVariableCouldBeFinal"/>
-        <exclude name="CommentDefaultAccessModifier"/>
-        <exclude name="DefaultPackage"/>
-        <exclude name="ShortClassName"/>
-        <exclude name="AbstractNaming"/>
-        <exclude name="TooManyStaticImports"/>
-        <exclude name="GenericsNaming"/>
-        <exclude name="VariableNamingConventions"/>
-        <exclude name="UselessParentheses"/>
-        <exclude name="AtLeastOneConstructor"/>
-        <exclude name="PrematureDeclaration"/>
-        <exclude name="UnnecessaryConstructor"/>
-        <exclude name="FieldNamingConventions"/>
-        <exclude name="LinguisticNaming"/>
-        <exclude name="FormalParameterNamingConventions"/>
-        <exclude name="LocalVariableNamingConventions"/>
-    </rule>
-    <rule ref="category/java/codestyle.xml/ConfusingTernary">
-        <properties>
-            <property name="ignoreElseIf">
-                <value>true</value>
-            </property>
-        </properties>
-    </rule>
-    <rule ref="category/java/codestyle.xml/ClassNamingConventions" >
-        <properties>
-            <property name="classPattern">
-                <value>[A-Z][a-zA-Z2]+</value>
-            </property>
-            <property name="abstractClassPattern">
-                <value>[A-Z][a-zA-Z2]+</value>
-            </property>
-            <property name="interfacePattern">
-                <value>[A-Z][a-zA-Z]+</value>
-            </property>
-            <property name="enumPattern">
-                <value>[A-Z][a-zA-Z]+</value>
-            </property>
-            <property name="annotationPattern">
-                <value>[A-Z][a-zA-Z]+</value>
-            </property>
-            <property name="utilityClassPattern">
-                <value>[A-Z][a-zA-Z2]+</value>
-            </property>
-        </properties>
-    </rule>
+  <rule ref="category/java/errorprone.xml">
+    <exclude name="AvoidLiteralsInIfCondition"/>
+    <exclude name="BeanMembersShouldSerialize"/>
+    <exclude name="DataflowAnomalyAnalysis"/>
+    <exclude name="NullAssignment"/>
+    <exclude name="ReturnEmptyCollectionRatherThanNull"/>
+    <exclude name="EmptyCatchBlock"/>
+    <exclude name="AvoidFieldNameMatchingMethodName"/>
+    <exclude name="UseLocaleWithCaseConversions"/>
+    <exclude name="AvoidDuplicateLiterals"/>
+    <exclude name="MissingSerialVersionUID"/>
+    <exclude name="AssignmentInOperand"/>
+    <exclude name="MissingStaticMethodInNonInstantiatableClass"/>
+    <exclude name="CloseResource"/>
+    <exclude name="CompareObjectsWithEquals"/>
+  </rule>
 
-    <rule ref="category/java/design.xml">
-        <exclude name="LawOfDemeter"/>
-        <exclude name="GodClass"/>
-        <exclude name="ExcessiveImports"/>
-        <exclude name="CyclomaticComplexity"/>
-        <exclude name="LoosePackageCoupling"/>
-        <exclude name="NcssCount"/>
-        <exclude name="TooManyMethods"/>
-        <exclude name="ExcessiveMethodLength"/>
-        <exclude name="ExcessivePublicCount"/>
-        <exclude name="ExcessiveParameterList"/>
-        <exclude name="ExcessiveClassLength"/>
-        <exclude name="NPathComplexity"/>
-    </rule>
+  <rule ref="category/java/multithreading.xml">
+    <exclude name="UseConcurrentHashMap"/>
+    <exclude name="DoNotUseThreads"/>
+    <exclude name="AvoidThreadGroup"/>
+  </rule>
 
-    <rule ref="category/java/documentation.xml">
-        <exclude name="CommentSize"/>
-        <exclude name="CommentRequired"/>
-    </rule>
-
-    <rule ref="category/java/errorprone.xml">
-        <exclude name="AvoidLiteralsInIfCondition"/>
-        <exclude name="BeanMembersShouldSerialize"/>
-        <exclude name="DataflowAnomalyAnalysis"/>
-        <exclude name="NullAssignment"/>
-        <exclude name="AvoidFieldNameMatchingMethodName"/>
-        <exclude name="UseLocaleWithCaseConversions"/>
-        <exclude name="AvoidDuplicateLiterals"/>
-        <exclude name="MissingSerialVersionUID"/>
-        <exclude name="MissingStaticMethodInNonInstantiatableClass" /> <!-- Bug: Abstract class -->
-    </rule>
-    <rule ref="category/java/errorprone.xml/EmptyCatchBlock">
-        <properties>
-            <property name="allowExceptionNameRegex">
-                <value>^ignored$</value>
-            </property>
-        </properties>
-    </rule>
-
-    <rule ref="category/java/multithreading.xml">
-        <exclude name="UseConcurrentHashMap"/>
-        <exclude name="DoNotUseThreads"/>
-        <exclude name="AvoidThreadGroup"/>
-    </rule>
-    <rule ref="category/java/performance.xml">
-        <exclude name="AvoidInstantiatingObjectsInLoops"/>
-        <exclude name="RedundantFieldInitializer"/>
-        <exclude name="ConsecutiveLiteralAppends"/>
-        <exclude name="InsufficientStringBufferDeclaration"/>
-    </rule>
-
-    <rule ref="category/java/bestpractices.xml/ForLoopVariableCount">
-        <properties>
-            <property name="maximumVariables" value="2" />
-        </properties>
-    </rule>
+  <rule ref="category/java/performance.xml">
+    <exclude name="AvoidInstantiatingObjectsInLoops"/>
+    <exclude name="RedundantFieldInitializer"/>
+    <exclude name="ConsecutiveLiteralAppends"/>
+    <exclude name="InsufficientStringBufferDeclaration"/>
+  </rule>
 </ruleset>

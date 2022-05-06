@@ -33,3 +33,5 @@ jobs:
           VALIDATE_JSCPD: false
           # No android in here
           VALIDATE_KOTLIN_ANDROID: false
+          # Exclude troublesome files
+          FILTER_REGEX_EXCLUDE: vars[.]sh

@@ -28,6 +28,7 @@ import owl.util.OwlVersion;
 
 public class OwlCommandRuntimeReflectionRegistrationFeature implements Feature {
 
+  @Override
   public void beforeAnalysis(BeforeAnalysisAccess access) {
     try {
       // Register all commands

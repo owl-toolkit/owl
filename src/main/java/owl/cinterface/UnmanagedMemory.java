@@ -297,22 +297,27 @@ public final class UnmanagedMemory {
       }
     }
 
+    @Override
     public final boolean isNull() {
       return buffer == null;
     }
 
+    @Override
     public final boolean isNonNull() {
       return buffer != null;
     }
 
+    @Override
     public final boolean equal(ComparableWord val) {
       throw uoe();
     }
 
+    @Override
     public final boolean notEqual(ComparableWord val) {
       throw uoe();
     }
 
+    @Override
     public final long rawValue() {
       throw uoe();
     }
