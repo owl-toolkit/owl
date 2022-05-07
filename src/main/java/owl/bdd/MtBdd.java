@@ -148,9 +148,9 @@ public abstract sealed class MtBdd<E> {
       }
     }
 
-    tree = of(smallestVariable, of(keys, trueValues, cache), of(keys, falseValues, cache));
-    cache.put(values, tree);
-    return tree;
+    MtBdd<E> newTree = of(smallestVariable, of(keys, trueValues, cache), of(keys, falseValues, cache));
+    cache.put(values, newTree);
+    return newTree;
   }
 
   public abstract Set<E> get(BitSet valuation);
@@ -346,11 +346,11 @@ public abstract sealed class MtBdd<E> {
         return mappedNode;
       }
 
-      mappedNode = of(variable,
+      MtBdd<T> newTree = of(variable,
           trueChild.memoizedMap(mapper, memoizedCalls),
           falseChild.memoizedMap(mapper, memoizedCalls));
-      memoizedCalls.put(this, mappedNode);
-      return mappedNode;
+      memoizedCalls.put(this, newTree);
+      return newTree;
     }
 
     @Override

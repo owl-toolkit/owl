@@ -143,7 +143,7 @@ public abstract class NbaDetConf<S> {
     Numbering<S> stateMap = new Numbering<>(states.size());
     states.forEach(stateMap::lookup);
 
-    final var sccSets = NbaDetConfSets.of(args, scci, stateMap);
+    var sccSets = NbaDetConfSets.of(args, scci, stateMap);
 
     //accepting (pseudo-)sinks
     var aSinks = NbaLangInclusions.getNbaAccPseudoSinks(aut);
@@ -152,10 +152,10 @@ public abstract class NbaDetConf<S> {
     var extIncl = filterExternalIncl(incl, scci, stateMap);
     var intIncl = filterInternalIncl(incl, scci);
 
-    final BitSet aSinksBS = BitSet2.copyOf(aSinks, stateMap::lookup);
-    final SubsumedStatesMap extMask = args.simExt()
+    BitSet aSinksBS = BitSet2.copyOf(aSinks, stateMap::lookup);
+    SubsumedStatesMap extMask = args.simExt()
         ? SubsumedStatesMap.of(stateMap, extIncl) : SubsumedStatesMap.empty();
-    final SubsumedStatesMap intMask = args.simInt()
+    SubsumedStatesMap intMask = args.simInt()
         ? SubsumedStatesMap.of(stateMap, intIncl) : SubsumedStatesMap.empty();
 
     NbaAdjMat<S> adjMat = new NbaAdjMat<>(aut, stateMap, aSinks, extMask);
@@ -175,6 +175,7 @@ public abstract class NbaDetConf<S> {
     return ret;
   }
 
+  @Override
   public String toString() {
     IntFunction<S> inv = aut().stateMap()::lookup;
     var sb = new StringBuilder(200);

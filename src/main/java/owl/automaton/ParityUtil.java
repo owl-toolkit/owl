@@ -77,7 +77,8 @@ public final class ParityUtil {
       }
 
       int newAcceptanceSets = acceptanceSets + offset;
-      mapping = i -> newAcceptanceSets - i;
+      //noinspection UnusedAssignment
+      mapping = i -> newAcceptanceSets - i; // NOPMD
 
       throw new UnsupportedOperationException(
         "This combination of options is (currently) unsupported.");

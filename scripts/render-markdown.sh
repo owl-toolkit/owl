@@ -22,9 +22,9 @@
 set -euo pipefail
 IFS=$'\n\t'
 
-[ ${#} -eq 1 ] || (echo "No destination path given"; exit 1)
+[ ${#} -eq 1 ] || echo "No destination path given" && exit 1
 
-# shellcheck source=./vars.sh
+# shellcheck source=scripts/vars.sh
 source "$(dirname "$0")/vars.sh"
 
 files=("README.md" "CHANGELOG.md" "doc/"*)
@@ -37,7 +37,7 @@ for file_path in "${files[@]}"; do
     exit 1
   fi
   destination_path="$destination/${file_path%.md}.html"
-  mkdir -p $(dirname "${destination_path}")
+  mkdir -p "$(dirname "${destination_path}")"
 
   pandoc --standalone -f gfm -t html5 -o "$destination_path" "$source_path"
   sed -i -- 's/[.]md/.html/g' "$destination_path"

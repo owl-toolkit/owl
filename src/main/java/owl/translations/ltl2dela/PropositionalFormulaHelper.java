@@ -48,7 +48,6 @@ public final class PropositionalFormulaHelper {
 
     Numbering<K> variableMap = new Numbering<>();
     Map<K, Boolean> partialAssignment = new HashMap<>();
-    int stoppingVariable = 0;
 
     for (K variable : formulaVariables) {
       if (!refinedFormulaVariables.contains(variable)) {
@@ -57,7 +56,7 @@ public final class PropositionalFormulaHelper {
       }
     }
 
-    stoppingVariable = partialAssignment.size();
+    int stoppingVariable = partialAssignment.size();
 
     for (K variable : refinedFormulaVariables) {
       variableMap.lookup(variable);

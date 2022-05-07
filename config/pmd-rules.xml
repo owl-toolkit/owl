@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+<ruleset name="PMD rules"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+  <description>RuleSet for owl</description>
+
+  <rule ref="category/java/bestpractices.xml">
+    <exclude name="AccessorClassGeneration"/>
+    <exclude name="AccessorMethodGeneration"/>
+    <exclude name="UseVarargs"/>
+    <exclude name="GuardLogStatement"/>
+    <exclude name="JUnit4TestShouldUseTestAnnotation"/>
+    <exclude name="JUnitAssertionsShouldIncludeMessage"/>
+    <exclude name="JUnitTestContainsTooManyAsserts"/>
+    <exclude name="JUnitTestsShouldIncludeAssert"/>
+    <exclude name="AbstractClassWithoutAbstractMethod"/>
+    <exclude name="AvoidReassigningParameters"/>
+    <exclude name="LiteralsFirstInComparisons"/>
+    <exclude name="UnusedPrivateMethod"/> <!-- Buggy with private methods of inner classes -->
+    <exclude name="LooseCoupling"/>
+    <exclude name="ForLoopVariableCount"/>
+    <exclude name="AvoidReassigningLoopVariables"/>
+    <exclude name="JUnit5TestShouldBePackagePrivate"/>
+  </rule>
+
+  <rule ref="category/java/errorprone.xml">
+    <exclude name="AvoidLiteralsInIfCondition"/>
+    <exclude name="BeanMembersShouldSerialize"/>
+    <exclude name="DataflowAnomalyAnalysis"/>
+    <exclude name="NullAssignment"/>
+    <exclude name="ReturnEmptyCollectionRatherThanNull"/>
+    <exclude name="EmptyCatchBlock"/>
+    <exclude name="AvoidFieldNameMatchingMethodName"/>
+    <exclude name="UseLocaleWithCaseConversions"/>
+    <exclude name="AvoidDuplicateLiterals"/>
+    <exclude name="MissingSerialVersionUID"/>
+    <exclude name="AssignmentInOperand"/>
+    <exclude name="MissingStaticMethodInNonInstantiatableClass"/>
+    <exclude name="CloseResource"/>
+    <exclude name="CompareObjectsWithEquals"/>
+  </rule>
+
+  <rule ref="category/java/multithreading.xml">
+    <exclude name="UseConcurrentHashMap"/>
+    <exclude name="DoNotUseThreads"/>
+    <exclude name="AvoidThreadGroup"/>
+  </rule>
+
+  <rule ref="category/java/performance.xml">
+    <exclude name="AvoidInstantiatingObjectsInLoops"/>
+    <exclude name="RedundantFieldInitializer"/>
+    <exclude name="ConsecutiveLiteralAppends"/>
+    <exclude name="InsufficientStringBufferDeclaration"/>
+  </rule>
+</ruleset>
