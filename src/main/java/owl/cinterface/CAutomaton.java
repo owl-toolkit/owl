@@ -21,22 +21,20 @@ package owl.cinterface;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.graalvm.word.WordFactory.nullPointer;
-import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.ACCEPTING;
-import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.INITIAL;
-import static owl.cinterface.CAutomaton.DeterministicAutomatonWrapper.REJECTING;
+import static owl.cinterface.CAutomaton.AutomatonWrapper.INITIAL;
 
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Streams;
-import com.google.common.primitives.ImmutableIntArray;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.OptionalInt;
 import java.util.Set;
 import java.util.function.Function;
@@ -65,6 +63,7 @@ import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AlternatingCycleDecomposition;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.AutomatonWithZielonkaTreeLookup;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations.ZielonkaState;
@@ -72,12 +71,12 @@ import owl.automaton.edge.Edge;
 import owl.automaton.hoa.HoaReader;
 import owl.bdd.FactorySupplier;
 import owl.bdd.MtBdd;
-import owl.collections.Collections3;
-import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
 import owl.ltl.LabelledFormula;
 import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 import owl.translations.LtlTranslationRepository;
+import owl.translations.LtlTranslationRepository.LtlToDpaTranslation;
+import owl.translations.LtlTranslationRepository.LtlToDraTranslation;
 import owl.translations.canonical.DeterministicConstructions.BreakpointStateRejecting;
 import owl.translations.ltl2dela.NormalformDELAConstruction;
 import owl.translations.ltl2dela.NormalformDELAConstruction.State;
@@ -163,7 +162,7 @@ public final class CAutomaton {
     reorderedAtomicPropositions.addAll(uncontrollableAp);
     reorderedAtomicPropositions.addAll(controllableAp);
 
-    var automaton = DeterministicAutomatonWrapper.of(
+    var automaton = AutomatonWrapper.of(
         HoaReader.read(hoa, FactorySupplier.defaultSupplier()::getBddSetFactory,
             List.copyOf(reorderedAtomicPropositions)), uncontrollableAp.size());
     return ObjectHandles.getGlobal().create(automaton);
@@ -179,7 +178,7 @@ public final class CAutomaton {
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation) {
+      int translation) {
 
     return of(cLabelledFormula, translation, Set.of(), -1);
   }
@@ -189,14 +188,14 @@ public final class CAutomaton {
   @CEntryPoint(
       name = NAMESPACE + "of0",
       documentation = {
-          "Translate the given formula to deterministic parity automaton.",
+          "Translate the given formula to an automaton.",
           CInterface.CALL_DESTROY
       }
   )
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       int lookahead) {
 
     return of(cLabelledFormula, translation, Set.of(), lookahead);
@@ -205,14 +204,14 @@ public final class CAutomaton {
   @CEntryPoint(
       name = NAMESPACE + "of1",
       documentation = {
-          "Translate the given formula to deterministic parity automaton.",
+          "Translate the given formula to an automaton.",
           CInterface.CALL_DESTROY
       }
   )
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       int lookahead,
       LtlTranslationRepository.Option o1) {
 
@@ -222,14 +221,14 @@ public final class CAutomaton {
   @CEntryPoint(
       name = NAMESPACE + "of2",
       documentation = {
-          "Translate the given formula to deterministic parity automaton.",
+          "Translate the given formula to an automaton.",
           CInterface.CALL_DESTROY
       }
   )
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       int lookahead,
       LtlTranslationRepository.Option o1,
       LtlTranslationRepository.Option o2) {
@@ -240,14 +239,14 @@ public final class CAutomaton {
   @CEntryPoint(
       name = NAMESPACE + "of3",
       documentation = {
-          "Translate the given formula to deterministic parity automaton.",
+          "Translate the given formula to an automaton.",
           CInterface.CALL_DESTROY
       }
   )
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       int lookahead,
       LtlTranslationRepository.Option o1,
       LtlTranslationRepository.Option o2,
@@ -259,14 +258,14 @@ public final class CAutomaton {
   @CEntryPoint(
       name = NAMESPACE + "of4",
       documentation = {
-          "Translate the given formula to deterministic parity automaton.",
+          "Translate the given formula to an automaton.",
           CInterface.CALL_DESTROY
       }
   )
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       int lookahead,
       LtlTranslationRepository.Option o1,
       LtlTranslationRepository.Option o2,
@@ -279,14 +278,14 @@ public final class CAutomaton {
   @CEntryPoint(
       name = NAMESPACE + "of5",
       documentation = {
-          "Translate the given formula to deterministic parity automaton.",
+          "Translate the given formula to an automaton.",
           CInterface.CALL_DESTROY
       }
   )
   public static ObjectHandle of(
       IsolateThread thread,
       ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       int lookahead,
       LtlTranslationRepository.Option o1,
       LtlTranslationRepository.Option o2,
@@ -298,7 +297,7 @@ public final class CAutomaton {
   }
 
   private static ObjectHandle of(ObjectHandle cLabelledFormula,
-      LtlTranslationRepository.LtlToDpaTranslation translation,
+      int translation,
       Set<LtlTranslationRepository.Option> translationOptions,
       int lookahead) {
 
@@ -306,10 +305,25 @@ public final class CAutomaton {
         ? OptionalInt.of(lookahead)
         : OptionalInt.empty();
 
+    Function<LabelledFormula, ? extends Automaton<?, ?>> translationFunction;
+
+    LtlToDpaTranslation dpaTranslation = LtlToDpaTranslation.fromCValue(translation);
+    LtlToDraTranslation draTranslation = LtlToDraTranslation.fromCValue(translation);
+
+    if (dpaTranslation != null) {
+      assert draTranslation == null;
+      translationFunction = dpaTranslation
+          .translation(ParityAcceptance.class, translationOptions, lookaheadOptional);
+    } else if (draTranslation != null) {
+      translationFunction = draTranslation
+          .translation(RabinAcceptance.class, translationOptions, lookaheadOptional);
+    } else {
+      throw new IllegalArgumentException("Selected unknown translation");
+    }
+
     var formula = ObjectHandles.getGlobal().<LabelledFormula>get(cLabelledFormula);
-    var automaton = translation.translation(ParityAcceptance.class, translationOptions,
-        lookaheadOptional).apply(formula);
-    return ObjectHandles.getGlobal().create(DeterministicAutomatonWrapper.of(automaton, -1));
+    var automaton = translationFunction.apply(formula);
+    return ObjectHandles.getGlobal().create(AutomatonWrapper.of(automaton, -1));
   }
 
   @CEntryPoint(
@@ -431,37 +445,16 @@ public final class CAutomaton {
     for (int i = 0; i < size; i++) {
       int stateId = stateIds.elements().read(i);
 
-      ZielonkaState<NormalformDELAConstruction.State> state;
+      var uncastedState = stateId == INITIAL && automaton.index2StateMap.isEmpty()
+          ? automaton.automaton.initialState()
+          : automaton.index2StateMap.get(stateId);
 
-      if (stateId == REJECTING) {
-        state = ZielonkaState.of(
-            new State(
-                PropositionalFormula.falseConstant(),
-                ImmutableBitSet.of(),
-                List.of(),
-                ImmutableBitSet.of()),
-            ImmutableIntArray.of());
-      } else if (stateId == ACCEPTING) {
-        state = ZielonkaState.of(
-            new State(
-                PropositionalFormula.trueConstant(),
-                ImmutableBitSet.of(),
-                List.of(),
-                ImmutableBitSet.of()),
-            ImmutableIntArray.of());
-      } else {
-        var uncastedState = stateId == INITIAL && automaton.index2StateMap.isEmpty()
-            ? automaton.automaton.initialState()
-            : automaton.index2StateMap.get(stateId);
-
-        if (!(uncastedState instanceof ZielonkaState)) {
-          throw new IllegalArgumentException(
-              "feature extraction only works for 'unpublished zielonka'");
-        }
-
-        state = (ZielonkaState<NormalformDELAConstruction.State>) uncastedState;
+      if (!(uncastedState instanceof ZielonkaState)) {
+        throw new IllegalArgumentException(
+            "feature extraction only works for 'unpublished zielonka'");
       }
 
+      var state = (ZielonkaState<NormalformDELAConstruction.State>) uncastedState;
       states.add(state);
       stateFormulas.add(state.state().stateFormula());
       Streams.forEachPair(
@@ -528,7 +521,7 @@ public final class CAutomaton {
   }
 
   @CContext(CInterface.CDirectives.class)
-  @CStruct("zielonka_normal_form_state_t")
+  @CStruct("owl_zielonka_normal_form_state")
   interface ZielonkaNormalFormState extends PointerBase {
 
     // allows access to individual structs in an array
@@ -583,7 +576,7 @@ public final class CAutomaton {
     void zielonkaPath(CIntVector path);
 
     @CContext(CInterface.CDirectives.class)
-    @CStruct("zielonka_normal_form_state_state_map_entry_t")
+    @CStruct("owl_zielonka_normal_form_state_state_map_entry")
     interface StateMapEntry extends PointerBase {
 
       // allows access to individual structs in an array
@@ -628,102 +621,20 @@ public final class CAutomaton {
     }
   }
 
-  @CEntryPoint(
-      name = CAutomaton.NAMESPACE + "extract_features",
-      documentation = {"Signature: ",
-          "boolean (void* automaton, vector_int_t* states, vector_int_t* features)",
-          "Extract features from the given set of states of an automaton. This method returns `true` "
-              + "if the features disambiguate the given state set. If `false` is returned, the caller of"
-              + " the method needs to disambiguate two states with the same set of features by "
-              + "additional means, e.g. by adding extra bits. The caller might request the inclusion of "
-              + "the accepting and rejecting sink by adding OWL_ACCEPTING_SINK and OWL_REJECTING_SINK to "
-              + "the state set. These states are then added on a best-effort basis. [Some automata do "
-              + "not have a canonical accepting and rejecting sinks]",
-          "The encoding of the feature vector is as follows:",
-          "",
-          "|---------------------------------------------------------------------------------------------------------------------|",
-          "| int (state) | feature_type_t | ... | OWL_FEATURE_SEPARATOR | feature_type | ... | OWL_SEPARATOR | int (state) | ... |",
-          "|---------------------------------------------------------------------------------------------------------------------|",
-          "",
-          "Features are then encoded as follows.",
-          "- PERMUTATION: an int sequence of variable length with no duplicates.",
-          "- ROUND_ROBIN_COUNTER: a single int.",
-          "- TEMPORAL_OPERATORS_PROFILE: an int sequence of variable length with no duplicates."
-      }
-  )
-  public static boolean extractFeatures(
-      IsolateThread thread,
-      ObjectHandle automatonObjectHandle,
-      CIntVector states,
-      CIntVector features) {
-
-    if (ImageInfo.inImageCode()) {
-      boolean consistentDeclarations = CInterface.SEPARATOR == CInterface.owlSeparator()
-          && CInterface.FEATURE_SEPARATOR == CInterface.owlFeatureSeparator();
-
-      if (!consistentDeclarations) {
-        throw new AssertionError("C headers declare conflicting constants.");
-      }
-    }
-
-    var automaton = CAutomaton.get(automatonObjectHandle);
-
-    // Resolve state ids to state objects.
-    var stateObjects = new HashSet<>();
-
-    for (int i = 0, s = states.size(); i < s; i++) {
-      int state = states.elements().read(i);
-      boolean changed;
-
-      if (state >= 0) {
-        changed = stateObjects.add(automaton.index2StateMap.get(state));
-      } else {
-        changed = true;
-      }
-
-      checkArgument(changed, "'states' vector contains duplicates.");
-    }
-
-    var featuresBuilder = new CIntVectorBuilder();
-
-    try {
-      var featuresMap = StateFeatures.extract(stateObjects);
-
-      featuresMap.forEach((state, stateFeatures) -> {
-        featuresBuilder.add(automaton.state2indexMap.get(state));
-
-        for (StateFeatures.Feature feature : stateFeatures) {
-          featuresBuilder.add(feature.type().getCValue());
-
-          switch (feature.type()) {
-            case PERMUTATION -> featuresBuilder.addAll(feature.permutation());
-            case ROUND_ROBIN_COUNTER -> featuresBuilder.add(feature.roundRobinCounter());
-            case TEMPORAL_OPERATORS_PROFILE ->
-                featuresBuilder.addAll(feature.temporalOperatorsProfile());
-          }
-
-          featuresBuilder.add(CInterface.FEATURE_SEPARATOR);
-        }
-
-        featuresBuilder.add(CInterface.SEPARATOR);
-      });
-
-      featuresBuilder.moveTo(features);
-      return Collections3.hasDistinctValues(featuresMap);
-    } catch (IllegalArgumentException ex) {
-      // We do not support this state type. Return empty vector and indicate that it is unambiguous.
-      featuresBuilder.moveTo(features);
-      return false;
-    }
-  }
-
-  private static DeterministicAutomatonWrapper<?, ?> get(ObjectHandle cDeterministicAutomaton) {
+  private static AutomatonWrapper<?, ?> get(ObjectHandle cDeterministicAutomaton) {
     return ObjectHandles.getGlobal().get(cDeterministicAutomaton);
   }
 
-  @CEnum("acceptance_t")
+  @CEnum("owl_acceptance_condition")
   public enum Acceptance {
-    BUCHI, CO_BUCHI, PARITY_MAX_EVEN, PARITY_MAX_ODD, PARITY_MIN_EVEN, PARITY_MIN_ODD;
+
+    OWL_BUCHI,
+    OWL_CO_BUCHI,
+    OWL_PARITY_MAX_EVEN,
+    OWL_PARITY_MAX_ODD,
+    OWL_PARITY_MIN_EVEN,
+    OWL_PARITY_MIN_ODD,
+    OWL_RABIN;
 
     @CEnumValue
     public native int getCValue();
@@ -733,77 +644,78 @@ public final class CAutomaton {
 
     public static Acceptance fromOmegaAcceptance(EmersonLeiAcceptance acceptance) {
       if (acceptance instanceof BuchiAcceptance) {
-        return BUCHI;
+        return OWL_BUCHI;
       }
 
       if (acceptance instanceof CoBuchiAcceptance || acceptance instanceof AllAcceptance) {
-        return CO_BUCHI;
+        return OWL_CO_BUCHI;
       }
 
       if (acceptance instanceof ParityAcceptance parityAcceptance) {
         if (parityAcceptance.parity().even()) {
           if (parityAcceptance.parity().max()) {
-            return PARITY_MAX_EVEN;
+            return OWL_PARITY_MAX_EVEN;
           } else {
-            return PARITY_MIN_EVEN;
+            return OWL_PARITY_MIN_EVEN;
           }
         } else {
           if (parityAcceptance.parity().max()) {
-            return PARITY_MAX_ODD;
+            return OWL_PARITY_MAX_ODD;
           } else {
-            return PARITY_MIN_ODD;
+            return OWL_PARITY_MIN_ODD;
           }
         }
+      }
+
+      if (acceptance instanceof RabinAcceptance) {
+        return OWL_RABIN;
       }
 
       throw new IllegalArgumentException();
     }
   }
 
-  static final class DeterministicAutomatonWrapper<S, T> {
+  static final class AutomatonWrapper<S, T> {
 
     // Public constants
-    static final int ACCEPTING = -2;
-    static final int REJECTING = -1;
     static final int INITIAL = 0;
+    static final int EDGE_DELIMITER = -1;
+    static final int EDGE_GROUP_DELIMITER = -2;
 
     final Automaton<S, ?> automaton;
     final Acceptance acceptance;
     final int uncontrollableApSize;
 
     // Mapping information
-    private final Function<? super S, OptionalInt> sinkDetection;
     private final List<S> index2StateMap;
     private final Map<S, Integer> state2indexMap;
 
     // Additional features for C interface
     private final ToDoubleFunction<? super Edge<S>> qualityScore;
 
-    private <A extends EmersonLeiAcceptance> DeterministicAutomatonWrapper(
+    private <A extends EmersonLeiAcceptance> AutomatonWrapper(
         Automaton<S, ? extends A> automaton,
         Acceptance acceptance,
-        Function<? super S, OptionalInt> sinkDetection,
         ToDoubleFunction<? super Edge<S>> qualityScore,
         int uncontrollableApSize) {
 
       checkArgument(automaton.initialStates().size() == 1);
-      assert automaton.is(Automaton.Property.DETERMINISTIC);
 
       this.automaton = automaton;
       this.acceptance = acceptance;
-      this.sinkDetection = sinkDetection;
       this.qualityScore = qualityScore;
 
       this.index2StateMap = new ArrayList<>();
       this.state2indexMap = new HashMap<>();
       this.uncontrollableApSize = uncontrollableApSize;
 
+      // Ensure that the initial state is assigned 0 in the mapping.
       index(automaton.initialState());
 
       if (ImageInfo.inImageCode()) {
         boolean consistentDeclarations = INITIAL == CInterface.owlInitialState()
-            && ACCEPTING == CInterface.owlAcceptingSink()
-            && REJECTING == CInterface.owlRejectingSink();
+            && EDGE_DELIMITER == CInterface.owlEdgeDelimiter()
+            && EDGE_GROUP_DELIMITER == CInterface.owlEdgeGroupDelimiter();
 
         if (!consistentDeclarations) {
           throw new AssertionError("C headers declare conflicting constants.");
@@ -811,69 +723,33 @@ public final class CAutomaton {
       }
     }
 
-    static <S> DeterministicAutomatonWrapper<S, ?>
-    of(Automaton<S, ?> automaton, int uncontrollableApSize) {
+    static <S> AutomatonWrapper<S, ?> of(Automaton<S, ?> automaton, int uncontrollableApSize) {
 
-      Function<S, OptionalInt> sinkDetection = (S state) -> {
-        Set<Set<Edge<S>>> edgeSetSet = automaton.edgeTree(state).values();
-
-        // We have multiple options, thus this not a (trivial) sink state.
-        if (edgeSetSet.size() != 1) {
-          return OptionalInt.empty();
-        }
-
-        Set<Edge<S>> edgeSet = Iterables.getOnlyElement(edgeSetSet);
-
-        // The run stops.
-        if (edgeSet.isEmpty()) {
-          return OptionalInt.of(REJECTING);
-        }
-
-        assert edgeSet.size() == 1 : "automaton is not deterministic";
-
-        Edge<S> edge = Iterables.getOnlyElement(edgeSet);
-
-        if (!edge.successor().equals(state)) {
-          return OptionalInt.empty();
-        }
-
-        return OptionalInt.of(automaton.acceptance().isAcceptingEdge(edge) ? ACCEPTING : REJECTING);
-      };
-
-      ToDoubleFunction<Edge<S>> scoring = x -> 0.5d;
+      ToDoubleFunction<Edge<S>> scoring;
 
       // Inject scoring if the automaton is known.
-      if (automaton instanceof AutomatonWithZielonkaTreeLookup) {
-        scoring = NormalformDPAConstruction.scoringFunction(
-            (AutomatonWithZielonkaTreeLookup) automaton);
+      if (automaton instanceof AutomatonWithZielonkaTreeLookup castedAutomaton) {
+        scoring = NormalformDPAConstruction.scoringFunction(castedAutomaton);
+      } else {
+        scoring = x -> 0.5d;
       }
 
-      return new DeterministicAutomatonWrapper<>(
+      return new AutomatonWrapper<>(
           automaton,
           Acceptance.fromOmegaAcceptance(automaton.acceptance()),
-          sinkDetection,
           scoring,
           uncontrollableApSize
       );
     }
 
-    private int index(@Nullable S state) {
-      if (state == null) {
-        return REJECTING;
-      }
+    private int index(S state) {
+      Objects.requireNonNull(state);
 
       Integer index = state2indexMap.get(state);
 
       if (index == null) {
-        OptionalInt sink = sinkDetection.apply(state);
-
-        if (sink.isEmpty()) {
-          index = index2StateMap.size();
-          index2StateMap.add(state);
-        } else {
-          index = sink.getAsInt();
-        }
-
+        index = index2StateMap.size();
+        index2StateMap.add(state);
         state2indexMap.put(state, index);
       }
 
@@ -886,35 +762,19 @@ public final class CAutomaton {
         int treeBufferWriteBackPosition,
         Map<MtBdd<Edge<S>>, Integer> cachedPositions) {
 
-      var treeBuffer = buffers.tree;
+      CIntVectorBuilder treeBuffer = buffers.tree;
       Integer position = cachedPositions.get(edgeTree);
 
       if (position == null) {
-
         if (edgeTree instanceof MtBdd.Node<Edge<S>> node) {
           position = treeBuffer.size();
           treeBuffer.add(node.variable, -1, -1);
-
           serialise(node.falseChild, buffers, position + 1, cachedPositions);
           serialise(node.trueChild, buffers, position + 2, cachedPositions);
+        } else if (edgeTree instanceof MtBdd.Leaf<Edge<S>> leaf) {
+          position = -(serialise(leaf.value, buffers) + 1);
         } else {
-          var edge = Iterables.getOnlyElement(((MtBdd.Leaf<Edge<S>>) edgeTree).value, null);
-
-          var edgeBuffer = buffers.edges;
-
-          position = -((edgeBuffer.size() / 2) + 1);
-
-          if (edge == null) {
-            edgeBuffer.add(REJECTING, REJECTING);
-          } else {
-            edgeBuffer.add(index(edge.successor()), edge.colours().last().orElse(REJECTING));
-          }
-
-          var scoreBuffer = buffers.scores;
-
-          if (scoreBuffer != null) {
-            scoreBuffer.add(edge == null ? 0.0 : qualityScore.applyAsDouble(edge));
-          }
+          throw new AssertionError("unreachable");
         }
 
         cachedPositions.put(edgeTree, position);
@@ -923,6 +783,31 @@ public final class CAutomaton {
       if (treeBufferWriteBackPosition >= 0) {
         treeBuffer.set(treeBufferWriteBackPosition, position);
       }
+    }
+
+    private int serialise(Set<Edge<S>> edges, SerialisedEdgeTree buffers) {
+      var edgeBuffer = buffers.edges;
+      var scoreBuffer = buffers.scores;
+      int position = edgeBuffer.size();
+
+      Iterator<Edge<S>> edgeIterator = edges.iterator();
+
+      while (edgeIterator.hasNext()) {
+        Edge<S> edge = edgeIterator.next();
+        edgeBuffer.add(index(edge.successor()));
+        edge.colours().intStream().forEachOrdered(edgeBuffer::add);
+
+        if (edgeIterator.hasNext()) {
+          edgeBuffer.add(EDGE_DELIMITER);
+        }
+
+        if (scoreBuffer != null) {
+          scoreBuffer.add(qualityScore.applyAsDouble(edge));
+        }
+      }
+
+      edgeBuffer.add(EDGE_GROUP_DELIMITER);
+      return position;
     }
 
     SerialisedEdgeTree edgeTree(int stateIndex, boolean computeScores) {

@@ -88,31 +88,25 @@ public final class CInterface {
     @Override
     public List<String> getHeaderFiles() {
       // The header file with the C declarations that are imported.
-      var headerLocation = System.getProperty("owlHeader");
+      var headerLocation = System.getProperty("owlInclude");
 
       if (headerLocation == null) {
         throw new IllegalArgumentException("Location of header file is missing."
-            + "Use -DowlHeader=/foo/bar/ to define location.");
+            + "Use -DowlInclude=/foo/bar/ to define location.");
       }
 
-      return List.of(String.format("\"%s/owltypes.h\"", headerLocation));
+      return List.of(String.format("\"%s/owl_types.h\"", headerLocation));
     }
   }
 
   @CConstant("OWL_INITIAL_STATE")
   public static native int owlInitialState();
+  
+  @CConstant("OWL_EDGE_DELIMITER")
+  public static native int owlEdgeDelimiter();
 
-  @CConstant("OWL_ACCEPTING_SINK")
-  public static native int owlAcceptingSink();
-
-  @CConstant("OWL_REJECTING_SINK")
-  public static native int owlRejectingSink();
-
-  @CConstant("OWL_SEPARATOR")
-  public static native int owlSeparator();
-
-  @CConstant("OWL_FEATURE_SEPARATOR")
-  public static native int owlFeatureSeparator();
+  @CConstant("OWL_EDGE_GROUP_DELIMITER")
+  public static native int owlEdgeGroupDelimiter();
 
   public static void main(String... args) {
     // Empty method for native-image.

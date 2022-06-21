@@ -34,6 +34,7 @@ import java.util.function.Supplier;
 import javax.annotation.Nullable;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.constant.CEnum;
+import org.graalvm.nativeimage.c.constant.CEnumConstant;
 import org.graalvm.nativeimage.c.constant.CEnumLookup;
 import org.graalvm.nativeimage.c.constant.CEnumValue;
 import owl.Bibliography;
@@ -276,31 +277,38 @@ public final class LtlTranslationRepository {
     DETERMINISTIC
   }
 
-  @CEnum("ltl_translation_option_t")
+  @CEnum("owl_ltl_translation_option")
   public enum Option {
 
     /**
      * Simplify the formula before applying the translation.
      */
+    @CEnumConstant("OWL_SIMPLIFY_FORMULA")
     SIMPLIFY_FORMULA,
 
     /**
      * Simplify the automaton, e.g. remove non-accepting states. Note that this causes a full
      * exploration of the automaton.
      */
+    @CEnumConstant("OWL_SIMPLIFY_AUTOMATON")
     SIMPLIFY_AUTOMATON,
 
     /**
      * Use a portfolio of simpler constructions for fragments of LTL.
      */
+    @CEnumConstant("OWL_USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS")
     USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
 
     /**
      * Ensures that the transition relation of the automaton is complete.
      */
+    @CEnumConstant("OWL_COMPLETE")
     COMPLETE,
 
+    @CEnumConstant("OWL_X_DPA_USE_COMPLEMENT")
     X_DPA_USE_COMPLEMENT,
+
+    @CEnumConstant("OWL_X_DRA_NORMAL_FORM_USE_DUAL")
     X_DRA_NORMAL_FORM_USE_DUAL;
 
     @CEnumValue
@@ -476,13 +484,18 @@ public final class LtlTranslationRepository {
     }
   }
 
-  @CEnum("ltl_to_dpa_translation_t")
+  @CEnum("owl_ltl_to_dpa_translation")
   public enum LtlToDpaTranslation implements LtlTranslation<ParityAcceptance, ParityAcceptance> {
 
+    @CEnumConstant("OWL_LTL_TO_DPA_SEJK16_EKRS17")
     SEJK16_EKRS17(Bibliography.TACAS_17_1_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DPA_EKS20_EKRS17")
     EKS20_EKRS17(Bibliography.TACAS_17_1_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DPA_SYMBOLIC_SE20_BKS10")
     SYMBOLIC_SE20_BKS10(Bibliography.FSTTCS_10_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DPA_SLM21")
     SLM21(Bibliography.UNDER_SUBMISSION_21_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DPA_SMALLEST_AUTOMATON")
     SMALLEST_AUTOMATON(null);
 
     public static final LtlToDpaTranslation DEFAULT = SLM21;
@@ -634,15 +647,21 @@ public final class LtlTranslationRepository {
     public native int getCValue();
 
     @CEnumLookup
+    @Nullable
     public static native LtlToDpaTranslation fromCValue(int value);
   }
 
+  @CEnum("owl_ltl_to_dra_translation")
   public enum LtlToDraTranslation
       implements LtlTranslation<RabinAcceptance, GeneralizedRabinAcceptance> {
 
+    @CEnumConstant("OWL_LTL_TO_DRA_EKS16")
     EKS16(Bibliography.FMSD_16_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DRA_EKS20")
     EKS20(Bibliography.JACM_20_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DRA_SE20")
     SE20(Bibliography.LICS_20_CITEKEY),
+    @CEnumConstant("OWL_LTL_TO_DRA_SMALLEST_AUTOMATON")
     SMALLEST_AUTOMATON(null);
 
     public static final LtlToDraTranslation DEFAULT = EKS20;
@@ -771,6 +790,13 @@ public final class LtlTranslationRepository {
           throw new AssertionError("Unreachable.");
       }
     }
+
+    @CEnumValue
+    public native int getCValue();
+
+    @CEnumLookup
+    @Nullable
+    public static native LtlToDraTranslation fromCValue(int value);
   }
 
   public enum LtlToDelaTranslation

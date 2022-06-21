@@ -27,13 +27,10 @@ plugins {
 
     idea
 
-    pmd
-
     // The following static analysis plugins are currently disabled, since they
     // take too much resources and have only limited benefit.
     //
-    // apply plugin: 'checkstyle'
-    // apply plugin: 'errorprone'
+    // 'checkstyle', 'errorprone', 'pmd'
 
     `maven-publish`
     signing
@@ -198,29 +195,29 @@ tasks.getByPath(":sourcesJar").dependsOn(tasks.generateGrammarSource)
 
 // ---------------- Static Analysis ----------------
 
-pmd {
-    toolVersion = "6.45.0" // https://pmd.github.io/
-    reportsDir = file("${project.buildDir}/reports/pmd")
-    ruleSetFiles = files("${project.projectDir}/config/pmd-rules.xml")
-    ruleSets = listOf() // We specify all rules in rules.xml
-    isConsoleOutput = false
-    isIgnoreFailures = true // PMD is broken on github actions
-}
-
-tasks.withType<Pmd> {
-    group = "verification"
-
-    reports {
-        xml.required.set(false)
-        html.required.set(true)
-    }
-    excludes.addAll(
-        listOf(
-            "**/generated/**",
-            "**/thirdparty/**"
-        )
-    )
-}
+//    pmd {
+//        toolVersion = "6.45.0" // https://pmd.github.io/
+//        reportsDir = file("${project.buildDir}/reports/pmd")
+//        ruleSetFiles = files("${project.projectDir}/config/pmd-rules.xml")
+//        ruleSets = listOf() // We specify all rules in rules.xml
+//        isConsoleOutput = false
+//        isIgnoreFailures = true // PMD is broken on github actions
+//    }
+//
+//    tasks.withType<Pmd> {
+//        group = "verification"
+//
+//        reports {
+//            xml.required.set(false)
+//            html.required.set(true)
+//        }
+//        excludes.addAll(
+//            listOf(
+//                "**/generated/**",
+//                "**/thirdparty/**"
+//            )
+//        )
+//    }
 
 // ---------------- Native Compilation ----------------
 
@@ -256,7 +253,6 @@ val buildKissat = tasks.register<Exec>("buildKissat") {
 
 tasks.test.configure { dependsOn(buildKissat) }
 
-
 val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
     group = "native"
     description = "Compile the native library"
@@ -269,12 +265,12 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
 
     commandLine(
         command,
-        "owl.cinterface.CInterface", "libowl",
+        "owl.cinterface.CInterface", "owl",
         "-cp", sourceSets["main"].runtimeClasspath.asPath,
         if (enableNativeAssertions) "-ea" else "-da",
-        "-DowlHeader=${projectDir}/src/main/c/headers",
+        "-DowlInclude=${projectDir}/src/main/c/include",
         "--shared",
-        "--initialize-at-build-time",
+        "--initialize-at-build-time=com.google,org.antlr,de.tum,owl",
         "--link-at-build-time=com.google,org.antlr,de.tum,owl",
         "--no-fallback",
         // (uncomment for performance analysis)
@@ -287,9 +283,14 @@ val buildNativeLibrary = tasks.register<Exec>("buildNativeLibrary") {
     )
 
     (System.getenv("CC"))?.let { args("-H:CCompilerPath=${it}") }
-    outputs.files(file("${project.buildDir}/native-library").listFiles { _, name ->
-        name.endsWith(".h") || name.endsWith(".so") || name.endsWith(".dynlib")
-    })
+
+    outputs.files(
+        file("${project.buildDir}/native-library/graal_isolate.h"),
+        file("${project.buildDir}/native-library/graal_isolate_dynamic.h"),
+        file("${project.buildDir}/native-library/owl.h"),
+        file("${project.buildDir}/native-library/owl_dynamic.h"),
+        file("${project.buildDir}/native-library/owl." + (if (os.isMacOsX) "dylib" else "so")),
+    )
 }
 
 val buildNativeExecutable = tasks.register<Exec>("buildNativeExecutable") {
@@ -310,9 +311,9 @@ val buildNativeExecutable = tasks.register<Exec>("buildNativeExecutable") {
         "-jar", tasks.jar.get().archiveFile.get(),
         "-cp", sourceSets["main"].runtimeClasspath.asPath,
         if (enableNativeAssertions) "-ea" else "-da",
-        "-DowlHeader=${projectDir}/src/main/c/headers",
+        "-DowlInclude=${projectDir}/src/main/c/include",
         "--features=owl.command.OwlCommandRuntimeReflectionRegistrationFeature",
-        "--initialize-at-build-time",
+        "--initialize-at-build-time=com.google,org.antlr,de.tum,owl",
         "--link-at-build-time=com.google,org.antlr,de.tum,owl",
         "--no-fallback",
         // (uncomment for performance analysis)
@@ -406,7 +407,7 @@ distributions {
                 from(buildNativeExecutable)
             }
             into("lib") {
-                from("${projectDir}/src/main/headers") // Should headers go to src?
+                from("${projectDir}/src/main/c/include")
                 from(buildNativeLibrary)
             }
             into("jar") {
