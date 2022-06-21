@@ -6457,6 +6457,17 @@
     }
   },
   {
+    "formula": "((((Ga | ((((a) M (b))) R (a))) & (F(a & b) | FGa))) M (b))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 4,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
     "formula": "((a) R (X(b | XGa)))",
     "properties": {
       "size": 7,
@@ -6507,6 +6518,17 @@
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 4,
+      "complete": false,
+      "deterministic": true
+    }
+  },
+  {
+    "formula": "((((Fa & ((((a) W (b))) U (a))) | (G(a | b) & GFa))) W (b))",
+    "properties": {
+      "size": 2,
+      "initialStatesSize": 1,
+      "acceptanceName": "RabinAcceptance",
+      "acceptanceSets": 8,
       "complete": false,
       "deterministic": true
     }

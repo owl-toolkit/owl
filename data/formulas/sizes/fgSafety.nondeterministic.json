@@ -1843,6 +1843,9 @@
     "formula": "((a) M (((!a) M (((a) M (((!a) M (Fa))))))))"
   },
   {
+    "formula": "((((Ga | ((((a) M (b))) R (a))) & (F(a & b) | FGa))) M (b))"
+  },
+  {
     "formula": "((a) R (X(b | XGa)))"
   },
   {
@@ -1856,6 +1859,9 @@
   },
   {
     "formula": "((!a) W (((a) W (((!a) W (((a) W (G!a))))))))"
+  },
+  {
+    "formula": "((((Fa & ((((a) W (b))) U (a))) | (G(a | b) & GFa))) W (b))"
   },
   {
     "formula": "(Fa & ((b) M ((G!a & ((XXb) M (!a))))))"

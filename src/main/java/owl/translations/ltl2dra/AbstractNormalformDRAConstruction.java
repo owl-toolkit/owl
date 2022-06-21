@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -50,10 +50,10 @@ import owl.translations.mastertheorem.Normalisation;
 class AbstractNormalformDRAConstruction {
 
   private static final Normalisation NORMALISATION
-    = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
+      = Normalisation.of(SE20_SIGMA_2_AND_GF_SIGMA_1, false);
 
   private static final Normalisation DUAL_NORMALISATION
-    = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
+      = Normalisation.of(SE20_PI_2_AND_FG_PI_1, false);
 
   private final boolean useDualConstruction;
 
@@ -84,12 +84,12 @@ class AbstractNormalformDRAConstruction {
       Formula dualNormalForm = NormalForms.toDnfFormula(DUAL_NORMALISATION.apply(conjunction));
 
       Predicate<Formula> relevantSubformulas = (Formula formula) ->
-        formula instanceof Formula.TemporalOperator
-          && !(formula instanceof XOperator)
-          && FormulaClass.classify(formula).level() == 2;
+          formula instanceof Formula.TemporalOperator
+              && !(formula instanceof XOperator)
+              && FormulaClass.classify(formula).level() == 2;
 
       if (normalForm.subformulas(relevantSubformulas).size()
-        <= dualNormalForm.subformulas(relevantSubformulas).size()) {
+          <= dualNormalForm.subformulas(relevantSubformulas).size()) {
         delta2disjuncts.add(normalForm);
       } else {
         delta2disjuncts.add(dualNormalForm);
@@ -102,10 +102,10 @@ class AbstractNormalformDRAConstruction {
 
     // (/\ \Sigma_2, /\ \Pi_2, \/ /\ \Delta_1)
     Table<Set<Formula.TemporalOperator>, Set<Formula.TemporalOperator>, Formula> table
-      = HashBasedTable.create();
+        = HashBasedTable.create();
 
     if (delta2Formula.anyMatch(x -> x instanceof XOperator
-      && FormulaClass.classify(x).equals(DELTA_2))) {
+        && FormulaClass.classify(x).equals(DELTA_2))) {
 
       delta2Formula = delta2Formula.substitute(x -> {
         if (x instanceof XOperator && FormulaClass.classify(x).equals(DELTA_2)) {
@@ -186,34 +186,42 @@ class AbstractNormalformDRAConstruction {
       }
 
       Formula sigma2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
-        Conjunction.of(Conjunction.of(sigma2), delta1));
+          Conjunction.of(Conjunction.of(sigma2), delta1));
       Formula pi2Formula = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(
-        Conjunction.of(pi2));
+          Conjunction.of(pi2));
 
       pairs.add(Sigma2Pi2Pair.of(atomicPropositions, sigma2Formula, pi2Formula));
     }
 
+    // TODO: rewrite simplifier such that Pi2 stays Pi2, Sigma2 stays Sigma2, ...
     if (!globalSigma2.equals(BooleanConstant.FALSE)) {
+      Formula sigma2 = Disjunction.of(globalSigma2, globalDelta1);
+      Formula simplifiedSigma2 = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(sigma2);
+
       pairs.add(Sigma2Pi2Pair.of(
-        atomicPropositions,
-        SimplifierRepository.SYNTACTIC_FIXPOINT.apply(Disjunction.of(globalSigma2, globalDelta1)),
-        BooleanConstant.TRUE));
+          atomicPropositions,
+          SIGMA_2.contains(simplifiedSigma2) ? simplifiedSigma2 : sigma2,
+          BooleanConstant.TRUE));
       globalDelta1 = BooleanConstant.FALSE;
     }
 
+    // TODO: rewrite simplifier such that Pi2 stays Pi2, Sigma2 stays Sigma2, ...
     if (!globalPi2.equals(BooleanConstant.FALSE)) {
+      Formula pi2 = Disjunction.of(globalPi2, globalDelta1);
+      Formula simplifiedPi2 = SimplifierRepository.SYNTACTIC_FIXPOINT.apply(pi2);
+
       pairs.add(Sigma2Pi2Pair.of(
-        atomicPropositions,
-        BooleanConstant.TRUE,
-        SimplifierRepository.SYNTACTIC_FIXPOINT.apply(Disjunction.of(globalPi2, globalDelta1))));
+          atomicPropositions,
+          BooleanConstant.TRUE,
+          PI_2.contains(simplifiedPi2) ? simplifiedPi2 : pi2));
       globalDelta1 = BooleanConstant.FALSE;
     }
 
     if (!globalDelta1.equals(BooleanConstant.FALSE)) {
       pairs.add(Sigma2Pi2Pair.of(
-        atomicPropositions,
-        globalDelta1,
-        BooleanConstant.TRUE));
+          atomicPropositions,
+          globalDelta1,
+          BooleanConstant.TRUE));
     }
 
     return pairs;
@@ -227,12 +235,14 @@ class AbstractNormalformDRAConstruction {
     abstract LabelledFormula pi2();
 
     static Sigma2Pi2Pair of(List<String> atomicPropositions, Formula sigma2, Formula pi2) {
-      Preconditions.checkArgument(SIGMA_2.contains(sigma2));
-      Preconditions.checkArgument(PI_2.contains(pi2));
+      Preconditions.checkArgument(SIGMA_2.contains(sigma2),
+          "Formula (%s) not in Sigma_2.".formatted(sigma2));
+      Preconditions.checkArgument(PI_2.contains(pi2),
+          "Formula (%s) not in Pi_2.".formatted(pi2));
 
       return new AutoValue_AbstractNormalformDRAConstruction_Sigma2Pi2Pair(
-        LabelledFormula.of(sigma2, atomicPropositions),
-        LabelledFormula.of(pi2, atomicPropositions)
+          LabelledFormula.of(sigma2, atomicPropositions),
+          LabelledFormula.of(pi2, atomicPropositions)
       );
     }
   }

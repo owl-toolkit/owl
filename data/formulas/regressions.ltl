@@ -56,6 +56,7 @@ F G a | F (b & G (b | c))
 G a | G (F b & F (a | c))
 F ((G F a) | G (a | X a))
 ((Ga M a) W b) U (a R Xa)
+((Fb) R ((b W a) U b)) W a
 a <-> (F G(a <-> (b W a)))
 (F a -> !(b W X a)) -> X a
 (G a) | ((F b) W (b & X b))
