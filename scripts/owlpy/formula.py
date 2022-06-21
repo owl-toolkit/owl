@@ -63,7 +63,7 @@ def read_formula_sets(data_json):
             formula_sets[name] = FileFormulaSet(path=data["path"])
         elif set_type == "random":
             import random
-            formula_sets[name] = RandomFormulaSet(200, random.randint(0, 32000), 30)
+            formula_sets[name] = RandomFormulaSet(100, random.randint(0, 32000), 30)
         else:
             raise KeyError("Unknown type {0!s}".format(set_type))
 

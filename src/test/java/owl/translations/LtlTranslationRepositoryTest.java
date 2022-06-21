@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2021, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -31,7 +31,9 @@ import owl.automaton.Automaton;
 import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.hoa.HoaWriter;
 import owl.ltl.LabelledFormula;
+import owl.ltl.parser.LtlParser;
 import owl.ltl.parser.LtlfParser;
+import owl.translations.LtlTranslationRepository.LtlToDraTranslation;
 
 public class LtlTranslationRepositoryTest {
 
@@ -40,16 +42,25 @@ public class LtlTranslationRepositoryTest {
     Assertions.assertDoesNotThrow(() -> {
       LabelledFormula formula = LtlfParser.parse("! F(p0 & Xp1)");
       Function<LabelledFormula, Automaton<?, ? extends RabinAcceptance>> func
-        = defaultTranslation(EnumSet.of(
-        LtlTranslationRepository.Option.COMPLETE,
-        LtlTranslationRepository.Option.SIMPLIFY_FORMULA,
-        LtlTranslationRepository.Option.SIMPLIFY_AUTOMATON,
-        LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS),
-        BranchingMode.DETERMINISTIC, RabinAcceptance.class);
+          = defaultTranslation(EnumSet.of(
+              LtlTranslationRepository.Option.COMPLETE,
+              LtlTranslationRepository.Option.SIMPLIFY_FORMULA,
+              LtlTranslationRepository.Option.SIMPLIFY_AUTOMATON,
+              LtlTranslationRepository.Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS),
+          BranchingMode.DETERMINISTIC, RabinAcceptance.class);
       Automaton<?, ? extends RabinAcceptance> aut = func.apply(formula);
       Assertions.assertEquals(3, aut.states().size());
       Assertions.assertTrue(aut.states().contains(Optional.empty()));
       HoaWriter.toString(aut);
+    });
+  }
+
+  @Test
+  public void testFormulaRegression() {
+    LabelledFormula formula = LtlParser.parse("((Fb) R ((b W a) U b)) W a");
+
+    Assertions.assertDoesNotThrow(() -> {
+      LtlToDraTranslation.SE20.translation().apply(formula);
     });
   }
 }
