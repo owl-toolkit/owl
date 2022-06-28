@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -21,7 +21,6 @@ package owl.cinterface;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static owl.cinterface.StateFeatures.Feature;
 import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.CNF;
 import static owl.cinterface.StateFeatures.TemporalOperatorsProfileNormalForm.DNF;
@@ -73,6 +72,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.cinterface.CAutomaton.AutomatonWrapper;
 import owl.collections.BitSet2;
 import owl.ltl.Formula;
 import owl.ltl.LabelledFormula;
@@ -87,40 +87,40 @@ public class CAutomatonTest {
   private static final String BASE_PATH = "data/formulas/features";
 
   private static final Map<FormulaSet, Summary> TEST_DATA = Map.ofEntries(
-    Map.entry(BASE, Summary.of(59, 59, 59)),
-    Map.entry(LIBEROUTER, Summary.of(46, 45, 45)),
-    Map.entry(CHECK, Summary.of(75, 74, 68)),
-    Map.entry(PARAMETRISED, Summary.of(33, 33, 33)),
-    Map.entry(DWYER, Summary.of(49, 49, 44))
+      Map.entry(BASE, Summary.of(59, 59, 59)),
+      Map.entry(LIBEROUTER, Summary.of(46, 45, 45)),
+      Map.entry(CHECK, Summary.of(75, 74, 68)),
+      Map.entry(PARAMETRISED, Summary.of(33, 33, 33)),
+      Map.entry(DWYER, Summary.of(49, 49, 44))
   );
 
   private static Formula leftNestedU(int depth) {
     assert depth >= 0;
     return depth > 0
-      ? UOperator.of(leftNestedU(depth - 1), Literal.of(depth))
-      : Literal.of(0);
+        ? UOperator.of(leftNestedU(depth - 1), Literal.of(depth))
+        : Literal.of(0);
   }
 
   @Tag("performance")
   @Test
   void testStateFeaturesExtractionForUTiming() {
     var formula = LabelledFormula.of(leftNestedU(11), IntStream.rangeClosed(0, 11)
-      .mapToObj(Character::toString)
-      .toList());
+        .mapToObj(Character::toString)
+        .toList());
     var automaton = DeterministicConstructionsPortfolio
-      .coSafety(formula);
+        .coSafety(formula);
     var states = automaton.states();
 
     // Takes ~50 seconds on a MacBook Pro (16-inch, 2019) / 2,6 GHz 6-Core Intel Core i7.
     Assertions.assertTimeout(Duration.ofSeconds(90),
-      () -> extractFeaturesFromEquivalenceClass(states));
+        () -> extractFeaturesFromEquivalenceClass(states));
   }
 
   @Test
   void testStateFeaturesExtractionForU() {
     var formula = LtlParser.parse("((a U b) U c) U d");
     var automaton = DeterministicConstructionsPortfolio
-      .coSafety(formula);
+        .coSafety(formula);
     var states = automaton.states();
 
     var expectedDnfFeatures = new HashSet<Feature>();
@@ -128,18 +128,18 @@ public class CAutomatonTest {
       var profile = (BitSet) x.clone();
       profile.set(0);
       expectedDnfFeatures.add(
-        Feature.temporalOperatorsProfileFromBitset(profile));
+          Feature.temporalOperatorsProfileFromBitset(profile));
     });
 
     var expectedCnfFeatures = new HashSet<Feature>();
     expectedCnfFeatures.add(
-      Feature.temporalOperatorsProfileFromBitset(new BitSet()));
+        Feature.temporalOperatorsProfileFromBitset(new BitSet()));
     expectedCnfFeatures.add(Feature
-      .temporalOperatorsProfileFromBitset(BitSet.valueOf(new byte[] {3})));
+        .temporalOperatorsProfileFromBitset(BitSet.valueOf(new byte[]{3})));
     expectedCnfFeatures.add(Feature
-      .temporalOperatorsProfileFromBitset(BitSet.valueOf(new byte[] {7})));
+        .temporalOperatorsProfileFromBitset(BitSet.valueOf(new byte[]{7})));
     expectedCnfFeatures.add(Feature
-      .temporalOperatorsProfileFromBitset(BitSet.valueOf(new byte[] {15})));
+        .temporalOperatorsProfileFromBitset(BitSet.valueOf(new byte[]{15})));
 
     var dnfFeatures = extractFeaturesFromEquivalenceClass(states, DNF, false);
     assertEquals(8, dnfFeatures.size());
@@ -158,17 +158,17 @@ public class CAutomatonTest {
   void testStateFeaturesExtractionForF() {
     var formula = LtlParser.parse("F(a & ((b) U (c)))", List.of("a", "b", "c"));
     var automaton = DeterministicConstructionsPortfolio
-      .coSafety(formula);
+        .coSafety(formula);
     var states = automaton.states();
 
     {
       var expectedDnfFeatures = Set.of(
-        Feature.temporalOperatorsProfileFromBitset(0),
-        Feature.temporalOperatorsProfileFromBitset(0, 1, 2)
+          Feature.temporalOperatorsProfileFromBitset(0),
+          Feature.temporalOperatorsProfileFromBitset(0, 1, 2)
       );
 
       var dnfFeatures
-        = extractFeaturesFromEquivalenceClass(states, DNF, false);
+          = extractFeaturesFromEquivalenceClass(states, DNF, false);
 
       assertEquals(3, dnfFeatures.size());
       assertEquals(expectedDnfFeatures, new HashSet<>(dnfFeatures.values()));
@@ -178,13 +178,13 @@ public class CAutomatonTest {
 
     {
       var expectedDnfFeatures = Set.of(
-        Feature.temporalOperatorsProfileFromBitset(0),
-        Feature.temporalOperatorsProfileFromBitset(1, 2, 4),
-        Feature.temporalOperatorsProfileFromBitset(2, 3, 5)
+          Feature.temporalOperatorsProfileFromBitset(0),
+          Feature.temporalOperatorsProfileFromBitset(1, 2, 4),
+          Feature.temporalOperatorsProfileFromBitset(2, 3, 5)
       );
 
       var dnfFeatures
-        = extractFeaturesFromEquivalenceClass(states, DNF, true);
+          = extractFeaturesFromEquivalenceClass(states, DNF, true);
 
       assertEquals(3, dnfFeatures.size());
       assertEquals(expectedDnfFeatures, new HashSet<>(dnfFeatures.values()));
@@ -194,12 +194,12 @@ public class CAutomatonTest {
 
     {
       var expectedCnfFeatures = Set.of(
-        Feature.temporalOperatorsProfileFromBitset(),
-        Feature.temporalOperatorsProfileFromBitset(0)
+          Feature.temporalOperatorsProfileFromBitset(),
+          Feature.temporalOperatorsProfileFromBitset(0)
       );
 
       var cnfFeatures
-        = extractFeaturesFromEquivalenceClass(states, CNF, false);
+          = extractFeaturesFromEquivalenceClass(states, CNF, false);
 
       assertEquals(3, cnfFeatures.size());
       assertEquals(expectedCnfFeatures, new HashSet<>(cnfFeatures.values()));
@@ -209,13 +209,13 @@ public class CAutomatonTest {
 
     {
       var expectedCnfFeatures = Set.of(
-        Feature.temporalOperatorsProfileFromBitset(),
-        Feature.temporalOperatorsProfileFromBitset(0, 1, 2),
-        Feature.temporalOperatorsProfileFromBitset(1, 2)
+          Feature.temporalOperatorsProfileFromBitset(),
+          Feature.temporalOperatorsProfileFromBitset(0, 1, 2),
+          Feature.temporalOperatorsProfileFromBitset(1, 2)
       );
 
       var cnfFeatures
-        = extractFeaturesFromEquivalenceClass(states, CNF, true);
+          = extractFeaturesFromEquivalenceClass(states, CNF, true);
 
       assertEquals(3, cnfFeatures.size());
       assertEquals(expectedCnfFeatures, new HashSet<>(cnfFeatures.values()));
@@ -225,12 +225,12 @@ public class CAutomatonTest {
   }
 
   @SuppressWarnings(
-    {"PMD.EmptyCatchBlock", "PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingNPE"})
+      {"PMD.EmptyCatchBlock", "PMD.AvoidCatchingGenericException", "PMD.AvoidCatchingNPE"})
   @Test
   void testStateFeaturesExtractionForFormulaDatabase() throws IOException {
     var translation = LtlToDpaTranslation.SEJK16_EKRS17.translation(
-      ParityAcceptance.class,
-      EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS));
+        ParityAcceptance.class,
+        EnumSet.of(Option.USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS));
 
     for (var test : TEST_DATA.entrySet()) {
       List<TestCase> features = new ArrayList<>();
@@ -260,7 +260,7 @@ public class CAutomatonTest {
           }
 
           var set = new TreeSet<List<Feature>>(Comparators.lexicographical(
-            Feature::compareTo));
+              Feature::compareTo));
           set.addAll(featureMap.values());
           features.add(new TestCase(PrintVisitor.toString(formula, false), set));
         } catch (IllegalArgumentException ex) {
@@ -281,9 +281,10 @@ public class CAutomatonTest {
       } else {
         try (BufferedReader reader = Files.newBufferedReader(referenceFile)) {
           var gson = new GsonBuilder()
-            .registerTypeAdapter(Feature.class, new FeatureDeserializer())
-            .create();
-          Type typeOfT = new TypeToken<List<TestCase>>(){}.getType();
+              .registerTypeAdapter(Feature.class, new FeatureDeserializer())
+              .create();
+          Type typeOfT = new TypeToken<List<TestCase>>() {
+          }.getType();
           List<TestCase> referenceFeatures = gson.fromJson(reader, typeOfT);
           assertEquals(referenceFeatures, features);
         }
@@ -292,103 +293,62 @@ public class CAutomatonTest {
   }
 
   @Test
-  void testAcceptingSink() {
-    var translation = LtlToDpaTranslation.SLM21.translation();
-
-    var automaton1 = translation.apply(LtlParser.parse("a | G F b"));
-    var cAutomaton1 = CAutomaton.DeterministicAutomatonWrapper.of(automaton1, -1);
-
-    assertTrue(Arrays.stream(cAutomaton1.edgeTree(0, false).edges.toArray())
-      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-    assertTrue(Arrays.stream(cAutomaton1.edgeTree(1, false).edges.toArray())
-      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-
-    var automaton2 = translation.apply(LtlParser.parse("G a | G F b"));
-    var cAutomaton2 = CAutomaton.DeterministicAutomatonWrapper.of(automaton2, -1);
-
-    assertTrue(Arrays.stream(cAutomaton2.edgeTree(0, false).edges.toArray())
-      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-    assertTrue(Arrays.stream(cAutomaton2.edgeTree(1, false).edges.toArray())
-      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-
-    var automaton3 = translation.apply(LtlParser.parse("X a & (G F a | G F !a)"));
-    var cAutomaton3 = CAutomaton.DeterministicAutomatonWrapper.of(automaton3, -1);
-
-    assertTrue(Arrays.stream(cAutomaton3.edgeTree(0, false).edges.toArray())
-      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-    assertTrue(Arrays.stream(cAutomaton3.edgeTree(1, false).edges.toArray())
-      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-
-    var automaton4 = translation.apply(LtlParser.parse("a & X G ! a"));
-    var cAutomaton4 = CAutomaton.DeterministicAutomatonWrapper.of(automaton4, -1);
-
-    assertTrue(Arrays.stream(cAutomaton4.edgeTree(0, false).edges.toArray())
-      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-    assertTrue(Arrays.stream(cAutomaton4.edgeTree(0, false).edges.toArray())
-      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.REJECTING));
-    assertTrue(Arrays.stream(cAutomaton4.edgeTree(1, false).edges.toArray())
-      .noneMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.ACCEPTING));
-    assertTrue(Arrays.stream(cAutomaton4.edgeTree(1, false).edges.toArray())
-      .anyMatch(x -> x == CAutomaton.DeterministicAutomatonWrapper.REJECTING));
-  }
-
-  @Test
   public void testScoringZielonkaConstruction() {
     var translationAcd = LtlToDpaTranslation.SLM21
-      .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
+        .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.empty());
 
     var translationZlk = LtlToDpaTranslation.SLM21
-      .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0));
+        .translation(ParityAcceptance.class, EnumSet.noneOf(Option.class), OptionalInt.of(0));
 
     var automatonAcd1 = translationAcd.apply(LtlParser.parse("G F (a & X X a) | F G (b | X X b)"));
-    var cAutomatonAcd1 = CAutomaton.DeterministicAutomatonWrapper.of(automatonAcd1, -1);
+    var cAutomatonAcd1 = AutomatonWrapper.of(automatonAcd1, -1);
 
     assertEquals(
-      Set.of(0.562_5d, 0.609_375d, 0.468_75d, 0.515_625d),
-      Arrays.stream(cAutomatonAcd1.edgeTree(0, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.562_5d, 0.609_375d, 0.468_75d, 0.515_625d),
+        Arrays.stream(cAutomatonAcd1.edgeTree(0, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
 
     var automatonZlk1 = translationZlk.apply(LtlParser.parse("G F (a & X X a) | F G (b | X X b)"));
-    var cAutomatonZlk1 = CAutomaton.DeterministicAutomatonWrapper.of(automatonZlk1, -1);
+    var cAutomatonZlk1 = AutomatonWrapper.of(automatonZlk1, -1);
 
     assertEquals(
-      Set.of(0.562_5d, 0.609_375d, 0.468_75d, 0.515_625d),
-      Arrays.stream(cAutomatonZlk1.edgeTree(0, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.562_5d, 0.609_375d, 0.468_75d, 0.515_625d),
+        Arrays.stream(cAutomatonZlk1.edgeTree(0, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
 
     var automatonAcd2 = translationAcd.apply(LtlParser.parse("a | X b"));
-    var cAutomatonAcd2 = CAutomaton.DeterministicAutomatonWrapper.of(automatonAcd2, -1);
+    var cAutomatonAcd2 = AutomatonWrapper.of(automatonAcd2, -1);
 
     assertEquals(
-      Set.of(0.0d, 1.0d),
-      Arrays.stream(cAutomatonAcd2.edgeTree(0, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.0d, 1.0d),
+        Arrays.stream(cAutomatonAcd2.edgeTree(0, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
 
     var automatonZlk2 = translationAcd.apply(LtlParser.parse("F (a & X a & X X a)"));
-    var cAutomatonZlk2 = CAutomaton.DeterministicAutomatonWrapper.of(automatonZlk2, -1);
+    var cAutomatonZlk2 = AutomatonWrapper.of(automatonZlk2, -1);
 
     assertEquals(
-      Set.of(0.125d, 0.25d),
-      Arrays.stream(cAutomatonZlk2.edgeTree(0, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.125d, 0.25d),
+        Arrays.stream(cAutomatonZlk2.edgeTree(0, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
 
     assertEquals(
-      Set.of(0.125d, 0.5d),
-      Arrays.stream(cAutomatonZlk2.edgeTree(1, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.125d, 0.5d),
+        Arrays.stream(cAutomatonZlk2.edgeTree(1, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
 
     var automatonZlk3 = translationAcd.apply(LtlParser.parse("F (a & X a & X X a) | G F b"));
-    var cAutomatonZlk3 = CAutomaton.DeterministicAutomatonWrapper.of(automatonZlk3, -1);
+    var cAutomatonZlk3 = AutomatonWrapper.of(automatonZlk3, -1);
 
     assertEquals(
-      Set.of(0.445_312_5d, 0.453_125d),
-      Arrays.stream(cAutomatonZlk3.edgeTree(0, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.445_312_5d, 0.453_125d),
+        Arrays.stream(cAutomatonZlk3.edgeTree(0, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
 
     assertEquals(
-      Set.of(0.445_312_5d, 0.468_75d),
-      Arrays.stream(cAutomatonZlk3.edgeTree(1, true).scores.toArray()).boxed()
-        .collect(Collectors.toUnmodifiableSet()));
+        Set.of(0.445_312_5d, 0.468_75d),
+        Arrays.stream(cAutomatonZlk3.edgeTree(1, true).scores.toArray()).boxed()
+            .collect(Collectors.toUnmodifiableSet()));
   }
 
   private static class FeatureDeserializer implements JsonDeserializer<Feature> {
@@ -406,15 +366,17 @@ public class CAutomatonTest {
       switch (entry.getKey()) {
         case "roundRobinCounter":
           return Feature.roundRobinCounter(
-            context.deserialize(entry.getValue(), Integer.class));
+              context.deserialize(entry.getValue(), Integer.class));
 
         case "temporalOperatorsProfile":
           return Feature.temporalOperatorsProfile(
-            context.deserialize(entry.getValue(), new TypeToken<SortedSet<Integer>>(){}.getType()));
+              context.deserialize(entry.getValue(), new TypeToken<SortedSet<Integer>>() {
+              }.getType()));
 
         case "permutation":
           return Feature.permutation(
-            context.deserialize(entry.getValue(), new TypeToken<List<Integer>>(){}.getType()));
+              context.deserialize(entry.getValue(), new TypeToken<List<Integer>>() {
+              }.getType()));
 
         default:
           throw new JsonParseException("malformed json object");
@@ -423,6 +385,7 @@ public class CAutomatonTest {
   }
 
   static class TestCase {
+
     final String formula;
     @Nullable
     final Set<List<Feature>> properties;
@@ -451,6 +414,7 @@ public class CAutomatonTest {
   }
 
   private static class Summary {
+
     private final int total;
     private final int successful;
     private final int unambiguous;
@@ -476,8 +440,8 @@ public class CAutomatonTest {
 
       Summary summary = (Summary) o;
       return total == summary.total
-        && successful == summary.successful
-        && unambiguous == summary.unambiguous;
+          && successful == summary.successful
+          && unambiguous == summary.unambiguous;
     }
 
     @Override
@@ -488,7 +452,7 @@ public class CAutomatonTest {
     @Override
     public String toString() {
       return "Summary{total=" + total
-        + ", successful=" + successful + ", unambiguous=" + unambiguous + '}';
+          + ", successful=" + successful + ", unambiguous=" + unambiguous + '}';
     }
   }
 }

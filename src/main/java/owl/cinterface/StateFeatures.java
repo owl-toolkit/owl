@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -44,10 +44,6 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
-import org.graalvm.nativeimage.c.CContext;
-import org.graalvm.nativeimage.c.constant.CEnum;
-import org.graalvm.nativeimage.c.constant.CEnumLookup;
-import org.graalvm.nativeimage.c.constant.CEnumValue;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
 import owl.collections.HashTrieMap;
@@ -67,10 +63,11 @@ import owl.translations.ltl2ldba.AsymmetricProductState;
 public final class StateFeatures {
 
   private static final Comparator<List<Formula>> SET_COMPARATOR = Comparator
-    .<List<Formula>>comparingInt(List::size)
-    .thenComparing(Comparators.lexicographical(Formula::compareTo));
+      .<List<Formula>>comparingInt(List::size)
+      .thenComparing(Comparators.lexicographical(Formula::compareTo));
 
-  private StateFeatures() {}
+  private StateFeatures() {
+  }
 
   static <S> Map<S, List<Feature>> extract(Set<S> states) {
 
@@ -93,7 +90,7 @@ public final class StateFeatures {
       @SuppressWarnings("unchecked")
       var castedStates = (Set<RoundRobinState<EquivalenceClass>>) states;
       featuresMap = extract(castedStates,
-        x -> List.of(roundRobinCounter(x.index()), x.state()));
+          x -> List.of(roundRobinCounter(x.index()), x.state()));
 
     } else if (sentinel instanceof BreakpointStateAccepting) {
 
@@ -124,10 +121,10 @@ public final class StateFeatures {
       @SuppressWarnings("unchecked")
       var castedStates = (Set<AsymmetricRankingState>) states;
       var ranking = castedStates.stream()
-        .flatMap(x -> x.ranking().stream().map(y -> y.evaluatedFixpoints))
-        .distinct()
-        .sorted()
-        .toList();
+          .flatMap(x -> x.ranking().stream().map(y -> y.evaluatedFixpoints))
+          .distinct()
+          .sorted()
+          .toList();
 
       Function<AsymmetricRankingState, List<Object>> deconstructor = state -> {
         List<Object> deconstructedState = new ArrayList<>(4 * state.ranking().size() + 3);
@@ -169,7 +166,7 @@ public final class StateFeatures {
           // Add padding.
           if (!fixpoint.equals(subState.evaluatedFixpoints)) {
             subStates.add(i,
-              new AsymmetricProductState(0, falseClass, trueClass, List.of(), fixpoint, null));
+                new AsymmetricProductState(0, falseClass, trueClass, List.of(), fixpoint, null));
           }
         }
 
@@ -178,7 +175,7 @@ public final class StateFeatures {
           deconstructedState.add(subState.currentCoSafety);
           deconstructedState.add(subState.safety);
           deconstructedState.add(subState.nextCoSafety.stream()
-            .reduce(trueClass, EquivalenceClass::and));
+              .reduce(trueClass, EquivalenceClass::and));
         }
 
         return deconstructedState;
@@ -200,7 +197,7 @@ public final class StateFeatures {
   // Deconstruct all states into basic components and extract features from them.
   @SuppressWarnings("PMD.LooseCoupling")
   private static <S> HashMap<S, List<Feature>> extract(
-    Set<? extends S> states, Function<? super S, ? extends List<Object>> deconstructor) {
+      Set<? extends S> states, Function<? super S, ? extends List<Object>> deconstructor) {
 
     Map<S, List<Object>> deconstructorMapping = new HashMap<>(states.size());
     TrieSet<Object> deconstructedStates = new HashTrieSet<>();
@@ -214,12 +211,12 @@ public final class StateFeatures {
 
     // Extract features from deconstructed states.
     TrieMap<Object, List<Feature>> deconstructedStatesFeatures
-      = extractFeatures(deconstructedStates);
+        = extractFeatures(deconstructedStates);
 
     // Combine mappings into a single HashMap and drop intermediate results.
     HashMap<S, List<Feature>> featuresMap = new HashMap<>(states.size());
     deconstructorMapping.forEach(
-      (state, key) -> featuresMap.put(state, List.copyOf(deconstructedStatesFeatures.get(key))));
+        (state, key) -> featuresMap.put(state, List.copyOf(deconstructedStatesFeatures.get(key))));
     return featuresMap;
   }
 
@@ -249,7 +246,7 @@ public final class StateFeatures {
       @SuppressWarnings({"unchecked", "rawtypes"})
       Set<EquivalenceClass> castedKeySet = (Set) states.subTries().keySet();
       Map<EquivalenceClass, Feature> featureMap
-        = extractFeaturesFromEquivalenceClass(castedKeySet);
+          = extractFeaturesFromEquivalenceClass(castedKeySet);
       nodeFeatures = featureMap::get;
     } else {
       throw new IllegalArgumentException("Unsupported: " + sentinel.getClass());
@@ -326,10 +323,10 @@ public final class StateFeatures {
   }
 
   static Map<EquivalenceClass, Feature> extractFeaturesFromEquivalenceClass(
-    Set<? extends EquivalenceClass> equivalenceClasses) {
+      Set<? extends EquivalenceClass> equivalenceClasses) {
 
     var featuresMapCnf
-      = extractFeaturesFromEquivalenceClass(equivalenceClasses, CNF, false);
+        = extractFeaturesFromEquivalenceClass(equivalenceClasses, CNF, false);
     boolean unambiguousCnf = Collections3.hasDistinctValues(featuresMapCnf);
 
     if (!unambiguousCnf) {
@@ -338,7 +335,7 @@ public final class StateFeatures {
     }
 
     var featuresMapDnf
-      = extractFeaturesFromEquivalenceClass(equivalenceClasses, DNF, false);
+        = extractFeaturesFromEquivalenceClass(equivalenceClasses, DNF, false);
     boolean unambiguousDnf = Collections3.hasDistinctValues(featuresMapDnf);
 
     if (!unambiguousDnf) {
@@ -378,9 +375,9 @@ public final class StateFeatures {
   }
 
   static Map<EquivalenceClass, Feature> extractFeaturesFromEquivalenceClass(
-    Set<? extends EquivalenceClass> equivalenceClasses,
-    TemporalOperatorsProfileNormalForm type,
-    boolean includeLiterals) {
+      Set<? extends EquivalenceClass> equivalenceClasses,
+      TemporalOperatorsProfileNormalForm type,
+      boolean includeLiterals) {
 
     if (equivalenceClasses.isEmpty()) {
       return Map.of();
@@ -396,7 +393,7 @@ public final class StateFeatures {
       profiles.put(clazz, new HashSet<>());
 
       for (Set<Formula> clause
-        : type == CNF ? clazz.conjunctiveNormalForm() : clazz.disjunctiveNormalForm()) {
+          : type == CNF ? clazz.conjunctiveNormalForm() : clazz.disjunctiveNormalForm()) {
 
         List<Formula> temporalOperators = new ArrayList<>();
 
@@ -452,23 +449,18 @@ public final class StateFeatures {
 
   @AutoOneOf(Type.class)
   public abstract static class Feature implements Comparable<Feature> {
+
     private static final Comparator<Iterable<Integer>> ITERABLE_COMPARATOR
-      = Comparators.lexicographical(Integer::compare);
+        = Comparators.lexicographical(Integer::compare);
 
     Feature() {
       // Constructor should only be visible to package.
     }
 
-    @CContext(CInterface.CDirectives.class)
-    @CEnum("feature_type_t")
     public enum Type {
-      PERMUTATION, ROUND_ROBIN_COUNTER, TEMPORAL_OPERATORS_PROFILE;
-
-      @CEnumValue
-      public native int getCValue();
-
-      @CEnumLookup
-      public static native Type fromCValue(int value);
+      PERMUTATION,
+      ROUND_ROBIN_COUNTER,
+      TEMPORAL_OPERATORS_PROFILE;
     }
 
     public abstract Type type();
@@ -491,17 +483,17 @@ public final class StateFeatures {
 
     public static Feature temporalOperatorsProfile(SortedSet<Integer> temporalOperatorsProfile) {
       return AutoOneOf_StateFeatures_Feature.temporalOperatorsProfile(
-        BitSet2.asSet(BitSet2.copyOf(temporalOperatorsProfile)));
+          BitSet2.asSet(BitSet2.copyOf(temporalOperatorsProfile)));
     }
 
     public static Feature temporalOperatorsProfileFromBitset(BitSet temporalOperatorsProfile) {
       return AutoOneOf_StateFeatures_Feature.temporalOperatorsProfile(
-        BitSet2.asSet(BitSet2.copyOf(temporalOperatorsProfile)));
+          BitSet2.asSet(BitSet2.copyOf(temporalOperatorsProfile)));
     }
 
     public static Feature temporalOperatorsProfileFromBitset(int... temporalOperatorsProfile) {
       return AutoOneOf_StateFeatures_Feature.temporalOperatorsProfile(
-        BitSet2.asSet(BitSet2.of(temporalOperatorsProfile)));
+          BitSet2.asSet(BitSet2.of(temporalOperatorsProfile)));
     }
 
     @Override
@@ -512,20 +504,12 @@ public final class StateFeatures {
         return comparison;
       }
 
-      switch (type()) {
-        case PERMUTATION:
-          return ITERABLE_COMPARATOR.compare(permutation(), o.permutation());
-
-        case ROUND_ROBIN_COUNTER:
-          return Integer.compare(roundRobinCounter(), o.roundRobinCounter());
-
-        case TEMPORAL_OPERATORS_PROFILE:
-          return ITERABLE_COMPARATOR.compare(
+      return switch (type()) {
+        case PERMUTATION -> ITERABLE_COMPARATOR.compare(permutation(), o.permutation());
+        case ROUND_ROBIN_COUNTER -> Integer.compare(roundRobinCounter(), o.roundRobinCounter());
+        case TEMPORAL_OPERATORS_PROFILE -> ITERABLE_COMPARATOR.compare(
             temporalOperatorsProfile(), o.temporalOperatorsProfile());
-
-        default:
-          throw new AssertionError("Not reachable");
-      }
+      };
     }
   }
 }

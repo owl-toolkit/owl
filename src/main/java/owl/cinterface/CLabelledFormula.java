@@ -36,6 +36,7 @@ import org.graalvm.nativeimage.ObjectHandle;
 import org.graalvm.nativeimage.ObjectHandles;
 import org.graalvm.nativeimage.c.CContext;
 import org.graalvm.nativeimage.c.constant.CEnum;
+import org.graalvm.nativeimage.c.constant.CEnumConstant;
 import org.graalvm.nativeimage.c.constant.CEnumLookup;
 import org.graalvm.nativeimage.c.constant.CEnumValue;
 import org.graalvm.nativeimage.c.function.CEntryPoint;
@@ -117,9 +118,17 @@ public final class CLabelledFormula {
     return atomicPropositions;
   }
 
-  @CEnum("atomic_proposition_status_t")
+  @CEnum("owl_atomic_proposition_status")
   public enum AtomicPropositionStatus {
-    CONSTANT_TRUE, CONSTANT_FALSE, USED, UNUSED;
+
+    @CEnumConstant("OWL_AP_CONSTANT_TRUE")
+    CONSTANT_TRUE,
+    @CEnumConstant("OWL_AP_CONSTANT_FALSE")
+    CONSTANT_FALSE,
+    @CEnumConstant("OWL_AP_USED")
+    USED,
+    @CEnumConstant("OWL_AP_UNUSED")
+    UNUSED;
 
     @CEnumValue
     public native int getCValue();
@@ -135,7 +144,7 @@ public final class CLabelledFormula {
           "than `firstOutputAtomicProposition` is controlled by the environment trying to dissatisfy ",
           "the formula and atomic proposition greater or equal are controlled by the system. The ",
           "status of atomic proposition is written to the passed int pointer using the encoding ",
-          "provided by `atomic_proposition_status_t`",
+          "provided by `owl_atomic_proposition_status`",
           CInterface.CALL_DESTROY
       }
   )

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2020, 2022  (Anton Pirogov)
  *
  * This file is part of Owl.
  *
@@ -32,13 +32,12 @@ import owl.collections.BitSet2;
 import owl.collections.Pair;
 
 /**
- *  type/wrapper of ranked slices, which are just tuples of disjoint sets, with entries that are
- *  additionally to the index order also ranked by some extra total order (i.e. numbers).
- *  Properties:
- *  - all n bitsets should be pw. disjoint and non-empty (if not a pre-slice).
- *  - all rank values should be distinct numbers.
- *  - the rank values should be 0 <= p < n (unless it is just a component of a set of such slices).
- *  This class provides only functions that return a new slice, i.e. do not modify the original one.
+ * type/wrapper of ranked slices, which are just tuples of disjoint sets, with entries that are
+ * additionally to the index order also ranked by some extra total order (i.e. numbers). Properties:
+ * - all n bitsets should be pw. disjoint and non-empty (if not a pre-slice). - all rank values
+ * should be distinct numbers. - the rank values should be {@code 0 <= p < n} (unless it is just a
+ * component of a set of such slices). This class provides only functions that return a new slice,
+ * i.e. do not modify the original one.
  */
 @AutoValue
 //@SuppressWarnings("PMD.LooseCoupling")
@@ -47,15 +46,19 @@ public abstract class RankedSlice {
   //wrapped raw slice
   public abstract List<Pair<BitSet, Integer>> slice();
 
-  /** Wraps a slice (no deep copy). */
+  /**
+   * Wraps a slice (no deep copy).
+   */
   public static RankedSlice of(List<Pair<BitSet, Integer>> slice) {
     return new AutoValue_RankedSlice(slice);
   }
 
-  /** Performs an actual copy (i.e. with copied BitSets) of the slice. */
+  /**
+   * Performs an actual copy (i.e. with copied BitSets) of the slice.
+   */
   public static RankedSlice copy(List<Pair<BitSet, Integer>> slice) {
     var copy = new ArrayList<Pair<BitSet, Integer>>();
-    slice.forEach(p -> copy.add(Pair.of((BitSet)p.fst().clone(), p.snd())));
+    slice.forEach(p -> copy.add(Pair.of((BitSet) p.fst().clone(), p.snd())));
     return new AutoValue_RankedSlice(copy);
   }
 
@@ -63,12 +66,16 @@ public abstract class RankedSlice {
     return new AutoValue_RankedSlice(new ArrayList<>());
   }
 
-  /** Wraps a single ranked set into a slice. */
+  /**
+   * Wraps a single ranked set into a slice.
+   */
   public static RankedSlice singleton(Pair<BitSet, Integer> entry) {
     return new AutoValue_RankedSlice(new ArrayList<>(List.of(entry)));
   }
 
-  /** This is to avoid general stream API, but still have convenience. */
+  /**
+   * This is to avoid general stream API, but still have convenience.
+   */
   public RankedSlice map(Function<Pair<BitSet, Integer>, Pair<BitSet, Integer>> fun) {
     var sl = new ArrayList<Pair<BitSet, Integer>>();
     for (var e : slice()) {
@@ -77,12 +84,14 @@ public abstract class RankedSlice {
     return RankedSlice.of(sl);
   }
 
-  /** Returns copy with only leftmost occurrence of each state. */
+  /**
+   * Returns copy with only leftmost occurrence of each state.
+   */
   public RankedSlice leftNormalized() {
     BitSet seen = new BitSet();
     var sl = new ArrayList<Pair<BitSet, Integer>>();
     for (var p : slice()) {
-      var bs = (BitSet)p.fst().clone();
+      var bs = (BitSet) p.fst().clone();
       bs.andNot(seen); //remove already seen
       seen.or(bs); //update seen with new states
       sl.add(Pair.of(bs, p.snd())); //add to new slice
@@ -90,12 +99,14 @@ public abstract class RankedSlice {
     return RankedSlice.of(sl);
   }
 
-  /** Returns copy without empty sets. */
+  /**
+   * Returns copy without empty sets.
+   */
   public RankedSlice withoutEmptySets() {
     var sl = new ArrayList<Pair<BitSet, Integer>>();
     for (var p : slice()) {
       if (!p.fst().isEmpty()) {
-        sl.add(Pair.of((BitSet)p.fst().clone(), p.snd()));
+        sl.add(Pair.of((BitSet) p.fst().clone(), p.snd()));
       }
     }
     return RankedSlice.of(sl);
@@ -121,7 +132,7 @@ public abstract class RankedSlice {
     if (slice().isEmpty()) {
       return RankedSlice.of(sl);
     }
-    var curStates = (BitSet)slice().get(0).fst().clone();
+    var curStates = (BitSet) slice().get(0).fst().clone();
     int curRank = slice().get(0).snd();
     for (var i = 1; i < slice().size(); i++) {
       //accumulate as much as possible, collapsing everything that is permitted
@@ -130,7 +141,7 @@ public abstract class RankedSlice {
         curStates.or(slice().get(i).fst());                 //collect states together
       } else {
         sl.add(Pair.of(curStates, curRank));
-        curStates = (BitSet)slice().get(i).fst().clone();
+        curStates = (BitSet) slice().get(i).fst().clone();
         curRank = slice().get(i).snd();
       }
     }
@@ -147,8 +158,8 @@ public abstract class RankedSlice {
   //custom printer takes a mapping from bits to states
   public final String toString(IntFunction<?> stateMap) {
     return slice().stream()
-                  .map(e -> BitSet2.asSet(e.fst(), stateMap) + ":" + e.snd())
-                  .collect(Collectors.joining(", "));
+        .map(e -> BitSet2.asSet(e.fst(), stateMap) + ":" + e.snd())
+        .collect(Collectors.joining(", "));
   }
 
   // --------------------------------
@@ -156,8 +167,8 @@ public abstract class RankedSlice {
   //returns (Parent, Left-border) pointers for a list of ranks
   //(left border = left sibling for the last one popped in the inner while loop)
   //this allows to interpret this as a tree conveniently
-  Pair<ArrayList<Integer>,ArrayList<Integer>> getTreeRelations() {
-    var parent  = new ArrayList<>(Collections.nCopies(slice().size(), 0));
+  Pair<List<Integer>, List<Integer>> getTreeRelations() {
+    var parent = new ArrayList<>(Collections.nCopies(slice().size(), 0));
     var lborder = new ArrayList<>(Collections.nCopies(slice().size(), 0));
 
     var s = new ArrayDeque<Integer>(); //Stack
@@ -174,7 +185,6 @@ public abstract class RankedSlice {
       s.pop();
     }
 
-    return Pair.of(parent, lborder);
+    return Pair.of(List.copyOf(parent), List.copyOf(lborder));
   }
-
 }
