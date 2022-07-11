@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -53,11 +53,12 @@ import owl.translations.ltl2ldba.SymmetricProductState;
 import owl.translations.mastertheorem.SymmetricEvaluatedFixpoints;
 
 final class SymmetricDPAConstruction {
+
   private static final SymmetricLDBAConstruction<BuchiAcceptance> LDBA_CONSTRUCTION
-    = SymmetricLDBAConstruction.of(BuchiAcceptance.class);
+      = SymmetricLDBAConstruction.of(BuchiAcceptance.class);
 
   Automaton<SymmetricRankingState, ParityAcceptance> of(
-    LabelledFormula labelledFormula, boolean complete) {
+      LabelledFormula labelledFormula, boolean complete) {
 
     var ldba = LDBA_CONSTRUCTION.apply(labelledFormula);
     var atomicPropositions = ldba.acceptingComponent().atomicPropositions();
@@ -66,30 +67,30 @@ final class SymmetricDPAConstruction {
       var acceptance = new ParityAcceptance(3, Parity.MIN_ODD);
 
       return complete
-        ? SingletonAutomaton.of(
-            atomicPropositions,
-            SymmetricRankingState.of(Map.of()),
-            acceptance,
-            acceptance.rejectingSet().orElseThrow())
-        : EmptyAutomaton.of(
-            atomicPropositions,
-            acceptance);
+          ? SingletonAutomaton.of(
+          atomicPropositions,
+          SymmetricRankingState.of(Map.of()),
+          acceptance,
+          acceptance.rejectingSet().orElseThrow())
+          : EmptyAutomaton.of(
+              atomicPropositions,
+              acceptance);
     }
 
     var builder = new SymmetricDPAConstruction.Builder(ldba, complete);
 
     return new AbstractMemoizingAutomaton.EdgeImplementation<>(
-      atomicPropositions,
-      builder.ldba.factory(),
-      Set.of(builder.initialState),
-      builder.acceptance) {
+        atomicPropositions,
+        builder.ldba.factory(),
+        Set.of(builder.initialState),
+        builder.acceptance) {
 
       @Nullable
       private Builder internalBuilder = builder;
 
       @Override
       protected Edge<SymmetricRankingState>
-        edgeImpl(SymmetricRankingState state, BitSet valuation) {
+      edgeImpl(SymmetricRankingState state, BitSet valuation) {
 
         return internalBuilder.edge(state, valuation);
       }
@@ -102,34 +103,35 @@ final class SymmetricDPAConstruction {
   }
 
   private static final class Builder {
+
     private final ParityAcceptance acceptance;
     private final SymmetricRankingState initialState;
     private final List<Set<Map<Integer, EquivalenceClass>>> initialComponentSccs;
     private final AnnotatedLDBA<Map<Integer, EquivalenceClass>, SymmetricProductState,
-      BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
-      Set<SymmetricProductState>>> ldba;
+        BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>, BiFunction<Integer, EquivalenceClass,
+        Set<SymmetricProductState>>> ldba;
 
     @Nullable
     private final Edge<SymmetricRankingState> rejectingEdge;
 
     private Builder(AnnotatedLDBA<Map<Integer, EquivalenceClass>,
-          SymmetricProductState, BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>,
-          BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba,
-          boolean complete) {
+        SymmetricProductState, BuchiAcceptance, SortedSet<SymmetricEvaluatedFixpoints>,
+        BiFunction<Integer, EquivalenceClass, Set<SymmetricProductState>>> ldba,
+        boolean complete) {
       this.ldba = ldba;
       initialComponentSccs = SccDecomposition.of(ldba.initialComponent()).sccs();
       acceptance = new ParityAcceptance(
-        2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
+          2 * (ldba.acceptingComponent().states().size() + 1), Parity.MIN_ODD);
       Map<Integer, EquivalenceClass> ldbaInitialState = ldba.initialComponent().initialState();
-      initialState = edge(ldbaInitialState, List.of(), 0, -1, null).successor();
+      initialState = edge(ldbaInitialState, List.of(), 0, null).successor();
       rejectingEdge = complete
-        ? Edge.of(SymmetricRankingState.of(Map.of()), acceptance.rejectingSet().orElseThrow())
-        : null;
+          ? Edge.of(SymmetricRankingState.of(Map.of()), acceptance.rejectingSet().orElseThrow())
+          : null;
     }
 
     private Edge<SymmetricRankingState> edge(Map<Integer, EquivalenceClass> successor,
-      List<Entry<Integer, SymmetricProductState>> previousRanking,
-      int previousSafetyBucket, int previousSafetyBucketIndex, @Nullable BitSet valuation) {
+        List<Entry<Integer, SymmetricProductState>> previousRanking,
+        int previousSafetyBucket, @Nullable BitSet valuation) {
 
       for (EquivalenceClass clazz : successor.values()) {
         if (SyntacticFragments.isSafety(clazz)) {
@@ -140,7 +142,7 @@ final class SymmetricDPAConstruction {
       // We compute the relevant accepting components, which we can jump to.
       Set<Entry<Integer, SymmetricEvaluatedFixpoints>> allowedComponents = new HashSet<>();
       List<List<Entry<Integer, SymmetricProductState>>> targets
-        = List.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
+          = List.of(new ArrayList<>(), new ArrayList<>(), new ArrayList<>());
       NavigableMap<Integer, List<SymmetricProductState>> safety = new TreeMap<>();
 
       successor.forEach((index, value) -> {
@@ -175,8 +177,8 @@ final class SymmetricDPAConstruction {
       });
 
       var comparator = Comparator
-        .<Entry<Integer, SymmetricProductState>>comparingInt(Entry::getKey)
-        .thenComparing(y -> y.getValue().evaluatedFixpoints);
+          .<Entry<Integer, SymmetricProductState>>comparingInt(Entry::getKey)
+          .thenComparing(y -> y.getValue().evaluatedFixpoints);
 
       // Fix iteration order.
       targets.forEach(target -> target.sort(comparator));
@@ -199,7 +201,7 @@ final class SymmetricDPAConstruction {
 
           // There are no jumps to this component anymore or the run stopped.
           if (rankingEdge == null
-            || !allowedComponents.remove(fixpointsEntry(entry))) {
+              || !allowedComponents.remove(fixpointsEntry(entry))) {
             edgeColor = Math.min(2 * iterator.previousIndex(), edgeColor);
             continue;
           }
@@ -223,11 +225,9 @@ final class SymmetricDPAConstruction {
       // The state of the initial component is "Integer -> EquivalenceClass". We track from the
       // current safety condition stems, and if there exists multiple we need to order them.
       int safetyBucket;
-      int safetyBucketIndex;
 
       if (activeSafetyComponent) {
         safetyBucket = previousSafetyBucket;
-        safetyBucketIndex = previousSafetyBucketIndex;
       } else {
         for (var rankingState : Iterables.concat(targets.get(0), targets.get(1), targets.get(2))) {
           if (allowedComponents.remove(fixpointsEntry(rankingState))) {
@@ -235,38 +235,26 @@ final class SymmetricDPAConstruction {
           }
         }
 
-        var safetyEntry = safety.ceilingEntry(previousSafetyBucket);
-        safetyBucketIndex = previousSafetyBucketIndex;
-
-        if (safetyEntry != null) {
-          if (safetyEntry.getKey() == previousSafetyBucket
-              && safetyEntry.getValue().size() <= safetyBucketIndex + 1) {
-            safetyEntry = safety.ceilingEntry(previousSafetyBucket + 1);
-            safetyBucketIndex = -1;
-          } else if (safetyEntry.getKey() > previousSafetyBucket) {
-            safetyBucketIndex = -1;
-          }
-        }
+        var safetyEntry = safety.higherEntry(previousSafetyBucket);
 
         if (safetyEntry == null) {
-          safetyEntry = safety.ceilingEntry(0);
-          safetyBucketIndex = -1;
+          safetyEntry = safety.firstEntry();
         }
 
         if (safetyEntry == null) {
           safetyBucket = 0;
-          safetyBucketIndex = -1;
         } else {
           safetyBucket = safetyEntry.getKey();
           assert safetyBucket > 0;
-          safetyBucketIndex = safetyBucketIndex + 1;
-          ranking.add(entry(safetyBucket, safetyEntry.getValue().get(safetyBucketIndex)));
+
+          for (SymmetricProductState x : safetyEntry.getValue()) {
+            ranking.add(entry(safetyBucket, x));
+          }
         }
       }
 
       assert edgeColor < acceptance.acceptanceSets();
-      return Edge.of(
-        SymmetricRankingState.of(successor, ranking, safetyBucket, safetyBucketIndex), edgeColor);
+      return Edge.of(SymmetricRankingState.of(successor, ranking, safetyBucket), edgeColor);
     }
 
     @Nullable
@@ -286,17 +274,16 @@ final class SymmetricDPAConstruction {
 
       // If a SCC switch occurs, the ranking and the safety progress is reset.
       if (initialComponentSccs.stream()
-        .anyMatch(x -> x.contains(state.state()) && !x.contains(successor))) {
-        return edge(successor, List.of(), 0, -1, valuation).withoutAcceptance();
+          .anyMatch(x -> x.contains(state.state()) && !x.contains(successor))) {
+        return edge(successor, List.of(), 0, valuation).withoutAcceptance();
       }
 
-      return edge(successor, state.ranking(), state.safetyBucket(), state.safetyBucketIndex(),
-        valuation);
+      return edge(successor, state.ranking(), state.safetyBucket(), valuation);
     }
   }
 
   private static Entry<Integer, SymmetricEvaluatedFixpoints> fixpointsEntry(
-    Entry<Integer, SymmetricProductState> stateEntry) {
+      Entry<Integer, SymmetricProductState> stateEntry) {
     return entry(stateEntry.getKey(), stateEntry.getValue().evaluatedFixpoints);
   }
 }
