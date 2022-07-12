@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2018, 2022  (Salomon Sickert)
  *
  * This file is part of Owl.
  *
@@ -32,7 +32,7 @@ import owl.translations.ltl2ldba.SymmetricProductState;
 
 @AutoValue
 public abstract class SymmetricRankingState
-  implements AnnotatedState<Map<Integer, EquivalenceClass>> {
+    implements AnnotatedState<Map<Integer, EquivalenceClass>> {
 
   @Override
   public abstract Map<Integer, EquivalenceClass> state();
@@ -41,24 +41,20 @@ public abstract class SymmetricRankingState
 
   public abstract int safetyBucket();
 
-  public abstract int safetyBucketIndex();
-
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state) {
-    return of(state, List.of(), 0, -1);
+    return of(state, List.of(), 0);
   }
 
   static SymmetricRankingState of(Map<Integer, EquivalenceClass> state,
-    List<Map.Entry<Integer, SymmetricProductState>> ranking,
-    int safetyBucket, int safetyBucketIndex) {
+      List<Map.Entry<Integer, SymmetricProductState>> ranking,
+      int safetyBucket) {
     var copiedState = Map.copyOf(state);
     var copiedRanking = List.copyOf(ranking);
 
-    checkState((safetyBucket == 0 && safetyBucketIndex == -1)
-      || (safetyBucket > 0 && safetyBucketIndex >= 0));
+    checkState(safetyBucket >= 0);
     checkState(safetyBucket == 0 || copiedState.containsKey(safetyBucket));
     assert Collections3.isDistinct(copiedRanking) : "The ranking is not distinct: " + copiedRanking;
-    return new AutoValue_SymmetricRankingState(
-      copiedState, copiedRanking, safetyBucket, safetyBucketIndex);
+    return new AutoValue_SymmetricRankingState(copiedState, copiedRanking, safetyBucket);
   }
 
   @Override
@@ -71,10 +67,9 @@ public abstract class SymmetricRankingState
   @Override
   public String toString() {
     if (safetyBucket() == 0) {
-      return String.format("|%s :: %s|", state(), ranking());
+      return "|%s :: %s|".formatted(state(), ranking());
     }
 
-    return String
-      .format("|%s :: %s :: %d (%d)|", state(), ranking(), safetyBucket(), safetyBucketIndex());
+    return "|%s :: %s :: %d|".formatted(state(), ranking(), safetyBucket());
   }
 }

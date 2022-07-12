@@ -11,6 +11,7 @@ Major Changes:
 * Owl maintains a simple DPLL implementation and a Kissat backend.
 * Migrated to GitHub Actions CI.
 * Updated to GraalVM 22.1.
+* Removed buggy optimisation from `ltl2dpa -t EKS20_EKRS17`.
 
 ## 21.0
 
