@@ -62,7 +62,7 @@ public class AcdTest {
   void testLtl() {
     // DBW-recognisable.
     var drw1
-      = Views.dropStateLabels(LTL_TO_DRW.apply(LtlParser.parse("G F a | G F b | X X c")));
+      = Views.dropStateLabels(LTL_TO_DRW.apply(LtlParser.parse("G F a | G F b | X X c"))).automaton();
     var drw1Acd = AlternatingCycleDecomposition.of(drw1);
     var dpw1 = ZielonkaTreeTransformations.transform(drw1);
 
@@ -72,7 +72,7 @@ public class AcdTest {
     // DBW-recognisable.
     var drw2
       = Views.dropStateLabels(LTL_TO_DRW.apply(
-        LtlParser.parse("!(F G a | F b | X X c & F G (b | X X d))")));
+        LtlParser.parse("!(F G a | F b | X X c & F G (b | X X d))"))).automaton();
     var drw2Acd
       = AlternatingCycleDecomposition.of(drw2);
     var dpw2
@@ -99,7 +99,7 @@ public class AcdTest {
     // DBW-recognisable.
     var dela1
       = Views.dropStateLabels(LTL_TO_DELW.apply(LtlParser.parse(
-        "F G c & G F a | G F b | X X c & F G (a U b) & a M (a W b) | G (X X a)")));
+        "F G c & G F a | G F b | X X c & F G (a U b) & a M (a W b) | G (X X a)"))).automaton();
     var dpw1 = ZielonkaTreeTransformations.transform(dela1);
 
     assertTrue(LanguageContainment.contains(dela1, dpw1));

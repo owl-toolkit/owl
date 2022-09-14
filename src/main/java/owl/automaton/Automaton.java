@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -35,6 +35,7 @@ import owl.automaton.edge.Edges;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
+import owl.collections.ImmutableBitSet;
 
 /**
  * An automaton over infinite words.
@@ -51,9 +52,9 @@ import owl.bdd.MtBdd;
  *
  * <p>All methods throw an {@link IllegalArgumentException} on a best-effort basis if they detect
  * that a state given as an argument is not reachable from the initial states. Note that this
- * behavior cannot be guaranteed, as it is, generally speaking, expensive to check this
- * for on-the-fly constructed automata. Therefore, it would be wrong to write a program that
- * depends on this exception for its correctness: this should be only used to detect bugs.</p>
+ * behavior cannot be guaranteed, as it is, generally speaking, expensive to check this for
+ * on-the-fly constructed automata. Therefore, it would be wrong to write a program that depends on
+ * this exception for its correctness: this should be only used to detect bugs.</p>
  *
  * @param <S> the type of the states of the automaton
  * @param <A> the type of the omega-acceptance condition of the automaton
@@ -82,14 +83,11 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   // States
 
   /**
-   * Returns the initial state. Returns null if there is no and
-   * {@link IllegalStateException} if there are multiple initial states.
+   * Returns the initial state. Returns null if there is no and {@link IllegalStateException} if
+   * there are multiple initial states.
    *
    * @return The unique initial state or null.
-   *
-   * @throws IllegalStateException
-   *     If there are multiple initial states.
-   *
+   * @throws IllegalStateException If there are multiple initial states.
    * @see #initialStates()
    */
   default S initialState() {
@@ -122,15 +120,16 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   /**
    * Returns the successor edges of the specified {@code state} under the given {@code valuation}.
    *
-   * @param state
-   *     The starting state of the transition.
-   * @param valuation
-   *     The valuation.
-   *
+   * @param state     The starting state of the transition.
+   * @param valuation The valuation.
    * @return The successor edges, possibly empty.
    */
   Set<Edge<S>> edges(S state, BitSet valuation);
 
+  default Set<Edge<S>> edges(S state, ImmutableBitSet valuation) {
+    return edges(state, valuation.copyInto(new BitSet()));
+  }
+  
   /**
    * Returns the successor edge of the specified {@code state} under the given {@code valuation}.
    * Returns some edge if there is a non-deterministic choice in this state for the specified
@@ -139,13 +138,9 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
    * <p>If you want to check if this is the unique edge use the {@link #edges(Object, BitSet)}
    * method.</p>
    *
-   * @param state
-   *     The starting state of the transition.
-   * @param valuation
-   *     The valuation.
-   *
+   * @param state     The starting state of the transition.
+   * @param valuation The valuation.
    * @return A successor edge or {@code null} if none.
-   *
    * @see #edgeMap(Object)
    */
   @Nullable
@@ -156,9 +151,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   /**
    * Returns all successor edges of the specified {@code state} under any valuation.
    *
-   * @param state
-   *     The starting state of the edges.
-   *
+   * @param state The starting state of the edges.
    * @return The set of edges originating from {@code state}
    */
   default Set<Edge<S>> edges(S state) {
@@ -170,9 +163,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   /**
    * Returns a mapping from all outgoing edges to their valuations of the specified {@code state}.
    *
-   * @param state
-   *     The state.
-   *
+   * @param state The state.
    * @return All labelled edges of the state.
    */
   Map<Edge<S>, BddSet> edgeMap(S state);
@@ -180,8 +171,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   /**
    * Returns a decision-tree with nodes labelled by literals and sets of edges as leaves.
    *
-   * @param state
-   *    The state.
+   * @param state The state.
    * @return A tree.
    */
   MtBdd<Edge<S>> edgeTree(S state);
@@ -191,29 +181,26 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   /**
    * Returns the successors of the specified {@code state} under the given {@code valuation}.
    *
-   * @param state
-   *     The starting state of the transition.
-   * @param valuation
-   *     The valuation.
-   *
+   * @param state     The starting state of the transition.
+   * @param valuation The valuation.
    * @return The successor set.
    */
   default Set<S> successors(S state, BitSet valuation) {
     return Edges.successors(edges(state, valuation));
   }
 
+  default Set<S> successors(S state, ImmutableBitSet valuation) {
+    return Edges.successors(edges(state, valuation));
+  }
+
   /**
-   * Returns the successor of the specified {@code state} under the given {@code valuation}.
-   * Returns some state if there is a non-deterministic choice in this state for the specified
-   * valuation.
+   * Returns the successor of the specified {@code state} under the given {@code valuation}. Returns
+   * some state if there is a non-deterministic choice in this state for the specified valuation.
    *
    * <p>If you want to check if this is the unique edge use the successors() method.</p>
    *
-   * @param state
-   *     The starting state of the transition.
-   * @param valuation
-   *     The valuation.
-   *
+   * @param state     The starting state of the transition.
+   * @param valuation The valuation.
    * @return A successor or {@code null} if none.
    */
   @Nullable
@@ -221,12 +208,14 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
     return Iterables.getFirst(successors(state, valuation), null);
   }
 
+  default S successor(S state, ImmutableBitSet valuation) {
+    return Iterables.getFirst(successors(state, valuation), null);
+  }
+
   /**
    * Returns all successors of the specified {@code state}.
    *
-   * @param state
-   *     The starting state of the transition.
-   *
+   * @param state The starting state of the transition.
    * @return The successor set.
    */
   default Set<S> successors(S state) {
@@ -236,9 +225,7 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
   /**
    * Returns the predecessors of the specified {@code successor}.
    *
-   * @param successor
-   *     The successor for which the predecessor set needs to be computed.
-   *
+   * @param successor The successor for which the predecessor set needs to be computed.
    * @return The predecessor set.
    */
   default Set<S> predecessors(S successor) {
@@ -269,14 +256,14 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
       case LIMIT_DETERMINISTIC:
         if (acceptance() instanceof GeneralizedBuchiAcceptance) {
           return AutomatonUtil.ldbaSplit(
-            OmegaAcceptanceCast.cast(this, GeneralizedBuchiAcceptance.class)).isPresent();
+              OmegaAcceptanceCast.cast(this, GeneralizedBuchiAcceptance.class)).isPresent();
         }
 
         return false;
 
       default:
         throw new UnsupportedOperationException("Property detection for " + property
-          + " is not implemented");
+            + " is not implemented");
     }
   }
 
@@ -295,16 +282,16 @@ public interface Automaton<S, A extends EmersonLeiAcceptance> {
     DETERMINISTIC,
 
     /**
-     * An automaton is semi-deterministic if every state has at most one successor for each
-     * letter of the alphabet.
+     * An automaton is semi-deterministic if every state has at most one successor for each letter
+     * of the alphabet.
      */
     SEMI_DETERMINISTIC,
 
     /**
-     * An automaton is limit-deterministic if it has a (generalised) Büchi acceptance condition
-     * and every state reachable from an edge with an acceptance marking is deterministic. Thus
-     * all accepting runs are eventually trapped within a subset of the states that have
-     * deterministic transition relation.
+     * An automaton is limit-deterministic if it has a (generalised) Büchi acceptance condition and
+     * every state reachable from an edge with an acceptance marking is deterministic. Thus all
+     * accepting runs are eventually trapped within a subset of the states that have deterministic
+     * transition relation.
      */
     LIMIT_DETERMINISTIC
   }

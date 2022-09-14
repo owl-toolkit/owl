@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -21,7 +21,6 @@ package owl.bdd;
 
 import java.util.BitSet;
 import java.util.Iterator;
-import java.util.Optional;
 import java.util.function.IntUnaryOperator;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
@@ -32,7 +31,7 @@ import owl.logic.propositional.PropositionalFormula;
  * <p> This interface does not extend {@code Set<BitSet>} in order to make it explicit whenever a
  * slow-path through the explicit representation is taken. </p>
  */
-public interface BddSet {
+public sealed interface BddSet permits JBddSetFactory.JBddSet {
 
   BddSetFactory factory();
 
@@ -44,7 +43,7 @@ public interface BddSet {
 
   boolean containsAll(BddSet valuationSet);
 
-  Optional<BitSet> element();
+  BitSet element();
 
   BddSet complement();
 
@@ -93,12 +92,9 @@ public interface BddSet {
    * returned BitSets are a subset of this support.</p>
    *
    * @param support the upper-bound for all elements of the returned view.
-   *
    * @return {@code Iterator<BitSet>}-view of this BddSet
-   *
-   * @throws IllegalArgumentException
-   *     This method throws an exception if the {@param support}
-   *     is smaller than the largest element of {@link BddSet#support()}.
+   * @throws IllegalArgumentException This method throws an exception if the {@param support} is
+   *                                  smaller than the largest element of {@link BddSet#support()}.
    */
   Iterator<BitSet> iterator(int support);
 
@@ -109,12 +105,9 @@ public interface BddSet {
    * returned BitSets are a subset of this support.</p>
    *
    * @param support the upper-bound for all elements of the returned view.
-   *
    * @return {@code Iterator<BitSet>}-view of this BddSet
-   *
-   * @throws IllegalArgumentException
-   *     This method throws an exception if the {@param support} does not contain all elements
-   *     of {@link BddSet#support()}.
+   * @throws IllegalArgumentException This method throws an exception if the {@param support} does
+   *                                  not contain all elements of {@link BddSet#support()}.
    */
   default Iterator<BitSet> iterator(BitSet support) {
     return iterator(ImmutableBitSet.copyOf(support));
@@ -127,12 +120,9 @@ public interface BddSet {
    * returned BitSets are a subset of this support.</p>
    *
    * @param support the upper-bound for all elements of the returned view.
-   *
    * @return {@code Iterator<BitSet>}-view of this BddSet
-   *
-   * @throws IllegalArgumentException
-   *     This method throws an exception if the {@param support} does not contain all elements
-   *     of {@link BddSet#support()}.
+   * @throws IllegalArgumentException This method throws an exception if the {@param support} does
+   *                                  not contain all elements of {@link BddSet#support()}.
    */
   Iterator<BitSet> iterator(ImmutableBitSet support);
 }

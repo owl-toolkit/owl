@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2017, 2022  (Salomon Sickert, Tobias Meggendorfer)
+ * Copyright (C) 2016 - 2021  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -17,26 +17,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.bdd.jbdd;
+package owl.util;
 
-import java.util.List;
-import owl.bdd.BddSetFactory;
-import owl.bdd.EquivalenceClassFactory;
-import owl.bdd.FactorySupplier;
+public final class Verify {
 
-public enum JBddSupplier implements FactorySupplier {
-  INSTANCE;
+  private Verify() {}
 
-  @Override
-  public EquivalenceClassFactory getEquivalenceClassFactory(
-      List<String> atomicPropositions,
-      EquivalenceClassFactory.Encoding defaultEncoding) {
-
-    return new JBddEquivalenceClassFactory(atomicPropositions, defaultEncoding);
-  }
-
-  @Override
-  public BddSetFactory getBddSetFactory() {
-    return new JBddSetFactory(1024);
+  public static Error shouldNotReach() {
+    return new AssertionError("should not reach.");
   }
 }

@@ -19,7 +19,6 @@
 
 package owl.automaton.algorithm.simulations;
 
-import java.util.BitSet;
 import java.util.List;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -55,16 +54,6 @@ public class SimulationGame<S, T extends SimulationState>
   @Override
   public Owner owner(T state) {
     return state.owner();
-  }
-
-  @Override
-  public List<String> variables(Owner owner) {
-    throw new UnsupportedOperationException();
-  }
-
-  @Override
-  public BitSet choice(T state, Owner owner) {
-    throw new UnsupportedOperationException();
   }
 
   @Override

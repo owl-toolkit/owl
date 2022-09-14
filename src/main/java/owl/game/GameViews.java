@@ -26,16 +26,17 @@ import com.google.auto.value.AutoValue;
 import com.google.auto.value.extension.memoized.Memoized;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import javax.annotation.Nullable;
@@ -50,6 +51,9 @@ import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
 import owl.collections.BitSet2;
 import owl.collections.Collections3;
+import owl.game.output.AigConsumer;
+import owl.game.output.AigFactory;
+import owl.game.output.LabelledAig;
 
 public final class GameViews {
 
@@ -79,32 +83,18 @@ public final class GameViews {
 
     private final Automaton<S, A> filteredAutomaton;
     private final Function<S, Owner> ownership;
-    private final Function<Owner, List<String>> variableOwnership;
-    private final BiFunction<S, Owner, BitSet> choice;
 
-    @SuppressWarnings({"unchecked", "raw"})
     private FilteredGame(Game<S, A> game, Predicate<S> states, Predicate<Edge<S>> edgeFilter) {
       this.filteredAutomaton = Views
-          .filtered(game, Views.Filter.of(states, (s, e) -> edgeFilter.test(e)));
-      this.ownership = game instanceof FilteredGame
-        ? ((FilteredGame) game).ownership
-        : game::owner;
-      this.variableOwnership = game instanceof FilteredGame
-        ? ((FilteredGame) game).variableOwnership
-        : game::variables;
-      this.choice = game instanceof FilteredGame
-        ? ((FilteredGame) game).choice
-        : game::choice;
+          .filtered(game, Views.Filter.<S>builder()
+            .initialStates(Sets.filter(game.initialStates(), states::test))
+            .edgeFilter((s, e) -> states.test(e.successor()) && edgeFilter.test(e)).build());
+      this.ownership = game::owner;
     }
 
     @Override
     public List<String> atomicPropositions() {
       return filteredAutomaton.atomicPropositions();
-    }
-
-    @Override
-    public BitSet choice(S state, Owner owner) {
-      return choice.apply(state, owner);
     }
 
     @Override
@@ -125,11 +115,6 @@ public final class GameViews {
     @Override
     public Owner owner(S state) {
       return ownership.apply(state);
-    }
-
-    @Override
-    public List<String> variables(Owner owner) {
-      return variableOwnership.apply(owner);
     }
 
     @Override
@@ -166,8 +151,8 @@ public final class GameViews {
   public static <S, A extends EmersonLeiAcceptance> Game<S, A> replaceInitialStates(
     Game<S, ? extends A> game, Set<S> initialStates) {
     Set<S> immutableInitialStates = Set.copyOf(initialStates);
-    return new Game<>() {
 
+    return new Game<>() {
       @Override
       public List<String> atomicPropositions() {
         return game.atomicPropositions();
@@ -199,11 +184,6 @@ public final class GameViews {
       }
 
       @Override
-      public Set<Edge<S>> edges(S state) {
-        return game.edges(state);
-      }
-
-      @Override
       public Map<Edge<S>, BddSet> edgeMap(S state) {
         return game.edgeMap(state);
       }
@@ -217,16 +197,6 @@ public final class GameViews {
       public Owner owner(S state) {
         return game.owner(state);
       }
-
-      @Override
-      public BitSet choice(S state, Owner owner) {
-        return game.choice(state, owner);
-      }
-
-      @Override
-      public List<String> variables(Owner owner) {
-        return game.variables(owner);
-      }
     };
   }
 
@@ -237,7 +207,7 @@ public final class GameViews {
    * finally updating the state based on the combined valuation, emitting the
    * corresponding acceptance.
    */
-  static final class ForwardingGame<S, A extends EmersonLeiAcceptance>
+  public static final class ForwardingGame<S, A extends EmersonLeiAcceptance>
     extends AbstractMemoizingAutomaton.EdgeMapImplementation<Node<S>, A>
     implements Game<Node<S>, A> {
     private final Automaton<S, A> automaton;
@@ -263,6 +233,69 @@ public final class GameViews {
       }
       secondPlayer = BitSet2.copyOf(this.firstPlayer);
       secondPlayer.flip(0, automaton.atomicPropositions().size());
+    }
+
+    public void feedTo(AigConsumer consumer) {
+      List<String> inputNames = variables(Owner.PLAYER_1);
+      List<String> outputNames = variables(Owner.PLAYER_2);
+
+      AigFactory factory = new AigFactory();
+      inputNames.forEach(consumer::addInput);
+
+      // how many latches will we need?
+      var player2States = states().stream().filter(x -> owner(x) == Owner.PLAYER_2).toList();
+      int nStates = player2States.size();
+      int nLatches = (int) Math.ceil(Math.log(nStates) / Math.log(2));
+
+      // create mapping from states to bitsets of latches + inputs
+      // where the input bits are always set to 0
+      Map<Node<S>, BitSet> encoding = new HashMap<>();
+      int iState = inputNames.size() + 1;
+
+      for (Node<S> state : player2States) {
+        int value = iState;
+        int index = inputNames.size();
+        BitSet b = new BitSet(inputNames.size() + nLatches);
+        while (value != 0) {
+          if (value % 2 != 0) {
+            b.set(index);
+          }
+          index++;
+          value >>>= 1;
+        }
+        encoding.put(state, b);
+        iState += 1;
+      }
+
+      // create a list of LabelledAig for the latches and outputs
+      List<LabelledAig> latches = new ArrayList<>(
+        Collections.nCopies(nLatches, factory.getFalse()));
+      List<LabelledAig> outputs = new ArrayList<>(
+        Collections.nCopies(outputNames.size(), factory.getFalse()));
+
+      // iterate through labelled edges to create latch and output formulas
+      for (Node<S> player2State : player2States) {
+        BitSet stateAndInput = owl.collections.BitSet2.copyOf(encoding.get(player2State));
+        stateAndInput.or(choice(player2State, Owner.PLAYER_1));
+        LabelledAig stateAndInputAig = factory.cube(stateAndInput);
+
+        // for all set indices in the output valuation
+        // we update their transition function
+        choice(player2State, Owner.PLAYER_2).stream().forEach(
+          i -> outputs.set(i, factory.disjunction(outputs.get(i), stateAndInputAig)));
+
+        // we do the same for all set indices in the representation
+        // of the successor state
+        encoding.get(Iterables.getOnlyElement(successors(player2State))).stream().forEach(
+          i -> latches.set(i, factory.disjunction(latches.get(i), stateAndInputAig)));
+      }
+
+      // we finish adding the information to the consumer
+      for (LabelledAig a : latches) {
+        consumer.addLatch("", a);
+      }
+
+      Collections3.forEachPair(outputNames, outputs, consumer::addOutput);
     }
 
     @Override
@@ -331,13 +364,11 @@ public final class GameViews {
       return predecessors;
     }
 
-    @Override
     public Set<Node<S>> predecessors(Node<S> state, Owner owner) {
       // Alternation
       return owner == owner(state) ? Set.of() : predecessors(state);
     }
 
-    @Override
     public List<String> variables(Owner owner) {
       List<String> variables = new ArrayList<>();
       List<String> elements = atomicPropositions();
@@ -356,7 +387,6 @@ public final class GameViews {
       return "Arena: " + firstPlayer + '/' + secondPlayer + '\n' + automaton;
     }
 
-    @Override
     public BitSet choice(Node<S> state, Owner owner) {
       checkArgument(state.firstPlayerChoice() != null, "The state has no encoded choice.");
 

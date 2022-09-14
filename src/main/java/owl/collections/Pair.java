@@ -20,7 +20,7 @@
 package owl.collections;
 
 import com.google.auto.value.AutoValue;
-import java.util.HashSet;
+import com.google.auto.value.extension.memoized.Memoized;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
@@ -39,15 +39,19 @@ public abstract class Pair<A, B> {
   }
 
   public static <A, B> Set<Pair<A, B>> allPairs(Set<? extends A> fstSet, Set<? extends B> sndSet) {
-    Set<Pair<A, B>> pairs = new HashSet<>();
+    @SuppressWarnings("unchecked")
+    Pair<A, B>[] pairs = new Pair[fstSet.size() * sndSet.size()];
+
+    int i = 0;
 
     for (A fst : fstSet) {
       for (B snd : sndSet) {
-        pairs.add(Pair.of(fst, snd));
+        pairs[i] = Pair.of(fst, snd);
+        i++;
       }
     }
 
-    return pairs;
+    return Set.of(pairs);
   }
 
   public Pair<B, A> swap() {
@@ -61,6 +65,13 @@ public abstract class Pair<A, B> {
   public <C> Pair<A, C> mapSnd(Function<? super B, ? extends C> mapper) {
     return Pair.of(fst(), mapper.apply(snd()));
   }
+
+  @Override
+  public abstract boolean equals(Object obj);
+
+  @Memoized
+  @Override
+  public abstract int hashCode();
 
   @Override
   public final String toString() {

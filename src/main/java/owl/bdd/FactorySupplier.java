@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -20,7 +20,6 @@
 package owl.bdd;
 
 import java.util.List;
-import owl.bdd.jbdd.JBddSupplier;
 
 public interface FactorySupplier {
 
@@ -33,22 +32,22 @@ public interface FactorySupplier {
 
   default EquivalenceClassFactory getEquivalenceClassFactory(List<String> atomicPropositions) {
     return getEquivalenceClassFactory(
-      atomicPropositions,
-      EquivalenceClassFactory.Encoding.AP_COMBINED);
+        atomicPropositions,
+        EquivalenceClassFactory.Encoding.AP_COMBINED);
   }
 
   EquivalenceClassFactory getEquivalenceClassFactory(
-    List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding);
+      List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding);
 
   default Factories getFactories(List<String> atomicPropositions) {
     return getFactories(atomicPropositions, EquivalenceClassFactory.Encoding.AP_COMBINED);
   }
 
   default Factories getFactories(
-    List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding) {
+      List<String> atomicPropositions, EquivalenceClassFactory.Encoding defaultEncoding) {
 
     return new Factories(
-      getEquivalenceClassFactory(atomicPropositions, defaultEncoding),
-      getBddSetFactory());
+        getEquivalenceClassFactory(atomicPropositions, defaultEncoding),
+        getBddSetFactory());
   }
 }

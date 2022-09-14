@@ -20,14 +20,14 @@
 package owl.automaton.algorithm;
 
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.function.IntConsumer;
 import java.util.function.Predicate;
 import owl.automaton.Automaton;
-import owl.automaton.SuccessorFunction;
+import owl.automaton.EdgeRelation;
 import owl.automaton.acceptance.AllAcceptance;
-import owl.automaton.acceptance.BuchiAcceptance;
 import owl.automaton.acceptance.CoBuchiAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
@@ -40,100 +40,92 @@ import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.edge.Edge;
 
 public final class LanguageEmptiness {
-  private LanguageEmptiness() {}
 
-  public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
-    return isEmpty(automaton, automaton.initialStates());
+  private LanguageEmptiness() {
   }
 
-  public static <S> boolean isEmpty(Automaton<S, ?> automaton, Set<S> initialStates) {
-    EmersonLeiAcceptance acceptance = automaton.acceptance();
-    // TODO: move to exploration stage.
-    // assert acceptance.isWellFormedAutomaton(automaton) : "Automaton is not well-formed.";
+  public static <S> boolean isEmpty(Automaton<S, ?> automaton) {
+    // Sync this with the implemetation below.
+    var acceptance = automaton.acceptance();
 
-    if (acceptance instanceof AllAcceptance) {
-      return initialStates.stream().noneMatch(
-        x -> hasAcceptingLasso(automaton, x, -1, -1, false));
-    }
-
-    //if (acceptance instanceof BuchiAcceptance) {
-    //  var casted = OmegaAcceptanceCast.cast(automaton, BuchiAcceptance.class);
-    //  return initialStates.stream().noneMatch(x -> Buchi.containsAcceptingScc(casted, x));
-    //}
-
-    if (acceptance instanceof GeneralizedBuchiAcceptance) {
-      var casted = OmegaAcceptanceCast.cast(automaton, GeneralizedBuchiAcceptance.class);
-      return !Buchi.containsAcceptingScc(casted, initialStates);
-    }
-
-    if (acceptance instanceof CoBuchiAcceptance) {
-      var casted = OmegaAcceptanceCast.cast(automaton, ParityAcceptance.class);
-      return initialStates.stream().noneMatch(x -> Parity.containsAcceptingLasso(casted, x));
+    if (acceptance instanceof GeneralizedBuchiAcceptance
+        || acceptance instanceof CoBuchiAcceptance
+        || acceptance instanceof GeneralizedRabinAcceptance) {
+      return isEmpty(automaton.initialStates(), automaton::edges, acceptance);
     }
 
     if (acceptance instanceof ParityAcceptance) {
-      var casted = OmegaAcceptanceCast.cast(automaton, ParityAcceptance.class);
-      return initialStates.stream().noneMatch(x -> Parity.containsAcceptingLasso(casted, x));
+      return isEmpty(OmegaAcceptanceCast.cast(automaton, RabinAcceptance.class));
     }
 
-    if (acceptance instanceof RabinAcceptance) {
-      var casted = OmegaAcceptanceCast.cast(automaton, RabinAcceptance.class);
-      return initialStates.stream().noneMatch(x -> Rabin.containsAcceptingLasso(casted, x));
-    }
-
-    if (acceptance instanceof GeneralizedRabinAcceptance) {
-      var casted = OmegaAcceptanceCast.cast(automaton, GeneralizedRabinAcceptance.class);
-      return !Rabin.containsAcceptingScc(casted, initialStates);
-    }
-
-    // TODO: implement direct algorithm.
     return isEmpty(ZielonkaTreeTransformations.transform(automaton));
   }
 
-  private static <S> boolean dfs1(Automaton<S, ?> automaton, S q, Set<S> visitedStates,
-    Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
-    boolean allFinIndicesBelow) {
+  public static <S> boolean isEmpty(
+      Collection<S> initialStates,
+      EdgeRelation<S> edgeRelation,
+      EmersonLeiAcceptance acceptance) {
+
+    if (acceptance instanceof GeneralizedBuchiAcceptance generalizedBuchiAcceptance) {
+      return !Buchi.containsAcceptingScc(initialStates, edgeRelation, generalizedBuchiAcceptance);
+    }
+
+    if (acceptance instanceof CoBuchiAcceptance coBuchiAcceptance) {
+      return !CoBuchi.containsAcceptingScc(initialStates, edgeRelation);
+    }
+
+    if (acceptance instanceof GeneralizedRabinAcceptance generalizedRabinAcceptance) {
+      return !Rabin.containsAcceptingScc(initialStates, edgeRelation, generalizedRabinAcceptance);
+    }
+
+    throw new UnsupportedOperationException(
+        "Support for " + acceptance.getClass() + " not yet implemented.");
+  }
+
+  private static <S> boolean dfs1(EdgeRelation<S> edges, S q, Set<S> visitedStates,
+      Set<S> visitedAcceptingStates, int infIndex, int finIndex, boolean acceptingState,
+      boolean allFinIndicesBelow) {
     if (acceptingState) {
       visitedAcceptingStates.add(q);
     } else {
       visitedStates.add(q);
     }
 
-    for (Edge<S> edge : automaton.edges(q)) {
+    for (Edge<S> edge : edges.edges(q)) {
       S successor = edge.successor();
       if ((infIndex == -1 || edge.colours().contains(infIndex))
-        && !inSet(edge, finIndex, allFinIndicesBelow)) {
-        if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
-          visitedStates, visitedAcceptingStates, infIndex,
-          finIndex, true, allFinIndicesBelow)) {
+          && !inSet(edge, finIndex, allFinIndicesBelow)) {
+        if (!visitedAcceptingStates.contains(successor) && dfs1(edges, successor,
+            visitedStates, visitedAcceptingStates, infIndex,
+            finIndex, true, allFinIndicesBelow)) {
           return true;
         }
-      } else if (!visitedStates.contains(successor) && dfs1(automaton, successor, visitedStates,
-        visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
+      } else if (!visitedStates.contains(successor) && dfs1(edges, successor, visitedStates,
+          visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
         return true;
       }
     }
 
-    return acceptingState && dfs2(automaton, q, new HashSet<>(), infIndex, finIndex, q,
-      allFinIndicesBelow);
+    return acceptingState && dfs2(edges, q, new HashSet<>(), infIndex, finIndex, q,
+        allFinIndicesBelow);
   }
 
-  private static <S> boolean dfs2(Automaton<S, ?> automaton, S q, Set<S> visitedStatesLasso,
-    int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
+  private static <S> boolean dfs2(EdgeRelation<S> automaton, S q, Set<S> visitedStatesLasso,
+      int infIndex, int finIndex, S seed, boolean allFinIndicesBelow) {
     visitedStatesLasso.add(q);
 
     for (Edge<S> edge : automaton.edges(q)) {
       S successor = edge.successor();
 
       if ((infIndex == -1 || edge.colours().contains(infIndex))
-        && !inSet(edge, finIndex, allFinIndicesBelow)
-        && successor.equals(seed)) {
+          && !inSet(edge, finIndex, allFinIndicesBelow)
+          && successor.equals(seed)) {
         return true;
       }
 
       if (!visitedStatesLasso.contains(successor) && !inSet(edge, finIndex, allFinIndicesBelow)
-        && dfs2(automaton, successor, visitedStatesLasso, infIndex, finIndex, seed,
-        allFinIndicesBelow)) {
+          && dfs2(automaton, successor, visitedStatesLasso, infIndex, finIndex, seed,
+          allFinIndicesBelow)) {
         return true;
       }
     }
@@ -141,23 +133,27 @@ public final class LanguageEmptiness {
     return false;
   }
 
-  private static <S> boolean hasAcceptingLasso(Automaton<S, ?> automaton, S initialState,
-    int infIndex, int finIndex, boolean allFinIndicesBelow) {
+  private static <S> boolean hasAcceptingLasso(
+      S initialState,
+      EdgeRelation<S> edgeRelation,
+      int infIndex,
+      int finIndex) {
+
     Set<S> visitedStates = new HashSet<>();
     Set<S> visitedAcceptingStates = new HashSet<>();
 
-    for (Edge<S> edge : automaton.edges(initialState)) {
+    for (Edge<S> edge : edgeRelation.edges(initialState)) {
       S successor = edge.successor();
       if ((infIndex == -1 || edge.colours().contains(infIndex))
-        && !inSet(edge, finIndex, allFinIndicesBelow)) {
+          && !inSet(edge, finIndex, true)) {
 
-        if (!visitedAcceptingStates.contains(successor) && dfs1(automaton, successor,
-          visitedStates, visitedAcceptingStates, infIndex, finIndex, true,
-          allFinIndicesBelow)) {
+        if (!visitedAcceptingStates.contains(successor) && dfs1(edgeRelation, successor,
+            visitedStates, visitedAcceptingStates, infIndex, finIndex, true,
+            true)) {
           return true;
         }
-      } else if (!visitedStates.contains(successor) && dfs1(automaton, successor, visitedStates,
-        visitedAcceptingStates, infIndex, finIndex, false, allFinIndicesBelow)) {
+      } else if (!visitedStates.contains(successor) && dfs1(edgeRelation, successor, visitedStates,
+          visitedAcceptingStates, infIndex, finIndex, false, true)) {
         return true;
       }
     }
@@ -175,29 +171,26 @@ public final class LanguageEmptiness {
 
   private static final class Buchi {
 
-    private Buchi() {}
-
-    private static <S> boolean containsAcceptingLasso(
-      Automaton<S, BuchiAcceptance> automaton, S initialState) {
-      return hasAcceptingLasso(automaton, initialState, 0, -1, false);
+    private Buchi() {
     }
 
     private static <S> boolean containsAcceptingScc(
-      Automaton<S, ? extends GeneralizedBuchiAcceptance> automaton, Set<S> initialStates) {
+        Collection<S> initialStates,
+        EdgeRelation<S> edgeRelation,
+        GeneralizedBuchiAcceptance acceptance) {
+
       Predicate<Set<S>> acceptingScc = scc -> {
-        BitSet remaining = new BitSet(automaton.acceptance().acceptanceSets());
-        remaining.set(0, automaton.acceptance().acceptanceSets());
+        BitSet remaining = new BitSet(acceptance.acceptanceSets());
+        remaining.set(0, acceptance.acceptanceSets());
 
         for (S state : scc) {
-          for (Edge<S> successorEdge : automaton.edges(state)) {
-            if (!scc.contains(successorEdge.successor())) {
-              continue;
-            }
+          for (Edge<S> edge : edgeRelation.edges(state)) {
+            if (scc.contains(edge.successor())) {
+              edge.colours().forEach((IntConsumer) remaining::clear);
 
-            successorEdge.colours().forEach((IntConsumer) remaining::clear);
-
-            if (remaining.isEmpty()) {
-              return true;
+              if (remaining.isEmpty()) {
+                return true;
+              }
             }
           }
         }
@@ -205,31 +198,71 @@ public final class LanguageEmptiness {
         return false;
       };
 
-      return SccDecomposition.of(initialStates, automaton::successors)
-        .anyMatch(acceptingScc);
+      var tarjan = new Tarjan<>(edgeRelation, acceptingScc);
+
+      for (S s : initialStates) {
+        if (tarjan.run(s)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+  }
+
+  private static final class CoBuchi {
+
+    private CoBuchi() {
+    }
+
+    private static <S> boolean containsAcceptingScc(
+        Collection<S> initialStates,
+        EdgeRelation<S> edgeRelation) {
+
+      Predicate<Set<S>> acceptingScc = scc -> !isEmpty(
+          Set.of(scc.iterator().next()),
+          EdgeRelation.filter(edgeRelation,
+              edge -> edge.colours().isEmpty() && scc.contains(edge.successor())),
+          AllAcceptance.INSTANCE);
+
+      // Filter coBuchi.
+      var tarjan = new Tarjan<>(edgeRelation, acceptingScc);
+
+      for (S s : initialStates) {
+        if (tarjan.run(s)) {
+          return true;
+        }
+      }
+
+      return false;
     }
   }
 
   private static final class Parity {
-    private Parity() {}
+
+    private Parity() {
+    }
 
     private static <S> boolean containsAcceptingLasso(
-      Automaton<S, ? extends ParityAcceptance> automaton, S initialState) {
-      if (automaton.acceptance().parity().max()) {
+        S initialState,
+        EdgeRelation<S> edgeRelation,
+        ParityAcceptance acceptance) {
+
+      if (acceptance.parity().max()) {
         throw new UnsupportedOperationException("Only min-{even,odd} conditions supported.");
       }
 
-      int sets = automaton.acceptance().acceptanceSets();
+      int sets = acceptance.acceptanceSets();
 
-      if (automaton.acceptance().parity().even()) {
+      if (acceptance.parity().even()) {
         for (int inf = 0; inf < sets; inf += 2) {
           int fin = inf - 1;
 
-          if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
+          if (hasAcceptingLasso(initialState, edgeRelation, inf, fin)) {
             return true;
           }
 
-          if (sets - inf == 2 && hasAcceptingLasso(automaton, initialState, -1, fin + 2, true)) {
+          if (sets - inf == 2 && hasAcceptingLasso(initialState, edgeRelation, -1, fin + 2)) {
             return true;
           }
         }
@@ -241,7 +274,7 @@ public final class LanguageEmptiness {
             inf = fin + 1;
           }
 
-          if (hasAcceptingLasso(automaton, initialState, inf, fin, true)) {
+          if (hasAcceptingLasso(initialState, edgeRelation, inf, fin)) {
             return true;
           }
         }
@@ -252,60 +285,71 @@ public final class LanguageEmptiness {
   }
 
   private static final class Rabin {
-    private Rabin() {}
 
-    private static <S> boolean containsAcceptingLasso(
-      Automaton<S, ? extends RabinAcceptance> automaton, S initialState) {
-      for (RabinPair pair : automaton.acceptance().pairs()) {
-        if (hasAcceptingLasso(automaton, initialState, pair.infSet(),
-          pair.finSet(), false)) {
-          return true;
-        }
-      }
-
-      return false;
+    private Rabin() {
     }
 
     private static <S> boolean containsAcceptingScc(
-      Automaton<S, ? extends GeneralizedRabinAcceptance> automaton, Set<S> initialStates) {
+        Collection<S> initialStates,
+        EdgeRelation<S> edgeRelation,
+        GeneralizedRabinAcceptance acceptance) {
 
       Predicate<Set<S>> acceptingScc = scc -> {
-        for (RabinPair pair : automaton.acceptance().pairs()) {
+        for (RabinPair pair : acceptance.pairs()) {
           // Compute all SCCs after removing the finite edges of the current finite pair
-          var filteredSuccessorFunction = SuccessorFunction.filter(
-            automaton, scc, edge -> !edge.colours().contains(pair.finSet()));
+          EdgeRelation<S> filteredSuccessorsFunction = EdgeRelation.filter(
+              edgeRelation,
+              e -> !e.colours().contains(pair.finSet()) && scc.contains(e.successor()));
 
-          if (SccDecomposition.of(scc, filteredSuccessorFunction).anyMatch(subScc -> {
-            // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
-            BitSet awaitedIndices = new BitSet();
-            pair.forEachInfSet(awaitedIndices::set);
+          // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
+          // This edge does not qualify for an accepting cycle
+          // This edge yields an accepting cycle
+          // No accepting edge was found in this sub-SCC
+          var tarjan = new Tarjan<>(filteredSuccessorsFunction,
+              (Predicate<? super Set<S>>) subScc -> {
+                // Iterate over all edges inside the sub-SCC, check if there is any in the Inf set.
+                BitSet awaitedIndices = new BitSet();
+                pair.forEachInfSet(awaitedIndices::set);
 
-            for (S state : subScc) {
-              for (Edge<S> edge : automaton.edges(state)) {
-                if (!subScc.contains(edge.successor()) || edge.colours().contains(pair.finSet())) {
-                  // This edge does not qualify for an accepting cycle
-                  continue;
+                for (S state : subScc) {
+                  for (Edge<S> edge : edgeRelation.edges(state)) {
+                    if (!subScc.contains(edge.successor()) || edge.colours()
+                        .contains(pair.finSet())) {
+                      // This edge does not qualify for an accepting cycle
+                      continue;
+                    }
+
+                    edge.colours().forEach((IntConsumer) awaitedIndices::clear);
+
+                    if (awaitedIndices.isEmpty()) {
+                      // This edge yields an accepting cycle
+                      return true;
+                    }
+                  }
                 }
+                // No accepting edge was found in this sub-SCC
+                return false;
+              });
 
-                edge.colours().forEach((IntConsumer) awaitedIndices::clear);
-
-                if (awaitedIndices.isEmpty()) {
-                  // This edge yields an accepting cycle
-                  return true;
-                }
-              }
+          for (S s : scc) {
+            if (tarjan.run(s)) {
+              return true;
             }
-            // No accepting edge was found in this sub-SCC
-            return false;
-          })) {
-            return true;
           }
         }
 
         return false;
       };
 
-      return SccDecomposition.of(initialStates, automaton::successors).anyMatch(acceptingScc);
+      var tarjan = new Tarjan<>(edgeRelation, acceptingScc);
+
+      for (S s : initialStates) {
+        if (tarjan.run(s)) {
+          return true;
+        }
+      }
+
+      return false;
     }
   }
 }

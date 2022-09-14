@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2020  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -30,15 +30,22 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.io.Reader;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Spliterator;
+import java.util.Spliterators;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import owl.automaton.Automaton;
@@ -60,46 +67,100 @@ import owl.thirdparty.jhoafparser.parser.generated.ParseException;
 @SuppressWarnings("PMD.ImmutableField")
 final class Mixins {
 
-  private Mixins() {}
+  private Mixins() {
+  }
+
+  sealed interface StreamElements {
+
+  }
+
+  record Element(Automaton<Integer, ?> automaton) implements StreamElements {
+
+  }
+
+  record EndOfStream(Exception exception) implements StreamElements {
+
+  }
 
   static final class AutomatonReader {
 
     @Option(
-      names = { "-i", "--input-file" },
-      description = "Input file (default: read from stdin). If '-' is specified, then the tool "
-        + "reads from stdin. This option is repeatable."
+        names = {"-i", "--input-file"},
+        description = "Input file (default: read from stdin). If '-' is specified, then the tool "
+            + "reads from stdin. This option is repeatable."
     )
-    private String[] automatonFile = { "-" };
+    private final String[] automatonFile = {"-"};
 
     <A extends EmersonLeiAcceptance> Stream<Automaton<Integer, ? extends A>>
-      source(Class<A> acceptanceClass) {
+    source(Class<A> acceptanceClass) {
 
       return Stream.of(automatonFile).flatMap(file -> {
-        try (var reader = "-".equals(file)
-          ? new BufferedReader(new InputStreamReader(System.in))
-          : Files.newBufferedReader(Path.of(file))) {
+        BlockingQueue<StreamElements> queue = new ArrayBlockingQueue<>(256);
 
-          List<Automaton<Integer, ? extends A>> automata = new ArrayList<>();
+        Thread readerThread = new Thread(() -> {
+          try (Reader reader = "-".equals(file)
+              ? new InputStreamReader(System.in)
+              : Files.newBufferedReader(Path.of(file))) {
 
-          // Warning: the 'readStream'-method reads until the reader is exhausted and thus this
-          // method blocks in while reading from stdin.
-          HoaReader.readStream(reader,
-            FactorySupplier.defaultSupplier()::getBddSetFactory,
-            null,
-            automaton -> {
-              Preconditions.checkArgument(
-                OmegaAcceptanceCast.isInstanceOf(automaton.acceptance().getClass(),
-                  acceptanceClass),
-                String.format("Expected %s, but got %s.", acceptanceClass, automaton.acceptance()));
-              automata.add(OmegaAcceptanceCast.cast(automaton, acceptanceClass));
-            });
+            // TODO: read input line by line and buffer until --END-- / --ABORT-- in order to avoid
+            // the broken parser to read everything into memory. :(
+            HoaReader.readStream(reader, FactorySupplier.defaultSupplier()::getBddSetFactory, null,
+                automaton -> {
+                  try {
+                    queue.put(new Element(automaton));
+                  } catch (InterruptedException exception) {
+                    queue.clear();
+                    queue.add(new EndOfStream(exception));
+                  }
+                });
 
-          return automata.stream();
-        } catch (IOException e) {
-          throw new UncheckedIOException(e);
-        } catch (ParseException e) {
-          throw new UncheckedExecutionException(e);
-        }
+            queue.put(new EndOfStream(null));
+          } catch (IOException | InterruptedException | ParseException exception) {
+            queue.clear();
+            queue.add(new EndOfStream(exception));
+          }
+        });
+
+        Spliterator<Automaton<Integer, ? extends A>> queueSpliterator = new Spliterators.AbstractSpliterator<>(
+            Long.MAX_VALUE, Spliterator.NONNULL | Spliterator.IMMUTABLE) {
+
+          @Override
+          public boolean tryAdvance(Consumer<? super Automaton<Integer, ? extends A>> action) {
+            try {
+              var nextElement = queue.take();
+
+              if (nextElement instanceof Element element) {
+                Preconditions.checkArgument(
+                    OmegaAcceptanceCast.isInstanceOf(element.automaton.acceptance().getClass(),
+                        acceptanceClass),
+                    String.format("Expected %s, but got %s.", acceptanceClass,
+                        element.automaton.acceptance()));
+
+                action.accept(OmegaAcceptanceCast.cast(element.automaton, acceptanceClass));
+                return true;
+              } else {
+                EndOfStream endOfStream = (EndOfStream) nextElement;
+
+                if (endOfStream.exception == null) {
+                  return false;
+                }
+
+                if (endOfStream.exception instanceof IOException ioException) {
+                  throw new UncheckedIOException(ioException);
+                } else {
+                  throw new UncheckedExecutionException(endOfStream.exception);
+                }
+              }
+            } catch (InterruptedException interruptedException) {
+              throw new UncheckedExecutionException(interruptedException);
+            }
+          }
+        };
+
+        // Ensure that readerThread does not block the JVM exiting.
+        readerThread.setDaemon(true);
+        readerThread.start();
+        return StreamSupport.stream(queueSpliterator, false);
       });
     }
   }
@@ -107,36 +168,36 @@ final class Mixins {
   static final class AutomatonWriter {
 
     @Option(
-      names = { "-o", "--output-file" },
-      description = "Output file (default: write to stdout). If '-' is specified, then the tool "
-        + "writes to stdout."
+        names = {"-o", "--output-file"},
+        description = "Output file (default: write to stdout). If '-' is specified, then the tool "
+            + "writes to stdout."
     )
     private String automatonFile = null;
 
     @Option(
-      names = {"--complete"},
-      description = "Output an automaton with a complete transition relation."
+        names = {"--complete"},
+        description = "Output an automaton with a complete transition relation."
     )
     boolean complete = false;
 
     @Option(
-      names = {"--dry-run"},
-      description = "Do not output resulting automaton."
+        names = {"--dry-run"},
+        description = "Do not output resulting automaton."
     )
     private boolean dryRun = false;
 
     @Option(
-      names = {"--state-acceptance"},
-      description = "Output an automaton with a state-based acceptance condition instead of one "
-        + "with a transition-based acceptance condition. For this the acceptance marks of edges "
-        + "are pushed onto the successor states. However, this simple procedure might yield "
-        + "suboptimal results."
+        names = {"--state-acceptance"},
+        description = "Output an automaton with a state-based acceptance condition instead of one "
+            + "with a transition-based acceptance condition. For this the acceptance marks of edges "
+            + "are pushed onto the successor states. However, this simple procedure might yield "
+            + "suboptimal results."
     )
     private boolean stateAcceptance = false;
 
     @Option(
-      names = {"--state-labels"},
-      description = "Annotate each state of the automaton with the 'toString()' method."
+        names = {"--state-labels"},
+        description = "Annotate each state of the automaton with the 'toString()' method."
     )
     private boolean stateLabels = false;
 
@@ -164,7 +225,7 @@ final class Mixins {
 
       @SuppressWarnings("PMD.AvoidReassigningParameters")
       void accept(Automaton<?, ?> automaton, String automatonName)
-        throws HOAConsumerException, IOException {
+          throws HOAConsumerException, IOException {
 
         if (dryRun) {
           return;
@@ -179,16 +240,16 @@ final class Mixins {
         // Replace this by a fixed version to preserve owl header extension in case of state
         // acceptance.
         var wrappedPrinter = stateAcceptance
-          ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptanceFixed())
-          : printer;
+            ? new HOAIntermediateStoreAndManipulate(printer, new ToStateAcceptanceFixed())
+            : printer;
 
         HoaWriter.write(
-          automaton,
-          wrappedPrinter,
-          stateLabels,
-          subcommand,
-          subcommandArgs,
-          automatonName);
+            automaton,
+            wrappedPrinter,
+            stateLabels,
+            subcommand,
+            subcommandArgs,
+            automatonName);
 
         writer.flush();
       }
@@ -212,18 +273,18 @@ final class Mixins {
     private static final class Source {
 
       @Option(
-        names = {"-f", "--formula"},
-        description = "Use the argument of the option as the input formula. This option is "
-          + "repeatable, but cannot be combined with '-i'."
+          names = {"-f", "--formula"},
+          description = "Use the argument of the option as the input formula. This option is "
+              + "repeatable, but cannot be combined with '-i'."
       )
       String[] formula = null;
 
       @Option(
-        names = {"-i", "--input-file"},
-        description = "Input file (default: read from stdin). The file is read line-by-line and "
-          + "it is assumed that each line contains a formula. Empty lines are skipped. If '-' is "
-          + "specified, then the tool reads from stdin. This option is repeatable, but cannot be "
-          + "combined with '-f'."
+          names = {"-i", "--input-file"},
+          description = "Input file (default: read from stdin). The file is read line-by-line and "
+              + "it is assumed that each line contains a formula. Empty lines are skipped. If '-' is "
+              + "specified, then the tool reads from stdin. This option is repeatable, but cannot be "
+              + "combined with '-f'."
       )
       String[] formulaFile = null;
 
@@ -233,7 +294,7 @@ final class Mixins {
       // Default to stdin.
       if (source == null) {
         source = new Source();
-        source.formulaFile = new String[]{ "-" };
+        source.formulaFile = new String[]{"-"};
       }
 
       Stream<String> stringStream;
@@ -246,8 +307,8 @@ final class Mixins {
 
         for (String file : source.formulaFile) {
           BufferedReader reader = "-".equals(file)
-            ? new BufferedReader(new InputStreamReader(System.in))
-            : Files.newBufferedReader(Path.of(file));
+              ? new BufferedReader(new InputStreamReader(System.in))
+              : Files.newBufferedReader(Path.of(file));
 
           readerStreams.add(reader.lines().onClose(() -> {
             try {
@@ -260,8 +321,8 @@ final class Mixins {
 
         // This workaround helps against getting stuck while reading from stdin.
         stringStream = readerStreams.size() == 1
-          ? readerStreams.get(0)
-          : readerStreams.stream().flatMap(Function.identity());
+            ? readerStreams.get(0)
+            : readerStreams.stream().flatMap(Function.identity());
       }
 
       return stringStream.filter(Predicate.not(String::isBlank));
@@ -281,9 +342,9 @@ final class Mixins {
   static final class FormulaWriter {
 
     @Option(
-      names = { "-o", "--output-file" },
-      description = "Output file (default: write to stdout). If '-' is specified, then the tool "
-        + "writes to stdout."
+        names = {"-o", "--output-file"},
+        description = "Output file (default: write to stdout). If '-' is specified, then the tool "
+            + "writes to stdout."
     )
     private String formulaFile = null;
 
@@ -324,8 +385,8 @@ final class Mixins {
   static final class AcceptanceSimplifier {
 
     @Option(
-      names = {"--skip-acceptance-simplifier"},
-      description = "Bypass the automatic simplification of automata acceptance conditions."
+        names = {"--skip-acceptance-simplifier"},
+        description = "Bypass the automatic simplification of automata acceptance conditions."
     )
     boolean skipAcceptanceSimplifier = false;
 
@@ -334,8 +395,8 @@ final class Mixins {
   static final class FormulaSimplifier {
 
     @Option(
-      names = {"--skip-formula-simplifier"},
-      description = "Bypass the automatic simplification of formulas."
+        names = {"--skip-formula-simplifier"},
+        description = "Bypass the automatic simplification of formulas."
     )
     boolean skipSimplifier = false;
 
@@ -344,10 +405,11 @@ final class Mixins {
   static final class Verifier {
 
     @Option(
-      names = "--verify",
-      description = "Verify the computed result. If the verification fails the tool aborts with an "
-        + "error. This flag is intended only for testing.",
-      hidden = true
+        names = "--verify",
+        description =
+            "Verify the computed result. If the verification fails the tool aborts with an "
+                + "error. This flag is intended only for testing.",
+        hidden = true
     )
     boolean verify = false;
 
@@ -359,33 +421,33 @@ final class Mixins {
     private final Stopwatch stopwatch = Stopwatch.createUnstarted();
 
     @Option(
-      names = "--diagnostics",
-      description = "Print diagnostic information to stderr."
+        names = "--diagnostics",
+        description = "Print diagnostic information to stderr."
     )
     private boolean printDiagnostics = false;
 
     @Option(
-      names = "--diagnostics-time-unit",
-      description = "Select the time unit (${COMPLETION-CANDIDATES}) for reporting runtimes. The "
-        + "default value is ${DEFAULT-VALUE}. Be aware that for NANOSECONDS the reporting might "
-        + "not be accurate.",
-      defaultValue = "MILLISECONDS"
+        names = "--diagnostics-time-unit",
+        description = "Select the time unit (${COMPLETION-CANDIDATES}) for reporting runtimes. The "
+            + "default value is ${DEFAULT-VALUE}. Be aware that for NANOSECONDS the reporting might "
+            + "not be accurate.",
+        defaultValue = "MILLISECONDS"
     )
     private TimeUnit timeUnit = TimeUnit.MILLISECONDS;
 
     void start(String subcommand, Automaton<?, ?> automaton) {
       if (printDiagnostics) {
         System.err.printf("""
-            %s:
-              Input Automaton (after preprocessing):
-                States: %d
-                Acceptance Name: %s
-                Acceptance Sets: %d
-            """,
-          subcommand,
-          automaton.states().size(),
-          automaton.acceptance().name(),
-          automaton.acceptance().acceptanceSets());
+                %s:
+                  Input Automaton (after preprocessing):
+                    States: %d
+                    Acceptance Name: %s
+                    Acceptance Sets: %d
+                """,
+            subcommand,
+            automaton.states().size(),
+            automaton.acceptance().name(),
+            automaton.acceptance().acceptanceSets());
         stopwatch.start();
       }
     }
@@ -394,17 +456,17 @@ final class Mixins {
       if (printDiagnostics) {
         stopwatch.stop();
         System.err.printf("""
-              Output Automaton (before postprocessing):
-                States: %d
-                Acceptance Name: %s
-                Acceptance Sets: %d
-              Runtime (without pre- and postprocessing): %d %s
-            """,
-          automaton.states().size(),
-          automaton.acceptance().name(),
-          automaton.acceptance().acceptanceSets(),
-          stopwatch.elapsed(timeUnit),
-          timeUnit);
+                  Output Automaton (before postprocessing):
+                    States: %d
+                    Acceptance Name: %s
+                    Acceptance Sets: %d
+                  Runtime (without pre- and postprocessing): %d %s
+                """,
+            automaton.states().size(),
+            automaton.acceptance().name(),
+            automaton.acceptance().acceptanceSets(),
+            stopwatch.elapsed(timeUnit),
+            timeUnit);
       }
     }
   }

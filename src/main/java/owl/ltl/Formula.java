@@ -198,6 +198,10 @@ public abstract sealed class Formula implements Comparable<Formula> {
    */
   public abstract Formula not();
 
+  public final Set<Formula> subformulas() {
+    return subformulas(Formula.class);
+  }
+
   public final <E extends Formula> Set<E> subformulas(Class<? extends E> clazz) {
     return subformulas(clazz::isInstance, clazz::cast);
   }

@@ -192,11 +192,11 @@ public abstract class BddSetTest {
   void testFilter() {
     var factory = factory();
 
-    var tree = MtBdd.of(Set.of(true));
+    var tree = MtBdd.copyOf(Set.of(true));
     var filter = factory.of(0);
 
     assertEquals(
-      MtBdd.of(0, MtBdd.of(Set.of(true)), MtBdd.of()),
+      MtBdd.of(0, MtBdd.copyOf(Set.of(true)), MtBdd.of()),
       filter.intersection(tree));
   }
 

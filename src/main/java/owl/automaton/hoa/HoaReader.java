@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2016 - 2021  (See AUTHORS)
+ * Copyright (C) 2016 - 2022  (See AUTHORS)
  *
  * This file is part of Owl.
  *
@@ -24,8 +24,12 @@ import static owl.logic.propositional.PropositionalFormula.Disjunction;
 import static owl.logic.propositional.PropositionalFormula.Variable;
 
 import com.google.common.collect.Iterables;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -69,47 +73,80 @@ import owl.thirdparty.jhoafparser.transformations.ToTransitionAcceptance;
 
 public final class HoaReader {
 
-  private HoaReader() {}
+  private HoaReader() {
+  }
 
   public static void readStream(
-    Reader reader,
-    Supplier<BddSetFactory> factorySupplier,
-    @Nullable List<String> predefinedAtomicPropositions,
-    Consumer<? super Automaton<Integer, ?>> consumer) throws ParseException {
+      Reader reader,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions,
+      Consumer<? super Automaton<Integer, ?>> consumer) throws ParseException {
 
     var copiedPredefinedAtomicPropositions = predefinedAtomicPropositions == null
-      ? null
-      : List.copyOf(predefinedAtomicPropositions);
+        ? null
+        : List.copyOf(predefinedAtomicPropositions);
 
     final class HoaConsumerAutomatonSupplier extends HOAConsumerStore {
+
       @Override
       public void notifyEnd() throws HOAConsumerException {
         super.notifyEnd();
-        consumer.accept(transform(
-          getStoredAutomaton(), factorySupplier, copiedPredefinedAtomicPropositions));
+        consumer.accept(
+            transform(getStoredAutomaton(), factorySupplier, copiedPredefinedAtomicPropositions));
       }
     }
 
     HOAFParserFixed.parseHOA(reader,
-      () -> new ToTransitionAcceptance(new HoaConsumerAutomatonSupplier()));
+        () -> new ToTransitionAcceptance(new HoaConsumerAutomatonSupplier()));
   }
 
   public static Automaton<Integer, ?> read(String string) throws ParseException {
     return read(string, FactorySupplier.defaultSupplier()::getBddSetFactory, null);
   }
 
+  public static List<Automaton<Integer, ?>> readMultiple(Path path)
+      throws ParseException, IOException {
+    
+    return readMultiple(path, FactorySupplier.defaultSupplier()::getBddSetFactory, null);
+  }
+
+  public static List<Automaton<Integer, ?>> readMultiple(
+      Path path,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) throws ParseException, IOException {
+
+    List<Automaton<Integer, ?>> automata = new ArrayList<>();
+
+    try (var reader = Files.newBufferedReader(path)) {
+      HoaReader.readStream(reader, factorySupplier, predefinedAtomicPropositions, automata::add);
+    }
+
+    return automata;
+  }
+
+  public static List<Automaton<Integer, ?>> readMultiple(
+      String string,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
+
+    List<Automaton<Integer, ?>> automata = new ArrayList<>();
+    HoaReader.readStream(
+        new StringReader(string), factorySupplier, predefinedAtomicPropositions, automata::add);
+    return automata;
+  }
+
   public static Automaton<Integer, ?> read(
-    String string,
-    Supplier<BddSetFactory> factorySupplier,
-    @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
+      String string,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
 
     return read(new StringReader(string), factorySupplier, predefinedAtomicPropositions);
   }
 
   public static Automaton<Integer, ?> read(
-    Reader reader,
-    Supplier<BddSetFactory> factorySupplier,
-    @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
+      Reader reader,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) throws ParseException {
 
     AtomicReference<Automaton<Integer, ?>> reference = new AtomicReference<>();
 
@@ -117,7 +154,7 @@ public final class HoaReader {
       var oldValue = reference.getAndSet(automaton);
       if (oldValue != null) {
         throw new IllegalArgumentException(
-          String.format("Stream contained at least two automata: %s, %s", automaton, oldValue));
+            String.format("Stream contained at least two automata: %s, %s", automaton, oldValue));
       }
     });
 
@@ -166,11 +203,11 @@ public final class HoaReader {
           colours = Integer.parseInt(stringColours);
         } catch (NumberFormatException e) {
           throw (HOAConsumerException) new HOAConsumerException(
-            "Failed to parse colours " + stringColours).initCause(e);
+              "Failed to parse colours " + stringColours).initCause(e);
         }
         check(colours >= 0, "Negative colours");
         check(colours == sets, String.format("Mismatch between colours (%d) and acceptance"
-          + " set count (%d)", colours, sets));
+            + " set count (%d)", colours, sets));
 
         return new ParityAcceptance(sets, Parity.of(max, even));
 
@@ -184,7 +221,7 @@ public final class HoaReader {
         // Acceptance: 3 Inf(0)&Inf(1)&Inf(2)
         int size1 = Integer.parseInt(name.extra().get(0).toString());
         var generalizedBuchiAcceptance
-          = GeneralizedBuchiAcceptance.ofPartial(formula).orElseThrow();
+            = GeneralizedBuchiAcceptance.ofPartial(formula).orElseThrow();
         check(generalizedBuchiAcceptance.acceptanceSets() == size1, "Mismatch.");
         return generalizedBuchiAcceptance;
 
@@ -193,7 +230,7 @@ public final class HoaReader {
         // Acceptance: 3 Fin(0)|Fin(1)|Fin(2)
         int size2 = Integer.parseInt(name.extra().get(0).toString());
         var generalizedCoBuchiAcceptance
-          = GeneralizedCoBuchiAcceptance.ofPartial(formula).orElseThrow();
+            = GeneralizedCoBuchiAcceptance.ofPartial(formula).orElseThrow();
         check(generalizedCoBuchiAcceptance.acceptanceSets() == size2, "Mismatch.");
         return generalizedCoBuchiAcceptance;
 
@@ -201,15 +238,15 @@ public final class HoaReader {
         // acc-name: Rabin 3
         // Acceptance: 6 (Fin(0)&Inf(1))|(Fin(2)&Inf(3))|(Fin(4)&Inf(5))
         return RabinAcceptance.ofPartial(formula).orElseThrow(
-          () -> new IllegalArgumentException(
-            String.format("Rabin Acceptance (%s) not well-formed.", formula)));
+            () -> new IllegalArgumentException(
+                String.format("Rabin Acceptance (%s) not well-formed.", formula)));
 
       case "generalized-rabin":
         // acc-name: generalized-Rabin 2 3 2
         // Acceptance: 7 (Fin(0)&Inf(1)&Inf(2)&Inf(3))|(Fin(4)&Inf(5)&Inf(6))
         return GeneralizedRabinAcceptance.ofPartial(formula).orElseThrow(
-          () -> new IllegalArgumentException(String.format(
-            "Generalized-Rabin Acceptance (%s) not well-formed.", formula)));
+            () -> new IllegalArgumentException(String.format(
+                "Generalized-Rabin Acceptance (%s) not well-formed.", formula)));
 
       case "streett":
         // acc-name: Streett 3
@@ -221,16 +258,16 @@ public final class HoaReader {
   }
 
   private static void check(boolean condition, String message)
-    throws HOAConsumerException {
+      throws HOAConsumerException {
     if (!condition) {
       throw new HOAConsumerException(message);
     }
   }
 
   private static AbstractMemoizingAutomaton<Integer, ?> transform(
-    StoredAutomaton storedAutomaton,
-    Supplier<BddSetFactory> factorySupplier,
-    @Nullable List<String> predefinedAtomicPropositions) throws HOAConsumerException {
+      StoredAutomaton storedAutomaton,
+      Supplier<BddSetFactory> factorySupplier,
+      @Nullable List<String> predefinedAtomicPropositions) throws HOAConsumerException {
 
     var storedHeader = storedAutomaton.getStoredHeader();
     var vsFactory = factorySupplier.get();
@@ -248,7 +285,7 @@ public final class HoaReader {
     int[] remapping;
 
     if (predefinedAtomicPropositions == null
-      || predefinedAtomicPropositions.equals(atomicPropositions)) {
+        || predefinedAtomicPropositions.equals(atomicPropositions)) {
       remapping = null;
     } else {
       remapping = new int[atomicPropositions.size()];
@@ -256,7 +293,7 @@ public final class HoaReader {
       while (variableIterator.hasNext()) {
         int variableIndex = predefinedAtomicPropositions.indexOf(variableIterator.next());
         checkArgument(variableIndex >= 0,
-          "Failed to map to predefined atomic propositions.");
+            "Failed to map to predefined atomic propositions.");
         remapping[variableIterator.previousIndex()] = variableIndex;
       }
     }
@@ -269,8 +306,8 @@ public final class HoaReader {
     }
 
     var automaton = new StoredAutomatonConverter(remapping,
-      remapping == null ? atomicPropositions : predefinedAtomicPropositions,
-      vsFactory, initialStates, acceptance(storedHeader), storedAutomaton);
+        remapping == null ? atomicPropositions : predefinedAtomicPropositions,
+        vsFactory, initialStates, acceptance(storedHeader), storedAutomaton);
 
     automaton.states();
     assert automaton.storedAutomaton == null;
@@ -278,7 +315,7 @@ public final class HoaReader {
   }
 
   private static final class StoredAutomatonConverter
-    extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Integer, EmersonLeiAcceptance> {
+      extends AbstractMemoizingAutomaton.EdgeTreeImplementation<Integer, EmersonLeiAcceptance> {
 
     @Nullable
     private StoredAutomaton storedAutomaton;
@@ -289,12 +326,12 @@ public final class HoaReader {
 
     @SuppressWarnings("PMD.ArrayIsStoredDirectly")
     private StoredAutomatonConverter(
-      @Nullable int[] remapping,
-      List<String> atomicPropositions,
-      BddSetFactory vsFactory,
-      Set<Integer> initialStates,
-      EmersonLeiAcceptance acceptance,
-      StoredAutomaton storedAutomaton) {
+        @Nullable int[] remapping,
+        List<String> atomicPropositions,
+        BddSetFactory vsFactory,
+        Set<Integer> initialStates,
+        EmersonLeiAcceptance acceptance,
+        StoredAutomaton storedAutomaton) {
 
       super(atomicPropositions, vsFactory, initialStates, acceptance);
 
@@ -302,7 +339,7 @@ public final class HoaReader {
       this.mapping = remapping;
       this.aliases = new HashMap<>();
       storedAutomaton.getStoredHeader().getAliases().forEach(
-        x -> this.aliases.put(x.name(), x.extra()));
+          x -> this.aliases.put(x.name(), x.extra()));
     }
 
     @Override
@@ -324,15 +361,15 @@ public final class HoaReader {
       int acceptanceSets = acceptance.acceptanceSets();
       for (StoredEdgeWithLabel edgeWithLabel : storedAutomaton.getEdgesWithLabel(state)) {
         Edge<Integer> edge = Edge.of(Iterables.getOnlyElement(edgeWithLabel.getConjSuccessors()),
-          edgeWithLabel.getAccSignature() == null
-            ? ImmutableBitSet.of()
-            : ImmutableBitSet.copyOf(edgeWithLabel.getAccSignature()));
+            edgeWithLabel.getAccSignature() == null
+                ? ImmutableBitSet.of()
+                : ImmutableBitSet.copyOf(edgeWithLabel.getAccSignature()));
         checkArgument(edge.colours().last().orElse(-1) < acceptanceSets,
-          "The number of colours on the edge (%s) exceeds the number of colours "
-            + "allowed by the acceptance condition (%s).", edge, acceptance());
+            "The number of colours on the edge (%s) exceeds the number of colours "
+                + "allowed by the acceptance condition (%s).", edge, acceptance());
         edgeMap.compute(edge, (key, value) -> value == null
-          ? resolveAndRemap(edgeWithLabel.getLabelExpr())
-          : Disjunction.of(value, resolveAndRemap(edgeWithLabel.getLabelExpr())));
+            ? resolveAndRemap(edgeWithLabel.getLabelExpr())
+            : Disjunction.of(value, resolveAndRemap(edgeWithLabel.getLabelExpr())));
       }
 
       return MtBdd.of(edgeMap);
@@ -346,13 +383,13 @@ public final class HoaReader {
     }
 
     private PropositionalFormula<Integer> resolveAndRemap(
-      PropositionalFormula<? extends AtomLabel> expression) {
+        PropositionalFormula<? extends AtomLabel> expression) {
 
       return expression.substitute(atom -> {
         if (atom.isAlias()) {
           String alias = atom.aliasName();
           checkArgument(
-            aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
+              aliases != null && aliases.containsKey(alias), "Alias " + alias + " undefined");
           return resolveAndRemap(aliases.get(alias));
         } else {
           int apIndex = atom.apIndex();

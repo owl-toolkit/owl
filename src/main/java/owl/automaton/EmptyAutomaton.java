@@ -42,13 +42,13 @@ public final class EmptyAutomaton<S, A extends EmersonLeiAcceptance>
       acceptance);
   }
 
-  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
+  public static <S, A extends EmersonLeiAcceptance> EmptyAutomaton<S, A> of(
     List<String> atomicPropositions, A acceptance) {
 
     return new EmptyAutomaton<>(atomicPropositions, null, acceptance);
   }
 
-  public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> of(
+  public static <S, A extends EmersonLeiAcceptance> EmptyAutomaton<S, A> of(
     List<String> atomicPropositions, BddSetFactory factory, A acceptance) {
 
     return new EmptyAutomaton<>(atomicPropositions, factory, acceptance);

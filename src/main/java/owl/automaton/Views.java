@@ -24,7 +24,9 @@ import static com.google.common.base.Preconditions.checkArgument;
 import com.google.auto.value.AutoValue;
 import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.Sets;
+import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Deque;
 import java.util.HashMap;
@@ -117,16 +119,24 @@ public final class Views {
     };
   }
 
-  public static <S> Automaton<Optional<S>, ? extends BuchiAcceptance>
-  completeBuchi(Automaton<S, ? extends BuchiAcceptance> automaton) {
+  public static <S> Automaton<Optional<S>, BuchiAcceptance>
+    completeBuchi(Automaton<S, ? extends BuchiAcceptance> automaton) {
 
-    return OmegaAcceptanceCast.cast(Views.complete(automaton), BuchiAcceptance.class);
+    assert Modifier.isFinal(BuchiAcceptance.class.getModifiers());
+    @SuppressWarnings("unchecked")
+    var completeBuchi = (Automaton<Optional<S>, BuchiAcceptance>)
+      OmegaAcceptanceCast.cast(Views.complete(automaton), BuchiAcceptance.class);
+    return completeBuchi;
   }
 
-  public static <S> Automaton<Optional<S>, ? extends CoBuchiAcceptance>
-  completeCoBuchi(Automaton<S, ? extends CoBuchiAcceptance> automaton) {
+  public static <S> Automaton<Optional<S>, CoBuchiAcceptance>
+    completeCoBuchi(Automaton<S, ? extends CoBuchiAcceptance> automaton) {
 
-    return OmegaAcceptanceCast.cast(Views.complete(automaton), CoBuchiAcceptance.class);
+    assert Modifier.isFinal(CoBuchiAcceptance.class.getModifiers());
+    @SuppressWarnings("unchecked")
+    var completeCoBuchi = (Automaton<Optional<S>, CoBuchiAcceptance>)
+      OmegaAcceptanceCast.cast(Views.complete(automaton), CoBuchiAcceptance.class);
+    return completeCoBuchi;
   }
 
   /**
@@ -152,9 +162,6 @@ public final class Views {
     abstract Set<S> initialStates();
 
     @Nullable
-    abstract Predicate<S> stateFilter();
-
-    @Nullable
     abstract BiPredicate<S, Edge<S>> edgeFilter();
 
     public static <S> Builder<S> builder() {
@@ -163,25 +170,20 @@ public final class Views {
 
     public static <S> Filter<S> of(Set<S> initialStates, Predicate<S> stateFilter) {
       Builder<S> builder = builder();
-      return builder.initialStates(initialStates).stateFilter(stateFilter).build();
+      return builder
+        .initialStates(Sets.filter(initialStates, stateFilter::test))
+        .edgeFilter((state, edge) -> stateFilter.test(edge.successor())).build();
     }
 
-    public static <S> Filter<S> of(Predicate<S> stateFilter) {
+    public static <S> Filter<S> of(BiPredicate<S, Edge<S>> edgeFilter) {
       Builder<S> builder = builder();
-      return builder.stateFilter(stateFilter).build();
-    }
-
-    public static <S> Filter<S> of(Predicate<S> stateFilter, BiPredicate<S, Edge<S>> edgeFilter) {
-      Builder<S> builder = builder();
-      return builder.stateFilter(stateFilter).edgeFilter(edgeFilter).build();
+      return builder.edgeFilter(edgeFilter).build();
     }
 
     @AutoValue.Builder
     public abstract static class Builder<S> {
 
       public abstract Builder<S> initialStates(@Nullable Set<S> initialStates);
-
-      public abstract Builder<S> stateFilter(@Nullable Predicate<S> filter);
 
       public abstract Builder<S> edgeFilter(@Nullable BiPredicate<S, Edge<S>> filter);
 
@@ -268,9 +270,6 @@ public final class Views {
     private final Automaton<S, A> backingAutomaton;
 
     @Nullable
-    private final Predicate<S> stateFilter;
-
-    @Nullable
     private final BiPredicate<S, Edge<S>> edgeFilter;
 
     private AutomatonView(Automaton<S, A> automaton, Filter<S> settings) {
@@ -280,45 +279,8 @@ public final class Views {
           initialStates(automaton, settings),
           automaton.acceptance());
 
-      if (automaton instanceof AutomatonView<S, A> view) {
-        this.backingAutomaton = view.backingAutomaton;
-        this.stateFilter = and(view.stateFilter, settings.stateFilter());
-        this.edgeFilter = and(view.edgeFilter, settings.edgeFilter());
-      } else {
-        this.backingAutomaton = automaton;
-        this.stateFilter = settings.stateFilter();
-        this.edgeFilter = settings.edgeFilter();
-      }
-    }
-
-    @Nullable
-    static <T> Predicate<T> and(
-        @Nullable Predicate<T> predicate1,
-        @Nullable Predicate<T> predicate2) {
-      if (predicate1 == null) {
-        return predicate2;
-      }
-
-      if (predicate2 == null) {
-        return predicate1;
-      }
-
-      return predicate1.and(predicate2);
-    }
-
-    @Nullable
-    static <T, U> BiPredicate<T, U> and(
-        @Nullable BiPredicate<T, U> predicate1,
-        @Nullable BiPredicate<T, U> predicate2) {
-      if (predicate1 == null) {
-        return predicate2;
-      }
-
-      if (predicate2 == null) {
-        return predicate1;
-      }
-
-      return predicate1.and(predicate2);
+      this.backingAutomaton = automaton;
+      this.edgeFilter = settings.edgeFilter();
     }
 
     private static <S> Set<S> initialStates(
@@ -329,36 +291,40 @@ public final class Views {
         initialStates = automaton.initialStates();
       }
 
-      Predicate<S> stateFilter = settings.stateFilter();
-
-      if (stateFilter == null) {
-        return initialStates;
-      }
-
-      return Sets.filter(initialStates, stateFilter::test);
-    }
-
-    private boolean stateFilter(S state) {
-      return stateFilter == null || stateFilter.test(state);
-    }
-
-    private boolean edgeFilter(S state, Edge<S> edge) {
-      return edgeFilter == null || edgeFilter.test(state, edge);
+      return initialStates;
     }
 
     @Override
     public MtBdd<Edge<S>> edgeTreeImpl(S state) {
-      checkArgument(stateFilter(state));
+      var edgeTree = backingAutomaton.edgeTree(state);
 
-      var edges = backingAutomaton.edgeTree(state);
-
-      if (stateFilter == null && edgeFilter == null) {
-        return edges;
+      if (edgeFilter == null) {
+        return edgeTree;
       }
 
-      return edges.map((Set<Edge<S>> set) -> set.stream()
-          .filter(edge -> edgeFilter(state, edge) && stateFilter(edge.successor()))
-          .collect(Collectors.toUnmodifiableSet()));
+      return edgeTree.map((Set<Edge<S>> edges) -> switch (edges.size()) {
+        case 0 -> Set.of();
+
+        case 1 -> {
+          var edge = edges.iterator().next();
+          yield edgeFilter.test(state, edge) ? edges : Set.of();
+        }
+
+        default -> {
+          List<Edge<S>> filtered = new ArrayList<>(edges.size());
+
+          for (Edge<S> edge : edges) {
+            if (edgeFilter.test(state, edge)) {
+              filtered.add(edge);
+            }
+          }
+
+          @SuppressWarnings("unchecked")
+          Set<Edge<S>> immutableSet =
+            filtered.size() == edges.size() ? edges : Set.of(filtered.toArray(Edge[]::new));
+          yield immutableSet;
+        }
+      });
     }
   }
 
@@ -448,23 +414,28 @@ public final class Views {
     };
   }
 
-  public static <S, A extends EmersonLeiAcceptance> Automaton<Integer, A>
-  dropStateLabels(Automaton<S, ? extends A> automaton) {
+  public static <S, A extends EmersonLeiAcceptance> AnnotatedAutomaton<S, A>
+    dropStateLabels(Automaton<S, A> automaton) {
 
     if (automaton.initialStates().isEmpty()) {
-      return EmptyAutomaton.of(
-          automaton.atomicPropositions(),
-          automaton.factory(),
-          automaton.acceptance());
+      return new AnnotatedAutomaton<>(EmptyAutomaton.of(
+        automaton.atomicPropositions(),
+        automaton.factory(),
+        automaton.acceptance()),
+        new Numbering<>());
     }
 
     Numbering<S> mapping = new Numbering<>();
 
-    return new DropStateLabelsImpl<>(
-        automaton,
-        Collections3.transformSet(automaton.initialStates(), mapping::lookup),
-        mapping);
+    return new AnnotatedAutomaton<>(new DropStateLabelsImpl<>(
+      automaton,
+      Collections3.transformSet(automaton.initialStates(), mapping::lookup),
+      mapping),
+      mapping);
   }
+
+  public record AnnotatedAutomaton<S, A extends EmersonLeiAcceptance>(
+    AbstractMemoizingAutomaton<Integer, A> automaton, Numbering<S> annotation) {}
 
   public static <S> Automaton<S, ParityAcceptance> convertParity(
       Automaton<S, ? extends ParityAcceptance> automaton, ParityAcceptance.Parity toParity) {

@@ -29,6 +29,10 @@ import owl.bdd.MtBdd;
 /**
  * A propositional equivalence class of an LTL formula.
  *
+ * This interface does not refine the general contracts of the equals and hashCode methods.
+ * The result of testing two objects that implement CharSequence for equality is therefore,
+ * in general, undefined. Each object may be implemented by a different class, and there is no guarantee that each class will be capable of testing its instances for equality with those of the other. It is therefore inappropriate to use arbitrary CharSequence instances as elements in a set or as keys in a map.
+ *
  * @implSpec If two implementing objects were created by different factories, methods combining or
  * comparing these objects are allowed to throw exceptions.
  */

@@ -50,9 +50,6 @@ public final class GameFactory {
 
     private final ImmutableValueGraph<S, ValueEdge> graph;
     private final Set<S> player1Nodes;
-    private final List<String> variablesPlayer1;
-    private final List<String> variablesPlayer2;
-    private final BiFunction<S, Owner, BitSet> choice;
 
     ImmutableGame(Game<S, A> game) {
       super(game.atomicPropositions(), game.factory(), game.initialStates(), game.acceptance());
@@ -74,14 +71,6 @@ public final class GameFactory {
 
       this.graph = ImmutableValueGraph.copyOf(graph);
       this.player1Nodes = Set.copyOf(player1NodesBuilder);
-      this.variablesPlayer1 = List.copyOf(game.variables(Owner.PLAYER_1));
-      this.variablesPlayer2 = List.copyOf(game.variables(Owner.PLAYER_2));
-      this.choice = game::choice;
-    }
-
-    @Override
-    public BitSet choice(S state, Owner owner) {
-      return choice.apply(state, owner);
     }
 
     @Override
@@ -107,11 +96,6 @@ public final class GameFactory {
     @Override
     public Set<S> predecessors(S successor) {
       return graph.predecessors(successor);
-    }
-
-    @Override
-    public List<String> variables(Owner owner) {
-      return owner == Owner.PLAYER_1 ? variablesPlayer1 : variablesPlayer2;
     }
 
     @AutoValue

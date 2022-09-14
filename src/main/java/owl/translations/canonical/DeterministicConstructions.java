@@ -501,6 +501,12 @@ public final class DeterministicConstructions {
       return new CoSafetySafety(factories, initialState, suspensionCheck, complete);
     }
 
+    public static CoSafetySafety of(LabelledFormula formula) {
+      return of(
+          FactorySupplier.defaultSupplier().getFactories(formula.atomicPropositions()),
+          formula.formula());
+    }
+
     @Override
     public MtBdd<Edge<BreakpointStateAccepting>> edgeTreeImpl(BreakpointStateAccepting state) {
 

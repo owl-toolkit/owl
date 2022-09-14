@@ -17,9 +17,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.bdd.jbdd;
+package owl.bdd;
 
-import static owl.bdd.jbdd.JBddEquivalenceClassFactory.JBddEquivalenceClass;
+import static owl.bdd.JBddEquivalenceClassFactory.JBddEquivalenceClass;
 
 import com.google.common.base.Preconditions;
 import de.tum.in.jbdd.Bdd;
@@ -48,8 +48,6 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import javax.annotation.Nullable;
-import owl.bdd.EquivalenceClassFactory;
-import owl.bdd.MtBdd;
 import owl.ltl.BooleanConstant;
 import owl.ltl.Conjunction;
 import owl.ltl.Disjunction;

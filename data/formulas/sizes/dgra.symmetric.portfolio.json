@@ -4006,7 +4006,7 @@
   {
     "formula": "F((a | !b) & (Ga | Gb | Gc))",
     "properties": {
-      "size": 8,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -4050,7 +4050,7 @@
   {
     "formula": "F((a | Gb) & (c | Gd))",
     "properties": {
-      "size": 9,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -4160,7 +4160,7 @@
   {
     "formula": "F((a | Gb) & (b | Ga) & (c | Gd))",
     "properties": {
-      "size": 20,
+      "size": 19,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -4171,7 +4171,7 @@
   {
     "formula": "F((a | Gb) & (c | Gd) & (e | Gf))",
     "properties": {
-      "size": 73,
+      "size": 80,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -4369,7 +4369,7 @@
   {
     "formula": "G((a & b) | (Fa & F!b & Fc))",
     "properties": {
-      "size": 8,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -4402,7 +4402,7 @@
   {
     "formula": "G((a & Fb) | (c & Fd))",
     "properties": {
-      "size": 8,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -4512,7 +4512,7 @@
   {
     "formula": "G((a & Fb) | (b & Fa) | (c & Fd))",
     "properties": {
-      "size": 19,
+      "size": 18,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -4523,7 +4523,7 @@
   {
     "formula": "G((a & Fb) | (c & Fd) | (e & Ff))",
     "properties": {
-      "size": 72,
+      "size": 79,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -5942,7 +5942,7 @@
   {
     "formula": "F(a & (Ga | Gb | (c & Gd)))",
     "properties": {
-      "size": 8,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -6129,7 +6129,7 @@
   {
     "formula": "F((a | XXb) & (b | XXc) & (c | XGd))",
     "properties": {
-      "size": 60,
+      "size": 63,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -6173,7 +6173,7 @@
   {
     "formula": "G(a | (Fa & Fb & (c | Fd)))",
     "properties": {
-      "size": 8,
+      "size": 15,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -6360,7 +6360,7 @@
   {
     "formula": "G((a & XXb) | (b & XXc) | (c & XFd))",
     "properties": {
-      "size": 59,
+      "size": 62,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -7669,7 +7669,7 @@
   {
     "formula": "F(a & ((!a) R ((b | ((b) R ((c | ((c) R (d)))))))))",
     "properties": {
-      "size": 14,
+      "size": 10,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -7680,7 +7680,7 @@
   {
     "formula": "F(a & ((b) R (((!b) R (((b) R (((!b) R ((!b | c))))))))))",
     "properties": {
-      "size": 8,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -7801,7 +7801,7 @@
   {
     "formula": "G(a | ((!b) U (((b) U (((!b) U (((b) U ((b & c))))))))))",
     "properties": {
-      "size": 7,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -7823,7 +7823,7 @@
   {
     "formula": "G(!a | ((a) U ((b & ((b) U ((c & ((c) U (d)))))))))",
     "properties": {
-      "size": 13,
+      "size": 9,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -8098,7 +8098,7 @@
   {
     "formula": "F(a & ((!a) R (((b) R ((!a | ((!a) R ((c | ((c) R (!a)))))))))))",
     "properties": {
-      "size": 10,
+      "size": 8,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -8131,7 +8131,7 @@
   {
     "formula": "F(!a & Xa & X(Xb & ((!a) R (((a) R (((!a) R ((b & c)))))))))",
     "properties": {
-      "size": 7,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -8142,7 +8142,7 @@
   {
     "formula": "F(a & b & !c & Xc & X(Xb & ((!c) R (((c) R (((!c) R ((b & d)))))))))",
     "properties": {
-      "size": 7,
+      "size": 6,
       "initialStatesSize": 1,
       "acceptanceName": "GeneralizedRabinAcceptance",
       "acceptanceSets": 1,
@@ -8164,7 +8164,7 @@
   {
     "formula": "G(!a | ((a) U (((b) U ((a & ((a) U ((c & ((c) U (a)))))))))))",
     "properties": {
-      "size": 9,
+      "size": 7,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -8197,7 +8197,7 @@
   {
     "formula": "G(a | X!a | X(Xb | ((a) U (((!a) U (((a) U ((b | c)))))))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,
@@ -8208,7 +8208,7 @@
   {
     "formula": "G(a | b | c | X!c | X(Xb | ((c) U (((!c) U (((c) U ((b | d)))))))))",
     "properties": {
-      "size": 6,
+      "size": 5,
       "initialStatesSize": 1,
       "acceptanceName": "RabinAcceptance",
       "acceptanceSets": 2,

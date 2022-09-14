@@ -17,7 +17,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package owl.bdd.jbdd;
+package owl.bdd;
 
 import de.tum.in.jbdd.Bdd;
 import java.lang.ref.Reference;

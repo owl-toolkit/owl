@@ -20,6 +20,7 @@
 package owl.automaton.edge;
 
 import java.util.Set;
+import java.util.function.Function;
 import owl.collections.Collections3;
 
 public final class Edges {
@@ -27,5 +28,11 @@ public final class Edges {
 
   public static <S> Set<S> successors(Set<Edge<S>> edges) {
     return Collections3.transformSet(edges, Edge::successor);
+  }
+
+  public static <E1, E2> Set<Edge<E2>> mapSuccessors(
+    Set<Edge<E1>> edges, Function<? super E1, ? extends E2> mapper) {
+
+    return Collections3.transformSet(edges, edge -> edge.mapSuccessor(mapper));
   }
 }

@@ -46,9 +46,10 @@ import owl.thirdparty.jhoafparser.parser.generated.ParseException;
  * Note that the parser is non-reentrant, i.e., it is
  * not possible to parse two streams at the same time!
  */
-@SuppressWarnings("PMD")
-public class HOAFParserFixed
-{
+public class HOAFParserFixed {
+
+  private static final Object LOCK = new Object();
+
 	/**
 	 * Entry point for parsing a stream of automata in HOA format.
 	 * <br> Note: this parser is non-reentrant, i.e., it is
@@ -59,6 +60,8 @@ public class HOAFParserFixed
 	 *                      that receive the notifications about the parsed elements from the parser
 	 */
 	public static void parseHOA(Reader str, HOAConsumerFactory userFactory) throws ParseException {
-		HOAFParserCCFixed.parseHOA(str, userFactory, null);
+    synchronized (LOCK) {
+      HOAFParserCCFixed.parseHOA(str, userFactory, null);
+    }
 	}
 }

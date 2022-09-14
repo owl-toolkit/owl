@@ -46,45 +46,45 @@ public final class AcceptanceOptimizations {
   // TODO: collapse inf / fins?
 
   private static final List<Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>>>
-    generalizedRabinDefaultAllList = List.of(
-    GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
-    GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
-    GeneralizedRabinAcceptanceOptimizations::removeComplementaryInfSets,
-    GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
-    GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
-    GeneralizedRabinAcceptanceOptimizations::removeComplementaryInfSets,
-    GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
-    GeneralizedRabinAcceptanceOptimizations::mergeBuchiTypePairs
+      generalizedRabinDefaultAllList = List.of(
+      GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
+      GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
+      GeneralizedRabinAcceptanceOptimizations::removeComplementaryInfSets,
+      GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
+      GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
+      GeneralizedRabinAcceptanceOptimizations::removeComplementaryInfSets,
+      GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
+      GeneralizedRabinAcceptanceOptimizations::mergeBuchiTypePairs
   );
 
   private static final List<Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>>>
-    rabinDefaultAllList = List.of(
-    GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
-    GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
-    // GeneralizedRabinMinimizations::minimizeComplementaryInf,
-    GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
-    GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
-    // GeneralizedRabinMinimizations::minimizeComplementaryInf,
-    GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
-    GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
-    GeneralizedRabinAcceptanceOptimizations::mergeBuchiTypePairs
+      rabinDefaultAllList = List.of(
+      GeneralizedRabinAcceptanceOptimizations::minimizeOverlap,
+      GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
+      // GeneralizedRabinMinimizations::minimizeComplementaryInf,
+      GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
+      GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeMergePairs,
+      // GeneralizedRabinMinimizations::minimizeComplementaryInf,
+      GeneralizedRabinAcceptanceOptimizations::minimizePairImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeEdgeImplications,
+      GeneralizedRabinAcceptanceOptimizations::minimizeSccIrrelevant,
+      GeneralizedRabinAcceptanceOptimizations::mergeBuchiTypePairs
   );
 
-  private AcceptanceOptimizations() {}
+  private AcceptanceOptimizations() {
+  }
 
   /**
    * Remove states from the automaton that cannot belong to an infinite accepting path. Moreover,
    * all transient edges are cleared of acceptance marks.
    *
-   * @param automaton
-   *   The automaton considered by the analysis.
+   * @param automaton The automaton considered by the analysis.
    */
   public static <S> void removeDeadStates(MutableAutomaton<S, ?> automaton) {
 
@@ -106,10 +106,12 @@ public final class AcceptanceOptimizations {
         S state = scc.iterator().next();
 
         Automaton<S, ?> filtered = Views.replaceInitialStates(automaton, scc);
-        if (LanguageEmptiness.isEmpty(filtered, Set.of(state))) {
+        
+        if (LanguageEmptiness.isEmpty(filtered)) {
           // Scc is not accepting on its own
           var successors
-            = Sets.difference(condensationGraph.successors(sccIndex), Set.of(sccIndex));
+              = Sets.difference(condensationGraph.successors(sccIndex), Set.of(sccIndex));
+
           if (rejectingIndices.containsAll(successors)) {
             // The scc only has internal edges or edges to rejecting states
             rejectingIndices.add(sccIndex);
@@ -139,7 +141,7 @@ public final class AcceptanceOptimizations {
   }
 
   static <S> void removeIndices(MutableAutomaton<S, ?> automaton, Set<S> states,
-    BitSet indicesToRemove) {
+      BitSet indicesToRemove) {
     if (indicesToRemove.isEmpty() || states.isEmpty()) {
       return;
     }
@@ -171,7 +173,7 @@ public final class AcceptanceOptimizations {
   }
 
   public static <S, A extends EmersonLeiAcceptance> Automaton<S, A> transform(
-    Automaton<S, A> automaton) {
+      Automaton<S, A> automaton) {
 
     var mutableAutomaton = HashMapAutomaton.copyOf(automaton);
     removeDeadStates(mutableAutomaton);
@@ -179,7 +181,7 @@ public final class AcceptanceOptimizations {
     if (mutableAutomaton.acceptance() instanceof RabinAcceptance) {
 
       for (Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>> optimization
-        : rabinDefaultAllList) {
+          : rabinDefaultAllList) {
         optimization.accept((MutableAutomaton) mutableAutomaton);
         mutableAutomaton.trim();
       }
@@ -187,7 +189,7 @@ public final class AcceptanceOptimizations {
     } else if (mutableAutomaton.acceptance() instanceof GeneralizedRabinAcceptance) {
 
       for (Consumer<MutableAutomaton<?, GeneralizedRabinAcceptance>> optimization
-        : generalizedRabinDefaultAllList) {
+          : generalizedRabinDefaultAllList) {
         optimization.accept((MutableAutomaton) mutableAutomaton);
         mutableAutomaton.trim();
       }

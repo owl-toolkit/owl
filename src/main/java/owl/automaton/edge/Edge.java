@@ -22,6 +22,7 @@ package owl.automaton.edge;
 import com.google.auto.value.AutoValue;
 import java.util.BitSet;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.PrimitiveIterator;
 import java.util.function.Function;
 import java.util.function.IntUnaryOperator;
@@ -36,6 +37,10 @@ import owl.collections.ImmutableBitSet;
  */
 @AutoValue
 public abstract class Edge<S> {
+
+  // Restrict constructor to package-visibility.
+  // TODO: seal this class once it is migrated to records.
+  Edge() {}
 
   /**
    * Get the target state of the edge.
@@ -132,7 +137,9 @@ public abstract class Edge<S> {
    * @return An edge leading to {@code successor} with given acceptance.
    */
   public static <S> Edge<S> of(S successor, ImmutableBitSet acceptance) {
-    return new AutoValue_Edge<>(successor, acceptance);
+    return new AutoValue_Edge<>(
+      Objects.requireNonNull(successor),
+      Objects.requireNonNull(acceptance));
   }
 
   public Edge<S> withAcceptance(int i) {

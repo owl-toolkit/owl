@@ -47,7 +47,7 @@ import javax.annotation.Nullable;
 import owl.automaton.AbstractMemoizingAutomaton;
 import owl.automaton.AnnotatedState;
 import owl.automaton.Automaton;
-import owl.automaton.SuccessorFunction;
+import owl.automaton.EdgeRelation;
 import owl.automaton.acceptance.AllAcceptance;
 import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.ParityAcceptance;
@@ -538,7 +538,7 @@ public final class ZielonkaTreeTransformations {
 
       List<AlternatingCycleDecomposition<S>> acd = new ArrayList<>();
       SccDecomposition<S> sccDecomposition = SccDecomposition.of(
-          restrictedStates, SuccessorFunction.filter(automaton, restrictedStates));
+          restrictedStates, EdgeRelation.filter(automaton, restrictedStates));
 
       for (Set<S> scc : sccDecomposition.sccsWithoutTransient()) {
         Map<S, Set<Edge<S>>> sccEdges = new HashMap<>(scc.size());
@@ -629,18 +629,18 @@ public final class ZielonkaTreeTransformations {
       var children = new ArrayList<Pair<ImmutableBitSet, Map<S, Set<Edge<S>>>>>();
 
       for (ImmutableBitSet childColours : maximalModels) {
-        SuccessorFunction<S> successorFunction = state -> {
-          Set<S> successors = new HashSet<>();
+        EdgeRelation<S> successorsFunction = state -> {
+          Set<Edge<S>> successors = new HashSet<>();
           for (var edge : edges.get(state)) {
             if (childColours.containsAll(edge.colours())) {
-              successors.add(edge.successor());
+              successors.add(edge);
             }
           }
           return successors;
         };
 
         for (Set<S> childScc
-            : SccDecomposition.of(edges.keySet(), successorFunction).sccsWithoutTransient()) {
+            : SccDecomposition.of(edges.keySet(), successorsFunction).sccsWithoutTransient()) {
           Map<S, Set<Edge<S>>> childEdges = new HashMap<>(edges.size());
 
           for (S childSccState : childScc) {
@@ -879,5 +879,9 @@ public final class ZielonkaTreeTransformations {
     public static <S> ZielonkaState<S> of(S state, ImmutableIntArray path) {
       return new AutoValue_ZielonkaTreeTransformations_ZielonkaState<>(state, path);
     }
+
+    @Memoized
+    @Override
+    public abstract int hashCode();
   }
 }

@@ -48,9 +48,10 @@ jobs:
       image: gitlab.lrz.de:5005/i7/owl:9e31fba0
     strategy:
       matrix:
-        suite: ['ltl-to-delta2', 'ltl2aut-all-flags', 'ltl2nba', 'ltl2ldba', 'ltl2dpa', 'ltl2dpa-symbolic', 'ltl2dra', 'ltl2dela', 'aut2parity', 'ngba2ldba', 'nba2dpa-default', 'aut-utilities' ]
+        suite: [ 'ltl-to-delta2', 'ltl2aut-all-flags', 'ltl2nba', 'ltl2ldba', 'ltl2dpa', 'ltl2dpa-symbolic', 'ltl2dra', 'ltl2dela', 'aut2parity', 'ngba2ldba', 'nba2dpa-default', 'aut-utilities' ]
         # Expensive Suite: nba2dpa-complete
-    needs: [build]
+      fail-fast: false
+    needs: [ build ]
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -62,5 +63,6 @@ jobs:
         run: |
           unzip -d unzipped ./*.zip
           mv unzipped/owl-*/bin/owl .
+          mv unzipped/owl-*/bin/kissat .
       - name: Run Suite
         run: python3 scripts/util.py test ${{ matrix.suite }}

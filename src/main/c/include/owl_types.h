@@ -107,6 +107,8 @@ typedef enum {
   // Use a portfolio of simpler constructions for fragments of LTL.
   OWL_USE_PORTFOLIO_FOR_SYNTACTIC_LTL_FRAGMENTS,
 
+  OWL_USE_SAT_BASED_DBW_DCW_MINIMIZATION,
+
   // Translate the formula and the negation of the formula to DPWs and
   // return the smaller one.
   OWL_X_DPA_USE_COMPLEMENT,

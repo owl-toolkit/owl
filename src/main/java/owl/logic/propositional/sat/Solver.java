@@ -278,7 +278,8 @@ public enum Solver {
 
         assert normalisedFormula.evaluate(mappedModel);
         maximalModels.add(mappedModel);
-        maximalModels = Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x));
+        maximalModels = new ArrayList<>(
+            Collections3.maximalElements(maximalModels, (x, y) -> y.containsAll(x)));
 
         // Block and continue.
         blockModelAndAllSubsets(solver, conjunctiveNormalForm, mappedModel);
@@ -358,7 +359,7 @@ public enum Solver {
         }
 
         try (var reader = new BufferedReader(new InputStreamReader(kissat.getInputStream()))) {
-          
+
           // Restrict lifetime of writer.
           try (var writer = new BufferedOutputStream(kissat.getOutputStream())) {
             Solver.writeCnf(largestVariable, clauses, writer);
@@ -780,7 +781,8 @@ public enum Solver {
 
     return List.copyOf(computeMaximalModelsImpl(
         normalisedFormula,
-        Collections3.maximalElements(maximalModelsCandidates, (x, y) -> y.containsAll(x))));
+        new ArrayList<>(
+            Collections3.maximalElements(maximalModelsCandidates, (x, y) -> y.containsAll(x)))));
   }
 
   protected abstract <V> List<HashSet<V>> computeMaximalModelsImpl(

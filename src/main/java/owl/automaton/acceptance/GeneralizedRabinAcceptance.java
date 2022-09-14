@@ -58,7 +58,7 @@ public sealed class GeneralizedRabinAcceptance extends EmersonLeiAcceptance
 
   protected final List<RabinPair> pairs;
 
-  GeneralizedRabinAcceptance(List<RabinPair> pairs) {
+  protected GeneralizedRabinAcceptance(List<RabinPair> pairs) {
     super(validate(pairs));
     this.pairs = List.copyOf(pairs);
     assert pairs == this.pairs
@@ -344,7 +344,7 @@ public sealed class GeneralizedRabinAcceptance extends EmersonLeiAcceptance
         .thenComparingInt((RabinPair x) -> x.infIndex)
         .compare(this, o);
     }
-    
+
     @Override
     public boolean equals(Object o) {
       return this == o
