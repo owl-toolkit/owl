@@ -33,7 +33,9 @@ import owl.automaton.acceptance.EmersonLeiAcceptance;
 import owl.automaton.acceptance.GeneralizedBuchiAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance;
 import owl.automaton.acceptance.GeneralizedRabinAcceptance.RabinPair;
+import owl.automaton.acceptance.OmegaAcceptanceCast;
 import owl.automaton.acceptance.ParityAcceptance;
+import owl.automaton.acceptance.RabinAcceptance;
 import owl.automaton.acceptance.transformer.ZielonkaTreeTransformations;
 import owl.automaton.edge.Edge;
 
@@ -48,9 +50,12 @@ public final class LanguageEmptiness {
 
     if (acceptance instanceof GeneralizedBuchiAcceptance
         || acceptance instanceof CoBuchiAcceptance
-        || acceptance instanceof ParityAcceptance
         || acceptance instanceof GeneralizedRabinAcceptance) {
       return isEmpty(automaton.initialStates(), automaton::edges, acceptance);
+    }
+
+    if (acceptance instanceof ParityAcceptance) {
+      return isEmpty(OmegaAcceptanceCast.cast(automaton, RabinAcceptance.class));
     }
 
     return isEmpty(ZielonkaTreeTransformations.transform(automaton));
@@ -67,11 +72,6 @@ public final class LanguageEmptiness {
 
     if (acceptance instanceof CoBuchiAcceptance coBuchiAcceptance) {
       return !CoBuchi.containsAcceptingScc(initialStates, edgeRelation);
-    }
-
-    if (acceptance instanceof ParityAcceptance parityAcceptance) {
-      return initialStates.stream()
-          .noneMatch(x -> Parity.containsAcceptingLasso(x, edgeRelation, parityAcceptance));
     }
 
     if (acceptance instanceof GeneralizedRabinAcceptance generalizedRabinAcceptance) {
