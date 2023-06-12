@@ -19,29 +19,8 @@
 
 package owl.bdd.jbdd;
 
-import static owl.bdd.jbdd.JBddSetFactory.JBddSet;
-import static owl.logic.propositional.PropositionalFormula.Conjunction;
-import static owl.logic.propositional.PropositionalFormula.Disjunction;
-import static owl.logic.propositional.PropositionalFormula.Negation;
-import static owl.logic.propositional.PropositionalFormula.Variable;
-import static owl.logic.propositional.PropositionalFormula.falseConstant;
-import static owl.logic.propositional.PropositionalFormula.trueConstant;
-
 import com.google.common.base.Preconditions;
 import de.tum.in.jbdd.Bdd;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.OptionalInt;
-import java.util.Set;
-import java.util.function.IntUnaryOperator;
-import javax.annotation.Nullable;
 import owl.bdd.BddSet;
 import owl.bdd.BddSetFactory;
 import owl.bdd.MtBdd;
@@ -49,6 +28,13 @@ import owl.bdd.MtBddOperations;
 import owl.collections.BitSet2;
 import owl.collections.ImmutableBitSet;
 import owl.logic.propositional.PropositionalFormula;
+
+import javax.annotation.Nullable;
+import java.util.*;
+import java.util.function.IntUnaryOperator;
+
+import static owl.bdd.jbdd.JBddSetFactory.JBddSet;
+import static owl.logic.propositional.PropositionalFormula.*;
 
 final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddSetFactory {
 
@@ -169,7 +155,7 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
   private int getNode(BddSet vs) {
     Preconditions.checkArgument(this == vs.factory());
     int node = ((JBddSet) vs).node;
-    assert bdd.getReferenceCount(node) > 0 || bdd.getReferenceCount(node) == -1;
+    assert bdd.referenceCount(node) > 0 || bdd.referenceCount(node) == -1;
     return node;
   }
 
@@ -265,13 +251,13 @@ final class JBddSetFactory extends JBddGcManagedFactory<JBddSet> implements BddS
     public BddSet relabel(IntUnaryOperator mapping) {
       BitSet support = support();
       int[] substitutions = new int[support.length()];
-      Arrays.fill(substitutions, -1);
+      Arrays.fill(substitutions, factory.bdd.placeholder());
 
       for (int i = support.nextSetBit(0); i >= 0; i = support.nextSetBit(i + 1)) {
         int j = mapping.applyAsInt(i);
 
         if (j == -1) {
-          substitutions[i] = -1;
+          substitutions[i] = factory.bdd.placeholder();
         } else if (j >= 0) {
           substitutions[i] = factory.variableNode(j);
         } else {

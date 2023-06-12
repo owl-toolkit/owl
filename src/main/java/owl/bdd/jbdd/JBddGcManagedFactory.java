@@ -20,12 +20,13 @@
 package owl.bdd.jbdd;
 
 import de.tum.in.jbdd.Bdd;
+
+import javax.annotation.Nullable;
 import java.lang.ref.Reference;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.HashMap;
 import java.util.Map;
-import javax.annotation.Nullable;
 
 abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
 
@@ -43,9 +44,9 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
     int node = wrapper.node();
 
     // Root nodes and variables are exempt from GC.
-    if (bdd.isNodeRoot(node) || bdd.isVariableOrNegated(node)) {
-      assert bdd.getReferenceCount(node) == -1
-        : reportReferenceCountMismatch(-1, bdd.getReferenceCount(node));
+    if (bdd.isNodeLeaf(node) || bdd.isVariableOrNegated(node)) {
+      assert bdd.isNodeLeaf(node) || bdd.referenceCount(node) == -1
+        : reportReferenceCountMismatch(-1, bdd.referenceCount(node));
 
       return nonGcObjects.merge(node, wrapper, (oldWrapper, newWrapper) -> oldWrapper);
     }
@@ -54,14 +55,14 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
 
     if (canonicalReference == null) {
       // The BDD was created and needs a reference to be protected.
-      assert bdd.getReferenceCount(node) == 0
-        : reportReferenceCountMismatch(0, bdd.getReferenceCount(node));
+      assert bdd.referenceCount(node) == 0
+        : reportReferenceCountMismatch(0, bdd.referenceCount(node));
 
       bdd.reference(node);
     } else {
       // The BDD already existed.
-      assert bdd.getReferenceCount(node) == 1
-        : reportReferenceCountMismatch(1, bdd.getReferenceCount(node));
+      assert bdd.referenceCount(node) == 1
+        : reportReferenceCountMismatch(1, bdd.referenceCount(node));
 
       V canonicalWrapper = canonicalReference.get();
 
@@ -76,12 +77,12 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
       }
     }
 
-    assert bdd.getReferenceCount(node) == 1;
+    assert bdd.referenceCount(node) == 1;
     // Remove queued BDDs from the mapping.
     processReferenceQueue(node);
     // Insert BDD into mapping.
     gcObjects.put(node, new JBddNodeReference<>(wrapper, queue));
-    assert bdd.getReferenceCount(node) == 1;
+    assert bdd.referenceCount(node) == 1;
     return wrapper;
   }
 
@@ -110,9 +111,9 @@ abstract class JBddGcManagedFactory<V extends JBddGcManagedFactory.JBddNode> {
       gcObjects.remove(node);
 
       if (node != protectedNode) {
-        assert bdd.getReferenceCount(node) == 1;
+        assert bdd.referenceCount(node) == 1;
         bdd.dereference(node);
-        assert bdd.getReferenceCount(node) == 0;
+        assert bdd.referenceCount(node) == 0;
         // count += 1;
       }
 

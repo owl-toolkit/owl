@@ -23,11 +23,8 @@ import com.google.common.primitives.ImmutableIntArray;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
 import de.tum.in.jbdd.ImmutableBddConfiguration;
-import java.util.ArrayDeque;
-import java.util.BitSet;
-import java.util.Deque;
-import java.util.Optional;
-import java.util.OptionalInt;
+
+import java.util.*;
 
 public class JbddIncrementalSolver implements IncrementalSolver {
 
@@ -36,17 +33,7 @@ public class JbddIncrementalSolver implements IncrementalSolver {
   private OptionalInt clauseConjunction;
 
   JbddIncrementalSolver() {
-    var configuration = ImmutableBddConfiguration.builder()
-      .logStatisticsOnShutdown(false)
-      .useGlobalComposeCache(false)
-      .integrityDuplicatesMaximalSize(50)
-      .cacheBinaryDivider(4)
-      .cacheTernaryDivider(4)
-      .growthFactor(4)
-      .build();
-
-    // Do not use buildBddIterative, since 'support(...)' is broken.
-    bdd = BddFactory.buildBddRecursive(10_000, configuration);
+    bdd = BddFactory.buildBdd(ImmutableBddConfiguration.builder().initialSize(10_000).build());
     clauseConjunction = OptionalInt.of(bdd.trueNode());
   }
 

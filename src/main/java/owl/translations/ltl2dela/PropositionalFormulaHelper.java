@@ -24,14 +24,10 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import de.tum.in.jbdd.Bdd;
 import de.tum.in.jbdd.BddFactory;
-import de.tum.in.jbdd.ImmutableBddConfiguration;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import javax.annotation.Nullable;
 import owl.logic.propositional.PropositionalFormula;
+
+import javax.annotation.Nullable;
+import java.util.*;
 
 public final class PropositionalFormulaHelper {
 
@@ -64,7 +60,7 @@ public final class PropositionalFormulaHelper {
       variableMap.put(variable, variableMap.size());
     }
 
-    Bdd bdd = BddFactory.buildBddRecursive(1000, ImmutableBddConfiguration.builder().build());
+    Bdd bdd = BddFactory.buildBdd();
     bdd.createVariables(variableMap.size() + 1);
 
     int formulaNode = translateBdd(formula, bdd, variableMap);
@@ -78,7 +74,7 @@ public final class PropositionalFormulaHelper {
     int formulaNode, int refinedFormulaNode, Bdd bdd, BiMap<K, Integer> variableMapping,
     int stoppingValue) {
 
-    int variable = bdd.isNodeRoot(formulaNode) ? Integer.MAX_VALUE : bdd.variable(formulaNode);
+    int variable = bdd.isNodeLeaf(formulaNode) ? Integer.MAX_VALUE : bdd.variable(formulaNode);
 
     if (variable < stoppingValue) {
       var low = findPartialAssignment(

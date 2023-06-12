@@ -27,6 +27,6 @@ public class JBddSetTest extends BddSetTest {
 
   @Override
   protected BddSetFactory factory() {
-    return new JBddSetFactory(BddFactory.buildBdd(1024));
+    return new JBddSetFactory(BddFactory.buildBdd());
   }
 }

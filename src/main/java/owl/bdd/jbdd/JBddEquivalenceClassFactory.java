@@ -19,46 +19,28 @@
 
 package owl.bdd.jbdd;
 
-import static owl.bdd.jbdd.JBddEquivalenceClassFactory.JBddEquivalenceClass;
-
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import de.tum.in.jbdd.Bdd;
+import de.tum.in.jbdd.BddFactory;
+import de.tum.in.jbdd.ImmutableBddConfiguration;
+import owl.bdd.EquivalenceClassFactory;
+import owl.bdd.MtBdd;
+import owl.ltl.*;
+import owl.ltl.Formula.TemporalOperator;
+import owl.ltl.visitors.PrintVisitor;
+import owl.ltl.visitors.PropositionalIntVisitor;
+
+import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.AbstractSet;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.IntFunction;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-import owl.bdd.EquivalenceClassFactory;
-import owl.bdd.MtBdd;
-import owl.ltl.BooleanConstant;
-import owl.ltl.Conjunction;
-import owl.ltl.Disjunction;
-import owl.ltl.EquivalenceClass;
-import owl.ltl.Formula;
-import owl.ltl.Formula.TemporalOperator;
-import owl.ltl.LabelledFormula;
-import owl.ltl.Literal;
-import owl.ltl.visitors.PrintVisitor;
-import owl.ltl.visitors.PropositionalIntVisitor;
+
+import static owl.bdd.jbdd.JBddEquivalenceClassFactory.JBddEquivalenceClass;
 
 final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquivalenceClass>
   implements EquivalenceClassFactory {
@@ -106,8 +88,8 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
     this.bdd.createVariables(atomicPropositionsVariables);
 
     if (this.encoding == Encoding.AP_SEPARATE) {
-      reencodingFactory = new JBddEquivalenceClassFactory(
-        JBddSupplier.create(32_000), atomicPropositions, Encoding.AP_COMBINED);
+        reencodingFactory = new JBddEquivalenceClassFactory(
+                BddFactory.buildBdd(ImmutableBddConfiguration.builder().initialSize(32_000).build()), atomicPropositions, Encoding.AP_COMBINED);
     } else {
       assert this.encoding == Encoding.AP_COMBINED;
       reencodingFactory = null;
@@ -879,7 +861,7 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
       }
 
       var bdd = factory.bdd;
-      int atom = bdd.isNodeRoot(node) ? factory.atomicPropositionsVariables : bdd.variable(node);
+      int atom = bdd.isNodeLeaf(node) ? factory.atomicPropositionsVariables : bdd.variable(node);
 
       if (atom >= factory.atomicPropositionsVariables) {
         temporalStepTreeCache = MtBdd.of(Set.of(
@@ -894,12 +876,12 @@ final class JBddEquivalenceClassFactory extends JBddGcManagedFactory<JBddEquival
           atomicProposition = atom / 2;
 
           trueSubTreeNode = bdd.high(node);
-          if (!bdd.isNodeRoot(trueSubTreeNode) && bdd.variable(trueSubTreeNode) == atom + 1) {
+          if (!bdd.isNodeLeaf(trueSubTreeNode) && bdd.variable(trueSubTreeNode) == atom + 1) {
             trueSubTreeNode = bdd.low(trueSubTreeNode);
           }
 
           falseSubTreeNode = bdd.low(node);
-          if (!bdd.isNodeRoot(falseSubTreeNode) && bdd.variable(falseSubTreeNode) == atom + 1) {
+          if (!bdd.isNodeLeaf(falseSubTreeNode) && bdd.variable(falseSubTreeNode) == atom + 1) {
             falseSubTreeNode = bdd.high(falseSubTreeNode);
           }
         } else {

@@ -1,0 +1,73 @@
+{
+    "tools": {
+        "ltl2nba": {
+            "type": "owl",
+            "name": "ltl2nba"
+        },
+        "ltl2ngba": {
+            "type": "owl",
+            "name": "ltl2ngba"
+        },
+        "ltl2ldba": {
+            "type": "owl",
+            "name": "ltl2ldba"
+        },
+        "ltl2ldgba": {
+            "type": "owl",
+            "name": "ltl2ldgba"
+        },
+        "ltl2dpa": {
+            "type": "owl",
+            "name": "ltl2dpa",
+            "flags": {
+                "symbolic": "--translation=SYMBOLIC_SE20_BKS10"
+            }
+        },
+        "ltl2dra": {
+            "type": "owl",
+            "name": "ltl2dra",
+            "flags": {
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric",
+                "normal-form": "--normal-form",
+                "disable-portfolio": "--disable-portfolio"
+            }
+        },
+        "ltl2dgra": {
+            "type": "owl",
+            "name": "ltl2dgra",
+            "flags": {
+                "asymmetric": "--asymmetric",
+                "symmetric": "--symmetric",
+                "normal-form": "--normal-form",
+                "disable-portfolio": "--disable-portfolio"
+            }
+        },
+        "ltl2dela": {
+            "type": "owl",
+            "name": "ltl2dela"
+        },
+        "nbadet": {
+            "type": "owl",
+            "name": "nbadet",
+            "flags": {
+                "default": "--default-config",
+                "mullerschupp": "-m0",
+                "safra": "-m1",
+                "maxmerge": "-m2",
+                "powersets": "-t",
+                "smartsucc": "-s",
+                "directsim": "-lrefinement",
+                "uselangext": "-e",
+                "uselangint": "-j",
+                "ascc": "-A",
+                "ascccyc": "-b",
+                "rscc": "-r",
+                "optdet": "-d",
+                "optmix": "-c"
+            }
+        }
+    },
+    "aliases": {
+    }
+}

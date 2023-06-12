@@ -17,26 +17,24 @@
         "small": [
             "base",
             "regressions"
+        ],
+        "large": [
+            "syntcomp-selection"
         ]
     },
     "defaults": {
         "data": "full",
         "repeat": 3,
-        "perf": true,
+        "perf": false,
         "update": false
     },
     "benchmark": {
-        "ltl2ldba": "ltl2ldba#symmetric",
-        "ltl2ldba-asym": "ltl2ldba#asymmetric",
-        "ltl2ldgba": "ltl2ldgba#symmetric",
-        "ltl2ldgba-asym": "ltl2ldgba#asymmetric",
-        "ltl2na": "ltl2na",
-        "delag": "delag",
+        "ltl2ldba": "ltl2ldba",
+        "ltl2nba": "ltl2nba",
         "ltl2dpa": "ltl2dpa",
-        "ltl2da": "ltl2da",
-        "ltl2tgba": {
-            "tool": "ltl2tgba",
-            "update": false
+        "ltl2dpa-large": {
+            "tool": "ltl2dpa#symbolic",
+            "data": "large"
         }
     }
 }

@@ -9,6 +9,7 @@ from os.path import relpath
 
 import owlpy.defaults as owl_defaults
 import owlpy.formula as owl_formula
+import owlpy.tool as owl_tool
 
 def _test(args, check):
     if len(args) > 2:

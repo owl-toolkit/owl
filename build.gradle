@@ -78,7 +78,7 @@ dependencies {
     implementation 'com.google.guava:guava:30.1-jre'
 
     // https://github.com/incaseoftrouble/jbdd
-    implementation 'de.tum.in:jbdd:0.5.2'
+    implementation 'de.tum.in:jbdd:0.6.0'
 
     // http://www.antlr.org/
     // https://mvnrepository.com/artifact/org.antlr/antlr4-runtime
@@ -251,7 +251,7 @@ javadoc {
     options.setEncoding('UTF-8')
     options.links('https://docs.oracle.com/en/java/javase/11/docs/api')
     options.addStringOption('Xdoclint:none', '-quiet') // Silence warnings
-}
+}.enabled(false)
 
 // ---------------- Distributions ----------------
 
